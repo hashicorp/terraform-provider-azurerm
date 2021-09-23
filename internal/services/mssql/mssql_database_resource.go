@@ -8,11 +8,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/Azure/go-autorest/autorest/date"
+
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -35,71 +36,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.DatabaseID(id)
 			return err
-		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
-			replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
-			resourceClient := meta.(*clients.Client).Resource.ResourcesClient
-
-			id, err := parse.DatabaseID(d.Id())
-			if err != nil {
-				return nil, err
-			}
-			resp, err := replicationLinksClient.ListByDatabase(ctx, id.ResourceGroup, id.ServerName, id.Name)
-			if err != nil {
-				return nil, fmt.Errorf("reading Replication Links for MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.ServerName, id.ResourceGroup, err)
-			}
-
-			for _, link := range *resp.Value {
-				linkProps := *link.ReplicationLinkProperties
-				if linkProps.Role == sql.ReplicationRoleSecondary || linkProps.Role == sql.ReplicationRoleNonReadableSecondary {
-					d.Set("create_mode", string(sql.CreateModeSecondary))
-					log.Printf("[INFO] replication link found for %s MsSql Database %s (MsSql Server Name %q / Resource Group %q) with Database %q on MsSql Server %q ", string(sql.CreateModeSecondary), id.Name, id.ServerName, id.ResourceGroup, *linkProps.PartnerDatabase, *linkProps.PartnerServer)
-
-					// get all SQL Servers with the name of the linked Primary
-					filter := fmt.Sprintf("(resourceType eq 'Microsoft.Sql/servers') and ((name eq '%s'))", *linkProps.PartnerServer)
-					var resourceList []resources.GenericResourceExpanded
-					for resourcesIterator, err := resourceClient.ListComplete(ctx, filter, "", nil); resourcesIterator.NotDone(); err = resourcesIterator.NextWithContext(ctx) {
-						if err != nil {
-							return nil, fmt.Errorf("loading SQL Server List: %+v", err)
-						}
-
-						resourceList = append(resourceList, resourcesIterator.Value())
-					}
-					if err != nil {
-						return nil, fmt.Errorf("reading Linked Servers for MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.ServerName, id.ResourceGroup, err)
-					}
-
-					for _, server := range resourceList {
-						serverID, err := parse.ServerID(*server.ID)
-						if err != nil {
-							return nil, err
-						}
-
-						// check if server named like the replication linked server has a database named like the partner database with a replication link
-						linksPossiblePrimary, err := replicationLinksClient.ListByDatabase(ctx, serverID.ResourceGroup, serverID.Name, *linkProps.PartnerDatabase)
-						if err != nil && !utils.ResponseWasNotFound(linksPossiblePrimary.Response) {
-							return nil, fmt.Errorf("reading Replication Links for MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", *linkProps.PartnerDatabase, serverID.Name, serverID.ResourceGroup, err)
-						}
-						if err != nil && utils.ResponseWasNotFound(linksPossiblePrimary.Response) {
-							log.Printf("[INFO] no replication link found for Database %q (MsSql Server %q / Resource Group %q): %s", *linkProps.PartnerDatabase, serverID.Name, serverID.ResourceGroup, err)
-							continue
-						}
-
-						for _, linkPossiblePrimary := range *linksPossiblePrimary.Value {
-							linkPropsPossiblePrimary := *linkPossiblePrimary.ReplicationLinkProperties
-
-							// check if the database has a replication link for a primary role and specific partner location
-							if linkPropsPossiblePrimary.Role == sql.ReplicationRolePrimary && *linkPossiblePrimary.Location == *linkProps.PartnerLocation {
-								d.Set("creation_source_database_id", parse.NewDatabaseID(serverID.SubscriptionId, serverID.ResourceGroup, serverID.Name, *linkProps.PartnerDatabase).ID())
-							}
-						}
-					}
-					return []*pluginsdk.ResourceData{d}, nil
-				}
-			}
-			d.Set("create_mode", "Default")
-
-			return []*pluginsdk.ResourceData{d}, nil
-		}),
+		}, resourceMsSqlDatabaseImporter),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -378,14 +315,49 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 	}
 }
 
+func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+	client := meta.(*clients.Client).MSSQL.DatabasesClient
+	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
+	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
+
+	id, err := parse.DatabaseID(d.Id())
+	if err != nil {
+		return nil, err
+	}
+
+	partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, *id, []sql.ReplicationRole{sql.ReplicationRolePrimary})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(partnerDatabases) > 0 {
+		partnerDatabase := partnerDatabases[0]
+
+		partnerDatabaseId, err := parse.DatabaseID(*partnerDatabase.ID)
+		if err != nil {
+			return nil, fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.ID, err)
+		}
+
+		d.Set("creation_source_database_id", parse.NewDatabaseID(partnerDatabaseId.SubscriptionId, partnerDatabaseId.ResourceGroup, partnerDatabaseId.ServerName, partnerDatabaseId.Name).ID())
+
+		return []*pluginsdk.ResourceData{d}, nil
+	}
+
+	d.Set("create_mode", "Default")
+
+	return []*pluginsdk.ResourceData{d}, nil
+}
+
 func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
-	serverClient := meta.(*clients.Client).MSSQL.ServersClient
+	serversClient := meta.(*clients.Client).MSSQL.ServersClient
 	threatClient := meta.(*clients.Client).MSSQL.DatabaseThreatDetectionPoliciesClient
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
+	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
+	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -397,40 +369,101 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	name := d.Get("name").(string)
-	sqlServerId := d.Get("server_id").(string)
-	serverId, _ := parse.ServerID(sqlServerId)
+
+	serverId, err := parse.ServerID(d.Get("server_id").(string))
+	if err != nil {
+		return fmt.Errorf("parsing server ID: %+v", err)
+	}
+
+	id := parse.NewDatabaseID(serverId.SubscriptionId, serverId.ResourceGroup, serverId.Name, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name, name)
-		if err != nil {
+		if existing, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name, name); err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Failed to check for presence of existing Database %q (MsSql Server %q / Resource Group %q): %s", name, serverId.Name, serverId.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
-		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mssql_database", *existing.ID)
+		} else {
+			return tf.ImportAsExistsError("azurerm_mssql_database", id.ID())
 		}
 	}
 
-	serverResp, err := serverClient.Get(ctx, serverId.ResourceGroup, serverId.Name)
+	server, err := serversClient.Get(ctx, serverId.ResourceGroup, serverId.Name)
 	if err != nil {
 		return fmt.Errorf("making Read request on MsSql Server %q (Resource Group %q): %s", serverId.Name, serverId.ResourceGroup, err)
 	}
 
-	location := *serverResp.Location
-	if location == "" {
-		return fmt.Errorf("Location is empty from making Read request on MsSql Server %q", serverId.Name)
+	if server.Location == nil || *server.Location == "" {
+		return fmt.Errorf("reading %s: Location was nil/empoty", serverId)
 	}
+	location := *server.Location
 
 	// when disassociating mssql db from elastic pool, the sku_name must be specific
 	if d.HasChange("elastic_pool_id") {
 		if old, new := d.GetChange("elastic_pool_id"); old.(string) != "" && new.(string) == "" {
 			if v, ok := d.GetOk("sku_name"); !ok || (ok && v.(string) == "ElasticPool") {
-				return fmt.Errorf("`sku_name` must be assigned and not be `ElasticPool` when disassociating MsSql Database %q from MsSql Elastic Pool", name)
+				return fmt.Errorf("`sku_name` must be assigned and not be %q when disassociating from Elastic Pool", "ElasticPool")
 			}
 		}
 	}
+
+	// When databases are replicating, the primary cannot have a SKU belonging to a higher service tier than any of its
+	// partner databases. To work around this, we'll try to identify any partner databases that are secondary to this
+	// database, and where the new SKU tier for this database is going to be higher, first upgrade those databases to
+	// the same sku_name as we'll be changing this database to. If that sku is different to the one configured for any
+	// of the partner databases, that discrepancy will have to be corrected by the resource for that database. That
+	// might happen as part of the same apply, if a change was already planned for it, else it will only be picked up
+	// in a second plan/apply.
+	//
+	// TLDR: for the best experience, configs should use the same SKU for primary and partner databases and when
+	// upgrading those SKUs, we'll try to upgrade the partner databases first.
+
+	// Place a lock for the current database so any partner resources can't bump its SKU out of band
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
+	if skuName := d.Get("sku_name"); !d.IsNewResource() && d.HasChange("sku_name") && skuName != "" {
+		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
+		if err != nil {
+			return err
+		}
+
+		// Place a lock for the partner databases, so they can't update themselves whilst we're poking their SKUs
+		for _, partnerDatabase := range partnerDatabases {
+			partnerDatabaseId, err := parse.DatabaseID(*partnerDatabase.ID)
+			if err != nil {
+				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.ID, err)
+			}
+
+			locks.ByID(partnerDatabaseId.ID())
+			defer locks.UnlockByID(partnerDatabaseId.ID())
+		}
+
+		// Update the SKUs of any partner databases where deemed necessary
+		for _, partnerDatabase := range partnerDatabases {
+			partnerDatabaseId, err := parse.DatabaseID(*partnerDatabase.ID)
+			if err != nil {
+				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.ID, err)
+			}
+
+			// TODO: sku limitations for replicating databases aren't yet fully understood, this can be improved
+			// We're going on this: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
+			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != nil && helper.CompareDatabaseSkuServiceTiers(skuName.(string), *partnerDatabase.Sku.Name) {
+				future, err := client.Update(ctx, partnerDatabaseId.ResourceGroup, partnerDatabaseId.ServerName, partnerDatabaseId.Name, sql.DatabaseUpdate{
+					Sku: &sql.Sku{
+						Name: utils.String(skuName.(string)),
+					},
+				})
+				if err != nil {
+					return fmt.Errorf("updating SKU of Replication Partner %s: %+v", partnerDatabaseId, err)
+				}
+
+				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return fmt.Errorf("waiting for SKU update for Replication Partner %s: %+v", partnerDatabaseId, err)
+				}
+			}
+		}
+	}
+
 	params := sql.Database{
 		Name:     &name,
 		Location: &location,
@@ -464,7 +497,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 	auditingPolicies := d.Get("extended_auditing_policy").([]interface{})
 	if (createMode == string(sql.CreateModeOnlineSecondary) || createMode == string(sql.Secondary)) && len(auditingPolicies) > 0 {
-		return fmt.Errorf("could not configure auditing policies on SQL Database %q (Resource Group %q, Server %q) in secondary create mode", name, serverId.ResourceGroup, serverId.Name)
+		return fmt.Errorf("cannot configure `extended_auditing_policy` in secondary create mode for %s", id)
 	}
 
 	if v, ok := d.GetOk("max_size_gb"); ok {
@@ -474,7 +507,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 		// `max_size_gb` only has change if it is configured
 		if d.HasChange("max_size_gb") && (createMode == string(sql.CreateModeOnlineSecondary) || createMode == string(sql.Secondary)) {
-			return fmt.Errorf("it is not possible to change maximum size nor advised to configure maximum size on SQL Database %q (Resource Group %q, Server %q) in secondary create mode", name, serverId.ResourceGroup, serverId.Name)
+			return fmt.Errorf("it is not possible to change maximum size nor advised to configure maximum size in secondary create mode for %s", id)
 		}
 	}
 
@@ -488,7 +521,10 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		if cm, ok := d.GetOk("create_mode"); ok && cm.(string) != string(sql.CreateModePointInTimeRestore) {
 			return fmt.Errorf("'restore_point_in_time' is supported only for create_mode %s", string(sql.CreateModePointInTimeRestore))
 		}
-		restorePointInTime, _ := time.Parse(time.RFC3339, v.(string))
+		restorePointInTime, err := time.Parse(time.RFC3339, v.(string))
+		if err != nil {
+			return fmt.Errorf("parsing `restore_point_in_time` value %q for %s: %+v", v, id, err)
+		}
 		params.DatabaseProperties.RestorePointInTime = &date.Time{Time: restorePointInTime}
 	}
 
@@ -511,25 +547,16 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		params.DatabaseProperties.RestorableDroppedDatabaseID = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, params)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, params)
 	if err != nil {
-		return fmt.Errorf("creating MsSql Database %q (Sql Server %q / Resource Group %q): %+v", name, serverId.Name, serverId.ResourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of MsSql Database %q (MsSql Server Name %q / Resource Group %q): %+v", name, serverId.Name, serverId.ResourceGroup, err)
+		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name, name)
-	if err != nil {
-		return fmt.Errorf("retrieving MsSql Database %q (MsSql Server Name %q / Resource Group %q): %+v", name, serverId.Name, serverId.ResourceGroup, err)
-	}
-
-	if read.ID == nil || *read.ID == "" {
-		return fmt.Errorf("Cannot read MsSql Database %q (MsSql Server Name %q / Resource Group %q) ID", name, serverId.Name, serverId.ResourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	// For datawarehouse SKUs only
 	if strings.HasPrefix(skuName.(string), "DW") && (d.HasChange("geo_backup_enabled") || d.IsNewResource()) {
@@ -550,22 +577,22 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 				},
 			}
 
-			if _, err := geoBackupPoliciesClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, geoBackupPolicy); err != nil {
-				return fmt.Errorf("issuing create/update request for Sql Server %q (Database %q) Geo backup policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+			if _, err := geoBackupPoliciesClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, geoBackupPolicy); err != nil {
+				return fmt.Errorf("setting Geo Backup Policies for %s: %+v", id, err)
 			}
 		}
 	}
 
-	if _, err = threatClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, *expandMsSqlServerThreatDetectionPolicy(d, location)); err != nil {
-		return fmt.Errorf("setting database threat detection policy: %+v", err)
+	if _, err = threatClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, expandMsSqlServerThreatDetectionPolicy(d, location)); err != nil {
+		return fmt.Errorf("setting database threat detection policy for %s: %+v", id, err)
 	}
 
 	if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(sql.CreateModeSecondary) {
 		auditingProps := sql.ExtendedDatabaseBlobAuditingPolicy{
 			ExtendedDatabaseBlobAuditingPolicyProperties: helper.ExpandMsSqlDBBlobAuditingPolicies(auditingPolicies),
 		}
-		if _, err = auditingClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, auditingProps); err != nil {
-			return fmt.Errorf("failure in issuing create/update request for SQL Database %q Blob Auditing Policies(SQL Server %q/ Resource Group %q): %+v", name, serverId.Name, serverId.ResourceGroup, err)
+		if _, err = auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, auditingProps); err != nil {
+			return fmt.Errorf("setting Blob Auditing Policies for %s: %+v", id, err)
 		}
 	}
 
@@ -580,13 +607,13 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 				longTermRetentionPolicy.LongTermRetentionPolicyProperties = longTermRetentionProps
 			}
 
-			longTermRetentionfuture, err := longTermRetentionClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, longTermRetentionPolicy)
+			longTermRetentionfuture, err := longTermRetentionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, longTermRetentionPolicy)
 			if err != nil {
-				return fmt.Errorf("issuing create/update request for Sql Server %q (Database %q) Long Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+				return fmt.Errorf("setting Long Term Retention Policies for %s: %+v", id, err)
 			}
 
 			if err = longTermRetentionfuture.WaitForCompletionRef(ctx, longTermRetentionClient.Client); err != nil {
-				return fmt.Errorf("waiting for completion of Create/Update for Sql Server %q (Database %q) Long Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+				return fmt.Errorf("waiting for update of Long Term Retention Policies for %s: %+v", id, err)
 			}
 		}
 	}
@@ -601,13 +628,13 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 				backupShortTermPolicy.BackupShortTermRetentionPolicyProperties = backupShortTermPolicyProps
 			}
 
-			shortTermRetentionFuture, err := shortTermRetentionClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, backupShortTermPolicy)
+			shortTermRetentionFuture, err := shortTermRetentionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, backupShortTermPolicy)
 			if err != nil {
-				return fmt.Errorf("issuing create/update request for Sql Server %q (Database %q) Short Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+				return fmt.Errorf("setting Short Term Retention Policies for %s: %+v", id, err)
 			}
 
 			if err = shortTermRetentionFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for completion of Create/Update for Sql Server %q (Database %q) Short Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+				return fmt.Errorf("waiting for update of Short Term Retention Policies for %s: %+v", id, err)
 			}
 		}
 	}
@@ -622,6 +649,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -630,24 +658,19 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
+	serverId := parse.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("name", resp.Name)
-
-	serverClient := meta.(*clients.Client).MSSQL.ServersClient
-
-	serverResp, err := serverClient.Get(ctx, id.ResourceGroup, id.ServerName)
-	if err != nil || *serverResp.ID == "" {
-		return fmt.Errorf("making Read request on MsSql Server  %q (Resource Group %q): %s", id.ServerName, id.ResourceGroup, err)
-	}
-	d.Set("server_id", serverResp.ID)
+	d.Set("server_id", serverId.ID())
 
 	skuName := ""
 	if props := resp.DatabaseProperties; props != nil {
@@ -668,7 +691,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		if props.CurrentServiceObjectiveName != nil {
 			skuName = *props.CurrentServiceObjectiveName
 		}
-		d.Set("sku_name", props.CurrentServiceObjectiveName)
+		d.Set("sku_name", skuName)
 		d.Set("storage_account_type", props.StorageAccountType)
 		d.Set("zone_redundant", props.ZoneRedundant)
 	}
@@ -682,12 +705,11 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
-		return fmt.Errorf("failure in reading SQL Database %q: %v Blob Auditing Policies", id.Name, err)
+		return fmt.Errorf("retrieving Blob Auditing Policies for %s: %+v", id, err)
 	}
 
-	flattenBlobAuditing := helper.FlattenMsSqlDBBlobAuditingPolicies(&auditingResp, d)
-	if err := d.Set("extended_auditing_policy", flattenBlobAuditing); err != nil {
-		return fmt.Errorf("failure in setting `extended_auditing_policy`: %+v", err)
+	if err := d.Set("extended_auditing_policy", helper.FlattenMsSqlDBBlobAuditingPolicies(&auditingResp, d)); err != nil {
+		return fmt.Errorf("setting `extended_auditing_policy`: %+v", err)
 	}
 
 	geoBackupPolicy := true
@@ -696,21 +718,19 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	if !strings.HasPrefix(skuName, "HS") && !strings.HasPrefix(skuName, "DW") {
 		longTermPolicy, err := longTermRetentionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
-			return fmt.Errorf("retrieving Long Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving Long Term Retention Policies for %s: %+v", id, err)
 		}
-		flattenlongTermPolicy := helper.FlattenLongTermRetentionPolicy(&longTermPolicy, d)
-		if err := d.Set("long_term_retention_policy", flattenlongTermPolicy); err != nil {
-			return fmt.Errorf("failure in setting `long_term_retention_policy`: %+v", err)
+		if err := d.Set("long_term_retention_policy", helper.FlattenLongTermRetentionPolicy(&longTermPolicy, d)); err != nil {
+			return fmt.Errorf("setting `long_term_retention_policy`: %+v", err)
 		}
 
 		shortTermPolicy, err := shortTermRetentionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
-			return fmt.Errorf("retrieving Short Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving Short Term Retention Policies for %s: %+v", id, err)
 		}
 
-		flattenShortTermPolicy := helper.FlattenShortTermRetentionPolicy(&shortTermPolicy, d)
-		if err := d.Set("short_term_retention_policy", flattenShortTermPolicy); err != nil {
-			return fmt.Errorf("failure in setting `short_term_retention_policy`: %+v", err)
+		if err := d.Set("short_term_retention_policy", helper.FlattenShortTermRetentionPolicy(&shortTermPolicy, d)); err != nil {
+			return fmt.Errorf("setting `short_term_retention_policy`: %+v", err)
 		}
 	} else {
 		// HS and DW SKUs need the retention policies zeroing for state consistency
@@ -724,7 +744,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				d.SetId("")
 				return nil
 			}
-			return fmt.Errorf("reading MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.ServerName, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving Geo Backuip Policies for %s: %+v", id, err)
 		}
 
 		// For Datawarehouse SKUs, set the geo-backup policy setting
@@ -734,7 +754,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if err := d.Set("geo_backup_enabled", geoBackupPolicy); err != nil {
-		return fmt.Errorf("failure in setting `geo_backup_enabled`: %+v", err)
+		return fmt.Errorf("setting `geo_backup_enabled`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -752,12 +772,11 @@ func resourceMsSqlDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting MsSql Database %q ( MsSql Server %q / Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-
-		return fmt.Errorf("waiting for MsSql Database %q ( MsSql Server %q / Resource Group %q) to be deleted: %+v", id.Name, id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting deletion of %s: %+v", id, err)
 	}
 
 	return nil
@@ -812,7 +831,7 @@ func flattenMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, policy s
 	return []interface{}{threatDetectionPolicy}
 }
 
-func expandMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, location string) *sql.DatabaseSecurityAlertPolicy {
+func expandMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, location string) sql.DatabaseSecurityAlertPolicy {
 	policy := sql.DatabaseSecurityAlertPolicy{
 		Location: utils.String(location),
 		DatabaseSecurityAlertPolicyProperties: &sql.DatabaseSecurityAlertPolicyProperties{
@@ -823,7 +842,7 @@ func expandMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, location 
 
 	td, ok := d.GetOk("threat_detection_policy")
 	if !ok {
-		return &policy
+		return policy
 	}
 
 	if tdl := td.([]interface{}); len(tdl) > 0 {
@@ -859,8 +878,8 @@ func expandMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, location 
 			properties.StorageEndpoint = utils.String(v.(string))
 		}
 
-		return &policy
+		return policy
 	}
 
-	return &policy
+	return policy
 }
