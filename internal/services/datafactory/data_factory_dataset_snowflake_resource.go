@@ -107,31 +107,6 @@ func resourceDataFactoryDatasetSnowflake() *pluginsdk.Resource {
 				},
 			},
 
-			"structure_column": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-
-							}, false),
-						},
-
-					},
-				},
-				ConflictsWith: []string{
-					"schema_column",
-				},
-			},
-
 			"schema_column": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
