@@ -100,15 +100,30 @@ func TestAccApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
 	})
 }
 
+func TestAccApplicationInsightsAnalyticsItem_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test")
+	r := AppInsightsAnalyticsItemResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func (t AppInsightsAnalyticsItemResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	resGroup, appInsightsName, itemScopePath, itemID, err := applicationinsights.ResourcesArmApplicationInsightsAnalyticsItemParseID(state.ID)
+	id, resGroup, appInsightsName, itemScopePath, itemID, err := applicationinsights.ResourcesArmApplicationInsightsAnalyticsItemParseID(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse ID (id: %s): %+v", state.ID, err)
+		return nil, fmt.Errorf("failed to parse id %s: %+v", state.ID, err)
 	}
 
 	resp, err := clients.AppInsights.AnalyticsItemsClient.Get(ctx, resGroup, appInsightsName, itemScopePath, itemID, "")
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Application Insights AnalyticsItem %q (resource group: %q, app insight: %s, item scope: %s): %+v", resGroup, appInsightsName, itemScopePath, itemID, err)
+		return nil, fmt.Errorf("retrieving Application Insights Analytics Item %s: %+v", id, err)
 	}
 
 	return utils.Bool(resp.StatusCode != http.StatusNotFound), nil
@@ -213,4 +228,19 @@ resource "azurerm_application_insights_analytics_item" "test3" {
   function_alias          = "myfunction"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (AppInsightsAnalyticsItemResource) requiresImport(data acceptance.TestData) string {
+	template := AppInsightsAnalyticsItemResource{}.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_application_insights_analytics_item" "import" {
+  name                    = azurerm_application_insights_analytics_item.test.name
+  application_insights_id = azurerm_application_insights_analytics_item.test.application_insights_id
+  type                    = azurerm_application_insights_analytics_item.test.type
+  scope                   = azurerm_application_insights_analytics_item.test.scope
+  content                 = azurerm_application_insights_analytics_item.test.content
+}
+`, template)
 }
