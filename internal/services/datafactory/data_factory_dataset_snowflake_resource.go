@@ -110,7 +110,6 @@ func resourceDataFactoryDatasetSnowflake() *pluginsdk.Resource {
 			"structure_column": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
-				Deprecated: "This block has been deprecated in favour of `schema_column` and will be removed.",
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -122,28 +121,10 @@ func resourceDataFactoryDatasetSnowflake() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"Byte",
-								"Byte[]",
-								"Boolean",
-								"Date",
-								"DateTime",
-								"DateTimeOffset",
-								"Decimal",
-								"Double",
-								"Guid",
-								"Int16",
-								"Int32",
-								"Int64",
-								"Single",
-								"String",
-								"TimeSpan",
+
 							}, false),
 						},
-						"description": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+
 					},
 				},
 				ConflictsWith: []string{
@@ -161,6 +142,7 @@ func resourceDataFactoryDatasetSnowflake() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+
 						"type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
@@ -197,22 +179,44 @@ func resourceDataFactoryDatasetSnowflake() *pluginsdk.Resource {
 								"OBJECT",
 								"ARRAY",
 								"GEOGRAPHY",
+								// todo 3.0 remove these old values
+								"Byte",
+								"Byte[]",
+								"Boolean",
+								"Date",
+								"DateTime",
+								"DateTimeOffset",
+								"Decimal",
+								"Double",
+								"Guid",
+								"Int16",
+								"Int32",
+								"Int64",
+								"Single",
+								"String",
+								"TimeSpan",
 							}, false),
 						},
+
 						"precision": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
+
 						"scale": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
+
+						"description": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Deprecated:  "This block was ignored by the api and thus has been deprecated and weill be removed in version 3.0 of the provider.",
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 					},
-				},
-				ConflictsWith: []string{
-					"structure_column",
 				},
 			},
 		},
