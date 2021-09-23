@@ -231,6 +231,12 @@ A `addon_profile` block supports the following:
 
 * `ingress_application_gateway` - (Optional) An `ingress_application_gateway` block as defined below.
 
+* `open_service_mesh` - (Optional) An `open_service_mesh` block as defined below. For more details, please visit [Open Service Mesh for AKS](https://docs.microsoft.com/azure/aks/open-service-mesh-about).
+
+-> **NOTE.** At this time Open Service Mesh is not supported in Azure US government or Azure China.
+
+-> **NOTE.** Open Service Mesh is available on an opt-in preview basis. For more details about how to opt-in, please visit [Open Service Mesh for AKS](https://docs.microsoft.com/azure/aks/open-service-mesh-deploy-add-on#register-the-aks-openservicemesh-preview-feature)
+
 ---
 
 An `auto_scaler_profile` block supports the following:
@@ -561,6 +567,12 @@ An `ingress_application_gateway` block supports the following:
 * `subnet_id` - (Optional) The ID of the subnet on which to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-new) page for further details.
 
 -> **NOTE** If using `enabled` in conjunction with `only_critical_addons_enabled`, the AGIC pod will fail to start. A separate `azurerm_kubernetes_cluster_node_pool` is required to run the AGIC pod successfully. This is because AGIC is classed as a "non-critical addon".
+
+---
+
+An `open_service_mesh` block supports the following:
+
+* `enabled` - Is Open Service Mesh enabled?
 
 ---
 
