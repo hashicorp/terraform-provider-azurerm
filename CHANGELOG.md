@@ -18,13 +18,13 @@ ENHANCEMENTS:
 * `azurerm_storage_share_file` - will now recreate and upload deleted/missing files [GH-13269]
 * `azurerm_synapse_workspace` - the `tenant_id` property is now computed [GH-13464]
 
-
 BUG FIXES:
 
 * Data Source: `azurerm_app_service_certificate` - prevent panics if the API returns a nil `issue_date` or `expiration_date` [GH-13401]
 * `azurerm_app_service_certificate` - prevent panics if the API returns a nil `issue_date` or `expiration_date` [GH-13401]
 * `azurerm_app_service_certificate_binding` - reverted a change that introduced a bug in certificate selection for non-managed certificates [GH-13455]
 * `azurerm_container_group` - allow creation of shared volume between containers in multi container group [GH-13374]
+* `azurerm_kubernetes_cluster` - changing the `private_cluster_public_fqdn_enabled` no longer created a new resource [GH-13413]
 
 ## 2.77.0 (September 17, 2021)
 
