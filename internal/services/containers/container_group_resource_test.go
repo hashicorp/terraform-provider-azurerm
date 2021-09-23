@@ -1589,10 +1589,10 @@ resource "azurerm_container_group" "test" {
   restart_policy      = "Never"
 
   container {
-    name   = "writer"
-    image  = "ubuntu:20.04"
-    cpu    = "1"
-    memory = "1.5"
+    name     = "writer"
+    image    = "ubuntu:20.04"
+    cpu      = "1"
+    memory   = "1.5"
     commands = ["touch", "/sharedempty/file.txt"]
 
     # Dummy port not used, workaround for https://github.com/hashicorp/terraform-provider-azurerm/issues/1697
