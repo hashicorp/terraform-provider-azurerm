@@ -212,6 +212,10 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("unexpected API response. More than one value returned for Key/Label pair %s/%s", resourceID.Key, resourceID.Label)
 			}
 
+			if len(res.Values()) < 1 {
+				return metadata.MarkAsGone(resourceID)
+			}
+
 			kv := res.Values()[0]
 
 			model := KeyResourceModel{
