@@ -27,6 +27,7 @@ BUG FIXES:
 * `azurerm_app_service_certificate_binding` - reverted a change that introduced a bug in certificate selection for non-managed certificates [GH-13455]
 * `azurerm_container_group` - allow creation of shared volume between containers in multi container group [GH-13374]
 * `azurerm_kubernetes_cluster` - changing the `private_cluster_public_fqdn_enabled` no longer created a new resource [GH-13413]
+* `azurerm_app_configuration_key` - fix nil pointer for removed key [GH-13483]
 
 ## 2.77.0 (September 17, 2021)
 
