@@ -7,11 +7,13 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
@@ -25,11 +27,10 @@ func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
 			if strings.Contains(id, string(insights.ItemScopePathMyanalyticsItems)) {
 				_, err := parse.AnalyticsUserItemID(id)
 				return err
-			} else if strings.Contains(id, string(insights.ItemScopePathAnalyticsItems)){
+			} else {
+				strings.Contains(id, string(insights.ItemScopePathAnalyticsItems))
 				_, err := parse.AnalyticsSharedItemID(id)
 				return err
-			} else {
-				return fmt.Errorf("unable to parse id %s", id)
 			}
 		}),
 
@@ -139,6 +140,36 @@ func resourceApplicationInsightsAnalyticsItemCreateUpdate(d *pluginsdk.ResourceD
 
 	itemType := insights.ItemType(typeName)
 	itemScope := insights.ItemScope(scopeName)
+
+	var itemScopePath insights.ItemScopePath
+	if itemScope == insights.ItemScopeUser {
+		itemScopePath = insights.ItemScopePathMyanalyticsItems
+	} else {
+		itemScopePath = insights.ItemScopePathAnalyticsItems
+	}
+
+	includeContent := false
+
+	if d.IsNewResource() {
+		// We cannot get specific analytics items without their itemID which is why we need to list all the
+		// available items of a certain type and scope in order to check whether a resource already exists and needs
+		// to be imported first
+		existing, err := client.List(ctx, appInsightsId.ResourceGroup, appInsightsId.Name, itemScopePath, itemScope, insights.ItemTypeParameter(typeName), &includeContent)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing Application Insights Analytics Items %+v", err)
+			}
+		}
+		if existing.Value != nil {
+			values := *existing.Value
+			for _, v := range values {
+				if *v.Name == name {
+					return tf.ImportAsExistsError("azurerm_application_insights_analytics_item", *v.ID)
+				}
+			}
+		}
+	}
+
 	properties := insights.ApplicationInsightsComponentAnalyticsItem{
 		ID:      &itemID,
 		Name:    &name,
@@ -150,13 +181,6 @@ func resourceApplicationInsightsAnalyticsItemCreateUpdate(d *pluginsdk.ResourceD
 		properties.Properties = &insights.ApplicationInsightsComponentAnalyticsItemProperties{
 			FunctionAlias: &functionAlias,
 		}
-	}
-
-	var itemScopePath insights.ItemScopePath
-	if itemScope == insights.ItemScopeUser {
-		itemScopePath = insights.ItemScopePathMyanalyticsItems
-	} else {
-		itemScopePath = insights.ItemScopePathAnalyticsItems
 	}
 
 	result, err := client.Put(ctx, appInsightsId.ResourceGroup, appInsightsId.Name, itemScopePath, properties, &overwrite)
@@ -224,6 +248,9 @@ func resourceApplicationInsightsAnalyticsItemDelete(d *pluginsdk.ResourceData, m
 }
 
 func ResourcesArmApplicationInsightsAnalyticsItemParseID(id string) (string, string, string, insights.ItemScopePath, string, error) {
+	// The generated ID format differs depending on scope
+	// <appinsightsID>/analyticsItems/<itemID>     [for shared scope items]
+	// <appinsightsID>/myanalyticsItems/<itemID>   [for user scope items]
 	if strings.Contains(id, string(insights.ItemScopePathMyanalyticsItems)) {
 		id, err := parse.AnalyticsUserItemID(id)
 		if err != nil {
