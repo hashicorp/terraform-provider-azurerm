@@ -61,7 +61,7 @@ func (r SynapseManagedPrivateEndpointResource) Exists(ctx context.Context, clien
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Synapse Managed Private Endpoints (Workspace %q / Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	return utils.Bool(true), nil
@@ -70,10 +70,10 @@ func (r SynapseManagedPrivateEndpointResource) Exists(ctx context.Context, clien
 func (r SynapseManagedPrivateEndpointResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-	%s
+%[1]s
 
 resource "azurerm_synapse_managed_private_endpoint" "test" {
-  name                 = "acctestEndpoint%d"
+  name                 = "acctestEndpoint%[2]d"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   target_resource_id   = azurerm_storage_account.test_endpoint.id
   subresource_name     = "blob"
@@ -86,7 +86,7 @@ resource "azurerm_synapse_managed_private_endpoint" "test" {
 func (r SynapseManagedPrivateEndpointResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
-	%s
+%[1]s
 
 resource "azurerm_synapse_managed_private_endpoint" "import" {
   name                 = azurerm_synapse_managed_private_endpoint.test.name
@@ -104,12 +104,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-synapse-%d"
-  location = "%s"
+  name     = "acctestRG-synapse-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
+  name                     = "acctestacc%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_kind             = "BlobStorage"
@@ -118,7 +118,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_account" "test_endpoint" {
-  name                     = "acctestacce%s"
+  name                     = "acctestacce%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_kind             = "BlobStorage"
@@ -127,12 +127,12 @@ resource "azurerm_storage_account" "test_endpoint" {
 }
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
-  name               = "acctest-%d"
+  name               = "acctest-%[1]d"
   storage_account_id = azurerm_storage_account.test.id
 }
 
 resource "azurerm_synapse_workspace" "test" {
-  name                                 = "acctestsw%d"
+  name                                 = "acctestsw%[1]d"
   resource_group_name                  = azurerm_resource_group.test.name
   location                             = azurerm_resource_group.test.location
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
@@ -150,5 +150,5 @@ resource "azurerm_synapse_firewall_rule" "test" {
   start_ip_address     = "0.0.0.0"
   end_ip_address       = "255.255.255.255"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
