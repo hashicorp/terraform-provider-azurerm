@@ -276,7 +276,7 @@ resource "azurerm_mssql_failover_group" "import" {
   tags      = azurerm_mssql_failover_group.test.tags
 
   partner_server {
-    id = azurerm_mssql_failover_group.test.partner_servers[0].id
+    id = azurerm_mssql_failover_group.test.partner_server[0].id
   }
 
   read_write_endpoint_failover_policy {
