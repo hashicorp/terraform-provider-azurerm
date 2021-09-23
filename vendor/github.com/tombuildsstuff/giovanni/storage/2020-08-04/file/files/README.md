@@ -1,6 +1,6 @@
-## File Storage Directories SDK for API version 2019-12-12
+## File Storage Files SDK for API version 2020-08-04
 
-This package allows you to interact with the Directories File Storage API
+This package allows you to interact with the Files File Storage API
 
 ### Supported Authorizers
 
@@ -22,7 +22,7 @@ import (
 	"time"
 	
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/directories"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/files"
 )
 
 func Example() error {
@@ -30,17 +30,16 @@ func Example() error {
     storageAccountKey := "ABC123...."
     shareName := "myshare"
     directoryName := "myfiles"
+    fileName := "example.txt"
     
     storageAuth := autorest.NewSharedKeyLiteAuthorizer(accountName, storageAccountKey)
-    directoriesClient := directories.New()
-    directoriesClient.Client.Authorizer = storageAuth
+    filesClient := files.New()
+    filesClient.Client.Authorizer = storageAuth
     
     ctx := context.TODO()
-    metadata := map[string]string{
-    	"hello": "world",
-    }
-    if _, err := directoriesClient.Create(ctx, accountName, shareName, directoryName, metadata); err != nil {
-        return fmt.Errorf("Error creating Directory: %s", err)
+    input := files.CreateInput{}
+    if _, err := filesClient.Create(ctx, accountName, shareName, directoryName, fileName, input); err != nil {
+        return fmt.Errorf("Error creating File: %s", err)
     }
     
     return nil 
