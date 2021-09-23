@@ -141,7 +141,7 @@ func (r ServicePlanResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (r ServicePlanResource) ModelObject() interface{} {
-	return ServicePlanModel{}
+	return &ServicePlanModel{}
 }
 
 func (r ServicePlanResource) ResourceType() string {

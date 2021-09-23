@@ -13,20 +13,22 @@ import (
 
 type Client struct {
 	FirewallRulesClient                              *synapse.IPFirewallRulesClient
-	IntegrationRuntimesClient                        *synapse.IntegrationRuntimesClient
 	IntegrationRuntimeAuthKeysClient                 *synapse.IntegrationRuntimeAuthKeysClient
+	IntegrationRuntimesClient                        *synapse.IntegrationRuntimesClient
+	KeysClient                                       *synapse.KeysClient
 	PrivateLinkHubsClient                            *synapse.PrivateLinkHubsClient
 	SparkPoolClient                                  *synapse.BigDataPoolsClient
 	SqlPoolClient                                    *synapse.SQLPoolsClient
+	SqlPoolExtendedBlobAuditingPoliciesClient        *synapse.ExtendedSQLPoolBlobAuditingPoliciesClient
 	SqlPoolSecurityAlertPolicyClient                 *synapse.SQLPoolSecurityAlertPoliciesClient
 	SqlPoolTransparentDataEncryptionClient           *synapse.SQLPoolTransparentDataEncryptionsClient
 	SqlPoolVulnerabilityAssessmentsClient            *synapse.SQLPoolVulnerabilityAssessmentsClient
-	WorkspaceClient                                  *synapse.WorkspacesClient
 	WorkspaceAadAdminsClient                         *synapse.WorkspaceAadAdminsClient
+	WorkspaceClient                                  *synapse.WorkspacesClient
+	WorkspaceExtendedBlobAuditingPoliciesClient      *synapse.WorkspaceManagedSQLServerExtendedBlobAuditingPoliciesClient
 	WorkspaceManagedIdentitySQLControlSettingsClient *synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	WorkspaceSecurityAlertPolicyClient               *synapse.WorkspaceManagedSQLServerSecurityAlertPolicyClient
 	WorkspaceVulnerabilityAssessmentsClient          *synapse.WorkspaceManagedSQLServerVulnerabilityAssessmentsClient
-	KeysClient                                       *synapse.KeysClient
 
 	synapseAuthorizer autorest.Authorizer
 }
@@ -35,11 +37,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	firewallRuleClient := synapse.NewIPFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&firewallRuleClient.Client, o.ResourceManagerAuthorizer)
 
+	integrationRuntimeAuthKeysClient := synapse.NewIntegrationRuntimeAuthKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&integrationRuntimeAuthKeysClient.Client, o.ResourceManagerAuthorizer)
+
 	integrationRuntimesClient := synapse.NewIntegrationRuntimesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&integrationRuntimesClient.Client, o.ResourceManagerAuthorizer)
 
-	integrationRuntimeAuthKeysClient := synapse.NewIntegrationRuntimeAuthKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&integrationRuntimeAuthKeysClient.Client, o.ResourceManagerAuthorizer)
+	keysClient := synapse.NewKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&keysClient.Client, o.ResourceManagerAuthorizer)
 
 	privateLinkHubsClient := synapse.NewPrivateLinkHubsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&privateLinkHubsClient.Client, o.ResourceManagerAuthorizer)
@@ -51,6 +56,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	sqlPoolClient := synapse.NewSQLPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolClient.Client, o.ResourceManagerAuthorizer)
 
+	sqlPoolExtendedBlobAuditingPoliciesClient := synapse.NewExtendedSQLPoolBlobAuditingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&sqlPoolExtendedBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
 	sqlPoolSecurityAlertPolicyClient := synapse.NewSQLPoolSecurityAlertPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolSecurityAlertPolicyClient.Client, o.ResourceManagerAuthorizer)
 
@@ -60,11 +68,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	sqlPoolVulnerabilityAssessmentsClient := synapse.NewSQLPoolVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
 
+	workspaceAadAdminsClient := synapse.NewWorkspaceAadAdminsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&workspaceAadAdminsClient.Client, o.ResourceManagerAuthorizer)
+
 	workspaceClient := synapse.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceClient.Client, o.ResourceManagerAuthorizer)
 
-	workspaceAadAdminsClient := synapse.NewWorkspaceAadAdminsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&workspaceAadAdminsClient.Client, o.ResourceManagerAuthorizer)
+	workspaceExtendedBlobAuditingPoliciesClient := synapse.NewWorkspaceManagedSQLServerExtendedBlobAuditingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&workspaceExtendedBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
 	workspaceManagedIdentitySQLControlSettingsClient := synapse.NewWorkspaceManagedIdentitySQLControlSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceManagedIdentitySQLControlSettingsClient.Client, o.ResourceManagerAuthorizer)
@@ -74,25 +85,25 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	workspaceVulnerabilityAssessmentsClient := synapse.NewWorkspaceManagedSQLServerVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
-	keysClient := synapse.NewKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&keysClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		FirewallRulesClient:                              &firewallRuleClient,
-		IntegrationRuntimesClient:                        &integrationRuntimesClient,
 		IntegrationRuntimeAuthKeysClient:                 &integrationRuntimeAuthKeysClient,
+		IntegrationRuntimesClient:                        &integrationRuntimesClient,
+		KeysClient:                                       &keysClient,
 		PrivateLinkHubsClient:                            &privateLinkHubsClient,
 		SparkPoolClient:                                  &sparkPoolClient,
 		SqlPoolClient:                                    &sqlPoolClient,
+		SqlPoolExtendedBlobAuditingPoliciesClient:        &sqlPoolExtendedBlobAuditingPoliciesClient,
 		SqlPoolSecurityAlertPolicyClient:                 &sqlPoolSecurityAlertPolicyClient,
 		SqlPoolTransparentDataEncryptionClient:           &sqlPoolTransparentDataEncryptionClient,
 		SqlPoolVulnerabilityAssessmentsClient:            &sqlPoolVulnerabilityAssessmentsClient,
-		WorkspaceClient:                                  &workspaceClient,
 		WorkspaceAadAdminsClient:                         &workspaceAadAdminsClient,
+		WorkspaceClient:                                  &workspaceClient,
+		WorkspaceExtendedBlobAuditingPoliciesClient:      &workspaceExtendedBlobAuditingPoliciesClient,
 		WorkspaceManagedIdentitySQLControlSettingsClient: &workspaceManagedIdentitySQLControlSettingsClient,
 		WorkspaceSecurityAlertPolicyClient:               &workspaceSecurityAlertPolicyClient,
 		WorkspaceVulnerabilityAssessmentsClient:          &workspaceVulnerabilityAssessmentsClient,
-		KeysClient:                                       &keysClient,
 
 		synapseAuthorizer: o.SynapseAuthorizer,
 	}
