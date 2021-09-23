@@ -251,21 +251,37 @@ func ResourcesArmApplicationInsightsAnalyticsItemParseID(id string) (string, str
 	// The generated ID format differs depending on scope
 	// <appinsightsID>/analyticsItems/<itemID>     [for shared scope items]
 	// <appinsightsID>/myanalyticsItems/<itemID>   [for user scope items]
-	if strings.Contains(id, string(insights.ItemScopePathMyanalyticsItems)) {
+	switch {
+	case strings.Contains(id, string(insights.ItemScopePathMyanalyticsItems)):
 		id, err := parse.AnalyticsUserItemID(id)
 		if err != nil {
 			return "", "", "", "", "", err
 		}
 		return id.String(), id.ResourceGroup, id.ComponentName, insights.ItemScopePathMyanalyticsItems, id.MyanalyticsItemName, nil
-	} else if strings.Contains(id, string(insights.ItemScopePathAnalyticsItems)) {
+	case strings.Contains(id, string(insights.ItemScopePathAnalyticsItems)):
 		id, err := parse.AnalyticsSharedItemID(id)
 		if err != nil {
 			return "", "", "", "", "", err
 		}
 		return id.String(), id.ResourceGroup, id.ComponentName, insights.ItemScopePathAnalyticsItems, id.AnalyticsItemName, nil
-	} else {
+	default:
 		return "", "", "", "", "", fmt.Errorf("parsing Application Insights Analytics Item ID %s", id)
 	}
+	//if strings.Contains(id, string(insights.ItemScopePathMyanalyticsItems)) {
+	//	id, err := parse.AnalyticsUserItemID(id)
+	//	if err != nil {
+	//		return "", "", "", "", "", err
+	//	}
+	//	return id.String(), id.ResourceGroup, id.ComponentName, insights.ItemScopePathMyanalyticsItems, id.MyanalyticsItemName, nil
+	//} else if strings.Contains(id, string(insights.ItemScopePathAnalyticsItems)) {
+	//	id, err := parse.AnalyticsSharedItemID(id)
+	//	if err != nil {
+	//		return "", "", "", "", "", err
+	//	}
+	//	return id.String(), id.ResourceGroup, id.ComponentName, insights.ItemScopePathAnalyticsItems, id.AnalyticsItemName, nil
+	//} else {
+	//	return "", "", "", "", "", fmt.Errorf("parsing Application Insights Analytics Item ID %s", id)
+	//}
 }
 
 func resourcesArmApplicationInsightsAnalyticsItemGenerateID(itemScope insights.ItemScope, itemID string, appInsightsId *parse.ComponentId) string {
