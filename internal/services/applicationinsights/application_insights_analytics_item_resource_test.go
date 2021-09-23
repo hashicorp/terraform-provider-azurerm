@@ -236,11 +236,11 @@ func (AppInsightsAnalyticsItemResource) requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_application_insights_analytics_item" "import" {
-  name					  = azurerm_application_insights_analytics_item.test.name
+  name                    = azurerm_application_insights_analytics_item.test.name
   application_insights_id = azurerm_application_insights_analytics_item.test.application_insights_id
-  type					  = azurerm_application_insights_analytics_item.test.type
-  scope					  = azurerm_application_insights_analytics_item.test.scope  
-  content				  = azurerm_application_insights_analytics_item.test.content
+  type                    = azurerm_application_insights_analytics_item.test.type
+  scope                   = azurerm_application_insights_analytics_item.test.scope
+  content                 = azurerm_application_insights_analytics_item.test.content
 }
 `, template)
 }
