@@ -4,7 +4,7 @@ FEATURES:
 
 * **New Resource:** `azurerm_synapse_sql_pool_extended_auditing_policy` [GH-12952]
 * **New Resource:** `azurerm_synapse_workspace_extended_auditing_policy` [GH-12952]
-
+* **New Resource:** `azurerm_frontdoor_rules_engine` [GH-13249]
 
 ENHANCEMENTS:
 
@@ -14,7 +14,6 @@ ENHANCEMENTS:
 * `azurerm_app_service` - support for the `vnet_route_all_enabled` property [GH-13310]
 * `azurerm_storage_share_file` - will now recreate and upload deleted/missing files [GH-13269]
 * `azurerm_private_endpoint_connection` - export the `network_interface` attribute from private endpoints [GH-13421]
-
 
 BUG FIXES:
 
