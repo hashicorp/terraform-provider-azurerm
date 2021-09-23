@@ -1223,11 +1223,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			existing.ManagedClusterProperties.APIServerAccessProfile.PrivateDNSZone = utils.String(v.(string))
 		}
 	}
-	
+
 	if d.HasChange("private_cluster_public_fqdn_enabled") {
-                updateCluster = true
-                existing.ManagedClusterProperties.APIServerAccessProfile.EnablePrivateClusterPublicFQDN = utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool))
-        }
+		updateCluster = true
+		existing.ManagedClusterProperties.APIServerAccessProfile.EnablePrivateClusterPublicFQDN = utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool))
+	}
 
 	if d.HasChange("auto_scaler_profile") {
 		updateCluster = true
