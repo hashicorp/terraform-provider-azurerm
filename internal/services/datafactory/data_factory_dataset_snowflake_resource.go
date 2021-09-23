@@ -188,7 +188,7 @@ func resourceDataFactoryDatasetSnowflake() *pluginsdk.Resource {
 						"description": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Deprecated:  "This block was ignored by the api and thus has been deprecated and weill be removed in version 3.0 of the provider.",
+							Deprecated:   "This block was ignored by the api and thus has been deprecated and weill be removed in version 3.0 of the provider.",
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
@@ -257,10 +257,6 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 
 	if v, ok := d.GetOk("additional_properties"); ok {
 		snowflakeTableset.AdditionalProperties = v.(map[string]interface{})
-	}
-
-	if v, ok := d.GetOk("structure_column"); ok {
-		snowflakeTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("schema_column"); ok {
@@ -364,11 +360,6 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 		if folder.Name != nil {
 			d.Set("folder", folder.Name)
 		}
-	}
-
-	structureColumns := flattenDataFactoryStructureColumns(snowflakeTable.Structure)
-	if err := d.Set("structure_column", structureColumns); err != nil {
-		return fmt.Errorf("setting `structure_column`: %+v", err)
 	}
 
 	schemaColumns := flattenDataFactorySnowflakeSchemaColumns(snowflakeTable.Schema)
