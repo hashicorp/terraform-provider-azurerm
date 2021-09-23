@@ -15,6 +15,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* upgrading `iothub` to API Version `2021-03-31` [GH-13324]
 * `data.azurerm_private_endpoint_connection` - Export `network_interface` attributes from private endpoints [GH-13421]
 * `azurerm_app_service` - support for the `vnet_route_all_enabled` property [GH-13310]
 * `azurerm_bot_channel_slack` - support for the `signing_secret` property [GH-13454]
