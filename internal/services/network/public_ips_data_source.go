@@ -30,9 +30,27 @@ func dataSourcePublicIPs() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			// TODO - Remove in 3.0.
 			"attached": {
-				Type:     pluginsdk.TypeBool,
+				Type:       pluginsdk.TypeBool,
+				Optional:   true,
+				Deprecated: "This property has been deprecated in favour of `attachment_status` to improve filtering",
+				ConflictsWith: []string{
+					"attachment_status",
+				},
+			},
+
+			"attachment_status": {
+				Type:     pluginsdk.TypeString,
 				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Attached",
+					"Unattached",
+					"All",
+				}, false),
+				ConflictsWith: []string{
+					"attached",
+				},
 			},
 
 			"allocation_type": {
@@ -99,8 +117,18 @@ func dataSourcePublicIPsRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			}
 		}
 
+		attachmentStatus, attachmentStatusOk := d.GetOk("attachment_status")
+		if attachmentStatus.(string) == "Attached" && !nicIsAttached {
+			continue
+		}
+		if attachmentStatus.(string) == "Unattached" && nicIsAttached {
+			continue
+		}
+
+		// Deprecated for `attachment_status`, remove in 3.0
+		// Removal will also change behaviour for data sources without `attachment_status` set
 		attachedOnly := d.Get("attached").(bool)
-		if attachedOnly != nicIsAttached {
+		if !attachmentStatusOk && attachedOnly != nicIsAttached {
 			continue
 		}
 
