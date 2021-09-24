@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -198,29 +199,26 @@ func resourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{},
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VariableID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	accountName := id.Path["automationAccounts"]
-	name := id.Path["variables"]
 	varTypeLower := strings.ToLower(varType)
 
-	resp, err := client.Get(ctx, resourceGroup, accountName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Automation %s Variable %q does not exist - removing from state", varType, d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, name, accountName, resourceGroup, err)
+		return fmt.Errorf("reading Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, id.Name, id.AutomationAccountName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("automation_account_name", accountName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("automation_account_name", id.AutomationAccountName)
 	if properties := resp.VariableProperties; properties != nil {
 		d.Set("description", properties.Description)
 		d.Set("encrypted", properties.IsEncrypted)
@@ -291,17 +289,13 @@ func resourceAutomationVariableDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VariableID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	accountName := id.Path["automationAccounts"]
-	name := id.Path["variables"]
-
-	if _, err := client.Delete(ctx, resourceGroup, accountName, name); err != nil {
-		return fmt.Errorf("deleting Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, name, accountName, resourceGroup, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name); err != nil {
+		return fmt.Errorf("deleting Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, id.Name, id.AutomationAccountName, id.ResourceGroup, err)
 	}
 
 	return nil

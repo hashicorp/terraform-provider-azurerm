@@ -867,6 +867,7 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData) (*[]containerinst
 	containerInstancePorts := make([]containerinstance.Port, 0)
 	containerGroupPorts := make([]containerinstance.Port, 0)
 	containerGroupVolumes := make([]containerinstance.Volume, 0)
+	addedEmptyDirs := map[string]bool{}
 
 	for _, containerConfig := range containersConfig {
 		data := containerConfig.(map[string]interface{})
@@ -964,7 +965,17 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData) (*[]containerinst
 			}
 			container.VolumeMounts = volumeMounts
 			if containerGroupVolumesPartial != nil {
-				containerGroupVolumes = append(containerGroupVolumes, *containerGroupVolumesPartial...)
+				for _, cgVol := range *containerGroupVolumesPartial {
+					if cgVol.EmptyDir != nil {
+						if addedEmptyDirs[*cgVol.Name] {
+							// empty_dir-volumes are allowed to overlap across containers, in fact that is their primary purpose,
+							// but the containerGroup must not declare same name of such volumes twice.
+							continue
+						}
+						addedEmptyDirs[*cgVol.Name] = true
+					}
+					containerGroupVolumes = append(containerGroupVolumes, cgVol)
+				}
 			}
 		}
 

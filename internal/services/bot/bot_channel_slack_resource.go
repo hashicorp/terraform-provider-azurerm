@@ -74,6 +74,13 @@ func resourceBotChannelSlack() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
+			"signing_secret": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		},
 	}
 }
@@ -113,6 +120,11 @@ func resourceBotChannelSlackCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Kind:     botservice.KindBot,
 	}
 
+	if v, ok := d.GetOk("signing_secret"); ok {
+		channel, _ := channel.Properties.AsSlackChannel()
+		channel.Properties.SigningSecret = utils.String(v.(string))
+	}
+
 	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, botservice.ChannelNameSlackChannel, channel); err != nil {
 		return fmt.Errorf("creating Slack Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
 	}
@@ -149,7 +161,8 @@ func resourceBotChannelSlackRead(d *pluginsdk.ResourceData, meta interface{}) er
 	if props := resp.Properties; props != nil {
 		if channel, ok := props.AsSlackChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
-				d.Set("client_id", channelProps.ClientID)
+				d.Set("client_id", d.Get("client_id"))
+				d.Set("signing_secret", d.Get("signing_secret"))
 			}
 		}
 	}
@@ -181,6 +194,11 @@ func resourceBotChannelSlackUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
+	}
+
+	if v, ok := d.GetOk("signing_secret"); ok {
+		channel, _ := channel.Properties.AsSlackChannel()
+		channel.Properties.SigningSecret = utils.String(v.(string))
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameSlackChannel, channel); err != nil {

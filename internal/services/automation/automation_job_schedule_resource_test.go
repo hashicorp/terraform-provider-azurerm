@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/gofrs/uuid"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -93,19 +93,16 @@ func TestAccAutomationJobSchedule_requiresImport(t *testing.T) {
 }
 
 func (t AutomationJobScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.JobScheduleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	jobScheduleID := id.Path["jobSchedules"]
-	jobScheduleUUID := uuid.FromStringOrNil(jobScheduleID)
-	resourceGroup := id.ResourceGroup
-	accountName := id.Path["automationAccounts"]
+	jobScheduleUUID := uuid.FromStringOrNil(id.Name)
 
-	resp, err := clients.Automation.JobScheduleClient.Get(ctx, resourceGroup, accountName, jobScheduleUUID)
+	resp, err := clients.Automation.JobScheduleClient.Get(ctx, id.ResourceGroup, id.AutomationAccountName, jobScheduleUUID)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Automation Job Schedule '%s' (Account %q / Resource Group %q) does not exist", jobScheduleUUID, accountName, resourceGroup)
+		return nil, fmt.Errorf("retrieving Automation Job Schedule '%s' (Account %q / Resource Group %q) does not exist", id.Name, id.AutomationAccountName, id.ResourceGroup)
 	}
 
 	return utils.Bool(resp.JobScheduleProperties != nil), nil

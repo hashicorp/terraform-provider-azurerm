@@ -187,6 +187,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 						"tenant_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validation.IsUUID,
 						},
 					},

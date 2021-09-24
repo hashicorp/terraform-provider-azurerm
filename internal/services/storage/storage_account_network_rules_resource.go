@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -23,8 +25,11 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 		Read:   resourceStorageAccountNetworkRulesRead,
 		Update: resourceStorageAccountNetworkRulesCreateUpdate,
 		Delete: resourceStorageAccountNetworkRulesDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.StorageAccountID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -34,13 +39,51 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"storage_account_id": {
+				Type: pluginsdk.TypeString,
+				// TODO: Make required in 3.0
+				Optional: true,
+				// TODO: Remove in 3.0
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.StorageAccountID,
+				// TODO: Remove in 3.0
+				ConflictsWith: []string{
+					"resource_group_name",
+					"storage_account_name",
+				},
+			},
 
+			// TODO: remove in 3.0
+			"resource_group_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceGroupName,
+				Deprecated:   "Deprecated in favour of `storage_account_id`",
+				RequiredWith: []string{
+					"storage_account_name",
+				},
+				ConflictsWith: []string{
+					"storage_account_id",
+				},
+			},
+
+			// TODO: remove in 3.0
 			"storage_account_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageAccountName,
+				Deprecated:   "Deprecated in favour of `storage_account_id`",
+				RequiredWith: []string{
+					"resource_group_name",
+				},
+				ConflictsWith: []string{
+					"storage_account_id",
+				},
 			},
 
 			"bypass": {
@@ -125,6 +168,17 @@ func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, m
 	storageAccountName := d.Get("storage_account_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	raw, ok := d.GetOk("storage_account_id")
+	if ok {
+		parsedStorageAccountId, err := parse.StorageAccountID(raw.(string))
+		if err != nil {
+			return err
+		}
+
+		storageAccountName = parsedStorageAccountId.Name
+		resourceGroup = parsedStorageAccountId.ResourceGroup
+	}
+
 	locks.ByName(storageAccountName, storageAccountResourceName)
 	defer locks.UnlockByName(storageAccountName, storageAccountResourceName)
 
@@ -188,9 +242,15 @@ func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta inte
 
 	storageAccount, err := client.GetProperties(ctx, resourceGroup, storageAccountName, "")
 	if err != nil {
+		if utils.ResponseWasNotFound(storageAccount.Response) {
+			log.Printf("[INFO] Storage Account Network Rules %q does not exist - removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("reading Storage Account Network Rules %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
 	}
 
+	d.Set("storage_account_id", d.Id())
 	d.Set("storage_account_name", storageAccountName)
 	d.Set("resource_group_name", resourceGroup)
 

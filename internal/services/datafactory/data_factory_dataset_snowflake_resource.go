@@ -107,9 +107,10 @@ func resourceDataFactoryDatasetSnowflake() *pluginsdk.Resource {
 				},
 			},
 
-			"schema_column": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
+			"structure_column": {
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				Deprecated: "This block has been deprecated in favour of `schema_column` and will be removed.",
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -144,6 +145,74 @@ func resourceDataFactoryDatasetSnowflake() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
+				},
+				ConflictsWith: []string{
+					"schema_column",
+				},
+			},
+
+			"schema_column": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"NUMBER",
+								"DECIMAL",
+								"NUMERIC",
+								"INT",
+								"INTEGER",
+								"BIGINT",
+								"SMALLINT",
+								"FLOAT",
+								"FLOAT4",
+								"FLOAT8",
+								"DOUBLE",
+								"DOUBLE PRECISION",
+								"REAL",
+								"VARCHAR",
+								"CHAR",
+								"CHARACTER",
+								"STRING",
+								"TEXT",
+								"BINARY",
+								"VARBINARY",
+								"BOOLEAN",
+								"DATE",
+								"DATETIME",
+								"TIME",
+								"TIMESTAMP",
+								"TIMESTAMP_LTZ",
+								"TIMESTAMP_NTZ",
+								"TIMESTAMP_TZ",
+								"VARIANT",
+								"OBJECT",
+								"ARRAY",
+								"GEOGRAPHY",
+							}, false),
+						},
+						"precision": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(0),
+						},
+						"scale": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(0),
+						},
+					},
+				},
+				ConflictsWith: []string{
+					"structure_column",
 				},
 			},
 		},
@@ -211,8 +280,12 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 		snowflakeTableset.AdditionalProperties = v.(map[string]interface{})
 	}
 
-	if v, ok := d.GetOk("schema_column"); ok {
+	if v, ok := d.GetOk("structure_column"); ok {
 		snowflakeTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("schema_column"); ok {
+		snowflakeTableset.Schema = expandDataFactoryDatasetSnowflakeSchema(v.([]interface{}))
 	}
 
 	datasetType := string(datafactory.TypeBasicDatasetTypeSnowflakeTable)
@@ -315,8 +388,13 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 	}
 
 	structureColumns := flattenDataFactoryStructureColumns(snowflakeTable.Structure)
-	if err := d.Set("schema_column", structureColumns); err != nil {
-		return fmt.Errorf("setting `schema_column`: %+v", err)
+	if err := d.Set("structure_column", structureColumns); err != nil {
+		return fmt.Errorf("setting `structure_column`: %+v", err)
+	}
+
+	schemaColumns := flattenDataFactorySnowflakeSchemaColumns(snowflakeTable.Schema)
+	if err := d.Set("schema_column", schemaColumns); err != nil {
+		return fmt.Errorf("Error setting `schema_column`: %+v", err)
 	}
 
 	return nil
