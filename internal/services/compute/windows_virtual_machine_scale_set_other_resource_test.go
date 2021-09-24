@@ -1098,7 +1098,8 @@ func (r WindowsVirtualMachineScaleSetResource) otherForceDelete(data acceptance.
 provider "azurerm" {
   features {
     virtual_machine_scale_set {
-      force_delete = true
+      force_delete                 = true
+      roll_instances_when_required = true
     }
   }
 }

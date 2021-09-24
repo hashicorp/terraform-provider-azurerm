@@ -921,7 +921,8 @@ func (r LinuxVirtualMachineScaleSetResource) otherForceDelete(data acceptance.Te
 provider "azurerm" {
   features {
     virtual_machine_scale_set {
-      force_delete = true
+      force_delete                 = true
+      roll_instances_when_required = true
     }
   }
 }
