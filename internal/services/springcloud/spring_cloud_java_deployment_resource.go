@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2020-11-01-preview/appplatform"
+	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2021-06-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
@@ -88,10 +88,10 @@ func resourceSpringCloudJavaDeployment() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(appplatform.Java8),
-					string(appplatform.Java11),
+					string(appplatform.RuntimeVersionJava8),
+					string(appplatform.RuntimeVersionJava11),
 				}, false),
-				Default: string(appplatform.Java8),
+				Default: string(appplatform.RuntimeVersionJava8),
 			},
 		},
 	}
@@ -136,7 +136,7 @@ func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta int
 		},
 		Properties: &appplatform.DeploymentResourceProperties{
 			Source: &appplatform.UserSourceInfo{
-				Type:         appplatform.Jar,
+				Type:         appplatform.UserSourceTypeJar,
 				RelativePath: utils.String("<default>"),
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
