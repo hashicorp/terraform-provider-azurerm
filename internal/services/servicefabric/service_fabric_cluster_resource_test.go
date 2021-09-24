@@ -759,7 +759,7 @@ func TestAccAzureRMServiceFabricCluster_zonalUpgradeMode(t *testing.T) {
 				check.That(data.ResourceName).Key("node_type.0.instance_count").HasValue("3"),
 				check.That(data.ResourceName).Key("node_type.0.multiple_availability_zones").HasValue("true"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-				check.That(data.ResourceName).Key("sf_zonal_upgrade_mode").HasValue("Hierarchical"),
+				check.That(data.ResourceName).Key("service_fabric_zonal_upgrade_mode").HasValue("Hierarchical"),
 				check.That(data.ResourceName).Key("vmss_zonal_upgrade_mode").HasValue("Parallel"),
 			),
 		},
@@ -1960,15 +1960,15 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_service_fabric_cluster" "test" {
-  name                    = "acctest-%d"
-  resource_group_name     = azurerm_resource_group.test.name
-  location                = azurerm_resource_group.test.location
-  reliability_level       = "Bronze"
-  upgrade_mode            = "Automatic"
-  vm_image                = "Windows"
-  management_endpoint     = "http://example:80"
-  sf_zonal_upgrade_mode   = "Hierarchical"
-  vmss_zonal_upgrade_mode = "Parallel"
+  name                              = "acctest-%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  location                          = azurerm_resource_group.test.location
+  reliability_level                 = "Bronze"
+  upgrade_mode                      = "Automatic"
+  vm_image                          = "Windows"
+  management_endpoint               = "http://example:80"
+  service_fabric_zonal_upgrade_mode = "Hierarchical"
+  vmss_zonal_upgrade_mode           = "Parallel"
 
   node_type {
     name                        = "first"

@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `upgrade_policy` - (optional) A `upgrade_policy` block as defined below.
 
-* `sf_zonal_upgrade_mode` - (Optional) Specifies the logical grouping of VMs in upgrade domains. Possible values are `Hierarchical` or `Parallel`.
+* `service_fabric_zonal_upgrade_mode` - (Optional) Specifies the logical grouping of VMs in upgrade domains. Possible values are `Hierarchical` or `Parallel`.
 
 * `vmss_zonal_upgrade_mode` - (Optional) Specifies the upgrade mode for the virtual machine scale set updates that happen in all availability zones at once. Possible values are `Hierarchical` or `Parallel`.
 

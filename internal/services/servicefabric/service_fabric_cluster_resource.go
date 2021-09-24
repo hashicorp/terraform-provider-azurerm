@@ -71,7 +71,7 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"sf_zonal_upgrade_mode": {
+			"service_fabric_zonal_upgrade_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -624,7 +624,7 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 		},
 	}
 
-	if sfZonalUpgradeMode, ok := d.GetOk("sf_zonal_upgrade_mode"); ok {
+	if sfZonalUpgradeMode, ok := d.GetOk("service_fabric_zonal_upgrade_mode"); ok {
 		cluster.ClusterProperties.SfZonalUpgradeMode = servicefabric.SfZonalUpgradeMode(sfZonalUpgradeMode.(string))
 	}
 
@@ -712,7 +712,7 @@ func resourceServiceFabricClusterRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("reliability_level", string(props.ReliabilityLevel))
 		d.Set("vm_image", props.VMImage)
 		d.Set("upgrade_mode", string(props.UpgradeMode))
-		d.Set("sf_zonal_upgrade_mode", string(props.SfZonalUpgradeMode))
+		d.Set("service_fabric_zonal_upgrade_mode", string(props.SfZonalUpgradeMode))
 		d.Set("vmss_zonal_upgrade_mode", string(props.VmssZonalUpgradeMode))
 
 		addOnFeatures := flattenServiceFabricClusterAddOnFeatures(props.AddOnFeatures)
