@@ -276,21 +276,42 @@ func TestAccMsSqlDatabase_scaleReplicaSet(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.scaleReplicaSet(data, "Basic", 2),
+			Config: r.scaleReplicaSet(data, "GP_Gen5_2", 200),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("sample_name"),
 		{
-			Config: r.scaleReplicaSet(data, "S0", 250),
+			Config: r.scaleReplicaSet(data, "P2", 200),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("sample_name"),
 		{
-			Config: r.scaleReplicaSet(data, "Basic", 2),
+			Config: r.scaleReplicaSet(data, "GP_Gen5_2", 200),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sample_name"),
+		{
+			Config: r.scaleReplicaSet(data, "BC_Gen5_2", 200),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sample_name"),
+		{
+			Config: r.scaleReplicaSet(data, "GP_Gen5_2", 200),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sample_name"),
+		{
+			Config: r.scaleReplicaSet(data, "S2", 200),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

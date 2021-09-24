@@ -6,9 +6,10 @@ import (
 
 // CompareDatabaseSkuServiceTiers returns true if sku1 has a higher service tier than sku2
 func CompareDatabaseSkuServiceTiers(sku1, sku2 string) bool {
-	// These are intentionally short so that both forms can be matched, e.g. "S1" or "Standard"
+	// This order was observed to be enforced by the API. These are intentionally short so that
+	// both forms can be matched for DTU tiers, e.g. "S1" or "Standard"
 	order := []string{
-		"", "B", "S", "P",
+		"", "B", "S", "GP", "P", "BC",
 	}
 
 	var index1, index2 int
