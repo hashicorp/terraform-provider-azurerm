@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -23,8 +24,11 @@ func resourceDataLakeStoreFirewallRule() *pluginsdk.Resource {
 		Read:   resourceArmDateLakeStoreAccountFirewallRuleRead,
 		Update: resourceArmDateLakeStoreAccountFirewallRuleCreateUpdate,
 		Delete: resourceArmDateLakeStoreAccountFirewallRuleDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.FirewallRuleID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -67,18 +71,17 @@ func resourceDataLakeStoreFirewallRule() *pluginsdk.Resource {
 
 func resourceArmDateLakeStoreAccountFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreFirewallRulesClient
+	subscriptionId := meta.(*clients.Client).Datalake.StoreFirewallRulesClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	accountName := d.Get("account_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewFirewallRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, accountName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Date Lake Store Firewall Rule %q (Account %q / Resource Group %q): %s", name, accountName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Date Lake Store Firewall Rule %s: %+v", id, err)
 			}
 		}
 
@@ -90,7 +93,7 @@ func resourceArmDateLakeStoreAccountFirewallRuleCreateUpdate(d *pluginsdk.Resour
 	startIPAddress := d.Get("start_ip_address").(string)
 	endIPAddress := d.Get("end_ip_address").(string)
 
-	log.Printf("[INFO] preparing arguments for Date Lake Store Firewall Rule creation  %q (Resource Group %q)", name, resourceGroup)
+	log.Printf("[INFO] preparing arguments for Date Lake Store Firewall Rule creation  %s", id)
 
 	dateLakeStore := account.CreateOrUpdateFirewallRuleParameters{
 		CreateOrUpdateFirewallRuleProperties: &account.CreateOrUpdateFirewallRuleProperties{
@@ -99,19 +102,11 @@ func resourceArmDateLakeStoreAccountFirewallRuleCreateUpdate(d *pluginsdk.Resour
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, name, dateLakeStore); err != nil {
-		return fmt.Errorf("issuing create request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AccountName, id.Name, dateLakeStore); err != nil {
+		return fmt.Errorf("issuing create request for Data Lake Store %q (Resource Group %q): %+v", id.AccountName, id.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, accountName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Data Lake Store Firewall Rule %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Data Lake Store %q (Account %q / Resource Group %q) ID", name, accountName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceArmDateLakeStoreAccountFirewallRuleRead(d, meta)
 }
@@ -121,27 +116,24 @@ func resourceArmDateLakeStoreAccountFirewallRuleRead(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.FirewallRuleID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	accountName := id.Path["accounts"]
-	name := id.Path["firewallRules"]
 
-	resp, err := client.Get(ctx, resourceGroup, accountName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Data Lake Store Firewall Rule %q was not found (Account %q / Resource Group %q)", name, accountName, resourceGroup)
+			log.Printf("[WARN] Data Lake Store Firewall Rule %s was not found", id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Azure Data Lake Store Firewall Rule %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Data Lake Store Firewall Rule %s: %+v", id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("account_name", accountName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("account_name", id.AccountName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.FirewallRuleProperties; props != nil {
 		d.Set("start_ip_address", props.StartIPAddress)
@@ -156,21 +148,17 @@ func resourceArmDateLakeStoreAccountFirewallRuleDelete(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.FirewallRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	accountName := id.Path["accounts"]
-	name := id.Path["firewallRules"]
-
-	resp, err := client.Delete(ctx, resourceGroup, accountName, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
 		if response.WasNotFound(resp.Response) {
 			return nil
 		}
-		return fmt.Errorf("issuing delete request for Data Lake Store Firewall Rule %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+		return fmt.Errorf("issuing delete request for Data Lake Store Firewall Rule %s: %+v", id, err)
 	}
 
 	return nil

@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -172,16 +172,14 @@ func TestAccDataLakeStore_withTags(t *testing.T) {
 }
 
 func (t DataLakeStoreResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.AccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	name := id.Path["accounts"]
-
-	resp, err := clients.Datalake.StoreAccountsClient.Get(ctx, id.ResourceGroup, name)
+	resp, err := clients.Datalake.StoreAccountsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Date Lake Store %q (resource group: %q): %+v", name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Date Lake Store %s: %+v", id, err)
 	}
 
 	return utils.Bool(resp.DataLakeStoreAccountProperties != nil), nil
