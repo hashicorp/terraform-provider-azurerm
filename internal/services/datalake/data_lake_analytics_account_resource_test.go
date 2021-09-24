@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -88,16 +88,14 @@ func TestAccDataLakeAnalyticsAccount_withTags(t *testing.T) {
 }
 
 func (t DataLakeAnalyticsAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.AnalyticsAccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	name := id.Path["accounts"]
-
-	resp, err := clients.Datalake.AnalyticsAccountsClient.Get(ctx, id.ResourceGroup, name)
+	resp, err := clients.Datalake.AnalyticsAccountsClient.Get(ctx, id.ResourceGroup, id.AccountName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Date Lake Analytics Account %q (resource group: %q): %+v", name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Date Lake Analytics Account %s: %+v", id, err)
 	}
 
 	return utils.Bool(resp.DataLakeAnalyticsAccountProperties != nil), nil
