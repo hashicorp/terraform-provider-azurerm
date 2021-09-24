@@ -46,7 +46,7 @@ func dataSourcePublicIPs() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"Attached",
 					"Unattached",
-					"All",
+					"All", // TODO - Remove "All" in 3.0.
 				}, false),
 				ConflictsWith: []string{
 					"attached",
