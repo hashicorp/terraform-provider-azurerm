@@ -161,13 +161,15 @@ func resourceIotHub() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+								// Azure will always mask the Access Keys and the ordering of parameters in connection strings differ:
+								// DefaultEndpointsProtocol, EndpointSuffix, AccountName, AccountKey  [for iothub]
+								// DefaultEndpointsProtocol, AccountName, AccountKey, EndpointSuffix  [for storage account]
 								secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
-								sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
+								splitNew := strings.Split(new, ";")
+								endpointSuffix := splitNew[len(splitNew)-1]
+								orderedNew := append([]string{splitNew[0], endpointSuffix}, splitNew[1:len(splitNew)-1]...)
+								maskedNew := secretKeyRegex.ReplaceAllString(strings.Join(orderedNew, ";"), "$1=****")
 
-								// Azure will always mask the Access Keys and will include the port number in the GET response
-								// 5671 is the default port for Azure Service Bus connections
-								maskedNew := sbProtocolRegex.ReplaceAllString(new, "sb://$1:5671/;")
-								maskedNew = secretKeyRegex.ReplaceAllString(maskedNew, "$1=****")
 								return (new == d.Get(k).(string)) && (maskedNew == old)
 							},
 							Sensitive: true,
