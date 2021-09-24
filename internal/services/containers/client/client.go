@@ -11,24 +11,27 @@ import (
 )
 
 type Client struct {
-	AgentPoolsClient                *containerservice.AgentPoolsClient
-	GroupsClient                    *containerinstance.ContainerGroupsClient
-	KubernetesClustersClient        *containerservice.ManagedClustersClient
-	MaintenanceConfigurationsClient *containerservice.MaintenanceConfigurationsClient
-	RegistriesClient                *containerregistry.RegistriesClient
-	ReplicationsClient              *containerregistry.ReplicationsClient
-	ServicesClient                  *legacy.ContainerServicesClient
-	WebhooksClient                  *containerregistry.WebhooksClient
-	TokensClient                    *containerregistry.TokensClient
-	ScopeMapsClient                 *containerregistry.ScopeMapsClient
-	TasksClient                     *legacyacr.TasksClient
-
-	Environment azure.Environment
+	AgentPoolsClient                  *containerservice.AgentPoolsClient
+	ContainerRegistryAgentPoolsClient *containerregistry.AgentPoolsClient
+	GroupsClient                      *containerinstance.ContainerGroupsClient
+	KubernetesClustersClient          *containerservice.ManagedClustersClient
+	MaintenanceConfigurationsClient   *containerservice.MaintenanceConfigurationsClient
+	RegistriesClient                  *containerregistry.RegistriesClient
+	ReplicationsClient                *containerregistry.ReplicationsClient
+	ServicesClient                    *legacy.ContainerServicesClient
+	WebhooksClient                    *containerregistry.WebhooksClient
+	TokensClient                      *containerregistry.TokensClient
+	ScopeMapsClient                   *containerregistry.ScopeMapsClient
+	TasksClient                       *legacyacr.TasksClient
+	Environment                       azure.Environment
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	registriesClient := containerregistry.NewRegistriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&registriesClient.Client, o.ResourceManagerAuthorizer)
+
+	registryAgentPoolsClient := containerregistry.NewAgentPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&registryAgentPoolsClient.Client, o.ResourceManagerAuthorizer)
 
 	webhooksClient := containerregistry.NewWebhooksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&webhooksClient.Client, o.ResourceManagerAuthorizer)
@@ -62,17 +65,18 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&servicesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AgentPoolsClient:                &agentPoolsClient,
-		KubernetesClustersClient:        &kubernetesClustersClient,
-		GroupsClient:                    &groupsClient,
-		MaintenanceConfigurationsClient: &maintenanceConfigurationsClient,
-		RegistriesClient:                &registriesClient,
-		WebhooksClient:                  &webhooksClient,
-		ReplicationsClient:              &replicationsClient,
-		ServicesClient:                  &servicesClient,
-		Environment:                     o.Environment,
-		TokensClient:                    &tokensClient,
-		ScopeMapsClient:                 &scopeMapsClient,
-		TasksClient:                     &tasksClient,
+		AgentPoolsClient:                  &agentPoolsClient,
+		ContainerRegistryAgentPoolsClient: &registryAgentPoolsClient,
+		KubernetesClustersClient:          &kubernetesClustersClient,
+		GroupsClient:                      &groupsClient,
+		MaintenanceConfigurationsClient:   &maintenanceConfigurationsClient,
+		RegistriesClient:                  &registriesClient,
+		WebhooksClient:                    &webhooksClient,
+		ReplicationsClient:                &replicationsClient,
+		ServicesClient:                    &servicesClient,
+		Environment:                       o.Environment,
+		TokensClient:                      &tokensClient,
+		ScopeMapsClient:                   &scopeMapsClient,
+		TasksClient:                       &tasksClient,
 	}
 }
