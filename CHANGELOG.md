@@ -1,3 +1,11 @@
+## 2.79.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_windows_virtual_machine_scale_set` - define Hash function for extension block to ignore `protected_setting` [GH-13440]
+* `azurerm_linux_virtual_machine_scale_set` - define Hash function for extension block to ignore `protected_setting` [GH-13440]
+
+
 ## 2.78.0 (September 23, 2021)
 
 UPGRADE NOTES
