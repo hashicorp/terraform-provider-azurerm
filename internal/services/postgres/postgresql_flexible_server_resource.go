@@ -515,7 +515,6 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("waiting for the update of the Postgresql Flexible Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	// Once `zone` and `standby_availability_zone` is exchanged, it has to fail over
 	if requireFailover {
 		restartParameters := &postgresqlflexibleservers.RestartParameter{
 			RestartWithFailover: utils.Bool(true),
