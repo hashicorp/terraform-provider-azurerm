@@ -386,15 +386,19 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("administrator_login", props.AdministratorLogin)
 
 		// `zone` would be changed after automatic failover. So it cannot be set since it would be changed automatically
+		var primaryZone string
 		oldPrimaryZone, newPrimaryZone := d.GetChange("zone")
 		oldStandbyZone, newStandbyZone := d.GetChange("high_availability.0.standby_availability_zone")
-		if oldPrimaryZone.(string) == "" && oldStandbyZone.(string) == "" {
-			d.Set("zone", newPrimaryZone.(string))
-		} else if newPrimaryZone.(string) == oldStandbyZone.(string) && oldPrimaryZone.(string) == newStandbyZone.(string) {
-			d.Set("zone", newPrimaryZone.(string))
+		if d.IsNewResource() {
+			primaryZone = newPrimaryZone.(string)
 		} else {
-			d.Set("zone", oldPrimaryZone.(string))
+			if newPrimaryZone.(string) == oldStandbyZone.(string) && oldPrimaryZone.(string) == newStandbyZone.(string) {
+				primaryZone = newPrimaryZone.(string)
+			} else {
+				primaryZone = oldPrimaryZone.(string)
+			}
 		}
+		d.Set("zone", primaryZone)
 
 		d.Set("version", props.Version)
 		d.Set("fqdn", props.FullyQualifiedDomainName)
@@ -711,19 +715,22 @@ func flattenFlexibleServerHighAvailability(ha *postgresqlflexibleservers.HighAva
 	var standbyZone string
 	oldPrimaryZone, newPrimaryZone := d.GetChange("zone")
 	oldStandbyZone, newStandbyZone := d.GetChange("high_availability.0.standby_availability_zone")
-	if oldPrimaryZone.(string) == "" && oldStandbyZone.(string) == "" {
-		standbyZone = newStandbyZone.(string)
-	} else if newStandbyZone.(string) == oldPrimaryZone.(string) && newPrimaryZone.(string) == oldStandbyZone.(string) {
-		standbyZone = newStandbyZone.(string)
-	} else if newStandbyZone == nil {
+	if d.IsNewResource() {
 		standbyZone = newStandbyZone.(string)
 	} else {
-		standbyZone = oldStandbyZone.(string)
+		if newStandbyZone.(string) == oldPrimaryZone.(string) && newPrimaryZone.(string) == oldStandbyZone.(string) {
+			standbyZone = newStandbyZone.(string)
+		} else if newStandbyZone == nil {
+			standbyZone = newStandbyZone.(string)
+		} else {
+			standbyZone = oldStandbyZone.(string)
+		}
 	}
 
-	return []interface{}{map[string]interface{}{
-		"mode":                      string(ha.Mode),
-		"standby_availability_zone": standbyZone,
-	},
+	return []interface{}{
+		map[string]interface{}{
+			"mode":                      string(ha.Mode),
+			"standby_availability_zone": standbyZone,
+		},
 	}
 }

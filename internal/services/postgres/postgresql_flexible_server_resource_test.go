@@ -208,14 +208,14 @@ func TestAccPostgresqlflexibleServer_failover(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.failover(data, "1", "3"),
+			Config: r.failover(data, "1", "2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode", "zone", "high_availability.0.standby_availability_zone"),
 		{
-			Config: r.failover(data, "3", "1"),
+			Config: r.failover(data, "1", "3"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
