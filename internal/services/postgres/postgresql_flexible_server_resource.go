@@ -103,6 +103,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			"zone": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -202,6 +203,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 						"standby_availability_zone": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
@@ -384,22 +386,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)
-
-		// `zone` would be changed after automatic failover. So it cannot be set since it would be changed automatically
-		var primaryZone string
-		oldPrimaryZone, newPrimaryZone := d.GetChange("zone")
-		oldStandbyZone, newStandbyZone := d.GetChange("high_availability.0.standby_availability_zone")
-		if d.IsNewResource() {
-			primaryZone = newPrimaryZone.(string)
-		} else {
-			if newPrimaryZone.(string) == oldStandbyZone.(string) && oldPrimaryZone.(string) == newStandbyZone.(string) {
-				primaryZone = newPrimaryZone.(string)
-			} else {
-				primaryZone = oldPrimaryZone.(string)
-			}
-		}
-		d.Set("zone", primaryZone)
-
+		d.Set("zone", props.AvailabilityZone)
 		d.Set("version", props.Version)
 		d.Set("fqdn", props.FullyQualifiedDomainName)
 
@@ -421,7 +408,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("backup_retention_days", backup.BackupRetentionDays)
 		}
 
-		if err := d.Set("high_availability", flattenFlexibleServerHighAvailability(props.HighAvailability, d)); err != nil {
+		if err := d.Set("high_availability", flattenFlexibleServerHighAvailability(props.HighAvailability)); err != nil {
 			return fmt.Errorf("setting `high_availability`: %+v", err)
 		}
 	}
@@ -706,31 +693,20 @@ func expandFlexibleServerHighAvailability(inputs []interface{}, includeStandbyZo
 	return &result
 }
 
-func flattenFlexibleServerHighAvailability(ha *postgresqlflexibleservers.HighAvailability, d *pluginsdk.ResourceData) []interface{} {
+func flattenFlexibleServerHighAvailability(ha *postgresqlflexibleservers.HighAvailability) []interface{} {
 	if ha == nil || ha.Mode == postgresqlflexibleservers.HighAvailabilityModeDisabled {
 		return []interface{}{}
 	}
 
-	// `standby_availability_zone` would be changed after automatic failover. So it cannot be set since it would be changed automatically
-	var standbyZone string
-	oldPrimaryZone, newPrimaryZone := d.GetChange("zone")
-	oldStandbyZone, newStandbyZone := d.GetChange("high_availability.0.standby_availability_zone")
-	if d.IsNewResource() {
-		standbyZone = newStandbyZone.(string)
-	} else {
-		if newStandbyZone.(string) == oldPrimaryZone.(string) && newPrimaryZone.(string) == oldStandbyZone.(string) {
-			standbyZone = newStandbyZone.(string)
-		} else if newStandbyZone == nil {
-			standbyZone = newStandbyZone.(string)
-		} else {
-			standbyZone = oldStandbyZone.(string)
-		}
+	var zone string
+	if ha.StandbyAvailabilityZone != nil {
+		zone = *ha.StandbyAvailabilityZone
 	}
 
 	return []interface{}{
 		map[string]interface{}{
 			"mode":                      string(ha.Mode),
-			"standby_availability_zone": standbyZone,
+			"standby_availability_zone": zone,
 		},
 	}
 }
