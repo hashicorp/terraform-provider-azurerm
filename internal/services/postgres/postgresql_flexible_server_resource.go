@@ -447,6 +447,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	var requireFailover bool
+	// failover is only supported when `zone` and `standby_availability_zone` is exchanged
 	if d.HasChange("zone") && d.HasChange("high_availability.0.standby_availability_zone") {
 		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
@@ -514,6 +515,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("waiting for the update of the Postgresql Flexible Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
+	// Once `zone` and `standby_availability_zone` is exchanged, it has to fail over
 	if requireFailover {
 		restartParameters := &postgresqlflexibleservers.RestartParameter{
 			RestartWithFailover: utils.Bool(true),
@@ -690,7 +692,7 @@ func expandFlexibleServerHighAvailability(inputs []interface{}, includeStandbyZo
 		Mode: postgresqlflexibleservers.HighAvailabilityMode(input["mode"].(string)),
 	}
 
-	// Service team confirmed it doesn't support to update `standby_availability_zone` after creation
+	// service team confirmed it doesn't support to update `standby_availability_zone` after creation
 	if includeStandbyZone {
 		if v, ok := input["standby_availability_zone"]; ok && v.(string) != "" {
 			result.StandbyAvailabilityZone = utils.String(v.(string))
