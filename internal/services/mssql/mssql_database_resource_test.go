@@ -276,42 +276,56 @@ func TestAccMsSqlDatabase_scaleReplicaSet(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.scaleReplicaSet(data, "GP_Gen5_2", 200),
+			Config: r.scaleReplicaSet(data, "GP_Gen5_2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("sample_name"),
 		{
-			Config: r.scaleReplicaSet(data, "P2", 200),
+			Config: r.scaleReplicaSet(data, "P2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("sample_name"),
 		{
-			Config: r.scaleReplicaSet(data, "GP_Gen5_2", 200),
+			Config: r.scaleReplicaSet(data, "GP_Gen5_2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("sample_name"),
 		{
-			Config: r.scaleReplicaSet(data, "BC_Gen5_2", 200),
+			Config: r.scaleReplicaSet(data, "BC_Gen5_2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("sample_name"),
 		{
-			Config: r.scaleReplicaSet(data, "GP_Gen5_2", 200),
+			Config: r.scaleReplicaSet(data, "GP_Gen5_2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("sample_name"),
 		{
-			Config: r.scaleReplicaSet(data, "S2", 200),
+			Config: r.scaleReplicaSet(data, "S2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sample_name"),
+		{
+			Config: r.scaleReplicaSet(data, "Basic"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sample_name"),
+		{
+			Config: r.scaleReplicaSet(data, "S1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -967,7 +981,7 @@ resource "azurerm_mssql_database" "secondary" {
 `, r.complete(data), data.RandomInteger, data.Locations.Secondary)
 }
 
-func (r MsSqlDatabaseResource) scaleReplicaSet(data acceptance.TestData, sku string, size int) string {
+func (r MsSqlDatabaseResource) scaleReplicaSet(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -976,7 +990,7 @@ resource "azurerm_mssql_database" "primary" {
   server_id   = azurerm_mssql_server.test.id
   sample_name = "AdventureWorksLT"
 
-  max_size_gb = %[5]d
+  max_size_gb = "2"
   sku_name    = "%[4]s"
 }
 
@@ -1002,7 +1016,7 @@ resource "azurerm_mssql_database" "secondary" {
 
   sku_name = "%[4]s"
 }
-`, r.template(data), data.RandomInteger, data.Locations.Secondary, sku, size)
+`, r.template(data), data.RandomInteger, data.Locations.Secondary, sku)
 }
 
 func (r MsSqlDatabaseResource) scaleReplicaSetWithFailovergroup(data acceptance.TestData, sku string, size int) string {
