@@ -100,7 +100,11 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"zone": azure.SchemaZoneComputed(),
+			"zone": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 
 			"create_mode": {
 				Type:     pluginsdk.TypeString,
@@ -194,7 +198,12 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 								string(postgresqlflexibleservers.HighAvailabilityModeZoneRedundant),
 							}, false),
 						},
-						"standby_availability_zone": azure.SchemaZoneComputed(),
+
+						"standby_availability_zone": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 					},
 				},
 			},
@@ -219,6 +228,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServersClient
@@ -281,7 +291,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 			Network:          expandArmServerNetwork(d),
 			Version:          postgresqlflexibleservers.ServerVersion(d.Get("version").(string)),
 			Storage:          expandArmServerStorage(d),
-			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{})),
+			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}), true),
 			Backup:           expandArmServerBackup(d),
 		},
 		Sku:  sku,
@@ -374,7 +384,18 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)
-		d.Set("zone", props.AvailabilityZone)
+
+		// `zone` would be changed after automatic failover. So it cannot be set since it would be changed automatically
+		oldPrimaryZone, newPrimaryZone := d.GetChange("zone")
+		oldStandbyZone, newStandbyZone := d.GetChange("high_availability.0.standby_availability_zone")
+		if oldPrimaryZone.(string) == "" && oldStandbyZone.(string) == "" {
+			d.Set("zone", newPrimaryZone.(string))
+		} else if newPrimaryZone.(string) == oldStandbyZone.(string) && oldPrimaryZone.(string) == newStandbyZone.(string) {
+			d.Set("zone", newPrimaryZone.(string))
+		} else {
+			d.Set("zone", oldPrimaryZone.(string))
+		}
+
 		d.Set("version", props.Version)
 		d.Set("fqdn", props.FullyQualifiedDomainName)
 
@@ -396,7 +417,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("backup_retention_days", backup.BackupRetentionDays)
 		}
 
-		if err := d.Set("high_availability", flattenFlexibleServerHighAvailability(props.HighAvailability)); err != nil {
+		if err := d.Set("high_availability", flattenFlexibleServerHighAvailability(props.HighAvailability, d)); err != nil {
 			return fmt.Errorf("setting `high_availability`: %+v", err)
 		}
 	}
@@ -424,6 +445,34 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	parameters := postgresqlflexibleservers.ServerForUpdate{
 		Location:                  utils.String(location.Normalize(d.Get("location").(string))),
 		ServerPropertiesForUpdate: &postgresqlflexibleservers.ServerPropertiesForUpdate{},
+	}
+
+	var requireFailover bool
+	if d.HasChange("zone") && d.HasChange("high_availability.0.standby_availability_zone") {
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return err
+		}
+
+		if props := resp.ServerProperties; props != nil {
+			zone := d.Get("zone").(string)
+			standbyZone := d.Get("high_availability.0.standby_availability_zone").(string)
+
+			if props.AvailabilityZone != nil && props.HighAvailability != nil && props.HighAvailability.StandbyAvailabilityZone != nil {
+				if zone == *props.AvailabilityZone && standbyZone == *props.HighAvailability.StandbyAvailabilityZone {
+					log.Printf("[INFO] `zone` and `standby_availability_zone` have already been failed over")
+					requireFailover = false
+				} else if zone == *props.HighAvailability.StandbyAvailabilityZone && standbyZone == *props.AvailabilityZone {
+					requireFailover = true
+				} else {
+					return fmt.Errorf("failover only supports exchange between `zone` and `standby_availability_zone`")
+				}
+			}
+		}
+	} else if !d.HasChange("zone") && !d.HasChange("high_availability.0.standby_availability_zone") {
+		requireFailover = false
+	} else {
+		return fmt.Errorf("`zone` and `standby_availability_zone` should be changed or not changed together")
 	}
 
 	if d.HasChange("administrator_password") {
@@ -455,7 +504,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("high_availability") {
-		parameters.HighAvailability = expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}))
+		parameters.HighAvailability = expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}), false)
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
@@ -466,6 +515,23 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the update of the Postgresql Flexible Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
+
+	if requireFailover {
+		restartParameters := &postgresqlflexibleservers.RestartParameter{
+			RestartWithFailover: utils.Bool(true),
+			FailoverMode:        postgresqlflexibleservers.FailoverModePlannedFailover,
+		}
+
+		future, err := client.Restart(ctx, id.ResourceGroup, id.Name, restartParameters)
+		if err != nil {
+			return fmt.Errorf("failing over %s: %+v", *id, err)
+		}
+
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for failover of %s: %+v", *id, err)
+		}
+	}
+
 	return resourcePostgresqlFlexibleServerRead(d, meta)
 }
 
@@ -613,7 +679,7 @@ func flattenArmServerMaintenanceWindow(input *postgresqlflexibleservers.Maintena
 	}
 }
 
-func expandFlexibleServerHighAvailability(inputs []interface{}) *postgresqlflexibleservers.HighAvailability {
+func expandFlexibleServerHighAvailability(inputs []interface{}, includeStandbyZone bool) *postgresqlflexibleservers.HighAvailability {
 	if len(inputs) == 0 || inputs[0] == nil {
 		return &postgresqlflexibleservers.HighAvailability{
 			Mode: postgresqlflexibleservers.HighAvailabilityModeDisabled,
@@ -626,27 +692,38 @@ func expandFlexibleServerHighAvailability(inputs []interface{}) *postgresqlflexi
 		Mode: postgresqlflexibleservers.HighAvailabilityMode(input["mode"].(string)),
 	}
 
-	if v, ok := input["standby_availability_zone"]; ok && v.(string) != "" {
-		result.StandbyAvailabilityZone = utils.String(v.(string))
+	// Service team confirmed it doesn't support to update `standby_availability_zone` after creation
+	if includeStandbyZone {
+		if v, ok := input["standby_availability_zone"]; ok && v.(string) != "" {
+			result.StandbyAvailabilityZone = utils.String(v.(string))
+		}
 	}
 
 	return &result
 }
 
-func flattenFlexibleServerHighAvailability(ha *postgresqlflexibleservers.HighAvailability) []interface{} {
+func flattenFlexibleServerHighAvailability(ha *postgresqlflexibleservers.HighAvailability, d *pluginsdk.ResourceData) []interface{} {
 	if ha == nil || ha.Mode == postgresqlflexibleservers.HighAvailabilityModeDisabled {
 		return []interface{}{}
 	}
 
-	var zone string
-	if ha.StandbyAvailabilityZone != nil {
-		zone = *ha.StandbyAvailabilityZone
+	// `standby_availability_zone` would be changed after automatic failover. So it cannot be set since it would be changed automatically
+	var standbyZone string
+	oldPrimaryZone, newPrimaryZone := d.GetChange("zone")
+	oldStandbyZone, newStandbyZone := d.GetChange("high_availability.0.standby_availability_zone")
+	if oldPrimaryZone.(string) == "" && oldStandbyZone.(string) == "" {
+		standbyZone = newStandbyZone.(string)
+	} else if newStandbyZone.(string) == oldPrimaryZone.(string) && newPrimaryZone.(string) == oldStandbyZone.(string) {
+		standbyZone = newStandbyZone.(string)
+	} else if newStandbyZone == nil {
+		standbyZone = newStandbyZone.(string)
+	} else {
+		standbyZone = oldStandbyZone.(string)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"mode":                      string(ha.Mode),
-			"standby_availability_zone": zone,
-		},
+	return []interface{}{map[string]interface{}{
+		"mode":                      string(ha.Mode),
+		"standby_availability_zone": standbyZone,
+	},
 	}
 }
