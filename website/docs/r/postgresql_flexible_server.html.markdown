@@ -91,7 +91,7 @@ The following arguments are supported:
 
 * `administrator_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server. Required when `create_mode` is `Default`.
 
-* `zone` - (Optional) The availability zone of the PostgreSQL Flexible Server. Possible values are `1`, `2` and `3`. Changing this forces a new PostgreSQL Flexible Server to be created.
+* `zone` - (Optional) The availability zone of the PostgreSQL Flexible Server. Possible values are `1`, `2` and `3`.
 
 * `backup_retention_days` - (Optional) The backup retention days for the PostgreSQL Flexible Server. Possible values are between `7` and `35` days.
 

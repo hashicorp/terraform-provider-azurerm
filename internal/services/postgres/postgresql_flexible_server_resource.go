@@ -101,10 +101,14 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"zone": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"1",
+					"2",
+					"3",
+				}, false),
 			},
 
 			"create_mode": {
@@ -201,10 +205,14 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 						},
 
 						"standby_availability_zone": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"1",
+								"2",
+								"3",
+							}, false),
 						},
 					},
 				},
