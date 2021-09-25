@@ -61,7 +61,7 @@ func TestAccPostgresqlflexibleServer_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode", "zone", "high_availability.0.standby_availability_zone"),
+		data.ImportStep("administrator_password", "create_mode"),
 	})
 }
 
@@ -77,7 +77,7 @@ func TestAccPostgresqlflexibleServer_completeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode", "zone", "high_availability.0.standby_availability_zone"),
+		data.ImportStep("administrator_password", "create_mode"),
 		{
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -86,7 +86,7 @@ func TestAccPostgresqlflexibleServer_completeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode", "zone"),
+		data.ImportStep("administrator_password", "create_mode"),
 	})
 }
 
@@ -213,14 +213,14 @@ func TestAccPostgresqlflexibleServer_failover(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode", "zone", "high_availability.0.standby_availability_zone"),
+		data.ImportStep("administrator_password", "create_mode"),
 		{
-			Config: r.failover(data, "1", "3"),
+			Config: r.failover(data, "2", "1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode", "zone", "high_availability.0.standby_availability_zone"),
+		data.ImportStep("administrator_password", "create_mode"),
 	})
 }
 

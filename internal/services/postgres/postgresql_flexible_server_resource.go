@@ -450,14 +450,13 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 			standbyZone := d.Get("high_availability.0.standby_availability_zone").(string)
 
 			if props.AvailabilityZone != nil && props.HighAvailability != nil && props.HighAvailability.StandbyAvailabilityZone != nil {
-				if zone == *props.AvailabilityZone && standbyZone == *props.HighAvailability.StandbyAvailabilityZone {
-					log.Printf("[INFO] `zone` and `standby_availability_zone` have already been failed over")
-					requireFailover = false
-				} else if zone == *props.HighAvailability.StandbyAvailabilityZone && standbyZone == *props.AvailabilityZone {
+				if zone == *props.HighAvailability.StandbyAvailabilityZone && standbyZone == *props.AvailabilityZone {
 					requireFailover = true
 				} else {
 					return fmt.Errorf("failover only supports exchange between `zone` and `standby_availability_zone`")
 				}
+			} else {
+				return fmt.Errorf("`standby_availability_zone` cannot be added after creation")
 			}
 		}
 	} else if !d.HasChange("zone") && !d.HasChange("high_availability.0.standby_availability_zone") {
