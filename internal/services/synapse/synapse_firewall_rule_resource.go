@@ -110,7 +110,7 @@ func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	d.SetId(*resp.ID)
-
+	time.Sleep(time.Duration(1) * time.Minute)
 	return resourceSynapseFirewallRuleRead(d, meta)
 }
 
