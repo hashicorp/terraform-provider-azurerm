@@ -10,6 +10,8 @@ description: |-
 
 Manages a PostgreSQL Flexible Server.
 
+~> **Note** As `zone` and `standby_availability_zone` would be changed after automatic failover, so TF would cause diff. For this situation, it has to add `ignore_changes` to suppress the diff.
+
 ## Example Usage
 
 ```hcl
