@@ -679,7 +679,7 @@ func flattenArmServerMaintenanceWindow(input *postgresqlflexibleservers.Maintena
 	}
 }
 
-func expandFlexibleServerHighAvailability(inputs []interface{}, includeStandbyZone bool) *postgresqlflexibleservers.HighAvailability {
+func expandFlexibleServerHighAvailability(inputs []interface{}, isCreate bool) *postgresqlflexibleservers.HighAvailability {
 	if len(inputs) == 0 || inputs[0] == nil {
 		return &postgresqlflexibleservers.HighAvailability{
 			Mode: postgresqlflexibleservers.HighAvailabilityModeDisabled,
@@ -693,7 +693,7 @@ func expandFlexibleServerHighAvailability(inputs []interface{}, includeStandbyZo
 	}
 
 	// service team confirmed it doesn't support to update `standby_availability_zone` after creation
-	if includeStandbyZone {
+	if isCreate {
 		if v, ok := input["standby_availability_zone"]; ok && v.(string) != "" {
 			result.StandbyAvailabilityZone = utils.String(v.(string))
 		}
