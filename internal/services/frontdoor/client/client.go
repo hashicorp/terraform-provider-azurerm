@@ -6,9 +6,10 @@ import (
 )
 
 type Client struct {
-	FrontDoorsClient         *frontdoor.FrontDoorsClient
-	FrontDoorsFrontendClient *frontdoor.FrontendEndpointsClient
-	FrontDoorsPolicyClient   *frontdoor.PoliciesClient
+	FrontDoorsClient             *frontdoor.FrontDoorsClient
+	FrontDoorsFrontendClient     *frontdoor.FrontendEndpointsClient
+	FrontDoorsPolicyClient       *frontdoor.PoliciesClient
+	FrontDoorsRulesEnginesClient *frontdoor.RulesEnginesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -18,12 +19,16 @@ func NewClient(o *common.ClientOptions) *Client {
 	frontDoorsFrontendClient := frontdoor.NewFrontendEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontDoorsFrontendClient.Client, o.ResourceManagerAuthorizer)
 
+	frontDoorsRulesEnginesClient := frontdoor.NewRulesEnginesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&frontDoorsRulesEnginesClient.Client, o.ResourceManagerAuthorizer)
+
 	frontDoorsPolicyClient := frontdoor.NewPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontDoorsPolicyClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		FrontDoorsClient:         &frontDoorsClient,
-		FrontDoorsFrontendClient: &frontDoorsFrontendClient,
-		FrontDoorsPolicyClient:   &frontDoorsPolicyClient,
+		FrontDoorsClient:             &frontDoorsClient,
+		FrontDoorsFrontendClient:     &frontDoorsFrontendClient,
+		FrontDoorsPolicyClient:       &frontDoorsPolicyClient,
+		FrontDoorsRulesEnginesClient: &frontDoorsRulesEnginesClient,
 	}
 }

@@ -119,7 +119,7 @@ func (r AppServiceSourceControlResource) Attributes() map[string]*pluginsdk.Sche
 }
 
 func (r AppServiceSourceControlResource) ModelObject() interface{} {
-	return AppServiceSourceControlModel{}
+	return &AppServiceSourceControlModel{}
 }
 
 func (r AppServiceSourceControlResource) ResourceType() string {

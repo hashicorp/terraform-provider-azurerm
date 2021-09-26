@@ -183,6 +183,70 @@ func flattenDataFactoryStructureColumns(input interface{}) []interface{} {
 	return output
 }
 
+// DatasetSnowflakeSchemaColumn describes the attributes needed to specify a Snowflake schema column for a dataset
+type DatasetSnowflakeSchemaColumn struct {
+	Name      string `json:"name,omitempty"`
+	Type      string `json:"type,omitempty"`
+	Precision int    `json:"precision,omitempty"`
+	Scale     int    `json:"scale,omitempty"`
+}
+
+func expandDataFactoryDatasetSnowflakeSchema(input []interface{}) interface{} {
+	columns := make([]DatasetSnowflakeSchemaColumn, 0)
+	for _, column := range input {
+		attrs := column.(map[string]interface{})
+
+		datasetSnowflakeSchemaColumn := DatasetSnowflakeSchemaColumn{
+			Name: attrs["name"].(string),
+		}
+		if attrs["type"] != nil {
+			datasetSnowflakeSchemaColumn.Type = attrs["type"].(string)
+		}
+
+		if attrs["precision"] != nil {
+			datasetSnowflakeSchemaColumn.Precision = attrs["precision"].(int)
+		}
+
+		if attrs["scale"] != nil {
+			datasetSnowflakeSchemaColumn.Scale = attrs["scale"].(int)
+		}
+
+		columns = append(columns, datasetSnowflakeSchemaColumn)
+	}
+	return columns
+}
+
+func flattenDataFactorySnowflakeSchemaColumns(input interface{}) []interface{} {
+	output := make([]interface{}, 0)
+
+	columns, ok := input.([]interface{})
+	if !ok {
+		return columns
+	}
+
+	for _, v := range columns {
+		column, ok := v.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		result := make(map[string]interface{})
+		if column["name"] != nil {
+			result["name"] = column["name"]
+		}
+		if column["type"] != nil {
+			result["type"] = column["type"]
+		}
+		if column["precision"] != nil {
+			result["precision"] = column["precision"]
+		}
+		if column["scale"] != nil {
+			result["scale"] = column["scale"]
+		}
+		output = append(output, result)
+	}
+	return output
+}
+
 func deserializeDataFactoryPipelineActivities(jsonData string) (*[]datafactory.BasicActivity, error) {
 	jsonData = fmt.Sprintf(`{ "activities": %s }`, jsonData)
 	pipeline := &datafactory.Pipeline{}
