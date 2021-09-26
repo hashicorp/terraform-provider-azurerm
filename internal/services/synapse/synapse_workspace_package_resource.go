@@ -136,7 +136,7 @@ func resourceSynapseWorkspacePackageCreate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("waiting on creation for %s: %+v", id, err)
 	}
 
-	var tmp = make([]byte, 1024*1024*10)
+	var tmp = make([]byte, 1024*1024*2)
 	for {
 		n, err := file.Read(tmp)
 		if err == io.EOF {
