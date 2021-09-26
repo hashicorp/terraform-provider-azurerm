@@ -466,13 +466,13 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 					return fmt.Errorf("failover only supports exchange between `zone` and `standby_availability_zone`")
 				}
 			} else {
-				return fmt.Errorf("`standby_availability_zone` cannot be added after creation")
+				return fmt.Errorf("`standby_availability_zone` cannot be added after PostgreSQL Flexible Server is created")
 			}
 		}
 	case !d.HasChange("zone") && !d.HasChange("high_availability.0.standby_availability_zone"):
 		requireFailover = false
 	default:
-		return fmt.Errorf("`zone` and `standby_availability_zone` should be changed or not changed together")
+		return fmt.Errorf("`zone` and `standby_availability_zone` should only be either exchanged with each other or unchanged")
 	}
 
 	if d.HasChange("administrator_password") {
@@ -692,7 +692,7 @@ func expandFlexibleServerHighAvailability(inputs []interface{}, isCreate bool) *
 		Mode: postgresqlflexibleservers.HighAvailabilityMode(input["mode"].(string)),
 	}
 
-	// service team confirmed it doesn't support to update `standby_availability_zone` after creation
+	// service team confirmed it doesn't support to update `standby_availability_zone` after the PostgreSQL Flexible Server resource is created
 	if isCreate {
 		if v, ok := input["standby_availability_zone"]; ok && v.(string) != "" {
 			result.StandbyAvailabilityZone = utils.String(v.(string))
