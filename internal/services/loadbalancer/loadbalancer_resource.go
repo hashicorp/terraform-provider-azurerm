@@ -8,10 +8,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
+	network2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/state"
@@ -262,7 +264,7 @@ func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	properties := network.LoadBalancerPropertiesFormat{}
 
 	if _, ok := d.GetOk("frontend_ip_configuration"); ok {
-		frontendIPConfigurations, err := expandAzureRmLoadBalancerFrontendIpConfigurations(d)
+		frontendIPConfigurations, err := expandAzureRmLoadBalancerFrontendIpConfigurations(ctx, meta.(*clients.Client).Resource.ResourceProvidersClient, d)
 		if err != nil {
 			return err
 		}
@@ -371,7 +373,7 @@ func resourceArmLoadBalancerDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData) (*[]network.FrontendIPConfiguration, error) {
+func expandAzureRmLoadBalancerFrontendIpConfigurations(ctx context.Context, client *resources.ProvidersClient, d *pluginsdk.ResourceData) (*[]network.FrontendIPConfiguration, error) {
 	configs := d.Get("frontend_ip_configuration").([]interface{})
 	frontEndConfigs := make([]network.FrontendIPConfiguration, 0, len(configs))
 	sku := d.Get("sku").(string)
@@ -413,8 +415,13 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 		}
 
 		name := data["name"].(string)
-		// TODO - get zone list for each location by Resource API, instead of hardcode
-		zones := &[]string{"1", "2"}
+
+		location := azure.NormalizeLocation(d.Get("location").(string))
+		allZones, err := network2.GetZones(ctx, client, "publicIPAddresses", location)
+		if err != nil {
+			return nil, fmt.Errorf("loading available zones for resourceType: publicIPAddresses, location: %s:%+v", location, err)
+		}
+		zones := allZones
 		zonesSet := false
 		// TODO - Remove in 3.0
 		if deprecatedZonesRaw, ok := d.GetOk(fmt.Sprintf("frontend_ip_configuration.%d.zones", index)); ok {
@@ -431,7 +438,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 			case "1", "2", "3":
 				zones = &[]string{availabilityZones.(string)}
 			case "Zone-Redundant":
-				zones = &[]string{"1", "2"}
+				zones = allZones
 			case "No-Zone":
 				zones = &[]string{}
 			}
