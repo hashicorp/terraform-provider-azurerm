@@ -448,7 +448,8 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 
 	var requireFailover bool
 	// failover is only supported when `zone` and `standby_availability_zone` is exchanged
-	if d.HasChange("zone") && d.HasChange("high_availability.0.standby_availability_zone") {
+	switch {
+	case d.HasChange("zone") && d.HasChange("high_availability.0.standby_availability_zone"):
 		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return err
@@ -468,9 +469,9 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("`standby_availability_zone` cannot be added after creation")
 			}
 		}
-	} else if !d.HasChange("zone") && !d.HasChange("high_availability.0.standby_availability_zone") {
+	case !d.HasChange("zone") && !d.HasChange("high_availability.0.standby_availability_zone"):
 		requireFailover = false
-	} else {
+	default:
 		return fmt.Errorf("`zone` and `standby_availability_zone` should be changed or not changed together")
 	}
 
