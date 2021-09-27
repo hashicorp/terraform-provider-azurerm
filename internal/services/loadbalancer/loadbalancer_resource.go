@@ -59,6 +59,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.LoadBalancerSkuNameBasic),
 					string(network.LoadBalancerSkuNameStandard),
+					string(network.LoadBalancerSkuNameGateway),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -436,7 +437,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 				zones = &[]string{}
 			}
 		}
-		if !strings.EqualFold(sku, string(network.LoadBalancerSkuNameStandard)) {
+		if strings.EqualFold(sku, string(network.LoadBalancerSkuNameBasic)) {
 			if zonesSet && len(*zones) > 0 {
 				return nil, fmt.Errorf("Availability Zones are not available on the `Basic` SKU")
 			}
