@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -158,21 +159,10 @@ func resourceIotHub() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"connection_string": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-								// Azure will always mask the Access Keys and the ordering of parameters in connection strings differ:
-								// DefaultEndpointsProtocol, EndpointSuffix, AccountName, AccountKey  [for iothub]
-								// DefaultEndpointsProtocol, AccountName, AccountKey, EndpointSuffix  [for storage account]
-								secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
-								splitNew := strings.Split(new, ";")
-								endpointSuffix := splitNew[len(splitNew)-1]
-								orderedNew := append([]string{splitNew[0], endpointSuffix}, splitNew[1:len(splitNew)-1]...)
-								maskedNew := secretKeyRegex.ReplaceAllString(strings.Join(orderedNew, ";"), "$1=****")
-
-								return (new == d.Get(k).(string)) && (maskedNew == old)
-							},
-							Sensitive: true,
+							Type:             pluginsdk.TypeString,
+							Required:         true,
+							DiffSuppressFunc: fileUploadConnectionStringDiffSuppress,
+							Sensitive:        true,
 						},
 						"container_name": {
 							Type:     pluginsdk.TypeString,
@@ -1297,4 +1287,32 @@ func flattenIPFilterRules(in *[]devices.IPFilterRule) []interface{} {
 		rules = append(rules, rawRule)
 	}
 	return rules
+}
+
+func fileUploadConnectionStringDiffSuppress(k, old, new string, d *pluginsdk.ResourceData) bool {
+	// The access keys are always masked by Azure and the ordering of the parameters in the connection string
+	// differs across services, so we will compare the fields individually instead.
+	secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
+
+	if secretKeyRegex.MatchString(new) {
+		maskedNew := secretKeyRegex.ReplaceAllString(new, "$1=****")
+
+		oldSplit := strings.Split(old, ";")
+		newSplit := strings.Split(maskedNew, ";")
+
+		sort.Strings(oldSplit)
+		sort.Strings(newSplit)
+
+		if len(oldSplit) != len(newSplit) {
+			return false
+		}
+
+		for i := range oldSplit {
+			if !strings.EqualFold(oldSplit[i], newSplit[i]) {
+				return false
+			}
+		}
+		return true
+	}
+	return false
 }
