@@ -52,7 +52,7 @@ resource "azurerm_virtual_network" "test" {
 }
 ```
 
-Further [usage documentation is available on the Terraform website](https://www.terraform.io/docs/providers/azurerm/index.html).
+Further [usage documentation is available on the Terraform website](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs).
 
 ## Developer Requirements
 
