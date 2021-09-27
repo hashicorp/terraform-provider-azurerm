@@ -1,11 +1,13 @@
 package synapse
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/2019-06-01-preview/managedvirtualnetwork"
+	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -120,6 +122,19 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("empty or nil ID returned for %s", id)
 	}
 
+	timeout, _ := ctx.Deadline()
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{string(synapse.ProvisioningStateProvisioning)},
+		Target:     []string{string(synapse.ProvisioningStateSucceeded)},
+		Refresh:    managedPrivateEndpointProvisioningStateRefreshFunc(ctx, client, id),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    time.Until(timeout),
+	}
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
+	}
+
 	d.SetId(id.ID())
 	return resourceSynapseManagedPrivateEndpointRead(d, meta)
 }
@@ -182,4 +197,19 @@ func resourceSynapseManagedPrivateEndpointDelete(d *pluginsdk.ResourceData, meta
 	}
 
 	return nil
+}
+
+func managedPrivateEndpointProvisioningStateRefreshFunc(ctx context.Context, client *managedvirtualnetwork.ManagedPrivateEndpointsClient, id parse.ManagedPrivateEndpointId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, id.ManagedVirtualNetworkName, id.Name)
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
+		}
+
+		if resp.Properties == nil || resp.Properties.ProvisioningState == nil {
+			return resp, "", fmt.Errorf("nil ProvisioningState returned for %s", id)
+		}
+
+		return resp, *resp.Properties.ProvisioningState, nil
+	}
 }
