@@ -96,7 +96,7 @@ func (p ClientFilter) MarshalJSON() ([]byte, error) {
 }
 
 type PercentageFilterParameters struct {
-	Value int `json:"Value" tfschema:"value"`
+	Value int `json:"Value"`
 }
 
 type PercentageFeatureFilter struct {

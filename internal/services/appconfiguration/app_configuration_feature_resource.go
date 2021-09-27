@@ -37,7 +37,7 @@ type FeatureResourceModel struct {
 	Label                string                       `tfschema:"label"`
 	Locked               bool                         `tfschema:"locked"`
 	Tags                 map[string]interface{}       `tfschema:"tags"`
-	PercentageFilters    []PercentageFilterParameters `tfschema:"percentage_filter"`
+	PercentageFilter     int                          `tfschema:"percentage_filter_value"`
 	TimewindowFilters    []TimewindowFilterParameters `tfschema:"timewindow_filter"`
 	TargetingFilters     []TargetingFilterAudience    `tfschema:"targeting_filter"`
 }
@@ -79,17 +79,10 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Default:  false,
 		},
-		"percentage_filter": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*schema.Schema{
-					"value": {
-						Type:     pluginsdk.TypeInt,
-						Required: true,
-					},
-				},
-			},
+		"percentage_filter_value": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(0, 100),
 		},
 		"targeting_filter": {
 			Type:     pluginsdk.TypeList,
@@ -97,8 +90,9 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"default_rollout_percentage": {
-						Type:     pluginsdk.TypeInt,
-						Required: true,
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(0, 100),
 					},
 
 					"groups": {
@@ -111,8 +105,9 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 									Required: true,
 								},
 								"rollout_percentage": {
-									Type:     pluginsdk.TypeInt,
-									Required: true,
+									Type:         pluginsdk.TypeInt,
+									Required:     true,
+									ValidateFunc: validation.IntBetween(0, 100),
 								},
 							},
 						},
@@ -121,7 +116,8 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &schema.Schema{
-							Type: schema.TypeString,
+							Type:         schema.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -270,7 +266,7 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 						model.TargetingFilters = append(model.TargetingFilters, tfp.Parameters.Audience)
 					case PercentageFeatureFilter:
 						pfp := f
-						model.PercentageFilters = append(model.PercentageFilters, pfp.Parameters)
+						model.PercentageFilter = pfp.Parameters.Value
 					default:
 						return fmt.Errorf("while unmarshaling feature payload: unknown filter type %+v", f)
 					}
@@ -378,14 +374,10 @@ func createOrUpdateFeature(ctx context.Context, client *appconfiguration.BaseCli
 		Enabled:     model.Enabled,
 	}
 
-	if len(model.PercentageFilters) > 0 {
-		for _, pf := range model.PercentageFilters {
-			value.Conditions.ClientFilters.Filters = append(value.Conditions.ClientFilters.Filters, PercentageFeatureFilter{
-				Name:       PercentageFilterName,
-				Parameters: pf,
-			})
-		}
-	}
+	value.Conditions.ClientFilters.Filters = append(value.Conditions.ClientFilters.Filters, PercentageFeatureFilter{
+		Name:       PercentageFilterName,
+		Parameters: PercentageFilterParameters{Value: model.PercentageFilter},
+	})
 
 	if len(model.TargetingFilters) > 0 {
 		for _, tgtf := range model.TargetingFilters {

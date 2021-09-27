@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the App Configuration Feature.  
 
-* `enabled` - (Optional) The status of the App Configuration Feature. By default this is set to false.
+* `enabled` - (Optional) The status of the App Configuration Feature. By default, this is set to false.
 
 * `label` - (Optional) The label of the App Configuration Feature.  Changing this forces a new resource to be created.
 
@@ -50,19 +50,13 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the App Configuration Feature. Changing this foces a new resource to be crearted.
 
-* `percentage_filter` - (Optional) One or more blocks of type `percentage_filter` as defined below.
+* `percentage_filter_value` - (Optional) A list of one or more numbers representing the value of the percentage required to enable this feature.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `targeting_filter` - (Optional) One or more blocks of type `targeting_filter` as defined below.
+* `targeting_filter` - (Optional) A `targeting_filter` block as defined below.
 
-* `timewindow_filter` - (Optional) One or more blocks of type `timewindow_filter` as defined below.
-
----
-
-A `percentage_filter` block represents a feature filter of type `Microsoft.Percentage` and takes the following attributes:
-
-* `value` - (Required) A number representing the value of the percentage required to enable this feature.
+* `timewindow_filter` - (Optional) A `targeting_filter` block `timewindow_filter` as defined below.
 
 ---
 

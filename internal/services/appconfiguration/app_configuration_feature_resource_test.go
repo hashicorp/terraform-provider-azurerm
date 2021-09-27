@@ -145,9 +145,7 @@ resource "azurerm_app_configuration_feature" "test" {
   label                  = "acctest-ackeylabel-%d"
   enabled                = true
 
-  percentage_filter {
-    value = 10
-  }
+  percentage_filter_value = 10
 
   timewindow_filter {
     start = "2019-11-12T07:20:50.52Z"
@@ -212,9 +210,7 @@ resource "azurerm_app_configuration_feature" "import" {
   label                  = azurerm_app_configuration_feature.test.label
   enabled                = azurerm_app_configuration_feature.test.enabled
 
-  percentage_filter {
-    value = 10
-  }
+  percentage_filter_value = 10
 
   timewindow_filter {
     start = "2019-11-12T07:20:50.52Z"
