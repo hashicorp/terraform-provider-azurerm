@@ -2,7 +2,10 @@ package datafactory
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"reflect"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
@@ -18,6 +21,7 @@ import (
 	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -198,6 +202,7 @@ func resourceDataFactory() *pluginsdk.Resource {
 								"Object",
 								"String",
 							}, false),
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"value": {
@@ -509,7 +514,7 @@ func expandDataFactoryGlobalParameters(input []interface{}) (map[string]*datafac
 
 		result[name] = &datafactory.GlobalParameterSpecification{
 			Type:  datafactory.GlobalParameterType(v["type"].(string)),
-			Value: v["value"].(string),
+			Value: fmt.Sprintf("%v", v["value"]),
 		}
 	}
 	return result, nil
@@ -606,10 +611,17 @@ func flattenDataFactoryGlobalParameters(input map[string]*datafactory.GlobalPara
 	}
 	result := make([]interface{}, 0)
 	for name, item := range input {
+		var valueResult string
+		if (strings.ToLower(string(item.Type)) == "array" || strings.ToLower(string(item.Type)) == "object") && reflect.TypeOf(item.Value).Name() != "string" {
+			result, _ := json.Marshal(item.Value)
+			valueResult = string(result)
+		} else {
+			valueResult = fmt.Sprintf("%v", item.Value)
+		}
 		result = append(result, map[string]interface{}{
 			"name":  name,
 			"type":  string(item.Type),
-			"value": item.Value,
+			"value": valueResult,
 		})
 	}
 	return result
