@@ -1,6 +1,7 @@
 package synapse
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -104,9 +105,17 @@ func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	_, err = client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+	timeout, _ := ctx.Deadline()
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{string(synapse.ProvisioningStateProvisioning)},
+		Target:     []string{string(synapse.ProvisioningStateSucceeded)},
+		Refresh:    firewallRuleProvisioningStateRefreshFunc(ctx, client, id),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    time.Until(timeout),
+	}
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -166,4 +175,19 @@ func resourceSynapseFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return nil
+}
+
+func firewallRuleProvisioningStateRefreshFunc(ctx context.Context, client *synapse.IPFirewallRulesClient, id parse.FirewallRuleId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
+		}
+
+		if resp.IPFirewallRuleProperties == nil {
+			return resp, "", fmt.Errorf("nil IPFirewallRuleProperties returned for %s", id)
+		}
+
+		return resp, string(resp.IPFirewallRuleProperties.ProvisioningState), nil
+	}
 }
