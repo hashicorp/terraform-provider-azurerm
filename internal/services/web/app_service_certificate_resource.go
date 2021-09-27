@@ -74,10 +74,17 @@ func resourceAppServiceCertificate() *pluginsdk.Resource {
 				ConflictsWith: []string{"pfx_blob", "password"},
 			},
 
-			"hosting_environment_profile_id": {
+			"app_service_plan_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
+			},
+
+			"hosting_environment_profile_id": { // TODO - Remove in 3.0
+				Type:       pluginsdk.TypeString,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "This property has been deprecated and replaced with `app_service_plan_id`",
 			},
 
 			"friendly_name": {
@@ -138,7 +145,7 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 	pfxBlob := d.Get("pfx_blob").(string)
 	password := d.Get("password").(string)
 	keyVaultSecretId := d.Get("key_vault_secret_id").(string)
-	hostingEnvironmentProfileId := d.Get("hosting_environment_profile_id").(string)
+	appServicePlanId := d.Get("app_service_plan_id").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	if pfxBlob == "" && keyVaultSecretId == "" {
@@ -166,10 +173,8 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 		Tags:     tags.Expand(t),
 	}
 
-	if len(hostingEnvironmentProfileId) > 0 {
-		certificate.CertificateProperties.HostingEnvironmentProfile = &web.HostingEnvironmentProfile{
-			ID: &hostingEnvironmentProfileId,
-		}
+	if appServicePlanId != "" {
+		certificate.CertificateProperties.ServerFarmID = &appServicePlanId
 	}
 
 	if pfxBlob != "" {
@@ -249,8 +254,16 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("subject_name", props.SubjectName)
 		d.Set("host_names", props.HostNames)
 		d.Set("issuer", props.Issuer)
-		d.Set("issue_date", props.IssueDate.Format(time.RFC3339))
-		d.Set("expiration_date", props.ExpirationDate.Format(time.RFC3339))
+		issueDate := ""
+		if props.IssueDate != nil {
+			issueDate = props.IssueDate.Format(time.RFC3339)
+		}
+		d.Set("issue_date", issueDate)
+		expirationDate := ""
+		if props.ExpirationDate != nil {
+			expirationDate = props.ExpirationDate.Format(time.RFC3339)
+		}
+		d.Set("expiration_date", expirationDate)
 		d.Set("thumbprint", props.Thumbprint)
 
 		if hep := props.HostingEnvironmentProfile; hep != nil {

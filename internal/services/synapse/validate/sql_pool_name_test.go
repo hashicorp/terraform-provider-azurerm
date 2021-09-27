@@ -20,18 +20,33 @@ func TestSqlPoolName(t *testing.T) {
 			expected: true,
 		},
 		{
+			// UTF-8
+			input:    "販売管理",
+			expected: true,
+		},
+		{
 			// can't contain hyphen
 			input:    "ab-c",
 			expected: false,
 		},
 		{
-			// 15 chars
-			input:    "abcdefghijklmno",
+			// can't end with .
+			input:    "abc.",
+			expected: false,
+		},
+		{
+			// can't end with space
+			input:    "abc ",
+			expected: false,
+		},
+		{
+			// 60 chars
+			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefgh",
 			expected: true,
 		},
 		{
-			// 16 chars
-			input:    "abcdefghijklmnop",
+			// 61 chars
+			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghi",
 			expected: false,
 		},
 	}

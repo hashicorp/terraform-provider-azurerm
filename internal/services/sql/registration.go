@@ -34,6 +34,8 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_sql_elasticpool":                    resourceSqlElasticPool(),
 		"azurerm_sql_failover_group":                 resourceSqlFailoverGroup(),
 		"azurerm_sql_firewall_rule":                  resourceSqlFirewallRule(),
+		"azurerm_sql_managed_database":               resourceArmSqlManagedDatabase(),
+		"azurerm_sql_managed_instance":               resourceArmSqlMiServer(),
 		"azurerm_sql_server":                         resourceSqlServer(),
 		"azurerm_sql_virtual_network_rule":           resourceSqlVirtualNetworkRule(),
 	}

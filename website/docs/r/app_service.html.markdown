@@ -191,6 +191,8 @@ A `site_config` block supports the following:
 
 * `always_on` - (Optional) Should the app be loaded at all times? Defaults to `false`.
 
+~> **NOTE:** when using an App Service Plan in the `Free` or `Shared` Tiers `always_on` must be set to `false`.
+
 * `app_command_line` - (Optional) App command line to launch, e.g. `/sbin/myserver -b 0.0.0.0`.
 
 * `cors` - (Optional) A `cors` block as defined below.
@@ -255,7 +257,7 @@ Additional examples of how to run Containers via the `azurerm_app_service` resou
 
 ~> **NOTE:** when using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
 
-* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied.
+* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.
 
 ~> **NOTE:** This setting supersedes the previous mechanism of setting the `app_settings` value of `WEBSITE_VNET_ROUTE_ALL`. However, to prevent older configurations breaking Terraform will update this value if it not explicitly set to the value in `app_settings.WEBSITE_VNET_ROUTE_ALL`.
 

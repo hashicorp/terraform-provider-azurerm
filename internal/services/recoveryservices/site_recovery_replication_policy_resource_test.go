@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -62,18 +62,14 @@ resource "azurerm_site_recovery_replication_policy" "test" {
 }
 
 func (t SiteRecoveryReplicationPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ReplicationPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resGroup := id.ResourceGroup
-	vaultName := id.Path["vaults"]
-	name := id.Path["replicationPolicies"]
-
-	resp, err := clients.RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName).Get(ctx, name)
+	resp, err := clients.RecoveryServices.ReplicationPoliciesClient(id.ResourceGroup, id.VaultName).Get(ctx, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading site recovery replication policy (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading site recovery replication policy (%s): %+v", id.String(), err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

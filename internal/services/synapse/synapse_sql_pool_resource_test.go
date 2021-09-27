@@ -30,6 +30,21 @@ func TestAccSynapseSqlPool_basic(t *testing.T) {
 	})
 }
 
+func TestAccSynapseSqlPool_utf8(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool", "test")
+	r := SynapseSqlPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.utf8(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSynapseSqlPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool", "test")
 	r := SynapseSqlPoolResource{}
@@ -122,6 +137,24 @@ resource "azurerm_synapse_sql_pool" "test" {
   create_mode          = "Default"
 }
 `, template, data.RandomString)
+}
+
+func (r SynapseSqlPoolResource) utf8(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_synapse_sql_pool" "test" {
+  name                 = "販売管理"
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  sku_name             = "DW100c"
+  create_mode          = "Default"
+}
+`, template)
 }
 
 func (r SynapseSqlPoolResource) requiresImport(data acceptance.TestData) string {

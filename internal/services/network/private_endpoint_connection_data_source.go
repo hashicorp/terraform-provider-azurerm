@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -31,6 +32,23 @@ func dataSourcePrivateEndpointConnection() *pluginsdk.Resource {
 			"location": azure.SchemaLocationForDataSource(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+
+			"network_interface": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 
 			"private_service_connection": {
 				Type:     pluginsdk.TypeList,
@@ -88,13 +106,19 @@ func dataSourcePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta int
 	}
 
 	if props := resp.PrivateEndpointProperties; props != nil {
+		networkInterfaceId := ""
 		privateIpAddress := ""
 
 		if nics := props.NetworkInterfaces; nics != nil && len(*nics) > 0 {
 			nic := (*nics)[0]
 			if nic.ID != nil && *nic.ID != "" {
-				privateIpAddress = getPrivateIpAddress(ctx, nicsClient, *nic.ID)
+				networkInterfaceId = *nic.ID
+				privateIpAddress = getPrivateIpAddress(ctx, nicsClient, networkInterfaceId)
 			}
+		}
+
+		if err := d.Set("network_interface", getNetworkInterface(networkInterfaceId)); err != nil {
+			return fmt.Errorf("setting `network_interface`: %+v", err)
 		}
 
 		if err := d.Set("private_service_connection", dataSourceFlattenPrivateEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)); err != nil {
@@ -103,6 +127,22 @@ func dataSourcePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta int
 	}
 
 	return nil
+}
+
+func getNetworkInterface(networkInterfaceId string) interface{} {
+	results := make([]interface{}, 0)
+
+	id, err := parse.NetworkInterfaceID(networkInterfaceId)
+	if err != nil {
+		return results
+	}
+
+	elem := map[string]string{}
+
+	elem["id"] = id.ID()
+	elem["name"] = id.Name
+
+	return append(results, elem)
 }
 
 func getPrivateIpAddress(ctx context.Context, client *network.InterfacesClient, networkInterfaceId string) string {

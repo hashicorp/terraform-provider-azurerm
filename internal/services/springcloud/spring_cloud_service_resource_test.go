@@ -224,8 +224,8 @@ resource "azurerm_spring_cloud_service" "test" {
   }
 
   trace {
-    instrumentation_key = azurerm_application_insights.test.instrumentation_key
-    sample_rate         = 20
+    connection_string = azurerm_application_insights.test.connection_string
+    sample_rate       = 20
   }
 
   tags = {
@@ -312,7 +312,7 @@ resource "azurerm_spring_cloud_service" "test" {
   }
 
   trace {
-    instrumentation_key = azurerm_application_insights.test.instrumentation_key
+    connection_string = azurerm_application_insights.test.connection_string
   }
 
   tags = {

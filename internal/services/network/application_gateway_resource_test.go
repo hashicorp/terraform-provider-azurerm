@@ -960,6 +960,104 @@ func TestAccApplicationGateway_backendAddressPoolEmptyIpList(t *testing.T) {
 	})
 }
 
+func TestAccApplicationGateway_sslProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	r := ApplicationGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sslProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ssl_profile.0.verify_client_cert_issuer_dn").HasValue("false"),
+				check.That(data.ResourceName).Key("ssl_profile.0.trusted_client_certificate_names.0").DoesNotExist(),
+				check.That(data.ResourceName).Key("http_listener.0.ssl_profile_name").Exists(),
+				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.policy_type").HasValue("Predefined"),
+				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.policy_name").HasValue("AppGwSslPolicy20150501"),
+			),
+		},
+		// since these are read from the existing state
+		data.ImportStep(
+			"ssl_certificate.0.data",
+			"ssl_certificate.0.password",
+		),
+		{
+			Config: r.sslProfileUpdateOne(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ssl_profile.0.verify_client_cert_issuer_dn").HasValue("true"),
+				check.That(data.ResourceName).Key("ssl_profile.0.trusted_client_certificate_names.0").DoesNotExist(),
+				check.That(data.ResourceName).Key("http_listener.0.ssl_profile_name").Exists(),
+				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.policy_type").HasValue("Predefined"),
+				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.policy_name").HasValue("AppGwSslPolicy20170401"),
+			),
+		},
+		// since these are read from the existing state
+		data.ImportStep(
+			"ssl_certificate.0.data",
+			"ssl_certificate.0.password",
+		),
+	})
+}
+
+func TestAccApplicationGateway_sslProfileWithClientCertificateVerification(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	r := ApplicationGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sslProfileWithClientCertificateVerification(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ssl_profile.0.verify_client_cert_issuer_dn").HasValue("false"),
+				check.That(data.ResourceName).Key("ssl_profile.0.trusted_client_certificate_names.0").Exists(),
+				check.That(data.ResourceName).Key("http_listener.0.ssl_profile_name").Exists(),
+				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.policy_type").HasValue("Custom"),
+				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.min_protocol_version").HasValue("TLSv1_1"),
+				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.cipher_suites.0").HasValue("TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"),
+				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.cipher_suites.1").HasValue("TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"),
+				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.cipher_suites.2").HasValue("TLS_RSA_WITH_AES_128_GCM_SHA256"),
+			),
+		},
+		// since these are read from the existing state
+		data.ImportStep(
+			"ssl_certificate.0.data",
+			"ssl_certificate.0.password",
+		),
+		{
+			Config: r.sslProfileWithClientCertificateVerificationUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ssl_profile.0.verify_client_cert_issuer_dn").HasValue("true"),
+				check.That(data.ResourceName).Key("ssl_profile.0.trusted_client_certificate_names.0").Exists(),
+				check.That(data.ResourceName).Key("http_listener.0.ssl_profile_name").Exists(),
+				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.disabled_protocols.0").HasValue("TLSv1_0"),
+				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.disabled_protocols.1").HasValue("TLSv1_1"),
+			),
+		},
+		// since these are read from the existing state
+		data.ImportStep(
+			"ssl_certificate.0.data",
+			"ssl_certificate.0.password",
+		),
+		{
+			Config: r.sslProfileWithClientCertificateVerificationUpdateTwo(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ssl_profile.0.verify_client_cert_issuer_dn").HasValue("false"),
+				check.That(data.ResourceName).Key("ssl_profile.0.trusted_client_certificate_names.0").Exists(),
+				check.That(data.ResourceName).Key("http_listener.0.ssl_profile_name").Exists(),
+				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0").DoesNotExist(),
+			),
+		},
+		// since these are read from the existing state
+		data.ImportStep(
+			"ssl_certificate.0.data",
+			"ssl_certificate.0.password",
+		),
+	})
+}
+
 func (t ApplicationGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ApplicationGatewayID(state.ID)
 	if err != nil {
@@ -5942,4 +6040,503 @@ resource "azurerm_application_gateway" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r ApplicationGatewayResource) sslProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  ssl_profile_name               = "${azurerm_virtual_network.test.name}-sslprof"
+  ssl_certificate_name           = "${azurerm_virtual_network.test.name}-ssl1"
+}
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-%d-standard"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+    capacity = 1
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 443
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.test_standard.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                  = local.http_setting_name
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Https"
+    ssl_certificate_name           = local.ssl_certificate_name
+    ssl_profile_name               = local.ssl_profile_name
+  }
+
+  request_routing_rule {
+    name                       = local.request_routing_rule_name
+    rule_type                  = "Basic"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
+  }
+
+  ssl_profile {
+    name = local.ssl_profile_name
+    ssl_policy {
+      policy_type = "Predefined"
+      policy_name = "AppGwSslPolicy20150501"
+    }
+  }
+
+  ssl_certificate {
+    name     = local.ssl_certificate_name
+    data     = filebase64("testdata/application_gateway_test.pfx")
+    password = "terraform"
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r ApplicationGatewayResource) sslProfileUpdateOne(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  ssl_profile_name               = "${azurerm_virtual_network.test.name}-sslprof"
+  ssl_certificate_name           = "${azurerm_virtual_network.test.name}-ssl1"
+}
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-%d-standard"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+    capacity = 1
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 443
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.test_standard.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                  = local.http_setting_name
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Https"
+    ssl_certificate_name           = local.ssl_certificate_name
+    ssl_profile_name               = local.ssl_profile_name
+  }
+
+  request_routing_rule {
+    name                       = local.request_routing_rule_name
+    rule_type                  = "Basic"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
+  }
+
+  ssl_profile {
+    name                         = local.ssl_profile_name
+    verify_client_cert_issuer_dn = true
+    ssl_policy {
+      policy_type = "Predefined"
+      policy_name = "AppGwSslPolicy20170401"
+    }
+  }
+
+  ssl_certificate {
+    name     = local.ssl_certificate_name
+    data     = filebase64("testdata/application_gateway_test.pfx")
+    password = "terraform"
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r ApplicationGatewayResource) sslProfileWithClientCertificateVerification(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  ssl_profile_name               = "${azurerm_virtual_network.test.name}-sslprof"
+  trusted_client_cert_name       = "${azurerm_virtual_network.test.name}-tcc"
+  ssl_certificate_name           = "${azurerm_virtual_network.test.name}-ssl1"
+}
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-%d-standard"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+    capacity = 1
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 443
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.test_standard.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                  = local.http_setting_name
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Https"
+    ssl_certificate_name           = local.ssl_certificate_name
+    ssl_profile_name               = local.ssl_profile_name
+  }
+
+  request_routing_rule {
+    name                       = local.request_routing_rule_name
+    rule_type                  = "Basic"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
+  }
+
+  ssl_profile {
+    name                             = local.ssl_profile_name
+    trusted_client_certificate_names = [local.trusted_client_cert_name]
+    ssl_policy {
+      policy_type          = "Custom"
+      min_protocol_version = "TLSv1_1"
+      cipher_suites        = ["TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "TLS_RSA_WITH_AES_128_GCM_SHA256"]
+    }
+  }
+
+  trusted_client_certificate {
+    name = local.trusted_client_cert_name
+    data = filebase64("testdata/application_gateway_mtls_test.cer")
+  }
+
+  ssl_certificate {
+    name     = local.ssl_certificate_name
+    data     = filebase64("testdata/application_gateway_test.pfx")
+    password = "terraform"
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r ApplicationGatewayResource) sslProfileWithClientCertificateVerificationUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  ssl_profile_name               = "${azurerm_virtual_network.test.name}-sslprof"
+  trusted_client_cert_name       = "${azurerm_virtual_network.test.name}-tcc"
+  ssl_certificate_name           = "${azurerm_virtual_network.test.name}-ssl1"
+}
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-%d-standard"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+    capacity = 1
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 443
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.test_standard.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                  = local.http_setting_name
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Https"
+    ssl_certificate_name           = local.ssl_certificate_name
+    ssl_profile_name               = local.ssl_profile_name
+  }
+
+  request_routing_rule {
+    name                       = local.request_routing_rule_name
+    rule_type                  = "Basic"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
+  }
+
+  ssl_profile {
+    name                             = local.ssl_profile_name
+    trusted_client_certificate_names = [local.trusted_client_cert_name]
+    verify_client_cert_issuer_dn     = true
+    ssl_policy {
+      disabled_protocols = ["TLSv1_0", "TLSv1_1"]
+    }
+  }
+
+  trusted_client_certificate {
+    name = local.trusted_client_cert_name
+    data = filebase64("testdata/application_gateway_mtls_test_2.cer")
+  }
+
+  ssl_certificate {
+    name     = local.ssl_certificate_name
+    data     = filebase64("testdata/application_gateway_test.pfx")
+    password = "terraform"
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r ApplicationGatewayResource) sslProfileWithClientCertificateVerificationUpdateTwo(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  ssl_profile_name               = "${azurerm_virtual_network.test.name}-sslprof"
+  trusted_client_cert_name       = "${azurerm_virtual_network.test.name}-tcc"
+  ssl_certificate_name           = "${azurerm_virtual_network.test.name}-ssl1"
+}
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-%d-standard"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+    capacity = 1
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 443
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.test_standard.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                  = local.http_setting_name
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Https"
+    ssl_certificate_name           = local.ssl_certificate_name
+    ssl_profile_name               = local.ssl_profile_name
+  }
+
+  request_routing_rule {
+    name                       = local.request_routing_rule_name
+    rule_type                  = "Basic"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
+  }
+
+  ssl_profile {
+    name                             = local.ssl_profile_name
+    trusted_client_certificate_names = [local.trusted_client_cert_name]
+  }
+
+  trusted_client_certificate {
+    name = local.trusted_client_cert_name
+    data = filebase64("testdata/application_gateway_mtls_test_2.cer")
+  }
+
+  ssl_certificate {
+    name     = local.ssl_certificate_name
+    data     = filebase64("testdata/application_gateway_test.pfx")
+    password = "terraform"
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }

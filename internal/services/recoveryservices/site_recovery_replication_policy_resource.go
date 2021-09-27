@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -21,8 +22,10 @@ func resourceSiteRecoveryReplicationPolicy() *pluginsdk.Resource {
 		Read:   resourceSiteRecoveryReplicationPolicyRead,
 		Update: resourceSiteRecoveryReplicationPolicyUpdate,
 		Delete: resourceSiteRecoveryReplicationPolicyDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ReplicationPolicyID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -154,31 +157,27 @@ func resourceSiteRecoveryReplicationPolicyUpdate(d *pluginsdk.ResourceData, meta
 }
 
 func resourceSiteRecoveryReplicationPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ReplicationPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	vaultName := id.Path["vaults"]
-	name := id.Path["replicationPolicies"]
-
-	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
+	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient(id.ResourceGroup, id.VaultName)
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resp, err := client.Get(ctx, name)
+	resp, err := client.Get(ctx, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("making Read request on site recovery replication policy %s : %+v", id.String(), err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("recovery_vault_name", vaultName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("recovery_vault_name", id.VaultName)
 	if a2APolicyDetails, isA2A := resp.Properties.ProviderSpecificDetails.AsA2APolicyDetails(); isA2A {
 		d.Set("recovery_point_retention_in_minutes", a2APolicyDetails.RecoveryPointHistory)
 		d.Set("application_consistent_snapshot_frequency_in_minutes", a2APolicyDetails.AppConsistentFrequencyInMinutes)
@@ -187,26 +186,22 @@ func resourceSiteRecoveryReplicationPolicyRead(d *pluginsdk.ResourceData, meta i
 }
 
 func resourceSiteRecoveryReplicationPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ReplicationPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	vaultName := id.Path["vaults"]
-	name := id.Path["replicationPolicies"]
-
-	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
+	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient(id.ResourceGroup, id.VaultName)
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	future, err := client.Delete(ctx, name)
+	future, err := client.Delete(ctx, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("deleting site recovery replication policy %s : %+v", id.String(), err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("waiting for deletion of site recovery replication policy %s : %+v", id.String(), err)
 	}
 
 	return nil

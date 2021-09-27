@@ -58,7 +58,9 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.StandardLRS),
+					string(compute.StandardSSDZRS),
 					string(compute.PremiumLRS),
+					string(compute.PremiumZRS),
 					string(compute.StandardSSDLRS),
 					string(compute.UltraSSDLRS),
 				}, false),

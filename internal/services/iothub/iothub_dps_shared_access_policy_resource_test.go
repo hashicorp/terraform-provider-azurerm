@@ -6,10 +6,10 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -202,13 +202,13 @@ resource "azurerm_iothub_dps_shared_access_policy" "test" {
 }
 
 func (t IotHubDpsSharedAccessPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.DpsSharedAccessPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 	resourceGroup := id.ResourceGroup
-	iothubDpsName := id.Path["provisioningServices"]
-	keyName := id.Path["keys"]
+	iothubDpsName := id.ProvisioningServiceName
+	keyName := id.KeyName
 
 	accessPolicy, err := clients.IoTHub.DPSResourceClient.ListKeysForKeyName(ctx, iothubDpsName, keyName, resourceGroup)
 	if err != nil {

@@ -79,11 +79,17 @@ The following arguments are supported:
 
 * `serialization` - (Required) A `serialization` block as defined below.
 
+* `batch_max_wait_time` - (Optional) The maximum wait time per batch in `hh:mm:ss` e.g. `00:02:00` for two minutes.
+
+* `batch_min_rows` - (Optional) The minimum number of rows per batch (must be between `0` and `10000`).
+
 ---
 
 A `serialization` block supports the following:
 
-* `type` - (Required) The serialization format used for outgoing data streams. Possible values are `Avro`, `Csv` and `Json`.
+* `type` - (Required) The serialization format used for outgoing data streams. Possible values are `Avro`, `Csv`, `Json` and `Parquet`.
+
+-> **NOTE:** `batch_max_wait_time` and `batch_min_rows` are required when `type` is set to `Parquet`
 
 * `encoding` - (Optional) The encoding of the incoming data in the case of input and the encoding of outgoing data in the case of output. It currently can only be set to `UTF8`.
 

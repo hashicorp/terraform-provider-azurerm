@@ -6,11 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -23,8 +24,11 @@ func resourceIotHubEndpointEventHub() *pluginsdk.Resource {
 		Read:   resourceIotHubEndpointEventHubRead,
 		Update: resourceIotHubEndpointEventHubCreateUpdate,
 		Delete: resourceIotHubEndpointEventHubDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.EndpointEventhubID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -69,32 +73,29 @@ func resourceIotHubEndpointEventHub() *pluginsdk.Resource {
 
 func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
+	subscriptionId := meta.(*clients.Client).IoTHub.ResourceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	iothubName := d.Get("iothub_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewEndpointEventhubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_name").(string), d.Get("name").(string))
 
-	locks.ByName(iothubName, IothubResourceName)
-	defer locks.UnlockByName(iothubName, IothubResourceName)
+	locks.ByName(id.IotHubName, IothubResourceName)
+	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
 
-	iothub, err := client.Get(ctx, resourceGroup, iothubName)
+	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(iothub.Response) {
-			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
+			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
 		}
 
-		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
 	}
-
-	endpointName := d.Get("name").(string)
-	resourceId := fmt.Sprintf("%s/Endpoints/%s", *iothub.ID, endpointName)
 
 	eventhubEndpoint := devices.RoutingEventHubProperties{
 		ConnectionString: utils.String(d.Get("connection_string").(string)),
-		Name:             utils.String(endpointName),
+		Name:             utils.String(id.EndpointName),
 		SubscriptionID:   utils.String(meta.(*clients.Client).Account.SubscriptionId),
-		ResourceGroup:    utils.String(resourceGroup),
+		ResourceGroup:    utils.String(id.ResourceGroup),
 	}
 
 	routing := iothub.Properties.Routing
@@ -116,9 +117,9 @@ func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta 
 	alreadyExists := false
 	for _, existingEndpoint := range *routing.Endpoints.EventHubs {
 		if existingEndpointName := existingEndpoint.Name; existingEndpointName != nil {
-			if strings.EqualFold(*existingEndpointName, endpointName) {
+			if strings.EqualFold(*existingEndpointName, id.EndpointName) {
 				if d.IsNewResource() {
-					return tf.ImportAsExistsError("azurerm_iothub_endpoint_eventhub", resourceId)
+					return tf.ImportAsExistsError("azurerm_iothub_endpoint_eventhub", id.ID())
 				}
 				endpoints = append(endpoints, eventhubEndpoint)
 				alreadyExists = true
@@ -131,20 +132,20 @@ func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta 
 	if d.IsNewResource() {
 		endpoints = append(endpoints, eventhubEndpoint)
 	} else if !alreadyExists {
-		return fmt.Errorf("Unable to find EventHub Endpoint %q defined for IotHub %q (Resource Group %q)", endpointName, iothubName, resourceGroup)
+		return fmt.Errorf("unable to find %s", id)
 	}
 	routing.Endpoints.EventHubs = &endpoints
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, iothub, "")
 	if err != nil {
-		return fmt.Errorf("creating/updating IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId)
+	d.SetId(id.ID())
 	return resourceIotHubEndpointEventHubRead(d, meta)
 }
 
@@ -153,23 +154,19 @@ func resourceIotHubEndpointEventHubRead(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	parsedIothubEndpointId, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.EndpointEventhubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := parsedIothubEndpointId.ResourceGroup
-	iothubName := parsedIothubEndpointId.Path["IotHubs"]
-	endpointName := parsedIothubEndpointId.Path["Endpoints"]
-
-	iothub, err := client.Get(ctx, resourceGroup, iothubName)
+	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", endpointName)
-	d.Set("iothub_name", iothubName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.EndpointName)
+	d.Set("iothub_name", id.IotHubName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.Endpoints == nil {
 		return nil
@@ -178,7 +175,7 @@ func resourceIotHubEndpointEventHubRead(d *pluginsdk.ResourceData, meta interfac
 	if endpoints := iothub.Properties.Routing.Endpoints.EventHubs; endpoints != nil {
 		for _, endpoint := range *endpoints {
 			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
-				if strings.EqualFold(*existingEndpointName, endpointName) {
+				if strings.EqualFold(*existingEndpointName, id.EndpointName) {
 					d.Set("connection_string", endpoint.ConnectionString)
 				}
 			}
@@ -193,24 +190,20 @@ func resourceIotHubEndpointEventHubDelete(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	parsedIothubEndpointId, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.EndpointEventhubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := parsedIothubEndpointId.ResourceGroup
-	iothubName := parsedIothubEndpointId.Path["IotHubs"]
-	endpointName := parsedIothubEndpointId.Path["Endpoints"]
+	locks.ByName(id.IotHubName, IothubResourceName)
+	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
 
-	locks.ByName(iothubName, IothubResourceName)
-	defer locks.UnlockByName(iothubName, IothubResourceName)
-
-	iothub, err := client.Get(ctx, resourceGroup, iothubName)
+	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(iothub.Response) {
-			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
+			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
 		}
-		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
 	}
 
 	if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.Endpoints == nil {
@@ -225,20 +218,20 @@ func resourceIotHubEndpointEventHubDelete(d *pluginsdk.ResourceData, meta interf
 	updatedEndpoints := make([]devices.RoutingEventHubProperties, 0)
 	for _, endpoint := range *endpoints {
 		if existingEndpointName := endpoint.Name; existingEndpointName != nil {
-			if !strings.EqualFold(*existingEndpointName, endpointName) {
+			if !strings.EqualFold(*existingEndpointName, id.EndpointName) {
 				updatedEndpoints = append(updatedEndpoints, endpoint)
 			}
 		}
 	}
 	iothub.Properties.Routing.Endpoints.EventHubs = &updatedEndpoints
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, iothub, "")
 	if err != nil {
-		return fmt.Errorf("updating IotHub %q (Resource Group %q) with EventHub Endpoint %q: %+v", iothubName, resourceGroup, endpointName, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for IotHub %q (Resource Group %q) to finish updating EventHub Endpoint %q: %+v", iothubName, resourceGroup, endpointName, err)
+		return fmt.Errorf("waiting for %s to finish updating: %+v", id, err)
 	}
 
 	return nil

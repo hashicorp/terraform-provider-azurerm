@@ -226,7 +226,7 @@ func (r AppServiceEnvironmentV3Resource) Attributes() map[string]*pluginsdk.Sche
 }
 
 func (r AppServiceEnvironmentV3Resource) ModelObject() interface{} {
-	return AppServiceEnvironmentV3Model{}
+	return &AppServiceEnvironmentV3Model{}
 }
 
 func (r AppServiceEnvironmentV3Resource) ResourceType() string {

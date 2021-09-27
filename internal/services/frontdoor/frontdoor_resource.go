@@ -1968,7 +1968,7 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfig
 	cacheQueryParameterStripDirective := string(frontdoor.StripAll)
 	cacheUseDynamicCompression := false
 
-	var cacheQueryParameters *string
+	var cacheQueryParameters []interface{}
 	var cacheQueryParametersArray []string
 	var cacheDuration *string
 
@@ -2002,8 +2002,10 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfig
 							cacheUseDynamicCompression = ofc["cache_use_dynamic_compression"].(bool)
 							cacheDuration = utils.String(ofc["cache_duration"].(string))
 
-							cacheQueryParameters = utils.String(ofc["cache_query_parameters"].(string))
-							cacheQueryParametersArray = strings.Split(*cacheQueryParameters, ",")
+							cacheQueryParameters = ofc["cache_query_parameters"].([]interface{})
+							for _, p := range cacheQueryParameters {
+								cacheQueryParametersArray = append(cacheQueryParametersArray, p.(string))
+							}
 						}
 					}
 				}

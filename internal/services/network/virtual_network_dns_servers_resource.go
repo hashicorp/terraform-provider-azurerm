@@ -23,8 +23,6 @@ func resourceVirtualNetworkDnsServers() *pluginsdk.Resource {
 		Read:   resourceVirtualNetworkDnsServersRead,
 		Update: resourceVirtualNetworkDnsServersCreateUpdate,
 		Delete: resourceVirtualNetworkDnsServersDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -32,6 +30,11 @@ func resourceVirtualNetworkDnsServers() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.VirtualNetworkDnsServersID(id)
+			return err
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"virtual_network_id": {
@@ -93,6 +96,19 @@ func resourceVirtualNetworkDnsServersCreateUpdate(d *pluginsdk.ResourceData, met
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for update of %s: %+v", id, err)
+	}
+
+	timeout, _ := ctx.Deadline()
+
+	vnetStateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{string(network.ProvisioningStateUpdating)},
+		Target:     []string{string(network.ProvisioningStateSucceeded)},
+		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, client, *vnetId),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    time.Until(timeout),
+	}
+	if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for provisioning state of virtual network for %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

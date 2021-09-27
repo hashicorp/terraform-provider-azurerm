@@ -333,17 +333,17 @@ resource "azurerm_app_service_environment" "test" {
 }
 
 func (r AppServiceEnvironmentResource) withCertificatePfx(data acceptance.TestData) string {
-	template := r.basic(data)
+	template := r.withAppServicePlan(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_app_service_certificate" "test" {
-  name                           = "acctest-cert-%d"
-  resource_group_name            = azurerm_app_service_environment.test.resource_group_name
-  location                       = azurerm_resource_group.test.location
-  pfx_blob                       = filebase64("testdata/app_service_certificate.pfx")
-  password                       = "terraform"
-  hosting_environment_profile_id = azurerm_app_service_environment.test.id
+  name                = "acctest-cert-%d"
+  resource_group_name = azurerm_app_service_environment.test.resource_group_name
+  location            = azurerm_resource_group.test.location
+  pfx_blob            = filebase64("testdata/app_service_certificate.pfx")
+  password            = "terraform"
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 `, template, data.RandomInteger)
 }

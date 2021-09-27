@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,8 +26,10 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 		Update: resourceArmDateLakeStoreUpdate,
 		Delete: resourceArmDateLakeStoreDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.AccountID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -145,17 +148,17 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 
 func resourceArmDateLakeStoreCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreAccountsClient
+	subscriptionId := meta.(*clients.Client).Datalake.StoreAccountsClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Lake Store %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Data Lake Store %s: %+v", id, err)
 			}
 		}
 
@@ -173,7 +176,7 @@ func resourceArmDateLakeStoreCreate(d *pluginsdk.ResourceData, meta interface{})
 	firewallAllowAzureIPs := account.FirewallAllowAzureIpsState(d.Get("firewall_allow_azure_ips").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	log.Printf("[INFO] preparing arguments for Data Lake Store creation %q (Resource Group %q)", name, resourceGroup)
+	log.Printf("[INFO] preparing arguments for Data Lake Store creation %s", id)
 
 	dateLakeStore := account.CreateDataLakeStoreAccountParameters{
 		Location: &location,
@@ -191,24 +194,16 @@ func resourceArmDateLakeStoreCreate(d *pluginsdk.ResourceData, meta interface{})
 		},
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, dateLakeStore)
+	future, err := client.Create(ctx, id.ResourceGroup, id.Name, dateLakeStore)
 	if err != nil {
-		return fmt.Errorf("issuing create request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("issuing create request for Data Lake Store %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("creating Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Data Lake Store %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Data Lake Store %s (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceArmDateLakeStoreRead(d, meta)
 }
@@ -218,8 +213,11 @@ func resourceArmDateLakeStoreUpdate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id, err := parse.AccountID(d.Id())
+	if err != nil {
+		return err
+	}
+
 	tier := d.Get("tier").(string)
 	firewallState := account.FirewallState(d.Get("firewall_state").(string))
 	firewallAllowAzureIPs := account.FirewallAllowAzureIpsState(d.Get("firewall_allow_azure_ips").(string))
@@ -234,13 +232,13 @@ func resourceArmDateLakeStoreUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(t),
 	}
 
-	future, err := client.Update(ctx, resourceGroup, name, props)
+	future, err := client.Update(ctx, id.ResourceGroup, id.Name, props)
 	if err != nil {
-		return fmt.Errorf("issuing update request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("issuing update request for Data Lake Store %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the update of Data Lake Store %q (Resource Group %q) to commplete: %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the update of Data Lake Store %s to complete: %+v", id, err)
 	}
 
 	return resourceArmDateLakeStoreRead(d, meta)
@@ -251,32 +249,30 @@ func resourceArmDateLakeStoreRead(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["accounts"]
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Data Lake Store Account %q was not found (Resource Group %q)", name, resourceGroup)
+			log.Printf("[WARN] Data Lake Store Account %s was not found", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Data Lake Store %s: %+v", id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if err := d.Set("identity", flattenDataLakeStoreIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("flattening identity on Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("flattening identity on Data Lake Store %s: %+v", id, err)
 	}
 
 	if properties := resp.DataLakeStoreAccountProperties; properties != nil {
@@ -301,20 +297,18 @@ func resourceArmDateLakeStoreDelete(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["accounts"]
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Data Lake Store %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Data Lake Store %s: %+v", id, err)
 	}
 
 	return nil

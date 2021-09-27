@@ -691,8 +691,8 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("setting `service_principal`: %+v", err)
 		}
 
-		// adminProfile is only available for RBAC enabled clusters with AAD
-		if props.AadProfile != nil {
+		// adminProfile is only available for RBAC enabled clusters with AAD and without local accounts disabled
+		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
 			adminProfile, err := client.GetAccessProfile(ctx, resourceGroup, name, "clusterAdmin")
 			if err != nil {
 				return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
