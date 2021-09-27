@@ -604,28 +604,28 @@ func TestAccLogicAppStandard_clientCertMode(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_cert_mode").HasValue(""),
+				check.That(data.ResourceName).Key("client_certificate_mode").HasValue(""),
 			),
 		},
 		{
 			Config: r.clientCertMode(data, "Required"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_cert_mode").HasValue("Required"),
+				check.That(data.ResourceName).Key("client_certificate_mode").HasValue("Required"),
 			),
 		},
 		{
 			Config: r.clientCertMode(data, "Optional"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_cert_mode").HasValue("Optional"),
+				check.That(data.ResourceName).Key("client_certificate_mode").HasValue("Optional"),
 			),
 		},
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_cert_mode").HasValue(""),
+				check.That(data.ResourceName).Key("client_certificate_mode").HasValue(""),
 			),
 		},
 		data.ImportStep(),
@@ -903,7 +903,7 @@ resource "azurerm_logic_app_standard" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   use_extension_bundle       = true
-  bundle_version_range       = "[1.*, 2.0.0)"
+  bundle_version             = "[1.*, 2.0.0)"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -2117,7 +2117,7 @@ resource "azurerm_logic_app_standard" "test" {
   app_service_plan_id        = azurerm_app_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  client_cert_mode           = "%[4]s"
+  client_certificate_mode    = "%[4]s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, modeValue)
 }

@@ -122,13 +122,13 @@ The following arguments are supported:
 
 * `use_extension_bundle` - (Optional) Should the logic app use the bundled extension package? If true, then application settings for `AzureFunctionsJobHost__extensionBundle__id` and `AzureFunctionsJobHost__extensionBundle__version` will be created. Default true
 
-* `bundle_version_range` - (Optional) If `use_extension_bundle` then controls the allowed range for bundle versions. Default `[1.*, 2.0.0)`
+* `bundle_version` - (Optional) If `use_extension_bundle` then controls the allowed range for bundle versions. Default `[1.*, 2.0.0)`
 
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 
 * `client_affinity_enabled` - (Optional) Should the Logic App send session affinity cookies, which route client requests in the same session to the same instance?
 
-* `client_cert_mode` - (Optional) The mode of the Logic App's client certificates requirement for incoming requests. Possible values are `Required` and `Optional`.
+* `client_certificate_mode` - (Optional) The mode of the Logic App's client certificates requirement for incoming requests. Possible values are `Required` and `Optional`.
 
 * `enabled` - (Optional) Is the Logic App enabled?
 

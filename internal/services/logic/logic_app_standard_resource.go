@@ -72,7 +72,7 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"bundle_version_range": {
+			"bundle_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "[1.*, 2.0.0)",
@@ -84,7 +84,7 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"client_cert_mode": {
+			"client_certificate_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -263,7 +263,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
-	clientCertMode := d.Get("client_cert_mode").(string)
+	clientCertMode := d.Get("client_certificate_mode").(string)
 	clientCertEnabled := clientCertMode != ""
 	httpsOnly := d.Get("https_only").(bool)
 	t := d.Get("tags").(map[string]interface{})
@@ -348,7 +348,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
-	clientCertMode := d.Get("client_cert_mode").(string)
+	clientCertMode := d.Get("client_certificate_mode").(string)
 	clientCertEnabled := clientCertMode != ""
 	httpsOnly := d.Get("https_only").(bool)
 	t := d.Get("tags").(map[string]interface{})
@@ -521,7 +521,7 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
 			clientCertMode = string(props.ClientCertMode)
 		}
-		d.Set("client_cert_mode", clientCertMode)
+		d.Set("client_certificate_mode", clientCertMode)
 	}
 
 	appSettings := flattenLogicAppStandardAppSettings(appSettingsResp.Properties)
@@ -554,11 +554,11 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 	if _, ok := appSettings["AzureFunctionsJobHost__extensionBundle__id"]; ok {
 		d.Set("use_extension_bundle", true)
 		if val, ok := appSettings["AzureFunctionsJobHost__extensionBundle__version"]; ok {
-			d.Set("bundle_version_range", val)
+			d.Set("bundle_version", val)
 		}
 	} else {
 		d.Set("use_extension_bundle", false)
-		d.Set("bundle_version_range", "[1.*, 2.0.0)")
+		d.Set("bundle_version", "[1.*, 2.0.0)")
 	}
 
 	d.Set("storage_account_share_name", appSettings["WEBSITE_CONTENTSHARE"])
@@ -656,10 +656,10 @@ func getBasicLogicAppSettings(d *pluginsdk.ResourceData, endpointSuffix string) 
 		extensionBundlePropName := "AzureFunctionsJobHost__extensionBundle__id"
 		extensionBundleName := "Microsoft.Azure.Functions.ExtensionBundle.Workflows"
 		extensionBundleVersionPropName := "AzureFunctionsJobHost__extensionBundle__version"
-		extensionBundleVersion := d.Get("bundle_version_range").(string)
+		extensionBundleVersion := d.Get("bundle_version").(string)
 
 		if extensionBundleVersion == "" {
-			return nil, fmt.Errorf("when `use_extension_bundle` is true, `bundle_version_range` must be specified")
+			return nil, fmt.Errorf("when `use_extension_bundle` is true, `bundle_version` must be specified")
 		}
 
 		bundleSettings := []web.NameValuePair{
