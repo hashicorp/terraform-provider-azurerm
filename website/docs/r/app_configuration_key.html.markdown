@@ -11,7 +11,7 @@ description: |-
 
 Manages an Azure App Configuration Key.
 
--> **Note:** Due to the way `azurerm` gets data access to App Configuration to modify the keys, you need AD authorization (`App Configuration Data Owner`) for your service principal, MSI or users on the App Configuration resource (or higher level, i.e. Resource Group, Subscription). Check the [Azure documentation for App Configuration](https://docs.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration) for more info.
+-> **Note:** App Configuration Keys are provisioned using a Data Plane API which requires the role `App Configuration Data Owner` on either the App Configuration or a parent scope (such as the Resource Group/Subscription). [More information can be found in the Azure Documentation for App Configuration](https://docs.microsoft.com/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration).
 
 ## Example Usage of `kv` type
 
