@@ -414,7 +414,7 @@ provider "azurerm" {
   features {
     key_vault {
       recover_soft_deleted_key_vaults = false
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy    = false
     }
   }
 }
@@ -461,7 +461,6 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
     "get",
     "delete",
     "set",
-	"purge",
   ]
 }
 
