@@ -78,7 +78,7 @@ func (r SynapseFirewallRuleResource) Exists(ctx context.Context, client *clients
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Synapse Firewall Rule %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	return utils.Bool(true), nil
@@ -87,10 +87,10 @@ func (r SynapseFirewallRuleResource) Exists(ctx context.Context, client *clients
 func (r SynapseFirewallRuleResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_synapse_firewall_rule" "test" {
-  name                 = "FirewallRule%d"
+  name                 = "FirewallRule%[2]d"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   start_ip_address     = "0.0.0.0"
   end_ip_address       = "255.255.255.255"
@@ -101,7 +101,7 @@ resource "azurerm_synapse_firewall_rule" "test" {
 func (r SynapseFirewallRuleResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_synapse_firewall_rule" "import" {
   name                 = azurerm_synapse_firewall_rule.test.name
@@ -115,10 +115,10 @@ resource "azurerm_synapse_firewall_rule" "import" {
 func (r SynapseFirewallRuleResource) withUpdates(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_synapse_firewall_rule" "test" {
-  name                 = "FirewallRule%d"
+  name                 = "FirewallRule%[2]d"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   start_ip_address     = "10.0.17.62"
   end_ip_address       = "10.0.17.62"
@@ -133,12 +133,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-synapse-%d"
-  location = "%s"
+  name     = "acctestRG-synapse-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
+  name                     = "acctestacc%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_kind             = "BlobStorage"
@@ -147,12 +147,12 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
-  name               = "acctest-%d"
+  name               = "acctest-%[1]d"
   storage_account_id = azurerm_storage_account.test.id
 }
 
 resource "azurerm_synapse_workspace" "test" {
-  name                                 = "acctestsw%d"
+  name                                 = "acctestsw%[1]d"
   resource_group_name                  = azurerm_resource_group.test.name
   location                             = azurerm_resource_group.test.location
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
@@ -162,5 +162,5 @@ resource "azurerm_synapse_workspace" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
