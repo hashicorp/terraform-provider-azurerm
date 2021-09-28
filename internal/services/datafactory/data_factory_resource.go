@@ -514,7 +514,7 @@ func expandDataFactoryGlobalParameters(input []interface{}) (map[string]*datafac
 
 		result[name] = &datafactory.GlobalParameterSpecification{
 			Type:  datafactory.GlobalParameterType(v["type"].(string)),
-			Value: fmt.Sprintf("%v", v["value"]),
+			Value: v["value"].(string),
 		}
 	}
 	return result, nil
@@ -613,8 +613,8 @@ func flattenDataFactoryGlobalParameters(input map[string]*datafactory.GlobalPara
 	for name, item := range input {
 		var valueResult string
 		if (strings.ToLower(string(item.Type)) == "array" || strings.ToLower(string(item.Type)) == "object") && reflect.TypeOf(item.Value).Name() != "string" {
-			result, _ := json.Marshal(item.Value)
-			valueResult = string(result)
+			j, _ := json.Marshal(item.Value)
+			valueResult = string(j)
 		} else {
 			valueResult = fmt.Sprintf("%v", item.Value)
 		}
