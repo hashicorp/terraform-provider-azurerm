@@ -4,7 +4,7 @@ BUG FIXES:
 
 * `azurerm_windows_virtual_machine_scale_set` - define Hash function for extension block to ignore `protected_setting` [GH-13440]
 * `azurerm_linux_virtual_machine_scale_set` - define Hash function for extension block to ignore `protected_setting` [GH-13440]
-
+* `azurerm_iothub` - update DiffSuppressFunc for `connection_string` [GH-13517]
 
 ## 2.78.0 (September 23, 2021)
 
