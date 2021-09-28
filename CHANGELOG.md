@@ -2,6 +2,8 @@
 
 IMPROVEMENTS:
 
+* Data Source: `azurerm_key_vault_certificate` - exporting `expires` and `not_before` attributes [GH-13527]
+* Data Source: `azurerm_key_vault_certificate_data` - exporting the `not_before` attribute [GH-13527]
 * `azurerm_container_group` - refactoring to use ID Parsers [GH-13516]
 * `azurerm_container_registry` - refactoring to use ID Parsers [GH-13516]
 * `azurerm_container_registry_webhook` - refactoring to use ID Parsers [GH-13516]
