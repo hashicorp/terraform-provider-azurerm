@@ -3,7 +3,6 @@ package loganalytics
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
@@ -49,8 +48,9 @@ func resourceLogAnalyticsSolution() *pluginsdk.Resource {
 
 			"workspace_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
+				Deprecated:   "workspace_name is no longer used, you may remove it from your config",
 				ValidateFunc: validate.LogAnalyticsWorkspaceName,
 			},
 
@@ -106,9 +106,8 @@ func resourceLogAnalyticsSolutionCreateUpdate(d *pluginsdk.ResourceData, meta in
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Log Analytics Solution creation.")
 
-	// The resource requires both .name and .plan.name are set in the format
-	// "SolutionName(WorkspaceName)". Feedback will be submitted to the OMS team as IMO this isn't ideal.
-	id := loganalyticsParse.NewLogAnalyticsSolutionID(subscriptionId, d.Get("resource_group_name").(string), fmt.Sprintf("%s(%s)", d.Get("solution_name").(string), d.Get("workspace_name").(string)))
+	id := loganalyticsParse.NewLogAnalyticsSolutionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("solution_name").(string))
+	resGroup := d.Get("resource_group_name").(string)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.SolutionName)
@@ -180,19 +179,8 @@ func resourceLogAnalyticsSolutionRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	// Reversing the mapping used to get .solution_name
-	// expecting resp.Name to be in format "SolutionName(WorkspaceName)".
-	if v := resp.Name; v != nil {
-		val := *v
-		segments := strings.Split(*v, "(")
-		if len(segments) != 2 {
-			return fmt.Errorf("Expected %q to match 'Solution(WorkspaceName)'", val)
-		}
-
-		solutionName := segments[0]
-		workspaceName := strings.TrimSuffix(segments[1], ")")
+	if solutionName := resp.Name; solutionName != nil {
 		d.Set("solution_name", solutionName)
-		d.Set("workspace_name", workspaceName)
 	}
 
 	if props := resp.Properties; props != nil {
