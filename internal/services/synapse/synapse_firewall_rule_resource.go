@@ -108,11 +108,12 @@ func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 	timeout, _ := ctx.Deadline()
 
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(synapse.ProvisioningStateProvisioning)},
-		Target:     []string{string(synapse.ProvisioningStateSucceeded)},
-		Refresh:    firewallRuleProvisioningStateRefreshFunc(ctx, client, id),
-		MinTimeout: 1 * time.Minute,
-		Timeout:    time.Until(timeout),
+		Pending:      []string{string(synapse.ProvisioningStateProvisioning)},
+		Target:       []string{string(synapse.ProvisioningStateSucceeded)},
+		Refresh:      firewallRuleProvisioningStateRefreshFunc(ctx, client, id),
+		Delay:        1 * time.Minute,
+		Timeout:      time.Until(timeout),
+		PollInterval: 15 * time.Second,
 	}
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)

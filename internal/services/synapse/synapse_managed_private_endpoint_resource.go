@@ -125,11 +125,11 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 	timeout, _ := ctx.Deadline()
 
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(synapse.ProvisioningStateProvisioning)},
-		Target:     []string{string(synapse.ProvisioningStateSucceeded)},
-		Refresh:    managedPrivateEndpointProvisioningStateRefreshFunc(ctx, client, id),
-		MinTimeout: 1 * time.Minute,
-		Timeout:    time.Until(timeout),
+		Pending:      []string{string(synapse.ProvisioningStateProvisioning)},
+		Target:       []string{string(synapse.ProvisioningStateSucceeded)},
+		Refresh:      managedPrivateEndpointProvisioningStateRefreshFunc(ctx, client, id),
+		Timeout:      time.Until(timeout),
+		PollInterval: 15 * time.Second,
 	}
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
