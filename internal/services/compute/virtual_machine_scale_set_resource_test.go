@@ -4148,7 +4148,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     type                       = "CustomScript"
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
-    automatic_upgrade_enabled  = true
 
     settings = <<SETTINGS
 		{
@@ -4266,7 +4265,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     type                       = "CustomScript"
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
-    automatic_upgrade_enabled  = true
 
     settings = <<SETTINGS
 		{
@@ -4377,7 +4375,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     type                       = "CustomScript"
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
-    automatic_upgrade_enabled  = true
 
     settings = <<SETTINGS
 		{
@@ -4401,7 +4398,6 @@ SETTINGS
     type                       = "DockerExtension"
     type_handler_version       = "1.0"
     auto_upgrade_minor_version = true
-    automatic_upgrade_enabled  = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -4496,7 +4492,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     type                       = "CustomScript"
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
-    automatic_upgrade_enabled  = true
 
     settings = <<SETTINGS
 		{
@@ -4520,7 +4515,6 @@ SETTINGS
     type                       = "DockerExtension"
     type_handler_version       = "1.0"
     auto_upgrade_minor_version = true
-    automatic_upgrade_enabled  = true
     provision_after_extensions = ["CustomScript"]
   }
 }
