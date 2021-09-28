@@ -456,6 +456,7 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
     "get",
     "delete",
     "set",
+	"purge",
   ]
 }
 
