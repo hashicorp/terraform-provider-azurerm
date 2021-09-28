@@ -1,5 +1,11 @@
 ## 2.79.0 (Unreleased)
 
+IMPROVEMENTS:
+
+* `azurerm_container_group` - refactoring to use ID Parsers [GH-13516]
+* `azurerm_container_registry` - refactoring to use ID Parsers [GH-13516]
+* `azurerm_container_registry_webhook` - refactoring to use ID Parsers [GH-13516]
+
 BUG FIXES:
 
 * `azurerm_windows_virtual_machine_scale_set` - define Hash function for extension block to ignore `protected_setting` [GH-13440]
