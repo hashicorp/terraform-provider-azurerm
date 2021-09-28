@@ -417,6 +417,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(ctx context.Context, clie
 		name := data["name"].(string)
 
 		location := azure.NormalizeLocation(d.Get("location").(string))
+		// TODO - Remove in 3.0, users should specify the regions they want to deploy
 		allZones, err := network2.GetZones(ctx, client, "publicIPAddresses", location)
 		if err != nil {
 			return nil, fmt.Errorf("loading available zones for resourceType: publicIPAddresses, location: %s:%+v", location, err)

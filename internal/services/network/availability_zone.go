@@ -2,6 +2,7 @@ package network
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -26,5 +27,5 @@ func GetZones(ctx context.Context, client *resources.ProvidersClient, resourceTy
 			}
 		}
 	}
-	return nil, nil
+	return nil, fmt.Errorf("not found zone mapping for resource %v in location %v", resourceType, location)
 }

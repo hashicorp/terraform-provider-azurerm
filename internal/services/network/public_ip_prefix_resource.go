@@ -135,6 +135,7 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	sku := d.Get("sku").(string)
 	prefixLength := d.Get("prefix_length").(int)
 	t := d.Get("tags").(map[string]interface{})
+	// TODO - Remove in 3.0, users should specify the regions they want to deploy
 	allZones, err := GetZones(ctx, meta.(*clients.Client).Resource.ResourceProvidersClient, "publicIPPrefixes", location)
 	if err != nil {
 		return fmt.Errorf("loading available zones for resourceType: publicIPPrefixes, location: %s:%+v", location, err)
