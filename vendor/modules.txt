@@ -352,6 +352,9 @@ github.com/hashicorp/terraform-plugin-sdk/v2/terraform
 github.com/hashicorp/yamux
 # github.com/jmespath/go-jmespath v0.4.0
 github.com/jmespath/go-jmespath
+# github.com/jpillora/backoff v1.0.0
+## explicit
+github.com/jpillora/backoff
 # github.com/jstemmer/go-junit-report v0.9.1
 github.com/jstemmer/go-junit-report
 github.com/jstemmer/go-junit-report/formatter
@@ -385,6 +388,9 @@ github.com/mitchellh/reflectwalk
 # github.com/oklog/run v1.1.0
 ## explicit
 github.com/oklog/run
+# github.com/rdegges/go-ipify v0.0.0-20150526035502-2d94a6a86c40
+## explicit
+github.com/rdegges/go-ipify
 # github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
 ## explicit
 github.com/rickb777/date/period

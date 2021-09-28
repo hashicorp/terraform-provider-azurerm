@@ -1,19 +1,27 @@
 package synapse
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"log"
+	"net"
+	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/sdk/2021-06-01-preview/artifacts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/rdegges/go-ipify"
 )
 
 func resourceSynapseFirewallRule() *pluginsdk.Resource {
@@ -110,8 +118,47 @@ func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	d.SetId(*resp.ID)
-	time.Sleep(time.Duration(1) * time.Minute)
+
+	if clientIp, err := ipify.GetIp(); err == nil {
+		if isIPAddressInRange(clientIp, d.Get("start_ip_address").(string), d.Get("end_ip_address").(string)) {
+			environment := meta.(*clients.Client).Account.Environment
+			client, err := meta.(*clients.Client).Synapse.SynapseWorkspaceClient(workspaceId.Name, environment.SynapseEndpointSuffix)
+			if err != nil {
+				return err
+			}
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("context had no deadline")
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:    []string{"InProgressing"},
+				Target:     []string{"Succeed"},
+				Refresh:    workspaceAccessStateRefreshFunc(ctx, client),
+				MinTimeout: 1 * time.Minute,
+				Timeout:    time.Until(deadline),
+			}
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for firewall change propagation to be completed: %+v", err)
+			}
+		}
+	} else {
+		log.Printf("[WARN] failed to get client IP : %+v", err)
+	}
+
 	return resourceSynapseFirewallRuleRead(d, meta)
+}
+
+func workspaceAccessStateRefreshFunc(ctx context.Context, client *artifacts.WorkspaceClient) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx)
+		if err != nil {
+			if res.StatusCode == http.StatusForbidden && regexp.MustCompile("ClientIpAddressNotAuthorized").MatchString(err.Error()) {
+				return nil, "InProgressing", nil
+			}
+			return nil, "", fmt.Errorf("retrieving Synapse Workspace(%q): %+v", client.Endpoint, err)
+		}
+		return res, "Succeed", nil
+	}
 }
 
 func resourceSynapseFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -167,4 +214,9 @@ func resourceSynapseFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return nil
+}
+
+func isIPAddressInRange(ip, startIp, endIp string) bool {
+	clientIp := net.ParseIP(ip)
+	return bytes.Compare(clientIp, net.ParseIP(startIp)) >= 0 && bytes.Compare(clientIp, net.ParseIP(endIp)) <= 0
 }
