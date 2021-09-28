@@ -30,9 +30,9 @@ resource "azurerm_app_configuration" "appconf" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_role_assignment" "appconf_dataowner" {
-  scope                            = azurerm_app_configuration.appconf.id
-  role_definition_name             = "App Configuration Data Owner"
-  principal_id                     = data.azurerm_client_config.current.object_id
+  scope                = azurerm_app_configuration.appconf.id
+  role_definition_name = "App Configuration Data Owner"
+  principal_id         = data.azurerm_client_config.current.object_id
 }
 
 resource "azurerm_app_configuration_key" "test" {
@@ -96,9 +96,9 @@ resource "azurerm_key_vault_secret" "kvs" {
 }
 
 resource "azurerm_role_assignment" "appconf_dataowner" {
-  scope                            = azurerm_app_configuration.appconf.id
-  role_definition_name             = "App Configuration Data Owner"
-  principal_id                     = data.azurerm_client_config.current.object_id
+  scope                = azurerm_app_configuration.appconf.id
+  role_definition_name = "App Configuration Data Owner"
+  principal_id         = data.azurerm_client_config.current.object_id
 }
 
 resource "azurerm_app_configuration_key" "test" {
