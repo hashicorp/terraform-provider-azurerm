@@ -11,6 +11,8 @@ description: |-
 
 Manages an Azure App Configuration Key.
 
+-> **Note:** Due to the way `azurerm` gets data access to App Configuration to modify the keys, you need AD authorization (`App Configuration Data Owner`) for your service principal, MSI or users on the App Configuration resource (or higher level, i.e. Resource Group, Subscription). Check the [Azure documentation for App Configuration](https://docs.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration) for more info.
+
 ## Example Usage of `kv` type
 
 ```hcl
@@ -25,11 +27,23 @@ resource "azurerm_app_configuration" "appconf" {
   location            = azurerm_resource_group.rg.location
 }
 
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_role_assignment" "appconf_dataowner" {
+  scope                            = azurerm_app_configuration.appconf.id
+  role_definition_name             = "App Configuration Data Owner"
+  principal_id                     = data.azurerm_client_config.current.object_id
+}
+
 resource "azurerm_app_configuration_key" "test" {
   configuration_store_id = azurerm_app_configuration.appconf.id
   key                    = "appConfKey1"
   label                  = "somelabel"
   value                  = "a test"
+
+  depends_on = [
+    azurerm_role_assignment.appconf_dataowner
+  ]
 }
 ```
 
@@ -81,14 +95,23 @@ resource "azurerm_key_vault_secret" "kvs" {
   key_vault_id = azurerm_key_vault.kv.id
 }
 
+resource "azurerm_role_assignment" "appconf_dataowner" {
+  scope                            = azurerm_app_configuration.appconf.id
+  role_definition_name             = "App Configuration Data Owner"
+  principal_id                     = data.azurerm_client_config.current.object_id
+}
+
 resource "azurerm_app_configuration_key" "test" {
   configuration_store_id = azurerm_app_configuration.test.id
   key                    = "key1"
   type                   = "vault"
   label                  = "label1"
   vault_key_reference    = azurerm_key_vault_secret.kvs.id
-}
 
+  depends_on = [
+    azurerm_role_assignment.appconf_dataowner
+  ]
+}
 ```
 
 ## Argument Reference
