@@ -115,9 +115,9 @@ func (VirtualMachineResource) Exists(ctx context.Context, clients *clients.Clien
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (VirtualMachineResource) managedDiskExists(diskId string, shouldExist bool) acceptance.ClientCheckFunc {
+func (VirtualMachineResource) managedDiskExists(diskId *string, shouldExist bool) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.ManagedDiskID(diskId)
+		id, err := parse.ManagedDiskID(*diskId)
 		if err != nil {
 			return err
 		}

@@ -63,7 +63,7 @@ func (r BackendAddressPoolAddressResource) Attributes() map[string]*pluginsdk.Sc
 }
 
 func (r BackendAddressPoolAddressResource) ModelObject() interface{} {
-	return BackendAddressPoolAddressModel{}
+	return &BackendAddressPoolAddressModel{}
 }
 
 func (r BackendAddressPoolAddressResource) ResourceType() string {

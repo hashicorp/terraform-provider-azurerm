@@ -1264,7 +1264,7 @@ func (client IntegrationRuntimesClient) Start(ctx context.Context, resourceGroup
 
 	result, err = client.StartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "Start", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "Start", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1297,6 +1297,7 @@ func (client IntegrationRuntimesClient) StartPreparer(ctx context.Context, resou
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) StartSender(req *http.Request) (future IntegrationRuntimesStartFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1360,7 +1361,7 @@ func (client IntegrationRuntimesClient) Stop(ctx context.Context, resourceGroupN
 
 	result, err = client.StopSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "Stop", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "Stop", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1393,6 +1394,7 @@ func (client IntegrationRuntimesClient) StopPreparer(ctx context.Context, resour
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) StopSender(req *http.Request) (future IntegrationRuntimesStopFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

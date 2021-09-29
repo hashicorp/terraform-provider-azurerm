@@ -61,12 +61,12 @@ resource "azurerm_vpn_gateway_connection" "example" {
 
   vpn_link {
     name             = "link1"
-    vpn_site_link_id = azurerm_vpn_site.example.vpn_site_link[0].id
+    vpn_site_link_id = azurerm_vpn_site.example.link[0].id
   }
 
   vpn_link {
     name             = "link2"
-    vpn_site_link_id = azurerm_vpn_site.example.vpn_site_link[1].id
+    vpn_site_link_id = azurerm_vpn_site.example.link[1].id
   }
 }
 ```
