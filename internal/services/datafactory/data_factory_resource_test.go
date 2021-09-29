@@ -681,7 +681,7 @@ resource "azurerm_data_factory" "test" {
   global_parameter {
     name  = "objectVal"
     type  = "Object"
-    value = jsonencode({name: "value"})
+    value = jsonencode({ name : "value" })
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
