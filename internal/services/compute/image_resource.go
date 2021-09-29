@@ -292,7 +292,7 @@ func resourceImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("[ERROR] Error making Read request on AzureRM Image %q (resource group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("[ERROR] Error making Read request on AzureRM Image %q : %+v", id.String(), err)
 	}
 
 	d.Set("name", id.Name)

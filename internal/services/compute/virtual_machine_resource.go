@@ -58,8 +58,10 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 		Read:   resourceVirtualMachineRead,
 		Update: resourceVirtualMachineCreateUpdate,
 		Delete: resourceVirtualMachineDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.VirtualMachineID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -805,7 +807,7 @@ func resourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("making Read request on Azure Virtual Machine %s: %+v", id.Name, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("zones", resp.Zones)
 	if location := resp.Location; location != nil {
@@ -933,7 +935,7 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	virtualMachine, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
-		return fmt.Errorf("retrieving Virtual Machine %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Virtual Machine %q : %s", id.String(), err)
 	}
 
 	// @tombuildsstuff: sending `nil` here omits this value from being sent - which matches
@@ -941,11 +943,11 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	var forceDeletion *bool = nil
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, forceDeletion)
 	if err != nil {
-		return fmt.Errorf("deleting Virtual Machine %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Virtual Machine %q : %s", id.String(), err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Virtual Machine %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Virtual Machine %q : %s", id.String(), err)
 	}
 
 	// delete OS Disk if opted in
@@ -1964,7 +1966,7 @@ func resourceVirtualMachineGetManagedDiskInfo(d *pluginsdk.ResourceData, disk *c
 
 	diskResp, err := client.Get(ctx, id.ResourceGroup, id.DiskName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Disk %q (Resource Group %q): %+v", id.DiskName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Disk %q : %+v", id.String(), err)
 	}
 
 	return &diskResp, nil
@@ -1997,7 +1999,7 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, pro
 
 				nic, err := nicClient.Get(ctx, id.ResourceGroup, id.Name, "")
 				if err != nil {
-					return "", fmt.Errorf("obtaining NIC %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+					return "", fmt.Errorf("obtaining NIC %q : %+v", id.String(), err)
 				}
 
 				networkInterface = &nic
@@ -2021,7 +2023,7 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, pro
 
 					pip, err := pipClient.Get(ctx, id.ResourceGroup, id.Name, "")
 					if err != nil {
-						return "", fmt.Errorf("obtaining Public IP %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+						return "", fmt.Errorf("obtaining Public IP %q : %+v", id.String(), err)
 					}
 
 					if pipProps := pip.PublicIPAddressPropertiesFormat; pipProps != nil {
