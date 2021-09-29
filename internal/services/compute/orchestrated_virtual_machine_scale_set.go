@@ -1698,7 +1698,7 @@ func flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input *compute.
 
 	if v := linConfig.SSH; v != nil {
 		if sshKeys, _ := FlattenSSHKeys(v); sshKeys != nil {
-			output["admin_ssh_key"] = sshKeys
+			output["admin_ssh_key"] = pluginsdk.NewSet(SSHKeySchemaHash, *sshKeys)
 		}
 	}
 
