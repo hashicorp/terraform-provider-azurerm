@@ -62,6 +62,26 @@ func resourceArmCommunicationService() *pluginsdk.Resource {
 			},
 
 			"tags": tags.Schema(),
+
+			"primary_connection_string": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_connection_string": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_key": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_key": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
