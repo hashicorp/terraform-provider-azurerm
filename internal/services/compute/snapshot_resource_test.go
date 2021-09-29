@@ -224,7 +224,12 @@ resource "azurerm_snapshot" "test" {
 func (SnapshotResource) encryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      recover_soft_deleted_key_vaults = false
+      purge_soft_delete_on_destroy    = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}
