@@ -709,7 +709,12 @@ resource "azurerm_managed_disk" "test" {
 func (ManagedDiskResource) encryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      recover_soft_deleted_key_vaults = false
+      purge_soft_delete_on_destroy    = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}
@@ -888,7 +893,12 @@ func (ManagedDiskResource) diskEncryptionSetDependencies(data acceptance.TestDat
 
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      recover_soft_deleted_key_vaults = false
+      purge_soft_delete_on_destroy    = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}
