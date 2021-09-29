@@ -14,6 +14,7 @@ BUG FIXES:
 * `azurerm_kubernetes_cluster` - explicitly setting `upgrade_channel` to `None` when it's unset to workaround a breaking behavioural change in AKS [GH-13493]
 * `azurerm_linux_virtual_machine_scale_set` - define Hash function for extension block to ignore `protected_setting` [GH-13440]
 * `azurerm_windows_virtual_machine_scale_set` - define Hash function for extension block to ignore `protected_setting` [GH-13440]
+* `azurerm_app_configuration_key` - set etag data when reading resource [GH-13534]
 
 ## 2.78.0 (September 23, 2021)
 
