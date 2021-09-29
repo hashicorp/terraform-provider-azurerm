@@ -2,20 +2,18 @@
 
 IMPROVEMENTS:
 
-* Data Source: `azurerm_key_vault_certificate` - exporting `expires` and `not_before` attributes [GH-13527]
+* Data Source: `azurerm_key_vault_certificate` - exporting the `expires` and `not_before` attributes [GH-13527]
 * Data Source: `azurerm_key_vault_certificate_data` - exporting the `not_before` attribute [GH-13527]
-* `azurerm_container_group` - refactoring to use ID Parsers [GH-13516]
-* `azurerm_container_registry` - refactoring to use ID Parsers [GH-13516]
-* `azurerm_container_registry_webhook` - refactoring to use ID Parsers [GH-13516]
-* `azurerm_virtual_hub_connection` - Optimized state change refresh function [GH-13548]
+* `azurerm_communication_service` - export the `primary_connection_string`, `secondary_connection_string`, `primary_key`, and `secondary_key` attributes [GH-13549]
+* `azurerm_virtual_hub_connection` - optimized state change refresh function [GH-13548]
 
 BUG FIXES:
 
-* `azurerm_iothub` - update DiffSuppressFunc for `connection_string` [GH-13517]
+* `azurerm_iothub` - correctly suppress diffs for the `connection_string` property [GH-13517]
 * `azurerm_kubernetes_cluster` - explicitly setting `upgrade_channel` to `None` when it's unset to workaround a breaking behavioural change in AKS [GH-13493]
-* `azurerm_linux_virtual_machine_scale_set` - define Hash function for extension block to ignore `protected_setting` [GH-13440]
-* `azurerm_windows_virtual_machine_scale_set` - define Hash function for extension block to ignore `protected_setting` [GH-13440]
-* `azurerm_app_configuration_key` - set etag data when reading resource [GH-13534]
+* `azurerm_linux_virtual_machine_scale_set` - will not correctly ignore the `protected_setting` block withing the `extension` block [GH-13440]
+* `azurerm_windows_virtual_machine_scale_set` - will not correctly ignore the `protected_setting` block withing the `extension` block [GH-13440]
+* `azurerm_app_configuration_key` - correctly set the `etag` property [GH-13534]
 
 ## 2.78.0 (September 23, 2021)
 
