@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/state"
@@ -141,6 +142,13 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							}, true),
 							StateFunc:        state.IgnoreCase,
 							DiffSuppressFunc: suppress.CaseDifference,
+						},
+
+						"gateway_load_balancer_frontend_ip_configuration_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.LoadBalancerFrontendIpConfigurationID,
 						},
 
 						"load_balancer_rules": {
@@ -385,6 +393,12 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 			PrivateIPAllocationMethod: network.IPAllocationMethod(privateIpAllocationMethod),
 		}
 
+		if v := data["gateway_load_balancer_frontend_ip_configuration_id"].(string); v != "" {
+			properties.GatewayLoadBalancer = &network.SubResource{
+				ID: utils.String(v),
+			}
+		}
+
 		if v := data["private_ip_address"].(string); v != "" {
 			properties.PrivateIPAddress = &v
 		}
@@ -494,6 +508,10 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 
 		if props := config.FrontendIPConfigurationPropertiesFormat; props != nil {
 			ipConfig["private_ip_address_allocation"] = string(props.PrivateIPAllocationMethod)
+
+			if props.GatewayLoadBalancer != nil && props.GatewayLoadBalancer.ID != nil {
+				ipConfig["gateway_load_balancer_frontend_ip_configuration_id"] = *props.GatewayLoadBalancer.ID
+			}
 
 			if subnet := props.Subnet; subnet != nil {
 				ipConfig["subnet_id"] = *subnet.ID
