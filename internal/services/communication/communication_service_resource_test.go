@@ -54,6 +54,10 @@ func TestAccCommunicationService_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("primary_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_key").Exists(),
 			),
 		},
 		data.ImportStep(),
