@@ -311,6 +311,21 @@ func TestAccLinuxVirtualMachineScaleSet_extensionsAutomaticUpgradeWithServiceFab
 	})
 }
 
+func TestAccLinuxVirtualMachineScaleSet_extensionAutomaticUpgradeEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.extensionAutomaticUpgradeEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
+	})
+}
+
 func (r LinuxVirtualMachineScaleSetResource) extensionDoNotRunExtensionsOnOverProvisionedMachines(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
@@ -402,7 +417,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "CustomScript"
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
-    automatic_upgrade_enabled  = true
 
     settings = jsonencode({
       "commandToExecute" = "echo $HOSTNAME"
@@ -465,7 +479,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "CustomScript"
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
-    automatic_upgrade_enabled  = true
 
     settings = jsonencode({
       "commandToExecute" = "echo $HOSTNAME"
@@ -532,7 +545,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "CustomScript"
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
-    automatic_upgrade_enabled  = true
     force_update_tag           = %q
 
     settings = jsonencode({
@@ -599,7 +611,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "CustomScript"
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
-    automatic_upgrade_enabled  = true
 
     provision_after_extensions = ["VMAccessForLinux"]
 
@@ -618,7 +629,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "VMAccessForLinux"
     type_handler_version       = "1.5"
     auto_upgrade_minor_version = true
-    automatic_upgrade_enabled  = true
 
     protected_settings = jsonencode({
       "reset_ssh" = "True"
@@ -681,7 +691,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "CustomScript"
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
-    automatic_upgrade_enabled  = true
 
     settings = jsonencode({
       "commandToExecute" = "echo $(date)"
@@ -742,7 +751,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "ApplicationHealthLinux"
     type_handler_version       = "1.0"
     auto_upgrade_minor_version = true
-    automatic_upgrade_enabled  = true
     settings = jsonencode({
       protocol = "https"
       port     = 443
@@ -797,7 +805,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "ApplicationHealthLinux"
     type_handler_version       = "1.0"
     auto_upgrade_minor_version = true
-    automatic_upgrade_enabled  = true
     settings = jsonencode({
       protocol = "https"
       port     = 443
@@ -861,7 +868,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "ApplicationHealthLinux"
     type_handler_version       = "1.0"
     auto_upgrade_minor_version = true
-    automatic_upgrade_enabled  = true
     settings = jsonencode({
       protocol = "https"
       port     = 443
@@ -923,7 +929,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "CustomScript"
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
-    automatic_upgrade_enabled  = true
 
     settings = jsonencode({
       "commandToExecute" = "echo $HOSTNAME"
@@ -1070,7 +1075,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "ServiceFabricLinuxNode"
     type_handler_version       = "1.1"
     auto_upgrade_minor_version = true
-    automatic_upgrade_enabled  = true
 
     settings = jsonencode({
       clusterEndpoint    = azurerm_service_fabric_cluster.test.cluster_endpoint
@@ -1081,4 +1085,71 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) extensionAutomaticUpgradeEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                       = "CustomScript"
+    publisher                  = "Microsoft.Azure.Extensions"
+    type                       = "CustomScript"
+    type_handler_version       = "2.0"
+    auto_upgrade_minor_version = false
+    automatic_upgrade_enabled  = false
+
+    settings = jsonencode({
+      "commandToExecute" = "echo $HOSTNAME"
+    })
+
+    protected_settings = jsonencode({
+      "managedIdentity" = {}
+    })
+
+  }
+
+  tags = {
+    accTest = "true"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
