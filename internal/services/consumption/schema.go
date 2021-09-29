@@ -127,6 +127,14 @@ func SchemaConsumptionBudgetNotificationElement() *pluginsdk.Resource {
 				Required:     true,
 				ValidateFunc: validation.IntBetween(0, 1000),
 			},
+			"threshold_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(consumption.ThresholdTypeActual),
+					"Forecasted",
+				}, false),
+			},
 			"operator": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
@@ -174,6 +182,12 @@ func SchemaConsumptionBudgetCommonResource() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.ConsumptionBudgetName(),
+		},
+
+		"etag": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+			Optional: true,
 		},
 
 		"amount": {

@@ -2,7 +2,6 @@ package consumption
 
 import (
 	"fmt"
-
 	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumption"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -31,6 +30,7 @@ func resourceArmConsumptionBudgetRead(d *pluginsdk.ResourceData, meta interface{
 		amount, _ := resp.Amount.Float64()
 		d.Set("amount", amount)
 	}
+	d.Set("etag", *resp.ETag)
 	d.Set("time_grain", string(resp.TimeGrain))
 	d.Set("time_period", FlattenConsumptionBudgetTimePeriod(resp.TimePeriod))
 	d.Set("notification", pluginsdk.NewSet(pluginsdk.HashResource(SchemaConsumptionBudgetNotificationElement()), FlattenConsumptionBudgetNotifications(resp.Notifications)))
@@ -97,10 +97,15 @@ func resourceArmConsumptionBudgetCreateUpdate(d *pluginsdk.ResourceData, meta in
 		},
 	}
 
+	if v, ok := d.GetOk("etag"); ok {
+		parameters.ETag = utils.String(v.(string))
+	}
+
 	read, err := client.CreateOrUpdate(ctx, scope, name, parameters)
 	if err != nil {
 		return err
 	}
+
 
 	if read.ID == nil {
 		return fmt.Errorf("cannot read Azure Consumption Budget %q for scope %q", name, scope)
