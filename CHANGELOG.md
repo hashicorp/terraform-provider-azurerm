@@ -1,5 +1,9 @@
 ## 2.79.0 (Unreleased)
 
+FEATURES: 
+
+* **New Resource:** `azurerm_app_configuration_feature` [GH-13452]
+
 IMPROVEMENTS:
 
 * Data Source: `azurerm_key_vault_certificate` - exporting the `expires` and `not_before` attributes [GH-13527]
