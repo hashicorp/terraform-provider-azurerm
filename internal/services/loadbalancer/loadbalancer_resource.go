@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
-	network2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/state"
@@ -418,7 +417,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(ctx context.Context, clie
 
 		location := azure.NormalizeLocation(d.Get("location").(string))
 		// TODO - Remove in 3.0, users should specify the regions they want to deploy
-		allZones, err := network2.GetZones(ctx, client, "publicIPAddresses", location)
+		allZones, err := getZones(ctx, client, "publicIPAddresses", location)
 		if err != nil {
 			return nil, fmt.Errorf("loading available zones for resourceType: publicIPAddresses, location: %s:%+v", location, err)
 		}

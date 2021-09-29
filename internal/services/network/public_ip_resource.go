@@ -208,7 +208,7 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	t := d.Get("tags").(map[string]interface{})
 	// Default to Zone-Redundant - Legacy behaviour TODO - Switch to `No-Zone` in 3.0 to match service?
 	// TODO - Remove in 3.0, users should specify the regions they want to deploy
-	allZones, err := GetZones(ctx, meta.(*clients.Client).Resource.ResourceProvidersClient, "publicIPAddresses", location)
+	allZones, err := getZones(ctx, meta.(*clients.Client).Resource.ResourceProvidersClient, "publicIPAddresses", location)
 	if err != nil {
 		return fmt.Errorf("loading available zones for resourceType: publicIPAddresses, location: %s:%+v", location, err)
 	}
