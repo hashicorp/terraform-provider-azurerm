@@ -33,6 +33,7 @@ type KeyResourceModel struct {
 	ConfigurationStoreId string                 `tfschema:"configuration_store_id"`
 	Key                  string                 `tfschema:"key"`
 	ContentType          string                 `tfschema:"content_type"`
+	Etag                 string                 `tfschema:"etag"`
 	Label                string                 `tfschema:"label"`
 	Value                string                 `tfschema:"value"`
 	Locked               bool                   `tfschema:"locked"`
@@ -222,6 +223,7 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 				ConfigurationStoreId: resourceID.ConfigurationStoreId,
 				Key:                  utils.NormalizeNilableString(kv.Key),
 				ContentType:          utils.NormalizeNilableString(kv.ContentType),
+				Etag:                 utils.NormalizeNilableString(kv.Etag),
 				Label:                utils.NormalizeNilableString(kv.Label),
 				Tags:                 tags.Flatten(kv.Tags),
 			}
