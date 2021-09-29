@@ -292,6 +292,9 @@ func resourceManagementGroupDelete(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 
 				subscriptionId, err := parseManagementGroupSubscriptionID(*v.ID)
+				if subscriptionId == nil {
+					continue
+				}
 				if err != nil {
 					return fmt.Errorf("unable to parse child Subscription ID %+v", err)
 				}
@@ -364,8 +367,8 @@ func parseManagementGroupSubscriptionID(input string) (*subscriptionId, error) {
 	// this is either:
 	// /subscriptions/00000000-0000-0000-0000-000000000000
 
-	// we skip out the managementGroup ID's
-	if strings.HasPrefix(input, "/providers/Microsoft.Management/managementGroups/") {
+	// we skip out the child managementGroup ID's
+	if isChildMgrGroupId(input) {
 		return nil, nil
 	}
 
@@ -383,6 +386,10 @@ func parseManagementGroupSubscriptionID(input string) (*subscriptionId, error) {
 		subscriptionId: components[2],
 	}
 	return &id, nil
+}
+
+func isChildMgrGroupId(input string) bool {
+	return strings.HasPrefix(input, "/providers/Microsoft.Management/managementGroups/")
 }
 
 func determineManagementGroupSubscriptionsIdsToRemove(existing *[]managementgroups.ChildInfo, updated []string) (*[]string, error) {
