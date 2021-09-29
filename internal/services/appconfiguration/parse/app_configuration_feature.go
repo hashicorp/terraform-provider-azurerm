@@ -7,28 +7,28 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
-type AppConfigurationKeyId struct {
+type AppConfigurationFeatureId struct {
 	ConfigurationStoreId string
-	Key                  string
+	Name                 string
 	Label                string
 }
 
-func (k AppConfigurationKeyId) ID() string {
-	return fmt.Sprintf("%s/AppConfigurationKey/%s/Label/%s", k.ConfigurationStoreId, k.Key, k.Label)
+func (k AppConfigurationFeatureId) ID() string {
+	return fmt.Sprintf("%s/AppConfigurationFeature/%s/Label/%s", k.ConfigurationStoreId, k.Name, k.Label)
 }
 
-func KeyId(input string) (*AppConfigurationKeyId, error) {
+func FeatureId(input string) (*AppConfigurationFeatureId, error) {
 
 	resourceID, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("while parsing resource ID: %+v", err)
 	}
 
-	keyName := resourceID.Path["AppConfigurationKey"]
+	keyName := resourceID.Path["AppConfigurationFeature"]
 	label := resourceID.Path["Label"]
 
-	appcfgID := AppConfigurationKeyId{
-		Key:   keyName,
+	appcfgID := AppConfigurationFeatureId{
+		Name:  keyName,
 		Label: label,
 	}
 
@@ -39,7 +39,7 @@ func KeyId(input string) (*AppConfigurationKeyId, error) {
 		appcfgID.Label = ""
 		input = strings.TrimSuffix(input, "%00")
 	}
-	appcfgID.ConfigurationStoreId = strings.TrimSuffix(input, fmt.Sprintf("/AppConfigurationKey/%s/Label/%s", appcfgID.Key, appcfgID.Label))
+	appcfgID.ConfigurationStoreId = strings.TrimSuffix(input, fmt.Sprintf("/AppConfigurationFeature/%s/Label/%s", appcfgID.Name, appcfgID.Label))
 
 	return &appcfgID, nil
 }

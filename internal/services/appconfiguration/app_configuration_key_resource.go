@@ -185,7 +185,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 func (k KeyResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			resourceID, err := parse.AppConfigurationKeyID(metadata.ResourceData.Id())
+			resourceID, err := parse.KeyId(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
@@ -258,7 +258,7 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 
-			resourceID, err := parse.AppConfigurationKeyID(metadata.ResourceData.Id())
+			resourceID, err := parse.KeyId(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
@@ -318,7 +318,7 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 func (k KeyResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			resourceID, err := parse.AppConfigurationKeyID(metadata.ResourceData.Id())
+			resourceID, err := parse.KeyId(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
