@@ -7,6 +7,7 @@ IMPROVEMENTS:
 * `azurerm_container_group` - refactoring to use ID Parsers [GH-13516]
 * `azurerm_container_registry` - refactoring to use ID Parsers [GH-13516]
 * `azurerm_container_registry_webhook` - refactoring to use ID Parsers [GH-13516]
+* `azurerm_virtual_hub_connection` - Optimized state change refresh function [GH-13548]
 
 BUG FIXES:
 
