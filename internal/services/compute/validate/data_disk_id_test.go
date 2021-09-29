@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestProximityPlacementGroupID(t *testing.T) {
+func TestDataDiskID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -41,32 +41,44 @@ func TestProximityPlacementGroupID(t *testing.T) {
 		},
 
 		{
-			// missing Name
+			// missing VirtualMachineName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Compute/",
 			Valid: false,
 		},
 
 		{
+			// missing value for VirtualMachineName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/",
+			Valid: false,
+		},
+
+		{
+			// missing Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/machine1/",
+			Valid: false,
+		},
+
+		{
 			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/machine1/dataDisks/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/proximityPlacementGroup1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/machine1/dataDisks/disk1",
 			Valid: true,
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/GROUP1/PROVIDERS/MICROSOFT.COMPUTE/PROXIMITYPLACEMENTGROUPS/PROXIMITYPLACEMENTGROUP1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/GROUP1/PROVIDERS/MICROSOFT.COMPUTE/VIRTUALMACHINES/MACHINE1/DATADISKS/DISK1",
 			Valid: false,
 		},
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := ProximityPlacementGroupID(tc.Input, "test")
+		_, errors := DataDiskID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

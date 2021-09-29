@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestProximityPlacementGroupID(t *testing.T) {
+func TestSnapshotID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -48,25 +48,25 @@ func TestProximityPlacementGroupID(t *testing.T) {
 
 		{
 			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Compute/snapshots/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/proximityPlacementGroup1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Compute/snapshots/snapshot1",
 			Valid: true,
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/GROUP1/PROVIDERS/MICROSOFT.COMPUTE/PROXIMITYPLACEMENTGROUPS/PROXIMITYPLACEMENTGROUP1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/GROUP1/PROVIDERS/MICROSOFT.COMPUTE/SNAPSHOTS/SNAPSHOT1",
 			Valid: false,
 		},
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := ProximityPlacementGroupID(tc.Input, "test")
+		_, errors := SnapshotID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

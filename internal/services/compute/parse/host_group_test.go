@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = ProximityPlacementGroupId{}
+var _ resourceid.Formatter = HostGroupId{}
 
-func TestProximityPlacementGroupIDFormatter(t *testing.T) {
-	actual := NewProximityPlacementGroupID("12345678-1234-9876-4563-123456789012", "group1", "proximityPlacementGroup1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/proximityPlacementGroup1"
+func TestHostGroupIDFormatter(t *testing.T) {
+	actual := NewHostGroupID("12345678-1234-9876-4563-123456789012", "group1", "hostgroup1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Compute/hostGroups/hostgroup1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestProximityPlacementGroupID(t *testing.T) {
+func TestHostGroupID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *ProximityPlacementGroupId
+		Expected *HostGroupId
 	}{
 
 		{
@@ -63,23 +63,23 @@ func TestProximityPlacementGroupID(t *testing.T) {
 
 		{
 			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Compute/hostGroups/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/proximityPlacementGroup1",
-			Expected: &ProximityPlacementGroupId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Compute/hostGroups/hostgroup1",
+			Expected: &HostGroupId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "group1",
-				Name:           "proximityPlacementGroup1",
+				Name:           "hostgroup1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/GROUP1/PROVIDERS/MICROSOFT.COMPUTE/PROXIMITYPLACEMENTGROUPS/PROXIMITYPLACEMENTGROUP1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/GROUP1/PROVIDERS/MICROSOFT.COMPUTE/HOSTGROUPS/HOSTGROUP1",
 			Error: true,
 		},
 	}
@@ -87,7 +87,7 @@ func TestProximityPlacementGroupID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ProximityPlacementGroupID(v.Input)
+		actual, err := HostGroupID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
