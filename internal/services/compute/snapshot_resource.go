@@ -173,6 +173,8 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
+	print(d.Id())
+
 	resourceGroup := id.ResourceGroup
 	name := id.Path["snapshots"]
 
