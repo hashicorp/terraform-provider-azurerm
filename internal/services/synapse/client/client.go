@@ -23,6 +23,7 @@ type Client struct {
 	SqlPoolSecurityAlertPolicyClient                 *synapse.SQLPoolSecurityAlertPoliciesClient
 	SqlPoolTransparentDataEncryptionClient           *synapse.SQLPoolTransparentDataEncryptionsClient
 	SqlPoolVulnerabilityAssessmentsClient            *synapse.SQLPoolVulnerabilityAssessmentsClient
+	SQLPoolWorkloadGroupClient                       *synapse.SQLPoolWorkloadGroupClient
 	WorkspaceAadAdminsClient                         *synapse.WorkspaceAadAdminsClient
 	WorkspaceClient                                  *synapse.WorkspacesClient
 	WorkspaceExtendedBlobAuditingPoliciesClient      *synapse.WorkspaceManagedSQLServerExtendedBlobAuditingPoliciesClient
@@ -68,6 +69,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	sqlPoolVulnerabilityAssessmentsClient := synapse.NewSQLPoolVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
 
+	sqlPoolWorkloadGroupClient := synapse.NewSQLPoolWorkloadGroupClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&sqlPoolWorkloadGroupClient.Client, o.ResourceManagerAuthorizer)
+
 	workspaceAadAdminsClient := synapse.NewWorkspaceAadAdminsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceAadAdminsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -98,6 +102,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		SqlPoolSecurityAlertPolicyClient:                 &sqlPoolSecurityAlertPolicyClient,
 		SqlPoolTransparentDataEncryptionClient:           &sqlPoolTransparentDataEncryptionClient,
 		SqlPoolVulnerabilityAssessmentsClient:            &sqlPoolVulnerabilityAssessmentsClient,
+		SQLPoolWorkloadGroupClient:                       &sqlPoolWorkloadGroupClient,
 		WorkspaceAadAdminsClient:                         &workspaceAadAdminsClient,
 		WorkspaceClient:                                  &workspaceClient,
 		WorkspaceExtendedBlobAuditingPoliciesClient:      &workspaceExtendedBlobAuditingPoliciesClient,

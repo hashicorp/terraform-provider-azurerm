@@ -38,6 +38,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_synapse_sql_pool_extended_auditing_policy":  resourceSynapseSqlPoolExtendedAuditingPolicy(),
 		"azurerm_synapse_sql_pool_security_alert_policy":     resourceSynapseSqlPoolSecurityAlertPolicy(),
 		"azurerm_synapse_sql_pool_vulnerability_assessment":  resourceSynapseSqlPoolVulnerabilityAssessment(),
+		"azurerm_synapse_sql_pool_workload_group":            resourceSynapseSQLPoolWorkloadGroup(),
 		"azurerm_synapse_workspace":                          resourceSynapseWorkspace(),
 		"azurerm_synapse_workspace_extended_auditing_policy": resourceSynapseWorkspaceExtendedAuditingPolicy(),
 		"azurerm_synapse_workspace_key":                      resourceSynapseWorkspaceKey(),
