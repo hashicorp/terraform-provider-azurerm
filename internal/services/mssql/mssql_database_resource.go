@@ -338,12 +338,13 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 			return nil, fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.ID, err)
 		}
 
-		d.Set("creation_source_database_id", parse.NewDatabaseID(partnerDatabaseId.SubscriptionId, partnerDatabaseId.ResourceGroup, partnerDatabaseId.ServerName, partnerDatabaseId.Name).ID())
+		d.Set("create_mode", string(sql.CreateModeSecondary))
+		d.Set("creation_source_database_id", partnerDatabaseId.ID())
 
 		return []*pluginsdk.ResourceData{d}, nil
 	}
 
-	d.Set("create_mode", "Default")
+	d.Set("create_mode", string(sql.CreateModeDefault))
 
 	return []*pluginsdk.ResourceData{d}, nil
 }
