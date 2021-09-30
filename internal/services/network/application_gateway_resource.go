@@ -2950,7 +2950,7 @@ func expandApplicationGatewayRequestRoutingRules(d *pluginsdk.ResourceData, gate
 		results = append(results, rule)
 	}
 
-	if priorityset == true {
+	if priorityset {
 		for _, rule := range results {
 			if rule.ApplicationGatewayRequestRoutingRulePropertiesFormat.Priority == nil {
 				return nil, fmt.Errorf("If you wish to use rule priority, you will have to specify rule-priority field values for all the existing request routing rules.")
