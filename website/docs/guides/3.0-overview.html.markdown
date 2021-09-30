@@ -41,7 +41,7 @@ provider "azurerm" {
 
 -> **Note:** Since new functionality is being added iteratively, this page will be updated as new functionality is added to the 3.0 Beta
 
-Version 3.0 of the Azure Provider is a work-in-progress, as such only functionality which is currently available is documented here. A tracking issue for 3.0 with more details - and an upgrade guide detailing the specific changes coming in 3.0 will be published in the future.
+Version 3.0 of the Azure Provider is a work-in-progress, as such only functionality which is currently available is documented here. We'll publish a tracking issue on GitHub with more details for 3.0, as well as a future upgrade guide detailing the specific changes coming in 3.0.
 
 
 ### New Data Sources and Resources for App Service
