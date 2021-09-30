@@ -195,7 +195,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
 
   // Remove filter
 
-  // Changed threshold, operator and threshold_type
+  // Changed threshold and operator
   notification {
     enabled        = true
     threshold      = 95.0
