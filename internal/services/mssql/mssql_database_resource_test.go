@@ -241,7 +241,7 @@ func TestAccMsSqlDatabase_createPITRMode(t *testing.T) {
 		data.ImportStep(),
 
 		{
-			PreConfig: func() { time.Sleep(7 * time.Minute) },
+			PreConfig: func() { time.Sleep(11 * time.Minute) },
 			Config:    r.createPITRMode(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_mssql_database.pitr").ExistsInAzure(r),
@@ -1064,7 +1064,7 @@ resource "azurerm_mssql_failover_group" "failover_group" {
   server_id = azurerm_mssql_server.test.id
   databases = [azurerm_mssql_database.test.id]
 
-  partner_servers {
+  partner_server {
     id = azurerm_mssql_server.second.id
   }
 
