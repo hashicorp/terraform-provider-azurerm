@@ -12,7 +12,7 @@ Azure Resource Manager: Opting into the new App Service Resources Beta coming in
 
 !> **Note:** The App Service Resources Beta is available from version 2.76 of the Azure Provider (although we recommend using the latest version) - and is subject to breaking changes - as such we recommend **not using this Beta in Production at this time**.  
 
-Whilst the existing App Service and Function App resources allow provisioning of these Resources, due the App Service API's behaviour changing over time, we're looking to better represent these in Terraform.
+Whilst the existing App Service and Function App resources allow provisioning of these Resources, due to the App Service API behaviour changing over time, we're looking to better represent these in Terraform.
 
 This will be in the form of new, more targeted Data Sources and Resources covering both App Service and Function Apps, at the current time includes the following new Data Sources and Resources:
 
