@@ -38,5 +38,5 @@ func ThreePointOhBetaResources() bool {
 		return true
 	}
 
-	return strings.EqualFold(os.Getenv("ARM_THREEPOINTOH_BETA_RESOURCES"), "true")
+	return strings.EqualFold(os.Getenv("ARM_THREEPOINTZERO_BETA_RESOURCES"), "true")
 }

@@ -42,18 +42,18 @@ We've previously used this opt-in Beta for the development of version 2.0 of the
 
 ## Opting into the App Service Beta Resources
 
-You can opt into this Beta by setting the Environment Variable `ARM_THREEPOINTOH_BETA_RESOURCES` to `true`.
+You can opt into this Beta by setting the Environment Variable `ARM_THREEPOINTZERO_BETA_RESOURCES` to `true`.
 
 On a macOS/Linux system:
 
 ```bash
-export ARM_THREEPOINTOH_BETA_RESOURCES=true
+export ARM_THREEPOINTZERO_BETA_RESOURCES=true
 ```
 
 On a Windows System (in PowerShell):
 
 ```powershell
-[System.Environment]::SetEnvironmentVariable('ARM_THREEPOINTOH_BETA_RESOURCES', 'true', [System.EnvironmentVariableTarget]::User)
+[System.Environment]::SetEnvironmentVariable('ARM_THREEPOINTZERO_BETA_RESOURCES', 'true', [System.EnvironmentVariableTarget]::User)
 ```
 
 ---
@@ -74,7 +74,7 @@ $ terraform plan
 
 ## Opting out the App Service Beta Resources
 
-Should you wish to no longer try out the App Service Beta resources you can remove the `ARM_THREEPOINTOH_BETA_RESOURCES` Environment Variable (or set this to `false`) which will disable support for this new functionality in Terraform.
+Should you wish to no longer try out the App Service Beta resources you can remove the `ARM_THREEPOINTZERO_BETA_RESOURCES` Environment Variable (or set this to `false`) which will disable support for this new functionality in Terraform.
 
 Note that if the Beta Data Sources and Resources are specified in your Terraform Configuration or State File, you'll see an error similar to below:
 
