@@ -3,6 +3,7 @@
 FEATURES: 
 
 * **New Resource:** `azurerm_app_configuration_feature` [GH-13452]
+* **New Resource:** `azurerm_logic_app_standard` [GH-13196]
 
 IMPROVEMENTS:
 
