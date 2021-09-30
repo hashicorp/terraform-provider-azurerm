@@ -10,6 +10,7 @@ IMPROVEMENTS:
 * Data Source: `azurerm_key_vault_certificate` - exporting the `expires` and `not_before` attributes [GH-13527]
 * Data Source: `azurerm_key_vault_certificate_data` - exporting the `not_before` attribute [GH-13527]
 * `azurerm_communication_service` - export the `primary_connection_string`, `secondary_connection_string`, `primary_key`, and `secondary_key` attributes [GH-13549]
+* `azurerm_managed_disk` - Add support for `max_shares` [GH-13571]
 * `azurerm_virtual_hub_connection` - optimized state change refresh function [GH-13548]
 
 BUG FIXES:
