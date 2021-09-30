@@ -13,6 +13,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_cosmosdb_account` - the `mongo_server_version` can now be changed without creating a new resouce [GH-13520]
 * `azurerm_iothub` - correctly suppress diffs for the `connection_string` property [GH-13517]
 * `azurerm_kubernetes_cluster` - explicitly setting `upgrade_channel` to `None` when it's unset to workaround a breaking behavioural change in AKS [GH-13493]
 * `azurerm_linux_virtual_machine_scale_set` - will not correctly ignore the `protected_setting` block withing the `extension` block [GH-13440]
