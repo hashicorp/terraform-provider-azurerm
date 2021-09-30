@@ -96,5 +96,5 @@ To disable the Beta when this happens, you'll first need to opt-back into the Be
 
 Firstly - thanks for trialling the new functionality coming in version 3.0 of the Azure Provider.
 
-We're keeping track of Beta Feedback in the Github Repository - [please follow this link to open an issue containing your feedback](https://github.com/terraform-providers/terraform-provider-azurerm/issues/new?template=Beta_Feedback.md).
+We're keeping track of Beta Feedback in the Github Repository: [please follow this link to open an issue containing your feedback](https://github.com/terraform-providers/terraform-provider-azurerm/issues/new?template=Beta_Feedback.md).
 
