@@ -35,7 +35,7 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_log_analytics_solution" "example" {
-  solution_name         = "ContainerInsights"
+  solution_name         = "k8s-analytics-${random_id.workspace.hex}"
   location              = azurerm_resource_group.example.location
   resource_group_name   = azurerm_resource_group.example.name
   workspace_resource_id = azurerm_log_analytics_workspace.example.id
@@ -59,8 +59,6 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `workspace_resource_id` - (Required) The full resource ID of the Log Analytics workspace with which the solution will be linked. Changing this forces a new resource to be created.
-
-* `workspace_name` - (Required) The full name of the Log Analytics workspace with which the solution will be linked. Changing this forces a new resource to be created.
 
 * `plan` - (Required) A `plan` block as documented below.
 
