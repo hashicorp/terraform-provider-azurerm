@@ -26,7 +26,7 @@ This will be in the form of new, more targeted Data Sources and Resources coveri
 * **New Resource:** `azurerm_source_control_token`
 * **New Resource:** `azurerm_windows_web_app`
 
--> **Note:** More Data Sources and Resources will be added during this Beta - and these Data Sources/Resources behaviours may change during the Beta as needed to represent these correctly in Terraform. 
+-> **Note:** These Data Sources/Resources behaviours may change as needed during the Beta, to represent these correctly in Terraform. In addition, more Data Sources and Resources will be added during the Beta.
 
 Whilst support for these new Data Sources and Resources will ship in version 3.0 of the Azure Provider, we're making these available as an opt-in Beta in later 2.x versions of the Azure Provider to get feedback.
 
