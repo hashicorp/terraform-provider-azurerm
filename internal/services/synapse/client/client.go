@@ -28,6 +28,7 @@ type Client struct {
 	WorkspaceExtendedBlobAuditingPoliciesClient      *synapse.WorkspaceManagedSQLServerExtendedBlobAuditingPoliciesClient
 	WorkspaceManagedIdentitySQLControlSettingsClient *synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	WorkspaceSecurityAlertPolicyClient               *synapse.WorkspaceManagedSQLServerSecurityAlertPolicyClient
+	WorkspaceSQLAadAdminsClient                      *synapse.WorkspaceSQLAadAdminsClient
 	WorkspaceVulnerabilityAssessmentsClient          *synapse.WorkspaceManagedSQLServerVulnerabilityAssessmentsClient
 
 	synapseAuthorizer autorest.Authorizer
@@ -83,6 +84,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	workspaceSecurityAlertPolicyClient := synapse.NewWorkspaceManagedSQLServerSecurityAlertPolicyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceSecurityAlertPolicyClient.Client, o.ResourceManagerAuthorizer)
 
+	workspaceSQLAadAdminsClient := synapse.NewWorkspaceSQLAadAdminsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&workspaceSQLAadAdminsClient.Client, o.ResourceManagerAuthorizer)
+
 	workspaceVulnerabilityAssessmentsClient := synapse.NewWorkspaceManagedSQLServerVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -103,6 +107,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		WorkspaceExtendedBlobAuditingPoliciesClient:      &workspaceExtendedBlobAuditingPoliciesClient,
 		WorkspaceManagedIdentitySQLControlSettingsClient: &workspaceManagedIdentitySQLControlSettingsClient,
 		WorkspaceSecurityAlertPolicyClient:               &workspaceSecurityAlertPolicyClient,
+		WorkspaceSQLAadAdminsClient:                      &workspaceSQLAadAdminsClient,
 		WorkspaceVulnerabilityAssessmentsClient:          &workspaceVulnerabilityAssessmentsClient,
 
 		synapseAuthorizer: o.SynapseAuthorizer,
