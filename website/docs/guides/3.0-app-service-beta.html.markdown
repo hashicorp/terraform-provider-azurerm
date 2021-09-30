@@ -30,7 +30,7 @@ This will be in the form of new, more targeted Data Sources and Resources coveri
 
 Whilst support for these new Data Sources and Resources will ship in version 3.0 of the Azure Provider, we're making these available as an opt-in Beta in later 2.x versions of the Azure Provider to get feedback.
 
-We've previously used this opt-in Beta for the development of version 2.0 of the Azure Provider and it worked well, both allowing users to try out this new functionality which provided invaluable feedback, and allowing us to continue iterating on version 1.x of the Provider until version 2.0 was ready to go - as such we'll be taking this approach for both the App Service resources and the rest of version 3.0 of the Azure Provider (more details of which will follow in the future).
+We've previously used the approach of an opt-in Beta for the development of version 2.0 of the Azure Provider and it worked well, both allowing users to try out this new functionality which provided invaluable feedback, and allowing us to continue iterating on version 1.x of the Provider until version 2.0 was ready to go. As such we'll be taking this approach for both the App Service resources and the rest of version 3.0 of the Azure Provider (more details of which will follow in the future).
 
 ## Disclaimers
 
