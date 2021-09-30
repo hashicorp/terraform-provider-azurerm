@@ -53,7 +53,7 @@ export ARM_THREEPOINTZERO_BETA_RESOURCES=true
 On a Windows System (in PowerShell):
 
 ```powershell
-[System.Environment]::SetEnvironmentVariable('ARM_THREEPOINTZERO_BETA_RESOURCES', 'true', [System.EnvironmentVariableTarget]::User)
+$env:ARM_THREEPOINTZERO_BETA_RESOURCES = "true"
 ```
 
 ---
