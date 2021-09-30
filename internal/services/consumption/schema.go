@@ -127,9 +127,13 @@ func SchemaConsumptionBudgetNotificationElement() *pluginsdk.Resource {
 				Required:     true,
 				ValidateFunc: validation.IntBetween(0, 1000),
 			},
+			// Issue: https://github.com/Azure/azure-rest-api-specs/issues/16240
+			// Toggling between these two values doesn't work at the moment and also doesn't throw an error
+			// but it seems unlikely that a user would switch the threshold_type of their budgets frequently
 			"threshold_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default:  string(consumption.ThresholdTypeActual),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(consumption.ThresholdTypeActual),
 					"Forecasted",

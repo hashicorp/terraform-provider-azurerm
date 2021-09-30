@@ -2,6 +2,7 @@ package consumption
 
 import (
 	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumption"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -105,7 +106,6 @@ func resourceArmConsumptionBudgetCreateUpdate(d *pluginsdk.ResourceData, meta in
 	if err != nil {
 		return err
 	}
-
 
 	if read.ID == nil {
 		return fmt.Errorf("cannot read Azure Consumption Budget %q for scope %q", name, scope)

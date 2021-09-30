@@ -57,13 +57,6 @@ func TestAccConsumptionBudgetSubscription_basicUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.basicUpdate2(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -165,10 +158,9 @@ resource "azurerm_consumption_budget_subscription" "test" {
   }
 
   notification {
-    enabled        = true
-    threshold      = 90.0
-    threshold_type = "Actual"
-    operator       = "EqualTo"
+    enabled   = true
+    threshold = 90.0
+    operator  = "EqualTo"
 
     contact_emails = [
       "foo@example.com",
@@ -203,51 +195,11 @@ resource "azurerm_consumption_budget_subscription" "test" {
 
   // Remove filter
 
-  // Changed threshold and operator
+  // Changed threshold, operator and threshold_type
   notification {
     enabled        = true
     threshold      = 95.0
     threshold_type = "Forecasted"
-    operator       = "GreaterThan"
-
-    contact_emails = [
-      "foo@example.com",
-      "bar@example.com",
-    ]
-  }
-}
-`, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339), consumptionBudgetTestStartDate().AddDate(1, 1, 0).Format(time.RFC3339))
-}
-
-func (ConsumptionBudgetSubscriptionResource) basicUpdate2(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_subscription" "current" {}
-
-resource "azurerm_consumption_budget_subscription" "test" {
-  name            = "acctestconsumptionbudgetsubscription-%d"
-  subscription_id = data.azurerm_subscription.current.subscription_id
-
-  // Changed the amount from 1000 to 2000
-  amount     = 3000
-  time_grain = "Monthly"
-
-  // Add end_date
-  time_period {
-    start_date = "%s"
-    end_date   = "%s"
-  }
-
-  // Remove filter
-
-  // Changed threshold and operator
-  notification {
-    enabled        = true
-    threshold      = 95.0
-    threshold_type = "Actual"
     operator       = "GreaterThan"
 
     contact_emails = [
@@ -374,9 +326,10 @@ resource "azurerm_consumption_budget_subscription" "test" {
   }
 
   notification {
-    enabled   = false
-    threshold = 100.0
-    operator  = "GreaterThan"
+    enabled        = false
+    threshold      = 100.0
+    operator       = "GreaterThan"
+    threshold_type = "Forecasted"
 
     contact_emails = [
       "foo@example.com",
@@ -448,9 +401,10 @@ resource "azurerm_consumption_budget_subscription" "test" {
   }
 
   notification {
-    enabled   = true
-    threshold = 90.0
-    operator  = "EqualTo"
+    enabled        = true
+    threshold      = 90.0
+    operator       = "EqualTo"
+    threshold_type = "Actual"
 
     contact_emails = [
       // Added baz@example.com
@@ -467,8 +421,9 @@ resource "azurerm_consumption_budget_subscription" "test" {
 
   notification {
     // Set enabled to true
-    enabled   = true
-    threshold = 100.0
+    enabled        = true
+    threshold      = 100.0
+    threshold_type = "Forecasted"
     // Changed from EqualTo to GreaterThanOrEqualTo 
     operator = "GreaterThanOrEqualTo"
 
