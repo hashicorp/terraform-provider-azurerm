@@ -31,7 +31,7 @@ func resourceArmConsumptionBudgetRead(d *pluginsdk.ResourceData, meta interface{
 		amount, _ := resp.Amount.Float64()
 		d.Set("amount", amount)
 	}
-	d.Set("etag", *resp.ETag)
+	d.Set("etag", resp.ETag)
 	d.Set("time_grain", string(resp.TimeGrain))
 	d.Set("time_period", FlattenConsumptionBudgetTimePeriod(resp.TimePeriod))
 	d.Set("notification", pluginsdk.NewSet(pluginsdk.HashResource(SchemaConsumptionBudgetNotificationElement()), FlattenConsumptionBudgetNotifications(resp.Notifications)))
