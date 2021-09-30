@@ -38,7 +38,7 @@ We've previously used the approach of an opt-in Beta for the development of vers
 
 -> Whilst certain feature flags may be available in earlier versions of the Azure Provider they existed in an incomplete manner - **the Beta is only supported when using version 2.76 (or later) of the Azure Provider**.
 
--> The final 3.0 release will contain the deprecations and resource removals outlined in a `3.0 Upgrade Guide`. (to follow)
+-> The final 3.0 release will contain the deprecations and resource removals outlined in a `3.0 Upgrade Guide` (to follow).
 
 ## Opting into the App Service Beta Resources
 
