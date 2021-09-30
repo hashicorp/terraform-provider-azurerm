@@ -134,6 +134,7 @@ func SchemaConsumptionBudgetNotificationElement() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(consumption.ThresholdTypeActual),
+				ForceNew: true, // todo: remove this when the above issue is fixed
 				ValidateFunc: validation.StringInSlice([]string{
 					string(consumption.ThresholdTypeActual),
 					"Forecasted",
