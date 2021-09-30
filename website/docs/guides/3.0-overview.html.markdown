@@ -11,7 +11,7 @@ Azure Resource Manager: Upcoming Version 3.0 of the Azure Provider
 
 Version 3.0 of the Azure Provider will be a major release, which means that this will include larger "breaking" changes as required, in addition to new functionality and bug fixes.
 
-During the development of version 2.0 of the Azure Provider we made use of Feature Toggling to gradually add support for the new functionality. This worked really well, allowing users to try out and provide invaluable feedback on this new functionality - and also allowing us to gradually implement it (and refine it over time) - whilst continuing to ship regular releases of the Azure Provider.
+During the development of version 2.0 of the Azure Provider we made use of Feature Toggling to gradually add support for the new functionality. This worked really well, allowing users to try out and provide invaluable feedback on this new functionality - and also allowing us to gradually implement and refine it over time - whilst continuing to ship regular releases of the Azure Provider.
 
 As such we'll be using the same approach for version 3.0 of the Azure Provider too - providing (in the future) an opt-in Beta for the changes coming in version 3.0 in 2.x versions of the Azure Provider.
 
