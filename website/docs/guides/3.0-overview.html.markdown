@@ -9,7 +9,7 @@ Azure Resource Manager: Upcoming Version 3.0 of the Azure Provider
 
 -> **Note:** Since this documentation is versioned, we recommend checking [the latest version of this document](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
 
-Version 3.0 of the Azure Provider will be a major release - which means that this will include larger "breaking" changes as required in addition to new functionality and bug fixes.
+Version 3.0 of the Azure Provider will be a major release, which means that this will include larger "breaking" changes as required, in addition to new functionality and bug fixes.
 
 During the development of version 2.0 of the Azure Provider we made use of Feature Toggling to gradually add support for the new functionality. This worked really well, allowing users to try out and provide invaluable feedback on this new functionality - and also allowing us to gradually implement it (and refine it over time) - whilst continuing to ship regular releases of the Azure Provider.
 
