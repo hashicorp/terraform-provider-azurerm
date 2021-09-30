@@ -101,7 +101,6 @@ resource "azurerm_log_analytics_solution" "test" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  workspace_name        = azurerm_log_analytics_workspace.test.name
 
   plan {
     publisher = "Microsoft"
@@ -124,7 +123,6 @@ resource "azurerm_log_analytics_solution" "import" {
   location              = azurerm_log_analytics_solution.test.location
   resource_group_name   = azurerm_log_analytics_solution.test.resource_group_name
   workspace_resource_id = azurerm_log_analytics_solution.test.workspace_resource_id
-  workspace_name        = azurerm_log_analytics_solution.test.workspace_name
 
   plan {
     publisher = "Microsoft"
@@ -153,16 +151,15 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_log_analytics_solution" "test" {
-  solution_name         = "Security"
+  solution_name         = "acctestLAW-LAS-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  workspace_name        = azurerm_log_analytics_workspace.test.name
 
   plan {
     publisher = "Microsoft"
     product   = "OMSGallery/Security"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
