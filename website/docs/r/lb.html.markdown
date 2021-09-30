@@ -62,6 +62,7 @@ The following arguments are supported:
 -> **NOTE:** Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-standard-availability-zones) and [in select regions](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) at this time. Standard SKU Load Balancer that do not specify a zone are zone redundant by default.
 
 * `subnet_id` - The ID of the Subnet which should be associated with the IP Configuration.
+* `gateway_load_balancer_frontend_ip_configuration_id` - (Optional) The Frontend IP Configuration ID of a Gateway Sku Load Balancer.
 * `private_ip_address` - (Optional) Private IP Address to assign to the Load Balancer. The last one and first four IPs in any range are reserved and cannot be manually assigned.
 * `private_ip_address_allocation` - (Optional) The allocation method for the Private IP Address used by this Load Balancer. Possible values as `Dynamic` and `Static`.
 * `private_ip_address_version` - The version of IP that the Private IP Address is. Possible values are `IPv4` or `IPv6`.
@@ -81,6 +82,7 @@ The following attributes are exported:
 
 A `frontend_ip_configuration` block exports the following:
 
+* `gateway_load_balancer_frontend_ip_configuration_id` - The id of the Frontend IP Configuration of a Gateway Load Balancer that this Load Balancer points to.
 * `id` - The id of the Frontend IP Configuration.
 * `inbound_nat_rules` - The list of IDs of inbound rules that use this frontend IP.
 * `load_balancer_rules` - The list of IDs of load balancing rules that use this frontend IP.

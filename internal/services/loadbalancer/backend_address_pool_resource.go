@@ -65,30 +65,6 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 					ValidateFunc: validate.LoadBalancerID,
 				},
 
-				"backend_ip_configurations": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
-
-				"load_balancing_rules": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
-
-				"outbound_rules": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
-
 				"tunnel_interface": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
@@ -129,6 +105,30 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 								Required: true,
 							},
 						},
+					},
+				},
+
+				"backend_ip_configurations": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"load_balancing_rules": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"outbound_rules": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
 					},
 				},
 			}
