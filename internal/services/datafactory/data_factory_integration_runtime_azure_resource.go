@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -22,8 +23,11 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 		Read:   resourceDataFactoryIntegrationRuntimeAzureRead,
 		Update: resourceDataFactoryIntegrationRuntimeAzureCreateUpdate,
 		Delete: resourceDataFactoryIntegrationRuntimeAzureDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.IntegrationRuntimeID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -103,19 +107,18 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 func resourceDataFactoryIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworksClient
+	subscriptionId := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	factoryName := d.Get("data_factory_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewIntegrationRuntimeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("data_factory_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, factoryName, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Azure Integration Runtime %q (Resource Group %q, Data Factory %q): %s", name, resourceGroup, factoryName, err)
+				return fmt.Errorf("checking for presence of existing Data Factory Azure %s: %+v", id, err)
 			}
 		}
 
@@ -135,7 +138,7 @@ func resourceDataFactoryIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	if d.Get("virtual_network_enabled").(bool) {
-		virtualNetworkName, err := getManagedVirtualNetworkName(ctx, managedVirtualNetworksClient, resourceGroup, factoryName)
+		virtualNetworkName, err := getManagedVirtualNetworkName(ctx, managedVirtualNetworksClient, id.ResourceGroup, id.FactoryName)
 		if err != nil {
 			return err
 		}
@@ -151,24 +154,15 @@ func resourceDataFactoryIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.Resourc
 	basicIntegrationRuntime, _ := managedIntegrationRuntime.AsBasicIntegrationRuntime()
 
 	integrationRuntime := datafactory.IntegrationRuntimeResource{
-		Name:       &name,
+		Name:       &id.Name,
 		Properties: basicIntegrationRuntime,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, factoryName, name, integrationRuntime, ""); err != nil {
-		return fmt.Errorf("creating/updating Data Factory Azure Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, integrationRuntime, ""); err != nil {
+		return fmt.Errorf("creating/updating Data Factory Azure %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, factoryName, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Data Factory Azure Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory Azure Integration Runtime %q (Resource Group %q, Data Factory %q) ID", name, resourceGroup, factoryName)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceDataFactoryIntegrationRuntimeAzureRead(d, meta)
 }
@@ -178,32 +172,28 @@ func resourceDataFactoryIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.IntegrationRuntimeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	factoryName := id.Path["factories"]
-	name := id.Path["integrationruntimes"]
-
-	resp, err := client.Get(ctx, resourceGroup, factoryName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Data Factory Azure Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
+		return fmt.Errorf("retrieving Data Factory Azure %s: %+v", *id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("data_factory_name", factoryName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("data_factory_name", id.FactoryName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	managedIntegrationRuntime, convertSuccess := resp.Properties.AsManagedIntegrationRuntime()
 	if !convertSuccess {
-		return fmt.Errorf("converting managed integration runtime to Azure integration runtime %q (Resource Group %q, Data Factory %q)", name, resourceGroup, factoryName)
+		return fmt.Errorf("converting managed integration runtime to Azure integration runtime %s", *id)
 	}
 
 	if managedIntegrationRuntime.Description != nil {
@@ -246,21 +236,17 @@ func resourceDataFactoryIntegrationRuntimeAzureDelete(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.IntegrationRuntimeID(d.Id())
 
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	factoryName := id.Path["factories"]
-	name := id.Path["integrationruntimes"]
-
-	response, err := client.Delete(ctx, resourceGroup, factoryName, name)
+	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting Data Factory Azure Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
+			return fmt.Errorf("deleting Data Factory Azure %s: %+v", *id, err)
 		}
 	}
 
