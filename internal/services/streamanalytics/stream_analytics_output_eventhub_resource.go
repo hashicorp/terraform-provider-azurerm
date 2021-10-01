@@ -88,7 +88,7 @@ func resourceStreamAnalyticsOutputEventHub() *pluginsdk.Resource {
 
 			"partition_key": {
 				Type:     pluginsdk.TypeString,
-				Required: false,
+				Optional: true,
 			},
 
 			"serialization": schemaStreamAnalyticsOutputSerialization(),
