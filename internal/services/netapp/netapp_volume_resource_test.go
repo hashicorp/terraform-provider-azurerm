@@ -489,9 +489,7 @@ resource "azurerm_netapp_volume" "test" {
   export_policy_rule {
     rule_index      = 3
     allowed_clients = ["1.2.6.0/24"]
-    cifs_enabled    = false
-    nfsv3_enabled   = true
-    nfsv4_enabled   = false
+    protocols_enabled = ["NFSv3"]
     unix_read_only  = true
     unix_read_write = false
   }
