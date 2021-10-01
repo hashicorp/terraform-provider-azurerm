@@ -1,28 +1,28 @@
-## 2.79.0 (Unreleased)
+## 2.79.0 (October 01, 2021)
 
 FEATURES: 
 
-* **New Resource:** `azurerm_app_configuration_feature` [GH-13452]
-* **New Resource:** `azurerm_logic_app_standard` [GH-13196]
+* **New Resource:** `azurerm_app_configuration_feature` ([#13452](https://github.com/hashicorp/terraform-provider-azurerm/issues/13452))
+* **New Resource:** `azurerm_logic_app_standard` ([#13196](https://github.com/hashicorp/terraform-provider-azurerm/issues/13196))
 
 IMPROVEMENTS:
 
-* Data Source: `azurerm_key_vault_certificate` - exporting the `expires` and `not_before` attributes [GH-13527]
-* Data Source: `azurerm_key_vault_certificate_data` - exporting the `not_before` attribute [GH-13527]
-* `azurerm_communication_service` - export the `primary_connection_string`, `secondary_connection_string`, `primary_key`, and `secondary_key` attributes [GH-13549]
-* `azurerm_consumption_*` add support for the `Forecasted` threshold type [GH-13567]
-* `azurerm_managed_disk` - Add support for `max_shares` [GH-13571]
-* `azurerm_mssql_database` - will now update replicated databases SKUs first [GH-13478]
-* `azurerm_virtual_hub_connection` - optimized state change refresh function [GH-13548]
+* Data Source: `azurerm_key_vault_certificate` - exporting the `expires` and `not_before` attributes ([#13527](https://github.com/hashicorp/terraform-provider-azurerm/issues/13527))
+* Data Source: `azurerm_key_vault_certificate_data` - exporting the `not_before` attribute ([#13527](https://github.com/hashicorp/terraform-provider-azurerm/issues/13527))
+* `azurerm_communication_service` - export the `primary_connection_string`, `secondary_connection_string`, `primary_key`, and `secondary_key` attributes ([#13549](https://github.com/hashicorp/terraform-provider-azurerm/issues/13549))
+* `azurerm_consumption_*` add support for the `Forecasted` threshold type ([#13567](https://github.com/hashicorp/terraform-provider-azurerm/issues/13567))
+* `azurerm_managed_disk` - Add support for `max_shares` ([#13571](https://github.com/hashicorp/terraform-provider-azurerm/issues/13571))
+* `azurerm_mssql_database` - will now update replicated databases SKUs first ([#13478](https://github.com/hashicorp/terraform-provider-azurerm/issues/13478))
+* `azurerm_virtual_hub_connection` - optimized state change refresh function ([#13548](https://github.com/hashicorp/terraform-provider-azurerm/issues/13548))
 
 BUG FIXES:
 
-* `azurerm_cosmosdb_account` - the `mongo_server_version` can now be changed without creating a new resouce [GH-13520]
-* `azurerm_iothub` - correctly suppress diffs for the `connection_string` property [GH-13517]
-* `azurerm_kubernetes_cluster` - explicitly setting `upgrade_channel` to `None` when it's unset to workaround a breaking behavioural change in AKS [GH-13493]
-* `azurerm_linux_virtual_machine_scale_set` - will not correctly ignore the `protected_setting` block withing the `extension` block [GH-13440]
-* `azurerm_windows_virtual_machine_scale_set` - will not correctly ignore the `protected_setting` block withing the `extension` block [GH-13440]
-* `azurerm_app_configuration_key` - correctly set the `etag` property [GH-13534]
+* `azurerm_cosmosdb_account` - the `mongo_server_version` can now be changed without creating a new resouce ([#13520](https://github.com/hashicorp/terraform-provider-azurerm/issues/13520))
+* `azurerm_iothub` - correctly suppress diffs for the `connection_string` property ([#13517](https://github.com/hashicorp/terraform-provider-azurerm/issues/13517))
+* `azurerm_kubernetes_cluster` - explicitly setting `upgrade_channel` to `None` when it's unset to workaround a breaking behavioural change in AKS ([#13493](https://github.com/hashicorp/terraform-provider-azurerm/issues/13493))
+* `azurerm_linux_virtual_machine_scale_set` - will not correctly ignore the `protected_setting` block withing the `extension` block ([#13440](https://github.com/hashicorp/terraform-provider-azurerm/issues/13440))
+* `azurerm_windows_virtual_machine_scale_set` - will not correctly ignore the `protected_setting` block withing the `extension` block ([#13440](https://github.com/hashicorp/terraform-provider-azurerm/issues/13440))
+* `azurerm_app_configuration_key` - correctly set the `etag` property ([#13534](https://github.com/hashicorp/terraform-provider-azurerm/issues/13534))
 
 ## 2.78.0 (September 23, 2021)
 
