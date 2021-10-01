@@ -571,7 +571,7 @@ func testAccDataSourceKubernetesCluster_addOnProfileOpenServiceMesh(t *testing.T
 			Config: r.addOnProfileOpenServiceMeshConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("addon_profile.0.open_service_mesh.#").HasValue("1"),
-				check.That(data.ResourceName).Key("addon_profile.0.open_service_mesh.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("addon_profile.0.open_service_mesh.0.enabled").HasValue("false"),
 			),
 		},
 	})
