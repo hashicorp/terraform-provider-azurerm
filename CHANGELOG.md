@@ -10,8 +10,9 @@ IMPROVEMENTS:
 * Data Source: `azurerm_key_vault_certificate` - exporting the `expires` and `not_before` attributes ([#13527](https://github.com/hashicorp/terraform-provider-azurerm/issues/13527))
 * Data Source: `azurerm_key_vault_certificate_data` - exporting the `not_before` attribute ([#13527](https://github.com/hashicorp/terraform-provider-azurerm/issues/13527))
 * `azurerm_communication_service` - export the `primary_connection_string`, `secondary_connection_string`, `primary_key`, and `secondary_key` attributes ([#13549](https://github.com/hashicorp/terraform-provider-azurerm/issues/13549))
-* `azurerm_consumption_*` add support for the `Forecasted` threshold type ([#13567](https://github.com/hashicorp/terraform-provider-azurerm/issues/13567))
-* `azurerm_managed_disk` - Add support for `max_shares` ([#13571](https://github.com/hashicorp/terraform-provider-azurerm/issues/13571))
+* `azurerm_consumption_budget_subscription`  support for the `Forecasted` threshold type ([#13567](https://github.com/hashicorp/terraform-provider-azurerm/issues/13567))
+* `azurerm_consumption_budget_resource_group  support for the `Forecasted` threshold type ([#13567](https://github.com/hashicorp/terraform-provider-azurerm/issues/13567))
+* `azurerm_managed_disk` - support for the `max_shares` property ([#13571](https://github.com/hashicorp/terraform-provider-azurerm/issues/13571))
 * `azurerm_mssql_database` - will now update replicated databases SKUs first ([#13478](https://github.com/hashicorp/terraform-provider-azurerm/issues/13478))
 * `azurerm_virtual_hub_connection` - optimized state change refresh function ([#13548](https://github.com/hashicorp/terraform-provider-azurerm/issues/13548))
 
