@@ -173,6 +173,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			"max_shares": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.IntBetween(2, 10),
 			},
 
@@ -223,12 +224,15 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Encryption: &compute.Encryption{
 			Type: compute.EncryptionTypeEncryptionAtRestWithPlatformKey,
 		},
-		MaxShares: utils.Int32(int32(d.Get("max_shares").(int))),
 	}
 
 	if v := d.Get("disk_size_gb"); v != 0 {
 		diskSize := int32(v.(int))
 		props.DiskSizeGB = &diskSize
+	}
+
+	if v, ok := d.GetOk("max_shares"); ok {
+		props.MaxShares = utils.Int32(int32(v.(int)))
 	}
 
 	if storageAccountType == string(compute.UltraSSDLRS) {
