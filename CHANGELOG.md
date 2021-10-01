@@ -1,8 +1,8 @@
-## 2.79.1 (Unreleased)
+## 2.79.1 (October 01, 2021)
 
 BUG FIXES: 
 
-* `azurerm_managed_disk` - `max_share` is now `Computed` to account for managed disks that are already managed by Terraform [GH-13587]
+* `azurerm_managed_disk` - `max_share` is now `Computed` to account for managed disks that are already managed by Terraform ([#13587](https://github.com/hashicorp/terraform-provider-azurerm/issues/13587))
 
 ## 2.79.0 (October 01, 2021)
 
