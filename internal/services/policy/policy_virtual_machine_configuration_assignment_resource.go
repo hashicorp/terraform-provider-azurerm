@@ -3,6 +3,7 @@ package policy
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/guestconfiguration/mgmt/2020-06-25/guestconfiguration"
@@ -40,9 +41,10 @@ func resourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -60,10 +62,11 @@ func resourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						// TODO: Remove in 3.0
 						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:       pluginsdk.TypeString,
+							Optional:   true,
+							Deprecated: "This field is no longer used and will be removed in the next major version of the Azure Provider",
 						},
 
 						"assignment_type": {
@@ -80,12 +83,14 @@ func resourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource {
 						"content_hash": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"content_uri": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 						},
 
@@ -143,14 +148,27 @@ func resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate(d *pluginsd
 			return tf.ImportAsExistsError("azurerm_policy_virtual_machine_configuration_assignment", id.ID())
 		}
 	}
-
+	guestConfiguration := expandGuestConfigurationAssignment(d.Get("configuration").([]interface{}), id.GuestConfigurationAssignmentName)
 	parameter := guestconfiguration.Assignment{
-		Name:     utils.String(d.Get("name").(string)),
+		Name:     utils.String(id.GuestConfigurationAssignmentName),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &guestconfiguration.AssignmentProperties{
-			GuestConfiguration: expandGuestConfigurationAssignment(d.Get("configuration").([]interface{})),
+			GuestConfiguration: guestConfiguration,
 		},
 	}
+
+	// I need to determine if the passed in guest config is a built-in config or not
+	// since the attribute is computed and optional I need to check the value of the
+	// contentURI to see if it is on a service team owned storage account or not
+	// all built-in guest configuration will always be on a service team owned
+	// storage account
+	if guestConfiguration.ContentURI != nil || *guestConfiguration.ContentURI != "" {
+		if strings.Contains(strings.ToLower(*guestConfiguration.ContentURI), "oaasguestconfig") {
+			parameter.Properties.GuestConfiguration.ContentHash = nil
+			parameter.Properties.GuestConfiguration.ContentURI = nil
+		}
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, id.GuestConfigurationAssignmentName, parameter, id.ResourceGroup, id.VirtualMachineName); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -211,14 +229,14 @@ func resourcePolicyVirtualMachineConfigurationAssignmentDelete(d *pluginsdk.Reso
 	return nil
 }
 
-func expandGuestConfigurationAssignment(input []interface{}) *guestconfiguration.Navigation {
+func expandGuestConfigurationAssignment(input []interface{}, name string) *guestconfiguration.Navigation {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
 
 	result := guestconfiguration.Navigation{
-		Name:                   utils.String(v["name"].(string)),
+		Name:                   utils.String(name),
 		Version:                utils.String(v["version"].(string)),
 		ConfigurationParameter: expandGuestConfigurationAssignmentConfigurationParameters(v["parameter"].(*pluginsdk.Set).List()),
 	}
@@ -255,10 +273,6 @@ func flattenGuestConfigurationAssignment(input *guestconfiguration.Navigation) [
 		return make([]interface{}, 0)
 	}
 
-	var name string
-	if input.Name != nil {
-		name = *input.Name
-	}
 	var version string
 	if input.Version != nil {
 		version = *input.Version
@@ -277,7 +291,6 @@ func flattenGuestConfigurationAssignment(input *guestconfiguration.Navigation) [
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"name":            name,
 			"assignment_type": string(assignmentType),
 			"content_hash":    contentHash,
 			"content_uri":     contentUri,

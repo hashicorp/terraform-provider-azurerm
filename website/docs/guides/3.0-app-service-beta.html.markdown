@@ -1,0 +1,100 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: Opting into the new App Service Resources Beta"
+description: |-
+Azure Resource Manager: Opting into the new App Service Resources Beta coming in version 3.0 of the Azure Provider
+
+---
+
+# Opting into the new App Service Resources Beta
+
+-> **Note:** The New App Service Data Sources/Resources are a part of [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
+
+!> **Note:** The App Service Resources Beta is available from version 2.76 of the Azure Provider (although we recommend using the latest version) - and is subject to breaking changes - as such we recommend **not using this Beta in Production at this time**.  
+
+Whilst the existing App Service and Function App resources allow provisioning of these Resources, due to the App Service API behaviour changing over time, we're looking to better represent these in Terraform.
+
+This will be in the form of new, more targeted Data Sources and Resources covering both App Service and Function Apps, at the current time includes the following new Data Sources and Resources:
+
+* **New Data Source:** `azurerm_linux_web_app`
+* **New Data Source:** `azurerm_service_plan`
+* **New Data Source:** `azurerm_source_control_token`
+* **New Data Source:** `azurerm_windows_web_app`
+* **New Resource:** `azurerm_app_service_source_control`
+* **New Resource:** `azurerm_linux_web_app`
+* **New Resource:** `azurerm_service_plan`
+* **New Resource:** `azurerm_source_control_token`
+* **New Resource:** `azurerm_windows_web_app`
+
+-> **Note:** These Data Sources/Resources behaviours may change as needed during the Beta, to represent these correctly in Terraform. In addition, more Data Sources and Resources will be added during the Beta.
+
+Whilst support for these new Data Sources and Resources will ship in version 3.0 of the Azure Provider, we're making these available as an opt-in Beta in later 2.x versions of the Azure Provider to get feedback.
+
+We've previously used the approach of an opt-in Beta for the development of version 2.0 of the Azure Provider and it worked well, both allowing users to try out this new functionality which provided invaluable feedback, and allowing us to continue iterating on version 1.x of the Provider until version 2.0 was ready to go. As such we'll be taking this approach for both the App Service resources and the rest of version 3.0 of the Azure Provider (more details of which will follow in the future).
+
+## Disclaimers
+
+-> The functionality provided in this Beta is subject to change - as such we recommend **not using this Beta in Production**.
+
+-> Whilst certain feature flags may be available in earlier versions of the Azure Provider they existed in an incomplete manner - **the Beta is only supported when using version 2.76 (or later) of the Azure Provider**.
+
+-> The final 3.0 release will contain the deprecations and resource removals outlined in a `3.0 Upgrade Guide` (to follow).
+
+## Opting into the App Service Beta Resources
+
+You can opt into this Beta by setting the Environment Variable `ARM_THREEPOINTZERO_BETA_RESOURCES` to `true`.
+
+On a macOS/Linux system:
+
+```bash
+export ARM_THREEPOINTZERO_BETA_RESOURCES=true
+```
+
+On a Windows System (in PowerShell):
+
+```powershell
+$env:ARM_THREEPOINTZERO_BETA_RESOURCES = "true"
+```
+
+---
+
+-> **Note:** If this Environment Variable isn't specified, you will see the following error when trying to use any Resources requiring it, since the Azure Provider will Disable them:
+
+```
+$ terraform plan
+╷
+│ Error: Invalid resource type
+│
+│   on main.tf line 10, in resource "azurerm_service_plan" "test":
+│   10: resource "azurerm_service_plan" "test" {
+│
+│ The provider hashicorp/azurerm does not support resource type "azurerm_service_plan".
+╵
+```
+
+## Opting out the App Service Beta Resources
+
+Should you wish to no longer try out the App Service Beta resources you can remove the `ARM_THREEPOINTZERO_BETA_RESOURCES` Environment Variable (or set this to `false`) which will disable support for this new functionality in Terraform.
+
+Note that if the Beta Data Sources and Resources are specified in your Terraform Configuration or State File, you'll see an error similar to below:
+
+```
+$ terraform plan
+╷
+│ Error: Invalid resource type
+│
+│   on main.tf line 10, in resource "azurerm_service_plan" "test":
+│   10: resource "azurerm_service_plan" "test" {
+│
+│ The provider hashicorp/azurerm does not support resource type "azurerm_service_plan".
+╵
+```
+
+To disable the Beta when this happens, you'll first need to opt-back into the Beta - remove the Beta resources from your Terraform Configuration/State File (using `terraform state rm azurerm_{resourcetype}.label`) and then opt-out of the App Service Beta.
+
+## Providing Feedback
+
+Firstly - thanks for trialling the new functionality coming in version 3.0 of the Azure Provider.
+
+We're keeping track of Beta Feedback in the Github Repository: [please follow this link to open an issue containing your feedback](https://github.com/terraform-providers/terraform-provider-azurerm/issues/new?template=Beta_Feedback.md).
+

@@ -33,6 +33,7 @@ type KeyResourceModel struct {
 	ConfigurationStoreId string                 `tfschema:"configuration_store_id"`
 	Key                  string                 `tfschema:"key"`
 	ContentType          string                 `tfschema:"content_type"`
+	Etag                 string                 `tfschema:"etag"`
 	Label                string                 `tfschema:"label"`
 	Value                string                 `tfschema:"value"`
 	Locked               bool                   `tfschema:"locked"`
@@ -104,7 +105,7 @@ func (k KeyResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (k KeyResource) ModelObject() interface{} {
-	return KeyResourceModel{}
+	return &KeyResourceModel{}
 }
 
 func (k KeyResource) ResourceType() string {
@@ -184,7 +185,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 func (k KeyResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			resourceID, err := parse.AppConfigurationKeyID(metadata.ResourceData.Id())
+			resourceID, err := parse.KeyId(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
@@ -212,12 +213,17 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("unexpected API response. More than one value returned for Key/Label pair %s/%s", resourceID.Key, resourceID.Label)
 			}
 
+			if len(res.Values()) < 1 {
+				return metadata.MarkAsGone(resourceID)
+			}
+
 			kv := res.Values()[0]
 
 			model := KeyResourceModel{
 				ConfigurationStoreId: resourceID.ConfigurationStoreId,
 				Key:                  utils.NormalizeNilableString(kv.Key),
 				ContentType:          utils.NormalizeNilableString(kv.ContentType),
+				Etag:                 utils.NormalizeNilableString(kv.Etag),
 				Label:                utils.NormalizeNilableString(kv.Label),
 				Tags:                 tags.Flatten(kv.Tags),
 			}
@@ -252,7 +258,7 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 
-			resourceID, err := parse.AppConfigurationKeyID(metadata.ResourceData.Id())
+			resourceID, err := parse.KeyId(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
@@ -312,7 +318,7 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 func (k KeyResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			resourceID, err := parse.AppConfigurationKeyID(metadata.ResourceData.Id())
+			resourceID, err := parse.KeyId(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}

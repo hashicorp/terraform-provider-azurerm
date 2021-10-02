@@ -10,7 +10,7 @@ description: |-
 
 Manages a Linux Web App.
 
-!> **NOTE:** This is a 3.0 beta resource intended to provide an improved experience for Web Apps by splitting the older `azurerm_app_service` into O/S Specific variants, allowing better property validation and simpler configuration. Please see the [3.0 Beta guide](https://github.com/hashicorp/terraform-provider-azurerm/blob/f/main/website/docs/guides/3.0-beta.html.markdown) for more information on enabling and using this resource.
+!> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
 
 ## Example Usage
 
@@ -113,7 +113,7 @@ A `active_directory` block supports the following:
 
 A `application_logs` block supports the following:
 
-* `azure_blob_storage` - (Optional) A `azure_blob_storage` block as defined below.
+* `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
 
 * `file_system_level` - (Optional) Log level. Possible values include: `Verbose`, `Information`, `Warning`, and `Error`.
 
@@ -125,7 +125,7 @@ A `application_stack` block supports the following:
 
 * `docker_image_tag` - (Optional) The image Tag to use. e.g. `latest`
 
-* `dotnet_framework_version` - (Optional) The version of .Net to use. Possible values include `2.1`, `3.1`, and `5.0`.
+* `dotnet_version` - (Optional) The version of .Net to use. Possible values include `2.1`, `3.1`, and `5.0`.
 
 * `java_server` - (Optional) The java server type. Possible values include `JAVA`, `TOMCAT`, and `JBOSSEAP`.
 
@@ -153,7 +153,7 @@ A `application_stack` block supports the following:
 
 A `auth_settings` block supports the following:
 
-* `enabled` - (Required) Should the Authentication / Authorization feature is enabled for the Linux Web App be enabled?
+* `enabled` - (Required) Should the Authentication / Authorization feature be enabled for the Linux Web App?
 
 * `active_directory` - (Optional) An `active_directory` block as defined above.
 
@@ -301,7 +301,7 @@ A `http_logs` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The ype of managed service identity. Possible values include: `ManagedServiceIdentityTypeSystemAssigned`, `ManagedServiceIdentityTypeUserAssigned`, and `ManagedServiceIdentityTypeSystemAssignedUserAssigned`.
+* `type` - (Required) The type of managed service identity. Possible values include: `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`.
 
 * `identity_ids` - (Optional) Specifies a list of Identity IDs.
 
@@ -335,7 +335,7 @@ A `logs` block supports the following:
 
 * `failed_request_tracing` - (Optional) Should failed request tracing be enabled.
 
-* `http_logs` - (Optional) A `http_logs` block as defined above.
+* `http_logs` - (Optional) An `http_logs` block as defined above.
 
 ---
 
@@ -411,6 +411,10 @@ A `site_config` block supports the following:
 
 * `auto_swap_slot_name` - (Optional) The Linux Web App Slot Name to automatically swap to when deployment to that slot is successfully completed.
 
+* `container_registry_managed_identity_client_id` - (Optional) The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.
+
+* `container_registry_use_managed_identity` - (Optional) Should connections for Azure Container Registry use Managed Identity.
+
 * `cors` - (Optional) A `cors` block as defined above.
 
 * `default_documents` - (Optional) Specifies a list of Default Documents for the Linux Web App.
@@ -485,7 +489,7 @@ A `storage_account` block supports the following:
 
 * `account_name` - (Required) The Name of the Storage Account.
 
-* `name` - (Required) The name which should be used for this TODO.
+* `name` - (Required) The name which should be used for this Storage Account.
 
 * `share_name` - (Required) The Name of the File Share or Container Name for Blob storage.
 
@@ -521,7 +525,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `app_metadata` - A `app_metadata` block as defined below.
 
-* `custom_domain_verification_id` - The ID of the TODO.
+* `custom_domain_verification_id` - The identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
 * `default_hostname` - The default hostname of the Linux Web App.
 
@@ -536,6 +540,18 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
 
 * `site_credential` - A `site_credential` block as defined below.
+
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this App Service.
+
+---
+
+A `identity` block exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this App Service.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service.
+
+-> You can access the Principal ID via `azurerm_linux_web_app.example.identity.0.principal_id` and the Tenant ID via `azurerm_linux_web_app.example.identity.0.tenant_id`
 
 ---
 

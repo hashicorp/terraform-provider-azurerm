@@ -1,6 +1,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -24,15 +25,17 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 		Update: resourceVirtualHubConnectionCreateOrUpdate,
 		Delete: resourceVirtualHubConnectionDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
-
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.HubVirtualNetworkConnectionID(id)
+			return err
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -167,13 +170,15 @@ func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubID(d.Get("virtual_hub_id").(string))
+	virtualHubId, err := parse.VirtualHubID(d.Get("virtual_hub_id").(string))
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(id.Name, virtualHubResourceName)
-	defer locks.UnlockByName(id.Name, virtualHubResourceName)
+	id := parse.NewHubVirtualNetworkConnectionID(virtualHubId.SubscriptionId, virtualHubId.ResourceGroup, virtualHubId.Name, d.Get("name").(string))
+
+	locks.ByName(virtualHubId.Name, virtualHubResourceName)
+	defer locks.UnlockByName(virtualHubId.Name, virtualHubResourceName)
 
 	remoteVirtualNetworkId, err := parse.VirtualNetworkID(d.Get("remote_virtual_network_id").(string))
 	if err != nil {
@@ -183,13 +188,11 @@ func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta 
 	locks.ByName(remoteVirtualNetworkId.Name, VirtualNetworkResourceName)
 	defer locks.UnlockByName(remoteVirtualNetworkId.Name, VirtualNetworkResourceName)
 
-	name := d.Get("name").(string)
-
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Connection %q (Virtual Hub %q / Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -198,7 +201,7 @@ func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	connection := network.HubVirtualNetworkConnection{
-		Name: utils.String(name),
+		Name: utils.String(id.Name),
 		HubVirtualNetworkConnectionProperties: &network.HubVirtualNetworkConnectionProperties{
 			RemoteVirtualNetwork: &network.SubResource{
 				ID: utils.String(remoteVirtualNetworkId.ID()),
@@ -211,23 +214,29 @@ func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta 
 		connection.HubVirtualNetworkConnectionProperties.RoutingConfiguration = expandVirtualHubConnectionRouting(v.([]interface{}))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, name, connection)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualHubName, id.Name, connection)
 	if err != nil {
-		return fmt.Errorf("creating Connection %q (Virtual Hub %q / Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Connection %q (Virtual Hub %q / Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Connection %q (Virtual Hub %q / Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
+	timeout, _ := ctx.Deadline()
+
+	vnetStateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{string(network.ProvisioningStateUpdating)},
+		Target:     []string{string(network.ProvisioningStateSucceeded)},
+		Refresh:    virtualHubConnectionProvisioningStateRefreshFunc(ctx, client, id),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    time.Until(timeout),
 	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("cannot read Connection %q (Virtual Hub %q / Resource Group %q) ID", name, id.Name, id.ResourceGroup)
+	if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
 	}
-	d.SetId(*resp.ID)
+
+	d.SetId(id.ID())
 
 	return resourceVirtualHubConnectionRead(d, meta)
 }
@@ -245,11 +254,11 @@ func resourceVirtualHubConnectionRead(d *pluginsdk.ResourceData, meta interface{
 	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Connection %q (Virtual Hub %q / Resource Group %q) does not exist - removing from state", id.Name, id.VirtualHubName, id.ResourceGroup)
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Connection %q (Virtual Hub %q / Resource Group %q): %+v", id.Name, id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -292,11 +301,11 @@ func resourceVirtualHubConnectionDelete(d *pluginsdk.ResourceData, meta interfac
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Connection %q (Virtual Hub %q / Resource Group %q): %+v", id.Name, id.VirtualHubName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deleting Connection %q (Virtual Hub %q / Resource Group %q): %+v", id.Name, id.VirtualHubName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
@@ -486,4 +495,15 @@ func flattenSubResourcesToIDs(input *[]network.SubResource) []interface{} {
 	}
 
 	return ids
+}
+
+func virtualHubConnectionProvisioningStateRefreshFunc(ctx context.Context, client *network.HubVirtualNetworkConnectionsClient, id parse.HubVirtualNetworkConnectionId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
+		}
+
+		return res, string(res.ProvisioningState), nil
+	}
 }

@@ -593,7 +593,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
-				ForceNew: true,
 			},
 
 			"private_dns_zone_id": {
@@ -998,6 +997,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.ManagedClusterProperties.AutoUpgradeProfile = &containerservice.ManagedClusterAutoUpgradeProfile{
 			UpgradeChannel: containerservice.UpgradeChannel(v),
 		}
+	} else {
+		parameters.ManagedClusterProperties.AutoUpgradeProfile = &containerservice.ManagedClusterAutoUpgradeProfile{
+			UpgradeChannel: containerservice.UpgradeChannelNone,
+		}
 	}
 
 	managedClusterIdentityRaw := d.Get("identity").([]interface{})
@@ -1223,6 +1226,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if v, ok := d.GetOk("private_dns_zone_id"); ok {
 			existing.ManagedClusterProperties.APIServerAccessProfile.PrivateDNSZone = utils.String(v.(string))
 		}
+	}
+
+	if d.HasChange("private_cluster_public_fqdn_enabled") {
+		updateCluster = true
+		existing.ManagedClusterProperties.APIServerAccessProfile.EnablePrivateClusterPublicFQDN = utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool))
 	}
 
 	if d.HasChange("auto_scaler_profile") {

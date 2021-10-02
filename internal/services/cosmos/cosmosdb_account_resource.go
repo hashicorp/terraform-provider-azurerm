@@ -291,7 +291,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"mongo_server_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.ServerVersionThreeFullStopTwo),
@@ -695,6 +694,12 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
 	}
 
+	if v, ok := d.GetOk("mongo_server_version"); ok {
+		account.DatabaseAccountCreateUpdateProperties.APIProperties = &documentdb.APIProperties{
+			ServerVersion: documentdb.ServerVersion(v.(string)),
+		}
+	}
+
 	if v, ok := d.GetOk("backup"); ok {
 		policy, err := expandCosmosdbAccountBackup(v.([]interface{}))
 		if err != nil {
@@ -838,7 +843,9 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 		d.Set("network_acl_bypass_for_azure_services", props.NetworkACLBypass == documentdb.NetworkACLBypassAzureServices)
 		d.Set("network_acl_bypass_ids", utils.FlattenStringSlice(props.NetworkACLBypassResourceIds))
-		d.Set("local_authentication_disabled", props.DisableLocalAuth)
+		if v := resp.DisableLocalAuth; v != nil {
+			d.Set("local_authentication_disabled", props.DisableLocalAuth)
+		}
 
 		policy, err := flattenCosmosdbAccountBackup(props.BackupPolicy)
 		if err != nil {

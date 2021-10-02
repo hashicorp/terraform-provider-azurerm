@@ -22,7 +22,7 @@ func (r LinuxVirtualMachineScaleSetResource) Exists(ctx context.Context, clients
 
 	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Compute Linux Virtual Machine Scale Set %q", id)
+		return nil, fmt.Errorf("retrieving Compute Linux Virtual Machine Scale Set %q: %+v", id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

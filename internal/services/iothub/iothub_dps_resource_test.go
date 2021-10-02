@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -98,20 +98,16 @@ func TestAccIotHubDPS_linkedHubs(t *testing.T) {
 }
 
 func (t IotHubDPSResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.IotHubDpsID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 	resourceGroup := id.ResourceGroup
-	name := id.Path["provisioningServices"]
-	// the name path can use the ProvisioningServices in older iterations
-	if name == "" {
-		name = id.Path["ProvisioningServices"]
-	}
+	name := id.ProvisioningServiceName
 
 	resp, err := clients.IoTHub.DPSResourceClient.Get(ctx, name, resourceGroup)
 	if err != nil {
-		return nil, fmt.Errorf("reading IotHuB DPS (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

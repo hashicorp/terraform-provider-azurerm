@@ -39,8 +39,9 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_policy_definition":     dataSourceArmPolicyDefinition(),
-		"azurerm_policy_set_definition": dataSourceArmPolicySetDefinition(),
+		"azurerm_policy_definition":                               dataSourceArmPolicyDefinition(),
+		"azurerm_policy_set_definition":                           dataSourceArmPolicySetDefinition(),
+		"azurerm_policy_virtual_machine_configuration_assignment": dataSourcePolicyVirtualMachineConfigurationAssignment(),
 	}
 }
 

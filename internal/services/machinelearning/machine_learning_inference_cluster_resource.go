@@ -79,6 +79,8 @@ func resourceAksInferenceCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"identity": SystemAssignedUserAssigned{}.Schema(),
+
 			"ssl": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -165,13 +167,15 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
-	aksComputeProperties, isAks := (machinelearningservices.BasicCompute).AsAKS(expandAksComputeProperties(&aks, d))
-	if !isAks {
-		return fmt.Errorf("the Compute Properties are not recognized as AKS Compute Properties")
+
+	identity, err := SystemAssignedUserAssigned{}.Expand(d.Get("identity").([]interface{}))
+	if err != nil {
+		return err
 	}
 
 	inferenceClusterParameters := machinelearningservices.ComputeResource{
-		Properties: aksComputeProperties,
+		Properties: expandAksComputeProperties(&aks, d),
+		Identity:   identity,
 		Location:   utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -237,6 +241,12 @@ func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	if location := computeResource.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
+
+	identity, err := SystemAssignedUserAssigned{}.Flatten(computeResource.Identity)
+	if err != nil {
+		return err
+	}
+	d.Set("identity", identity)
 
 	return tags.FlattenAndSet(d, computeResource.Tags)
 }

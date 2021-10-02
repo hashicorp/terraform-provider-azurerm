@@ -68,20 +68,20 @@ func TestAccFlexibleServerConfiguration_updateApplicationName(t *testing.T) {
 	name := "application_name"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, name, "Test APP before"),
+			Config: r.basic(data, name, "true"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue(name),
-				check.That(data.ResourceName).Key("value").HasValue("Test APP before"),
+				check.That(data.ResourceName).Key("value").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, name, "Test APP after"),
+			Config: r.basic(data, name, "false"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue(name),
-				check.That(data.ResourceName).Key("value").HasValue("Test APP after"),
+				check.That(data.ResourceName).Key("value").HasValue("false"),
 			),
 		},
 	})

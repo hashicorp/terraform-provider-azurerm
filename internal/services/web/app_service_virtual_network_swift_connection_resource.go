@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	azureNetwork "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
-	subnetParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -51,6 +52,8 @@ func resourceAppServiceVirtualNetworkSwiftConnection() *pluginsdk.Resource {
 
 func resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
+	subnetClient := meta.(*clients.Client).Network.SubnetsClient
+	vnetClient := meta.(*clients.Client).Network.VnetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -59,7 +62,7 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsdk.Re
 		return fmt.Errorf("parsing App Service Resource ID %q", appID)
 	}
 
-	subnetID, err := subnetParse.SubnetID(d.Get("subnet_id").(string))
+	subnetID, err := networkParse.SubnetID(d.Get("subnet_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing Subnet Resource ID %q", subnetID)
 	}
@@ -103,6 +106,31 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsdk.Re
 	}
 	if _, err = client.CreateOrUpdateSwiftVirtualNetworkConnectionWithCheck(ctx, resourceGroup, name, connectionEnvelope); err != nil {
 		return fmt.Errorf("creating/updating App Service VNet association between %q (Resource Group %q) and Virtual Network %q: %s", name, resourceGroup, virtualNetworkName, err)
+	}
+
+	timeout, _ := ctx.Deadline()
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{string(azureNetwork.ProvisioningStateUpdating)},
+		Target:     []string{string(azureNetwork.ProvisioningStateSucceeded)},
+		Refresh:    network.SubnetProvisioningStateRefreshFunc(ctx, subnetClient, *subnetID),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    time.Until(timeout),
+	}
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for provisioning state of subnet for App Service VNet association between %q (Resource Group %q) and Virtual Network %q: %s", name, resourceGroup, virtualNetworkName, err)
+	}
+
+	vnetId := networkParse.NewVirtualNetworkID(subnetID.SubscriptionId, subnetID.ResourceGroup, subnetID.VirtualNetworkName)
+	vnetStateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{string(azureNetwork.ProvisioningStateUpdating)},
+		Target:     []string{string(azureNetwork.ProvisioningStateSucceeded)},
+		Refresh:    network.VirtualNetworkProvisioningStateRefreshFunc(ctx, vnetClient, vnetId),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    time.Until(timeout),
+	}
+	if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for provisioning state of virtual network for App Service VNet association between %q (Resource Group %q) and Virtual Network %q: %s", name, resourceGroup, virtualNetworkName, err)
 	}
 
 	read, err := client.GetSwiftVirtualNetworkConnection(ctx, resourceGroup, name)
@@ -165,7 +193,7 @@ func resourceAppServiceVirtualNetworkSwiftConnectionDelete(d *pluginsdk.Resource
 		return err
 	}
 
-	subnetID, err := subnetParse.SubnetID(d.Get("subnet_id").(string))
+	subnetID, err := networkParse.SubnetID(d.Get("subnet_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing Subnet Resource ID %q", subnetID)
 	}

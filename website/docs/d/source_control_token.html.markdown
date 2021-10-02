@@ -12,7 +12,7 @@ Use this data source to access information about an existing App Service Source 
 
 ~> **Note:** This value can only be queried for the user or service principal that is executing Terraform. It is not possible to retrieve for another user.
 
-~> **NOTE:** This is a 3.0 Beta Data Source, please see the [3.0 Beta guide](https://github.com/hashicorp/terraform-provider-azurerm/blob/f/main/website/docs/guides/3.0-beta.html.markdown) for more information on enabling and using this Data Source. 
+!> **Note:** This Data Source is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview). 
 
 
 ## Example Usage

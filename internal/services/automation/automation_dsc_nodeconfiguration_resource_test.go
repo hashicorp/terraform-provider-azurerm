@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -48,17 +48,14 @@ func TestAccAutomationDscNodeConfiguration_requiresImport(t *testing.T) {
 }
 
 func (t AutomationDscNodeConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.NodeConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	accName := id.Path["automationAccounts"]
-	name := id.Path["nodeConfigurations"]
 
-	resp, err := clients.Automation.DscNodeConfigurationClient.Get(ctx, resGroup, accName, name)
+	resp, err := clients.Automation.DscNodeConfigurationClient.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Automation Dsc Node Configuration %q (resource group: %q): %+v", name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Automation Dsc Node Configuration %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.DscNodeConfigurationProperties != nil), nil

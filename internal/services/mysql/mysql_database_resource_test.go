@@ -121,7 +121,7 @@ resource "azurerm_mysql_server" "test" {
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  version                      = "5.6"
+  version                      = "5.7"
   ssl_enforcement_enabled      = true
 }
 
@@ -175,7 +175,7 @@ resource "azurerm_mysql_server" "test" {
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  version                      = "5.6"
+  version                      = "5.7"
   ssl_enforcement_enabled      = true
 }
 
@@ -215,7 +215,7 @@ resource "azurerm_mysql_server" "test" {
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  version                      = "5.6"
+  version                      = "5.7"
   ssl_enforcement_enabled      = true
 }
 

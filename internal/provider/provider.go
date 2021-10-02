@@ -374,6 +374,6 @@ Could indicate either that the Resource Provider "Microsoft.Foo" requires regist
 but this could also indicate that this Azure Region doesn't support this API version.
 
 More information on the "skip_provider_registration" flag can be found here:
-https://www.terraform.io/docs/providers/azurerm/index.html#skip_provider_registration
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#skip_provider_registration
 
 Original Error: %s`

@@ -218,7 +218,11 @@ func resourceAppServiceManagedCertificateRead(d *pluginsdk.ResourceData, meta in
 		d.Set("subject_name", props.SubjectName)
 		d.Set("host_names", props.HostNames)
 		d.Set("issuer", props.Issuer)
-		d.Set("issue_date", props.IssueDate.Format(time.RFC3339))
+		issueDate := ""
+		if props.IssueDate != nil {
+			issueDate = props.IssueDate.Format(time.RFC3339)
+		}
+		d.Set("issue_date", issueDate)
 		expirationDate := ""
 		if props.ExpirationDate != nil {
 			expirationDate = props.ExpirationDate.Format(time.RFC3339)
