@@ -487,11 +487,11 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   export_policy_rule {
-    rule_index      = 3
-    allowed_clients = ["1.2.6.0/24"]
+    rule_index        = 3
+    allowed_clients   = ["1.2.6.0/24"]
     protocols_enabled = ["NFSv3"]
-    unix_read_only  = true
-    unix_read_write = false
+    unix_read_only    = true
+    unix_read_write   = false
   }
 
   tags = {
