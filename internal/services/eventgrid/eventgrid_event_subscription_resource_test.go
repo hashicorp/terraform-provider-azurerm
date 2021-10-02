@@ -188,7 +188,7 @@ func TestAccEventGridEventSubscription_advancedFilterMaxItems(t *testing.T) {
 	})
 }
 
-func TestAccEventGridEventSubscription_deliveryMappings(t *testing.T) {
+func TestAccEventGridEventSubscription_deliveryMappingsStatic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 	r := EventGridEventSubscriptionResource{}
 
@@ -197,6 +197,85 @@ func TestAccEventGridEventSubscription_deliveryMappings(t *testing.T) {
 			Config: r.deliveryMappings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.header_name").HasValue("test-1"),
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.value").HasValue("1"),
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.secret").HasValue("false"),
+
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.1.header_name").HasValue("test-2"),
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.1.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.1.value").HasValue("string"),
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.1.secret").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventGridEventSubscription_deliveryMappingsMixed(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+	r := EventGridEventSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deliveryMappingsWithMultipleTypes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.header_name").HasValue("test-static-1"),
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.value").HasValue("1"),
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.secret").HasValue("false"),
+
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.1.header_name").HasValue("test-secret-1"),
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.1.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.1.secret").HasValue("true"),
+
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.2.header_name").HasValue("test-dynamic-1"),
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.2.type").HasValue("Dynamic"),
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.2.source_field").HasValue("data.system"),
+			),
+			ExpectNonEmptyPlan: true, // When a delivery mapping is marked as a secret then the value for that is not returned by the Azure API
+		},
+		data.ImportStep("delivery_attribute_mapping.1.value"),
+	})
+}
+
+func TestAccEventGridEventSubscription_deliveryMappingsHybridRelay(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+	r := EventGridEventSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deliveryMappingsForHybridRelay(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.header_name").HasValue("test-static-1"),
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.value").HasValue("1"),
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.secret").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventGridEventSubscription_deliveryMappingsForEventHubs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+	r := EventGridEventSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deliveryMappingsForEventHubs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.header_name").HasValue("test-static-1"),
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.value").HasValue("1"),
+				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.secret").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -849,58 +928,192 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "acctestservicebusnamespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
 }
-
-resource "azurerm_storage_queue" "test" {
-  name                 = "mysamplequeue-%[1]d"
-  storage_account_name = azurerm_storage_account.test.name
+resource "azurerm_servicebus_topic" "test" {
+  name                = "acctestservicebustopic-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.example.name
+  enable_partitioning = true
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
   name  = "acctest-eg-%[1]d"
   scope = azurerm_resource_group.test.id
 
-  storage_queue_endpoint {
-    storage_account_id = azurerm_storage_account.test.id
-    queue_name         = azurerm_storage_queue.test.name
-  }
+  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
 
   advanced_filtering_on_arrays_enabled = true
 
-  included_event_types = ["Microsoft.Storage.BlobCreated", "Microsoft.Storage.BlobDeleted"]
-
   subject_filter {
     subject_begins_with = "test/test"
-    subject_ends_with   = ".jpg"
   }
 
-  delivery_attribute_mappings {
-    [
-      {
-        header_name = "test-1"
-        type = "Static"
-        value = "1"
-        secret = false
-      },
-      {
-        header_name = "test-2"
-        type = "Static"
-        value = "2"
-        secret = true
-      }
-    ]
+  delivery_attribute_mapping {
+    header_name = "test-1"
+    type        = "Static"
+    value       = "1"
+    secret      = false
+  }
+
+  delivery_attribute_mapping {
+    header_name = "test-2"
+    type        = "Static"
+    value       = "string"
+    secret      = false
   }
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (EventGridEventSubscriptionResource) deliveryMappingsWithMultipleTypes(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "acctestservicebusnamespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+resource "azurerm_servicebus_topic" "test" {
+  name                = "acctestservicebustopic-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.example.name
+  enable_partitioning = true
+}
+
+resource "azurerm_eventgrid_event_subscription" "test" {
+  name  = "acctest-eg-%[1]d"
+  scope = azurerm_resource_group.test.id
+
+  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+
+  advanced_filtering_on_arrays_enabled = true
+
+  subject_filter {
+    subject_begins_with = "test/test"
+  }
+
+  delivery_attribute_mapping {
+    header_name = "test-static-1"
+    type        = "Static"
+    value       = "1"
+    secret      = false
+  }
+
+  delivery_attribute_mapping {
+    header_name = "test-secret-1"
+    type        = "Static"
+    value       = "1"
+    secret      = true
+  }
+
+  delivery_attribute_mapping {
+    header_name  = "test-dynamic-1"
+    type         = "Dynamic"
+    source_field = "data.system"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (EventGridEventSubscriptionResource) deliveryMappingsForEventHubs(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctesteventhub-%[1]d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 2
+  message_retention   = 1
+}
+
+resource "azurerm_eventgrid_event_subscription" "test" {
+  name                  = "acctest-eg-%[1]d"
+  scope                 = azurerm_resource_group.test.id
+  event_delivery_schema = "CloudEventSchemaV1_0"
+
+  eventhub_endpoint_id = azurerm_eventhub.test.id
+
+  delivery_attribute_mapping {
+    header_name = "test-static-1"
+    type        = "Static"
+    value       = "1"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (EventGridEventSubscriptionResource) deliveryMappingsForHybridRelay(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_relay_namespace" "test" {
+  name                = "acctest-%[1]d-rly-eventsub-repo"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku_name = "Standard"
+}
+
+resource "azurerm_relay_hybrid_connection" "test" {
+  name                          = "acctest-%[1]d-rhc-eventsub-repo"
+  resource_group_name           = azurerm_resource_group.test.name
+  relay_namespace_name          = azurerm_relay_namespace.test.name
+  requires_client_authorization = false
+}
+
+resource "azurerm_eventgrid_topic" "test" {
+  name                = "acctest-%[1]d-evg-eventsub-repo"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_eventgrid_event_subscription" "test" {
+  name                          = "acctest-eg-%[1]d"
+  scope                         = azurerm_eventgrid_topic.test.id
+  hybrid_connection_endpoint_id = azurerm_relay_hybrid_connection.test.id
+
+  delivery_attribute_mapping {
+    header_name = "test-static-1"
+    type        = "Static"
+    value       = "1"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
