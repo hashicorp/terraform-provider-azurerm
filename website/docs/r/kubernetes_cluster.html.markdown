@@ -110,7 +110,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `local_account_disabled` - (Optional) Is local account disabled for AAD integrated kubernetes cluster?
 
--> NOTE: This requires that the Preview Feature Microsoft.ContainerService/DisableLocalAccountsPreview is enabled and the Resource Provider is re-registered, see the documentation for more information.
+-> NOTE: This requires that the Preview Feature `Microsoft.ContainerService/DisableLocalAccountsPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/managed-aad#disable-local-accounts-preview) for more information.
 
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
