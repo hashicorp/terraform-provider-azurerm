@@ -72,7 +72,7 @@ resource "azurerm_api_management_api_diagnostic" "example" {
   sampling_percentage       = 5.0
   always_log_errors         = true
   log_client_ip             = true
-  verbosity                 = "verbose"
+  verbosity                 = "Verbose"
   http_correlation_protocol = "W3C"
 
   frontend_request {
@@ -146,8 +146,6 @@ The following arguments are supported:
 * `sampling_percentage` - (Optional) Sampling (%). For high traffic APIs, please read this [documentation](https://docs.microsoft.com/azure/api-management/api-management-howto-app-insights#performance-implications-and-log-sampling) to understand performance implications and log sampling. Valid values are between `0.0` and `100.0`.
 
 * `verbosity` - (Optional) Logging verbosity. Possible values are `verbose`, `information` or `error`.
-
-* `operation_name_format` - (Optional) The format of the Operation Name for Application Insights telemetries. Possible values are `Name`, and `Url`. Defaults to `Name`.
 
 ---
 
