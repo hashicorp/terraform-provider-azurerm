@@ -152,7 +152,7 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 
 			"advanced_filtering_on_arrays_enabled": eventSubscriptionSchemaEnableAdvancedFilteringOnArrays(),
 
-			"delivery_attribute_mapping": eventSubscriptionSchemaDeliveryAttributeMappings(),
+			"delivery_property": eventSubscriptionSchemaDeliveryProperty(),
 		},
 	}
 }
@@ -303,7 +303,7 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 			}
 
 			if azureFunctionEndpoint.DeliveryAttributeMappings != nil {
-				d.Set("delivery_attribute_mapping", flattenDeliveryAttributeMappings(azureFunctionEndpoint.DeliveryAttributeMappings))
+				d.Set("delivery_property", flattenDeliveryProperties(azureFunctionEndpoint.DeliveryAttributeMappings))
 			}
 		}
 		if v, ok := destination.AsEventHubEventSubscriptionDestination(); ok {
@@ -316,7 +316,7 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 			}
 
 			if v.DeliveryAttributeMappings != nil {
-				d.Set("delivery_attribute_mapping", flattenDeliveryAttributeMappings(v.DeliveryAttributeMappings))
+				d.Set("delivery_property", flattenDeliveryProperties(v.DeliveryAttributeMappings))
 			}
 		}
 		if v, ok := destination.AsHybridConnectionEventSubscriptionDestination(); ok {
@@ -329,7 +329,7 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 			}
 
 			if v.DeliveryAttributeMappings != nil {
-				d.Set("delivery_attribute_mapping", flattenDeliveryAttributeMappings(v.DeliveryAttributeMappings))
+				d.Set("delivery_property", flattenDeliveryProperties(v.DeliveryAttributeMappings))
 			}
 		}
 		if serviceBusQueueEndpoint, ok := destination.AsServiceBusQueueEventSubscriptionDestination(); ok {
@@ -342,7 +342,7 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "service_bus_topic_endpoint_id", id.Name, id.Scope, err)
 			}
 			if serviceBusTopicEndpoint.DeliveryAttributeMappings != nil {
-				d.Set("delivery_attribute_mapping", flattenDeliveryAttributeMappings(serviceBusTopicEndpoint.DeliveryAttributeMappings))
+				d.Set("delivery_property", flattenDeliveryProperties(serviceBusTopicEndpoint.DeliveryAttributeMappings))
 			}
 		}
 		if v, ok := destination.AsStorageQueueEventSubscriptionDestination(); ok {
@@ -360,7 +360,7 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 			}
 
 			if v.DeliveryAttributeMappings != nil {
-				d.Set("delivery_attribute_mapping", flattenDeliveryAttributeMappings(v.DeliveryAttributeMappings))
+				d.Set("delivery_property", flattenDeliveryProperties(v.DeliveryAttributeMappings))
 			}
 		}
 

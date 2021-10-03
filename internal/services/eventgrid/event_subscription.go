@@ -90,7 +90,7 @@ func eventSubscriptionSchemaEventDeliverySchema() *pluginsdk.Schema {
 	}
 }
 
-func eventSubscriptionSchemaDeliveryAttributeMappings() *pluginsdk.Schema {
+func eventSubscriptionSchemaDeliveryProperty() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -899,7 +899,7 @@ func expandEventGridEventSubscriptionServiceBusQueueEndpoint(d *pluginsdk.Resour
 		ResourceID: utils.String(endpoint.(string)),
 	}
 
-	deliveryMappings := expandDeliveryAttributeMapping(d)
+	deliveryMappings := expandDeliveryProperties(d)
 	props.DeliveryAttributeMappings = &deliveryMappings
 
 	return &eventgrid.ServiceBusQueueEventSubscriptionDestination{
@@ -915,7 +915,7 @@ func expandEventGridEventSubscriptionServiceBusTopicEndpoint(d *pluginsdk.Resour
 		ResourceID: utils.String(endpoint.(string)),
 	}
 
-	deliveryMappings := expandDeliveryAttributeMapping(d)
+	deliveryMappings := expandDeliveryProperties(d)
 	props.DeliveryAttributeMappings = &deliveryMappings
 
 	return &eventgrid.ServiceBusTopicEventSubscriptionDestination{
@@ -955,7 +955,7 @@ func expandEventGridEventSubscriptionEventhubEndpoint(d *pluginsdk.ResourceData)
 		destinationProps.ResourceID = &eventHubID
 	}
 
-	deliveryMappings := expandDeliveryAttributeMapping(d)
+	deliveryMappings := expandDeliveryProperties(d)
 	destinationProps.DeliveryAttributeMappings = &deliveryMappings
 
 	return eventgrid.EventHubEventSubscriptionDestination{
@@ -980,7 +980,7 @@ func expandEventGridEventSubscriptionHybridConnectionEndpoint(d *pluginsdk.Resou
 		destinationProps.ResourceID = &hybridConnectionID
 	}
 
-	deliveryMappings := expandDeliveryAttributeMapping(d)
+	deliveryMappings := expandDeliveryProperties(d)
 	destinationProps.DeliveryAttributeMappings = &deliveryMappings
 
 	return eventgrid.HybridConnectionEventSubscriptionDestination{
@@ -1018,17 +1018,17 @@ func expandEventGridEventSubscriptionAzureFunctionEndpoint(d *pluginsdk.Resource
 		props.PreferredBatchSizeInKilobytes = utils.Int32(int32(v.(int)))
 	}
 
-	deliveryMappings := expandDeliveryAttributeMapping(d)
+	deliveryMappings := expandDeliveryProperties(d)
 	props.DeliveryAttributeMappings = &deliveryMappings
 
 	return azureFunctionDestination
 }
 
-func expandDeliveryAttributeMapping(d *pluginsdk.ResourceData) []eventgrid.BasicDeliveryAttributeMapping {
+func expandDeliveryProperties(d *pluginsdk.ResourceData) []eventgrid.BasicDeliveryAttributeMapping {
 
 	var basicDeliveryAttributeMapping []eventgrid.BasicDeliveryAttributeMapping
 
-	if deliveryMappingsConfig, ok := d.GetOk("delivery_attribute_mapping"); ok {
+	if deliveryMappingsConfig, ok := d.GetOk("delivery_property"); ok {
 		input := deliveryMappingsConfig.([]interface{})
 
 		if len(input) == 0 {
@@ -1101,7 +1101,7 @@ func expandEventGridEventSubscriptionWebhookEndpoint(d *pluginsdk.ResourceData) 
 		props.AzureActiveDirectoryApplicationIDOrURI = utils.String(v.(string))
 	}
 
-	deliveryMappings := expandDeliveryAttributeMapping(d)
+	deliveryMappings := expandDeliveryProperties(d)
 	props.DeliveryAttributeMappings = &deliveryMappings
 
 	return webhookDestination
@@ -1272,8 +1272,8 @@ func flattenEventGridEventSubscriptionEventhubEndpoint(input *eventgrid.EventHub
 	return []interface{}{result}
 }
 
-func flattenDeliveryAttributeMappings(input *[]eventgrid.BasicDeliveryAttributeMapping) []interface{} {
-	dynamicAttributes := make([]interface{}, len(*input))
+func flattenDeliveryProperties(input *[]eventgrid.BasicDeliveryAttributeMapping) []interface{} {
+	deliveryProperties := make([]interface{}, len(*input))
 
 	for i, element := range *input {
 		attributeMapping := make(map[string]interface{})
@@ -1296,10 +1296,10 @@ func flattenDeliveryAttributeMappings(input *[]eventgrid.BasicDeliveryAttributeM
 			attributeMapping["source_field"] = dynamicMapping.SourceField
 		}
 
-		dynamicAttributes[i] = attributeMapping
+		deliveryProperties[i] = attributeMapping
 	}
 
-	return dynamicAttributes
+	return deliveryProperties
 }
 
 func flattenEventGridEventSubscriptionHybridConnectionEndpoint(input *eventgrid.HybridConnectionEventSubscriptionDestination) []interface{} {

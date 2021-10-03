@@ -188,94 +188,94 @@ func TestAccEventGridEventSubscription_advancedFilterMaxItems(t *testing.T) {
 	})
 }
 
-func TestAccEventGridEventSubscription_deliveryMappingsStatic(t *testing.T) {
+func TestAccEventGridEventSubscription_deliveryPropertiesStatic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 	r := EventGridEventSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.deliveryMappings(data),
+			Config: r.deliveryProperties(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.header_name").HasValue("test-1"),
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.type").HasValue("Static"),
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.value").HasValue("1"),
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.secret").HasValue("false"),
+				check.That(data.ResourceName).Key("delivery_property.0.header_name").HasValue("test-1"),
+				check.That(data.ResourceName).Key("delivery_property.0.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.0.value").HasValue("1"),
+				check.That(data.ResourceName).Key("delivery_property.0.secret").HasValue("false"),
 
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.1.header_name").HasValue("test-2"),
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.1.type").HasValue("Static"),
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.1.value").HasValue("string"),
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.1.secret").HasValue("false"),
+				check.That(data.ResourceName).Key("delivery_property.1.header_name").HasValue("test-2"),
+				check.That(data.ResourceName).Key("delivery_property.1.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.1.value").HasValue("string"),
+				check.That(data.ResourceName).Key("delivery_property.1.secret").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccEventGridEventSubscription_deliveryMappingsMixed(t *testing.T) {
+func TestAccEventGridEventSubscription_deliveryPropertiesMixed(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 	r := EventGridEventSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.deliveryMappingsWithMultipleTypes(data),
+			Config: r.deliveryPropertiesWithMultipleTypes(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.header_name").HasValue("test-static-1"),
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.type").HasValue("Static"),
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.value").HasValue("1"),
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.secret").HasValue("false"),
+				check.That(data.ResourceName).Key("delivery_property.0.header_name").HasValue("test-static-1"),
+				check.That(data.ResourceName).Key("delivery_property.0.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.0.value").HasValue("1"),
+				check.That(data.ResourceName).Key("delivery_property.0.secret").HasValue("false"),
 
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.1.header_name").HasValue("test-secret-1"),
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.1.type").HasValue("Static"),
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.1.secret").HasValue("true"),
+				check.That(data.ResourceName).Key("delivery_property.1.header_name").HasValue("test-secret-1"),
+				check.That(data.ResourceName).Key("delivery_property.1.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.1.secret").HasValue("true"),
 
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.2.header_name").HasValue("test-dynamic-1"),
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.2.type").HasValue("Dynamic"),
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.2.source_field").HasValue("data.system"),
+				check.That(data.ResourceName).Key("delivery_property.2.header_name").HasValue("test-dynamic-1"),
+				check.That(data.ResourceName).Key("delivery_property.2.type").HasValue("Dynamic"),
+				check.That(data.ResourceName).Key("delivery_property.2.source_field").HasValue("data.system"),
 			),
 			ExpectNonEmptyPlan: true, // When a delivery mapping is marked as a secret then the value for that is not returned by the Azure API
 		},
-		data.ImportStep("delivery_attribute_mapping.1.value"),
+		data.ImportStep("delivery_property.1.value"),
 	})
 }
 
-func TestAccEventGridEventSubscription_deliveryMappingsHybridRelay(t *testing.T) {
+func TestAccEventGridEventSubscription_deliveryPropertiesHybridRelay(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 	r := EventGridEventSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.deliveryMappingsForHybridRelay(data),
+			Config: r.deliveryPropertiesForHybridRelay(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.header_name").HasValue("test-static-1"),
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.type").HasValue("Static"),
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.value").HasValue("1"),
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.secret").HasValue("false"),
+				check.That(data.ResourceName).Key("delivery_property.0.header_name").HasValue("test-static-1"),
+				check.That(data.ResourceName).Key("delivery_property.0.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.0.value").HasValue("1"),
+				check.That(data.ResourceName).Key("delivery_property.0.secret").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccEventGridEventSubscription_deliveryMappingsForEventHubs(t *testing.T) {
+func TestAccEventGridEventSubscription_deliveryPropertiesForEventHubs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 	r := EventGridEventSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.deliveryMappingsForEventHubs(data),
+			Config: r.deliveryPropertiesForEventHubs(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.header_name").HasValue("test-static-1"),
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.type").HasValue("Static"),
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.value").HasValue("1"),
-				check.That(data.ResourceName).Key("delivery_attribute_mapping.0.secret").HasValue("false"),
+				check.That(data.ResourceName).Key("delivery_property.0.header_name").HasValue("test-static-1"),
+				check.That(data.ResourceName).Key("delivery_property.0.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.0.value").HasValue("1"),
+				check.That(data.ResourceName).Key("delivery_property.0.secret").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -917,7 +917,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (EventGridEventSubscriptionResource) deliveryMappings(data acceptance.TestData) string {
+func (EventGridEventSubscriptionResource) deliveryProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -953,14 +953,14 @@ resource "azurerm_eventgrid_event_subscription" "test" {
     subject_begins_with = "test/test"
   }
 
-  delivery_attribute_mapping {
+  delivery_property {
     header_name = "test-1"
     type        = "Static"
     value       = "1"
     secret      = false
   }
 
-  delivery_attribute_mapping {
+  delivery_property {
     header_name = "test-2"
     type        = "Static"
     value       = "string"
@@ -971,7 +971,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (EventGridEventSubscriptionResource) deliveryMappingsWithMultipleTypes(data acceptance.TestData) string {
+func (EventGridEventSubscriptionResource) deliveryPropertiesWithMultipleTypes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1007,21 +1007,21 @@ resource "azurerm_eventgrid_event_subscription" "test" {
     subject_begins_with = "test/test"
   }
 
-  delivery_attribute_mapping {
+  delivery_property {
     header_name = "test-static-1"
     type        = "Static"
     value       = "1"
     secret      = false
   }
 
-  delivery_attribute_mapping {
+  delivery_property {
     header_name = "test-secret-1"
     type        = "Static"
     value       = "1"
     secret      = true
   }
 
-  delivery_attribute_mapping {
+  delivery_property {
     header_name  = "test-dynamic-1"
     type         = "Dynamic"
     source_field = "data.system"
@@ -1030,7 +1030,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (EventGridEventSubscriptionResource) deliveryMappingsForEventHubs(data acceptance.TestData) string {
+func (EventGridEventSubscriptionResource) deliveryPropertiesForEventHubs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1063,7 +1063,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 
   eventhub_endpoint_id = azurerm_eventhub.test.id
 
-  delivery_attribute_mapping {
+  delivery_property {
     header_name = "test-static-1"
     type        = "Static"
     value       = "1"
@@ -1072,7 +1072,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (EventGridEventSubscriptionResource) deliveryMappingsForHybridRelay(data acceptance.TestData) string {
+func (EventGridEventSubscriptionResource) deliveryPropertiesForHybridRelay(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1109,7 +1109,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   scope                         = azurerm_eventgrid_topic.test.id
   hybrid_connection_endpoint_id = azurerm_relay_hybrid_connection.test.id
 
-  delivery_attribute_mapping {
+  delivery_property {
     header_name = "test-static-1"
     type        = "Static"
     value       = "1"
