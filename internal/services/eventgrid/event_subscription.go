@@ -857,8 +857,8 @@ func expandEventGridExpirationTime(d *schema.ResourceData) (*date.Time, error) {
 }
 
 func expandEventGridEventSubscriptionDestination(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	if v, ok := d.GetOk("azure_function_endpoint"); ok {
-		return expandEventGridEventSubscriptionAzureFunctionEndpoint(v, d)
+	if _, ok := d.GetOk("azure_function_endpoint"); ok {
+		return expandEventGridEventSubscriptionAzureFunctionEndpoint(d)
 	}
 
 	if _, ok := d.GetOk("eventhub_endpoint_id"); ok {
@@ -885,8 +885,8 @@ func expandEventGridEventSubscriptionDestination(d *pluginsdk.ResourceData) even
 		return expandEventGridEventSubscriptionStorageQueueEndpoint(d)
 	}
 
-	if v, ok := d.GetOk("webhook_endpoint"); ok {
-		return expandEventGridEventSubscriptionWebhookEndpoint(v, d)
+	if _, ok := d.GetOk("webhook_endpoint"); ok {
+		return expandEventGridEventSubscriptionWebhookEndpoint(d)
 	}
 
 	return nil
@@ -989,7 +989,9 @@ func expandEventGridEventSubscriptionHybridConnectionEndpoint(d *pluginsdk.Resou
 	}
 }
 
-func expandEventGridEventSubscriptionAzureFunctionEndpoint(input interface{}, d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
+func expandEventGridEventSubscriptionAzureFunctionEndpoint(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
+
+	input := d.Get("azure_function_endpoint")
 	configs := input.([]interface{})
 
 	props := eventgrid.AzureFunctionEventSubscriptionDestinationProperties{}
@@ -1062,7 +1064,9 @@ func expandDeliveryAttributeMapping(d *pluginsdk.ResourceData) []eventgrid.Basic
 	return basicDeliveryAttributeMapping
 }
 
-func expandEventGridEventSubscriptionWebhookEndpoint(input interface{}, d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
+func expandEventGridEventSubscriptionWebhookEndpoint(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
+
+	input := d.Get("webhook_endpoint")
 	configs := input.([]interface{})
 
 	props := eventgrid.WebHookEventSubscriptionDestinationProperties{}
