@@ -37,7 +37,7 @@ resource "azurerm_databricks_workspace_customer_managed_key" "example" {
   depends_on = [azurerm_key_vault_access_policy.databricks]
 
   workspace_id     = azurerm_databricks_workspace.example.id
-  key_vault_key_id = azurerm_key_vault.example.id
+  key_vault_key_id = azurerm_key_vault_key.example.id
 }
 
 resource "azurerm_key_vault" "example" {
@@ -51,7 +51,7 @@ resource "azurerm_key_vault" "example" {
 }
 
 resource "azurerm_key_vault_key" "example" {
-  depends_on = [azurerm_key_vault_access_policy.example]
+  depends_on = [azurerm_key_vault_access_policy.terraform]
 
   name         = "example-certificate"
   key_vault_id = azurerm_key_vault.example.id
@@ -68,7 +68,7 @@ resource "azurerm_key_vault_key" "example" {
   ]
 }
 
-resource "azurerm_key_vault_access_policy" "example" {
+resource "azurerm_key_vault_access_policy" "terraform" {
   key_vault_id = azurerm_key_vault.example.id
   tenant_id    = azurerm_key_vault.example.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
@@ -87,6 +87,7 @@ resource "azurerm_key_vault_access_policy" "example" {
     "restore",
     "recover",
     "update",
+    "purge",
   ]
 }
 
@@ -104,6 +105,12 @@ resource "azurerm_key_vault_access_policy" "databricks" {
   ]
 }
 ```
+## Example HCL Configurations
+
+* [Databricks Workspace with Databricks File System Customer Managed Keys](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/customer-managed-key/dbfs)
+* [Databricks Workspace with Customer Managed Keys for Managed Services](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/customer-managed-key/managed-services)
+* [Databricks Workspace with Private Endpoint, Customer Managed Keys for Managed Services and Databricks File System Customer Managed Keys](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/databricks/managed-services)
+
 
 ## Argument Reference
 

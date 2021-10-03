@@ -137,15 +137,26 @@ A `rule` (application rule) block supports the following:
 
 * `name` - (Required) The name which should be used for this rule.
 
-* `protocols` - (Required) One or more `protocols` blocks as defined below.
+* `description` - (Optional) The description which should be used for this rule.
+
+* `protocols` - (Optional) One or more `protocols` blocks as defined below. Not required when specifying `destination_fqdn_tags`, but required when specifying `destination_fqdns`.
 
 * `source_addresses` - (Optional) Specifies a list of source IP addresses (including CIDR and `*`).
 
 * `source_ip_groups` - (Optional) Specifies a list of source IP groups.
 
-* `destination_fqdns` - (Optional) Specifies a list of destination FQDNs.
+* `destination_addresses` - (Optional) Specifies a list of destination IP addresses (including CIDR and `*`).
+
+* `destination_urls` - (Optional) Specifies a list of destination URLs for which policy should hold. Needs Premium SKU for Firewall Policy. Conflicts with `destination_fqdns`.
+
+* `destination_fqdns` - (Optional) Specifies a list of destination FQDNs. Conflicts with `destination_urls`.
 
 * `destination_fqdn_tags` - (Optional) Specifies a list of destination FQDN tags.
+
+* `terminate_tls` - (Optional) Boolean specifying if TLS shall be terminated (true) or not (false). Needs Premium SKU for Firewall Policy.
+
+* `web_categories` - (Optional) Specifies a list of web categories to which access is denied or allowed depending on the value of `action` above. Needs Premium SKU for Firewall Policy.
+
 
 ---
 

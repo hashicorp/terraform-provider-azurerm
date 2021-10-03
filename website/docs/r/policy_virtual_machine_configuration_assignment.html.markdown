@@ -3,12 +3,14 @@ subcategory: "Policy"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_policy_virtual_machine_configuration_assignment"
 description: |-
-  Applies a Configuration Policy to a Virtual Machine.
+  Applies a Guest Configuration Policy to a Virtual Machine.
 ---
 
 # azurerm_policy_virtual_machine_configuration_assignment
 
-Applies a Configuration Policy to a Virtual Machine.
+Applies a Guest Configuration Policy to a Virtual Machine.
+
+~> **NOTE:** You can create Guest Configuration Policies without defining a `azurerm_virtual_machine_extension` resource, however the policies will not be executed until a `azurerm_virtual_machine_extension` has been provisioned to the virtual machine.
 
 ## Example Usage
 
@@ -85,9 +87,11 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "example" {
   name               = "AzureWindowsBaseline"
   location           = azurerm_windows_virtual_machine.example.location
   virtual_machine_id = azurerm_windows_virtual_machine.example.id
+
   configuration {
-    name    = "AzureWindowsBaseline"
-    version = "1.*"
+    assignment_type = "ApplyAndMonitor"
+    version         = "1.*"
+
     parameter {
       name  = "Minimum Password Length;ExpectedValue"
       value = "16"
@@ -116,21 +120,28 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Policy Virtual Machine Configuration Assignment. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Guest Configuration that will be assigned in this Guest Configuration Assignment. Changing this forces a new resource to be created.
 
 * `location` - (Required) The Azure location where the Policy Virtual Machine Configuration Assignment should exist. Changing this forces a new resource to be created.
 
 * `virtual_machine_id` - (Required) The resource ID of the Policy Virtual Machine which this Guest Configuration Assignment should apply to. Changing this forces a new resource to be created.
 
----
-
 * `configuration` - (Required)  A `configuration` block as defined below.
 
 ---
 
-An `configuration` block supports the following:
+A `configuration` block supports the following:
 
-* `name` - (Required) The name of the Guest Configuration that will be assigned in this Guest Configuration Assignment.
+[comment]: # (TODO: Remove in 3.0)
+* `name` - (Deprecated) This field is no longer used and will be removed in the next major version of the Azure Provider.
+
+* `assignment_type` - (Optional) The assignment type for the Guest Configuration Assignment. Possible values are `Audit`, `ApplyAndAutoCorrect`, `ApplyAndMonitor` and `DeployAndAutoCorrect`.
+
+* `content_hash` - (Optional) The content hash for the Guest Configuration package.
+
+* `content_uri` - (Optional) The content URI where the Guest Configuration package is stored.
+
+~> **NOTE:** When deploying a Custom Guest Configuration package the `content_hash` and `content_uri` fields must be defined. For Built-in Guest Configuration packages, such as the `AzureWindowsBaseline` package, the `content_hash` and `content_uri` should not be defined, rather these fields will be returned after the Built-in Guest Configuration package has been provisioned. For more information on guest configuration assignments please see the [product documentation](https://docs.microsoft.com/azure/governance/policy/concepts/guest-configuration-assignments).
 
 * `parameter` - (Optional) One or more `parameter` blocks which define what configuration parameters and values against.
 
@@ -138,7 +149,7 @@ An `configuration` block supports the following:
 
 ---
 
-An `parameter` block supports the following:
+A `parameter` block supports the following:
 
 * `name` - (Required) The name of the configuration parameter to check.
 
@@ -149,6 +160,7 @@ An `parameter` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Policy Virtual Machine Configuration Assignment.
+
 
 ## Timeouts
 

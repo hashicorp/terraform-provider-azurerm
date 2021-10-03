@@ -63,7 +63,7 @@ resource "azurerm_storage_account" "example" {
   }
 }
 
-# Due to https://github.com/terraform-providers/terraform-provider-azurerm/issues/2977 and the fact
+# Due to https://github.com/hashicorp/terraform-provider-azurerm/issues/2977 and the fact
 # that the NFSv3 enabled storage account can't allow public network access - otherwise the NFSv3 protocol will fail,
 # we have to use the ARM template to deploy the storage container as a workaround.
 # Once the issue above got resolved, we can instead use the azurerm_storage_container resource.

@@ -115,7 +115,7 @@ resource "azurerm_resource_group" "example" {
 }
 ```
 
-We intend to support the `timeouts` block in version 2.0 of the Azure Provider - which will allow timeouts to be specified on resources (as shown above). [This feature request is being tracked here](https://github.com/terraform-providers/terraform-provider-azurerm/issues/171) and will form part of the 2.0 release of the AzureRM Provider.
+We intend to support the `timeouts` block in version 2.0 of the Azure Provider - which will allow timeouts to be specified on resources (as shown above). [This feature request is being tracked here](https://github.com/hashicorp/terraform-provider-azurerm/issues/171) and will form part of the 2.0 release of the AzureRM Provider.
 
 ## New Resources for Virtual Machines and Virtual Machine Scale Sets
 
@@ -699,4 +699,4 @@ The deprecated `security_provider_name` field will be removed, since this option
 
 We've spent the past few months laying the groundwork for these changes - and whilst we appreciate that your Terraform Configurations may require code changes to upgrade to 2.0 - we take Semantic Versioning seriously and so try our best to limit these changes to major versions.
 
-You can follow along with the work in the 2.0 release [in this GitHub Milestone](https://github.com/terraform-providers/terraform-provider-azurerm/milestone/31) - and [in this GitHub Issue](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2807).
+You can follow along with the work in the 2.0 release [in this GitHub Milestone](https://github.com/hashicorp/terraform-provider-azurerm/milestone/31) - and [in this GitHub Issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/2807).

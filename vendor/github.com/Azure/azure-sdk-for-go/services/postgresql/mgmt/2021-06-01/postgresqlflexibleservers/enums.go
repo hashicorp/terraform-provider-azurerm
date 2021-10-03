@@ -78,6 +78,25 @@ func PossibleCreateModeForUpdateValues() []CreateModeForUpdate {
 	return []CreateModeForUpdate{CreateModeForUpdateDefault, CreateModeForUpdateUpdate}
 }
 
+// FailoverMode enumerates the values for failover mode.
+type FailoverMode string
+
+const (
+	// FailoverModeForcedFailover ...
+	FailoverModeForcedFailover FailoverMode = "ForcedFailover"
+	// FailoverModeForcedSwitchover ...
+	FailoverModeForcedSwitchover FailoverMode = "ForcedSwitchover"
+	// FailoverModePlannedFailover ...
+	FailoverModePlannedFailover FailoverMode = "PlannedFailover"
+	// FailoverModePlannedSwitchover ...
+	FailoverModePlannedSwitchover FailoverMode = "PlannedSwitchover"
+)
+
+// PossibleFailoverModeValues returns an array of possible values for the FailoverMode const type.
+func PossibleFailoverModeValues() []FailoverMode {
+	return []FailoverMode{FailoverModeForcedFailover, FailoverModeForcedSwitchover, FailoverModePlannedFailover, FailoverModePlannedSwitchover}
+}
+
 // GeoRedundantBackupEnum enumerates the values for geo redundant backup enum.
 type GeoRedundantBackupEnum string
 
@@ -123,19 +142,6 @@ const (
 // PossibleOperationOriginValues returns an array of possible values for the OperationOrigin const type.
 func PossibleOperationOriginValues() []OperationOrigin {
 	return []OperationOrigin{OperationOriginNotSpecified, OperationOriginSystem, OperationOriginUser}
-}
-
-// ResourceIdentityType enumerates the values for resource identity type.
-type ResourceIdentityType string
-
-const (
-	// ResourceIdentityTypeSystemAssigned ...
-	ResourceIdentityTypeSystemAssigned ResourceIdentityType = "SystemAssigned"
-)
-
-// PossibleResourceIdentityTypeValues returns an array of possible values for the ResourceIdentityType const type.
-func PossibleResourceIdentityTypeValues() []ResourceIdentityType {
-	return []ResourceIdentityType{ResourceIdentityTypeSystemAssigned}
 }
 
 // ServerHAState enumerates the values for server ha state.

@@ -61,17 +61,18 @@ resource "azurerm_netapp_volume" "example" {
     prevent_destroy = true
   }
 
-  name                = "example-netappvolume"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  account_name        = azurerm_netapp_account.example.name
-  pool_name           = azurerm_netapp_pool.example.name
-  volume_path         = "my-unique-file-path"
-  service_level       = "Premium"
-  subnet_id           = azurerm_subnet.example.id
-  protocols           = ["NFSv4.1"]
-  security_style      = "Unix"
-  storage_quota_in_gb = 100
+  name                       = "example-netappvolume"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  account_name               = azurerm_netapp_account.example.name
+  pool_name                  = azurerm_netapp_pool.example.name
+  volume_path                = "my-unique-file-path"
+  service_level              = "Premium"
+  subnet_id                  = azurerm_subnet.example.id
+  protocols                  = ["NFSv4.1"]
+  security_style             = "Unix"
+  storage_quota_in_gb        = 100
+  snapshot_directory_visible = false
 
   # When creating volume from a snapshot
   create_from_snapshot_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1/capacityPools/pool1/volumes/volume1/snapshots/snapshot1"
@@ -113,6 +114,8 @@ The following arguments are supported:
 
 * `storage_quota_in_gb` - (Required) The maximum Storage Quota allowed for a file system in Gigabytes.
 
+* `snapshot_directory_visible` - (Optional) Specifies whether the .snapshot (NFS clients) or ~snapshot (SMB clients) path of a volume is visible, default value is true.
+
 * `create_from_snapshot_resource_id` - (Optional) Creates volume from snapshot. Following properties must be the same as the original volume where the snapshot was taken from: `protocols`, `subnet_id`, `location`, `service_level`, `resource_group_name`, `account_name` and `pool_name`.
 
 * `data_protection_replication` - (Optional) A `data_protection_replication` block as defined below.
@@ -121,7 +124,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-An example on how to create a dual protocol volume can be found at [`./examples/netapp/volume_dual_protocol` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/netapp/volume_dual_protocol)
+An example on how to create a dual protocol volume can be found at [`./examples/netapp/volume_dual_protocol` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/netapp/volume_dual_protocol)
 
 -> **Note**: It is highly recommended to use the **lifecycle** property as noted in the example since it will prevent an accidental deletion of the volume if the `protocols` argument changes to a different protocol type.
 
@@ -159,7 +162,7 @@ A `data_protection_replication` block is used when enabling the Cross-Region Rep
   
 * `replication_frequency` - (Required) Replication frequency, supported values are '10minutes', 'hourly', 'daily', values are case sensitive.
 
-A full example of the `data_protection_replication` attribute can be found in [the `./examples/netapp/volume_crr` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/netapp/volume_crr)
+A full example of the `data_protection_replication` attribute can be found in [the `./examples/netapp/volume_crr` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/netapp/volume_crr)
 
 -> **NOTE:** `data_protection_replication` Is currently in Preview on an opt-in basis. To use it, please refer to [Cross-region replication of Azure NetApp Files volumes](https://docs.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-introduction).
 

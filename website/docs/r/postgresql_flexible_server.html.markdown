@@ -79,7 +79,9 @@ resource "azurerm_postgresql_flexible_server" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this PostgreSQL Flexible Server. Changing this forces a new PostgreSQL Flexible Server to be created.
+* `name` - (Required) The name which should be used for this PostgreSQL Flexible Server. Changing this forces a new PostgreSQL Flexible Server to be created. 
+
+~> **Note** This must be unique across the entire Azure service, not just within the resource group.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the PostgreSQL Flexible Server should exist. Changing this forces a new PostgreSQL Flexible Server to be created.
 
@@ -100,6 +102,8 @@ The following arguments are supported:
 * `private_dns_zone_id` - (Optional) The ID of the private dns zone to create the PostgreSQL Flexible Server. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 ~> **NOTE:** There will be a breaking change from upstream service at 15th July 2021, the `private_dns_zone_id` will be required when setting a `delegated_subnet_id`. For existing flexible servers who don't want to be recreated, you need to provide the `private_dns_zone_id` to the service team to manually migrate to the specified private dns zone. The `azurerm_private_dns_zone` should end with suffix `.postgres.database.azure.com`.
+
+* `high_availability` - (Optional) A `high_availability` block as defined below.
 
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
@@ -124,6 +128,14 @@ A `maintenance_window` block supports the following:
 * `start_hour` - (Optional) The day of week for maintenance window. Defaults to `0`.
 
 * `start_minute` - (Optional) The start minute for maintenance window. Defaults to `0`.
+
+---
+
+A `high_availability` block supports the following:
+
+* `mode` - (Required) The high availability mode for the PostgreSQL Flexible Server. The only possible value is `ZoneRedundant`.
+
+* `standby_availability_zone` - (Optional) The availability zone of the standby Flexible Server. Possible values are `1`, `2` and `3`.
 
 ## Attributes Reference
 

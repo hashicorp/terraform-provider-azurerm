@@ -37,7 +37,8 @@ resource "azurerm_application_insights_smart_detection_rule" "example" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Application Insights Smart Detection Rule. Valid values include `Slow page load time`, `Slow server response time`, 
-`Long dependency duration`.  Changing this forces a new resource to be created.
+`Long dependency duration`, `Degradation in server response time`, `Degradation in dependency duration`, `Degradation in trace severity ratio`, `Abnormal rise in exception volume`,
+ `Potential memory leak detected`, `Potential security issue detected`, `Abnormal rise in daily data volume`.  Changing this forces a new resource to be created.
 
 * `application_insights_id` - (Required) The ID of the Application Insights component on which the Smart Detection Rule operates. Changing this forces a new resource to be created.
 
@@ -63,3 +64,11 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `update` - (Defaults to 30 minutes) Used when updating the Application Insights Smart Detection Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Insights Smart Detection Rule.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Application Insights Smart Detection Rule.
+
+## Import
+
+Application Insights Smart Detection Rules can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_application_insights_smart_detection_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.insights/components/mycomponent1/SmartDetectionRule/myrule1
+```

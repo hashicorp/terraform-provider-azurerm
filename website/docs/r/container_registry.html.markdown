@@ -23,12 +23,22 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                     = "containerRegistry1"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = azurerm_resource_group.rg.location
-  sku                      = "Premium"
-  admin_enabled            = false
-  georeplication_locations = ["East US", "West Europe"]
+  name                = "containerRegistry1"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  sku                 = "Premium"
+  admin_enabled       = false
+  georeplications = [
+    {
+      location                = "East US"
+      zone_redundancy_enabled = true
+      tags                    = {}
+    },
+    {
+      location                = "westeurope"
+      zone_redundancy_enabled = true
+      tags                    = {}
+  }]
 }
 ```
 
@@ -215,6 +225,20 @@ The following attributes are exported:
 * `admin_username` - The Username associated with the Container Registry Admin account - if the admin account is enabled.
 
 * `admin_password` - The Password associated with the Container Registry Admin account - if the admin account is enabled.
+
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Container Registry.
+
+---
+
+A `identity` block exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Container Registry.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Container Registry.
+
+-> You can access the Principal ID via `azurerm_container_registry.example.identity.0.principal_id` and the Tenant ID via `azurerm_container_registry.example.identity.0.tenant_id`
+
+---
 
 ## Timeouts
 
