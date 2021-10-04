@@ -43,10 +43,11 @@ func TestAccDataSourcePublicIPs_assigned(t *testing.T) {
 		{
 			Config: r.attachedDataSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				acceptance.TestCheckResourceAttr(attachedDataSourceName, "public_ips.#", "3"),
+				acceptance.TestCheckResourceAttr(attachedDataSourceName, "public_ips.#", "4"),
 				acceptance.TestCheckResourceAttr(attachedDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpip%s-0", data.RandomString)),
+				acceptance.TestCheckResourceAttr(attachedDataSourceName, "public_ips.3.name", fmt.Sprintf("acctestpip%s-3", data.RandomString)),
 				acceptance.TestCheckResourceAttr(unattachedDataSourceName, "public_ips.#", "4"),
-				acceptance.TestCheckResourceAttr(unattachedDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpip%s-3", data.RandomString)),
+				acceptance.TestCheckResourceAttr(unattachedDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpip%s-4", data.RandomString)),
 			),
 		},
 	})
@@ -87,12 +88,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  count                   = 7
+  count                   = 8
   name                    = "acctestpip%s-${count.index}"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Static"
   idle_timeout_in_minutes = 30
+  sku                     = "Standard"
 
   tags = {
     environment = "test"
@@ -104,12 +106,27 @@ resource "azurerm_lb" "test" {
   name                = "acctestlb-${count.index}"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name                 = "frontend"
     public_ip_address_id = element(azurerm_public_ip.test.*.id, count.index)
   }
 }
+
+resource "azurerm_nat_gateway" "test" {
+  name                    = "nat-Gateway"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  sku_name                = "Standard"
+  idle_timeout_in_minutes = 10
+}
+
+resource "azurerm_nat_gateway_public_ip_association" "test" {
+  nat_gateway_id       = azurerm_nat_gateway.test.id
+  public_ip_address_id = element(azurerm_public_ip.test.*.id, 3)
+}
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 

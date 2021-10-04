@@ -91,7 +91,7 @@ func dataSourcePublicIPsRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	filteredIPAddresses := make([]network.PublicIPAddress, 0)
 	for _, element := range resp.Values() {
-		nicIsAttached := element.IPConfiguration != nil
+		nicIsAttached := element.IPConfiguration != nil || element.NatGateway != nil
 
 		if prefix := d.Get("name_prefix").(string); prefix != "" {
 			if !strings.HasPrefix(*element.Name, prefix) {
