@@ -1,31 +1,31 @@
 variable "ase_resource_group_name" {
-  type    = string
+  type = string
 }
 
 variable "use_existing_vnet_and_subnet" {
   type    = bool
-  default = false 
+  default = false
 }
 
 variable "vnet_resource_group_name" {
-  type    = string
+  type = string
 }
 
 variable "virtual_network_name" {
-  type    = string
+  type = string
 }
 
 variable "location" {
-  type    = string
+  type = string
 }
 
 variable "vnet_address_prefixes" {
   type    = list(string)
-  default = ["172.16.0.0/16"] 
+  default = ["172.16.0.0/16"]
 }
 
 variable "subnet_name" {
-  type    = string
+  type = string
 }
 
 variable "subnet_address_prefixes" {
@@ -34,11 +34,11 @@ variable "subnet_address_prefixes" {
 }
 
 variable "ase_name" {
-  type    = string
+  type = string
 }
 
 variable "dedicated_host_count" {
-  type    = number 
+  type    = number
   default = 0
 }
 
@@ -58,7 +58,7 @@ variable "internal_load_balancing_mode" {
 }
 
 variable "network_security_group_name" {
-  type    = string
+  type = string
 }
 
 variable "network_security_group_security_rules" {
