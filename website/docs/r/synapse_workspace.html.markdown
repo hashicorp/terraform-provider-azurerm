@@ -85,13 +85,13 @@ The following arguments are supported:
 
 * `managed_resource_group_name` - (Optional) Workspace managed resource group.
 
-* `aad_admin` - (Optional) An `aad_admin` block as defined below.
+* `aad_admin` - (Optional) An `aad_admin` block as defined below. Conflicts with `customer_managed_key`.
 
 * `azure_devops_repo` - (Optional) An `azure_devops_repo` block as defined below.
 
 * `github_repo` - (Optional) A `github_repo` block as defined below.
 
-* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below. Conflicts with `aad_admin`.
 
 * `sql_aad_admin` - (Optional) An `sql_aad_admin` block as defined below.
 
