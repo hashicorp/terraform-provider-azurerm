@@ -118,10 +118,10 @@ func dataSourcePublicIPsRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 
 		attachmentStatus, attachmentStatusOk := d.GetOk("attachment_status")
-		if attachmentStatus.(string) == "Attached" && !nicIsAttached {
+		if attachmentStatusOk && attachmentStatus.(string) == "Attached" && !nicIsAttached {
 			continue
 		}
-		if attachmentStatus.(string) == "Unattached" && nicIsAttached {
+		if attachmentStatusOk && attachmentStatus.(string) == "Unattached" && nicIsAttached {
 			continue
 		}
 
