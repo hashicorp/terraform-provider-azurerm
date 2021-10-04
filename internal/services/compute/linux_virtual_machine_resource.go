@@ -156,7 +156,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"eviction_policy": {
-				// only applicable when `priority` is set to `VirtualMachinePriorityTypesSpot`
+				// only applicable when `priority` is set to `Spot`
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
@@ -654,7 +654,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 	// Resources created with azurerm_virtual_machine have priority set to ""
-	// We need to treat "" as equal to "VirtualMachinePriorityTypesRegular" to allow migration azurerm_virtual_machine -> azurerm_linux_virtual_machine
+	// We need to treat "" as equal to "Regular" to allow migration azurerm_virtual_machine -> azurerm_linux_virtual_machine
 	priority := string(compute.VirtualMachinePriorityTypesRegular)
 	if props.Priority != "" {
 		priority = string(props.Priority)
