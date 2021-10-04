@@ -353,7 +353,18 @@ func testAccKubernetesCluster_addonProfileOpenServiceMesh(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.addonProfileOpenServiceMeshConfig(data),
+			// Enable OSM
+			Config: r.addonProfileOpenServiceMeshConfig(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.open_service_mesh.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.open_service_mesh.0.enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Disable OSM
+			Config: r.addonProfileOpenServiceMeshConfig(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.open_service_mesh.#").HasValue("1"),
@@ -1119,7 +1130,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesClusterResource) addonProfileOpenServiceMeshConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) addonProfileOpenServiceMeshConfig(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1152,7 +1163,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   addon_profile {
     open_service_mesh {
-      enabled = false
+      enabled = %t
     }
   }
 
@@ -1160,5 +1171,5 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
 }

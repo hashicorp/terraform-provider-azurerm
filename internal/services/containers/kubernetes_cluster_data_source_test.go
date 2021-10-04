@@ -571,7 +571,7 @@ func testAccDataSourceKubernetesCluster_addOnProfileOpenServiceMesh(t *testing.T
 			Config: r.addOnProfileOpenServiceMeshConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("addon_profile.0.open_service_mesh.#").HasValue("1"),
-				check.That(data.ResourceName).Key("addon_profile.0.open_service_mesh.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("addon_profile.0.open_service_mesh.0.enabled").HasValue("true"),
 			),
 		},
 	})
@@ -893,7 +893,7 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = azurerm_kubernetes_cluster.test.name
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
-`, KubernetesClusterResource{}.addonProfileOpenServiceMeshConfig(data))
+`, KubernetesClusterResource{}.addonProfileOpenServiceMeshConfig(data, true))
 }
 
 func (KubernetesClusterDataSource) autoScalingNoAvailabilityZonesConfig(data acceptance.TestData) string {
