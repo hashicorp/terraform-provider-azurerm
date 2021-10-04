@@ -149,7 +149,7 @@ resource "azurerm_subnet" "snet" {
       name    = "Microsoft.Web/hostingEnvironments"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
-  }  
+  }
 }
 
 resource "azurerm_subnet" "snet-delegation" {
