@@ -204,3 +204,20 @@ func accountSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 		},
 	}
 }
+
+type AccountV2ToV3 struct{}
+
+func (AccountV2ToV3) Schema() map[string]*pluginsdk.Schema {
+	return accountSchemaForV0AndV1()
+}
+
+func (AccountV2ToV3) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+		x, ok := rawState["allow_blob_public_access"]
+		if ok {
+			rawState["allow_nested_items_to_be_public"] = x
+			delete(rawState, "allow_blob_public_access")
+		}
+		return rawState, nil
+	}
+}

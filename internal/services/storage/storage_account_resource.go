@@ -39,17 +39,25 @@ var storageAccountResourceName = "azurerm_storage_account"
 var allowPublicNestedItemsName = getDefaultAllowBlobPublicAccessName()
 
 func resourceStorageAccount() *pluginsdk.Resource {
+	upgraders := map[int]pluginsdk.StateUpgrade{
+		0: migration.AccountV0ToV1{},
+		1: migration.AccountV1ToV2{},
+	}
+	schemaVersion := 2
+
+	if features.ThreePointOhBetaResources() {
+		upgraders[2] = migration.AccountV2ToV3{}
+		schemaVersion = 3
+	}
+
 	return &pluginsdk.Resource{
 		Create: resourceStorageAccountCreate,
 		Read:   resourceStorageAccountRead,
 		Update: resourceStorageAccountUpdate,
 		Delete: resourceStorageAccountDelete,
 
-		SchemaVersion: 2,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.AccountV0ToV1{},
-			1: migration.AccountV1ToV2{},
-		}),
+		SchemaVersion:  schemaVersion,
+		StateUpgraders: pluginsdk.StateUpgrades(upgraders),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.StorageAccountID(id)
@@ -2999,11 +3007,11 @@ func setEndpointAndHost(d *pluginsdk.ResourceData, ordinalString string, endpoin
 func getDefaultAllowBlobPublicAccess() bool {
 	// The default value for the field that controls if the blobs that belong to a storage account
 	// can allow anonymous access or not will change from false to true in 3.0.
-	return features.ThreePointOh()
+	return features.ThreePointOhBetaResources()
 }
 
 func getDefaultAllowBlobPublicAccessName() string {
-	if features.ThreePointOh() {
+	if features.ThreePointOhBetaResources() {
 		return "allow_nested_items_to_be_public"
 	}
 	return "allow_blob_public_access"
