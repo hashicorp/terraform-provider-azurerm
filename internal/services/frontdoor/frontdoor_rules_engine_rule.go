@@ -148,7 +148,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 									"negate_condition": {
 										Type:     pluginsdk.TypeBool,
 										Optional: true,
-										Default:  true,
+										Default:  false,
 									},
 
 									"value": {

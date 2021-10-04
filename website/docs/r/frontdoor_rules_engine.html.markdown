@@ -124,6 +124,6 @@ The `match_condition` block supports the following:
 
 * `transform` can be set to one or more values out of `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` and `UrlEncode`
 
-* `negate_condition` can be set to `true` or `false` to negate the given condition.
+* `negate_condition` can be set to `true` or `false` to negate the given condition. (Defaults to `false`)
 
 * `value` (array) can contain one or more strings.
