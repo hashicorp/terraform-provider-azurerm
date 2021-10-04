@@ -56,7 +56,7 @@ func (client PartnerNamespacesClient) CreateOrUpdate(ctx context.Context, resour
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -91,6 +91,7 @@ func (client PartnerNamespacesClient) CreateOrUpdatePreparer(ctx context.Context
 // http.Response Body if it receives an error.
 func (client PartnerNamespacesClient) CreateOrUpdateSender(req *http.Request) (future PartnerNamespacesCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -137,7 +138,7 @@ func (client PartnerNamespacesClient) Delete(ctx context.Context, resourceGroupN
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -169,6 +170,7 @@ func (client PartnerNamespacesClient) DeletePreparer(ctx context.Context, resour
 // http.Response Body if it receives an error.
 func (client PartnerNamespacesClient) DeleteSender(req *http.Request) (future PartnerNamespacesDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -710,7 +712,7 @@ func (client PartnerNamespacesClient) Update(ctx context.Context, resourceGroupN
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -744,6 +746,7 @@ func (client PartnerNamespacesClient) UpdatePreparer(ctx context.Context, resour
 // http.Response Body if it receives an error.
 func (client PartnerNamespacesClient) UpdateSender(req *http.Request) (future PartnerNamespacesUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

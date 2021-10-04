@@ -53,7 +53,7 @@ func (client LabsClient) ClaimAnyVM(ctx context.Context, resourceGroupName strin
 
 	result, err = client.ClaimAnyVMSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ClaimAnyVM", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ClaimAnyVM", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -85,6 +85,7 @@ func (client LabsClient) ClaimAnyVMPreparer(ctx context.Context, resourceGroupNa
 // http.Response Body if it receives an error.
 func (client LabsClient) ClaimAnyVMSender(req *http.Request) (future LabsClaimAnyVMFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -131,7 +132,7 @@ func (client LabsClient) CreateEnvironment(ctx context.Context, resourceGroupNam
 
 	result, err = client.CreateEnvironmentSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "CreateEnvironment", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "CreateEnvironment", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -165,6 +166,7 @@ func (client LabsClient) CreateEnvironmentPreparer(ctx context.Context, resource
 // http.Response Body if it receives an error.
 func (client LabsClient) CreateEnvironmentSender(req *http.Request) (future LabsCreateEnvironmentFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -211,7 +213,7 @@ func (client LabsClient) CreateOrUpdate(ctx context.Context, resourceGroupName s
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -245,6 +247,7 @@ func (client LabsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client LabsClient) CreateOrUpdateSender(req *http.Request) (future LabsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -291,7 +294,7 @@ func (client LabsClient) Delete(ctx context.Context, resourceGroupName string, n
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -323,6 +326,7 @@ func (client LabsClient) DeletePreparer(ctx context.Context, resourceGroupName s
 // http.Response Body if it receives an error.
 func (client LabsClient) DeleteSender(req *http.Request) (future LabsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -370,7 +374,7 @@ func (client LabsClient) ExportResourceUsage(ctx context.Context, resourceGroupN
 
 	result, err = client.ExportResourceUsageSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ExportResourceUsage", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ExportResourceUsage", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -404,6 +408,7 @@ func (client LabsClient) ExportResourceUsagePreparer(ctx context.Context, resour
 // http.Response Body if it receives an error.
 func (client LabsClient) ExportResourceUsageSender(req *http.Request) (future LabsExportResourceUsageFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -610,7 +615,7 @@ func (client LabsClient) ImportVirtualMachine(ctx context.Context, resourceGroup
 
 	result, err = client.ImportVirtualMachineSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ImportVirtualMachine", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ImportVirtualMachine", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -644,6 +649,7 @@ func (client LabsClient) ImportVirtualMachinePreparer(ctx context.Context, resou
 // http.Response Body if it receives an error.
 func (client LabsClient) ImportVirtualMachineSender(req *http.Request) (future LabsImportVirtualMachineFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

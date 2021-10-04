@@ -272,7 +272,7 @@ func (client CertificateClient) Delete(ctx context.Context, resourceGroupName st
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "batch.CertificateClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "batch.CertificateClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -305,6 +305,7 @@ func (client CertificateClient) DeletePreparer(ctx context.Context, resourceGrou
 // http.Response Body if it receives an error.
 func (client CertificateClient) DeleteSender(req *http.Request) (future CertificateDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

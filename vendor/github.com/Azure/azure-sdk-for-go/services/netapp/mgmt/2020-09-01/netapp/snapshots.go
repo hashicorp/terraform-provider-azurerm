@@ -83,7 +83,7 @@ func (client SnapshotsClient) Create(ctx context.Context, body Snapshot, resourc
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -123,6 +123,7 @@ func (client SnapshotsClient) CreatePreparer(ctx context.Context, body Snapshot,
 // http.Response Body if it receives an error.
 func (client SnapshotsClient) CreateSender(req *http.Request) (future SnapshotsCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -188,7 +189,7 @@ func (client SnapshotsClient) Delete(ctx context.Context, resourceGroupName stri
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -223,6 +224,7 @@ func (client SnapshotsClient) DeletePreparer(ctx context.Context, resourceGroupN
 // http.Response Body if it receives an error.
 func (client SnapshotsClient) DeleteSender(req *http.Request) (future SnapshotsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -482,7 +484,7 @@ func (client SnapshotsClient) Update(ctx context.Context, body interface{}, reso
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -519,6 +521,7 @@ func (client SnapshotsClient) UpdatePreparer(ctx context.Context, body interface
 // http.Response Body if it receives an error.
 func (client SnapshotsClient) UpdateSender(req *http.Request) (future SnapshotsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

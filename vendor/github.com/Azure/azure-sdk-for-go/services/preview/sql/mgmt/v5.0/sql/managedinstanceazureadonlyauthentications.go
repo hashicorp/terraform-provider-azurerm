@@ -69,7 +69,7 @@ func (client ManagedInstanceAzureADOnlyAuthenticationsClient) CreateOrUpdate(ctx
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAzureADOnlyAuthenticationsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAzureADOnlyAuthenticationsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -104,6 +104,7 @@ func (client ManagedInstanceAzureADOnlyAuthenticationsClient) CreateOrUpdatePrep
 // http.Response Body if it receives an error.
 func (client ManagedInstanceAzureADOnlyAuthenticationsClient) CreateOrUpdateSender(req *http.Request) (future ManagedInstanceAzureADOnlyAuthenticationsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -151,7 +152,7 @@ func (client ManagedInstanceAzureADOnlyAuthenticationsClient) Delete(ctx context
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAzureADOnlyAuthenticationsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAzureADOnlyAuthenticationsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -184,6 +185,7 @@ func (client ManagedInstanceAzureADOnlyAuthenticationsClient) DeletePreparer(ctx
 // http.Response Body if it receives an error.
 func (client ManagedInstanceAzureADOnlyAuthenticationsClient) DeleteSender(req *http.Request) (future ManagedInstanceAzureADOnlyAuthenticationsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
