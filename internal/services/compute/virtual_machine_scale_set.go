@@ -310,10 +310,10 @@ func virtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema {
 				"version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  string(compute.IPv4),
+					Default:  string(compute.IPVersionIPv4),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.IPv4),
-						string(compute.IPv6),
+						string(compute.IPVersionIPv4),
+						string(compute.IPVersionIPv6),
 					}, false),
 				},
 			},
@@ -552,7 +552,7 @@ func expandVirtualMachineScaleSetIPConfiguration(raw map[string]interface{}) (*c
 
 	primary := raw["primary"].(bool)
 	version := compute.IPVersion(raw["version"].(string))
-	if primary && version == compute.IPv6 {
+	if primary && version == compute.IPVersionIPv6 {
 		return nil, fmt.Errorf("An IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
 	}
 
@@ -683,7 +683,7 @@ func expandVirtualMachineScaleSetIPConfigurationUpdate(raw map[string]interface{
 	primary := raw["primary"].(bool)
 	version := compute.IPVersion(raw["version"].(string))
 
-	if primary && version == compute.IPv6 {
+	if primary && version == compute.IPVersionIPv6 {
 		return nil, fmt.Errorf("An IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
 	}
 
@@ -1098,7 +1098,7 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 								Required: true,
 								ForceNew: true,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(compute.Local),
+									string(compute.DiffDiskOptionsLocal),
 								}, false),
 							},
 						},

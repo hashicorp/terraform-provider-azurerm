@@ -54,8 +54,8 @@ func resourceSnapshot() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Copy),
-					string(compute.Import),
+					string(compute.DiskCreateOptionCopy),
+					string(compute.DiskCreateOptionImport),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
