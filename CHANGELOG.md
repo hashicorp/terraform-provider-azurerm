@@ -2,8 +2,8 @@
 
 IMPROVEMENTS:
 
-* Data Source `azurerm_public_ips` Deprecate `attached` for `attachment_status` to improve filtering [GH-13500]
-
+* Data Source `azurerm_public_ips` - Deprecate `attached` for `attachment_status` to improve filtering [GH-13500]
+* Data Source `azurerm_public_ips` - Return public IPs associated with NAT gateways when `attached` set to `true` or `attachment_status` set to `Attached` [GH-13610]
 
 ## 2.79.1 (October 01, 2021)
 
