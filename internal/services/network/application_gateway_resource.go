@@ -2184,15 +2184,14 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 						continue
 					}
 
-					certId, err := azure.ParseAzureResourceID(*cert.ID)
+					certId, err := parse.AuthenticationCertificateID(*cert.ID)
 					if err != nil {
 						return nil, err
 					}
 
-					name := certId.Path["authenticationCertificates"]
 					certificate := map[string]interface{}{
-						"id":   *cert.ID,
-						"name": name,
+						"id":   certId.ID(),
+						"name": certId.Name,
 					}
 					authenticationCertificates = append(authenticationCertificates, certificate)
 				}
@@ -2206,26 +2205,25 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 						continue
 					}
 
-					certId, err := azure.ParseAzureResourceID(*cert.ID)
+					certId, err := parse.TrustedRootCertificateID(*cert.ID)
 					if err != nil {
 						return nil, err
 					}
 
-					certName := certId.Path["trustedRootCertificates"]
-					trustedRootCertificateNames = append(trustedRootCertificateNames, certName)
+					trustedRootCertificateNames = append(trustedRootCertificateNames, certId.Name)
 				}
 			}
 			output["trusted_root_certificate_names"] = trustedRootCertificateNames
 
 			if probe := props.Probe; probe != nil {
 				if probe.ID != nil {
-					id, err := azure.ParseAzureResourceID(*probe.ID)
+					id, err := parse.ProbeID(*probe.ID)
 					if err != nil {
 						return results, err
 					}
 
-					output["probe_name"] = id.Path["probes"]
-					output["probe_id"] = *probe.ID
+					output["probe_name"] = id.ProbeName
+					output["probe_id"] = id.ID()
 				}
 			}
 		}
@@ -2438,25 +2436,23 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 		if props := v.ApplicationGatewayHTTPListenerPropertiesFormat; props != nil {
 			if port := props.FrontendPort; port != nil {
 				if port.ID != nil {
-					portId, err := azure.ParseAzureResourceID(*port.ID)
+					portId, err := parse.FrontendPortID(*port.ID)
 					if err != nil {
 						return nil, err
 					}
-					portName := portId.Path["frontendPorts"]
-					output["frontend_port_name"] = portName
-					output["frontend_port_id"] = *port.ID
+					output["frontend_port_name"] = portId.Name
+					output["frontend_port_id"] = portId.ID()
 				}
 			}
 
 			if feConfig := props.FrontendIPConfiguration; feConfig != nil {
 				if feConfig.ID != nil {
-					feConfigId, err := azure.ParseAzureResourceID(*feConfig.ID)
+					feConfigId, err := parse.FrontendIPConfigurationID(*feConfig.ID)
 					if err != nil {
 						return nil, err
 					}
-					frontendName := feConfigId.Path["frontendIPConfigurations"]
-					output["frontend_ip_configuration_name"] = frontendName
-					output["frontend_ip_configuration_id"] = *feConfig.ID
+					output["frontend_ip_configuration_name"] = feConfigId.Name
+					output["frontend_ip_configuration_id"] = feConfigId.ID()
 				}
 			}
 
@@ -2472,14 +2468,13 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 
 			if cert := props.SslCertificate; cert != nil {
 				if cert.ID != nil {
-					certId, err := azure.ParseAzureResourceID(*cert.ID)
+					certId, err := parse.SslCertificateID(*cert.ID)
 					if err != nil {
 						return nil, err
 					}
-					sslCertName := certId.Path["sslCertificates"]
 
-					output["ssl_certificate_name"] = sslCertName
-					output["ssl_certificate_id"] = *cert.ID
+					output["ssl_certificate_name"] = certId.Name
+					output["ssl_certificate_id"] = certId.ID()
 				}
 			}
 
@@ -2493,14 +2488,13 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 
 			if sslp := props.SslProfile; sslp != nil {
 				if sslp.ID != nil {
-					sslProfileId, err := azure.ParseAzureResourceID(*sslp.ID)
+					sslProfileId, err := parse.SslProfileID(*sslp.ID)
 					if err != nil {
 						return nil, err
 					}
-					sslProfileName := sslProfileId.Path["sslProfiles"]
 
-					output["ssl_profile_name"] = sslProfileName
-					output["ssl_profile_id"] = *sslp.ID
+					output["ssl_profile_name"] = sslProfileId.Name
+					output["ssl_profile_id"] = sslProfileId.ID()
 				}
 			}
 
@@ -2962,73 +2956,68 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if pool := props.BackendAddressPool; pool != nil {
 				if pool.ID != nil {
-					poolId, err := azure.ParseAzureResourceID(*pool.ID)
+					poolId, err := parse.BackendAddressPoolID(*pool.ID)
 					if err != nil {
 						return nil, err
 					}
-					backendAddressPoolName := poolId.Path["backendAddressPools"]
-					output["backend_address_pool_name"] = backendAddressPoolName
-					output["backend_address_pool_id"] = *pool.ID
+					output["backend_address_pool_name"] = poolId.Name
+					output["backend_address_pool_id"] = poolId.ID()
 				}
 			}
 
 			if settings := props.BackendHTTPSettings; settings != nil {
 				if settings.ID != nil {
-					settingsId, err := azure.ParseAzureResourceID(*settings.ID)
+					settingsId, err := parse.BackendHttpSettingsCollectionID(*settings.ID)
 					if err != nil {
 						return nil, err
 					}
-					backendHTTPSettingsName := settingsId.Path["backendHttpSettingsCollection"]
-					output["backend_http_settings_name"] = backendHTTPSettingsName
+
+					output["backend_http_settings_name"] = settingsId.BackendHttpSettingsCollectionName
 					output["backend_http_settings_id"] = *settings.ID
 				}
 			}
 
 			if listener := props.HTTPListener; listener != nil {
 				if listener.ID != nil {
-					listenerId, err := azure.ParseAzureResourceID(*listener.ID)
+					listenerId, err := parse.HttpListenerID(*listener.ID)
 					if err != nil {
 						return nil, err
 					}
-					httpListenerName := listenerId.Path["httpListeners"]
-					output["http_listener_id"] = *listener.ID
-					output["http_listener_name"] = httpListenerName
+					output["http_listener_id"] = listenerId.ID()
+					output["http_listener_name"] = listenerId.Name
 				}
 			}
 
 			if pathMap := props.URLPathMap; pathMap != nil {
 				if pathMap.ID != nil {
-					pathMapId, err := azure.ParseAzureResourceID(*pathMap.ID)
+					pathMapId, err := parse.UrlPathMapID(*pathMap.ID)
 					if err != nil {
 						return nil, err
 					}
-					urlPathMapName := pathMapId.Path["urlPathMaps"]
-					output["url_path_map_name"] = urlPathMapName
-					output["url_path_map_id"] = *pathMap.ID
+					output["url_path_map_name"] = pathMapId.Name
+					output["url_path_map_id"] = pathMapId.ID()
 				}
 			}
 
 			if redirect := props.RedirectConfiguration; redirect != nil {
 				if redirect.ID != nil {
-					redirectId, err := azure.ParseAzureResourceID(*redirect.ID)
+					redirectId, err := parse.RedirectConfigurationsID(*redirect.ID)
 					if err != nil {
 						return nil, err
 					}
-					redirectName := redirectId.Path["redirectConfigurations"]
-					output["redirect_configuration_name"] = redirectName
-					output["redirect_configuration_id"] = *redirect.ID
+					output["redirect_configuration_name"] = redirectId.RedirectConfigurationName
+					output["redirect_configuration_id"] = redirectId.ID()
 				}
 			}
 
 			if rewrite := props.RewriteRuleSet; rewrite != nil {
 				if rewrite.ID != nil {
-					rewriteId, err := azure.ParseAzureResourceID(*rewrite.ID)
+					rewriteId, err := parse.RewriteRuleSetID(*rewrite.ID)
 					if err != nil {
 						return nil, err
 					}
-					rewriteName := rewriteId.Path["rewriteRuleSets"]
-					output["rewrite_rule_set_name"] = rewriteName
-					output["rewrite_rule_set_id"] = *rewrite.ID
+					output["rewrite_rule_set_name"] = rewriteId.Name
+					output["rewrite_rule_set_id"] = rewriteId.ID()
 				}
 			}
 
@@ -3331,13 +3320,12 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]network.Applicatio
 
 			if listener := props.TargetListener; listener != nil {
 				if listener.ID != nil {
-					listenerId, err := azure.ParseAzureResourceID(*listener.ID)
+					listenerId, err := parse.HttpListenerID(*listener.ID)
 					if err != nil {
 						return nil, err
 					}
-					targetListenerName := listenerId.Path["httpListeners"]
-					output["target_listener_name"] = targetListenerName
-					output["target_listener_id"] = *listener.ID
+					output["target_listener_name"] = listenerId.Name
+					output["target_listener_id"] = listenerId.ID()
 				}
 			}
 
@@ -3664,13 +3652,12 @@ func flattenApplicationGatewaySslProfiles(input *[]network.ApplicationGatewaySsl
 						continue
 					}
 
-					certId, err := azure.ParseAzureResourceID(*cert.ID)
+					certId, err := parse.TrustedClientCertificateID(*cert.ID)
 					if err != nil {
 						return nil, err
 					}
 
-					certName := certId.Path["trustedClientCertificates"]
-					trustedClientCertificateNames = append(trustedClientCertificateNames, certName)
+					trustedClientCertificateNames = append(trustedClientCertificateNames, certId.Name)
 				}
 			}
 			output["trusted_client_certificate_names"] = trustedClientCertificateNames
@@ -3830,43 +3817,39 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 
 		if props := v.ApplicationGatewayURLPathMapPropertiesFormat; props != nil {
 			if backendPool := props.DefaultBackendAddressPool; backendPool != nil && backendPool.ID != nil {
-				poolId, err := azure.ParseAzureResourceID(*backendPool.ID)
+				poolId, err := parse.BackendAddressPoolID(*backendPool.ID)
 				if err != nil {
 					return nil, err
 				}
-				backendAddressPoolName := poolId.Path["backendAddressPools"]
-				output["default_backend_address_pool_name"] = backendAddressPoolName
-				output["default_backend_address_pool_id"] = *backendPool.ID
+				output["default_backend_address_pool_name"] = poolId.Name
+				output["default_backend_address_pool_id"] = poolId.ID()
 			}
 
 			if settings := props.DefaultBackendHTTPSettings; settings != nil && settings.ID != nil {
-				settingsId, err := azure.ParseAzureResourceID(*settings.ID)
+				settingsId, err := parse.BackendHttpSettingsCollectionID(*settings.ID)
 				if err != nil {
 					return nil, err
 				}
-				backendHTTPSettingsName := settingsId.Path["backendHttpSettingsCollection"]
-				output["default_backend_http_settings_name"] = backendHTTPSettingsName
-				output["default_backend_http_settings_id"] = *settings.ID
+				output["default_backend_http_settings_name"] = settingsId.BackendHttpSettingsCollectionName
+				output["default_backend_http_settings_id"] = settingsId.ID()
 			}
 
 			if redirect := props.DefaultRedirectConfiguration; redirect != nil && redirect.ID != nil {
-				settingsId, err := azure.ParseAzureResourceID(*redirect.ID)
+				redirectId, err := parse.RedirectConfigurationsID(*redirect.ID)
 				if err != nil {
 					return nil, err
 				}
-				redirectConfigurationName := settingsId.Path["redirectConfigurations"]
-				output["default_redirect_configuration_name"] = redirectConfigurationName
-				output["default_redirect_configuration_id"] = *redirect.ID
+				output["default_redirect_configuration_name"] = redirectId.RedirectConfigurationName
+				output["default_redirect_configuration_id"] = redirectId.ID()
 			}
 
 			if rewrite := props.DefaultRewriteRuleSet; rewrite != nil && rewrite.ID != nil {
-				settingsId, err := azure.ParseAzureResourceID(*rewrite.ID)
+				rewriteId, err := parse.RewriteRuleSetID(*rewrite.ID)
 				if err != nil {
 					return nil, err
 				}
-				defaultRewriteRuleSetName := settingsId.Path["rewriteRuleSets"]
-				output["default_rewrite_rule_set_name"] = defaultRewriteRuleSetName
-				output["default_rewrite_rule_set_id"] = *rewrite.ID
+				output["default_rewrite_rule_set_name"] = rewriteId.Name
+				output["default_rewrite_rule_set_id"] = rewriteId.ID()
 			}
 
 			pathRules := make([]interface{}, 0)
@@ -3884,43 +3867,39 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 
 					if ruleProps := rule.ApplicationGatewayPathRulePropertiesFormat; ruleProps != nil {
 						if pool := ruleProps.BackendAddressPool; pool != nil && pool.ID != nil {
-							poolId, err := azure.ParseAzureResourceID(*pool.ID)
+							poolId, err := parse.BackendAddressPoolID(*pool.ID)
 							if err != nil {
 								return nil, err
 							}
-							backendAddressPoolName2 := poolId.Path["backendAddressPools"]
-							ruleOutput["backend_address_pool_name"] = backendAddressPoolName2
-							ruleOutput["backend_address_pool_id"] = *pool.ID
+							ruleOutput["backend_address_pool_name"] = poolId.Name
+							ruleOutput["backend_address_pool_id"] = poolId.ID()
 						}
 
 						if backend := ruleProps.BackendHTTPSettings; backend != nil && backend.ID != nil {
-							backendId, err := azure.ParseAzureResourceID(*backend.ID)
+							backendId, err := parse.BackendHttpSettingsCollectionID(*backend.ID)
 							if err != nil {
 								return nil, err
 							}
-							backendHTTPSettingsName2 := backendId.Path["backendHttpSettingsCollection"]
-							ruleOutput["backend_http_settings_name"] = backendHTTPSettingsName2
-							ruleOutput["backend_http_settings_id"] = *backend.ID
+							ruleOutput["backend_http_settings_name"] = backendId.BackendHttpSettingsCollectionName
+							ruleOutput["backend_http_settings_id"] = backendId.ID()
 						}
 
 						if redirect := ruleProps.RedirectConfiguration; redirect != nil && redirect.ID != nil {
-							redirectId, err := azure.ParseAzureResourceID(*redirect.ID)
+							redirectId, err := parse.RedirectConfigurationsID(*redirect.ID)
 							if err != nil {
 								return nil, err
 							}
-							redirectConfigurationName2 := redirectId.Path["redirectConfigurations"]
-							ruleOutput["redirect_configuration_name"] = redirectConfigurationName2
-							ruleOutput["redirect_configuration_id"] = *redirect.ID
+							ruleOutput["redirect_configuration_name"] = redirectId.RedirectConfigurationName
+							ruleOutput["redirect_configuration_id"] = redirectId.ID()
 						}
 
 						if rewrite := ruleProps.RewriteRuleSet; rewrite != nil && rewrite.ID != nil {
-							rewriteId, err := azure.ParseAzureResourceID(*rewrite.ID)
+							rewriteId, err := parse.RewriteRuleSetID(*rewrite.ID)
 							if err != nil {
 								return nil, err
 							}
-							rewriteRuleSet := rewriteId.Path["rewriteRuleSets"]
-							ruleOutput["rewrite_rule_set_name"] = rewriteRuleSet
-							ruleOutput["rewrite_rule_set_id"] = *rewrite.ID
+							ruleOutput["rewrite_rule_set_name"] = rewriteId.Name
+							ruleOutput["rewrite_rule_set_id"] = rewriteId.ID()
 						}
 
 						if fwp := ruleProps.FirewallPolicy; fwp != nil && fwp.ID != nil {
