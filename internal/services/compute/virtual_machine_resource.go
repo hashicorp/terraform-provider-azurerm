@@ -1073,7 +1073,7 @@ func resourceVirtualMachineDeleteManagedDisk(d *pluginsdk.ResourceData, disk *co
 
 	id, err := parse.ManagedDiskID(managedDiskID)
 	if err != nil {
-		return fmt.Errorf("ID: %+v\n%+v", managedDiskID, err)
+		return err
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.DiskName)
