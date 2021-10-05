@@ -23,10 +23,10 @@ func resourceDataFactoryLinkedServiceMySQL() *pluginsdk.Resource {
 		Update: resourceDataFactoryLinkedServiceMySQLCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceMySQLDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)
 			return err
-		}),
+		}, importDataFactoryLinkedService(datafactory.TypeBasicLinkedServiceTypeMySQL)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

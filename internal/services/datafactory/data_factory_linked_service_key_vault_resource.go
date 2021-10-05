@@ -25,10 +25,10 @@ func resourceDataFactoryLinkedServiceKeyVault() *pluginsdk.Resource {
 		Update: resourceDataFactoryLinkedServiceKeyVaultCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceKeyVaultDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)
 			return err
-		}),
+		}, importDataFactoryLinkedService(datafactory.TypeBasicLinkedServiceTypeAzureKeyVault)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

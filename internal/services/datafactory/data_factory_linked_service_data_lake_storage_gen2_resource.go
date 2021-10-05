@@ -23,10 +23,10 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2() *pluginsdk.Resource {
 		Update: resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceDataLakeStorageGen2Delete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)
 			return err
-		}),
+		}, importDataFactoryLinkedService(datafactory.TypeBasicLinkedServiceTypeAzureBlobFS)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

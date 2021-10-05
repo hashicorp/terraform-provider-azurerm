@@ -26,10 +26,10 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 		Update: resourceDataFactoryLinkedServiceDatabricksCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceDatabricksDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)
 			return err
-		}),
+		}, importDataFactoryLinkedService(datafactory.TypeBasicLinkedServiceTypeAzureDatabricks)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

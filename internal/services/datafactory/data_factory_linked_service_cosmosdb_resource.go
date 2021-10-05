@@ -23,10 +23,10 @@ func resourceDataFactoryLinkedServiceCosmosDb() *pluginsdk.Resource {
 		Update: resourceDataFactoryLinkedServiceCosmosDbCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceCosmosDbDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)
 			return err
-		}),
+		}, importDataFactoryLinkedService(datafactory.TypeBasicLinkedServiceTypeCosmosDb)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
