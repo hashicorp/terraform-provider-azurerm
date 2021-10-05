@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -21,7 +22,7 @@ import (
 )
 
 func resourceKeyVaultSecret() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	res := &pluginsdk.Resource{
 		Create: resourceKeyVaultSecretCreate,
 		Read:   resourceKeyVaultSecretRead,
 		Update: resourceKeyVaultSecretUpdate,
@@ -89,6 +90,16 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 		},
 	}
+
+	if features.ThreePointOh() {
+		res.Schema["recover_soft_deleted_items"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		}
+	}
+
+	return res
 }
 
 func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -147,7 +158,8 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	if resp, err := client.SetSecret(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
 		// In the case that the Secret already exists in a Soft Deleted / Recoverable state we check if `recover_soft_deleted_key_vaults` is set
 		// and attempt recovery where appropriate
-		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) {
+		recoverKeys := d.Get("recover_soft_deleted_items").(bool)
+		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) && shouldRecoverKeys(recoverKeys) {
 			recoveredSecret, err := client.RecoverDeletedSecret(ctx, *keyVaultBaseUrl, name)
 			if err != nil {
 				return err

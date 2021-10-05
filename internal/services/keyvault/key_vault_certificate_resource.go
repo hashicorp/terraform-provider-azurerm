@@ -15,6 +15,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -26,7 +27,7 @@ import (
 )
 
 func resourceKeyVaultCertificate() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	res := &pluginsdk.Resource{
 		// TODO: support Updating once we have more information about what can be updated
 		Create: resourceKeyVaultCertificateCreate,
 		Read:   resourceKeyVaultCertificateRead,
@@ -390,6 +391,16 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 			"tags": tags.ForceNewSchema(),
 		},
 	}
+
+	if features.ThreePointOh() {
+		res.Schema["recover_soft_deleted_items"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		}
+	}
+
+	return res
 }
 
 func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -445,7 +456,8 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 			Tags:              tags.Expand(t),
 		}
 		if resp, err := client.CreateCertificate(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
-			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) {
+			recoverKeys := d.Get("recover_soft_deleted_items").(bool)
+			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) && shouldRecoverKeys(recoverKeys) {
 				recoveredCertificate, err := client.RecoverDeletedCertificate(ctx, *keyVaultBaseUrl, name)
 				if err != nil {
 					return err

@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -149,4 +150,8 @@ func nestedItemResourceImporter(ctx context.Context, d *pluginsdk.ResourceData, 
 	d.Set("key_vault_id", keyVaultId)
 
 	return []*pluginsdk.ResourceData{d}, nil
+}
+
+func shouldRecoverKeys(configValue bool) bool {
+	return features.ThreePointOh() && configValue
 }

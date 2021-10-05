@@ -12,6 +12,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -22,7 +23,7 @@ import (
 )
 
 func resourceKeyVaultKey() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	res := &pluginsdk.Resource{
 		Create:   resourceKeyVaultKeyCreate,
 		Read:     resourceKeyVaultKeyRead,
 		Update:   resourceKeyVaultKeyUpdate,
@@ -159,6 +160,16 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 		},
 	}
+
+	if features.ThreePointOh() {
+		res.Schema["recover_soft_deleted_items"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		}
+	}
+
+	return res
 }
 
 func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -232,7 +243,8 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if resp, err := client.CreateKey(ctx, *keyVaultBaseUri, name, parameters); err != nil {
-		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) {
+		recoverKeys := d.Get("recover_soft_deleted_items").(bool)
+		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) && shouldRecoverKeys(recoverKeys) {
 			recoveredKey, err := client.RecoverDeletedKey(ctx, *keyVaultBaseUri, name)
 			if err != nil {
 				return err
