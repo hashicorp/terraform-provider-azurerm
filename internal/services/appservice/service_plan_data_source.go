@@ -35,7 +35,7 @@ type ServicePlanDataSourceModel struct {
 }
 
 func (r ServicePlanDataSource) ModelObject() interface{} {
-	return ServicePlanDataSourceModel{}
+	return &ServicePlanDataSourceModel{}
 }
 
 func (r ServicePlanDataSource) ResourceType() string {

@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -114,18 +114,14 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 }
 
 func testCheckAzureRMAutomationVariableExists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState, varType string) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.VariableID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceGroup := id.ResourceGroup
-	accountName := id.Path["automationAccounts"]
-	name := id.Path["variables"]
-
-	resp, err := clients.Automation.VariableClient.Get(ctx, resourceGroup, accountName, name)
+	resp, err := clients.Automation.VariableClient.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Automation %s Variable %q (Automation Account Name %q / Resource Group %q) does not exist", varType, name, accountName, resourceGroup)
+		return nil, fmt.Errorf("retrieving Automation %s Variable %q (Automation Account Name %q / Resource Group %q) does not exist", varType, id.Name, id.AutomationAccountName, id.ResourceGroup)
 	}
 
 	return utils.Bool(resp.VariableProperties != nil), nil

@@ -629,7 +629,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherEncryptionAtHostEnabled(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "extension.0.protected_settings"),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -644,21 +644,21 @@ func TestAccWindowsVirtualMachineScaleSet_otherEncryptionAtHostEnabledUpdate(t *
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "extension.0.protected_settings"),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherEncryptionAtHostEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "extension.0.protected_settings"),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherEncryptionAtHostEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "extension.0.protected_settings"),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -673,7 +673,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherEncryptionAtHostEnabledWithCMK(t 
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "extension.0.protected_settings"),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -688,7 +688,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherPlatformFaultDomainCount(t *testi
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "extension.0.protected_settings"),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -1098,7 +1098,8 @@ func (r WindowsVirtualMachineScaleSetResource) otherForceDelete(data acceptance.
 provider "azurerm" {
   features {
     virtual_machine_scale_set {
-      force_delete = true
+      force_delete                 = true
+      roll_instances_when_required = true
     }
   }
 }

@@ -394,7 +394,7 @@ func resourceMySqlServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(mysql.FiveFullStopSix),
+					string(mysql.FiveFullStopSix), // todo remove in 3.0? We can't create it but maybe we can still manage it
 					string(mysql.FiveFullStopSeven),
 					string(mysql.EightFullStopZero),
 				}, true),

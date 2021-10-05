@@ -897,15 +897,13 @@ func (VirtualMachineScaleSetResource) hasApplicationGateway(ctx context.Context,
 }
 
 func (t VirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.VirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["virtualMachineScaleSets"]
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, resGroup, name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Virtual Machine Scale Set %q", id)
 	}

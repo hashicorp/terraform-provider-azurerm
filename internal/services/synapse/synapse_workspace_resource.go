@@ -187,6 +187,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 						"tenant_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validation.IsUUID,
 						},
 					},
@@ -234,10 +235,26 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"customer_managed_key_versionless_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
+			"customer_managed_key": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_versionless_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
+						},
+
+						// Default to cmk to ensure backwards compatibility with previous version that hardcoded the key name to cmk
+						"key_name": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "cmk",
+						},
+					},
+				},
 			},
 
 			"tags": tags.Schema(),
@@ -381,7 +398,10 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("sql_administrator_login", props.SQLAdministratorLogin)
 		d.Set("managed_resource_group_name", props.ManagedResourceGroupName)
 		d.Set("connectivity_endpoints", utils.FlattenMapStringPtrString(props.ConnectivityEndpoints))
-		d.Set("customer_managed_key_versionless_id", flattenEncryptionDetails(props.Encryption))
+		cmk := flattenEncryptionDetails(props.Encryption)
+		if err := d.Set("customer_managed_key", cmk); err != nil {
+			return fmt.Errorf("setting `customer_managed_key`: %+v", err)
+		}
 
 		repoType, repo := flattenWorkspaceRepositoryConfiguration(props.WorkspaceRepositoryConfiguration)
 		if repoType == workspaceVSTSConfiguration {
@@ -567,16 +587,19 @@ func expandIdentityControlSQLSettings(enabled bool) *synapse.ManagedIdentitySQLC
 }
 
 func expandEncryptionDetails(d *pluginsdk.ResourceData) *synapse.EncryptionDetails {
-	if key, ok := d.GetOk("customer_managed_key_versionless_id"); ok {
+
+	if cmkList, ok := d.GetOk("customer_managed_key"); ok {
+		cmk := cmkList.([]interface{})[0].(map[string]interface{})
 		return &synapse.EncryptionDetails{
 			Cmk: &synapse.CustomerManagedKeyDetails{
 				Key: &synapse.WorkspaceKeyDetails{
-					Name:        utils.String("cmk"),
-					KeyVaultURL: utils.String(key.(string)),
+					Name:        utils.String(cmk["key_name"].(string)),
+					KeyVaultURL: utils.String(cmk["key_versionless_id"].(string)),
 				},
 			},
 		}
 	}
+
 	return nil
 }
 
@@ -684,11 +707,25 @@ func flattenIdentityControlSQLSettings(settings synapse.ManagedIdentitySQLContro
 	return false
 }
 
-func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) *string {
-	if cmk := encryption.Cmk; cmk != nil {
-		if key := cmk.Key; key != nil {
-			return key.KeyVaultURL
+func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) []interface{} {
+
+	if encryption != nil {
+		if cmk := encryption.Cmk; cmk != nil {
+			if cmk.Key != nil {
+				resultMap := map[string]interface{}{}
+				resultMap["key_name"] = *cmk.Key.Name
+				resultMap["key_versionless_id"] = *cmk.Key.KeyVaultURL
+				return []interface{}{resultMap}
+			}
 		}
+
+		// if cmk := encryption.Cmk; cmk != nil {
+		// 	if key := cmk.Key; key != nil {
+		// 		return key.Name, key.KeyVaultURL
+		// 	}
+		// }
+
 	}
-	return nil
+
+	return make([]interface{}, 0)
 }

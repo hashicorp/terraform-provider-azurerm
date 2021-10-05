@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -174,6 +175,13 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
+			"activated": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				// Default:  true, // todo 3.0 remove this comment and remove the Computed tag
+				Computed: true,
+			},
+
 			"pipeline_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -207,9 +215,14 @@ func resourceDataFactoryTriggerScheduleCreateUpdate(d *pluginsdk.ResourceData, m
 
 	log.Printf("[INFO] preparing arguments for Data Factory Trigger Schedule creation.")
 
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	resourceGroupName := d.Get("resource_group_name").(string)
 	triggerName := d.Get("name").(string)
 	dataFactoryName := d.Get("data_factory_name").(string)
+
+	dataFactoryId := parse.NewDataFactoryID(subscriptionId, resourceGroupName, dataFactoryName)
+
+	id := parse.NewTriggerID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroupName, dataFactoryName, triggerName, "")
@@ -282,6 +295,16 @@ func resourceDataFactoryTriggerScheduleCreateUpdate(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("Cannot read Data Factory Trigger Schedule %q (Resource Group %q / Data Factory %q) ID", triggerName, resourceGroupName, dataFactoryName)
 	}
 
+	if d.Get("activated").(bool) {
+		future, err := client.Start(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+		if err != nil {
+			return fmt.Errorf("starting %s: %+v", id, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting on start %s: %+v", id, err)
+		}
+	}
+
 	d.SetId(*read.ID)
 
 	return resourceDataFactoryTriggerScheduleRead(d, meta)
@@ -319,6 +342,8 @@ func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if scheduleTriggerProps != nil {
+		d.Set("activated", scheduleTriggerProps.RuntimeState == datafactory.TriggerRuntimeStateStarted)
+
 		if recurrence := scheduleTriggerProps.Recurrence; recurrence != nil {
 			if v := recurrence.StartTime; v != nil {
 				d.Set("start_time", v.Format(time.RFC3339))
@@ -366,6 +391,14 @@ func resourceDataFactoryTriggerScheduleDelete(d *pluginsdk.ResourceData, meta in
 	}
 	dataFactoryName := id.Path["factories"]
 	triggerName := id.Path["triggers"]
+
+	future, err := client.Stop(ctx, id.ResourceGroup, dataFactoryName, triggerName)
+	if err != nil {
+		return fmt.Errorf("stopping %s: %+v", id, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting to stop %s: %+v", id, err)
+	}
 
 	if _, err = client.Delete(ctx, id.ResourceGroup, dataFactoryName, triggerName); err != nil {
 		return fmt.Errorf("deleting Data Factory Trigger Schedule %q (Resource Group %q / Data Factory %q): %+v", triggerName, id.ResourceGroup, dataFactoryName, err)

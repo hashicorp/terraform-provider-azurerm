@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -85,7 +86,19 @@ func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if _, err := client.CreateEventHubConsumerGroup(ctx, id.ResourceGroup, id.IotHubName, id.EventHubEndpointName, id.Name); err != nil {
+	consumerGroupBody := devices.EventHubConsumerGroupBodyDescription{
+		// The properties are currently undocumented. See also:
+		// https://docs.microsoft.com/en-us/azure/templates/microsoft.devices/2021-03-31/iothubs/eventhubendpoints/consumergroups?tabs=json#eventhubconsumergroupname
+		//
+		// There is an example where the name is repeated in the properties,
+		// so that seems to be the "proper" way. See also:
+		// https://github.com/Azure/azure-quickstart-templates/blob/master/quickstarts/microsoft.devices/iothub-with-consumergroup-create/azuredeploy.json#L74
+		Properties: &devices.EventHubConsumerGroupName{
+			Name: &id.Name,
+		},
+	}
+
+	if _, err := client.CreateEventHubConsumerGroup(ctx, id.ResourceGroup, id.IotHubName, id.EventHubEndpointName, id.Name, consumerGroupBody); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

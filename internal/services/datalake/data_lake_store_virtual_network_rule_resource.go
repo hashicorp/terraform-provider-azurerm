@@ -25,8 +25,10 @@ func resourceDataLakeStoreVirtualNetworkRule() *pluginsdk.Resource {
 		Update: resourceDataLakeStoreVirtualNetworkRuleCreateUpdate,
 		Delete: resourceDataLakeStoreVirtualNetworkRuleDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.VirtualNetworkRuleID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -63,21 +65,19 @@ func resourceDataLakeStoreVirtualNetworkRule() *pluginsdk.Resource {
 
 func resourceDataLakeStoreVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.VirtualNetworkRulesClient
+	subscriptionId := meta.(*clients.Client).Datalake.VirtualNetworkRulesClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	accountName := d.Get("account_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewVirtualNetworkRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
+
 	virtualNetworkSubnetId := d.Get("subnet_id").(string)
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	id := parse.NewVirtualNetworkRuleID(subscriptionId, resourceGroup, accountName, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Lake Store Virtual Network Rule %q (Account: %q, Resource Group: %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Data Lake Store Virtual Network Rule %s: %+v", id, err)
 			}
 		}
 
@@ -93,7 +93,7 @@ func resourceDataLakeStoreVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AccountName, id.Name, parameters); err != nil {
-		return fmt.Errorf("creating Data Lake Store Virtual Network Rule %q (Account: %q, Resource Group: %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
+		return fmt.Errorf("creating Data Lake Store Virtual Network Rule %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -114,12 +114,12 @@ func resourceDataLakeStoreVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta
 	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Data Lake Store Virtual Network Rule %q (Account: %q / Resource Group %q) was not found - removing from state", id.Name, id.AccountName, id.ResourceGroup)
+			log.Printf("[INFO] Data Lake Store Virtual Network Rule %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Virtual Network Rule %q (Account: %q / Resource Group: %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Virtual Network Rule %s: %+v", id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -148,7 +148,7 @@ func resourceDataLakeStoreVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, me
 		if response.WasNotFound(resp.Response) {
 			return nil
 		}
-		return fmt.Errorf("deleting Data Lake Store Virtual Network Rule %q (Account: %q / Resource Group: %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Data Lake Store Virtual Network Rule %s: %+v", id, err)
 	}
 
 	return nil

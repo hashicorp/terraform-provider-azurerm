@@ -42,7 +42,7 @@ func (r ResourceProviderRegistrationResource) Attributes() map[string]*pluginsdk
 }
 
 func (r ResourceProviderRegistrationResource) ModelObject() interface{} {
-	return ResourceProviderRegistrationModel{}
+	return &ResourceProviderRegistrationModel{}
 }
 
 func (r ResourceProviderRegistrationResource) ResourceType() string {

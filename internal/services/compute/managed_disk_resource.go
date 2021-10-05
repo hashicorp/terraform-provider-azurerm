@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -169,6 +170,13 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"max_shares": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(2, 10),
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -221,6 +229,10 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if v := d.Get("disk_size_gb"); v != 0 {
 		diskSize := int32(v.(int))
 		props.DiskSizeGB = &diskSize
+	}
+
+	if v, ok := d.GetOk("max_shares"); ok {
+		props.MaxShares = utils.Int32(int32(v.(int)))
 	}
 
 	if storageAccountType == string(compute.DiskStorageAccountTypesUltraSSDLRS) {
@@ -365,6 +377,21 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	diskUpdate := compute.DiskUpdate{
 		DiskUpdateProperties: &compute.DiskUpdateProperties{},
+	}
+
+	if d.HasChange("max_shares") {
+		v := d.Get("max_shares")
+		maxShares := int32(v.(int))
+		diskUpdate.MaxShares = &maxShares
+		var skuName compute.DiskStorageAccountTypes
+		for _, v := range compute.PossibleDiskStorageAccountTypesValues() {
+			if strings.EqualFold(storageAccountType, string(v)) {
+				skuName = v
+			}
+		}
+		diskUpdate.Sku = &compute.DiskSku{
+			Name: skuName,
+		}
 	}
 
 	if d.HasChange("tier") {
@@ -625,6 +652,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
 		d.Set("os_type", props.OsType)
 		d.Set("tier", props.Tier)
+		d.Set("max_shares", props.MaxShares)
 
 		if networkAccessPolicy := props.NetworkAccessPolicy; networkAccessPolicy != compute.NetworkAccessPolicyAllowAll {
 			d.Set("network_access_policy", props.NetworkAccessPolicy)
