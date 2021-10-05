@@ -173,7 +173,7 @@ The `query_params` and `headers` blocks support the following:
 
 * `mode` - (Required) The data masking mode. Possible values are `Mask` and `Hide` for `query_params`. The only possible value is `Mask` for `headers`.
 
-* `value` - (Required) The name of the header or the uery parameter to mask.
+* `value` - (Required) The name of the header or the query parameter to mask.
 
 ## Attributes Reference
 
