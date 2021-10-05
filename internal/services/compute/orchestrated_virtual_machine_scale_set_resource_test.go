@@ -1138,95 +1138,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-// Not Supported Yet
-// func (OrchestratedVirtualMachineScaleSetResource) standardSSD(data acceptance.TestData) string {
-// 	return fmt.Sprintf(`
-// provider "azurerm" {
-//   features {}
-// }
-
-// resource "azurerm_resource_group" "test" {
-//   name     = "acctestRG-OVMSS-%[1]d"
-//   location = "%[2]s"
-// }
-
-// resource "azurerm_virtual_network" "test" {
-//   name                = "acctvn-%[1]d"
-//   address_space       = ["10.0.0.0/16"]
-//   location            = azurerm_resource_group.test.location
-//   resource_group_name = azurerm_resource_group.test.name
-// }
-
-// resource "azurerm_subnet" "test" {
-//   name                 = "acctsub-%[1]d"
-//   resource_group_name  = azurerm_resource_group.test.name
-//   virtual_network_name = azurerm_virtual_network.test.name
-//   address_prefix       = "10.0.2.0/24"
-// }
-
-// resource "azurerm_storage_account" "test" {
-//   name                     = "accsa%[1]d"
-//   resource_group_name      = azurerm_resource_group.test.name
-//   location                 = azurerm_resource_group.test.location
-//   account_tier             = "Standard"
-//   account_replication_type = "LRS"
-
-//   tags = {
-//     environment = "staging"
-//   }
-// }
-
-// resource "azurerm_storage_container" "test" {
-//   name                  = "vhds"
-//   storage_account_name  = azurerm_storage_account.test.name
-//   container_access_type = "private"
-// }
-
-// resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-//   name                   = "acctovmss-%[1]d"
-//   location               = azurerm_resource_group.test.location
-//   resource_group_name    = azurerm_resource_group.test.name
-//   upgrade_policy_mode    = "Manual"
-//   single_placement_group = false
-
-//   sku_name = "Standard_D1_v2_2"
-
-//   os_profile {
-//     linux_configuration {
-//       computer_name_prefix = "testvm-%[1]d"
-//       admin_username       = "myadmin"
-//       admin_password       = "Passwword1234"
-//     }
-//   }
-
-//   network_profile {
-//     name    = "TestNetworkProfile-%[1]d"
-//     primary = true
-
-//     ip_configuration {
-//       name      = "TestIPConfiguration"
-//       primary   = true
-//       subnet_id = azurerm_subnet.test.id
-//     }
-//   }
-
-//   storage_profile_os_disk {
-//     name              = ""
-//     caching           = "ReadWrite"
-//     create_option     = "FromImage"
-//     managed_disk_type = "StandardSSD_LRS"
-//   }
-
-//   storage_profile_image_reference {
-//     publisher = "Canonical"
-//     offer     = "UbuntuServer"
-//     sku       = "16.04-LTS"
-//     version   = "latest"
-//   }
-// }
-// `, data.RandomInteger, data.Locations.Primary)
-// }
-
 func (OrchestratedVirtualMachineScaleSetResource) withPPG(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2874,7 +2785,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   sku_name = "Standard_F2_1"
 
-	os_profile {
+  os_profile {
     linux_configuration {
       computer_name_prefix = "prefix"
       admin_username       = "ubuntu"
@@ -3056,93 +2967,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
-
-// Not Supported yet
-// func (OrchestratedVirtualMachineScaleSetResource) basicWindows_managedDisk(data acceptance.TestData, vmSize string) string {
-// 	return fmt.Sprintf(`
-// provider "azurerm" {
-//   features {}
-// }
-
-// resource "azurerm_resource_group" "test" {
-//   name     = "acctestRG-OVMSS-%[1]d"
-//   location = "%[2]s"
-// }
-
-// resource "azurerm_virtual_network" "test" {
-//   name                = "acctvn-%[1]d"
-//   address_space       = ["10.0.0.0/16"]
-//   location            = azurerm_resource_group.test.location
-//   resource_group_name = azurerm_resource_group.test.name
-// }
-
-// resource "azurerm_subnet" "test" {
-//   name                 = "acctsub-%[1]d"
-//   resource_group_name  = azurerm_resource_group.test.name
-//   virtual_network_name = azurerm_virtual_network.test.name
-//   address_prefix       = "10.0.2.0/24"
-// }
-
-// resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-//   name                = "acctovmss-%[1]d"
-//   location            = azurerm_resource_group.test.location
-//   resource_group_name = azurerm_resource_group.test.name
-//   upgrade_policy_mode = "Manual"
-
-//   sku_name = "%[3]s_2"
-
-//   os_profile {
-//     computer_name_prefix = "testvm"
-//     admin_username       = "myadmin"
-//     admin_password       = "Passwword1234"
-//   }
-
-//   os_profile_windows_config {
-//     enable_automatic_upgrades = false
-//     provision_vm_agent        = true
-
-//     additional_unattend_config {
-//       pass         = "oobeSystem"
-//       component    = "Microsoft-Windows-Shell-Setup"
-//       setting_name = "AutoLogon"
-//       content      = "<AutoLogon><Username>myadmin</Username><Password><Value>Passwword1234</Value></Password><Enabled>true</Enabled><LogonCount>1</LogonCount></AutoLogon>"
-//     }
-
-//     additional_unattend_config {
-//       pass         = "oobeSystem"
-//       component    = "Microsoft-Windows-Shell-Setup"
-//       setting_name = "FirstLogonCommands"
-//       content      = "<FirstLogonCommands><SynchronousCommand><CommandLine>shutdown /r /t 0 /c \"initial reboot\"</CommandLine><Description>reboot</Description><Order>1</Order></SynchronousCommand></FirstLogonCommands>"
-//     }
-//   }
-
-//   network_profile {
-//     name    = "TestNetworkProfile-%[1]d"
-//     primary = true
-
-//     ip_configuration {
-//       name      = "TestIPConfiguration"
-//       primary   = true
-//       subnet_id = azurerm_subnet.test.id
-//     }
-//   }
-
-//   storage_profile_os_disk {
-//     name              = ""
-//     caching           = "ReadWrite"
-//     create_option     = "FromImage"
-//     managed_disk_type = "Standard_LRS"
-//   }
-
-//   storage_profile_image_reference {
-//     publisher = "MicrosoftWindowsServer"
-//     offer     = "WindowsServer"
-//     sku       = "2016-Datacenter-Server-Core"
-//     version   = "latest"
-//   }
-// }
-// `, data.RandomInteger, data.Locations.Primary, vmSize)
-// }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicLinux_managedDiskNoName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
@@ -4176,7 +4000,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-	network_profile {
+  network_profile {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -4909,145 +4733,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
-
-// Not Supported yet
-// func (OrchestratedVirtualMachineScaleSetResource) upgradeModeUpdate(data acceptance.TestData, mode string) string {
-// 	policy := ""
-// 	if mode == "Rolling" {
-// 		policy = `
-//   rolling_upgrade_policy {
-//     max_batch_instance_percent              = 21
-//     max_unhealthy_instance_percent          = 22
-//     max_unhealthy_upgraded_instance_percent = 23
-//   }`
-// 	}
-
-// 	return fmt.Sprintf(`
-// provider "azurerm" {
-//   features {}
-// }
-
-// resource "azurerm_resource_group" "test" {
-//   name     = "acctestRG-OVMSS-%[1]d"
-//   location = "%[2]s"
-// }
-
-// resource "azurerm_virtual_network" "test" {
-//   name                = "acctvn-%[1]d"
-//   address_space       = ["10.0.0.0/8"]
-//   location            = azurerm_resource_group.test.location
-//   resource_group_name = azurerm_resource_group.test.name
-// }
-
-// resource "azurerm_subnet" "test" {
-//   name                 = "acctsub-%[1]d"
-//   resource_group_name  = azurerm_resource_group.test.name
-//   virtual_network_name = azurerm_virtual_network.test.name
-//   address_prefix       = "10.0.0.0/16"
-// }
-
-// resource "azurerm_public_ip" "test" {
-//   name                    = "acctestpip-%[1]d"
-//   location                = azurerm_resource_group.test.location
-//   resource_group_name     = azurerm_resource_group.test.name
-//   allocation_method       = "Dynamic"
-//   idle_timeout_in_minutes = 4
-// }
-
-// resource "azurerm_lb" "test" {
-//   name                = "acctestlb-%[1]d"
-//   location            = azurerm_resource_group.test.location
-//   resource_group_name = azurerm_resource_group.test.name
-
-//   frontend_ip_configuration {
-//     name                 = "PublicIPAddress"
-//     public_ip_address_id = azurerm_public_ip.test.id
-//   }
-// }
-
-// resource "azurerm_lb_rule" "test" {
-//   resource_group_name            = azurerm_resource_group.test.name
-//   loadbalancer_id                = azurerm_lb.test.id
-//   name                           = "AccTestLBRule"
-//   protocol                       = "Tcp"
-//   frontend_port                  = 22
-//   backend_port                   = 22
-//   frontend_ip_configuration_name = "PublicIPAddress"
-//   probe_id                       = azurerm_lb_probe.test.id
-//   backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
-// }
-
-// resource "azurerm_lb_probe" "test" {
-//   resource_group_name = azurerm_resource_group.test.name
-//   loadbalancer_id     = azurerm_lb.test.id
-//   name                = "acctest-lb-probe"
-//   port                = 22
-//   protocol            = "Tcp"
-// }
-
-// resource "azurerm_lb_backend_address_pool" "test" {
-//   name                = "acctestbapool"
-//   resource_group_name = azurerm_resource_group.test.name
-//   loadbalancer_id     = azurerm_lb.test.id
-// }
-
-// resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-//   name                = "acctovmss-%[1]d"
-//   location            = azurerm_resource_group.test.location
-//   resource_group_name = azurerm_resource_group.test.name
-
-//   upgrade_policy_mode = "%[3]s"
-//   health_probe_id     = azurerm_lb_probe.test.id
-//   depends_on          = [azurerm_lb_rule.test]
-
-//   %[4]s
-
-//   sku_name = "Standard_F2_1"
-
-//   os_profile {
-//     linux_configuration {
-//       computer_name_prefix = "testvm-%[1]d"
-//       admin_username       = "myadmin"
-//       admin_password       = "Passwword1234"
-//     }
-//   }
-
-//   network_profile {
-//     name    = "TestNetworkProfile"
-//     primary = true
-
-//     ip_configuration {
-//       name                                   = "TestIPConfiguration"
-//       subnet_id                              = azurerm_subnet.test.id
-//       load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-//       primary                                = true
-//     }
-//   }
-
-//   storage_profile_os_disk {
-//     name              = ""
-//     caching           = "ReadWrite"
-//     create_option     = "FromImage"
-//     managed_disk_type = "Standard_LRS"
-//   }
-
-//   storage_profile_data_disk {
-//     lun               = 0
-//     caching           = "ReadWrite"
-//     create_option     = "Empty"
-//     disk_size_gb      = 10
-//     managed_disk_type = "Standard_LRS"
-//   }
-
-//   storage_profile_image_reference {
-//     publisher = "Canonical"
-//     offer     = "UbuntuServer"
-//     sku       = "16.04-LTS"
-//     version   = "latest"
-//   }
-// }
-// `, data.RandomInteger, data.Locations.Primary, mode, policy)
-// }
 
 func (OrchestratedVirtualMachineScaleSetResource) multipleAssignedMSI(data acceptance.TestData) string {
 	return fmt.Sprintf(`
