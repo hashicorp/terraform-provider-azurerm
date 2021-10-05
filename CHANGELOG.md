@@ -1,3 +1,10 @@
+## 2.80 (Unreleased)
+
+IMPROVEMENTS:
+
+* Data Source `azurerm_public_ips` Deprecate `attached` for `attachment_status` to improve filtering [GH-13500]
+
+
 ## 2.79.1 (October 01, 2021)
 
 BUG FIXES: 
