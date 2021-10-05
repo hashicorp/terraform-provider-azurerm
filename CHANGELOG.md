@@ -1,5 +1,9 @@
 ## 2.80 (Unreleased)
 
+BUG FIXES:
+
+* `azurerm_function_app` - fix regressions in function app storage introduced in v2.77 [GH-13580]
+
 IMPROVEMENTS:
 
 * Data Source `azurerm_public_ips` - Deprecate `attached` for `attachment_status` to improve filtering [GH-13500]
