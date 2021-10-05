@@ -36,7 +36,8 @@ func NewManagedDatabasesClientWithBaseURI(baseURI string, subscriptionID string)
 
 // CompleteRestore completes the restore operation on a managed database.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
 // managedInstanceName - the name of the managed instance.
 // databaseName - the name of the database.
 // parameters - the definition for completing the restore of this managed database.
@@ -52,10 +53,6 @@ func (client ManagedDatabasesClient) CompleteRestore(ctx context.Context, resour
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.LastBackupName", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("sql.ManagedDatabasesClient", "CompleteRestore", err.Error())
@@ -128,7 +125,8 @@ func (client ManagedDatabasesClient) CompleteRestoreResponder(resp *http.Respons
 
 // CreateOrUpdate creates a new database or updates an existing database.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
 // managedInstanceName - the name of the managed instance.
 // databaseName - the name of the database.
 // parameters - the requested database resource state.
@@ -143,14 +141,6 @@ func (client ManagedDatabasesClient) CreateOrUpdate(ctx context.Context, resourc
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("sql.ManagedDatabasesClient", "CreateOrUpdate", err.Error())
-	}
-
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, managedInstanceName, databaseName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -219,7 +209,8 @@ func (client ManagedDatabasesClient) CreateOrUpdateResponder(resp *http.Response
 
 // Delete deletes a managed database.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
 // managedInstanceName - the name of the managed instance.
 // databaseName - the name of the database.
 func (client ManagedDatabasesClient) Delete(ctx context.Context, resourceGroupName string, managedInstanceName string, databaseName string) (result ManagedDatabasesDeleteFuture, err error) {
@@ -233,14 +224,6 @@ func (client ManagedDatabasesClient) Delete(ctx context.Context, resourceGroupNa
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("sql.ManagedDatabasesClient", "Delete", err.Error())
-	}
-
 	req, err := client.DeletePreparer(ctx, resourceGroupName, managedInstanceName, databaseName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "Delete", nil, "Failure preparing request")
@@ -306,7 +289,8 @@ func (client ManagedDatabasesClient) DeleteResponder(resp *http.Response) (resul
 
 // Get gets a managed database.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
 // managedInstanceName - the name of the managed instance.
 // databaseName - the name of the database.
 func (client ManagedDatabasesClient) Get(ctx context.Context, resourceGroupName string, managedInstanceName string, databaseName string) (result ManagedDatabase, err error) {
@@ -320,14 +304,6 @@ func (client ManagedDatabasesClient) Get(ctx context.Context, resourceGroupName 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("sql.ManagedDatabasesClient", "Get", err.Error())
-	}
-
 	req, err := client.GetPreparer(ctx, resourceGroupName, managedInstanceName, databaseName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "Get", nil, "Failure preparing request")
@@ -392,7 +368,8 @@ func (client ManagedDatabasesClient) GetResponder(resp *http.Response) (result M
 
 // ListByInstance gets a list of managed databases.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
 // managedInstanceName - the name of the managed instance.
 func (client ManagedDatabasesClient) ListByInstance(ctx context.Context, resourceGroupName string, managedInstanceName string) (result ManagedDatabaseListResultPage, err error) {
 	if tracing.IsEnabled() {
@@ -405,14 +382,6 @@ func (client ManagedDatabasesClient) ListByInstance(ctx context.Context, resourc
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("sql.ManagedDatabasesClient", "ListByInstance", err.Error())
-	}
-
 	result.fn = client.listByInstanceNextResults
 	req, err := client.ListByInstancePreparer(ctx, resourceGroupName, managedInstanceName)
 	if err != nil {
@@ -518,7 +487,8 @@ func (client ManagedDatabasesClient) ListByInstanceComplete(ctx context.Context,
 
 // ListInaccessibleByInstance gets a list of inaccessible managed databases in a managed instance
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
 // managedInstanceName - the name of the managed instance.
 func (client ManagedDatabasesClient) ListInaccessibleByInstance(ctx context.Context, resourceGroupName string, managedInstanceName string) (result ManagedDatabaseListResultPage, err error) {
 	if tracing.IsEnabled() {
@@ -531,14 +501,6 @@ func (client ManagedDatabasesClient) ListInaccessibleByInstance(ctx context.Cont
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("sql.ManagedDatabasesClient", "ListInaccessibleByInstance", err.Error())
-	}
-
 	result.fn = client.listInaccessibleByInstanceNextResults
 	req, err := client.ListInaccessibleByInstancePreparer(ctx, resourceGroupName, managedInstanceName)
 	if err != nil {
@@ -644,7 +606,8 @@ func (client ManagedDatabasesClient) ListInaccessibleByInstanceComplete(ctx cont
 
 // Update updates an existing database.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
 // managedInstanceName - the name of the managed instance.
 // databaseName - the name of the database.
 // parameters - the requested database resource state.
@@ -659,14 +622,6 @@ func (client ManagedDatabasesClient) Update(ctx context.Context, resourceGroupNa
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("sql.ManagedDatabasesClient", "Update", err.Error())
-	}
-
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, managedInstanceName, databaseName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "Update", nil, "Failure preparing request")

@@ -203,8 +203,9 @@ func (client ManagedInstancesClient) DeleteResponder(resp *http.Response) (resul
 
 // Failover failovers a managed instance.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
-// managedInstanceName - the name of the managed instance.
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// managedInstanceName - the name of the managed instance to failover.
 // replicaType - the type of replica to be failed over.
 func (client ManagedInstancesClient) Failover(ctx context.Context, resourceGroupName string, managedInstanceName string, replicaType ReplicaType) (result ManagedInstancesFailoverFuture, err error) {
 	if tracing.IsEnabled() {
@@ -217,14 +218,6 @@ func (client ManagedInstancesClient) Failover(ctx context.Context, resourceGroup
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("sql.ManagedInstancesClient", "Failover", err.Error())
-	}
-
 	req, err := client.FailoverPreparer(ctx, resourceGroupName, managedInstanceName, replicaType)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "Failover", nil, "Failure preparing request")
@@ -248,7 +241,7 @@ func (client ManagedInstancesClient) FailoverPreparer(ctx context.Context, resou
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01-preview"
+	const APIVersion = "2020-02-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -596,6 +589,154 @@ func (client ManagedInstancesClient) ListByInstancePoolComplete(ctx context.Cont
 		}()
 	}
 	result.page, err = client.ListByInstancePool(ctx, resourceGroupName, instancePoolName)
+	return
+}
+
+// ListByManagedInstance get top resource consuming queries of a managed instance.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// managedInstanceName - the name of the managed instance.
+// numberOfQueries - how many 'top queries' to return. Default is 5.
+// databases - comma separated list of databases to be included into search. All DB's are included if this
+// parameter is not specified.
+// startTime - start time for observed period.
+// endTime - end time for observed period.
+// interval - the time step to be used to summarize the metric values. Default value is PT1H
+// aggregationFunction - aggregation function to be used, default value is 'sum'
+// observationMetric - metric to be used for ranking top queries. Default is 'cpu'
+func (client ManagedInstancesClient) ListByManagedInstance(ctx context.Context, resourceGroupName string, managedInstanceName string, numberOfQueries *int32, databases string, startTime string, endTime string, interval QueryTimeGrainType, aggregationFunction AggregationFunctionType, observationMetric MetricType) (result TopQueriesListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstancesClient.ListByManagedInstance")
+		defer func() {
+			sc := -1
+			if result.tqlr.Response.Response != nil {
+				sc = result.tqlr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.listByManagedInstanceNextResults
+	req, err := client.ListByManagedInstancePreparer(ctx, resourceGroupName, managedInstanceName, numberOfQueries, databases, startTime, endTime, interval, aggregationFunction, observationMetric)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "ListByManagedInstance", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListByManagedInstanceSender(req)
+	if err != nil {
+		result.tqlr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "ListByManagedInstance", resp, "Failure sending request")
+		return
+	}
+
+	result.tqlr, err = client.ListByManagedInstanceResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "ListByManagedInstance", resp, "Failure responding to request")
+		return
+	}
+	if result.tqlr.hasNextLink() && result.tqlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
+	}
+
+	return
+}
+
+// ListByManagedInstancePreparer prepares the ListByManagedInstance request.
+func (client ManagedInstancesClient) ListByManagedInstancePreparer(ctx context.Context, resourceGroupName string, managedInstanceName string, numberOfQueries *int32, databases string, startTime string, endTime string, interval QueryTimeGrainType, aggregationFunction AggregationFunctionType, observationMetric MetricType) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"managedInstanceName": autorest.Encode("path", managedInstanceName),
+		"resourceGroupName":   autorest.Encode("path", resourceGroupName),
+		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-02-02-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if numberOfQueries != nil {
+		queryParameters["numberOfQueries"] = autorest.Encode("query", *numberOfQueries)
+	}
+	if len(databases) > 0 {
+		queryParameters["databases"] = autorest.Encode("query", databases)
+	}
+	if len(startTime) > 0 {
+		queryParameters["startTime"] = autorest.Encode("query", startTime)
+	}
+	if len(endTime) > 0 {
+		queryParameters["endTime"] = autorest.Encode("query", endTime)
+	}
+	if len(string(interval)) > 0 {
+		queryParameters["interval"] = autorest.Encode("query", interval)
+	}
+	if len(string(aggregationFunction)) > 0 {
+		queryParameters["aggregationFunction"] = autorest.Encode("query", aggregationFunction)
+	}
+	if len(string(observationMetric)) > 0 {
+		queryParameters["observationMetric"] = autorest.Encode("query", observationMetric)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/managedInstances/{managedInstanceName}/topqueries", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListByManagedInstanceSender sends the ListByManagedInstance request. The method will close the
+// http.Response Body if it receives an error.
+func (client ManagedInstancesClient) ListByManagedInstanceSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListByManagedInstanceResponder handles the response to the ListByManagedInstance request. The method always
+// closes the http.Response Body.
+func (client ManagedInstancesClient) ListByManagedInstanceResponder(resp *http.Response) (result TopQueriesListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listByManagedInstanceNextResults retrieves the next set of results, if any.
+func (client ManagedInstancesClient) listByManagedInstanceNextResults(ctx context.Context, lastResults TopQueriesListResult) (result TopQueriesListResult, err error) {
+	req, err := lastResults.topQueriesListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "listByManagedInstanceNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListByManagedInstanceSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "listByManagedInstanceNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListByManagedInstanceResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "listByManagedInstanceNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListByManagedInstanceComplete enumerates all values, automatically crossing page boundaries as required.
+func (client ManagedInstancesClient) ListByManagedInstanceComplete(ctx context.Context, resourceGroupName string, managedInstanceName string, numberOfQueries *int32, databases string, startTime string, endTime string, interval QueryTimeGrainType, aggregationFunction AggregationFunctionType, observationMetric MetricType) (result TopQueriesListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstancesClient.ListByManagedInstance")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListByManagedInstance(ctx, resourceGroupName, managedInstanceName, numberOfQueries, databases, startTime, endTime, interval, aggregationFunction, observationMetric)
 	return
 }
 

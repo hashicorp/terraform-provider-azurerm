@@ -19,7 +19,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v4.0/sql"
 
 // AdministratorListResult a list of active directory administrators.
 type AdministratorListResult struct {
@@ -2069,8 +2069,10 @@ type DatabaseProperties struct {
 	EarliestRestoreDate *date.Time `json:"earliestRestoreDate,omitempty"`
 	// ReadScale - The state of read-only routing. If enabled, connections that have application intent set to readonly in their connection string may be routed to a readonly secondary replica in the same region. Possible values include: 'DatabaseReadScaleEnabled', 'DatabaseReadScaleDisabled'
 	ReadScale DatabaseReadScale `json:"readScale,omitempty"`
-	// ReadReplicaCount - The number of readonly secondary replicas associated with the database.
-	ReadReplicaCount *int32 `json:"readReplicaCount,omitempty"`
+	// HighAvailabilityReplicaCount - The number of secondary replicas associated with the database that are used to provide high availability.
+	HighAvailabilityReplicaCount *int32 `json:"highAvailabilityReplicaCount,omitempty"`
+	// SecondaryType - The secondary type of the database if it is a secondary.  Valid values are Geo and Named. Possible values include: 'Geo', 'Named'
+	SecondaryType SecondaryType `json:"secondaryType,omitempty"`
 	// CurrentSku - READ-ONLY; The name and tier of the SKU.
 	CurrentSku *Sku `json:"currentSku,omitempty"`
 	// AutoPauseDelay - Time in minutes after which database is automatically paused. A value of -1 means that automatic pause is disabled
@@ -2083,6 +2085,8 @@ type DatabaseProperties struct {
 	PausedDate *date.Time `json:"pausedDate,omitempty"`
 	// ResumedDate - READ-ONLY; The date when database was resumed by user action or database login (ISO8601 format). Null if the database is paused.
 	ResumedDate *date.Time `json:"resumedDate,omitempty"`
+	// MaintenanceConfigurationID - Maintenance configuration id assigned to the database. This configuration defines the period when the maintenance updates will occur.
+	MaintenanceConfigurationID *string `json:"maintenanceConfigurationId,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for DatabaseProperties.
@@ -2136,8 +2140,11 @@ func (dp DatabaseProperties) MarshalJSON() ([]byte, error) {
 	if dp.ReadScale != "" {
 		objectMap["readScale"] = dp.ReadScale
 	}
-	if dp.ReadReplicaCount != nil {
-		objectMap["readReplicaCount"] = dp.ReadReplicaCount
+	if dp.HighAvailabilityReplicaCount != nil {
+		objectMap["highAvailabilityReplicaCount"] = dp.HighAvailabilityReplicaCount
+	}
+	if dp.SecondaryType != "" {
+		objectMap["secondaryType"] = dp.SecondaryType
 	}
 	if dp.AutoPauseDelay != nil {
 		objectMap["autoPauseDelay"] = dp.AutoPauseDelay
@@ -2147,6 +2154,9 @@ func (dp DatabaseProperties) MarshalJSON() ([]byte, error) {
 	}
 	if dp.MinCapacity != nil {
 		objectMap["minCapacity"] = dp.MinCapacity
+	}
+	if dp.MaintenanceConfigurationID != nil {
+		objectMap["maintenanceConfigurationId"] = dp.MaintenanceConfigurationID
 	}
 	return json.Marshal(objectMap)
 }
@@ -4414,6 +4424,8 @@ type ElasticPoolPerformanceLevelCapability struct {
 	SupportedPerDatabaseMaxPerformanceLevels *[]ElasticPoolPerDatabaseMaxPerformanceLevelCapability `json:"supportedPerDatabaseMaxPerformanceLevels,omitempty"`
 	// ZoneRedundant - READ-ONLY; Whether or not zone redundancy is supported for the performance level.
 	ZoneRedundant *bool `json:"zoneRedundant,omitempty"`
+	// SupportedMaintenanceConfigurations - READ-ONLY; List of supported maintenance configurations
+	SupportedMaintenanceConfigurations *[]MaintenanceConfigurationCapability `json:"supportedMaintenanceConfigurations,omitempty"`
 	// Status - READ-ONLY; The status of the capability. Possible values include: 'CapabilityStatusVisible', 'CapabilityStatusAvailable', 'CapabilityStatusDefault', 'CapabilityStatusDisabled'
 	Status CapabilityStatus `json:"status,omitempty"`
 	// Reason - The reason for the capability not being available.
@@ -4443,6 +4455,8 @@ type ElasticPoolProperties struct {
 	ZoneRedundant *bool `json:"zoneRedundant,omitempty"`
 	// LicenseType - The license type to apply for this elastic pool. Possible values include: 'ElasticPoolLicenseTypeLicenseIncluded', 'ElasticPoolLicenseTypeBasePrice'
 	LicenseType ElasticPoolLicenseType `json:"licenseType,omitempty"`
+	// MaintenanceConfigurationID - Maintenance configuration id assigned to the elastic pool. This configuration defines the period when the maintenance updates will will occur.
+	MaintenanceConfigurationID *string `json:"maintenanceConfigurationId,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ElasticPoolProperties.
@@ -4459,6 +4473,9 @@ func (epp ElasticPoolProperties) MarshalJSON() ([]byte, error) {
 	}
 	if epp.LicenseType != "" {
 		objectMap["licenseType"] = epp.LicenseType
+	}
+	if epp.MaintenanceConfigurationID != nil {
+		objectMap["maintenanceConfigurationId"] = epp.MaintenanceConfigurationID
 	}
 	return json.Marshal(objectMap)
 }
@@ -4699,6 +4716,8 @@ type ElasticPoolUpdateProperties struct {
 	ZoneRedundant *bool `json:"zoneRedundant,omitempty"`
 	// LicenseType - The license type to apply for this elastic pool. Possible values include: 'ElasticPoolLicenseTypeLicenseIncluded', 'ElasticPoolLicenseTypeBasePrice'
 	LicenseType ElasticPoolLicenseType `json:"licenseType,omitempty"`
+	// MaintenanceConfigurationID - Maintenance configuration id assigned to the elastic pool. This configuration defines the period when the maintenance updates will will occur.
+	MaintenanceConfigurationID *string `json:"maintenanceConfigurationId,omitempty"`
 }
 
 // EncryptionProtector the server encryption protector.
@@ -10475,6 +10494,27 @@ type LongTermRetentionPolicyProperties struct {
 	WeekOfYear *int32 `json:"weekOfYear,omitempty"`
 }
 
+// MaintenanceConfigurationCapability the maintenance configuration capability
+type MaintenanceConfigurationCapability struct {
+	// Name - READ-ONLY; Maintenance configuration name
+	Name *string `json:"name,omitempty"`
+	// ZoneRedundant - READ-ONLY; Whether or not zone redundancy is supported for the maintenance configuration.
+	ZoneRedundant *bool `json:"zoneRedundant,omitempty"`
+	// Status - READ-ONLY; The status of the capability. Possible values include: 'CapabilityStatusVisible', 'CapabilityStatusAvailable', 'CapabilityStatusDefault', 'CapabilityStatusDisabled'
+	Status CapabilityStatus `json:"status,omitempty"`
+	// Reason - The reason for the capability not being available.
+	Reason *string `json:"reason,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MaintenanceConfigurationCapability.
+func (mcc MaintenanceConfigurationCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mcc.Reason != nil {
+		objectMap["reason"] = mcc.Reason
+	}
+	return json.Marshal(objectMap)
+}
+
 // ManagedBackupShortTermRetentionPoliciesCreateOrUpdateFuture an abstraction for monitoring and retrieving
 // the results of a long-running operation.
 type ManagedBackupShortTermRetentionPoliciesCreateOrUpdateFuture struct {
@@ -12539,6 +12579,10 @@ type ManagedInstanceEditionCapability struct {
 	Name *string `json:"name,omitempty"`
 	// SupportedFamilies - READ-ONLY; The supported families.
 	SupportedFamilies *[]ManagedInstanceFamilyCapability `json:"supportedFamilies,omitempty"`
+	// SupportedStorageCapabilities - READ-ONLY; The list of supported storage capabilities for this edition
+	SupportedStorageCapabilities *[]StorageCapability `json:"supportedStorageCapabilities,omitempty"`
+	// ZoneRedundant - READ-ONLY; Whether or not zone redundancy is supported for the edition.
+	ZoneRedundant *bool `json:"zoneRedundant,omitempty"`
 	// Status - READ-ONLY; The status of the capability. Possible values include: 'CapabilityStatusVisible', 'CapabilityStatusAvailable', 'CapabilityStatusDefault', 'CapabilityStatusDisabled'
 	Status CapabilityStatus `json:"status,omitempty"`
 	// Reason - The reason for the capability not being available.
@@ -13998,6 +14042,25 @@ func NewManagedInstanceLongTermRetentionPolicyListResultPage(cur ManagedInstance
 	}
 }
 
+// ManagedInstanceMaintenanceConfigurationCapability the maintenance configuration capability
+type ManagedInstanceMaintenanceConfigurationCapability struct {
+	// Name - READ-ONLY; Maintenance configuration name
+	Name *string `json:"name,omitempty"`
+	// Status - READ-ONLY; The status of the capability. Possible values include: 'CapabilityStatusVisible', 'CapabilityStatusAvailable', 'CapabilityStatusDefault', 'CapabilityStatusDisabled'
+	Status CapabilityStatus `json:"status,omitempty"`
+	// Reason - The reason for the capability not being available.
+	Reason *string `json:"reason,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedInstanceMaintenanceConfigurationCapability.
+func (mimcc ManagedInstanceMaintenanceConfigurationCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mimcc.Reason != nil {
+		objectMap["reason"] = mimcc.Reason
+	}
+	return json.Marshal(objectMap)
+}
+
 // ManagedInstanceOperation a managed instance operation.
 type ManagedInstanceOperation struct {
 	autorest.Response `json:"-"`
@@ -14315,6 +14378,48 @@ type ManagedInstancePairInfo struct {
 	PartnerManagedInstanceID *string `json:"partnerManagedInstanceId,omitempty"`
 }
 
+// ManagedInstancePecProperty a private endpoint connection under a managed instance
+type ManagedInstancePecProperty struct {
+	// ID - READ-ONLY; Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Properties - READ-ONLY; Private endpoint connection properties
+	Properties *ManagedInstancePrivateEndpointConnectionProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedInstancePecProperty.
+func (mipp ManagedInstancePecProperty) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// ManagedInstancePrivateEndpointConnectionProperties properties of a private endpoint connection.
+type ManagedInstancePrivateEndpointConnectionProperties struct {
+	// PrivateEndpoint - Private endpoint which the connection belongs to.
+	PrivateEndpoint *ManagedInstancePrivateEndpointProperty `json:"privateEndpoint,omitempty"`
+	// PrivateLinkServiceConnectionState - Connection State of the Private Endpoint Connection.
+	PrivateLinkServiceConnectionState *ManagedInstancePrivateLinkServiceConnectionStateProperty `json:"privateLinkServiceConnectionState,omitempty"`
+	// ProvisioningState - READ-ONLY; State of the Private Endpoint Connection.
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedInstancePrivateEndpointConnectionProperties.
+func (mipecp ManagedInstancePrivateEndpointConnectionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mipecp.PrivateEndpoint != nil {
+		objectMap["privateEndpoint"] = mipecp.PrivateEndpoint
+	}
+	if mipecp.PrivateLinkServiceConnectionState != nil {
+		objectMap["privateLinkServiceConnectionState"] = mipecp.PrivateLinkServiceConnectionState
+	}
+	return json.Marshal(objectMap)
+}
+
+// ManagedInstancePrivateEndpointProperty ...
+type ManagedInstancePrivateEndpointProperty struct {
+	// ID - Resource id of the private endpoint.
+	ID *string `json:"id,omitempty"`
+}
+
 // ManagedInstancePrivateLinkServiceConnectionStateProperty ...
 type ManagedInstancePrivateLinkServiceConnectionStateProperty struct {
 	// Status - The private link service connection status.
@@ -14388,10 +14493,14 @@ type ManagedInstanceProperties struct {
 	InstancePoolID *string `json:"instancePoolId,omitempty"`
 	// MaintenanceConfigurationID - Specifies maintenance configuration id to apply to this managed instance.
 	MaintenanceConfigurationID *string `json:"maintenanceConfigurationId,omitempty"`
+	// PrivateEndpointConnections - READ-ONLY; List of private endpoint connections on a managed instance.
+	PrivateEndpointConnections *[]ManagedInstancePecProperty `json:"privateEndpointConnections,omitempty"`
 	// MinimalTLSVersion - Minimal TLS version. Allowed values: 'None', '1.0', '1.1', '1.2'
 	MinimalTLSVersion *string `json:"minimalTlsVersion,omitempty"`
 	// StorageAccountType - The storage account type used to store backups for this instance. The options are LRS (LocallyRedundantStorage), ZRS (ZoneRedundantStorage) and GRS (GeoRedundantStorage). Possible values include: 'GRS', 'LRS', 'ZRS'
 	StorageAccountType StorageAccountType `json:"storageAccountType,omitempty"`
+	// ZoneRedundant - Whether or not the multi-az is enabled.
+	ZoneRedundant *bool `json:"zoneRedundant,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedInstanceProperties.
@@ -14450,6 +14559,9 @@ func (mip ManagedInstanceProperties) MarshalJSON() ([]byte, error) {
 	}
 	if mip.StorageAccountType != "" {
 		objectMap["storageAccountType"] = mip.StorageAccountType
+	}
+	if mip.ZoneRedundant != nil {
+		objectMap["zoneRedundant"] = mip.ZoneRedundant
 	}
 	return json.Marshal(objectMap)
 }
@@ -14655,6 +14767,8 @@ func (future *ManagedInstanceTdeCertificatesCreateFuture) result(client ManagedI
 type ManagedInstanceUpdate struct {
 	// Sku - Managed instance sku
 	Sku *Sku `json:"sku,omitempty"`
+	// Identity - Managed instance identity
+	Identity *ResourceIdentity `json:"identity,omitempty"`
 	// ManagedInstanceProperties - Resource properties.
 	*ManagedInstanceProperties `json:"properties,omitempty"`
 	// Tags - Resource tags.
@@ -14666,6 +14780,9 @@ func (miu ManagedInstanceUpdate) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if miu.Sku != nil {
 		objectMap["sku"] = miu.Sku
+	}
+	if miu.Identity != nil {
+		objectMap["identity"] = miu.Identity
 	}
 	if miu.ManagedInstanceProperties != nil {
 		objectMap["properties"] = miu.ManagedInstanceProperties
@@ -14693,6 +14810,15 @@ func (miu *ManagedInstanceUpdate) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				miu.Sku = &sku
+			}
+		case "identity":
+			if v != nil {
+				var identity ResourceIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				miu.Identity = &identity
 			}
 		case "properties":
 			if v != nil {
@@ -14732,6 +14858,8 @@ type ManagedInstanceVcoresCapability struct {
 	InstancePoolSupported *bool `json:"instancePoolSupported,omitempty"`
 	// StandaloneSupported - READ-ONLY; True if this service objective is supported for standalone managed instances.
 	StandaloneSupported *bool `json:"standaloneSupported,omitempty"`
+	// SupportedMaintenanceConfigurations - READ-ONLY; List of supported maintenance configurations
+	SupportedMaintenanceConfigurations *[]ManagedInstanceMaintenanceConfigurationCapability `json:"supportedMaintenanceConfigurations,omitempty"`
 	// Status - READ-ONLY; The status of the capability. Possible values include: 'CapabilityStatusVisible', 'CapabilityStatusAvailable', 'CapabilityStatusDefault', 'CapabilityStatusDisabled'
 	Status CapabilityStatus `json:"status,omitempty"`
 	// Reason - The reason for the capability not being available.
@@ -15472,7 +15600,7 @@ func (ma MetricAvailability) MarshalJSON() ([]byte, error) {
 type MetricDefinition struct {
 	// Name - READ-ONLY; The name information for the metric.
 	Name *MetricName `json:"name,omitempty"`
-	// PrimaryAggregationType - READ-ONLY; The primary aggregation type defining how metric values are displayed. Possible values include: 'None', 'Average', 'Count', 'Minimum', 'Maximum', 'Total'
+	// PrimaryAggregationType - READ-ONLY; The primary aggregation type defining how metric values are displayed. Possible values include: 'PrimaryAggregationTypeNone', 'PrimaryAggregationTypeAverage', 'PrimaryAggregationTypeCount', 'PrimaryAggregationTypeMinimum', 'PrimaryAggregationTypeMaximum', 'PrimaryAggregationTypeTotal'
 	PrimaryAggregationType PrimaryAggregationType `json:"primaryAggregationType,omitempty"`
 	// ResourceURI - READ-ONLY; The resource uri of the database.
 	ResourceURI *string `json:"resourceUri,omitempty"`
@@ -15579,7 +15707,7 @@ type Operation struct {
 	Name *string `json:"name,omitempty"`
 	// Display - READ-ONLY; The localized display information for this particular operation / action.
 	Display *OperationDisplay `json:"display,omitempty"`
-	// Origin - READ-ONLY; The intended executor of the operation. Possible values include: 'User', 'System'
+	// Origin - READ-ONLY; The intended executor of the operation. Possible values include: 'OperationOriginUser', 'OperationOriginSystem'
 	Origin OperationOrigin `json:"origin,omitempty"`
 	// Properties - READ-ONLY; Additional descriptions for the operation.
 	Properties map[string]interface{} `json:"properties"`
@@ -16439,6 +16567,78 @@ type ProxyResource struct {
 // MarshalJSON is the custom marshaler for ProxyResource.
 func (pr ProxyResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// QueryMetricInterval properties of a query metrics interval.
+type QueryMetricInterval struct {
+	// IntervalStartTime - READ-ONLY; The start time for the metric interval (ISO-8601 format).
+	IntervalStartTime *string `json:"intervalStartTime,omitempty"`
+	// IntervalType - READ-ONLY; Interval type (length). Possible values include: 'PT1H', 'P1D'
+	IntervalType QueryTimeGrainType `json:"intervalType,omitempty"`
+	// ExecutionCount - READ-ONLY; Execution count of a query in this interval.
+	ExecutionCount *int64 `json:"executionCount,omitempty"`
+	// Metrics - List of metric objects for this interval
+	Metrics *[]QueryMetricProperties `json:"metrics,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for QueryMetricInterval.
+func (qmi QueryMetricInterval) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if qmi.Metrics != nil {
+		objectMap["metrics"] = qmi.Metrics
+	}
+	return json.Marshal(objectMap)
+}
+
+// QueryMetricProperties properties of a topquery metric in one interval.
+type QueryMetricProperties struct {
+	// Name - READ-ONLY; The name information for the metric.
+	Name *string `json:"name,omitempty"`
+	// DisplayName - READ-ONLY; The UI appropriate name for the metric.
+	DisplayName *string `json:"displayName,omitempty"`
+	// Unit - READ-ONLY; The unit of the metric. Possible values include: 'Percentage', 'KB', 'Microseconds', 'Count'
+	Unit QueryMetricUnitType `json:"unit,omitempty"`
+	// Value - READ-ONLY; The value of the metric.
+	Value *float64 `json:"value,omitempty"`
+	// Min - READ-ONLY; Metric value when min() aggregate function is used over the interval.
+	Min *float64 `json:"min,omitempty"`
+	// Max - READ-ONLY; Metric value when max() aggregate function is used over the interval.
+	Max *float64 `json:"max,omitempty"`
+	// Avg - READ-ONLY; Metric value when avg() aggregate function is used over the interval.
+	Avg *float64 `json:"avg,omitempty"`
+	// Sum - READ-ONLY; Metric value when sum() aggregate function is used over the interval.
+	Sum *float64 `json:"sum,omitempty"`
+	// Stdev - READ-ONLY; Metric value when stdev aggregate function is used over the interval.
+	Stdev *float64 `json:"stdev,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for QueryMetricProperties.
+func (qmp QueryMetricProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// QueryStatisticsProperties properties of a query execution statistics.
+type QueryStatisticsProperties struct {
+	// DatabaseName - READ-ONLY; Database name of the database in which this query was executed.
+	DatabaseName *string `json:"databaseName,omitempty"`
+	// QueryID - READ-ONLY; Unique query id (unique within one database).
+	QueryID *string `json:"queryId,omitempty"`
+	// StartTime - READ-ONLY; The start time for the metric (ISO-8601 format).
+	StartTime *string `json:"startTime,omitempty"`
+	// EndTime - READ-ONLY; The end time for the metric (ISO-8601 format).
+	EndTime *string `json:"endTime,omitempty"`
+	// Intervals - List of intervals with appropriate metric data
+	Intervals *[]QueryMetricInterval `json:"intervals,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for QueryStatisticsProperties.
+func (qsp QueryStatisticsProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if qsp.Intervals != nil {
+		objectMap["intervals"] = qsp.Intervals
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -17307,7 +17507,7 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 type ResourceIdentity struct {
 	// PrincipalID - READ-ONLY; The Azure Active Directory principal id.
 	PrincipalID *uuid.UUID `json:"principalId,omitempty"`
-	// Type - The identity type. Set this to 'SystemAssigned' in order to automatically create and assign an Azure Active Directory principal for the resource. Possible values include: 'SystemAssigned'
+	// Type - The identity type. Set this to 'SystemAssigned' in order to automatically create and assign an Azure Active Directory principal for the resource. Possible values include: 'None', 'SystemAssigned', 'UserAssigned'
 	Type IdentityType `json:"type,omitempty"`
 	// TenantID - READ-ONLY; The Azure Active Directory tenant id.
 	TenantID *uuid.UUID `json:"tenantId,omitempty"`
@@ -19357,6 +19557,327 @@ type ServerConnectionPolicyProperties struct {
 	ConnectionType ServerConnectionType `json:"connectionType,omitempty"`
 }
 
+// ServerDevOpsAuditingSettings a server DevOps auditing settings.
+type ServerDevOpsAuditingSettings struct {
+	autorest.Response `json:"-"`
+	// SystemData - READ-ONLY; SystemData of ServerDevOpsAuditSettingsResource.
+	SystemData *SystemData `json:"systemData,omitempty"`
+	// ServerDevOpsAuditSettingsProperties - Resource properties.
+	*ServerDevOpsAuditSettingsProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerDevOpsAuditingSettings.
+func (sdoas ServerDevOpsAuditingSettings) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sdoas.ServerDevOpsAuditSettingsProperties != nil {
+		objectMap["properties"] = sdoas.ServerDevOpsAuditSettingsProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ServerDevOpsAuditingSettings struct.
+func (sdoas *ServerDevOpsAuditingSettings) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				sdoas.SystemData = &systemData
+			}
+		case "properties":
+			if v != nil {
+				var serverDevOpsAuditSettingsProperties ServerDevOpsAuditSettingsProperties
+				err = json.Unmarshal(*v, &serverDevOpsAuditSettingsProperties)
+				if err != nil {
+					return err
+				}
+				sdoas.ServerDevOpsAuditSettingsProperties = &serverDevOpsAuditSettingsProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				sdoas.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sdoas.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sdoas.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// ServerDevOpsAuditSettingsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
+type ServerDevOpsAuditSettingsCreateOrUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ServerDevOpsAuditSettingsClient) (ServerDevOpsAuditingSettings, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ServerDevOpsAuditSettingsCreateOrUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ServerDevOpsAuditSettingsCreateOrUpdateFuture.Result.
+func (future *ServerDevOpsAuditSettingsCreateOrUpdateFuture) result(client ServerDevOpsAuditSettingsClient) (sdoas ServerDevOpsAuditingSettings, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ServerDevOpsAuditSettingsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		sdoas.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("sql.ServerDevOpsAuditSettingsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if sdoas.Response.Response, err = future.GetResult(sender); err == nil && sdoas.Response.Response.StatusCode != http.StatusNoContent {
+		sdoas, err = client.CreateOrUpdateResponder(sdoas.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerDevOpsAuditSettingsCreateOrUpdateFuture", "Result", sdoas.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// ServerDevOpsAuditSettingsListResult a list of server DevOps audit settings.
+type ServerDevOpsAuditSettingsListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Array of results.
+	Value *[]ServerDevOpsAuditingSettings `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to retrieve next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerDevOpsAuditSettingsListResult.
+func (sdoaslr ServerDevOpsAuditSettingsListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// ServerDevOpsAuditSettingsListResultIterator provides access to a complete listing of
+// ServerDevOpsAuditingSettings values.
+type ServerDevOpsAuditSettingsListResultIterator struct {
+	i    int
+	page ServerDevOpsAuditSettingsListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ServerDevOpsAuditSettingsListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServerDevOpsAuditSettingsListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ServerDevOpsAuditSettingsListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ServerDevOpsAuditSettingsListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ServerDevOpsAuditSettingsListResultIterator) Response() ServerDevOpsAuditSettingsListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ServerDevOpsAuditSettingsListResultIterator) Value() ServerDevOpsAuditingSettings {
+	if !iter.page.NotDone() {
+		return ServerDevOpsAuditingSettings{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ServerDevOpsAuditSettingsListResultIterator type.
+func NewServerDevOpsAuditSettingsListResultIterator(page ServerDevOpsAuditSettingsListResultPage) ServerDevOpsAuditSettingsListResultIterator {
+	return ServerDevOpsAuditSettingsListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (sdoaslr ServerDevOpsAuditSettingsListResult) IsEmpty() bool {
+	return sdoaslr.Value == nil || len(*sdoaslr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (sdoaslr ServerDevOpsAuditSettingsListResult) hasNextLink() bool {
+	return sdoaslr.NextLink != nil && len(*sdoaslr.NextLink) != 0
+}
+
+// serverDevOpsAuditSettingsListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (sdoaslr ServerDevOpsAuditSettingsListResult) serverDevOpsAuditSettingsListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !sdoaslr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(sdoaslr.NextLink)))
+}
+
+// ServerDevOpsAuditSettingsListResultPage contains a page of ServerDevOpsAuditingSettings values.
+type ServerDevOpsAuditSettingsListResultPage struct {
+	fn      func(context.Context, ServerDevOpsAuditSettingsListResult) (ServerDevOpsAuditSettingsListResult, error)
+	sdoaslr ServerDevOpsAuditSettingsListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ServerDevOpsAuditSettingsListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServerDevOpsAuditSettingsListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.sdoaslr)
+		if err != nil {
+			return err
+		}
+		page.sdoaslr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ServerDevOpsAuditSettingsListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ServerDevOpsAuditSettingsListResultPage) NotDone() bool {
+	return !page.sdoaslr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ServerDevOpsAuditSettingsListResultPage) Response() ServerDevOpsAuditSettingsListResult {
+	return page.sdoaslr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ServerDevOpsAuditSettingsListResultPage) Values() []ServerDevOpsAuditingSettings {
+	if page.sdoaslr.IsEmpty() {
+		return nil
+	}
+	return *page.sdoaslr.Value
+}
+
+// Creates a new instance of the ServerDevOpsAuditSettingsListResultPage type.
+func NewServerDevOpsAuditSettingsListResultPage(cur ServerDevOpsAuditSettingsListResult, getNextPage func(context.Context, ServerDevOpsAuditSettingsListResult) (ServerDevOpsAuditSettingsListResult, error)) ServerDevOpsAuditSettingsListResultPage {
+	return ServerDevOpsAuditSettingsListResultPage{
+		fn:      getNextPage,
+		sdoaslr: cur,
+	}
+}
+
+// ServerDevOpsAuditSettingsProperties properties of a server DevOps audit settings.
+type ServerDevOpsAuditSettingsProperties struct {
+	// IsAzureMonitorTargetEnabled - Specifies whether DevOps audit events are sent to Azure Monitor.
+	// In order to send the events to Azure Monitor, specify 'State' as 'Enabled' and 'IsAzureMonitorTargetEnabled' as true.
+	//
+	// When using REST API to configure DevOps audit, Diagnostic Settings with 'DevOpsOperationsAudit' diagnostic logs category on the master database should be also created.
+	//
+	// Diagnostic Settings URI format:
+	// PUT https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Sql/servers/{serverName}/databases/master/providers/microsoft.insights/diagnosticSettings/{settingsName}?api-version=2017-05-01-preview
+	//
+	// For more information, see [Diagnostic Settings REST API](https://go.microsoft.com/fwlink/?linkid=2033207)
+	// or [Diagnostic Settings PowerShell](https://go.microsoft.com/fwlink/?linkid=2033043)
+	IsAzureMonitorTargetEnabled *bool `json:"isAzureMonitorTargetEnabled,omitempty"`
+	// State - Specifies the state of the audit. If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled are required. Possible values include: 'BlobAuditingPolicyStateEnabled', 'BlobAuditingPolicyStateDisabled'
+	State BlobAuditingPolicyState `json:"state,omitempty"`
+	// StorageEndpoint - Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled is required.
+	StorageEndpoint *string `json:"storageEndpoint,omitempty"`
+	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account.
+	// If state is Enabled and storageEndpoint is specified, not specifying the storageAccountAccessKey will use SQL server system-assigned managed identity to access the storage.
+	// Prerequisites for using managed identity authentication:
+	// 1. Assign SQL Server a system-assigned managed identity in Azure Active Directory (AAD).
+	// 2. Grant SQL Server identity access to the storage account by adding 'Storage Blob Data Contributor' RBAC role to the server identity.
+	// For more information, see [Auditing to storage using Managed Identity authentication](https://go.microsoft.com/fwlink/?linkid=2114355)
+	StorageAccountAccessKey *string `json:"storageAccountAccessKey,omitempty"`
+	// StorageAccountSubscriptionID - Specifies the blob storage subscription Id.
+	StorageAccountSubscriptionID *uuid.UUID `json:"storageAccountSubscriptionId,omitempty"`
+}
+
 // ServerDNSAlias a server DNS alias.
 type ServerDNSAlias struct {
 	autorest.Response `json:"-"`
@@ -21394,6 +21915,8 @@ type ServiceObjectiveCapability struct {
 	SupportedMinCapacities *[]MinCapacityCapability `json:"supportedMinCapacities,omitempty"`
 	// ComputeModel - READ-ONLY; The compute model
 	ComputeModel *string `json:"computeModel,omitempty"`
+	// SupportedMaintenanceConfigurations - READ-ONLY; List of supported maintenance configurations
+	SupportedMaintenanceConfigurations *[]MaintenanceConfigurationCapability `json:"supportedMaintenanceConfigurations,omitempty"`
 	// Status - READ-ONLY; The status of the capability. Possible values include: 'CapabilityStatusVisible', 'CapabilityStatusAvailable', 'CapabilityStatusDefault', 'CapabilityStatusDisabled'
 	Status CapabilityStatus `json:"status,omitempty"`
 	// Reason - The reason for the capability not being available.
@@ -24010,6 +24533,28 @@ func (future *SyncMembersUpdateFuture) result(client SyncMembersClient) (sm Sync
 	return
 }
 
+// SystemData metadata pertaining to creation and last modification of the resource.
+type SystemData struct {
+	// CreatedBy - READ-ONLY; A string identifier for the identity that created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+	// CreatedByType - READ-ONLY; The type of identity that created the resource: <User|Application|ManagedIdentity|Key>. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	CreatedByType CreatedByType `json:"createdByType,omitempty"`
+	// CreatedAt - READ-ONLY; The timestamp of resource creation (UTC).
+	CreatedAt *date.Time `json:"createdAt,omitempty"`
+	// LastModifiedBy - READ-ONLY; A string identifier for the identity that last modified the resource.
+	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
+	// LastModifiedByType - READ-ONLY; The type of identity that last modified the resource: <User|Application|ManagedIdentity|Key>. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
+	// LastModifiedAt - READ-ONLY; The timestamp of last modification (UTC).
+	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SystemData.
+func (sd SystemData) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // TdeCertificate a TDE certificate that can be uploaded into a server.
 type TdeCertificate struct {
 	// TdeCertificateProperties - Resource properties.
@@ -24125,6 +24670,198 @@ func (future *TdeCertificatesCreateFuture) result(client TdeCertificatesClient) 
 	}
 	ar.Response = future.Response()
 	return
+}
+
+// TopQueries ...
+type TopQueries struct {
+	// NumberOfQueries - READ-ONLY; Requested number of top queries.
+	NumberOfQueries *int32 `json:"numberOfQueries,omitempty"`
+	// AggregationFunction - READ-ONLY; Aggregation function used to calculate query metrics.
+	AggregationFunction *string `json:"aggregationFunction,omitempty"`
+	// ObservationMetric - READ-ONLY; Metric used to rank queries.
+	ObservationMetric *string `json:"observationMetric,omitempty"`
+	// IntervalType - READ-ONLY; Interval type (length). Possible values include: 'PT1H', 'P1D'
+	IntervalType QueryTimeGrainType `json:"intervalType,omitempty"`
+	// StartTime - READ-ONLY; The start time for the metric (ISO-8601 format).
+	StartTime *string `json:"startTime,omitempty"`
+	// EndTime - READ-ONLY; The end time for the metric (ISO-8601 format).
+	EndTime *string `json:"endTime,omitempty"`
+	// Queries - List of top resource consuming queries with appropriate metric data
+	Queries *[]QueryStatisticsProperties `json:"queries,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TopQueries.
+func (tq TopQueries) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tq.Queries != nil {
+		objectMap["queries"] = tq.Queries
+	}
+	return json.Marshal(objectMap)
+}
+
+// TopQueriesListResult a list of top resource consuming queries on managed instance
+type TopQueriesListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Array of results.
+	Value *[]TopQueries `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to retrieve next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TopQueriesListResult.
+func (tqlr TopQueriesListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// TopQueriesListResultIterator provides access to a complete listing of TopQueries values.
+type TopQueriesListResultIterator struct {
+	i    int
+	page TopQueriesListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *TopQueriesListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopQueriesListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *TopQueriesListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter TopQueriesListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter TopQueriesListResultIterator) Response() TopQueriesListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter TopQueriesListResultIterator) Value() TopQueries {
+	if !iter.page.NotDone() {
+		return TopQueries{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the TopQueriesListResultIterator type.
+func NewTopQueriesListResultIterator(page TopQueriesListResultPage) TopQueriesListResultIterator {
+	return TopQueriesListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (tqlr TopQueriesListResult) IsEmpty() bool {
+	return tqlr.Value == nil || len(*tqlr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (tqlr TopQueriesListResult) hasNextLink() bool {
+	return tqlr.NextLink != nil && len(*tqlr.NextLink) != 0
+}
+
+// topQueriesListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (tqlr TopQueriesListResult) topQueriesListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !tqlr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(tqlr.NextLink)))
+}
+
+// TopQueriesListResultPage contains a page of TopQueries values.
+type TopQueriesListResultPage struct {
+	fn   func(context.Context, TopQueriesListResult) (TopQueriesListResult, error)
+	tqlr TopQueriesListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *TopQueriesListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopQueriesListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.tqlr)
+		if err != nil {
+			return err
+		}
+		page.tqlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *TopQueriesListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page TopQueriesListResultPage) NotDone() bool {
+	return !page.tqlr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page TopQueriesListResultPage) Response() TopQueriesListResult {
+	return page.tqlr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page TopQueriesListResultPage) Values() []TopQueries {
+	if page.tqlr.IsEmpty() {
+		return nil
+	}
+	return *page.tqlr.Value
+}
+
+// Creates a new instance of the TopQueriesListResultPage type.
+func NewTopQueriesListResultPage(cur TopQueriesListResult, getNextPage func(context.Context, TopQueriesListResult) (TopQueriesListResult, error)) TopQueriesListResultPage {
+	return TopQueriesListResultPage{
+		fn:   getNextPage,
+		tqlr: cur,
+	}
 }
 
 // TrackedResource ARM tracked top level resource.

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v4.0/sql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -119,7 +119,7 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 		if props.MaxSizeBytes != nil {
 			d.Set("max_size_gb", int32((*props.MaxSizeBytes)/int64(1073741824)))
 		}
-		d.Set("read_replica_count", props.ReadReplicaCount)
+		d.Set("read_replica_count", props.HighAvailabilityReplicaCount)
 		if props.ReadScale == sql.DatabaseReadScaleEnabled {
 			d.Set("read_scale", true)
 		} else if props.ReadScale == sql.DatabaseReadScaleDisabled {

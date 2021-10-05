@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v4.0/sql"
 	"github.com/Azure/go-autorest/autorest/date"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -468,15 +468,15 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		Name:     &name,
 		Location: &location,
 		DatabaseProperties: &sql.DatabaseProperties{
-			AutoPauseDelay:     utils.Int32(int32(d.Get("auto_pause_delay_in_minutes").(int))),
-			Collation:          utils.String(d.Get("collation").(string)),
-			ElasticPoolID:      utils.String(d.Get("elastic_pool_id").(string)),
-			LicenseType:        sql.DatabaseLicenseType(d.Get("license_type").(string)),
-			MinCapacity:        utils.Float(d.Get("min_capacity").(float64)),
-			ReadReplicaCount:   utils.Int32(int32(d.Get("read_replica_count").(int))),
-			SampleName:         sql.SampleName(d.Get("sample_name").(string)),
-			StorageAccountType: sql.StorageAccountType(d.Get("storage_account_type").(string)),
-			ZoneRedundant:      utils.Bool(d.Get("zone_redundant").(bool)),
+			AutoPauseDelay:               utils.Int32(int32(d.Get("auto_pause_delay_in_minutes").(int))),
+			Collation:                    utils.String(d.Get("collation").(string)),
+			ElasticPoolID:                utils.String(d.Get("elastic_pool_id").(string)),
+			LicenseType:                  sql.DatabaseLicenseType(d.Get("license_type").(string)),
+			MinCapacity:                  utils.Float(d.Get("min_capacity").(float64)),
+			HighAvailabilityReplicaCount: utils.Int32(int32(d.Get("read_replica_count").(int))),
+			SampleName:                   sql.SampleName(d.Get("sample_name").(string)),
+			StorageAccountType:           sql.StorageAccountType(d.Get("storage_account_type").(string)),
+			ZoneRedundant:                utils.Bool(d.Get("zone_redundant").(bool)),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -682,7 +682,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("max_size_gb", int32((*props.MaxSizeBytes)/int64(1073741824)))
 		}
 		d.Set("min_capacity", props.MinCapacity)
-		d.Set("read_replica_count", props.ReadReplicaCount)
+		d.Set("read_replica_count", props.HighAvailabilityReplicaCount)
 		if props.ReadScale == sql.DatabaseReadScaleEnabled {
 			d.Set("read_scale", true)
 		} else if props.ReadScale == sql.DatabaseReadScaleDisabled {
