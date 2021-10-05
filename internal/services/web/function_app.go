@@ -323,8 +323,10 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 
 	functionVersion := d.Get("version").(string)
 	var contentShare string
+	contentSharePreviouslySet := false
 	if currentContentShare, ok := existingSettings[contentSharePropName]; ok {
 		contentShare = *currentContentShare
+		contentSharePreviouslySet = true
 	} else {
 		suffix := uuid.New().String()[0:4]
 		contentShare = strings.ToLower(d.Get("name").(string)) + suffix
@@ -347,10 +349,15 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 		{Name: &contentFileConnStringPropName, Value: &storageConnection},
 	}
 
+	// If there's an existing value for content, we need to send it. This can be the case for PremiumV2/PremiumV3 plans where the value has been previously configured.
+	if contentSharePreviouslySet {
+		return append(basicSettings, consumptionSettings...), nil
+	}
+
 	// On consumption and premium plans include WEBSITE_CONTENT components, unless it's a Linux consumption plan
-	// (see https://github.com/Azure/azure-functions-python-worker/issues/598)
+	// Note: The docs on this are misleading. Premium here refers explicitly to `ElasticPremium`, and not `PremiumV2` / `PremiumV3` etc.
 	if !(strings.EqualFold(appServiceTier, "dynamic") && strings.EqualFold(d.Get("os_type").(string), "linux")) &&
-		(strings.EqualFold(appServiceTier, "dynamic") || strings.HasPrefix(strings.ToLower(appServiceTier), "elastic") || strings.HasPrefix(strings.ToLower(appServiceTier), "premium")) {
+		(strings.EqualFold(appServiceTier, "dynamic") || strings.HasPrefix(strings.ToLower(appServiceTier), "elastic")) {
 		return append(basicSettings, consumptionSettings...), nil
 	}
 
