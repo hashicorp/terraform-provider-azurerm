@@ -45,7 +45,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 	}
 	schemaVersion := 2
 
-	if features.ThreePointOhBetaResources() {
+	if features.ThreePointOh() {
 		upgraders[2] = migration.AccountV2ToV3{}
 		schemaVersion = 3
 	}
@@ -3007,11 +3007,11 @@ func setEndpointAndHost(d *pluginsdk.ResourceData, ordinalString string, endpoin
 func getDefaultAllowBlobPublicAccess() bool {
 	// The default value for the field that controls if the blobs that belong to a storage account
 	// can allow anonymous access or not will change from false to true in 3.0.
-	return features.ThreePointOhBetaResources()
+	return features.ThreePointOh()
 }
 
 func getDefaultAllowBlobPublicAccessName() string {
-	if features.ThreePointOhBetaResources() {
+	if features.ThreePointOh() {
 		return "allow_nested_items_to_be_public"
 	}
 	return "allow_blob_public_access"

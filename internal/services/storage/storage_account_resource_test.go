@@ -220,8 +220,8 @@ func TestAccStorageAccount_minTLSVersion(t *testing.T) {
 }
 
 func TestAccStorageAccount_allowBlobPublicAccess(t *testing.T) {
-	if features.ThreePointOhBetaResources() {
-		t.Skip("Skipping since ARM_THREEPOINTZERO_BETA_RESOURCES is set")
+	if features.ThreePointOh() {
+		t.Skip("Skipping since 3.0 mode is enabled")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
@@ -254,7 +254,7 @@ func TestAccStorageAccount_allowBlobPublicAccess(t *testing.T) {
 }
 
 func TestAccStorageAccount_allowNestedItemsToBePublic(t *testing.T) {
-	if !features.ThreePointOhBetaResources() {
+	if !features.ThreePointOh() {
 		return
 	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
@@ -2914,7 +2914,7 @@ resource "azurerm_storage_account" "test" {
 
   share_properties {
     cors_rule {
-      allowed_origins    = ["	http://www.example.com"]
+      allowed_origins    = ["http://www.example.com"]
       exposed_headers    = ["x-tempo-*"]
       allowed_headers    = ["x-tempo-*"]
       allowed_methods    = ["GET", "PUT", "PATCH"]
