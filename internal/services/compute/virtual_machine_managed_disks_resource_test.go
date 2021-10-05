@@ -177,7 +177,7 @@ func TestAccVirtualMachine_osDiskTypeConflict(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.osDiskTypeConflict(data),
-			ExpectError: regexp.MustCompile("conflicts with storage_os_disk.0.managed_disk_type"),
+			ExpectError: regexp.MustCompile("Conflicting configuration arguments"),
 		},
 	})
 }

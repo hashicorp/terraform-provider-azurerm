@@ -1071,18 +1071,18 @@ func resourceVirtualMachineDeleteManagedDisk(d *pluginsdk.ResourceData, disk *co
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualMachineID(managedDiskID)
+	id, err := parse.ManagedDiskID(managedDiskID)
 	if err != nil {
-		return err
+		return fmt.Errorf("ID: %+v\n%+v", managedDiskID, err)
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.DiskName)
 	if err != nil {
-		return fmt.Errorf("deleting Managed Disk %q (Resource Group %q) %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Managed Disk %q (Resource Group %q) %+v", id.DiskName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Managed Disk %q (Resource Group %q) %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Managed Disk %q (Resource Group %q) %+v", id.DiskName, id.ResourceGroup, err)
 	}
 
 	return nil
