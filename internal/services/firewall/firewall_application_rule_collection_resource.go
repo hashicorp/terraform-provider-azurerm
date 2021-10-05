@@ -339,7 +339,7 @@ func resourceFirewallApplicationRuleCollectionDelete(d *pluginsdk.ResourceData, 
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure Firewall %q : %+v", id, err)
+		return fmt.Errorf("making Read request on Azure Firewall %s : %+v", *id, err)
 	}
 
 	props := firewall.AzureFirewallPropertiesFormat

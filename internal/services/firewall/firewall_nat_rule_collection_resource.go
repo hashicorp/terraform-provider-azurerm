@@ -262,11 +262,11 @@ func resourceFirewallNatRuleCollectionRead(d *pluginsdk.ResourceData, meta inter
 	read, err := client.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			log.Printf("[DEBUG] Azure Firewall %q  was not found - removing from state!", id)
+			log.Printf("[DEBUG] Azure Firewall %s  was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Azure Firewall %q : %+v", id, err)
+		return fmt.Errorf("retrieving Azure Firewall %s : %+v", *id, err)
 	}
 	if read.AzureFirewallPropertiesFormat == nil {
 		return fmt.Errorf("retrieving NAT Rule Collection %q (Firewall %q / Resource Group %q): `props` was nil", id.NatRuleCollectionName, id.AzureFirewallName, id.ResourceGroup)

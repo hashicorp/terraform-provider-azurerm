@@ -307,7 +307,7 @@ func (FirewallResource) Exists(ctx context.Context, clients *clients.Client, sta
 
 	resp, err := clients.Firewall.AzureFirewallsClient.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Azure Firewall %q : %v", id, err)
+		return nil, fmt.Errorf("retrieving Azure Firewall %s : %v", *id, err)
 	}
 
 	return utils.Bool(resp.AzureFirewallPropertiesFormat != nil), nil

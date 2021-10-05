@@ -393,7 +393,7 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure Firewall %q : %+v", id, err)
+		return fmt.Errorf("making Read request on Azure Firewall %s : %+v", *id, err)
 	}
 
 	d.Set("name", id.AzureFirewallName)
@@ -465,7 +465,7 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Firewall %q : %+v", id, err)
+		return fmt.Errorf("retrieving Firewall %s : %+v", *id, err)
 	}
 
 	subnetNamesToLock := make([]string, 0)
@@ -521,11 +521,11 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {
-		return fmt.Errorf("deleting Azure Firewall %q : %+v", id, err)
+		return fmt.Errorf("deleting Azure Firewall %s : %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of Azure Firewall %q : %+v", id, err)
+		return fmt.Errorf("waiting for the deletion of Azure Firewall %s : %+v", *id, err)
 	}
 
 	return err
