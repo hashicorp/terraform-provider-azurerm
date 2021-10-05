@@ -691,7 +691,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_importLinux(t *testing.T) {
 		},
 		data.ImportStep(
 			"os_profile.0.linux_configuration.0.admin_password",
-			"os_profile.0.linux_configuration.0.custom_data",
+			"os_profile.0.custom_data",
 		),
 	})
 }
@@ -710,19 +710,20 @@ func TestAccOrchestratedVirtualMachineScaleSet_multipleNetworkProfiles(t *testin
 	})
 }
 
-func TestAccOrchestratedVirtualMachineScaleSet_AutoUpdates(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	r := OrchestratedVirtualMachineScaleSetResource{}
+// Not Supported yet
+// func TestAccOrchestratedVirtualMachineScaleSet_AutoUpdates(t *testing.T) {
+// 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+// 	r := OrchestratedVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.rollingAutoUpdates(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-	})
-}
+// 	data.ResourceTest(t, r, []acceptance.TestStep{
+// 		{
+// 			Config: r.rollingAutoUpdates(data),
+// 			Check: acceptance.ComposeTestCheckFunc(
+// 				check.That(data.ResourceName).ExistsInAzure(r),
+// 			),
+// 		},
+// 	})
+// }
 
 // Not Supported yet
 // func TestAccOrchestratedVirtualMachineScaleSet_upgradeModeUpdate(t *testing.T) {
@@ -938,30 +939,12 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
-  zones               = []
+
+  zones = []
 
   sku_name = "Standard_D1_v2_2"
 
@@ -973,7 +956,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile-%[1]d"
     primary = true
 
@@ -984,14 +967,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -1009,7 +991,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "import" {
   name                = azurerm_virtual_machine_scale_set.test.name
   location            = azurerm_virtual_machine_scale_set.test.location
   resource_group_name = azurerm_virtual_machine_scale_set.test.resource_group_name
-  upgrade_policy_mode = "Manual"
+
 
   sku_name = "Standard_D1_v2_2"
 
@@ -1021,7 +1003,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "import" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile-%d"
     primary = true
 
@@ -1032,14 +1014,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "import" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -1074,31 +1055,13 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
-  priority            = "Low"
-  eviction_policy     = "Delete"
+
+  priority        = "Low"
+  eviction_policy = "Delete"
 
   sku_name = "Standard_D1_v2_2"
 
@@ -1110,7 +1073,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile-%[1]d"
     primary = true
 
@@ -1121,14 +1084,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -1163,24 +1125,6 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_proximity_placement_group" "test" {
   name                = "accPPG-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -1188,11 +1132,9 @@ resource "azurerm_proximity_placement_group" "test" {
 }
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                   = "acctovmss-%[1]d"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  upgrade_policy_mode    = "Manual"
-  single_placement_group = false
+  name                = "acctovmss-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "Standard_D1_v2_2"
 
@@ -1204,7 +1146,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile-%[1]d"
     primary = true
 
@@ -1215,14 +1157,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name              = ""
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "StandardSSD_LRS"
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -1259,29 +1200,11 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+
 
   sku_name = "Standard_D1_v2_2"
 
@@ -1293,7 +1216,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile-%[1]d"
     primary = true
 
@@ -1310,14 +1233,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -1352,29 +1274,11 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+
 
   tags = {
     state = "create"
@@ -1390,7 +1294,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile-%[1]d"
     primary = true
 
@@ -1407,14 +1311,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -1449,29 +1352,11 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+
 
   tags = {
     state = "update"
@@ -1487,7 +1372,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile-%[1]d"
     primary = true
 
@@ -1504,14 +1389,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -1546,29 +1430,11 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+
 
   tags = {
     state = "update"
@@ -1584,7 +1450,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name          = "TestNetworkProfile-%[1]d"
     primary       = true
     ip_forwarding = true
@@ -1602,14 +1468,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -1644,29 +1509,11 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+
 
   tags = {
     state = "create"
@@ -1682,7 +1529,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile-%[1]d"
     primary = true
 
@@ -1699,14 +1546,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -1747,29 +1593,11 @@ resource "azurerm_application_security_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+
 
   sku_name = "Standard_D1_v2_1"
 
@@ -1781,7 +1609,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile-%[1]d"
     primary = true
 
@@ -1793,14 +1621,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -1835,29 +1662,11 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+
 
   sku_name = "Standard_D4_v2_2"
 
@@ -1869,7 +1678,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name                   = "TestNetworkProfile-%[1]d"
     primary                = true
     accelerated_networking = true
@@ -1881,14 +1690,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -1923,29 +1731,11 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+
 
   sku_name = "Standard_D4_v2_2"
 
@@ -1957,7 +1747,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name          = "TestNetworkProfile-%[1]d"
     primary       = true
     ip_forwarding = true
@@ -1969,14 +1759,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -2011,29 +1800,11 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+
 
   sku_name = "Standard_D4_v2_2"
 
@@ -2045,7 +1816,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile-%[1]d"
     primary = true
 
@@ -2060,14 +1831,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -2077,6 +1847,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
+// remove test case
 func (OrchestratedVirtualMachineScaleSetResource) bootDiagnostic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2102,29 +1873,11 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+
 
   sku_name = "Standard_D1_v2_2"
 
@@ -2136,11 +1889,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  boot_diagnostics {
-    storage_uri = azurerm_storage_account.test.primary_blob_endpoint
-  }
-
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile-%[1]d"
     primary = true
 
@@ -2151,14 +1900,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -2193,24 +1941,6 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_network_security_group" "test" {
   name                = "acceptanceTestSecurityGroup-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -2221,7 +1951,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+
 
   sku_name = "Standard_D1_v2_2"
 
@@ -2233,7 +1963,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name                      = "TestNetworkProfile-%[1]d"
     primary                   = true
     network_security_group_id = azurerm_network_security_group.test.id
@@ -2251,14 +1981,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -2293,29 +2022,11 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+
 
   sku_name = "Standard_D1_v2_2"
 
@@ -2334,7 +2045,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile-%[1]d"
     primary = true
 
@@ -2345,14 +2056,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
     sku       = "2016-Datacenter-Server-Core"
@@ -2387,20 +2097,6 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.1.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "acctestsc-%[1]d"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -2429,26 +2125,26 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  upgrade_policy_mode = "Automatic"
 
   sku_name = "Standard_F2_1"
 
   os_profile {
+    custom_data = "custom data!"
+
     linux_configuration {
       computer_name_prefix = "prefix"
       admin_username       = "ubuntu"
-      custom_data          = "custom data!"
 
       disable_password_authentication = true
 
-      ssh_keys {
+      admin_ssh_key {
         path     = "/home/ubuntu/.ssh/authorized_keys"
         key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
       }
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -2460,15 +2156,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    os_type        = "linux"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -2503,20 +2197,6 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.1.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "acctestsc-%[1]d"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -2545,26 +2225,26 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  upgrade_policy_mode = "Automatic"
 
   sku_name = "Standard_F2_1"
 
   os_profile {
+    custom_data = "custom data!"
+
     linux_configuration {
       computer_name_prefix = "prefix"
       admin_username       = "ubuntu"
-      custom_data          = "custom data!"
 
       disable_password_authentication = true
 
-      ssh_keys {
+      admin_ssh_key {
         path     = "/home/ubuntu/.ssh/authorized_keys"
         key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
       }
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -2576,15 +2256,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    os_type        = "linux"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -2623,20 +2301,6 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.1.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "acctestsc-%[1]d"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -2665,26 +2329,26 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  upgrade_policy_mode = "Automatic"
 
   sku_name = "Standard_F2_1"
 
   os_profile {
+    custom_data = "updated custom data!"
+
     linux_configuration {
       computer_name_prefix = "prefix"
       admin_username       = "ubuntu"
-      custom_data          = "updated custom data!"
 
       disable_password_authentication = true
 
-      ssh_keys {
+      admin_ssh_key {
         path     = "/home/ubuntu/.ssh/authorized_keys"
         key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
       }
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -2696,15 +2360,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    os_type        = "linux"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -2739,20 +2401,6 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.1.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "acctestsc-%[1]d"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -2781,26 +2429,26 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  upgrade_policy_mode = "Automatic"
 
   sku_name = "Standard_F2_1"
 
   os_profile {
+    custom_data = "custom data!"
+
     linux_configuration {
       computer_name_prefix = "prefix"
       admin_username       = "ubuntu"
-      custom_data          = "custom data!"
 
       disable_password_authentication = true
 
-      ssh_keys {
+      admin_ssh_key {
         path     = "/home/ubuntu/.ssh/authorized_keys"
         key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDvXYZAjVUt2aojUV3XIA+PY6gXrgbvktXwf2NoIHGlQFhogpMEyOfqgogCtTBM7MNCS3ELul6SV+mlpH08Ki45ADIQuDXdommCvsMFW096JrsHOJpGfjCsJ1gbbv7brB3Ag+BSGb4qO3pRsEVTtZCeJDwfH5D7vmqP5xXcELKR4UAtKQKUhLvt6mhW90sFLTJeOTiYGbavIKqfCUFSeSMQkUPr8o3uzOfeWyCw7tc7szLuvfwJ5poGHuve73KKAlUnDTPUrhyj7iITZSDl+/i+bpDzPyCyJWDMsC0ON7q2fDr2mEz0L9ACrsI5Nx3lt5fe+IaHSrjivqnL8SqUWSN45o9Qp99sGWFiuTfos8f1jp+AXzC4ArVtKyRg/CnzKRiK0CGSxBJ5s9zAoa7yBBmjCszq89vFa0eMgpEIZFwa6kKJKt9AfRBXgO9YGPV4uaN7topy92/p2pE+vF8IafarbvnTDOQt62mS07tXYqYg1DhecrmBVWKlq9oafBweoeTjoq52SoGsuDc/YAOzIgWVIuvV8yKoh9KbXPWowjLtxDhRIS/d1nMMNdNI8X0TQivgi5+umMgAXhsVAKSNDUauLt4jimYkWAuE+R6KoCqVFdaB9bQDySBjAziruDSe3reToydjzzluvHMjWK8QiDynxs41pi4zZz6gAlca3QPkEQ== hello@world.com"
       }
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -2812,15 +2460,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    os_type        = "linux"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -2859,7 +2505,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+
 
   sku_name = "Standard_D1_v2_2"
 
@@ -2871,7 +2517,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile-%[1]d"
     primary = true
 
@@ -2882,14 +2528,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name              = ""
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -2928,8 +2573,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
-  zones               = ["1", "2"]
+
+  zones = ["1", "2"]
 
   sku_name = "Standard_D1_v2_2"
 
@@ -2941,7 +2586,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile-%[1]d"
     primary = true
 
@@ -2952,13 +2597,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -2997,7 +2642,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+
 
   sku_name = "Standard_D1_v2_2"
 
@@ -3009,7 +2654,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile-%[1]d"
     primary = true
 
@@ -3020,13 +2665,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -3061,25 +2706,11 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+
 
   sku_name = "Standard_D1_v2_1"
 
@@ -3091,7 +2722,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -3103,14 +2734,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -3258,20 +2888,6 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_lb" "test" {
   name                = "acctestlb-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -3305,7 +2921,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+
 
   sku_name = "Standard_D1_v2_1"
 
@@ -3317,7 +2933,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -3330,14 +2946,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -3372,26 +2987,12 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
-  overprovision       = false
+
+  overprovision = false
 
   sku_name = "Standard_D1_v2_1"
 
@@ -3403,7 +3004,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -3414,14 +3015,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -3456,28 +3056,14 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
-  overprovision       = false
-  priority            = "Low"
-  eviction_policy     = "Deallocate"
+
+  overprovision   = false
+  priority        = "Low"
+  eviction_policy = "Deallocate"
 
   sku_name = "Standard_D1_v2_1"
 
@@ -3489,7 +3075,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -3500,14 +3086,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -3542,26 +3127,12 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
-  overprovision       = false
+
+  overprovision = false
 
   sku_name = "Standard_D1_v2_1"
 
@@ -3585,7 +3156,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -3596,14 +3167,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -3638,20 +3208,6 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -3663,8 +3219,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
-  overprovision       = false
+
+  overprovision = false
 
   sku_name = "Standard_D1_v2_1"
 
@@ -3689,7 +3245,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -3700,14 +3256,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -3742,26 +3297,12 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
-  overprovision       = false
+
+  overprovision = false
 
   sku_name = "Standard_D1_v2_1"
 
@@ -3772,14 +3313,14 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       disable_password_authentication = true
 
-      ssh_keys {
+      admin_ssh_key {
         path     = "/home/myadmin/.ssh/authorized_keys"
         key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
       }
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -3790,14 +3331,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -3814,14 +3354,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     settings = <<SETTINGS
 		{
 			"commandToExecute": "echo $HOSTNAME"
-		}
-SETTINGS
-
-
-    protected_settings = <<SETTINGS
-		{
-			"storageAccountName": "${azurerm_storage_account.test.name}",
-			"storageAccountKey": "${azurerm_storage_account.test.primary_access_key}"
 		}
 SETTINGS
 
@@ -3855,26 +3387,12 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
-  overprovision       = false
+
+  overprovision = false
 
   sku_name = "Standard_D1_v2_1"
 
@@ -3885,14 +3403,14 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       disable_password_authentication = true
 
-      ssh_keys {
+      admin_ssh_key {
         path     = "/home/myadmin/.ssh/authorized_keys"
         key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
       }
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -3903,14 +3421,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -3928,14 +3445,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 		{
 			"commandToExecute": "echo $HOSTNAME",
 			"timestamp": 12345679955
-		}
-SETTINGS
-
-
-    protected_settings = <<SETTINGS
-		{
-			"storageAccountName": "${azurerm_storage_account.test.name}",
-			"storageAccountKey": "${azurerm_storage_account.test.primary_access_key}"
 		}
 SETTINGS
 
@@ -3969,26 +3478,12 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
-  overprovision       = false
+
+  overprovision = false
 
   sku_name = "Standard_D1_v2_1"
 
@@ -4000,7 +3495,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -4011,14 +3506,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -4035,14 +3529,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     settings = <<SETTINGS
 		{
 			"commandToExecute": "echo $HOSTNAME"
-		}
-SETTINGS
-
-
-    protected_settings = <<SETTINGS
-		{
-			"storageAccountName": "${azurerm_storage_account.test.name}",
-			"storageAccountKey": "${azurerm_storage_account.test.primary_access_key}"
 		}
 SETTINGS
 
@@ -4084,26 +3570,12 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
-  overprovision       = false
+
+  overprovision = false
 
   sku_name = "Standard_D1_v2_1"
 
@@ -4115,7 +3587,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -4126,14 +3598,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -4150,14 +3621,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     settings = <<SETTINGS
 		{
 			"commandToExecute": "echo $HOSTNAME"
-		}
-SETTINGS
-
-
-    protected_settings = <<SETTINGS
-		{
-			"storageAccountName": "${azurerm_storage_account.test.name}",
-			"storageAccountKey": "${azurerm_storage_account.test.primary_access_key}"
 		}
 SETTINGS
 
@@ -4204,7 +3667,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+
 
   sku_name = "Standard_D1_v2_2"
 
@@ -4216,7 +3679,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile-%[1]d"
     primary = true
 
@@ -4227,15 +3690,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name              = ""
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-    vhd_containers    = ["should_cause_conflict"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = ""
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -4292,7 +3753,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+
 
   sku_name = "Standard_F2_1"
 
@@ -4304,7 +3765,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -4316,11 +3777,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name              = ""
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
   storage_profile_data_disk {
@@ -4331,7 +3791,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     managed_disk_type = "Standard_LRS"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04.0-LTS"
@@ -4366,29 +3826,11 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+
 
   sku_name = "Standard_F2_2"
 
@@ -4400,7 +3842,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile-%[1]d"
     primary = true
 
@@ -4411,14 +3853,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -4457,7 +3898,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+
 
   sku_name = "Standard_D1_v2_2"
 
@@ -4469,7 +3910,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile-%[1]d"
     primary = true
 
@@ -4486,13 +3927,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     publisher = "rancher"
   }
 
-  storage_profile_os_disk {
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "rancher"
     offer     = "rancheros"
     sku       = "os"
@@ -4527,29 +3968,10 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
 
   sku_name = "Standard_D1_v2_2"
 
@@ -4561,7 +3983,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "primary-%[1]d"
     primary = true
 
@@ -4572,7 +3994,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "secondary-%[1]d"
     primary = false
 
@@ -4583,148 +4005,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (OrchestratedVirtualMachineScaleSetResource) rollingAutoUpdates(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-OVMSS-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/8"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.0.0/16"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                    = "acctestpip-%[1]d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  allocation_method       = "Dynamic"
-  idle_timeout_in_minutes = 4
-}
-
-resource "azurerm_lb" "test" {
-  name                = "acctestlb-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  frontend_ip_configuration {
-    name                 = "PublicIPAddress"
-    public_ip_address_id = azurerm_public_ip.test.id
-  }
-}
-
-resource "azurerm_lb_rule" "test" {
-  resource_group_name            = azurerm_resource_group.test.name
-  loadbalancer_id                = azurerm_lb.test.id
-  name                           = "AccTestLBRule"
-  protocol                       = "Tcp"
-  frontend_port                  = 22
-  backend_port                   = 22
-  frontend_ip_configuration_name = "PublicIPAddress"
-  probe_id                       = azurerm_lb_probe.test.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
-}
-
-resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "acctest-lb-probe"
-  port                = 22
-  protocol            = "Tcp"
-}
-
-resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "acctestbapool"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-}
-
-resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  upgrade_policy_mode  = "Rolling"
-  automatic_os_upgrade = true
-  health_probe_id      = azurerm_lb_probe.test.id
-  depends_on           = [azurerm_lb_rule.test]
-
-  rolling_upgrade_policy {
-    max_batch_instance_percent              = 21
-    max_unhealthy_instance_percent          = 22
-    max_unhealthy_upgraded_instance_percent = 23
-    pause_time_between_batches              = "PT30S"
-  }
-
-  sku_name = "Standard_F2_1"
-
-  os_profile {
-    linux_configuration {
-      computer_name_prefix = "testvm-%[1]d"
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
-    }
-  }
-
-  network_profile {
-    name    = "TestNetworkProfile"
-    primary = true
-
-    ip_configuration {
-      name                                   = "TestIPConfiguration"
-      subnet_id                              = azurerm_subnet.test.id
-      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-      primary                                = true
-    }
-  }
-
-  storage_profile_os_disk {
-    name              = ""
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
-
-  storage_profile_data_disk {
-    lun               = 0
-    caching           = "ReadWrite"
-    create_option     = "Empty"
-    disk_size_gb      = 10
-    managed_disk_type = "Standard_LRS"
-  }
-
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
@@ -4759,20 +4046,6 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctest%[3]s"
   resource_group_name = azurerm_resource_group.test.name
@@ -4783,8 +4056,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
-  overprovision       = false
 
   sku_name = "Standard_D1_v2_1"
 
@@ -4801,7 +4072,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -4812,14 +4083,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    name                 = "osDiskProfile"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
