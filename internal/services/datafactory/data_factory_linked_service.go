@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
-
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -46,8 +44,6 @@ func importDataFactoryLinkedService(expectType datafactory.TypeBasicLinkedServic
 		if datafactory.TypeBasicLinkedService(t) != expectType {
 			return nil, fmt.Errorf("data factory linked service has mismatched type, expected: %q, got %q", expectType, t)
 		}
-		log.Printf("[DEBUG] ls_importer type is: %s", t)
-		log.Printf("[DEBUG] ls_importer expectType is: %s", expectType)
 
 		if datafactory.TypeBasicLinkedService(t) != expectType {
 			return nil, fmt.Errorf("data factory linked service has mismatched type, expected: %q, got %q", expectType, t)
