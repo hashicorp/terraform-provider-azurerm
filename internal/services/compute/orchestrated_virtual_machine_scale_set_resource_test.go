@@ -912,6 +912,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -959,6 +961,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "import" {
       computer_name_prefix = "testvm-%d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -1030,6 +1034,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -1104,6 +1110,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -1174,6 +1182,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -1252,6 +1262,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -1330,6 +1342,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -1408,6 +1422,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -1487,6 +1503,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -1567,6 +1585,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -1636,6 +1656,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -1705,6 +1727,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -1774,6 +1798,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -1845,6 +1871,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -1919,6 +1947,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -1997,6 +2027,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       enable_automatic_updates = false
       provision_vm_agent       = true
+      timezone                 = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"
@@ -2094,8 +2125,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     linux_configuration {
       computer_name_prefix = "prefix"
       admin_username       = "ubuntu"
-
-      disable_password_authentication = true
 
       admin_ssh_key {
         username   = "ubuntu"
@@ -2195,8 +2224,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     linux_configuration {
       computer_name_prefix = "prefix"
       admin_username       = "ubuntu"
-
-      disable_password_authentication = true
 
       admin_ssh_key {
         username   = "ubuntu"
@@ -2301,8 +2328,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "prefix"
       admin_username       = "ubuntu"
 
-      disable_password_authentication = true
-
       admin_ssh_key {
         username   = "ubuntu"
         public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
@@ -2402,8 +2427,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "prefix"
       admin_username       = "ubuntu"
 
-      disable_password_authentication = true
-
       admin_ssh_key {
         username   = "ubuntu"
         public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDvXYZAjVUt2aojUV3XIA+PY6gXrgbvktXwf2NoIHGlQFhogpMEyOfqgogCtTBM7MNCS3ELul6SV+mlpH08Ki45ADIQuDXdommCvsMFW096JrsHOJpGfjCsJ1gbbv7brB3Ag+BSGb4qO3pRsEVTtZCeJDwfH5D7vmqP5xXcELKR4UAtKQKUhLvt6mhW90sFLTJeOTiYGbavIKqfCUFSeSMQkUPr8o3uzOfeWyCw7tc7szLuvfwJ5poGHuve73KKAlUnDTPUrhyj7iITZSDl+/i+bpDzPyCyJWDMsC0ON7q2fDr2mEz0L9ACrsI5Nx3lt5fe+IaHSrjivqnL8SqUWSN45o9Qp99sGWFiuTfos8f1jp+AXzC4ArVtKyRg/CnzKRiK0CGSxBJ5s9zAoa7yBBmjCszq89vFa0eMgpEIZFwa6kKJKt9AfRBXgO9YGPV4uaN7topy92/p2pE+vF8IafarbvnTDOQt62mS07tXYqYg1DhecrmBVWKlq9oafBweoeTjoq52SoGsuDc/YAOzIgWVIuvV8yKoh9KbXPWowjLtxDhRIS/d1nMMNdNI8X0TQivgi5+umMgAXhsVAKSNDUauLt4jimYkWAuE+R6KoCqVFdaB9bQDySBjAziruDSe3reToydjzzluvHMjWK8QiDynxs41pi4zZz6gAlca3QPkEQ== hello@world.com"
@@ -2477,6 +2500,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -2540,13 +2565,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   sku_name = "Standard_D1_v2_2"
 
-  platform_fault_domain_count = 2
-
   os_profile {
     linux_configuration {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -2615,6 +2640,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -2815,6 +2842,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -2887,6 +2916,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -2967,6 +2998,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -3055,6 +3088,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -3122,8 +3157,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     linux_configuration {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
-
-      disable_password_authentication = true
 
       admin_ssh_key {
         username   = "myadmin"
@@ -3211,8 +3244,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     linux_configuration {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
-
-      disable_password_authentication = true
 
       admin_ssh_key {
         username   = "myadmin"
@@ -3302,6 +3333,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -3393,6 +3426,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -3503,6 +3538,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -3580,6 +3617,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -3648,6 +3687,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -3722,6 +3763,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
@@ -3812,6 +3855,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       computer_name_prefix = "testvm-%[1]d"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
     }
   }
 
