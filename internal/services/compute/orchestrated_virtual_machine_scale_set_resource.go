@@ -132,9 +132,8 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"platform_fault_domain_count": {
 				Type:     pluginsdk.TypeInt,
-				Optional: true,
+				Required: true,
 				ForceNew: true,
-				Computed: true,
 			},
 
 			"priority": {

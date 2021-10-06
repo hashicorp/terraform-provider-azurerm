@@ -478,7 +478,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_loadBalancerManagedDataDisks(t *t
 			Config: r.loadBalancerTemplateManagedDataDisks(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("storage_profile_data_disk.#").HasValue("1"),
+				check.That(data.ResourceName).Key("data_disk.#").HasValue("1"),
 			),
 		},
 	})
@@ -493,7 +493,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_priority(t *testing.T) {
 			Config: r.priorityTemplate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("priority").HasValue("Low"),
+				check.That(data.ResourceName).Key("priority").HasValue("Regular"),
 				check.That(data.ResourceName).Key("eviction_policy").HasValue("Deallocate"),
 			),
 		},
@@ -905,6 +905,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   sku_name = "Standard_D1_v2_2"
 
+  platform_fault_domain_count = 2
+
   os_profile {
     linux_configuration {
       computer_name_prefix = "testvm-%[1]d"
@@ -948,8 +950,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "import" {
   location            = azurerm_virtual_machine_scale_set.test.location
   resource_group_name = azurerm_virtual_machine_scale_set.test.resource_group_name
 
-
   sku_name = "Standard_D1_v2_2"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -1015,10 +1018,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  priority        = "Low"
+  priority        = "Regular"
   eviction_policy = "Delete"
 
   sku_name = "Standard_D1_v2_2"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -1092,6 +1097,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   sku_name = "Standard_D1_v2_2"
 
+  platform_fault_domain_count = 2
+
   os_profile {
     linux_configuration {
       computer_name_prefix = "testvm-%[1]d"
@@ -1158,8 +1165,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
   sku_name = "Standard_D1_v2_2"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -1231,12 +1239,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
   tags = {
     state = "create"
   }
 
   sku_name = "Standard_D1_v2_0"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -1308,12 +1317,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
   tags = {
     state = "update"
   }
 
   sku_name = "Standard_D1_v2_0"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -1385,12 +1395,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
   tags = {
     state = "update"
   }
 
   sku_name = "Standard_D1_v2_0"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -1403,7 +1414,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   network_interface {
     name          = "TestNetworkProfile-%[1]d"
     primary       = true
-    ip_forwarding = true
+    enable_ip_forwarding = true
 
     ip_configuration {
       name      = "TestIPConfiguration"
@@ -1463,12 +1474,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
   tags = {
     state = "create"
   }
 
   sku_name = "Standard_D1_v2_0"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -1546,8 +1558,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
   sku_name = "Standard_D1_v2_1"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -1614,8 +1627,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
   sku_name = "Standard_D4_v2_2"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -1626,9 +1640,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                   = "TestNetworkProfile-%[1]d"
-    primary                = true
-    accelerated_networking = true
+    name                          = "TestNetworkProfile-%[1]d"
+    primary                       = true
+    enable_accelerated_networking = true
 
     ip_configuration {
       name      = "TestIPConfiguration"
@@ -1682,8 +1696,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
   sku_name = "Standard_D4_v2_2"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -1696,7 +1711,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   network_interface {
     name          = "TestNetworkProfile-%[1]d"
     primary       = true
-    ip_forwarding = true
+    enable_ip_forwarding = true
 
     ip_configuration {
       name      = "TestIPConfiguration"
@@ -1750,8 +1765,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
   sku_name = "Standard_D4_v2_2"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -1765,9 +1781,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     name    = "TestNetworkProfile-%[1]d"
     primary = true
 
-    dns_settings {
-      dns_servers = ["8.8.8.8", "8.8.4.4"]
-    }
+    dns_servers = ["8.8.8.8", "8.8.4.4"]
 
     ip_configuration {
       name      = "TestIPConfiguration"
@@ -1822,8 +1836,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
   sku_name = "Standard_D1_v2_2"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -1895,8 +1910,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
   sku_name = "Standard_D1_v2_2"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -1969,8 +1985,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
   sku_name = "Standard_D1_v2_2"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     windows_configuration {
@@ -1982,7 +1999,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       provision_vm_agent       = true
 
       winrm_listener {
-        protocol = "http"
+        protocol = "Http"
       }
     }
   }
@@ -2069,8 +2086,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   sku_name = "Standard_F2_1"
 
+  platform_fault_domain_count = 2
+
   os_profile {
-    custom_data = "custom data!"
+    custom_data = "Y3VzdG9tIGRhdGEh"
 
     linux_configuration {
       computer_name_prefix = "prefix"
@@ -2168,8 +2187,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   sku_name = "Standard_F2_1"
 
+  platform_fault_domain_count = 2
+
   os_profile {
-    custom_data = "custom data!"
+    custom_data = "Y3VzdG9tIGRhdGEh"
 
     linux_configuration {
       computer_name_prefix = "prefix"
@@ -2271,8 +2292,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   sku_name = "Standard_F2_1"
 
+  platform_fault_domain_count = 2
+
   os_profile {
-    custom_data = "updated custom data!"
+    custom_data = "dXBkYXRlZCBjdXN0b20gZGF0YSE="
 
     linux_configuration {
       computer_name_prefix = "prefix"
@@ -2370,8 +2393,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   sku_name = "Standard_F2_1"
 
+  platform_fault_domain_count = 2
+
   os_profile {
-    custom_data = "custom data!"
+    custom_data = "Y3VzdG9tIGRhdGEh"
 
     linux_configuration {
       computer_name_prefix = "prefix"
@@ -2443,8 +2468,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
   sku_name = "Standard_D1_v2_2"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -2514,6 +2540,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   sku_name = "Standard_D1_v2_2"
 
+  platform_fault_domain_count = 2
+
   os_profile {
     linux_configuration {
       computer_name_prefix = "testvm-%[1]d"
@@ -2578,8 +2606,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
   sku_name = "Standard_D1_v2_1"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -2772,24 +2801,14 @@ resource "azurerm_lb_backend_address_pool" "test" {
   loadbalancer_id     = azurerm_lb.test.id
 }
 
-resource "azurerm_lb_nat_pool" "test" {
-  resource_group_name            = azurerm_resource_group.test.name
-  name                           = "ssh"
-  loadbalancer_id                = azurerm_lb.test.id
-  protocol                       = "Tcp"
-  frontend_port_start            = 50000
-  frontend_port_end              = 50119
-  backend_port                   = 22
-  frontend_ip_configuration_name = "default"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
   sku_name = "Standard_D1_v2_1"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -2808,7 +2827,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       primary                                = true
       subnet_id                              = azurerm_subnet.test.id
       load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-      load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.test.id]
     }
   }
 
@@ -2857,11 +2875,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
-  priority        = "Low"
+  priority        = "Regular"
   eviction_policy = "Deallocate"
 
   sku_name = "Standard_D1_v2_1"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -2927,8 +2946,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
-
   sku_name = "Standard_D1_v2_1"
 
   identity {
@@ -2942,6 +2959,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     type_handler_version = "1.0"
     settings             = "{\"port\": 50342}"
   }
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -3014,8 +3033,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
-
   sku_name = "Standard_D1_v2_1"
 
   identity {
@@ -3030,6 +3047,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     type_handler_version = "1.0"
     settings             = "{\"port\": 50342}"
   }
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -3095,9 +3114,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
-
   sku_name = "Standard_D1_v2_1"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -3184,9 +3203,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
-
   sku_name = "Standard_D1_v2_1"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -3274,9 +3293,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
-
   sku_name = "Standard_D1_v2_1"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -3366,6 +3385,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "Standard_D1_v2_1"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -3473,8 +3494,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
   sku_name = "Standard_F2_1"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -3502,11 +3524,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    lun               = 0
-    caching           = "ReadWrite"
-    create_option     = "Empty"
-    disk_size_gb      = 10
-    managed_disk_type = "Standard_LRS"
+    lun                  = 0
+    caching              = "ReadWrite"
+    create_option        = "Empty"
+    disk_size_gb         = 10
+    storage_account_type = "Standard_LRS"
   }
 
   source_image_reference {
@@ -3549,8 +3571,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
   sku_name = "Standard_F2_2"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -3616,8 +3639,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-
   sku_name = "Standard_D1_v2_2"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -3690,6 +3714,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "Standard_D1_v2_2"
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
@@ -3778,6 +3804,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
+
+  platform_fault_domain_count = 2
 
   os_profile {
     linux_configuration {
