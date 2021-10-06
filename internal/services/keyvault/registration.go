@@ -36,12 +36,14 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_key_vault_access_policy":                    resourceKeyVaultAccessPolicy(),
-		"azurerm_key_vault_certificate":                      resourceKeyVaultCertificate(),
-		"azurerm_key_vault_certificate_issuer":               resourceKeyVaultCertificateIssuer(),
-		"azurerm_key_vault_key":                              resourceKeyVaultKey(),
-		"azurerm_key_vault_managed_hardware_security_module": resourceKeyVaultManagedHardwareSecurityModule(),
-		"azurerm_key_vault_secret":                           resourceKeyVaultSecret(),
-		"azurerm_key_vault":                                  resourceKeyVault(),
+		"azurerm_key_vault_access_policy":                                resourceKeyVaultAccessPolicy(),
+		"azurerm_key_vault_certificate":                                  resourceKeyVaultCertificate(),
+		"azurerm_key_vault_certificate_issuer":                           resourceKeyVaultCertificateIssuer(),
+		"azurerm_key_vault_key":                                          resourceKeyVaultKey(),
+		"azurerm_key_vault_managed_hardware_security_module":             resourceKeyVaultManagedHardwareSecurityModule(),
+		"azurerm_key_vault_secret":                                       resourceKeyVaultSecret(),
+		"azurerm_key_vault":                                              resourceKeyVault(),
+		"azurerm_key_vault_managed_storage_account":                      resourceKeyVaultManagedStorageAccount(),
+		"azurerm_key_vault_managed_storage_account_sas_token_definition": resourceKeyVaultManagedStorageAccountSasTokenDefinition(),
 	}
 }

@@ -1,18 +1,86 @@
-## 2.78.0 (Unreleased)
-
-ENHANCEMENTS:
-
-* `data.azurerm_private_endpoint_connection` - Export `network_interface` attributes from private endpoints [GH-13421]
-* `azurerm_storage_share_file` - will now recreate and upload delete/missing files [GH-13269]
-* `azurem_automation_account` - refactoring to use an ID Formatter/Parser [GH-13419]
-* `azurem_automation_certificate` - refactoring to use an ID Formatter/Parser [GH-13419]
-* `azurem_automation_credential` - refactoring to use an ID Formatter/Parser [GH-13419]
-* `azurerm_private_endpoint_connection` - Export `network_interface` attributes from private endpoints [GH-13421]
+## 2.80 (Unreleased)
 
 BUG FIXES:
 
-* Data Source: `azurerm_app_service_certificate` - prevent panics if the API returns a nil `issue_date` or `expiration_date` [GH-13401]
-* `azurerm_app_service_certificate` - prevent panics if the API returns a nil `issue_date` or `expiration_date` [GH-13401]
+* `azurerm_function_app` - fix regressions in function app storage introduced in v2.77 [GH-13580]
+* `azurerm_managed_application` - fixed typecasting bug [GH-13641]
+
+IMPROVEMENTS:
+
+* Data Source `azurerm_public_ips` - Deprecate `attached` for `attachment_status` to improve filtering [GH-13500]
+* Data Source `azurerm_public_ips` - Return public IPs associated with NAT gateways when `attached` set to `true` or `attachment_status` set to `Attached` [GH-13610]
+* `azurerm_stream_analytics_output_eventhub` - support for the `partition_key` property [GH-13562]
+
+## 2.79.1 (October 01, 2021)
+
+BUG FIXES: 
+
+* `azurerm_managed_disk` - the `max_shares` propety is now `Computed` to account for managed disks that are already managed by Terraform ([#13587](https://github.com/hashicorp/terraform-provider-azurerm/issues/13587))
+
+## 2.79.0 (October 01, 2021)
+
+FEATURES: 
+
+* **New Resource:** `azurerm_app_configuration_feature` ([#13452](https://github.com/hashicorp/terraform-provider-azurerm/issues/13452))
+* **New Resource:** `azurerm_logic_app_standard` ([#13196](https://github.com/hashicorp/terraform-provider-azurerm/issues/13196))
+
+IMPROVEMENTS:
+
+* Data Source: `azurerm_key_vault_certificate` - exporting the `expires` and `not_before` attributes ([#13527](https://github.com/hashicorp/terraform-provider-azurerm/issues/13527))
+* Data Source: `azurerm_key_vault_certificate_data` - exporting the `not_before` attribute ([#13527](https://github.com/hashicorp/terraform-provider-azurerm/issues/13527))
+* `azurerm_communication_service` - export the `primary_connection_string`, `secondary_connection_string`, `primary_key`, and `secondary_key` attributes ([#13549](https://github.com/hashicorp/terraform-provider-azurerm/issues/13549))
+* `azurerm_consumption_budget_subscription`  support for the `Forecasted` threshold type ([#13567](https://github.com/hashicorp/terraform-provider-azurerm/issues/13567))
+* `azurerm_consumption_budget_resource_group  support for the `Forecasted` threshold type ([#13567](https://github.com/hashicorp/terraform-provider-azurerm/issues/13567))
+* `azurerm_managed_disk` - support for the `max_shares` property ([#13571](https://github.com/hashicorp/terraform-provider-azurerm/issues/13571))
+* `azurerm_mssql_database` - will now update replicated databases SKUs first ([#13478](https://github.com/hashicorp/terraform-provider-azurerm/issues/13478))
+* `azurerm_virtual_hub_connection` - optimized state change refresh function ([#13548](https://github.com/hashicorp/terraform-provider-azurerm/issues/13548))
+
+BUG FIXES:
+
+* `azurerm_cosmosdb_account` - the `mongo_server_version` can now be changed without creating a new resouce ([#13520](https://github.com/hashicorp/terraform-provider-azurerm/issues/13520))
+* `azurerm_iothub` - correctly suppress diffs for the `connection_string` property ([#13517](https://github.com/hashicorp/terraform-provider-azurerm/issues/13517))
+* `azurerm_kubernetes_cluster` - explicitly setting `upgrade_channel` to `None` when it's unset to workaround a breaking behavioural change in AKS ([#13493](https://github.com/hashicorp/terraform-provider-azurerm/issues/13493))
+* `azurerm_linux_virtual_machine_scale_set` - will not correctly ignore the `protected_setting` block withing the `extension` block ([#13440](https://github.com/hashicorp/terraform-provider-azurerm/issues/13440))
+* `azurerm_windows_virtual_machine_scale_set` - will not correctly ignore the `protected_setting` block withing the `extension` block ([#13440](https://github.com/hashicorp/terraform-provider-azurerm/issues/13440))
+* `azurerm_app_configuration_key` - correctly set the `etag` property ([#13534](https://github.com/hashicorp/terraform-provider-azurerm/issues/13534))
+
+## 2.78.0 (September 23, 2021)
+
+UPGRADE NOTES
+
+* The `azurerm_data_factory_dataset_snowflake` has been updated to set the correct `schema_column` api property with the correct schema - to retain the old behaviour please switch to the `structure_column` property ([#13344](https://github.com/hashicorp/terraform-provider-azurerm/issues/13344))
+
+FEATURES: 
+
+* **New Resource:** `azurerm_frontdoor_rules_engine` ([#13249](https://github.com/hashicorp/terraform-provider-azurerm/issues/13249))
+* **New Resource:** `azurerm_key_vault_managed_storage_account` ([#13271](https://github.com/hashicorp/terraform-provider-azurerm/issues/13271))
+* **New Resource:** `azurerm_key_vault_managed_storage_account_sas_token_definition` ([#13271](https://github.com/hashicorp/terraform-provider-azurerm/issues/13271))
+* **New Resource:** `azurerm_mssql_failover_group` ([#13446](https://github.com/hashicorp/terraform-provider-azurerm/issues/13446))
+* **New Resource:** `azurerm_synapse_sql_pool_extended_auditing_policy` ([#12952](https://github.com/hashicorp/terraform-provider-azurerm/issues/12952))
+* **New Resource:** `azurerm_synapse_workspace_extended_auditing_policy` ([#12952](https://github.com/hashicorp/terraform-provider-azurerm/issues/12952))
+
+ENHANCEMENTS:
+
+* upgrading `iothub` to API Version `2021-03-31` ([#13324](https://github.com/hashicorp/terraform-provider-azurerm/issues/13324))
+* `data.azurerm_private_endpoint_connection` - Export `network_interface` attributes from private endpoints ([#13421](https://github.com/hashicorp/terraform-provider-azurerm/issues/13421))
+* `azurerm_app_service` - support for the `vnet_route_all_enabled` property ([#13310](https://github.com/hashicorp/terraform-provider-azurerm/issues/13310))
+* `azurerm_bot_channel_slack` - support for the `signing_secret` property ([#13454](https://github.com/hashicorp/terraform-provider-azurerm/issues/13454))
+* `azurerm_data_factory` - support for `identity` being `SystemAssiged` and `UserAssigned` ([#13473](https://github.com/hashicorp/terraform-provider-azurerm/issues/13473))
+* `azurerm_function_app` - support for the `vnet_route_all_enabled` property ([#13310](https://github.com/hashicorp/terraform-provider-azurerm/issues/13310))
+* `azurerm_machine_learning_workspace` - support for `public_network_access_enabled`, `public_network_access_enabled`, and `discovery_url` properties ([#13268](https://github.com/hashicorp/terraform-provider-azurerm/issues/13268))
+* `azurerm_private_endpoint_connection` - export the `network_interface` attribute from private endpoints ([#13421](https://github.com/hashicorp/terraform-provider-azurerm/issues/13421))
+* `azurerm_storage_account_network_rules ` - Deprecate `storage_account_name` and `resource_group_name` in favor of `storage_account_id` ([#13307](https://github.com/hashicorp/terraform-provider-azurerm/issues/13307))
+* `azurerm_storage_share_file` - will now recreate and upload deleted/missing files ([#13269](https://github.com/hashicorp/terraform-provider-azurerm/issues/13269))
+* `azurerm_synapse_workspace` - the `tenant_id` property is now computed ([#13464](https://github.com/hashicorp/terraform-provider-azurerm/issues/13464))
+
+BUG FIXES:
+
+* Data Source: `azurerm_app_service_certificate` - prevent panics if the API returns a nil `issue_date` or `expiration_date` ([#13401](https://github.com/hashicorp/terraform-provider-azurerm/issues/13401))
+* `azurerm_app_service_certificate` - prevent panics if the API returns a nil `issue_date` or `expiration_date` ([#13401](https://github.com/hashicorp/terraform-provider-azurerm/issues/13401))
+* `azurerm_app_service_certificate_binding` - reverted a change that introduced a bug in certificate selection for non-managed certificates ([#13455](https://github.com/hashicorp/terraform-provider-azurerm/issues/13455))
+* `azurerm_container_group` - allow creation of shared volume between containers in multi container group ([#13374](https://github.com/hashicorp/terraform-provider-azurerm/issues/13374))
+* `azurerm_kubernetes_cluster` - changing the `private_cluster_public_fqdn_enabled` no longer created a new resource ([#13413](https://github.com/hashicorp/terraform-provider-azurerm/issues/13413))
+* `azurerm_app_configuration_key` - fix nil pointer for removed key ([#13483](https://github.com/hashicorp/terraform-provider-azurerm/issues/13483))
 
 ## 2.77.0 (September 17, 2021)
 

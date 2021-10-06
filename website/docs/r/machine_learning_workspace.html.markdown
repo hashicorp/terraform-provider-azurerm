@@ -86,6 +86,10 @@ The following arguments are supported:
 
 -> **NOTE:** The `admin_enabled` should be `true` in order to associate the Container Registry to this Machine Learning Workspace.
 
+* `public_network_access_enabled` - (Optional) Enable public access when this Machine Learning Workspace is behind VNet.
+
+* `image_build_compute_name` - (Optional) The compute name for image build of the Machine Learning Workspace.
+
 * `description` - (Optional) The description of this Machine Learning Workspace.
 
 * `discovery_url` - (Optional) The URL for the discovery service to identify regional endpoints for machine learning experimentation services.
@@ -109,6 +113,8 @@ An `identity` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Machine Learning Workspace.
+
+* `discovery_url` - The url for the discovery service to identify regional endpoints for machine learning experimentation services.
 
 ---
 

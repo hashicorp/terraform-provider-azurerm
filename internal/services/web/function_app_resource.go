@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -427,14 +428,13 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	existing, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
+	var currentAppSettings map[string]*string
+	appSettingsList, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("reading %s: %+v", id, err)
+		return fmt.Errorf("reading App Settings for %s: %+v", id, err)
 	}
-
-	var currentAppSettings *[]web.NameValuePair
-	if existing.AppSettings != nil {
-		currentAppSettings = existing.AppSettings
+	if appSettingsList.Properties != nil {
+		currentAppSettings = appSettingsList.Properties
 	}
 
 	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix, currentAppSettings)
@@ -448,6 +448,15 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	siteConfig.AppSettings = &basicAppSettings
+
+	// WEBSITE_VNET_ROUTE_ALL is superseded by a setting in site_config that defaults to false from 2021-02-01
+	appSettings := expandFunctionAppAppSettings(d, basicAppSettings)
+	if vnetRouteAll, ok := appSettings["WEBSITE_VNET_ROUTE_ALL"]; ok {
+		if !d.HasChange("site_config.0.vnet_route_all_enabled") { // Only update the property if it's not set explicitly
+			vnetRouteAllEnabled, _ := strconv.ParseBool(*vnetRouteAll)
+			siteConfig.VnetRouteAllEnabled = &vnetRouteAllEnabled
+		}
+	}
 
 	siteEnvelope := web.Site{
 		Kind:     &kind,
@@ -483,7 +492,6 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("waiting for update of Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 
-	appSettings := expandFunctionAppAppSettings(d, basicAppSettings)
 	settings := web.StringDictionary{
 		Properties: appSettings,
 	}

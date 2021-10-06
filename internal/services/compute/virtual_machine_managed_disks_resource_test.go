@@ -136,8 +136,8 @@ func TestAccVirtualMachine_deleteManagedDiskOptOut(t *testing.T) {
 		{
 			Config: r.basicLinuxMachineDeleteVM_managedDisk(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClient(r.managedDiskExists(osDiskId, true)),
-				data.CheckWithClient(r.managedDiskExists(dataDiskId, true)),
+				data.CheckWithClientWithoutResource(r.managedDiskExists(&osDiskId, true)),
+				data.CheckWithClientWithoutResource(r.managedDiskExists(&dataDiskId, true)),
 			),
 		},
 	})
@@ -163,8 +163,8 @@ func TestAccVirtualMachine_deleteManagedDiskOptIn(t *testing.T) {
 		{
 			Config: r.basicLinuxMachine_managedDisk_DestroyDisksAfter(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClient(r.managedDiskExists(osDiskId, false)),
-				data.CheckWithClient(r.managedDiskExists(dataDiskId, false)),
+				data.CheckWithClientWithoutResource(r.managedDiskExists(&osDiskId, false)),
+				data.CheckWithClientWithoutResource(r.managedDiskExists(&dataDiskId, false)),
 			),
 		},
 	})
@@ -177,7 +177,7 @@ func TestAccVirtualMachine_osDiskTypeConflict(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.osDiskTypeConflict(data),
-			ExpectError: regexp.MustCompile("conflicts with storage_os_disk.0.managed_disk_type"),
+			ExpectError: regexp.MustCompile("Conflicting configuration arguments"),
 		},
 	})
 }

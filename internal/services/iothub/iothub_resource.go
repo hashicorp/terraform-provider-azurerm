@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -92,13 +93,13 @@ func resourceIotHub() *pluginsdk.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.B1),
-								string(devices.B2),
-								string(devices.B3),
-								string(devices.F1),
-								string(devices.S1),
-								string(devices.S2),
-								string(devices.S3),
+								string(devices.IotHubSkuB1),
+								string(devices.IotHubSkuB2),
+								string(devices.IotHubSkuB3),
+								string(devices.IotHubSkuF1),
+								string(devices.IotHubSkuS1),
+								string(devices.IotHubSkuS2),
+								string(devices.IotHubSkuS3),
 							}, false),
 						},
 
@@ -158,19 +159,10 @@ func resourceIotHub() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"connection_string": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-								secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
-								sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
-
-								// Azure will always mask the Access Keys and will include the port number in the GET response
-								// 5671 is the default port for Azure Service Bus connections
-								maskedNew := sbProtocolRegex.ReplaceAllString(new, "sb://$1:5671/;")
-								maskedNew = secretKeyRegex.ReplaceAllString(maskedNew, "$1=****")
-								return (new == d.Get(k).(string)) && (maskedNew == old)
-							},
-							Sensitive: true,
+							Type:             pluginsdk.TypeString,
+							Required:         true,
+							DiffSuppressFunc: fileUploadConnectionStringDiffSuppress,
+							Sensitive:        true,
 						},
 						"container_name": {
 							Type:     pluginsdk.TypeString,
@@ -278,9 +270,9 @@ func resourceIotHub() *pluginsdk.Resource {
 								suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 								suppress.CaseDifference),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.Avro),
-								string(devices.AvroDeflate),
-								string(devices.JSON),
+								string(devices.EncodingAvro),
+								string(devices.EncodingAvroDeflate),
+								string(devices.EncodingJSON),
 							}, true),
 						},
 
@@ -441,8 +433,8 @@ func resourceIotHub() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.Accept),
-								string(devices.Reject),
+								string(devices.IPFilterActionTypeAccept),
+								string(devices.IPFilterActionTypeReject),
 							}, false),
 						},
 					},
@@ -572,9 +564,9 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	// nolint staticcheck
 	if v, ok := d.GetOkExists("public_network_access_enabled"); ok {
-		enabled := devices.Disabled
+		enabled := devices.PublicNetworkAccessDisabled
 		if v.(bool) {
-			enabled = devices.Enabled
+			enabled = devices.PublicNetworkAccessEnabled
 		}
 		props.Properties.PublicNetworkAccess = enabled
 	}
@@ -703,7 +695,7 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		if enabled := properties.PublicNetworkAccess; enabled != "" {
-			d.Set("public_network_access_enabled", enabled == devices.Enabled)
+			d.Set("public_network_access_enabled", enabled == devices.PublicNetworkAccessEnabled)
 		}
 
 		d.Set("min_tls_version", properties.MinTLSVersion)
@@ -1295,4 +1287,32 @@ func flattenIPFilterRules(in *[]devices.IPFilterRule) []interface{} {
 		rules = append(rules, rawRule)
 	}
 	return rules
+}
+
+func fileUploadConnectionStringDiffSuppress(k, old, new string, d *pluginsdk.ResourceData) bool {
+	// The access keys are always masked by Azure and the ordering of the parameters in the connection string
+	// differs across services, so we will compare the fields individually instead.
+	secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
+
+	if secretKeyRegex.MatchString(new) {
+		maskedNew := secretKeyRegex.ReplaceAllString(new, "$1=****")
+
+		oldSplit := strings.Split(old, ";")
+		newSplit := strings.Split(maskedNew, ";")
+
+		sort.Strings(oldSplit)
+		sort.Strings(newSplit)
+
+		if len(oldSplit) != len(newSplit) {
+			return false
+		}
+
+		for i := range oldSplit {
+			if !strings.EqualFold(oldSplit[i], newSplit[i]) {
+				return false
+			}
+		}
+		return true
+	}
+	return false
 }

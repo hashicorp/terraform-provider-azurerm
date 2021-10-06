@@ -32,7 +32,25 @@ func testAccBotChannelSlack_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("client_secret", "verification_token", "landing_page_url"),
+		data.ImportStep("client_secret", "verification_token", "landing_page_url", "client_id"),
+	})
+}
+
+func testAccBotChannelSlack_complete(t *testing.T) {
+	if ok := skipSlackChannel(); ok {
+		t.Skip("Skipping as one of `ARM_TEST_SLACK_CLIENT_ID`, `ARM_TEST_SLACK_CLIENT_SECRET`, `ARM_TEST_SLACK_VERIFICATION_TOKEN`, `ARM_TEST_SLACK_SIGNING_SECRET` was not specified")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_slack", "test")
+	r := BotChannelSlackResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("client_secret", "verification_token", "landing_page_url", "signing_secret", "client_id"),
 	})
 }
 
@@ -50,14 +68,14 @@ func testAccBotChannelSlack_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("client_secret", "verification_token", "landing_page_url"),
+		data.ImportStep("client_secret", "verification_token", "landing_page_url", "client_id"),
 		{
 			Config: r.basicUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("client_secret", "verification_token", "landing_page_url"),
+		data.ImportStep("client_secret", "verification_token", "landing_page_url", "client_id"),
 	})
 }
 
@@ -106,8 +124,25 @@ resource "azurerm_bot_channel_slack" "test" {
 `, BotChannelsRegistrationResource{}.basicConfig(data), os.Getenv("ARM_TEST_SLACK_CLIENT_ID"), os.Getenv("ARM_TEST_SLACK_CLIENT_SECRET"), os.Getenv("ARM_TEST_SLACK_VERIFICATION_TOKEN"))
 }
 
+func (BotChannelSlackResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_bot_channel_slack" "test" {
+  bot_name            = azurerm_bot_channels_registration.test.name
+  location            = azurerm_bot_channels_registration.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  client_id           = "%s"
+  client_secret       = "%s"
+  verification_token  = "%s"
+  signing_secret      = "%s"
+  landing_page_url    = "http://example.com"
+}
+`, BotChannelsRegistrationResource{}.basicConfig(data), os.Getenv("ARM_TEST_SLACK_CLIENT_ID"), os.Getenv("ARM_TEST_SLACK_CLIENT_SECRET"), os.Getenv("ARM_TEST_SLACK_VERIFICATION_TOKEN"), os.Getenv("ARM_TEST_SLACK_SIGNING_SECRET"))
+}
+
 func skipSlackChannel() bool {
-	if os.Getenv("ARM_TEST_SLACK_CLIENT_ID") == "" || os.Getenv("ARM_TEST_SLACK_CLIENT_SECRET") == "" || os.Getenv("ARM_TEST_SLACK_VERIFICATION_TOKEN") == "" {
+	if os.Getenv("ARM_TEST_SLACK_CLIENT_ID") == "" || os.Getenv("ARM_TEST_SLACK_CLIENT_SECRET") == "" || os.Getenv("ARM_TEST_SLACK_VERIFICATION_TOKEN") == "" || os.Getenv("ARM_TEST_SLACK_SIGNING_SECRET") == "" {
 		return true
 	}
 
