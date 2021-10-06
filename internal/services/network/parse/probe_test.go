@@ -12,7 +12,7 @@ var _ resourceid.Formatter = ProbeId{}
 
 func TestProbeIDFormatter(t *testing.T) {
 	actual := NewProbeID("12345678-1234-9876-4563-123456789012", "group1", "applicationGateway1", "probe1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/Probe/probe1"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/probes/probe1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -68,31 +68,31 @@ func TestProbeID(t *testing.T) {
 		},
 
 		{
-			// missing ProbeName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/",
 			Error: true,
 		},
 
 		{
-			// missing value for ProbeName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/Probe/",
+			// missing value for Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/probes/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/Probe/probe1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/probes/probe1",
 			Expected: &ProbeId{
 				SubscriptionId:         "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:          "group1",
 				ApplicationGatewayName: "applicationGateway1",
-				ProbeName:              "probe1",
+				Name:                   "probe1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/GROUP1/PROVIDERS/MICROSOFT.NETWORK/APPLICATIONGATEWAYS/APPLICATIONGATEWAY1/PROBE/PROBE1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/GROUP1/PROVIDERS/MICROSOFT.NETWORK/APPLICATIONGATEWAYS/APPLICATIONGATEWAY1/PROBES/PROBE1",
 			Error: true,
 		},
 	}
@@ -121,8 +121,8 @@ func TestProbeID(t *testing.T) {
 		if actual.ApplicationGatewayName != v.Expected.ApplicationGatewayName {
 			t.Fatalf("Expected %q but got %q for ApplicationGatewayName", v.Expected.ApplicationGatewayName, actual.ApplicationGatewayName)
 		}
-		if actual.ProbeName != v.Expected.ProbeName {
-			t.Fatalf("Expected %q but got %q for ProbeName", v.Expected.ProbeName, actual.ProbeName)
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }

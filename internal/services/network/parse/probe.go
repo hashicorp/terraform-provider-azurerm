@@ -13,21 +13,21 @@ type ProbeId struct {
 	SubscriptionId         string
 	ResourceGroup          string
 	ApplicationGatewayName string
-	ProbeName              string
+	Name                   string
 }
 
-func NewProbeID(subscriptionId, resourceGroup, applicationGatewayName, probeName string) ProbeId {
+func NewProbeID(subscriptionId, resourceGroup, applicationGatewayName, name string) ProbeId {
 	return ProbeId{
 		SubscriptionId:         subscriptionId,
 		ResourceGroup:          resourceGroup,
 		ApplicationGatewayName: applicationGatewayName,
-		ProbeName:              probeName,
+		Name:                   name,
 	}
 }
 
 func (id ProbeId) String() string {
 	segments := []string{
-		fmt.Sprintf("Probe Name %q", id.ProbeName),
+		fmt.Sprintf("Name %q", id.Name),
 		fmt.Sprintf("Application Gateway Name %q", id.ApplicationGatewayName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
@@ -36,8 +36,8 @@ func (id ProbeId) String() string {
 }
 
 func (id ProbeId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/applicationGateways/%s/Probe/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ApplicationGatewayName, id.ProbeName)
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/applicationGateways/%s/probes/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ApplicationGatewayName, id.Name)
 }
 
 // ProbeID parses a Probe ID into an ProbeId struct
@@ -63,7 +63,7 @@ func ProbeID(input string) (*ProbeId, error) {
 	if resourceId.ApplicationGatewayName, err = id.PopSegment("applicationGateways"); err != nil {
 		return nil, err
 	}
-	if resourceId.ProbeName, err = id.PopSegment("Probe"); err != nil {
+	if resourceId.Name, err = id.PopSegment("probes"); err != nil {
 		return nil, err
 	}
 

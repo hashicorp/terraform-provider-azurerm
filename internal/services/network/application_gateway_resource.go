@@ -2217,12 +2217,13 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 
 			if probe := props.Probe; probe != nil {
 				if probe.ID != nil {
+					print(*probe.ID)
 					id, err := parse.ProbeID(*probe.ID)
 					if err != nil {
 						return results, err
 					}
 
-					output["probe_name"] = id.ProbeName
+					output["probe_name"] = id.Name
 					output["probe_id"] = id.ID()
 				}
 			}
