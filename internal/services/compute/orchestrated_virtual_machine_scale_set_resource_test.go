@@ -872,6 +872,7 @@ func (t OrchestratedVirtualMachineScaleSetResource) Exists(ctx context.Context, 
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basic(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -881,6 +882,8 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-OVMSS-%[1]d"
   location = "%[2]s"
 }
+
+%[3]s
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%[1]d"
@@ -925,6 +928,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
     }
   }
 
@@ -940,7 +945,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, r.loadbalancer_template(data))
 }
 
 func (r OrchestratedVirtualMachineScaleSetResource) requiresImport(data acceptance.TestData) string {
@@ -3649,6 +3654,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) planManagedDisk(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3658,6 +3664,8 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-OVMSS-%[1]d"
   location = "%[2]s"
 }
+
+%[3]s
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%[1]d"
@@ -3700,6 +3708,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
     }
   }
 
@@ -3721,10 +3731,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, r.loadbalancer_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) multipleNetworkProfiles(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3734,6 +3745,8 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-OVMSS-%[1]d"
   location = "%[2]s"
 }
+
+%[3]s
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%[1]d"
@@ -3776,6 +3789,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "primary"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
     }
   }
 
@@ -3787,6 +3802,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "secondary"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
     }
   }
 
@@ -3802,10 +3819,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, r.loadbalancer_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) multipleAssignedMSI(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3815,6 +3833,8 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-OVMSS-%[1]d"
   location = "%[2]s"
 }
+
+%[4]s
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%[1]d"
@@ -3868,6 +3888,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
     }
   }
 
@@ -3883,5 +3905,56 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, r.loadbalancer_template(data))
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) loadbalancer_template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_public_ip" "test" {
+  name                = "acctest-%[1]d-pip"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+
+  sku = "Standard"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "testacc-%[1]d-lb"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku = "Standard"
+
+  frontend_ip_configuration {
+    name                 = "internal"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name            = "acctest-%[1]d-lb-pool"
+  loadbalancer_id = azurerm_lb.test.id
+}
+
+resource "azurerm_lb_probe" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
+  name                = "acctest-%[1]d-lb-probe"
+  port                = 22
+  protocol            = "Tcp"
+}
+
+resource "azurerm_lb_rule" "test" {
+  name                           = "acctest-%[1]d-lb-rule"
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  probe_id                       = azurerm_lb_probe.test.id
+  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  frontend_ip_configuration_name = "internal"
+  protocol                       = "Tcp"
+  frontend_port                  = 22
+  backend_port                   = 22
+}
+`, data.RandomInteger)
 }
