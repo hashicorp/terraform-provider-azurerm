@@ -481,7 +481,7 @@ func orchestratedVirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema
 				"domain_name_label": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: validate.OrchestratedDomainNameLabel,
 				},
 				"idle_timeout_in_minutes": {
 					Type:         pluginsdk.TypeInt,

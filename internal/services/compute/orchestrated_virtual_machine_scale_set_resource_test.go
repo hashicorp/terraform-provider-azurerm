@@ -1203,7 +1203,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[1]d"
+        domain_name_label       = "test-domain-label-%[3]s"
         idle_timeout_in_minutes = 4
       }
     }
@@ -1221,7 +1221,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicEmptyPublicIP(data acceptance.TestData) string {
@@ -1283,7 +1283,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[1]d"
+        domain_name_label       = "test-domain-label-%[3]s"
         idle_timeout_in_minutes = 4
       }
     }
@@ -1301,7 +1301,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicEmptyPublicIP_updated_tags(data acceptance.TestData) string {
@@ -1363,7 +1363,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[1]d"
+        domain_name_label       = "test-domain-label-%[3]s"
         idle_timeout_in_minutes = 4
       }
     }
@@ -1381,7 +1381,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicEmptyNetworkProfile_true_ipforwarding(data acceptance.TestData) string {
@@ -1444,7 +1444,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[1]d"
+        domain_name_label       = "test-domain-label-%[3]s"
         idle_timeout_in_minutes = 4
       }
     }
@@ -1462,7 +1462,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicEmptyPublicIP_updatedDNS_label(data acceptance.TestData) string {
@@ -1524,7 +1524,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-updated-domain-label-%[1]d"
+        domain_name_label       = "test-updated-domain-label-%[3]s"
         idle_timeout_in_minutes = 4
       }
     }
@@ -1542,7 +1542,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicApplicationSecurity(data acceptance.TestData) string {
@@ -1969,7 +1969,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[1]d"
+        domain_name_label       = "test-domain-label-%[3]s"
         idle_timeout_in_minutes = 4
       }
     }
@@ -1987,7 +1987,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicWindows(data acceptance.TestData) string {
