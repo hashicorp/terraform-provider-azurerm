@@ -470,8 +470,6 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	currentBackupStorageRedundancy := sql.CurrentBackupStorageRedundancyGeo
 	if storageAccountType == "LRS" {
 		currentBackupStorageRedundancy = sql.CurrentBackupStorageRedundancyLocal
-	} else if storageAccountType == "GRS" {
-		currentBackupStorageRedundancy = sql.CurrentBackupStorageRedundancyGeo
 	} else if storageAccountType == "ZRS" {
 		currentBackupStorageRedundancy = sql.CurrentBackupStorageRedundancyZone
 	}
@@ -704,13 +702,13 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			skuName = *props.CurrentServiceObjectiveName
 		}
 		d.Set("sku_name", skuName)
+		currentBackupStorageRedundancy := "GRS"
 		if props.CurrentBackupStorageRedundancy == sql.CurrentBackupStorageRedundancyLocal {
-			d.Set("storage_account_type", "LRS")
-		} else if props.CurrentBackupStorageRedundancy == sql.CurrentBackupStorageRedundancyGeo {
-			d.Set("storage_account_type", "GRS")
+			currentBackupStorageRedundancy = "LRS"
 		} else if props.CurrentBackupStorageRedundancy == sql.CurrentBackupStorageRedundancyZone {
-			d.Set("storage_account_type", "ZRS")
+			currentBackupStorageRedundancy = "ZRS"
 		}
+		d.Set("storage_account_type", currentBackupStorageRedundancy)
 		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 

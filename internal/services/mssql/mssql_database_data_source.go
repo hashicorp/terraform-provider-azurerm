@@ -106,9 +106,7 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("making Read request on AzureRM Database %s (Resource Group %q, SQL Server %q): %+v", name, serverId.ResourceGroup, serverId.Name, err)
 	}
 
-	if id := resp.ID; id != nil {
-		d.SetId(*resp.ID)
-	}
+	d.SetId(parse.NewDatabaseID(serverId.SubscriptionId, serverId.ResourceGroup, serverId.Name, name).ID())
 	d.Set("name", name)
 	d.Set("server_id", mssqlServerId)
 
@@ -126,13 +124,13 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.Set("read_scale", false)
 		}
 		d.Set("sku_name", props.CurrentServiceObjectiveName)
+		currentBackupStorageRedundancy := "GRS"
 		if props.CurrentBackupStorageRedundancy == sql.CurrentBackupStorageRedundancyLocal {
-			d.Set("storage_account_type", "LRS")
-		} else if props.CurrentBackupStorageRedundancy == sql.CurrentBackupStorageRedundancyGeo {
-			d.Set("storage_account_type", "GRS")
+			currentBackupStorageRedundancy = "LRS"
 		} else if props.CurrentBackupStorageRedundancy == sql.CurrentBackupStorageRedundancyZone {
-			d.Set("storage_account_type", "ZRS")
+			currentBackupStorageRedundancy = "ZRS"
 		}
+		d.Set("storage_account_type", currentBackupStorageRedundancy)
 		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 

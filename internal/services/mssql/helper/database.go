@@ -79,9 +79,6 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *sql.D
 					}
 					return nil, fmt.Errorf("reading Replication Links for Database %s (%s): %+v", *linkProps.PartnerDatabase, partnerServerId, err)
 				}
-				if linksPossiblePartnerIterator.Value == nil {
-					return nil, fmt.Errorf("reading Replication Links for Database %s (%s): response was nil", *linkProps.PartnerDatabase, partnerServerId)
-				}
 
 				linkPossiblePartner := linksPossiblePartnerIterator.Value()
 				if linkPossiblePartner.ReplicationLinkProperties == nil {
