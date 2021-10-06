@@ -124,7 +124,7 @@ func dataSourceFunctionAppHostKeysRead(d *pluginsdk.ResourceData, meta interface
 		if v, ok := res.SystemKeys["durabletask_extension"]; ok {
 			durableTaskExtensionKey = *v
 		}
-		d.Set("signalr_extension_key", durableTaskExtensionKey)
+		d.Set("durabletask_extension", durableTaskExtensionKey)
 
 		return nil
 	})
