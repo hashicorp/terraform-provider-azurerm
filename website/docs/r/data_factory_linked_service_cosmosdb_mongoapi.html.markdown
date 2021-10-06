@@ -3,7 +3,7 @@ subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_linked_service_cosmosdb_mongoapi"
 description: |-
-Manages a Linked Service (connection) between a CosmosDB and Azure Data Factory using Mongo API.
+  Manages a Linked Service (connection) between a CosmosDB and Azure Data Factory using Mongo API.
 ---
 
 # azurerm_data_factory_linked_service_cosmosdb_mongoapi
