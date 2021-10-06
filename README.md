@@ -1,3 +1,7 @@
+<a href="https://terraform.io">
+    <img src=".github/tf.png" alt="Terraform logo" title="Terraform" align="right" height="50" />
+</a>
+
 # Terraform Provider for Azure (Resource Manager)
 
 Version 2.x of the AzureRM Provider requires Terraform 0.12.x and later, but 1.0 is recommended.
