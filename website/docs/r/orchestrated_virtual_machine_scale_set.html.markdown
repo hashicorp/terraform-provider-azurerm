@@ -248,7 +248,7 @@ A `plan` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Identity which should be assigned to the Windows Orchestrated Virtual Machine Scale Set. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+* `type` - (Required) The type of Managed Identity which should be assigned to the Windows Orchestrated Virtual Machine Scale Set. Possible values are `UserAssigned` and `None`.
 
 * `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Orchestrated Windows Virtual Machine Scale Set.
 

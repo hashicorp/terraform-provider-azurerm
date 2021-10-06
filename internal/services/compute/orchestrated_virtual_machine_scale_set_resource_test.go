@@ -7,7 +7,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -262,20 +261,21 @@ func TestAccOrchestratedVirtualMachineScaleSet_basicDNSSettings(t *testing.T) {
 	})
 }
 
-func TestAccOrchestratedVirtualMachineScaleSet_bootDiagnostic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	r := OrchestratedVirtualMachineScaleSetResource{}
+// TODO: See if this is valid for Flex
+// func TestAccOrchestratedVirtualMachineScaleSet_bootDiagnostic(t *testing.T) {
+// 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+// 	r := OrchestratedVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.bootDiagnostic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("boot_diagnostics.0.enabled").HasValue("true"),
-			),
-		},
-	})
-}
+// 	data.ResourceTest(t, r, []acceptance.TestStep{
+// 		{
+// 			Config: r.bootDiagnostic(data),
+// 			Check: acceptance.ComposeTestCheckFunc(
+// 				check.That(data.ResourceName).ExistsInAzure(r),
+// 				check.That(data.ResourceName).Key("boot_diagnostics.0.enabled").HasValue("true"),
+// 			),
+// 		},
+// 	})
+// }
 
 func TestAccOrchestratedVirtualMachineScaleSet_networkSecurityGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
@@ -500,23 +500,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_priority(t *testing.T) {
 	})
 }
 
-func TestAccOrchestratedVirtualMachineScaleSet_SystemAssignedMSI(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	r := OrchestratedVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.systemAssignedMSI(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("0"),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-			),
-		},
-	})
-}
-
 func TestAccOrchestratedVirtualMachineScaleSet_UserAssignedMSI(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
@@ -529,23 +512,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_UserAssignedMSI(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.principal_id").HasValue(""),
-			),
-		},
-	})
-}
-
-func TestAccOrchestratedVirtualMachineScaleSet_multipleAssignedMSI(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	r := OrchestratedVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.multipleAssignedMSI(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
-				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
 			),
 		},
 	})
@@ -928,8 +894,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
-
-      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
     }
   }
 
@@ -945,7 +909,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.loadbalancer_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (r OrchestratedVirtualMachineScaleSetResource) requiresImport(data acceptance.TestData) string {
@@ -998,6 +962,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "import" {
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) evictionPolicyDelete(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1008,19 +973,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -1067,10 +1020,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) withPPG(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1081,19 +1035,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[3]s
 
 resource "azurerm_proximity_placement_group" "test" {
   name                = "accPPG-%[1]d"
@@ -1145,10 +1087,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   proximity_placement_group_id = azurerm_proximity_placement_group.test.id
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicPublicIP(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1159,19 +1102,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[4]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -1221,10 +1152,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicEmptyPublicIP(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1235,19 +1167,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[4]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -1301,10 +1221,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicEmptyPublicIP_updated_tags(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1315,19 +1236,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[4]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -1381,10 +1290,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicEmptyNetworkProfile_true_ipforwarding(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1395,19 +1305,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[4]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -1462,10 +1360,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicEmptyPublicIP_updatedDNS_label(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1476,19 +1375,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[4]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -1542,10 +1429,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicApplicationSecurity(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1556,19 +1444,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[3]s
 
 resource "azurerm_application_security_group" "test" {
   location            = azurerm_resource_group.test.location
@@ -1619,10 +1495,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicAcceleratedNetworking(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1633,19 +1510,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -1690,10 +1555,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicIPForwarding(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1704,19 +1570,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -1761,10 +1615,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicDNSSettings(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1775,19 +1630,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -1833,81 +1676,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-// remove test case
-func (OrchestratedVirtualMachineScaleSetResource) bootDiagnostic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-OVMSS-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
-
-resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku_name = "Standard_D1_v2_2"
-
-  platform_fault_domain_count = 2
-
-  os_profile {
-    linux_configuration {
-      computer_name_prefix = "testvm-%[1]d"
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
-
-      disable_password_authentication = false
-    }
-  }
-
-  network_interface {
-    name    = "TestNetworkProfile-%[1]d"
-    primary = true
-
-    ip_configuration {
-      name      = "TestIPConfiguration"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) networkSecurityGroup(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1918,19 +1691,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[4]s
 
 resource "azurerm_network_security_group" "test" {
   name                = "acceptanceTestSecurityGroup-%[1]d"
@@ -1987,10 +1748,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicWindows(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2001,19 +1763,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -2063,7 +1813,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) linux(data acceptance.TestData) string {
@@ -2143,9 +1893,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     primary = true
 
     ip_configuration {
-      name                                   = "TestIPConfiguration"
-      primary                                = true
-      subnet_id                              = azurerm_subnet.test.id
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
       load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
     }
   }
@@ -2242,9 +1993,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     primary = true
 
     ip_configuration {
-      name                                   = "TestIPConfiguration"
-      primary                                = true
-      subnet_id                              = azurerm_subnet.test.id
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
       load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
     }
   }
@@ -2345,9 +2097,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     primary = true
 
     ip_configuration {
-      name                                   = "TestIPConfiguration"
-      primary                                = true
-      subnet_id                              = azurerm_subnet.test.id
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
       load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
     }
   }
@@ -2444,9 +2197,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     primary = true
 
     ip_configuration {
-      name                                   = "TestIPConfiguration"
-      primary                                = true
-      subnet_id                              = azurerm_subnet.test.id
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
       load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
     }
   }
@@ -2467,6 +2221,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicLinux_managedDisk(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2477,19 +2232,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -2533,10 +2276,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicLinux_managedDisk_withZones(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2547,19 +2291,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -2603,7 +2335,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) applicationGatewayTemplate(data acceptance.TestData) string {
@@ -2857,9 +2589,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     primary = true
 
     ip_configuration {
-      name                                   = "TestIPConfiguration"
-      primary                                = true
-      subnet_id                              = azurerm_subnet.test.id
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
       load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
     }
   }
@@ -2880,6 +2613,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) priorityTemplate(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2890,19 +2624,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -2949,92 +2671,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (OrchestratedVirtualMachineScaleSetResource) systemAssignedMSI(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-OVMSS-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
-
-resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku_name = "Standard_D1_v2_1"
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  extension {
-    name                 = "MSILinuxExtension"
-    publisher            = "Microsoft.ManagedIdentity"
-    type                 = "ManagedIdentityExtensionForLinux"
-    type_handler_version = "1.0"
-    settings             = "{\"port\": 50342}"
-  }
-
-  platform_fault_domain_count = 2
-
-  os_profile {
-    linux_configuration {
-      computer_name_prefix = "testvm-%[1]d"
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
-
-      disable_password_authentication = false
-    }
-  }
-
-  network_interface {
-    name    = "TestNetworkProfile"
-    primary = true
-
-    ip_configuration {
-      name      = "TestIPConfiguration"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) userAssignedMSI(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3045,19 +2686,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[4]s
 
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
@@ -3121,10 +2750,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) extensionTemplate(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3135,19 +2765,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -3208,10 +2826,11 @@ SETTINGS
 
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) extensionTemplateUpdated(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3222,19 +2841,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -3296,10 +2903,11 @@ SETTINGS
 
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) multipleExtensionsTemplate(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3310,19 +2918,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -3389,10 +2985,11 @@ SETTINGS
     auto_upgrade_minor_version = true
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) multipleExtensionsTemplate_provision_after_extension(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3403,19 +3000,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -3483,7 +3068,7 @@ SETTINGS
     provision_after_extensions = ["CustomScript"]
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) loadBalancerTemplateManagedDataDisks(data acceptance.TestData) string {
@@ -3553,9 +3138,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     primary = true
 
     ip_configuration {
-      name                                   = "TestIPConfiguration"
-      primary                                = true
-      subnet_id                              = azurerm_subnet.test.id
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
       load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
     }
   }
@@ -3584,6 +3170,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) nonStandardCasing(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3594,19 +3181,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
+%[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -3650,7 +3225,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) planManagedDisk(data acceptance.TestData) string {
@@ -3666,20 +3241,6 @@ resource "azurerm_resource_group" "test" {
 }
 
 %[3]s
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -3708,8 +3269,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
-
-      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
     }
   }
 
@@ -3731,7 +3290,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.loadbalancer_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) multipleNetworkProfiles(data acceptance.TestData) string {
@@ -3747,20 +3306,6 @@ resource "azurerm_resource_group" "test" {
 }
 
 %[3]s
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -3789,8 +3334,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "primary"
       primary   = true
       subnet_id = azurerm_subnet.test.id
-
-      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
     }
   }
 
@@ -3802,8 +3345,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "secondary"
       primary   = true
       subnet_id = azurerm_subnet.test.id
-
-      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
     }
   }
 
@@ -3819,22 +3360,18 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.loadbalancer_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) multipleAssignedMSI(data acceptance.TestData) string {
-	r := OrchestratedVirtualMachineScaleSetResource{}
+func (OrchestratedVirtualMachineScaleSetResource) natgateway_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
+resource "azurerm_public_ip" "test" {
+  name                = "acctpip-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-OVMSS-%[1]d"
-  location = "%[2]s"
-}
-
-%[4]s
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%[1]d"
@@ -3850,111 +3387,18 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctest%[3]s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+resource "azurerm_nat_gateway" "test" {
+  name                    = "acctng-%[1]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  public_ip_address_ids   = [azurerm_public_ip.test.id]
+  sku_name                = "Standard"
+  idle_timeout_in_minutes = 10
 }
 
-resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku_name = "Standard_D1_v2_1"
-
-  identity {
-    type         = "SystemAssigned, UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id]
-  }
-
-  platform_fault_domain_count = 2
-
-  os_profile {
-    linux_configuration {
-      computer_name_prefix = "testvm-%[1]d"
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
-
-      disable_password_authentication = false
-    }
-  }
-
-  network_interface {
-    name    = "TestNetworkProfile"
-    primary = true
-
-    ip_configuration {
-      name      = "TestIPConfiguration"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-
-      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-    }
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, r.loadbalancer_template(data))
-}
-
-func (OrchestratedVirtualMachineScaleSetResource) loadbalancer_template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_public_ip" "test" {
-  name                = "acctest-%[1]d-pip"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-
-  sku = "Standard"
-}
-
-resource "azurerm_lb" "test" {
-  name                = "testacc-%[1]d-lb"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku = "Standard"
-
-  frontend_ip_configuration {
-    name                 = "internal"
-    public_ip_address_id = azurerm_public_ip.test.id
-  }
-}
-
-resource "azurerm_lb_backend_address_pool" "test" {
-  name            = "acctest-%[1]d-lb-pool"
-  loadbalancer_id = azurerm_lb.test.id
-}
-
-resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "acctest-%[1]d-lb-probe"
-  port                = 22
-  protocol            = "Tcp"
-}
-
-resource "azurerm_lb_rule" "test" {
-  name                           = "acctest-%[1]d-lb-rule"
-  resource_group_name            = azurerm_resource_group.test.name
-  loadbalancer_id                = azurerm_lb.test.id
-  probe_id                       = azurerm_lb_probe.test.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
-  frontend_ip_configuration_name = "internal"
-  protocol                       = "Tcp"
-  frontend_port                  = 22
-  backend_port                   = 22
+resource "azurerm_subnet_nat_gateway_association" "example" {
+  subnet_id      = azurerm_subnet.test.id
+  nat_gateway_id = azurerm_nat_gateway.test.id
 }
 `, data.RandomInteger)
 }

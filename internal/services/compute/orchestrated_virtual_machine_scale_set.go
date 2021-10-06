@@ -211,9 +211,8 @@ func OrchestratedVirtualMachineScaleSetIdentitySchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.ResourceIdentityTypeSystemAssigned),
 						string(compute.ResourceIdentityTypeUserAssigned),
-						string(compute.ResourceIdentityTypeSystemAssignedUserAssigned),
+						string(compute.ResourceIdentityTypeNone),
 					}, false),
 				},
 
