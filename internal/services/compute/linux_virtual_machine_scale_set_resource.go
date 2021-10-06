@@ -1084,7 +1084,8 @@ func resourceLinuxVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta i
 	// Original Error: Code="InUseSubnetCannotBeDeleted" Message="Subnet internal is in use by
 	// /{nicResourceID}/|providers|Microsoft.Compute|virtualMachineScaleSets|acctestvmss-190923101253410278|virtualMachines|0|networkInterfaces|example/ipConfigurations/internal and cannot be deleted.
 	// In order to delete the subnet, delete all the resources within the subnet. See aka.ms/deletesubnet.
-	if resp.Sku != nil {
+	scaleInOnDelete := meta.(*clients.Client).Features.VirtualMachineScaleSet.ScaleInOnDelete
+	if scaleInOnDelete && resp.Sku != nil {
 		resp.Sku.Capacity = utils.Int64(int64(0))
 
 		log.Printf("[DEBUG] Scaling instances to 0 prior to deletion - this helps avoids networking issues within Azure")

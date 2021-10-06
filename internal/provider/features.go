@@ -136,6 +136,10 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
 					},
+					"scale_in_on_delete": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
 				},
 			},
 		},
@@ -276,6 +280,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := scaleSetRaw["force_delete"]; ok {
 				features.VirtualMachineScaleSet.ForceDelete = v.(bool)
+			}
+			if v, ok := scaleSetRaw["scale_in_on_delete"]; ok {
+				features.VirtualMachineScaleSet.ScaleInOnDelete = v.(bool)
 			}
 		}
 	}
