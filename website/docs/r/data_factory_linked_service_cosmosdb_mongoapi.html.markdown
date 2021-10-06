@@ -1,14 +1,14 @@
 ---
 subcategory: "Data Factory"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_data_factory_linked_service_cosmosdb"
+page_title: "Azure Resource Manager: azurerm_data_factory_linked_service_cosmosdb_mongoapi"
 description: |-
-  Manages a Linked Service (connection) between a CosmosDB and Azure Data Factory using SQL API.
+Manages a Linked Service (connection) between a CosmosDB and Azure Data Factory using Mongo API.
 ---
 
-# azurerm_data_factory_linked_service_cosmosdb
+# azurerm_data_factory_linked_service_cosmosdb_mongoapi
 
-Manages a Linked Service (connection) between a CosmosDB and Azure Data Factory using SQL API.
+Manages a Linked Service (connection) between a CosmosDB and Azure Data Factory using Mongo API.
 
 ~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
@@ -31,12 +31,11 @@ resource "azurerm_data_factory" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_data_factory_linked_service_cosmosdb" "example" {
+resource "azurerm_data_factory_linked_service_cosmosdb_mongoapi" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   data_factory_name   = azurerm_data_factory.example.name
-  account_endpoint    = azurerm_cosmosdb_account.example.endpoint
-  account_key         = data.azurerm_cosmosdb_account.example.primary_access_key
+  connection_string   = "mongodb://testinstance:testkey@testinstance.documents.azure.com:10255/?ssl=true"
   database            = "foo"
 
 }
@@ -65,13 +64,9 @@ The following supported arguments are common across all Azure Data Factory Linke
 
 The following supported arguments are specific to CosmosDB Linked Service:
 
-* `account_endpoint` - (Optional) The endpoint of the Azure CosmosDB account. Required if `connection_string` is unspecified.
+* `database` - (Optional) The name of the database.
 
-* `account_key` - (Optional) The account key of the Azure Cosmos DB account. Required if `connection_string` is unspecified.
-
-* `database` - (Optional) The name of the database. Required if `connection_string` is unspecified.
-
-* `connection_string` - (Optional) The connection string. Required if `account_endpoint`, `account_key`, and `database` are unspecified.
+* `connection_string` - (Required) The connection string. 
 
 ## Attributes Reference
 
@@ -93,5 +88,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Data Factory Linked Service's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_factory_linked_service_cosmosdb.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/linkedservices/example
+terraform import azurerm_data_factory_linked_service_cosmosdb_mongoapi.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/linkedservices/example
 ```
