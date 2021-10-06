@@ -197,7 +197,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  "GRS",
+				Default:  "GRS", // TODO - 3.0: change to sql.CurrentBackupStorageRedundancy enums
 				ValidateFunc: validation.StringInSlice([]string{
 					"GRS",
 					"LRS",
@@ -355,7 +355,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	serversClient := meta.(*clients.Client).MSSQL.ServersClient
-	threatClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
+	securityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
@@ -466,14 +466,6 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	storageAccountType := d.Get("storage_account_type").(string)
-	currentBackupStorageRedundancy := sql.CurrentBackupStorageRedundancyGeo
-	if storageAccountType == "LRS" {
-		currentBackupStorageRedundancy = sql.CurrentBackupStorageRedundancyLocal
-	} else if storageAccountType == "ZRS" {
-		currentBackupStorageRedundancy = sql.CurrentBackupStorageRedundancyZone
-	}
-
 	params := sql.Database{
 		Name:     &name,
 		Location: &location,
@@ -485,7 +477,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 			MinCapacity:                    utils.Float(d.Get("min_capacity").(float64)),
 			HighAvailabilityReplicaCount:   utils.Int32(int32(d.Get("read_replica_count").(int))),
 			SampleName:                     sql.SampleName(d.Get("sample_name").(string)),
-			CurrentBackupStorageRedundancy: currentBackupStorageRedundancy,
+			CurrentBackupStorageRedundancy: expandMsSqlBackupStorageRedundancy(d.Get("storage_account_type").(string)),
 			ZoneRedundant:                  utils.Bool(d.Get("zone_redundant").(bool)),
 		},
 
@@ -593,7 +585,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if _, err = threatClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, expandMsSqlServerThreatDetectionPolicy(d)); err != nil {
+	if _, err = securityAlertPoliciesClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, expandMsSqlServerSecurityAlertPolicy(d)); err != nil {
 		return fmt.Errorf("setting database threat detection policy for %s: %+v", id, err)
 	}
 
@@ -654,7 +646,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
-	threatClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
+	securityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
 	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
@@ -702,19 +694,13 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			skuName = *props.CurrentServiceObjectiveName
 		}
 		d.Set("sku_name", skuName)
-		currentBackupStorageRedundancy := "GRS"
-		if props.CurrentBackupStorageRedundancy == sql.CurrentBackupStorageRedundancyLocal {
-			currentBackupStorageRedundancy = "LRS"
-		} else if props.CurrentBackupStorageRedundancy == sql.CurrentBackupStorageRedundancyZone {
-			currentBackupStorageRedundancy = "ZRS"
-		}
-		d.Set("storage_account_type", currentBackupStorageRedundancy)
+		d.Set("storage_account_type", flattenMsSqlBackupStorageRedundancy(props.CurrentBackupStorageRedundancy))
 		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 
-	threat, err := threatClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	securityAlertPolicy, err := securityAlertPoliciesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err == nil {
-		if err := d.Set("threat_detection_policy", flattenMsSqlServerThreatDetectionPolicy(d, threat)); err != nil {
+		if err := d.Set("threat_detection_policy", flattenMsSqlServerSecurityAlertPolicy(d, securityAlertPolicy)); err != nil {
 			return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
 		}
 	}
@@ -798,20 +784,20 @@ func resourceMsSqlDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func flattenMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, policy sql.DatabaseSecurityAlertPolicy) []interface{} {
-	// The SQL database threat detection API always returns the default value even if never set.
+func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy sql.DatabaseSecurityAlertPolicy) []interface{} {
+	// The SQL database security alert API always returns the default value even if never set.
 	// If the values are on their default one, threat it as not set.
 	properties := policy.SecurityAlertsPolicyProperties
 	if properties == nil {
 		return []interface{}{}
 	}
 
-	threatDetectionPolicy := make(map[string]interface{})
+	securityAlertPolicy := make(map[string]interface{})
 
-	threatDetectionPolicy["state"] = string(properties.State)
-	threatDetectionPolicy["email_account_admins"] = "Disabled"
+	securityAlertPolicy["state"] = string(properties.State)
+	securityAlertPolicy["email_account_admins"] = "Disabled"
 	if properties.EmailAccountAdmins != nil && *properties.EmailAccountAdmins {
-		threatDetectionPolicy["email_account_admins"] = "Enabled"
+		securityAlertPolicy["email_account_admins"] = "Enabled"
 	}
 
 	if disabledAlerts := properties.DisabledAlerts; disabledAlerts != nil {
@@ -819,31 +805,31 @@ func flattenMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, policy s
 		for _, a := range *disabledAlerts {
 			flattenedAlerts.Add(a)
 		}
-		threatDetectionPolicy["disabled_alerts"] = flattenedAlerts
+		securityAlertPolicy["disabled_alerts"] = flattenedAlerts
 	}
 	if emailAddresses := properties.EmailAddresses; emailAddresses != nil {
 		flattenedEmails := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
 		for _, e := range *emailAddresses {
 			flattenedEmails.Add(e)
 		}
-		threatDetectionPolicy["email_addresses"] = flattenedEmails
+		securityAlertPolicy["email_addresses"] = flattenedEmails
 	}
 	if properties.StorageEndpoint != nil {
-		threatDetectionPolicy["storage_endpoint"] = *properties.StorageEndpoint
+		securityAlertPolicy["storage_endpoint"] = *properties.StorageEndpoint
 	}
 	if properties.RetentionDays != nil {
-		threatDetectionPolicy["retention_days"] = int(*properties.RetentionDays)
+		securityAlertPolicy["retention_days"] = int(*properties.RetentionDays)
 	}
 
 	// If storage account access key is in state read it to the new state, as the API does not return it for security reasons
 	if v, ok := d.GetOk("threat_detection_policy.0.storage_account_access_key"); ok {
-		threatDetectionPolicy["storage_account_access_key"] = v.(string)
+		securityAlertPolicy["storage_account_access_key"] = v.(string)
 	}
 
-	return []interface{}{threatDetectionPolicy}
+	return []interface{}{securityAlertPolicy}
 }
 
-func expandMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData) sql.DatabaseSecurityAlertPolicy {
+func expandMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData) sql.DatabaseSecurityAlertPolicy {
 	policy := sql.DatabaseSecurityAlertPolicy{
 		SecurityAlertsPolicyProperties: &sql.SecurityAlertsPolicyProperties{
 			State: sql.SecurityAlertsPolicyStateDisabled,
@@ -857,12 +843,12 @@ func expandMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData) sql.Datab
 	}
 
 	if tdl := td.([]interface{}); len(tdl) > 0 {
-		threatDetection := tdl[0].(map[string]interface{})
+		securityAlert := tdl[0].(map[string]interface{})
 
-		properties.State = sql.SecurityAlertsPolicyState(threatDetection["state"].(string))
-		properties.EmailAccountAdmins = utils.Bool(threatDetection["email_account_admins"].(string) == "Enabled")
+		properties.State = sql.SecurityAlertsPolicyState(securityAlert["state"].(string))
+		properties.EmailAccountAdmins = utils.Bool(securityAlert["email_account_admins"].(string) == "Enabled")
 
-		if v, ok := threatDetection["disabled_alerts"]; ok {
+		if v, ok := securityAlert["disabled_alerts"]; ok {
 			alerts := v.(*pluginsdk.Set).List()
 			expandedAlerts := make([]string, len(alerts))
 			for i, a := range alerts {
@@ -870,7 +856,7 @@ func expandMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData) sql.Datab
 			}
 			properties.DisabledAlerts = &expandedAlerts
 		}
-		if v, ok := threatDetection["email_addresses"]; ok {
+		if v, ok := securityAlert["email_addresses"]; ok {
 			emails := v.(*pluginsdk.Set).List()
 			expandedEmails := make([]string, len(emails))
 			for i, e := range emails {
@@ -878,13 +864,13 @@ func expandMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData) sql.Datab
 			}
 			properties.EmailAddresses = &expandedEmails
 		}
-		if v, ok := threatDetection["retention_days"]; ok {
+		if v, ok := securityAlert["retention_days"]; ok {
 			properties.RetentionDays = utils.Int32(int32(v.(int)))
 		}
-		if v, ok := threatDetection["storage_account_access_key"]; ok {
+		if v, ok := securityAlert["storage_account_access_key"]; ok {
 			properties.StorageAccountAccessKey = utils.String(v.(string))
 		}
-		if v, ok := threatDetection["storage_endpoint"]; ok {
+		if v, ok := securityAlert["storage_endpoint"]; ok {
 			properties.StorageEndpoint = utils.String(v.(string))
 		}
 
@@ -892,4 +878,28 @@ func expandMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData) sql.Datab
 	}
 
 	return policy
+}
+
+// TODO - 3.0: change output to API enums
+func flattenMsSqlBackupStorageRedundancy(currentBackupStorageRedundancy sql.CurrentBackupStorageRedundancy) string {
+	switch currentBackupStorageRedundancy {
+	case sql.CurrentBackupStorageRedundancyLocal:
+		return "LRS"
+	case sql.CurrentBackupStorageRedundancyZone:
+		return "ZRS"
+	default:
+		return "GRS"
+	}
+}
+
+// TODO - 3.0: change input to sql.CurrentBackupStorageRedundancy enums
+func expandMsSqlBackupStorageRedundancy(storageAccountType string) sql.CurrentBackupStorageRedundancy {
+	switch storageAccountType {
+	case "LRS":
+		return sql.CurrentBackupStorageRedundancyLocal
+	case "ZRS":
+		return sql.CurrentBackupStorageRedundancyZone
+	default:
+		return sql.CurrentBackupStorageRedundancyGeo
+	}
 }

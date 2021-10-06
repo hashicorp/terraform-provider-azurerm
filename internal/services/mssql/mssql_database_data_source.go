@@ -124,13 +124,7 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.Set("read_scale", false)
 		}
 		d.Set("sku_name", props.CurrentServiceObjectiveName)
-		currentBackupStorageRedundancy := "GRS"
-		if props.CurrentBackupStorageRedundancy == sql.CurrentBackupStorageRedundancyLocal {
-			currentBackupStorageRedundancy = "LRS"
-		} else if props.CurrentBackupStorageRedundancy == sql.CurrentBackupStorageRedundancyZone {
-			currentBackupStorageRedundancy = "ZRS"
-		}
-		d.Set("storage_account_type", currentBackupStorageRedundancy)
+		d.Set("storage_account_type", flattenMsSqlBackupStorageRedundancy(props.CurrentBackupStorageRedundancy))
 		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 
