@@ -282,6 +282,19 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+
+						// TODO - 3.0: Remove this property
+						"use_server_default": {
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							Default:          "Disabled",
+							ValidateFunc: validation.StringInSlice([]string{
+								"Disabled",
+								"Enabled",
+							}, true),
+							Deprecated: "This field is now non-functional and thus will be removed in version 3.0 of the Azure Provider",
+						},
 					},
 				},
 			},
