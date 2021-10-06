@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -224,21 +224,18 @@ func TestAccFirewallNatRuleCollection_noSource(t *testing.T) {
 }
 
 func (FirewallNatRuleCollectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	var id, err = azure.ParseAzureResourceID(state.ID)
+	var id, err = parse.FirewallNatRuleCollectionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	firewallName := id.Path["azureFirewalls"]
-	name := id.Path["natRuleCollections"]
-
-	resp, err := clients.Firewall.AzureFirewallsClient.Get(ctx, id.ResourceGroup, firewallName)
+	resp, err := clients.Firewall.AzureFirewallsClient.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Firewall Nat Rule Collection %q (Firewall %q / Resource Group %q): %v", name, firewallName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Firewall Nat Rule Collection %q (Firewall %q / Resource Group %q): %v", id.NatRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
 
 	if resp.AzureFirewallPropertiesFormat == nil || resp.AzureFirewallPropertiesFormat.NatRuleCollections == nil {
-		return nil, fmt.Errorf("retrieving Firewall  Nat Rule Collection %q (Firewall %q / Resource Group %q): properties or collections was nil", name, firewallName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving Firewall  Nat Rule Collection %q (Firewall %q / Resource Group %q): properties or collections was nil", id.NatRuleCollectionName, id.AzureFirewallName, id.ResourceGroup)
 	}
 
 	for _, rule := range *resp.AzureFirewallPropertiesFormat.NatRuleCollections {
@@ -246,7 +243,7 @@ func (FirewallNatRuleCollectionResource) Exists(ctx context.Context, clients *cl
 			continue
 		}
 
-		if *rule.Name == name {
+		if *rule.Name == id.NatRuleCollectionName {
 			return utils.Bool(true), nil
 		}
 	}
@@ -254,13 +251,10 @@ func (FirewallNatRuleCollectionResource) Exists(ctx context.Context, clients *cl
 }
 
 func (t FirewallNatRuleCollectionResource) doesNotExist(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-	var id, err = azure.ParseAzureResourceID(state.ID)
+	var id, err = parse.FirewallNatRuleCollectionID(state.ID)
 	if err != nil {
 		return err
 	}
-
-	firewallName := id.Path["azureFirewalls"]
-	name := id.Path["natRuleCollections"]
 
 	exists, err := t.Exists(ctx, clients, state)
 	if err != nil {
@@ -268,7 +262,7 @@ func (t FirewallNatRuleCollectionResource) doesNotExist(ctx context.Context, cli
 	}
 
 	if *exists {
-		return fmt.Errorf("Firewall Nat Rule Collection %q (Firewall %q / Resource Group %q): still exists", name, firewallName, id.ResourceGroup)
+		return fmt.Errorf("Firewall Nat Rule Collection %q (Firewall %q / Resource Group %q): still exists", id.NatRuleCollectionName, id.AzureFirewallName, id.ResourceGroup)
 	}
 
 	return nil
@@ -276,39 +270,36 @@ func (t FirewallNatRuleCollectionResource) doesNotExist(ctx context.Context, cli
 
 func (t FirewallNatRuleCollectionResource) disappears(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	client := clients.Firewall.AzureFirewallsClient
-	var id, err = azure.ParseAzureResourceID(state.ID)
+	var id, err = parse.FirewallNatRuleCollectionID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	firewallName := id.Path["azureFirewalls"]
-	name := id.Path["natRuleCollections"]
-
-	resp, err := client.Get(ctx, id.ResourceGroup, firewallName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {
-		return fmt.Errorf("retrieving Firewall Nat Rule Collection %q (Firewall %q / Resource Group %q): %v", name, firewallName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Firewall Nat Rule Collection %q (Firewall %q / Resource Group %q): %v", id.NatRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
 
 	if resp.AzureFirewallPropertiesFormat == nil || resp.AzureFirewallPropertiesFormat.NatRuleCollections == nil {
-		return fmt.Errorf("retrieving Firewall  Nat Rule Collection %q (Firewall %q / Resource Group %q): properties or collections was nil", name, firewallName, id.ResourceGroup)
+		return fmt.Errorf("retrieving Firewall  Nat Rule Collection %q (Firewall %q / Resource Group %q): properties or collections was nil", id.NatRuleCollectionName, id.AzureFirewallName, id.ResourceGroup)
 	}
 
 	rules := make([]network.AzureFirewallNatRuleCollection, 0)
 	for _, collection := range *resp.AzureFirewallPropertiesFormat.NatRuleCollections {
-		if *collection.Name != name {
+		if *collection.Name != id.NatRuleCollectionName {
 			rules = append(rules, collection)
 		}
 	}
 
 	resp.AzureFirewallPropertiesFormat.NatRuleCollections = &rules
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, firewallName, resp)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AzureFirewallName, resp)
 	if err != nil {
-		return fmt.Errorf("removing Firewall Nat Rule Collection %q (Firewall %q / Resource Group %q): %v", name, firewallName, id.ResourceGroup, err)
+		return fmt.Errorf("removing Firewall Nat Rule Collection %q (Firewall %q / Resource Group %q): %v", id.NatRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the removal of Firewall Nat Rule Collection %q (Firewall %q / Resource Group %q): %v", name, firewallName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the removal of Firewall Nat Rule Collection %q (Firewall %q / Resource Group %q): %v", id.NatRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
 
 	return FirewallNatRuleCollectionResource{}.doesNotExist(ctx, clients, state)
