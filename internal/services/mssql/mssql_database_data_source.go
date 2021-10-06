@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v4.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -126,7 +126,13 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.Set("read_scale", false)
 		}
 		d.Set("sku_name", props.CurrentServiceObjectiveName)
-		d.Set("storage_account_type", props.StorageAccountType)
+		if props.CurrentBackupStorageRedundancy == sql.CurrentBackupStorageRedundancyLocal {
+			d.Set("storage_account_type", "LRS")
+		} else if props.CurrentBackupStorageRedundancy == sql.CurrentBackupStorageRedundancyGeo {
+			d.Set("storage_account_type", "GRS")
+		} else if props.CurrentBackupStorageRedundancy == sql.CurrentBackupStorageRedundancyZone {
+			d.Set("storage_account_type", "ZRS")
+		}
 		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 

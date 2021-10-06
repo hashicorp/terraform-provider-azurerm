@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v4.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/Azure/go-autorest/autorest/date"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -112,8 +112,8 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(sql.BasePrice),
-					string(sql.LicenseIncluded),
+					string(sql.DatabaseLicenseTypeBasePrice),
+					string(sql.DatabaseLicenseTypeLicenseIncluded),
 				}, false),
 			},
 
@@ -173,7 +173,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(sql.AdventureWorksLT),
+					string(sql.SampleNameAdventureWorksLT),
 				}, false),
 			},
 
@@ -197,11 +197,11 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(sql.GRS),
+				Default:  "GRS",
 				ValidateFunc: validation.StringInSlice([]string{
-					string(sql.GRS),
-					string(sql.LRS),
-					string(sql.ZRS),
+					"GRS",
+					"LRS",
+					"ZRS",
 				}, false),
 			},
 
@@ -236,10 +236,10 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
-							Default:          string(sql.SecurityAlertPolicyEmailAccountAdminsDisabled),
+							Default:          "Disabled",
 							ValidateFunc: validation.StringInSlice([]string{
-								string(sql.SecurityAlertPolicyEmailAccountAdminsDisabled),
-								string(sql.SecurityAlertPolicyEmailAccountAdminsEnabled),
+								"Disabled",
+								"Enabled",
 							}, true),
 						},
 
@@ -281,17 +281,6 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"use_server_default": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							Default:          string(sql.SecurityAlertPolicyUseServerDefaultDisabled),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(sql.SecurityAlertPolicyUseServerDefaultDisabled),
-								string(sql.SecurityAlertPolicyUseServerDefaultEnabled),
-							}, true),
 						},
 					},
 				},
@@ -353,8 +342,8 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	serversClient := meta.(*clients.Client).MSSQL.ServersClient
-	threatClient := meta.(*clients.Client).MSSQL.DatabaseThreatDetectionPoliciesClient
-	longTermRetentionClient := meta.(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
+	threatClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
+	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
 	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
@@ -388,7 +377,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	server, err := serversClient.Get(ctx, serverId.ResourceGroup, serverId.Name)
+	server, err := serversClient.Get(ctx, serverId.ResourceGroup, serverId.Name, "")
 	if err != nil {
 		return fmt.Errorf("making Read request on MsSql Server %q (Resource Group %q): %s", serverId.Name, serverId.ResourceGroup, err)
 	}
@@ -464,19 +453,29 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
+	storageAccountType := d.Get("storage_account_type").(string)
+	currentBackupStorageRedundancy := sql.CurrentBackupStorageRedundancyGeo
+	if storageAccountType == "LRS" {
+		currentBackupStorageRedundancy = sql.CurrentBackupStorageRedundancyLocal
+	} else if storageAccountType == "GRS" {
+		currentBackupStorageRedundancy = sql.CurrentBackupStorageRedundancyGeo
+	} else if storageAccountType == "ZRS" {
+		currentBackupStorageRedundancy = sql.CurrentBackupStorageRedundancyZone
+	}
+
 	params := sql.Database{
 		Name:     &name,
 		Location: &location,
 		DatabaseProperties: &sql.DatabaseProperties{
-			AutoPauseDelay:               utils.Int32(int32(d.Get("auto_pause_delay_in_minutes").(int))),
-			Collation:                    utils.String(d.Get("collation").(string)),
-			ElasticPoolID:                utils.String(d.Get("elastic_pool_id").(string)),
-			LicenseType:                  sql.DatabaseLicenseType(d.Get("license_type").(string)),
-			MinCapacity:                  utils.Float(d.Get("min_capacity").(float64)),
-			HighAvailabilityReplicaCount: utils.Int32(int32(d.Get("read_replica_count").(int))),
-			SampleName:                   sql.SampleName(d.Get("sample_name").(string)),
-			StorageAccountType:           sql.StorageAccountType(d.Get("storage_account_type").(string)),
-			ZoneRedundant:                utils.Bool(d.Get("zone_redundant").(bool)),
+			AutoPauseDelay:                 utils.Int32(int32(d.Get("auto_pause_delay_in_minutes").(int))),
+			Collation:                      utils.String(d.Get("collation").(string)),
+			ElasticPoolID:                  utils.String(d.Get("elastic_pool_id").(string)),
+			LicenseType:                    sql.DatabaseLicenseType(d.Get("license_type").(string)),
+			MinCapacity:                    utils.Float(d.Get("min_capacity").(float64)),
+			HighAvailabilityReplicaCount:   utils.Int32(int32(d.Get("read_replica_count").(int))),
+			SampleName:                     sql.SampleName(d.Get("sample_name").(string)),
+			CurrentBackupStorageRedundancy: currentBackupStorageRedundancy,
+			ZoneRedundant:                  utils.Bool(d.Get("zone_redundant").(bool)),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -496,17 +495,17 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	params.DatabaseProperties.CreateMode = sql.CreateMode(createMode.(string))
 
 	auditingPolicies := d.Get("extended_auditing_policy").([]interface{})
-	if (createMode == string(sql.CreateModeOnlineSecondary) || createMode == string(sql.Secondary)) && len(auditingPolicies) > 0 {
+	if (createMode == string(sql.CreateModeOnlineSecondary) || createMode == string(sql.CreateModeSecondary)) && len(auditingPolicies) > 0 {
 		return fmt.Errorf("cannot configure `extended_auditing_policy` in secondary create mode for %s", id)
 	}
 
 	if v, ok := d.GetOk("max_size_gb"); ok {
 		// `max_size_gb` is Computed, so has a value after the first run
-		if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(sql.Secondary) {
+		if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(sql.CreateModeSecondary) {
 			params.DatabaseProperties.MaxSizeBytes = utils.Int64(int64(v.(int) * 1073741824))
 		}
 		// `max_size_gb` only has change if it is configured
-		if d.HasChange("max_size_gb") && (createMode == string(sql.CreateModeOnlineSecondary) || createMode == string(sql.Secondary)) {
+		if d.HasChange("max_size_gb") && (createMode == string(sql.CreateModeOnlineSecondary) || createMode == string(sql.CreateModeSecondary)) {
 			return fmt.Errorf("it is not possible to change maximum size nor advised to configure maximum size in secondary create mode for %s", id)
 		}
 	}
@@ -583,7 +582,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if _, err = threatClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, expandMsSqlServerThreatDetectionPolicy(d, location)); err != nil {
+	if _, err = threatClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, expandMsSqlServerThreatDetectionPolicy(d)); err != nil {
 		return fmt.Errorf("setting database threat detection policy for %s: %+v", id, err)
 	}
 
@@ -601,10 +600,10 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		v := d.Get("long_term_retention_policy")
 		longTermRetentionProps := helper.ExpandLongTermRetentionPolicy(v.([]interface{}))
 		if longTermRetentionProps != nil {
-			longTermRetentionPolicy := sql.BackupLongTermRetentionPolicy{}
+			longTermRetentionPolicy := sql.LongTermRetentionPolicy{}
 
 			if !strings.HasPrefix(skuName.(string), "HS") && !strings.HasPrefix(skuName.(string), "DW") {
-				longTermRetentionPolicy.LongTermRetentionPolicyProperties = longTermRetentionProps
+				longTermRetentionPolicy.BaseLongTermRetentionPolicyProperties = longTermRetentionProps
 			}
 
 			longTermRetentionfuture, err := longTermRetentionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, longTermRetentionPolicy)
@@ -644,9 +643,9 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
-	threatClient := meta.(*clients.Client).MSSQL.DatabaseThreatDetectionPoliciesClient
+	threatClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
 	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
-	longTermRetentionClient := meta.(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
+	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
 
@@ -692,7 +691,13 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			skuName = *props.CurrentServiceObjectiveName
 		}
 		d.Set("sku_name", skuName)
-		d.Set("storage_account_type", props.StorageAccountType)
+		if props.CurrentBackupStorageRedundancy == sql.CurrentBackupStorageRedundancyLocal {
+			d.Set("storage_account_type", "LRS")
+		} else if props.CurrentBackupStorageRedundancy == sql.CurrentBackupStorageRedundancyGeo {
+			d.Set("storage_account_type", "GRS")
+		} else if props.CurrentBackupStorageRedundancy == sql.CurrentBackupStorageRedundancyZone {
+			d.Set("storage_account_type", "ZRS")
+		}
 		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 
@@ -785,7 +790,7 @@ func resourceMsSqlDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) er
 func flattenMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, policy sql.DatabaseSecurityAlertPolicy) []interface{} {
 	// The SQL database threat detection API always returns the default value even if never set.
 	// If the values are on their default one, threat it as not set.
-	properties := policy.DatabaseSecurityAlertPolicyProperties
+	properties := policy.SecurityAlertsPolicyProperties
 	if properties == nil {
 		return []interface{}{}
 	}
@@ -793,26 +798,22 @@ func flattenMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, policy s
 	threatDetectionPolicy := make(map[string]interface{})
 
 	threatDetectionPolicy["state"] = string(properties.State)
-	threatDetectionPolicy["email_account_admins"] = string(properties.EmailAccountAdmins)
-	threatDetectionPolicy["use_server_default"] = string(properties.UseServerDefault)
+	threatDetectionPolicy["email_account_admins"] = "Disabled"
+	if properties.EmailAccountAdmins != nil && *properties.EmailAccountAdmins {
+		threatDetectionPolicy["email_account_admins"] = "Enabled"
+	}
 
 	if disabledAlerts := properties.DisabledAlerts; disabledAlerts != nil {
 		flattenedAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
-		if v := *disabledAlerts; v != "" {
-			parsedAlerts := strings.Split(v, ";")
-			for _, a := range parsedAlerts {
-				flattenedAlerts.Add(a)
-			}
+		for _, a := range *disabledAlerts {
+			flattenedAlerts.Add(a)
 		}
 		threatDetectionPolicy["disabled_alerts"] = flattenedAlerts
 	}
 	if emailAddresses := properties.EmailAddresses; emailAddresses != nil {
 		flattenedEmails := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
-		if v := *emailAddresses; v != "" {
-			parsedEmails := strings.Split(*emailAddresses, ";")
-			for _, e := range parsedEmails {
-				flattenedEmails.Add(e)
-			}
+		for _, e := range *emailAddresses {
+			flattenedEmails.Add(e)
 		}
 		threatDetectionPolicy["email_addresses"] = flattenedEmails
 	}
@@ -831,14 +832,13 @@ func flattenMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, policy s
 	return []interface{}{threatDetectionPolicy}
 }
 
-func expandMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, location string) sql.DatabaseSecurityAlertPolicy {
+func expandMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData) sql.DatabaseSecurityAlertPolicy {
 	policy := sql.DatabaseSecurityAlertPolicy{
-		Location: utils.String(location),
-		DatabaseSecurityAlertPolicyProperties: &sql.DatabaseSecurityAlertPolicyProperties{
-			State: sql.SecurityAlertPolicyStateDisabled,
+		SecurityAlertsPolicyProperties: &sql.SecurityAlertsPolicyProperties{
+			State: sql.SecurityAlertsPolicyStateDisabled,
 		},
 	}
-	properties := policy.DatabaseSecurityAlertPolicyProperties
+	properties := policy.SecurityAlertsPolicyProperties
 
 	td, ok := d.GetOk("threat_detection_policy")
 	if !ok {
@@ -848,9 +848,8 @@ func expandMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, location 
 	if tdl := td.([]interface{}); len(tdl) > 0 {
 		threatDetection := tdl[0].(map[string]interface{})
 
-		properties.State = sql.SecurityAlertPolicyState(threatDetection["state"].(string))
-		properties.EmailAccountAdmins = sql.SecurityAlertPolicyEmailAccountAdmins(threatDetection["email_account_admins"].(string))
-		properties.UseServerDefault = sql.SecurityAlertPolicyUseServerDefault(threatDetection["use_server_default"].(string))
+		properties.State = sql.SecurityAlertsPolicyState(threatDetection["state"].(string))
+		properties.EmailAccountAdmins = utils.Bool(threatDetection["email_account_admins"].(string) == "Enabled")
 
 		if v, ok := threatDetection["disabled_alerts"]; ok {
 			alerts := v.(*pluginsdk.Set).List()
@@ -858,7 +857,7 @@ func expandMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, location 
 			for i, a := range alerts {
 				expandedAlerts[i] = a.(string)
 			}
-			properties.DisabledAlerts = utils.String(strings.Join(expandedAlerts, ";"))
+			properties.DisabledAlerts = &expandedAlerts
 		}
 		if v, ok := threatDetection["email_addresses"]; ok {
 			emails := v.(*pluginsdk.Set).List()
@@ -866,7 +865,7 @@ func expandMsSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, location 
 			for i, e := range emails {
 				expandedEmails[i] = e.(string)
 			}
-			properties.EmailAddresses = utils.String(strings.Join(expandedEmails, ";"))
+			properties.EmailAddresses = &expandedEmails
 		}
 		if v, ok := threatDetection["retention_days"]; ok {
 			properties.RetentionDays = utils.Int32(int32(v.(int)))
