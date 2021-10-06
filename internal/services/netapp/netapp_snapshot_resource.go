@@ -23,7 +23,7 @@ func resourceNetAppSnapshot() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceNetAppSnapshotCreate,
 		Read:   resourceNetAppSnapshotRead,
-		// todo remove this in version 3.0 of the provider
+		// todo remove this in version 3.0 of the provider as tags was the only updatable property and they can no longer be updated and will also be removed
 		Update: resourceNetAppSnapshotUpdate,
 		Delete: resourceNetAppSnapshotDelete,
 
