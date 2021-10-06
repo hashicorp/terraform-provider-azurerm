@@ -256,21 +256,25 @@ func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schem
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
+
 				"enable_accelerated_networking": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
+
 				"enable_ip_forwarding": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
+
 				"network_security_group_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: azure.ValidateResourceIDOrEmpty,
 				},
+
 				"primary": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -486,7 +490,6 @@ func orchestratedVirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema
 					ValidateFunc: validation.IntBetween(4, 32),
 				},
 				"ip_tag": {
-					// TODO: does this want to be a Set?
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					ForceNew: true,

@@ -3,7 +3,6 @@ package compute_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
@@ -413,20 +412,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_basicLinux_managedDisk(t *testing
 // 	})
 // }
 
-func TestAccOrchestratedVirtualMachineScaleSet_basicLinux_managedDiskNoName(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	r := OrchestratedVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicLinux_managedDiskNoName(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-	})
-}
-
 func TestAccOrchestratedVirtualMachineScaleSet_basicLinux_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
@@ -496,22 +481,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_loadBalancerManagedDataDisks(t *t
 				check.That(data.ResourceName).Key("storage_profile_data_disk.#").HasValue("1"),
 			),
 		},
-	})
-}
-
-func TestAccOrchestratedVirtualMachineScaleSet_overprovision(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	r := OrchestratedVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.overProvisionTemplate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("overprovision").HasValue("false"),
-			),
-		},
-		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -644,18 +613,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_multipleExtensions_provision_afte
 			),
 		},
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
-	})
-}
-
-func TestAccOrchestratedVirtualMachineScaleSet_osDiskTypeConflict(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	r := OrchestratedVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.osDiskTypeConflict(data),
-			ExpectError: regexp.MustCompile("Conflict between `vhd_containers`"),
-		},
 	})
 }
 
@@ -969,7 +926,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -1016,7 +972,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "import" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -1086,7 +1041,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -1159,7 +1113,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -1225,17 +1178,16 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
       primary   = true
 
-      public_ip_address_configuration {
-        name              = "TestPublicIPConfiguration"
-        domain_name_label = "test-domain-label-%[1]d"
-        idle_timeout      = 4
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[1]d"
+        idle_timeout_in_minutes = 4
       }
     }
   }
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -1303,17 +1255,16 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
       primary   = true
 
-      public_ip_address_configuration {
-        name              = "TestPublicIPConfiguration"
-        domain_name_label = "test-domain-label-%[1]d"
-        idle_timeout      = 4
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[1]d"
+        idle_timeout_in_minutes = 4
       }
     }
   }
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -1381,17 +1332,16 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
       primary   = true
 
-      public_ip_address_configuration {
-        name              = "TestPublicIPConfiguration"
-        domain_name_label = "test-domain-label-%[1]d"
-        idle_timeout      = 4
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[1]d"
+        idle_timeout_in_minutes = 4
       }
     }
   }
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -1460,17 +1410,16 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
       primary   = true
 
-      public_ip_address_configuration {
-        name              = "TestPublicIPConfiguration"
-        domain_name_label = "test-domain-label-%[1]d"
-        idle_timeout      = 4
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[1]d"
+        idle_timeout_in_minutes = 4
       }
     }
   }
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -1538,17 +1487,16 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
       primary   = true
 
-      public_ip_address_configuration {
-        name              = "TestPublicIPConfiguration"
-        domain_name_label = "test-updated-domain-label-%[1]d"
-        idle_timeout      = 4
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-updated-domain-label-%[1]d"
+        idle_timeout_in_minutes = 4
       }
     }
   }
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -1623,7 +1571,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -1692,7 +1639,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -1761,7 +1707,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -1833,7 +1778,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -1902,7 +1846,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -1973,17 +1916,16 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
       primary   = true
 
-      public_ip_address_configuration {
-        name              = "TestPublicIPConfiguration"
-        domain_name_label = "test-domain-label-%[1]d"
-        idle_timeout      = 4
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[1]d"
+        idle_timeout_in_minutes = 4
       }
     }
   }
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -2039,7 +1981,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       enable_automatic_updates = false
       provision_vm_agent       = true
 
-      winrm {
+      winrm_listener {
         protocol = "http"
       }
     }
@@ -2058,7 +2000,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -2138,8 +2079,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       disable_password_authentication = true
 
       admin_ssh_key {
-        path     = "/home/ubuntu/.ssh/authorized_keys"
-        key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
+        username   = "ubuntu"
+        public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
       }
     }
   }
@@ -2158,7 +2099,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -2238,8 +2178,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       disable_password_authentication = true
 
       admin_ssh_key {
-        path     = "/home/ubuntu/.ssh/authorized_keys"
-        key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
+        username   = "ubuntu"
+        public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
       }
     }
   }
@@ -2258,7 +2198,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -2342,8 +2281,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       disable_password_authentication = true
 
       admin_ssh_key {
-        path     = "/home/ubuntu/.ssh/authorized_keys"
-        key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
+        username   = "ubuntu"
+        public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
       }
     }
   }
@@ -2362,7 +2301,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -2442,8 +2380,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       disable_password_authentication = true
 
       admin_ssh_key {
-        path     = "/home/ubuntu/.ssh/authorized_keys"
-        key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDvXYZAjVUt2aojUV3XIA+PY6gXrgbvktXwf2NoIHGlQFhogpMEyOfqgogCtTBM7MNCS3ELul6SV+mlpH08Ki45ADIQuDXdommCvsMFW096JrsHOJpGfjCsJ1gbbv7brB3Ag+BSGb4qO3pRsEVTtZCeJDwfH5D7vmqP5xXcELKR4UAtKQKUhLvt6mhW90sFLTJeOTiYGbavIKqfCUFSeSMQkUPr8o3uzOfeWyCw7tc7szLuvfwJ5poGHuve73KKAlUnDTPUrhyj7iITZSDl+/i+bpDzPyCyJWDMsC0ON7q2fDr2mEz0L9ACrsI5Nx3lt5fe+IaHSrjivqnL8SqUWSN45o9Qp99sGWFiuTfos8f1jp+AXzC4ArVtKyRg/CnzKRiK0CGSxBJ5s9zAoa7yBBmjCszq89vFa0eMgpEIZFwa6kKJKt9AfRBXgO9YGPV4uaN7topy92/p2pE+vF8IafarbvnTDOQt62mS07tXYqYg1DhecrmBVWKlq9oafBweoeTjoq52SoGsuDc/YAOzIgWVIuvV8yKoh9KbXPWowjLtxDhRIS/d1nMMNdNI8X0TQivgi5+umMgAXhsVAKSNDUauLt4jimYkWAuE+R6KoCqVFdaB9bQDySBjAziruDSe3reToydjzzluvHMjWK8QiDynxs41pi4zZz6gAlca3QPkEQ== hello@world.com"
+        username   = "ubuntu"
+        public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDvXYZAjVUt2aojUV3XIA+PY6gXrgbvktXwf2NoIHGlQFhogpMEyOfqgogCtTBM7MNCS3ELul6SV+mlpH08Ki45ADIQuDXdommCvsMFW096JrsHOJpGfjCsJ1gbbv7brB3Ag+BSGb4qO3pRsEVTtZCeJDwfH5D7vmqP5xXcELKR4UAtKQKUhLvt6mhW90sFLTJeOTiYGbavIKqfCUFSeSMQkUPr8o3uzOfeWyCw7tc7szLuvfwJ5poGHuve73KKAlUnDTPUrhyj7iITZSDl+/i+bpDzPyCyJWDMsC0ON7q2fDr2mEz0L9ACrsI5Nx3lt5fe+IaHSrjivqnL8SqUWSN45o9Qp99sGWFiuTfos8f1jp+AXzC4ArVtKyRg/CnzKRiK0CGSxBJ5s9zAoa7yBBmjCszq89vFa0eMgpEIZFwa6kKJKt9AfRBXgO9YGPV4uaN7topy92/p2pE+vF8IafarbvnTDOQt62mS07tXYqYg1DhecrmBVWKlq9oafBweoeTjoq52SoGsuDc/YAOzIgWVIuvV8yKoh9KbXPWowjLtxDhRIS/d1nMMNdNI8X0TQivgi5+umMgAXhsVAKSNDUauLt4jimYkWAuE+R6KoCqVFdaB9bQDySBjAziruDSe3reToydjzzluvHMjWK8QiDynxs41pi4zZz6gAlca3QPkEQ== hello@world.com"
       }
     }
   }
@@ -2462,7 +2400,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -2530,7 +2467,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -2599,75 +2535,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
-    caching              = "ReadWrite"
-  }
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (OrchestratedVirtualMachineScaleSetResource) basicLinux_managedDiskNoName(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-OVMSS-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
-
-resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-
-  sku_name = "Standard_D1_v2_2"
-
-  os_profile {
-    linux_configuration {
-      computer_name_prefix = "testvm-%[1]d"
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
-    }
-  }
-
-  network_interface {
-    name    = "TestNetworkProfile-%[1]d"
-    primary = true
-
-    ip_configuration {
-      name      = "TestIPConfiguration"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -2736,7 +2603,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -2948,76 +2814,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
-    caching              = "ReadWrite"
-  }
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (OrchestratedVirtualMachineScaleSetResource) overProvisionTemplate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-OVMSS-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
-
-resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  overprovision = false
-
-  sku_name = "Standard_D1_v2_1"
-
-  os_profile {
-    linux_configuration {
-      computer_name_prefix = "testvm-%[1]d"
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
-    }
-  }
-
-  network_interface {
-    name    = "TestNetworkProfile"
-    primary = true
-
-    ip_configuration {
-      name      = "TestIPConfiguration"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -3061,7 +2857,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  overprovision   = false
+
   priority        = "Low"
   eviction_policy = "Deallocate"
 
@@ -3088,7 +2884,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -3132,7 +2927,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  overprovision = false
+
 
   sku_name = "Standard_D1_v2_1"
 
@@ -3169,7 +2964,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -3220,7 +3014,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  overprovision = false
+
 
   sku_name = "Standard_D1_v2_1"
 
@@ -3258,7 +3052,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -3302,7 +3095,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  overprovision = false
+
 
   sku_name = "Standard_D1_v2_1"
 
@@ -3314,8 +3107,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       disable_password_authentication = true
 
       admin_ssh_key {
-        path     = "/home/myadmin/.ssh/authorized_keys"
-        key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
+        username   = "myadmin"
+        public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
       }
     }
   }
@@ -3333,7 +3126,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -3392,7 +3184,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  overprovision = false
+
 
   sku_name = "Standard_D1_v2_1"
 
@@ -3404,8 +3196,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       disable_password_authentication = true
 
       admin_ssh_key {
-        path     = "/home/myadmin/.ssh/authorized_keys"
-        key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
+        username   = "myadmin"
+        public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
       }
     }
   }
@@ -3423,7 +3215,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -3483,7 +3274,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  overprovision = false
+
 
   sku_name = "Standard_D1_v2_1"
 
@@ -3508,7 +3299,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -3575,8 +3365,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  overprovision = false
-
   sku_name = "Standard_D1_v2_1"
 
   os_profile {
@@ -3600,7 +3388,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -3633,74 +3420,6 @@ SETTINGS
     type_handler_version       = "1.0"
     auto_upgrade_minor_version = true
     provision_after_extensions = ["CustomScript"]
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (OrchestratedVirtualMachineScaleSetResource) osDiskTypeConflict(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-OVMSS-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
-
-resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-
-  sku_name = "Standard_D1_v2_2"
-
-  os_profile {
-    linux_configuration {
-      computer_name_prefix = "testvm-%[1]d"
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
-    }
-  }
-
-  network_interface {
-    name    = "TestNetworkProfile-%[1]d"
-    primary = true
-
-    ip_configuration {
-      name      = "TestIPConfiguration"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    name                 = ""
-    caching              = "ReadWrite"
-  }
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -3779,11 +3498,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
-  storage_profile_data_disk {
+  data_disk {
     lun               = 0
     caching           = "ReadWrite"
     create_option     = "Empty"
@@ -3855,7 +3573,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -3929,7 +3646,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -4007,7 +3723,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
@@ -4085,7 +3800,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    name                 = "osDiskProfile"
     caching              = "ReadWrite"
   }
 
