@@ -18,8 +18,8 @@ type KubernetesClusterResource struct {
 }
 
 var (
-	olderKubernetesVersion   = "1.19.11"
-	currentKubernetesVersion = "1.19.13"
+	olderKubernetesVersion   = "1.20.9"
+	currentKubernetesVersion = "1.21.2"
 )
 
 func TestAccKubernetes_all(t *testing.T) {
