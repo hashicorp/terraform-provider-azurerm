@@ -3,6 +3,7 @@
 BUG FIXES:
 
 * `azurerm_function_app` - fix regressions in function app storage introduced in v2.77 [GH-13580]
+* `azurerm_managed_application` - fixed typecasting bug [GH-13641]
 
 IMPROVEMENTS:
 
