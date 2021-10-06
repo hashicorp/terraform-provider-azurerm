@@ -851,20 +851,6 @@ resource "azurerm_resource_group" "test" {
 
 %[3]s
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -894,6 +880,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[4]s"
+        idle_timeout_in_minutes = 4
+      }
     }
   }
 
@@ -909,7 +901,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
 
 func (r OrchestratedVirtualMachineScaleSetResource) requiresImport(data acceptance.TestData) string {
@@ -1005,6 +997,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[4]s"
+        idle_timeout_in_minutes = 4
+      }
     }
   }
 
@@ -1020,7 +1018,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) withPPG(data acceptance.TestData) string {
@@ -1070,6 +1068,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[4]s"
+        idle_timeout_in_minutes = 4
+      }
     }
   }
 
@@ -1087,7 +1091,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   proximity_placement_group_id = azurerm_proximity_placement_group.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicPublicIP(data acceptance.TestData) string {
@@ -1476,9 +1480,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     primary = true
 
     ip_configuration {
-      name                           = "TestIPConfiguration"
-      primary                        = true
-      subnet_id                      = azurerm_subnet.test.id
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
       application_security_group_ids = [azurerm_application_security_group.test.id]
     }
   }
@@ -1540,6 +1545,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[4]s"
+        idle_timeout_in_minutes = 4
+      }
     }
   }
 
@@ -1555,7 +1566,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicIPForwarding(data acceptance.TestData) string {
@@ -1600,6 +1611,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[4]s"
+        idle_timeout_in_minutes = 4
+      }
     }
   }
 
@@ -1615,7 +1632,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicDNSSettings(data acceptance.TestData) string {
@@ -1661,6 +1678,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[4]s"
+        idle_timeout_in_minutes = 4
+      }
     }
   }
 
@@ -1676,7 +1699,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) networkSecurityGroup(data acceptance.TestData) string {
@@ -1798,6 +1821,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[4]s"
+        idle_timeout_in_minutes = 4
+      }
     }
   }
 
@@ -1813,7 +1842,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) linux(data acceptance.TestData) string {
@@ -2261,6 +2290,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[4]s"
+        idle_timeout_in_minutes = 4
+      }
     }
   }
 
@@ -2276,7 +2311,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicLinux_managedDisk_withZones(data acceptance.TestData) string {
@@ -2298,7 +2333,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  zones = ["1", "2"]
+  zones                       = ["1", "2"]
+  platform_fault_domain_count = 2
 
   sku_name = "Standard_D1_v2_2"
 
@@ -2320,6 +2356,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[4]s"
+        idle_timeout_in_minutes = 4
+      }
     }
   }
 
@@ -2335,7 +2377,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) applicationGatewayTemplate(data acceptance.TestData) string {
@@ -2387,9 +2429,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     primary = true
 
     ip_configuration {
-      name                                         = "TestIPConfiguration"
-      primary                                      = true
-      subnet_id                                    = azurerm_subnet.test.id
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
       application_gateway_backend_address_pool_ids = [azurerm_application_gateway.test.backend_address_pool[0].id]
     }
   }
@@ -2656,6 +2699,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[4]s"
+        idle_timeout_in_minutes = 4
+      }
     }
   }
 
@@ -2671,7 +2720,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) userAssignedMSI(data acceptance.TestData) string {
@@ -2735,6 +2784,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[3]s"
+        idle_timeout_in_minutes = 4
+      }
     }
   }
 
@@ -2796,6 +2851,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[4]s"
+        idle_timeout_in_minutes = 4
+      }
     }
   }
 
@@ -2826,7 +2887,7 @@ SETTINGS
 
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) extensionTemplateUpdated(data acceptance.TestData) string {
@@ -2872,6 +2933,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[4]s"
+        idle_timeout_in_minutes = 4
+      }
     }
   }
 
@@ -2903,7 +2970,7 @@ SETTINGS
 
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) multipleExtensionsTemplate(data acceptance.TestData) string {
@@ -2947,6 +3014,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[4]s"
+        idle_timeout_in_minutes = 4
+      }
     }
   }
 
@@ -2985,7 +3058,7 @@ SETTINGS
     auto_upgrade_minor_version = true
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) multipleExtensionsTemplate_provision_after_extension(data acceptance.TestData) string {
@@ -3029,6 +3102,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[4]s"
+        idle_timeout_in_minutes = 4
+      }
     }
   }
 
@@ -3068,7 +3147,7 @@ SETTINGS
     provision_after_extensions = ["CustomScript"]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) loadBalancerTemplateManagedDataDisks(data acceptance.TestData) string {
@@ -3210,6 +3289,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[4]s"
+        idle_timeout_in_minutes = 4
+      }
     }
   }
 
@@ -3225,7 +3310,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) planManagedDisk(data acceptance.TestData) string {
@@ -3269,6 +3354,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "TestIPConfiguration"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[4]s"
+        idle_timeout_in_minutes = 4
+      }
     }
   }
 
@@ -3290,7 +3381,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) multipleNetworkProfiles(data acceptance.TestData) string {
@@ -3334,6 +3425,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       name      = "primary"
       primary   = true
       subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label-%[4]s"
+        idle_timeout_in_minutes = 4
+      }
     }
   }
 
@@ -3360,7 +3457,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) natgateway_template(data acceptance.TestData) string {
