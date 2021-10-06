@@ -38,3 +38,7 @@ The following arguments are supported:
 - `master_key` - Function App resource's secret key
 
 - `event_grid_extension_config_key` - Function App resource's Event Grid Extension Config system key.
+
+- `signalr_extension_key` - Function App resource's SignalR Extension system key.
+
+- `durabletask_extension_key` - Function App resource's Durable Task Extension system key.
