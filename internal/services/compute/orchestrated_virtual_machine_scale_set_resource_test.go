@@ -1412,8 +1412,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name          = "TestNetworkProfile-%[1]d"
-    primary       = true
+    name                 = "TestNetworkProfile-%[1]d"
+    primary              = true
     enable_ip_forwarding = true
 
     ip_configuration {
@@ -1709,8 +1709,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name          = "TestNetworkProfile-%[1]d"
-    primary       = true
+    name                 = "TestNetworkProfile-%[1]d"
+    primary              = true
     enable_ip_forwarding = true
 
     ip_configuration {
