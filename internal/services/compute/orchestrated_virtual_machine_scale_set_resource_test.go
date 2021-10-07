@@ -2209,7 +2209,7 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
-  name                = "acctvmss-%[1]d"
+  name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -2278,7 +2278,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_virtual_machine_scale_set" "test" {
-  name                = "acctvmss-%[1]d"
+  name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -2296,7 +2296,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     }
   }
 
-  boot_diagnostics {}
+  boot_diagnostics {
+		storage_uri = ""
+  }
 
   network_interface {
     name    = "TestNetworkProfile"
