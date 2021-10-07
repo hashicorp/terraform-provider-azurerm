@@ -1455,7 +1455,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-updated-domain-label-%[3]s"
+        domain_name_label       = "updated-domain-label-%[3]s"
         idle_timeout_in_minutes = 4
       }
     }

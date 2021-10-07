@@ -68,13 +68,13 @@ func TestOrchestratedDomainNameLabel(t *testing.T) {
 			expected: false,
 		},
 		{
-			// 63 characters
-			input:    "abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabc",
+			// 26 characters
+			input:    "abcdeabcdeabcdeabcdeabcdea",
 			expected: true,
 		},
 		{
-			// 64 characters
-			input:    "abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcd",
+			// 27 characters
+			input:    "abcdeabcdeabcdeabcdeabcdeab",
 			expected: false,
 		},
 	}
