@@ -1272,7 +1272,8 @@ func flattenEventGridEventSubscriptionEventhubEndpoint(input *eventgrid.EventHub
 	return []interface{}{result}
 }
 
-func flattenDeliveryProperties(input *[]eventgrid.BasicDeliveryAttributeMapping) []interface{} {
+func flattenDeliveryProperties(d *pluginsdk.ResourceData, input *[]eventgrid.BasicDeliveryAttributeMapping) []interface{} {
+
 	deliveryProperties := make([]interface{}, len(*input))
 
 	for i, element := range *input {
@@ -1283,9 +1284,19 @@ func flattenDeliveryProperties(input *[]eventgrid.BasicDeliveryAttributeMapping)
 			attributeMapping["header_name"] = staticMapping.Name
 			attributeMapping["secret"] = staticMapping.IsSecret
 
-			if !*staticMapping.IsSecret {
-				// If this is a secret, then the value returned from the API will just be 'Hidden', which will cause
-				// Terraform to try and apply that value upon any update
+			if *staticMapping.IsSecret {
+				// If this is a secret, the value doesn't get returned by the Azure API which just returns a value of 'Secret',
+				// so we need to lookup the value that was provided from config to return, so that we don't generate Diffs
+				propertiesFromConfig := expandDeliveryProperties(d)
+				for _, v := range propertiesFromConfig {
+					if cofigMap, ok := v.AsStaticDeliveryAttributeMapping(); ok {
+						if *cofigMap.Name == *staticMapping.Name {
+							attributeMapping["value"] = cofigMap.Value
+							break
+						}
+					}
+				}
+			} else {
 				attributeMapping["value"] = staticMapping.Value
 			}
 		}
