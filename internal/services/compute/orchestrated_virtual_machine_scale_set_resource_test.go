@@ -485,12 +485,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_applicationGateway(t *testing.T) 
 
 func TestAccOrchestratedVirtualMachineScaleSet_loadBalancer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.loadBalancerTemplate(data, dnsLabel),
+			Config: r.loadBalancerTemplate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClient(r.hasLoadBalancer),
@@ -502,12 +501,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_loadBalancer(t *testing.T) {
 
 func TestAccOrchestratedVirtualMachineScaleSet_loadBalancerManagedDataDisks(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.loadBalancerTemplateManagedDataDisks(data, dnsLabel),
+			Config: r.loadBalancerTemplateManagedDataDisks(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("data_disk.#").HasValue("1"),
@@ -2780,7 +2778,7 @@ resource "azurerm_application_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) loadBalancerTemplate(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) loadBalancerTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3367,7 +3365,7 @@ SETTINGS
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), dnsLabel)
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) loadBalancerTemplateManagedDataDisks(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) loadBalancerTemplateManagedDataDisks(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
