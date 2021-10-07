@@ -2208,7 +2208,7 @@ resource "azurerm_storage_container" "test" {
   container_access_type = "private"
 }
 
-resource "azurerm_virtual_machine_scale_set" "test" {
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -2277,7 +2277,7 @@ resource "azurerm_resource_group" "test" {
 
 %[3]s
 
-resource "azurerm_virtual_machine_scale_set" "test" {
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -2296,9 +2296,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     }
   }
 
-  boot_diagnostics {
-		storage_uri = ""
-  }
+  boot_diagnostics {}
 
   network_interface {
     name    = "TestNetworkProfile"
@@ -2518,7 +2516,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  zones                       = ["1", "2"]
+  zones                       = ["1"]
   platform_fault_domain_count = 1
 
   sku_name = "Standard_D1_v2_2"
