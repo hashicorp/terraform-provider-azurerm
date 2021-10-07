@@ -30,19 +30,19 @@ func TestLogProfileID(t *testing.T) {
 
 		{
 			// missing Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/microsoft.insights/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Insights/",
 			Valid: false,
 		},
 
 		{
 			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/microsoft.insights/logProfiles/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Insights/logProfiles/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/microsoft.insights/logProfiles/profile1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Insights/logProfiles/profile1",
 			Valid: true,
 		},
 

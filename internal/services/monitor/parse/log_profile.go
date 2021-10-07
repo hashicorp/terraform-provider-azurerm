@@ -30,7 +30,7 @@ func (id LogProfileId) String() string {
 }
 
 func (id LogProfileId) ID() string {
-	fmtString := "/subscriptions/%s/providers/microsoft.insights/logProfiles/%s"
+	fmtString := "/subscriptions/%s/providers/Microsoft.Insights/logProfiles/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.Name)
 }
 

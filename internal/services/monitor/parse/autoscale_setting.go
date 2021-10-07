@@ -33,7 +33,7 @@ func (id AutoscaleSettingId) String() string {
 }
 
 func (id AutoscaleSettingId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/autoscaleSettings/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Insights/autoscaleSettings/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 

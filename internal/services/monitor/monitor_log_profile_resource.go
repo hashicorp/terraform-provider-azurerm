@@ -3,6 +3,7 @@ package monitor
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"log"
 	"strings"
 	"time"
@@ -30,6 +31,11 @@ func resourceMonitorLogProfile() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.LogProfileID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.LogProfileUpgradeV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
