@@ -917,7 +917,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomString))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomStringOfLength(5)))
 }
 
 func (r OrchestratedVirtualMachineScaleSetResource) requiresImport(data acceptance.TestData) string {
@@ -1034,7 +1034,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomString))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomStringOfLength(5)))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) withPPG(data acceptance.TestData) string {
@@ -1107,7 +1107,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   proximity_placement_group_id = azurerm_proximity_placement_group.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomString))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomStringOfLength(5)))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicPublicIP(data acceptance.TestData) string {
@@ -1172,7 +1172,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, strings.ToLower(data.RandomString), r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, strings.ToLower(data.RandomStringOfLength(5)), r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicEmptyPublicIP(data acceptance.TestData) string {
@@ -1241,7 +1241,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, strings.ToLower(data.RandomString), r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, strings.ToLower(data.RandomStringOfLength(5)), r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicEmptyPublicIP_updated_tags(data acceptance.TestData) string {
@@ -1310,7 +1310,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, strings.ToLower(data.RandomString), r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, strings.ToLower(data.RandomStringOfLength(5)), r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicEmptyNetworkProfile_true_ipforwarding(data acceptance.TestData) string {
@@ -1380,7 +1380,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, strings.ToLower(data.RandomString), r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, strings.ToLower(data.RandomStringOfLength(5)), r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicEmptyPublicIP_updatedDNS_label(data acceptance.TestData) string {
@@ -1449,7 +1449,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, strings.ToLower(data.RandomString), r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, strings.ToLower(data.RandomStringOfLength(5)), r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicApplicationSecurity(data acceptance.TestData) string {
@@ -1522,7 +1522,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomString))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomStringOfLength(5)))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicAcceleratedNetworking(data acceptance.TestData) string {
@@ -1588,7 +1588,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomString))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomStringOfLength(5)))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicIPForwarding(data acceptance.TestData) string {
@@ -1654,7 +1654,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomString))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomStringOfLength(5)))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicDNSSettings(data acceptance.TestData) string {
@@ -1721,7 +1721,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomString))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomStringOfLength(5)))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) networkSecurityGroup(data acceptance.TestData) string {
@@ -1793,7 +1793,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, strings.ToLower(data.RandomString), r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, strings.ToLower(data.RandomStringOfLength(5)), r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicWindows(data acceptance.TestData) string {
@@ -1864,7 +1864,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomString))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomStringOfLength(5)))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) linux(data acceptance.TestData) string {
@@ -2264,7 +2264,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomString))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomStringOfLength(5)))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) bootDiagnostic_noStorage(data acceptance.TestData) string {
@@ -2331,7 +2331,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomString))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomStringOfLength(5)))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) linuxKeyDataUpdated(data acceptance.TestData) string {
@@ -2499,7 +2499,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomString))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomStringOfLength(5)))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) basicLinux_managedDisk_withZones(data acceptance.TestData) string {
@@ -2565,7 +2565,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomString))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomStringOfLength(5)))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) applicationGatewayTemplate(data acceptance.TestData) string {
@@ -2650,7 +2650,7 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-pubip-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
   sku                 = "Standard"
 }
 
@@ -2911,7 +2911,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomString))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomStringOfLength(5)))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) userAssignedMSI(data acceptance.TestData) string {
@@ -2996,7 +2996,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, strings.ToLower(data.RandomString), r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, strings.ToLower(data.RandomStringOfLength(5)), r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) extensionTemplate(data acceptance.TestData) string {
@@ -3078,7 +3078,7 @@ SETTINGS
 
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomString))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomStringOfLength(5)))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) extensionTemplateUpdated(data acceptance.TestData) string {
@@ -3161,7 +3161,7 @@ SETTINGS
 
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomString))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomStringOfLength(5)))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) multipleExtensionsTemplate(data acceptance.TestData) string {
@@ -3249,7 +3249,7 @@ SETTINGS
     auto_upgrade_minor_version = true
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomString))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomStringOfLength(5)))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) multipleExtensionsTemplate_provision_after_extension(data acceptance.TestData) string {
@@ -3338,7 +3338,7 @@ SETTINGS
     provision_after_extensions = ["CustomScript"]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomString))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomStringOfLength(5)))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) loadBalancerTemplateManagedDataDisks(data acceptance.TestData) string {
@@ -3503,7 +3503,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomString))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomStringOfLength(5)))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) multipleNetworkProfiles(data acceptance.TestData) string {
@@ -3579,7 +3579,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomString))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), strings.ToLower(data.RandomStringOfLength(5)))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) natgateway_template(data acceptance.TestData) string {
