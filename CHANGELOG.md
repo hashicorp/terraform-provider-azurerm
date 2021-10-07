@@ -7,11 +7,12 @@ BUG FIXES:
 
 IMPROVEMENTS:
 
-* Data Source `azurerm_public_ips` - Deprecate `attached` for `attachment_status` to improve filtering [GH-13500]
-* Data Source `azurerm_public_ips` - Return public IPs associated with NAT gateways when `attached` set to `true` or `attachment_status` set to `Attached` [GH-13610]
-* `azurerm_stream_analytics_output_eventhub` - support for the `partition_key` property [GH-13562]
+* Data Source `azurerm_public_ips` - deprecate the `attached` property infavour of the `attachment_status` property to improve filtering [GH-13500]
+* Data Source `azurerm_public_ips` - return public IPs associated with NAT gateways when `attached` set to `true` or `attachment_status` set to `Attached` [GH-13610]
+* `azurerm_kusto_eventhub_data_connection supports` - support for the `identity_id` property [GH-13488]
 * `azurerm_managed_disk` - support for the `logical_sector_size` property [GH-13637]
-* `azurerm_kusto_eventhub_data_connection supports` - support for `identity_id` property [GH-13488]
+* `azurerm_service_fabric_cluster` - support for the `service_fabric_zonal_upgrade_mode` and `service_fabric_zonal_upgrade_mode` properties [GH-13399]
+* `azurerm_stream_analytics_output_eventhub` - support for the `partition_key` property [GH-13562]
 
 ## 2.79.1 (October 01, 2021)
 
