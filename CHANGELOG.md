@@ -17,6 +17,7 @@ IMPROVEMENTS:
 * `azurerm_managed_disk` - support for the `logical_sector_size` property [GH-13637]
 * `azurerm_service_fabric_cluster` - support for the `service_fabric_zonal_upgrade_mode` and `service_fabric_zonal_upgrade_mode` properties [GH-13399]
 * `azurerm_stream_analytics_output_eventhub` - support for the `partition_key` property [GH-13562]
+* `azurerm_linux_virtual_machine_scale_set` - correctly update the `overprovision` property [GH-13653]
 
 ## 2.79.1 (October 01, 2021)
 
