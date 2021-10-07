@@ -439,19 +439,20 @@ func TestAccOrchestratedVirtualMachineScaleSet_basicLinux_disappears(t *testing.
 	})
 }
 
-func TestAccOrchestratedVirtualMachineScaleSet_planManagedDisk(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	r := OrchestratedVirtualMachineScaleSetResource{}
+// Need to setup subscription to accept 3rd Party agreement
+// func TestAccOrchestratedVirtualMachineScaleSet_planManagedDisk(t *testing.T) {
+// 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+// 	r := OrchestratedVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.planManagedDisk(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-	})
-}
+// 	data.ResourceTest(t, r, []acceptance.TestStep{
+// 		{
+// 			Config: r.planManagedDisk(data),
+// 			Check: acceptance.ComposeTestCheckFunc(
+// 				check.That(data.ResourceName).ExistsInAzure(r),
+// 			),
+// 		},
+// 	})
+// }
 
 func TestAccOrchestratedVirtualMachineScaleSet_applicationGateway(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
@@ -1896,6 +1897,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_lb" "test" {
@@ -1998,6 +2000,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_lb" "test" {
@@ -2104,6 +2107,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_lb" "test" {
@@ -2228,7 +2232,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   boot_diagnostics {
-    storage_uri = azurerm_storage_account.test.primary_blob_endpoint
+    storage_account_uri = azurerm_storage_account.test.primary_blob_endpoint
   }
 
   network_interface {
@@ -2360,6 +2364,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_lb" "test" {
@@ -2646,6 +2651,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
+  sku                 = "Standard"
 }
 
 resource "azurerm_application_gateway" "test" {
