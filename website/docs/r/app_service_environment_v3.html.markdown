@@ -16,132 +16,23 @@ Manages a 3rd Generation (v3) App Service Environment.
 This example provisions an App Service Environment V3. Additional examples of how to use the azurerm_app_service_environment_v3 resource can be found in the ./examples/app-service-environment-v3 directory within the Github Repository.
 
 ```hcl
-# terraform.tfvars
-ase_resource_group_name               = "rg-asev3-terraform-ilb-demo"
-use_existing_vnet_and_subnet          = false
-vnet_resource_group_name              = "rg-asev3-terraform-demo"
-virtual_network_name                  = "vnet-spoke-asev3"
-location                              = "West US 2"
-vnet_address_prefixes                 = ["172.16.0.0/16"]
-subnet_name                           = "snet-asev3"
-subnet_address_prefixes               = ["172.16.0.0/24"]
-ase_name                              = "asev3-ilb-20211001-2"
-dedicated_host_count                  = 0
-zone_redundant                        = false
-create_private_dns                    = true
-internal_load_balancing_mode          = "Web, Publishing"
-network_security_group_name           = "nsg-asev3"
-network_security_group_security_rules = []
-
-```
-```hcl
-# variables.tf
-
-variable "ase_resource_group_name" {
-  type = string
+resource "azurerm_resource_group" "example" {
+  name     = "exampleRG1"
+  location = "West Europe"
 }
 
-variable "use_existing_vnet_and_subnet" {
-  type    = bool
-  default = false
+resource "azurerm_virtual_network" "example" {
+  name                = "example-vnet"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  address_space       = ["10.0.0.0/16"]
 }
 
-variable "vnet_resource_group_name" {
-  type = string
-}
-
-variable "virtual_network_name" {
-  type = string
-}
-
-variable "location" {
-  type = string
-}
-
-variable "vnet_address_prefixes" {
-  type    = list(string)
-  default = ["172.16.0.0/16"]
-}
-
-variable "subnet_name" {
-  type = string
-}
-
-variable "subnet_address_prefixes" {
-  type    = list(string)
-  default = ["172.16.0.0/24"]
-}
-
-variable "ase_name" {
-  type = string
-}
-
-variable "dedicated_host_count" {
-  type    = number
-  default = 0
-}
-
-variable "zone_redundant" {
-  type    = bool
-  default = false
-}
-
-variable "create_private_dns" {
-  type    = bool
-  default = true
-}
-
-variable "internal_load_balancing_mode" {
-  type    = string
-  default = "Web, Publishing"
-}
-
-variable "network_security_group_name" {
-  type = string
-}
-
-variable "network_security_group_security_rules" {
-  type    = any
-  default = []
-}
-
-```
-
-```hcl
-# main.tf
-resource "azurerm_resource_group" "rg" {
-  name     = var.ase_resource_group_name
-  location = var.location
-}
-
-data "azurerm_subnet" "snet-exist" {
-  count                = var.use_existing_vnet_and_subnet ? 1 : 0
-  name                 = var.subnet_name
-  virtual_network_name = var.virtual_network_name
-  resource_group_name  = var.vnet_resource_group_name
-}
-
-resource "azurerm_network_security_group" "nsg" {
-  count               = var.use_existing_vnet_and_subnet ? 0 : 1
-  name                = var.network_security_group_name
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-}
-
-resource "azurerm_virtual_network" "vnet" {
-  count               = var.use_existing_vnet_and_subnet ? 0 : 1
-  name                = var.virtual_network_name
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  address_space       = var.vnet_address_prefixes
-}
-
-resource "azurerm_subnet" "snet" {
-  count                = var.use_existing_vnet_and_subnet ? 0 : 1
-  name                 = var.subnet_name
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet[0].name
-  address_prefixes     = var.subnet_address_prefixes
+resource "azurerm_subnet" "example" {
+  name                 = "example-subnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.2.0/24"]
 
   delegation {
     name = "Microsoft.Web.hostingEnvironments"
@@ -152,112 +43,71 @@ resource "azurerm_subnet" "snet" {
   }
 }
 
-resource "azurerm_subnet" "snet-delegation" {
-  count                = var.use_existing_vnet_and_subnet ? 1 : 0
-  name                 = var.subnet_name
-  virtual_network_name = var.virtual_network_name
-  resource_group_name  = var.vnet_resource_group_name
-  address_prefixes     = data.azurerm_subnet.snet-exist[0].address_prefixes
+resource "azurerm_app_service_environment_v3" "example" {
+  name                = "example-asev3"
+  resource_group_name = azurerm_resource_group.example.name
+  subnet_id           = azurerm_subnet.example.id
 
-  delegation {
-    name = "Microsoft.Web.hostingEnvironments"
-    service_delegation {
-      name    = "Microsoft.Web/hostingEnvironments"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
+  internal_load_balancing_mode = "Web, Publishing"
+
+  cluster_setting {
+    name  = "DisableTls1.0"
+    value = "1"
+  }
+
+  cluster_setting {
+    name  = "InternalEncryption"
+    value = "true"
+  }
+
+  cluster_setting {
+    name  = "FrontEndSSLCipherSuiteOrder"
+    value = "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
+  }
+
+  tags = {
+    env         = "production"
+    terraformed = "true"
   }
 }
-
-resource "azurerm_subnet_network_security_group_association" "nsg-association" {
-  count                     = var.use_existing_vnet_and_subnet ? 0 : 1
-  subnet_id                 = azurerm_subnet.snet[0].id
-  network_security_group_id = azurerm_network_security_group.nsg[0].id
-}
-
-resource "azurerm_app_service_environment_v3" "asev3" {
-  name                = var.ase_name
-  resource_group_name = azurerm_resource_group.rg.name
-  subnet_id           = var.use_existing_vnet_and_subnet ? azurerm_subnet.snet-delegation[0].id : azurerm_subnet.snet[0].id
-
-  dedicated_host_count         = var.dedicated_host_count >= 2 ? var.dedicated_host_count : null
-  zone_redundant               = var.zone_redundant ? var.zone_redundant : null
-  internal_load_balancing_mode = var.internal_load_balancing_mode
-}
-
-resource "azurerm_private_dns_zone" "zone" {
-  count               = (var.create_private_dns && var.internal_load_balancing_mode == "Web, Publishing") ? 1 : 0
-  name                = azurerm_app_service_environment_v3.asev3.dns_suffix
-  resource_group_name = azurerm_resource_group.rg.name
-}
-
-resource "azurerm_private_dns_a_record" "a-wildcard" {
-  count               = (var.create_private_dns && var.internal_load_balancing_mode == "Web, Publishing") ? 1 : 0
-  name                = "*"
-  zone_name           = azurerm_private_dns_zone.zone[0].name
-  resource_group_name = azurerm_resource_group.rg.name
-  ttl                 = 3600
-  records             = azurerm_app_service_environment_v3.asev3.internal_inbound_ip_addresses
-}
-
-resource "azurerm_private_dns_a_record" "a-scm" {
-  count               = (var.create_private_dns && var.internal_load_balancing_mode == "Web, Publishing") ? 1 : 0
-  name                = "*.scm"
-  zone_name           = azurerm_private_dns_zone.zone[0].name
-  resource_group_name = azurerm_resource_group.rg.name
-  ttl                 = 3600
-  records             = azurerm_app_service_environment_v3.asev3.internal_inbound_ip_addresses
-}
-
-resource "azurerm_private_dns_a_record" "a-at" {
-  count               = (var.create_private_dns && var.internal_load_balancing_mode == "Web, Publishing") ? 1 : 0
-  name                = "@"
-  zone_name           = azurerm_private_dns_zone.zone[0].name
-  resource_group_name = azurerm_resource_group.rg.name
-  ttl                 = 3600
-  records             = azurerm_app_service_environment_v3.asev3.internal_inbound_ip_addresses
-}
-
 ```
-
 ## Argument Reference
 
-* `ase_resource_group_name` - (Required) The name of the Resource Group where the App Service Environment exists. 
+* `name` - (Required) The name of the App Service Environment. Changing this forces a new resource to be created. 
 
-* `location` - (Required) The location of the Resource Group where the App Service Environment exists. 
+* `resource_group_name` - (Required) The name of the Resource Group where the App Service Environment exists. Defaults to the Resource Group of the Subnet (specified by `subnet_id`).
 
-* `use_existing_vnet_and_subnet` - (Required) Set to `true` if the ASEv3 will be resided in an existing VNet and subnet.
-
-* `vnet_resource_group_name` - (Optional) The name of the Resource Group where the existing VNet exists. Only required if `use_existing_vnet_and_subnet` set to `true`. 
-
-* `virtual_network_name` - (Required) The name of the VNet where the App Service Environment exists.
-
-* `vnet_address_prefixes` - (Optional) The address spaces of VNet where the App Service Environment exists. Only required if `use_existing_vnet_and_subnet` set to `false`.
-
-* `subnet_name` - (Required) The name of the subnet where the App Service Environment exists.
-
-* `subnet_address_prefixes` - (Optional)  The address spaces of subnet where the App Service Environment exists. Only required if `use_existing_vnet_and_subnet` set to `false`.
-
-* `ase_name` - (Required) The name of the App Service Environment. This is a global Azure resource name should be unique.
-
-* `dedicated_host_count` - (Optional) This ASEv3 should use dedicated Hosts. Possible vales are `2`. Changing this forces a new resource to be created. You can only set either `dedicated_host_count` or `zone_redundant` but not both.
-
-* `zone_redundant` - (Optional) Set to `true` to deplyed ASEv3 with availability zones supported. Zonal ASEs can be deployed in some regions, you can refer to [Availability Zone support for App Service Environments](https://docs.microsoft.com/en-us/azure/app-service/environment/zone-redundancy). You can only set either `dedicated_host_count` or `zone_redundant` but not both.
-
-~> **NOTE:** Setting this value will provision 2 Physical Hosts for your App Service Environment V3, this is done at additional cost, please be aware of the pricing commitment in the [General Availability Notes](https://techcommunity.microsoft.com/t5/apps-on-azure/announcing-app-service-environment-v3-ga/ba-p/2517990)
-
-* `create_private_dns` - (Required) Set to `true` to create private dns zone after ASEv3 had been created. Only available for internal load balancing mode ASE.
-
-* `internal_load_balancing_mode` - (Required) Specifies which endpoints to serve internally in the Virtual Network for the App Service Environment. Possible values are `None` (for an External VIP Type), and `"Web, Publishing"` (for an Internal VIP Type). Defaults to `None`.
-
-* `network_security_group_name` - (Optional) The network security group name of the subnet where App Service Environment exists.
-
-* `network_security_group_security_rules` - (Optional) The network security group rules of the subnet network security group where App Service Environment exists.
+* `subnet_id` - (Required) The ID of the Subnet which the App Service Environment should be connected to. Changing this forces a new resource to be created. 
 
 ~> **NOTE** a /24 or larger CIDR is required. Once associated with an ASE, this size cannot be changed.
 
 ~> **NOTE:** This Subnet requires a delegation to `Microsoft.Web/hostingEnvironments` as detailed in the example above.    
 
+* `allow_new_private_endpoint_connections` - (Optional) Should new Private Endpoint Connections be allowed. Defaults to `true`. 
+
+* `cluster_setting` - (Optional) Zero or more `cluster_setting` blocks as defined below. 
+
+* `dedicated_host_count` - (Optional) This ASEv3 should use dedicated Hosts. Possible values are `2`. Changing this forces a new resource to be created.
+
+* `zone_redundant` - (Optional) Set to `true` to deployed ASEv3 with availability zones supported. Zonal ASEs can be deployed in some regions, you can refer to [Availability Zone support for App Service Environments](https://docs.microsoft.com/en-us/azure/app-service/environment/zone-redundancy). You can only set either `dedicated_host_count` or `zone_redundant` but not both.
+
+~> **NOTE:** Setting this value will provision 2 Physical Hosts for your App Service Environment V3, this is done at additional cost, please be aware of the pricing commitment in the [General Availability Notes](https://techcommunity.microsoft.com/t5/apps-on-azure/announcing-app-service-environment-v3-ga/ba-p/2517990)
+
+* `internal_load_balancing_mode` - (Optional) Specifies which endpoints to serve internally in the Virtual Network for the App Service Environment. Possible values are `None` (for an External VIP Type), and `"Web, Publishing"` (for an Internal VIP Type). Defaults to `None`.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
+
+~> **NOTE:** The underlying API does not currently support changing Tags on this resource. Making changes in the portal for tags will cause Terraform to detect a change that will force a recreation of the ASEV3 unless `ignore_changes` lifecycle meta-argument is used.
+
 ---
+
+A `cluster_setting` block supports the following:
+
+~> **NOTE:** If this block is specified it must contain the `FrontEndSSLCipherSuiteOrder` setting, with the value `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`.
+
+* `name` - (Required) The name of the Cluster Setting. 
+
+* `value` - (Required) The value for the Cluster Setting. 
 
 ## Attribute Reference
 
@@ -268,8 +118,6 @@ resource "azurerm_private_dns_a_record" "a-at" {
 * `external_inbound_ip_addresses` - The external outbound IP addresses of the App Service Environment V3.
 
 * `id` - The ID of the App Service Environment.
-
-* `inbound_network_dependencies` - An inbound Network Dependencies block as defined below.
 
 * `internal_inbound_ip_addresses` - The internal outbound IP addresses of the App Service Environment V3.
 
@@ -294,14 +142,14 @@ resource "azurerm_private_dns_a_record" "a-at" {
 * `zone_redundant` - ASEv3 deployed in availability zones or not.
 
 --- 
-A `cluster_setting` block supports the following:
 
-~> **NOTE:** If this block is specified it must contain the `FrontEndSSLCipherSuiteOrder` setting, with the value `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`.
+An `inbound_network_dependencies` block exports the following:
 
-* `name` - (Required) The name of the Cluster Setting. 
+* `description` - A short description of the purpose of the network traffic.
 
-* `value` - (Required) The value for the Cluster Setting. 
+* `ip_addresses` - A list of IP addresses that network traffic will originate from in CIDR notation.
 
+* `ports` - The ports that network traffic will arrive to the App Service Environment V3 on.
 
 ## Timeouts
 
