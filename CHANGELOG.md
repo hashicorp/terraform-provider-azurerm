@@ -1,5 +1,9 @@
 ## 2.80 (Unreleased)
 
+FEATURES: 
+
+* **New Data Source:** `backup_policy_file_share` [GH-13444]
+
 BUG FIXES:
 
 * `azurerm_function_app` - fix regressions in function app storage introduced in v2.77 [GH-13580]
