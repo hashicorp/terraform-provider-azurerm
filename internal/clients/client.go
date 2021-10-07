@@ -81,6 +81,7 @@ import (
 	privatedns "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/client"
 	purview "github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/client"
 	recoveryServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
+	redhatopenshift "github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/client"
 	redis "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
 	redisenterprise "github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/client"
 	relay "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/client"
@@ -186,6 +187,7 @@ type Client struct {
 	PrivateDns            *privatedns.Client
 	Purview               *purview.Client
 	RecoveryServices      *recoveryServices.Client
+	RedHatOpenshift       *redhatopenshift.Client
 	Redis                 *redis.Client
 	RedisEnterprise       *redisenterprise.Client
 	Relay                 *relay.Client
@@ -293,6 +295,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.PrivateDns = privatedns.NewClient(o)
 	client.Purview = purview.NewClient(o)
 	client.RecoveryServices = recoveryServices.NewClient(o)
+	client.RedHatOpenshift = redhatopenshift.NewClient(o)
 	client.Redis = redis.NewClient(o)
 	client.RedisEnterprise = redisenterprise.NewClient(o)
 	client.Relay = relay.NewClient(o)
