@@ -22,8 +22,10 @@ func resourceDataFactoryLinkedServiceKusto() *pluginsdk.Resource {
 		Update: resourceDataFactoryLinkedServiceKustoCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceKustoDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.LinkedServiceID(id)
+			return err
+		}, importDataFactoryLinkedService(datafactory.TypeBasicLinkedServiceTypeAzureDataExplorer)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -234,7 +236,7 @@ func resourceDataFactoryLinkedServiceKustoRead(d *pluginsdk.ResourceData, meta i
 
 	linkedService, ok := resp.Properties.AsAzureDataExplorerLinkedService()
 	if !ok {
-		return fmt.Errorf("classifying %s: Expected: %q", id, datafactory.TypeBasicLinkedServiceTypeAzureDataExplorer)
+		return fmt.Errorf("classifying %s: Expected: %q", *id, datafactory.TypeBasicLinkedServiceTypeAzureDataExplorer)
 	}
 
 	d.Set("name", id.Name)
@@ -281,7 +283,7 @@ func resourceDataFactoryLinkedServiceKustoDelete(d *pluginsdk.ResourceData, meta
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name); err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
