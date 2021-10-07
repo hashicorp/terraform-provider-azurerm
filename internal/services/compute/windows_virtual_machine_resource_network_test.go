@@ -247,7 +247,6 @@ func TestAccWindowsVirtualMachine_networkPublicDynamicUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_ip_address").Exists(),
-				check.That(data.ResourceName).Key("public_ip_address").Exists(),
 			),
 		},
 		data.ImportStep(
@@ -258,7 +257,6 @@ func TestAccWindowsVirtualMachine_networkPublicDynamicUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_ip_address").Exists(),
-				check.That(data.ResourceName).Key("public_ip_address").Exists(),
 			),
 		},
 		data.ImportStep(
