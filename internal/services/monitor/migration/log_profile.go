@@ -3,11 +3,11 @@ package migration
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"log"
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -38,7 +38,6 @@ func (LogProfileUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		if len(oldIdComponents) != 7 {
 			return rawState, fmt.Errorf("log profile id should have 6 segments, got %d: %s", len(oldIdComponents)-1, oldId)
 		}
-
 
 		newId := parse.NewLogProfileID(oldIdComponents[2], oldIdComponents[6])
 
