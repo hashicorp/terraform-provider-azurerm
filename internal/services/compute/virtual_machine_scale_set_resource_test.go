@@ -191,14 +191,14 @@ func TestAccVirtualMachineScaleSet_verify_key_data_changed(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("os_profile.0.admin_password"),
+		data.ImportStep("os_profile.0.admin_password", "os_profile.0.custom_data"),
 		{
 			Config: r.linuxKeyDataUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("os_profile.0.admin_password"),
+		data.ImportStep("os_profile.0.admin_password", "os_profile.0.custom_data"),
 	})
 }
 

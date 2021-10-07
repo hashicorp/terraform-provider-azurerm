@@ -46,7 +46,7 @@ func testAccNetworkDDoSProtectionPlan_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_ddos_protection_plan", "test")
 	r := NetworkDDoSProtectionPlanResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -62,7 +62,7 @@ func testAccNetworkDDoSProtectionPlan_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_ddos_protection_plan", "test")
 	r := NetworkDDoSProtectionPlanResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -80,7 +80,7 @@ func testAccNetworkDDoSProtectionPlan_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_ddos_protection_plan", "test")
 	r := NetworkDDoSProtectionPlanResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withTagsConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -106,7 +106,7 @@ func testAccNetworkDDoSProtectionPlan_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_ddos_protection_plan", "test")
 	r := NetworkDDoSProtectionPlanResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basicConfig,
 			TestResource: r,

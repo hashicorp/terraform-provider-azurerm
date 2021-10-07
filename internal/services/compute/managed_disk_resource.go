@@ -81,6 +81,16 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"logical_sector_size": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.IntInSlice([]int{
+					512,
+					4096}),
+				Computed: true,
+			},
+
 			"source_uri": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -247,8 +257,13 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			diskMBps := int64(v.(int))
 			props.DiskMBpsReadWrite = &diskMBps
 		}
-	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") {
-		return fmt.Errorf("[ERROR] disk_iops_read_write and disk_mbps_read_write are only available for UltraSSD disks")
+
+		if v, ok := d.GetOk("logical_sector_size"); ok {
+			props.CreationData.LogicalSectorSize = utils.Int32(int32(v.(int)))
+		}
+
+	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") || d.HasChange("logical_sector_size") {
+		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write and logical_sector_size are only available for UltraSSD disks")
 	}
 
 	if createOption == compute.Import {
@@ -634,6 +649,9 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	if props := resp.DiskProperties; props != nil {
 		if creationData := props.CreationData; creationData != nil {
 			d.Set("create_option", string(creationData.CreateOption))
+			if creationData.LogicalSectorSize != nil {
+				d.Set("logical_sector_size", creationData.LogicalSectorSize)
+			}
 
 			imageReferenceID := ""
 			if creationData.ImageReference != nil && creationData.ImageReference.ID != nil {
