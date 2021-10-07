@@ -159,9 +159,8 @@ func resourceSearchServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
+	id := parse.NewSearchServiceID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	resourceGroup := d.Get("resource_group_name").(string)
 	skuName := d.Get("sku").(string)
 
 	publicNetworkAccess := search.Enabled
@@ -172,10 +171,10 @@ func resourceSearchServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	t := d.Get("tags").(map[string]interface{})
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name, nil)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, nil)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Search Service %q (ResourceGroup %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of %s: %v", id, err)
 			}
 		}
 
@@ -209,21 +208,21 @@ func resourceSearchServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		properties.ServiceProperties.PartitionCount = utils.Int32(partitionCount)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties, nil)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, properties, nil)
 	if err != nil {
-		return fmt.Errorf("issuing create/update request for Search Service %q (ResourceGroup %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the completion of the creating/updating of Search Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name, nil)
+	_, err = client.Get(ctx, id.ResourceGroup, id.Name, nil)
 	if err != nil {
-		return fmt.Errorf("issuing get request for Search Service %q (ResourceGroup %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("issuing get request for %s: %v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceSearchServiceRead(d, meta)
 }
@@ -246,7 +245,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return nil
 		}
 
-		return fmt.Errorf("reading Search Service: %+v", err)
+		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -287,7 +286,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if err := d.Set("identity", flattenSearchServiceIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("setting `identity`: %s", err)
+		return fmt.Errorf("setting `identity`: %v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -309,7 +308,7 @@ func resourceSearchServiceDelete(d *pluginsdk.ResourceData, meta interface{}) er
 			return nil
 		}
 
-		return fmt.Errorf("deleting Search Service %q (resource group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
