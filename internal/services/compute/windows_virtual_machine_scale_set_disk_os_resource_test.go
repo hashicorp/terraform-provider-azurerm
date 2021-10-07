@@ -395,7 +395,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   instances            = 1
   admin_username       = "adminuser"
   admin_password       = "P@ssword1234!"
-  computer_name_prefix = "des_test"
+  computer_name_prefix = "destest"
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
