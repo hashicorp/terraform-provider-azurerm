@@ -1,6 +1,7 @@
 package search
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -217,9 +218,17 @@ func resourceSearchServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	_, err = client.Get(ctx, id.ResourceGroup, id.Name, nil)
-	if err != nil {
-		return fmt.Errorf("issuing get request for %s: %v", id, err)
+	timeout, _ := ctx.Deadline()
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:      []string{string(search.Provisioning)},
+		Target:       []string{string(search.Succeeded)},
+		Refresh:      searchServiceProvisioningStateRefreshFunc(ctx, client, id),
+		Timeout:      time.Until(timeout),
+		PollInterval: 1 * time.Minute,
+	}
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -392,5 +401,16 @@ func flattenSearchServiceIdentity(identity *search.Identity) []interface{} {
 			"tenant_id":    tenantId,
 			"type":         string(identity.Type),
 		},
+	}
+}
+
+func searchServiceProvisioningStateRefreshFunc(ctx context.Context, client *search.ServicesClient, id parse.SearchServiceId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, nil)
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
+		}
+
+		return resp, string(resp.ProvisioningState), nil
 	}
 }
