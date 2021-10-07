@@ -179,12 +179,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_search_service" "test" {
-  name                = "acctestsearchservice%d"
+  name                = "acctestsearchservice%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "standard"
@@ -193,13 +193,14 @@ resource "azurerm_search_service" "test" {
     environment = "staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (SearchServiceResource) requiresImport(data acceptance.TestData) string {
 	template := SearchServiceResource{}.basic(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
+
 resource "azurerm_search_service" "import" {
   name                = azurerm_search_service.test.name
   resource_group_name = azurerm_search_service.test.resource_group_name
@@ -220,12 +221,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_search_service" "test" {
-  name                = "acctestsearchservice%d"
+  name                = "acctestsearchservice%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "standard"
@@ -239,7 +240,7 @@ resource "azurerm_search_service" "test" {
     residential = "Area"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (SearchServiceResource) ipRules(data acceptance.TestData) string {
@@ -249,12 +250,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-search-%d"
-  location = "%s"
+  name     = "acctestRG-search-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_search_service" "test" {
-  name                = "acctestsearchservice%d"
+  name                = "acctestsearchservice%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "standard"
@@ -265,7 +266,7 @@ resource "azurerm_search_service" "test" {
     environment = "staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (SearchServiceResource) identity(data acceptance.TestData) string {
@@ -275,12 +276,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_search_service" "test" {
-  name                = "acctestsearchservice%d"
+  name                = "acctestsearchservice%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "standard"
@@ -293,5 +294,5 @@ resource "azurerm_search_service" "test" {
     environment = "staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
