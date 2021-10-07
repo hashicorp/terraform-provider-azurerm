@@ -6658,10 +6658,12 @@ func (r ApplicationGatewayResource) requestRoutingRulePrioritySet(data acceptanc
 # since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_port_name_1           = "${azurerm_virtual_network.test.name}-feport-1"
+  frontend_port_name_2           = "${azurerm_virtual_network.test.name}-feport-2"
   frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
   http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  listener_name_1                = "${azurerm_virtual_network.test.name}-httplstn-1"
+  listener_name_2                = "${azurerm_virtual_network.test.name}-httplstn-2"
   request_routing_rule_name_1    = "${azurerm_virtual_network.test.name}-rqrt-1"
   request_routing_rule_name_2    = "${azurerm_virtual_network.test.name}-rqrt-2"
 }
@@ -6697,8 +6699,13 @@ resource "azurerm_application_gateway" "test" {
   }
 
   frontend_port {
-    name = local.frontend_port_name
+    name = local.frontend_port_name_1
     port = 80
+  }
+
+  frontend_port {
+    name = local.frontend_port_name_2
+    port = 8080
   }
 
   frontend_ip_configuration {
@@ -6719,16 +6726,23 @@ resource "azurerm_application_gateway" "test" {
   }
 
   http_listener {
-    name                           = local.listener_name
+    name                           = local.listener_name_1
     frontend_ip_configuration_name = local.frontend_ip_configuration_name
-    frontend_port_name             = local.frontend_port_name
+    frontend_port_name             = local.frontend_port_name_1
+    protocol                       = "Http"
+  }
+
+  http_listener {
+    name                           = local.listener_name_2
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name_2
     protocol                       = "Http"
   }
 
   request_routing_rule {
     name                       = local.request_routing_rule_name_1
     rule_type                  = "Basic"
-    http_listener_name         = local.listener_name
+    http_listener_name         = local.listener_name_1
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
     priority                   = 1
@@ -6737,7 +6751,7 @@ resource "azurerm_application_gateway" "test" {
   request_routing_rule {
     name                       = local.request_routing_rule_name_2
     rule_type                  = "Basic"
-    http_listener_name         = local.listener_name
+    http_listener_name         = local.listener_name_2
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
     priority                   = 20000
@@ -6753,11 +6767,12 @@ func (r ApplicationGatewayResource) requestRoutingRulePriorityValidation(data ac
 # since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_port_name_1           = "${azurerm_virtual_network.test.name}-feport-1"
+  frontend_port_name_2           = "${azurerm_virtual_network.test.name}-feport-2"
   frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
   http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
-  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  listener_name_1                = "${azurerm_virtual_network.test.name}-httplstn-1"
+  listener_name_2                = "${azurerm_virtual_network.test.name}-httplstn-2"
   request_routing_rule_name_1    = "${azurerm_virtual_network.test.name}-rqrt-1"
   request_routing_rule_name_2    = "${azurerm_virtual_network.test.name}-rqrt-2"
 }
@@ -6793,8 +6808,13 @@ resource "azurerm_application_gateway" "test" {
   }
 
   frontend_port {
-    name = local.frontend_port_name
+    name = local.frontend_port_name_1
     port = 80
+  }
+
+  frontend_port {
+    name = local.frontend_port_name_2
+    port = 8080
   }
 
   frontend_ip_configuration {
@@ -6815,16 +6835,23 @@ resource "azurerm_application_gateway" "test" {
   }
 
   http_listener {
-    name                           = local.listener_name
+    name                           = local.listener_name_1 
     frontend_ip_configuration_name = local.frontend_ip_configuration_name
-    frontend_port_name             = local.frontend_port_name
+    frontend_port_name             = local.frontend_port_name_1
+    protocol                       = "Http"
+  }
+
+  http_listener {
+    name                           = local.listener_name_2
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name_2
     protocol                       = "Http"
   }
 
   request_routing_rule {
     name                       = local.request_routing_rule_name_1
     rule_type                  = "Basic"
-    http_listener_name         = local.listener_name
+    http_listener_name         = local.listener_name_1
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
     priority                   = 1
@@ -6833,7 +6860,7 @@ resource "azurerm_application_gateway" "test" {
   request_routing_rule {
     name                       = local.request_routing_rule_name_2
     rule_type                  = "Basic"
-    http_listener_name         = local.listener_name
+    http_listener_name         = local.listener_name_2
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
   }
