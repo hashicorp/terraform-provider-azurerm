@@ -64,10 +64,10 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"domain": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-							// TODO: Random ID as default
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							Default:      GenerateRandomDomainName(),
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"openshift_version": {
