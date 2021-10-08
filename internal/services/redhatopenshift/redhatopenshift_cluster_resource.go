@@ -25,7 +25,7 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 		Create: resourceOpenShiftClusterCreate,
 		Read:   resourceOpenShiftClusterRead,
 		Update: resourceOpenShiftClusterUpdate,
-		// Delete: resourceOpenShiftClusterDelete,
+		Delete: resourceOpenShiftClusterDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ClusterID(id)
@@ -455,6 +455,28 @@ func resourceOpenShiftClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func resourceOpenShiftClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).RedHatOpenshift.OpenShiftClustersClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.ClusterID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName)
+	if err != nil {
+		return fmt.Errorf("deleting Red Hat Openshift Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the deletion of Red Hat Openshift Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+	}
+
+	return nil
 }
 
 func flattenOpenShiftClusterProfile(profile *redhatopenshift.ClusterProfile) []interface{} {
