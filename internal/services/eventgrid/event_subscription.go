@@ -112,8 +112,9 @@ func eventSubscriptionSchemaDeliveryProperty() *pluginsdk.Schema {
 				},
 
 				"value": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:      pluginsdk.TypeString,
+					Optional:  true,
+					Sensitive: true, // must mark as Sensitive, as it's possible for this to be 'Secret'
 				},
 
 				"source_field": {

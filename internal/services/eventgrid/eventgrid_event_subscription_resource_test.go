@@ -1090,7 +1090,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
     type        = "Static"
     value       = "this-value-is-secret!"
     secret      = true
-  }  
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
