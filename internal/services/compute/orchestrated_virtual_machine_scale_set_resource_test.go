@@ -2598,8 +2598,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     primary = true
 
     ip_configuration {
-      name    = "TestPublicIPConfiguration"
-      primary = true
+      name      = "TestPublicIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
 
       application_gateway_backend_address_pool_ids = [azurerm_application_gateway.test.backend_address_pool[0].id]
     }
