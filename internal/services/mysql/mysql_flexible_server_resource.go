@@ -266,6 +266,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 		),
 	}
 }
+
 func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).MySQL.FlexibleServerClient

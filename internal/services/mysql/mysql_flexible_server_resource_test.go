@@ -278,7 +278,7 @@ func TestAccMySqlFlexibleServer_replica(t *testing.T) {
 	r := MySqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.source(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
@@ -289,7 +289,7 @@ func TestAccMySqlFlexibleServer_replica(t *testing.T) {
 		},
 		data.ImportStep("administrator_password", "create_mode"),
 		{
-			PreConfig: func() { time.Sleep(20 * time.Minute) },
+			PreConfig: func() { time.Sleep(15 * time.Minute) },
 			Config:    r.replica(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_mysql_flexible_server.replica").ExistsInAzure(r),
@@ -325,7 +325,7 @@ func TestAccMySqlFlexibleServer_geoRestore(t *testing.T) {
 		},
 		data.ImportStep("administrator_password", "create_mode"),
 		{
-			PreConfig: func() { time.Sleep(20 * time.Minute) },
+			PreConfig: func() { time.Sleep(15 * time.Minute) },
 			Config:    r.geoRestore(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_mysql_flexible_server.geo_restore").ExistsInAzure(r),
@@ -356,7 +356,7 @@ func TestAccMySqlFlexibleServer_updateStorage(t *testing.T) {
 		},
 		data.ImportStep("administrator_password", "create_mode"),
 		{
-			Config: r.updateStorage(data, 64, 1280, false),
+			Config: r.updateStorage(data, 64, 640, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -736,6 +736,21 @@ resource "azurerm_mysql_flexible_server" "pitr" {
 `, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
 }
 
+func (r MySqlFlexibleServerResource) source(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  sku_name               = "GP_Standard_D4ds_v4"
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r MySqlFlexibleServerResource) replica(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -747,7 +762,7 @@ resource "azurerm_mysql_flexible_server" "replica" {
   create_mode         = "Replica"
   source_server_id    = azurerm_mysql_flexible_server.test.id
 }
-`, r.basic(data), data.RandomInteger)
+`, r.source(data), data.RandomInteger)
 }
 
 func (r MySqlFlexibleServerResource) geoRestoreSource(data acceptance.TestData) string {
