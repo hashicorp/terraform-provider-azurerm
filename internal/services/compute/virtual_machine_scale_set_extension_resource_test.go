@@ -50,7 +50,7 @@ func TestAccVirtualMachineScaleSetExtension_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicLinux(data),
+			Config: r.requiresImport(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
