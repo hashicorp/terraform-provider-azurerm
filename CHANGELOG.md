@@ -1,3 +1,9 @@
+## 2.81.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_management_group` - nil check for child management groups when deassociating a subscription from a management group [GH-13540]
+
 ## 2.80.0 (October 08, 2021)
 
 FEATURES: 
