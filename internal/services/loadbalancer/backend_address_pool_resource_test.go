@@ -103,7 +103,7 @@ func TestAccBackendAddressPoolStandardSkuRequiresImport(t *testing.T) {
 	})
 }
 
-func TestAccBackendAddressPoolGatewaySkuBasic(t *testing.T) {
+func TestAccBackendAddressPool_GatewaySkuBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
 	r := LoadBalancerBackendAddressPool{}
 
@@ -118,7 +118,7 @@ func TestAccBackendAddressPoolGatewaySkuBasic(t *testing.T) {
 	})
 }
 
-func TestAccBackendAddressPoolGatewaySkuUpdate(t *testing.T) {
+func TestAccBackendAddressPool_GatewaySkuUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
 	r := LoadBalancerBackendAddressPool{}
 
