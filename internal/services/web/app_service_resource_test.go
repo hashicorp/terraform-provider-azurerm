@@ -1383,42 +1383,6 @@ func TestAccAppService_windowsJava11Tomcat(t *testing.T) {
 	})
 }
 
-func TestAccAppService_windowsJava7Minor(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	r := AppServiceResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.windowsJava(data, "1.7.0_80", "TOMCAT", "9.0"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("1.7.0_80"),
-				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("TOMCAT"),
-				check.That(data.ResourceName).Key("site_config.0.java_container_version").HasValue("9.0"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccAppService_windowsJava8Minor(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	r := AppServiceResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.windowsJava(data, "1.8.0_181", "TOMCAT", "9.0"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("1.8.0_181"),
-				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("TOMCAT"),
-				check.That(data.ResourceName).Key("site_config.0.java_container_version").HasValue("9.0"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccAppService_windowsPHP7(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
