@@ -1,23 +1,23 @@
-## 2.80.0 (Unreleased)
+## 2.80.0 (October 08, 2021)
 
 FEATURES: 
 
-* **New Data Source:** `backup_policy_file_share` [GH-13444]
+* **New Data Source:** `backup_policy_file_share` ([#13444](https://github.com/hashicorp/terraform-provider-azurerm/issues/13444))
 
 BUG FIXES:
 
-* `azurerm_function_app` - fix regressions in function app storage introduced in v2.77 [GH-13580]
-* `azurerm_managed_application` - fixed typecasting bug [GH-13641]
+* `azurerm_function_app` - fix regressions in function app storage introduced in v2.77 ([#13580](https://github.com/hashicorp/terraform-provider-azurerm/issues/13580))
+* `azurerm_managed_application` - fixed typecasting bug ([#13641](https://github.com/hashicorp/terraform-provider-azurerm/issues/13641))
 
 IMPROVEMENTS:
 
-* Data Source `azurerm_public_ips` - deprecate the `attached` property infavour of the `attachment_status` property to improve filtering [GH-13500]
-* Data Source `azurerm_public_ips` - return public IPs associated with NAT gateways when `attached` set to `true` or `attachment_status` set to `Attached` [GH-13610]
-* `azurerm_kusto_eventhub_data_connection supports` - support for the `identity_id` property [GH-13488]
-* `azurerm_managed_disk` - support for the `logical_sector_size` property [GH-13637]
-* `azurerm_service_fabric_cluster` - support for the `service_fabric_zonal_upgrade_mode` and `service_fabric_zonal_upgrade_mode` properties [GH-13399]
-* `azurerm_stream_analytics_output_eventhub` - support for the `partition_key` property [GH-13562]
-* `azurerm_linux_virtual_machine_scale_set` - correctly update the `overprovision` property [GH-13653]
+* Data Source `azurerm_public_ips` - deprecate the `attached` property infavour of the `attachment_status` property to improve filtering ([#13500](https://github.com/hashicorp/terraform-provider-azurerm/issues/13500))
+* Data Source `azurerm_public_ips` - return public IPs associated with NAT gateways when `attached` set to `true` or `attachment_status` set to `Attached` ([#13610](https://github.com/hashicorp/terraform-provider-azurerm/issues/13610))
+* `azurerm_kusto_eventhub_data_connection supports` - support for the `identity_id` property ([#13488](https://github.com/hashicorp/terraform-provider-azurerm/issues/13488))
+* `azurerm_managed_disk` - support for the `logical_sector_size` property ([#13637](https://github.com/hashicorp/terraform-provider-azurerm/issues/13637))
+* `azurerm_service_fabric_cluster` - support for the `service_fabric_zonal_upgrade_mode` and `service_fabric_zonal_upgrade_mode` properties ([#13399](https://github.com/hashicorp/terraform-provider-azurerm/issues/13399))
+* `azurerm_stream_analytics_output_eventhub` - support for the `partition_key` property ([#13562](https://github.com/hashicorp/terraform-provider-azurerm/issues/13562))
+* `azurerm_linux_virtual_machine_scale_set` - correctly update the `overprovision` property ([#13653](https://github.com/hashicorp/terraform-provider-azurerm/issues/13653))
 
 ## 2.79.1 (October 01, 2021)
 
