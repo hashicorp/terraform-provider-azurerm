@@ -5,8 +5,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
+	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -25,7 +26,7 @@ func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
 				ValidateFunc: validate.ConsumptionBudgetName(),
 			},
 
-			"resource_group_name": {
+			"resource_group_id": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
@@ -114,32 +115,26 @@ func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
 }
 
 func resourceArmConsumptionBudgetResourceGroupDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Consumption.BudgetsClient
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 
-	id := resourceParse.NewConsumptionBudgetResourceGroupID(subscriptionID, d.Get("resource_group_name").(string), d.Get("name").(string))
-	d.SetId(id.ID())
-
-	err := resourceArmConsumptionBudgetDataSourceRead(d, meta, id.ID(), d.Get("name").(string))
-
+	resourceGroupId, err := resourceParse.ResourceGroupID(d.Get("resource_group_id").(string))
 	if err != nil {
 		return err
 	}
 
-	return nil
-}
+	id := parse.NewConsumptionBudgetResourceGroupID(subscriptionID, resourceGroupId.ResourceGroup, d.Get("name").(string))
+	d.SetId(id.ID())
 
-func resourceArmConsumptionBudgetDataSourceRead(d *pluginsdk.ResourceData, meta interface{}, scope, name string) error {
-	client := meta.(*clients.Client).Consumption.BudgetsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	resp, err := client.Get(ctx, scope, name)
+	resp, err := client.Get(ctx, resourceGroupId.ID(), id.BudgetName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making read request on Azure Consumption Budget %q for scope %q: %+v", name, scope, err)
+		return fmt.Errorf("making read request on %s: %+v", id, err)
 	}
 
 	d.Set("name", resp.Name)
