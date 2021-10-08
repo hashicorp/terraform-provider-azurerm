@@ -224,10 +224,16 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		osProfile := osProfileRaw[0].(map[string]interface{})
 		winConfigRaw = osProfile["windows_configuration"].([]interface{})
 		linConfigRaw = osProfile["linux_configuration"].([]interface{})
+		customData := ""
+
+		// Pass custom data if it is defined in the config file
+		if v := osProfile["custom_data"]; v != nil {
+			customData = v.(string)
+		}
 
 		if len(winConfigRaw) > 0 {
 			winConfig := winConfigRaw[0].(map[string]interface{})
-			vmssOsProfile = expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(winConfig)
+			vmssOsProfile = expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(winConfig, customData)
 
 			// if the Computer Prefix Name was not defined use the computer name
 			if vmssOsProfile.ComputerNamePrefix == nil || len(*vmssOsProfile.ComputerNamePrefix) == 0 {
@@ -243,7 +249,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		if len(linConfigRaw) > 0 {
 			osType = compute.OperatingSystemTypesLinux
 			linConfig := linConfigRaw[0].(map[string]interface{})
-			vmssOsProfile = expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(linConfig)
+			vmssOsProfile = expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(linConfig, customData)
 
 			// if the Computer Prefix Name was not defined use the computer name
 			if len(*vmssOsProfile.ComputerNamePrefix) == 0 {
@@ -255,8 +261,6 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 				vmssOsProfile.ComputerNamePrefix = utils.String(name)
 			}
 		}
-
-		vmssOsProfile.CustomData = utils.String(osProfile["custom_data"].(string))
 	}
 
 	bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})

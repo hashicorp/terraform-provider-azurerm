@@ -2,7 +2,6 @@ package compute
 
 import (
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 
@@ -11,7 +10,6 @@ import (
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -24,7 +22,12 @@ func OrchestratedVirtualMachineScaleSetOSProfileSchema() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"custom_data":           base64.OptionalSchema(false),
+				"custom_data": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsBase64,
+				},
 				"windows_configuration": OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema(),
 				"linux_configuration":   OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema(),
 			},
@@ -761,8 +764,11 @@ func FlattenOrchestratedVirtualMachineScaleSetOSProfile(input *compute.VirtualMa
 
 	output := make(map[string]interface{})
 
-	if v := input.CustomData; v != nil {
-		output["custom_data"] = *v
+	if input.CustomData != nil {
+		output["custom_data"] = *input.CustomData
+	} else {
+		// look up the current custom data
+		output["custom_data"] = utils.Base64EncodeIfNot(d.Get("os_profile.0.custom_data").(string))
 	}
 
 	if winConfig := input.WindowsConfiguration; winConfig != nil {
@@ -886,7 +892,7 @@ func validatePasswordComplexity(input interface{}, key string, min int, max int)
 	}
 
 	if len(password) < min || len(password) > max {
-		errors = append(errors, fmt.Errorf("%q must be at least 6 characters long and shorter than 72 characters long. Got %q(%d characters)", key, password, len(password)))
+		errors = append(errors, fmt.Errorf("%q must be at least 6 characters long and less than 72 characters long. Got %q(%d characters)", key, password, len(password)))
 		return warnings, errors
 	}
 
@@ -906,11 +912,12 @@ func validatePasswordComplexity(input interface{}, key string, min int, max int)
 	return warnings, errors
 }
 
-func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(input map[string]interface{}) *compute.VirtualMachineScaleSetOSProfile {
+func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(input map[string]interface{}, customData string) *compute.VirtualMachineScaleSetOSProfile {
 	osProfile := compute.VirtualMachineScaleSetOSProfile{}
 	winConfig := compute.WindowsConfiguration{}
 
 	if len(input) > 0 {
+		osProfile.CustomData = utils.String(customData)
 		osProfile.AdminUsername = utils.String(input["admin_username"].(string))
 		osProfile.AdminPassword = utils.String(input["admin_password"].(string))
 
@@ -936,11 +943,12 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(i
 	return &osProfile
 }
 
-func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(input map[string]interface{}) *compute.VirtualMachineScaleSetOSProfile {
+func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(input map[string]interface{}, customData string) *compute.VirtualMachineScaleSetOSProfile {
 	osProfile := compute.VirtualMachineScaleSetOSProfile{}
 	linConfig := compute.LinuxConfiguration{}
 
 	if len(input) > 0 {
+		osProfile.CustomData = utils.String(customData)
 		osProfile.AdminUsername = utils.String(input["admin_username"].(string))
 
 		if adminPassword := input["admin_password"].(string); adminPassword != "" {
@@ -959,13 +967,6 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(inp
 			if linConfig.SSH == nil {
 				linConfig.SSH = &compute.SSHConfiguration{}
 			}
-			log.Printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n****************************** sshPublicKeys ******************************\n")
-			for _, v := range sshPublicKeys {
-				log.Printf("KeyData: %s\n", *v.KeyData)
-				log.Printf("Path   : %s\n", *v.Path)
-			}
-			log.Printf("SSH    : %+v\n", linConfig.SSH)
-			log.Printf("****************************** sshPublicKeys ******************************\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
 			linConfig.SSH.PublicKeys = &sshPublicKeys
 		}
 

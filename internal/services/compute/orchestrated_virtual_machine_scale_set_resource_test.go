@@ -3,7 +3,6 @@ package compute_test
 import (
 	"context"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
@@ -55,12 +54,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_requiresImport(t *testing.T) {
 
 func TestAccOrchestratedVirtualMachineScaleSet_evictionPolicyDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.evictionPolicyDelete(data, dnsLabel),
+			Config: r.evictionPolicyDelete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("eviction_policy").HasValue("Delete"),
@@ -88,12 +86,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_evictionPolicyDelete(t *testing.T
 
 func TestAccOrchestratedVirtualMachineScaleSet_withPPG(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withPPG(data, dnsLabel),
+			Config: r.withPPG(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("proximity_placement_group_id").Exists(),
@@ -104,12 +101,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_withPPG(t *testing.T) {
 
 func TestAccOrchestratedVirtualMachineScaleSet_basicPublicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicPublicIP(data, dnsLabel),
+			Config: r.basicPublicIP(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -120,19 +116,18 @@ func TestAccOrchestratedVirtualMachineScaleSet_basicPublicIP(t *testing.T) {
 
 func TestAccOrchestratedVirtualMachineScaleSet_basicPublicIP_simpleUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicEmptyPublicIP(data, dnsLabel),
+			Config: r.basicEmptyPublicIP(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 		{
-			Config: r.basicEmptyPublicIP_updated_tags(data, dnsLabel),
+			Config: r.basicEmptyPublicIP_updated_tags(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -143,19 +138,18 @@ func TestAccOrchestratedVirtualMachineScaleSet_basicPublicIP_simpleUpdate(t *tes
 
 func TestAccOrchestratedVirtualMachineScaleSet_updateNetworkProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicEmptyPublicIP(data, dnsLabel),
+			Config: r.basicEmptyPublicIP(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 		{
-			Config: r.basicEmptyNetworkProfile_true_ipforwarding(data, dnsLabel),
+			Config: r.basicEmptyNetworkProfile_true_ipforwarding(data),
 			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
@@ -164,19 +158,18 @@ func TestAccOrchestratedVirtualMachineScaleSet_updateNetworkProfile(t *testing.T
 
 func TestAccOrchestratedVirtualMachineScaleSet_updateNetworkProfile_ipconfiguration_dns_name_label(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicEmptyPublicIP(data, dnsLabel),
+			Config: r.basicEmptyPublicIP(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 		{
-			Config: r.basicEmptyPublicIP_updatedDNS_label(data, dnsLabel),
+			Config: r.basicEmptyPublicIP_updatedDNS_label(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -209,12 +202,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_verify_key_data_changed(t *testin
 
 func TestAccOrchestratedVirtualMachineScaleSet_basicApplicationSecurity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicApplicationSecurity(data, dnsLabel),
+			Config: r.basicApplicationSecurity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -225,12 +217,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_basicApplicationSecurity(t *testi
 
 func TestAccOrchestratedVirtualMachineScaleSet_basicAcceleratedNetworking(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicAcceleratedNetworking(data, dnsLabel),
+			Config: r.basicAcceleratedNetworking(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -241,12 +232,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_basicAcceleratedNetworking(t *tes
 
 func TestAccOrchestratedVirtualMachineScaleSet_basicIPForwarding(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicIPForwarding(data, dnsLabel),
+			Config: r.basicIPForwarding(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -257,12 +247,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_basicIPForwarding(t *testing.T) {
 
 func TestAccOrchestratedVirtualMachineScaleSet_basicDNSSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicDNSSettings(data, dnsLabel),
+			Config: r.basicDNSSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -273,15 +262,13 @@ func TestAccOrchestratedVirtualMachineScaleSet_basicDNSSettings(t *testing.T) {
 
 func TestAccOrchestratedVirtualMachineScaleSet_bootDiagnostic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.bootDiagnostic(data, dnsLabel),
+			Config: r.bootDiagnostic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("boot_diagnostics.0.enabled").HasValue("true"),
 			),
 		},
 	})
@@ -289,15 +276,13 @@ func TestAccOrchestratedVirtualMachineScaleSet_bootDiagnostic(t *testing.T) {
 
 func TestAccOrchestratedVirtualMachineScaleSet_bootDiagnosticNoStorage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.bootDiagnostic_noStorage(data, dnsLabel),
+			Config: r.bootDiagnostic_noStorage(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("boot_diagnostics.0.enabled").HasValue("true"),
 			),
 		},
 	})
@@ -305,12 +290,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_bootDiagnosticNoStorage(t *testin
 
 func TestAccOrchestratedVirtualMachineScaleSet_networkSecurityGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.networkSecurityGroup(data, dnsLabel),
+			Config: r.networkSecurityGroup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -320,12 +304,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_networkSecurityGroup(t *testing.T
 
 func TestAccOrchestratedVirtualMachineScaleSet_basicWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWindows(data, dnsLabel),
+			Config: r.basicWindows(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -391,12 +374,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_customDataUpdated(t *testing.T) {
 
 func TestAccOrchestratedVirtualMachineScaleSet_basicLinux_managedDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicLinux_managedDisk(data, dnsLabel),
+			Config: r.basicLinux_managedDisk(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -516,12 +498,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_loadBalancerManagedDataDisks(t *t
 
 func TestAccOrchestratedVirtualMachineScaleSet_priority(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.priorityTemplate(data, dnsLabel),
+			Config: r.priorityTemplate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("priority").HasValue("Spot"),
@@ -533,12 +514,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_priority(t *testing.T) {
 
 func TestAccOrchestratedVirtualMachineScaleSet_UserAssignedMSI(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.userAssignedMSI(data, dnsLabel),
+			Config: r.userAssignedMSI(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
@@ -551,12 +531,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_UserAssignedMSI(t *testing.T) {
 
 func TestAccOrchestratedVirtualMachineScaleSet_extension(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.extensionTemplate(data, dnsLabel),
+			Config: r.extensionTemplate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -567,18 +546,17 @@ func TestAccOrchestratedVirtualMachineScaleSet_extension(t *testing.T) {
 
 func TestAccOrchestratedVirtualMachineScaleSet_extensionUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.extensionTemplate(data, dnsLabel),
+			Config: r.extensionTemplate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config: r.extensionTemplateUpdated(data, dnsLabel),
+			Config: r.extensionTemplateUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -588,12 +566,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_extensionUpdate(t *testing.T) {
 
 func TestAccOrchestratedVirtualMachineScaleSet_multipleExtensions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.multipleExtensionsTemplate(data, dnsLabel),
+			Config: r.multipleExtensionsTemplate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -604,12 +581,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_multipleExtensions(t *testing.T) 
 
 func TestAccOrchestratedVirtualMachineScaleSet_multipleExtensions_provision_after_extension(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.multipleExtensionsTemplate_provision_after_extension(data, dnsLabel),
+			Config: r.multipleExtensionsTemplate_provision_after_extension(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -620,18 +596,17 @@ func TestAccOrchestratedVirtualMachineScaleSet_multipleExtensions_provision_afte
 
 func TestAccOrchestratedVirtualMachineScaleSet_NonStandardCasing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.nonStandardCasing(data, dnsLabel),
+			Config: r.nonStandardCasing(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config:             r.nonStandardCasing(data, dnsLabel),
+			Config:             r.nonStandardCasing(data),
 			PlanOnly:           true,
 			ExpectNonEmptyPlan: false,
 		},
@@ -658,12 +633,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_importLinux(t *testing.T) {
 
 func TestAccOrchestratedVirtualMachineScaleSet_multipleNetworkProfiles(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.multipleNetworkProfiles(data, dnsLabel),
+			Config: r.multipleNetworkProfiles(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -747,12 +721,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_multipleNetworkProfiles(t *testin
 
 func TestAccOrchestratedVirtualMachineScaleSet_importBasic_managedDisk_withZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicLinux_managedDisk_withZones(data, dnsLabel),
+			Config: r.basicLinux_managedDisk_withZones(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -878,7 +851,6 @@ func (t OrchestratedVirtualMachineScaleSetResource) Exists(ctx context.Context, 
 
 func (OrchestratedVirtualMachineScaleSetResource) basic(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
-	dnsLabel := strings.ToLower(data.RandomStringOfLength(5))
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -923,7 +895,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[4]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -941,7 +913,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), dnsLabel)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (r OrchestratedVirtualMachineScaleSetResource) requiresImport(data acceptance.TestData) string {
@@ -993,7 +965,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "import" {
 `, r.basic(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) evictionPolicyDelete(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) evictionPolicyDelete(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1012,7 +984,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  priority        = "Regular"
+  priority        = "Spot"
   eviction_policy = "Delete"
 
   sku_name = "Standard_D1_v2_2"
@@ -1040,7 +1012,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[4]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -1058,10 +1030,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), dnsLabel)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) withPPG(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) withPPG(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1111,7 +1083,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[4]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -1131,10 +1103,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   proximity_placement_group_id = azurerm_proximity_placement_group.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), dnsLabel)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) basicPublicIP(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) basicPublicIP(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1146,7 +1118,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-%[4]s
+%[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -1178,7 +1150,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[3]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -1196,10 +1168,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, dnsLabel, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) basicEmptyPublicIP(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) basicEmptyPublicIP(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1211,7 +1183,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-%[4]s
+%[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -1247,7 +1219,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[3]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -1265,10 +1237,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, dnsLabel, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) basicEmptyPublicIP_updated_tags(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) basicEmptyPublicIP_updated_tags(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1280,7 +1252,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-%[4]s
+%[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -1316,7 +1288,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[3]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -1334,10 +1306,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, dnsLabel, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) basicEmptyNetworkProfile_true_ipforwarding(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) basicEmptyNetworkProfile_true_ipforwarding(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1349,7 +1321,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-%[4]s
+%[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -1386,7 +1358,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[3]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -1404,10 +1376,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, dnsLabel, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) basicEmptyPublicIP_updatedDNS_label(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) basicEmptyPublicIP_updatedDNS_label(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1419,7 +1391,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-%[4]s
+%[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -1455,7 +1427,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "updated-domain-label-%[3]s"
+        domain_name_label       = "updated-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -1473,10 +1445,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, dnsLabel, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) basicApplicationSecurity(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) basicApplicationSecurity(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1526,7 +1498,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[4]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
 
@@ -1546,10 +1518,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), dnsLabel)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) basicAcceleratedNetworking(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) basicAcceleratedNetworking(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1594,7 +1566,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[4]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -1612,10 +1584,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), dnsLabel)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) basicIPForwarding(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) basicIPForwarding(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1660,7 +1632,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[4]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -1678,10 +1650,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), dnsLabel)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) basicDNSSettings(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) basicDNSSettings(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1727,7 +1699,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[4]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -1745,10 +1717,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), dnsLabel)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) networkSecurityGroup(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) networkSecurityGroup(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1760,7 +1732,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-%[4]s
+%[3]s
 
 resource "azurerm_network_security_group" "test" {
   name                = "acceptanceTestSecurityGroup-%[1]d"
@@ -1799,7 +1771,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[3]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -1817,10 +1789,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, dnsLabel, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) basicWindows(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) basicWindows(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1870,7 +1842,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[4]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -1888,7 +1860,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), dnsLabel)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) linux(data acceptance.TestData) string {
@@ -1913,7 +1885,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsn-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -1939,12 +1911,11 @@ resource "azurerm_lb" "test" {
 
 resource "azurerm_lb_backend_address_pool" "test" {
   name                = "acctestbap-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
 }
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%[1]d"
+  name                = "acctestovmss-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -2016,7 +1987,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsn-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -2042,12 +2013,11 @@ resource "azurerm_lb" "test" {
 
 resource "azurerm_lb_backend_address_pool" "test" {
   name                = "acctestbap-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
 }
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%[1]d"
+  name                = "acctestovmss-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -2123,7 +2093,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsn-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -2149,12 +2119,11 @@ resource "azurerm_lb" "test" {
 
 resource "azurerm_lb_backend_address_pool" "test" {
   name                = "acctestbap-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
 }
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%[1]d"
+  name                = "acctestovmss-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -2204,7 +2173,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) bootDiagnostic(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) bootDiagnostic(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2270,7 +2239,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[4]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -2288,10 +2257,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), dnsLabel)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) bootDiagnostic_noStorage(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) bootDiagnostic_noStorage(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2337,7 +2306,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[4]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -2355,7 +2324,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), dnsLabel)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) linuxKeyDataUpdated(data acceptance.TestData) string {
@@ -2380,7 +2349,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsn-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -2406,12 +2375,11 @@ resource "azurerm_lb" "test" {
 
 resource "azurerm_lb_backend_address_pool" "test" {
   name                = "acctestbap-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
 }
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%[1]d"
+  name                = "acctestovmss-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -2461,7 +2429,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) basicLinux_managedDisk(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) basicLinux_managedDisk(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2505,7 +2473,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[4]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -2523,10 +2491,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), dnsLabel)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) basicLinux_managedDisk_withZones(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) basicLinux_managedDisk_withZones(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2571,7 +2539,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[4]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -2589,7 +2557,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), dnsLabel)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) applicationGatewayTemplate(data acceptance.TestData) string {
@@ -2614,7 +2582,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
@@ -2667,7 +2635,7 @@ resource "azurerm_subnet" "gwtest" {
   name                 = "gw-subnet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.3.0/24"
+  address_prefixes     = ["10.0.3.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -2689,63 +2657,49 @@ resource "azurerm_application_gateway" "test" {
   }
 
   gateway_ip_configuration {
-    # id = computed
     name      = "gw-ip-config1"
     subnet_id = azurerm_subnet.gwtest.id
   }
 
   frontend_ip_configuration {
-    # id = computed
     name                 = "ip-config-public"
     public_ip_address_id = azurerm_public_ip.test.id
   }
 
   frontend_ip_configuration {
-    # id = computed
     name      = "ip-config-private"
     subnet_id = azurerm_subnet.gwtest.id
 
-    # private_ip_address = computed
     private_ip_address_allocation = "Dynamic"
   }
 
   frontend_port {
-    # id = computed
     name = "port-8080"
     port = 8080
   }
 
   backend_address_pool {
-    # id = computed
     name = "pool-1"
   }
 
   backend_http_settings {
-    # id = computed
     name                  = "backend-http-1"
     port                  = 8010
     protocol              = "Http"
     cookie_based_affinity = "Enabled"
     request_timeout       = 30
 
-    # probe_id = computed
     probe_name = "probe-1"
   }
 
   http_listener {
-    # id = computed
-    name = "listener-1"
-
-    # frontend_ip_configuration_id = computed
+    name                           = "listener-1"
     frontend_ip_configuration_name = "ip-config-public"
-
-    # frontend_ip_port_id = computed
-    frontend_port_name = "port-8080"
-    protocol           = "Http"
+    frontend_port_name             = "port-8080"
+    protocol                       = "Http"
   }
 
   probe {
-    # id = computed
     name                = "probe-1"
     protocol            = "Http"
     path                = "/test"
@@ -2756,17 +2710,10 @@ resource "azurerm_application_gateway" "test" {
   }
 
   request_routing_rule {
-    # id = computed
-    name      = "rule-basic-1"
-    rule_type = "Basic"
-
-    # http_listener_id = computed
-    http_listener_name = "listener-1"
-
-    # backend_address_pool_id = computed
-    backend_address_pool_name = "pool-1"
-
-    # backend_http_settings_id = computed
+    name                       = "rule-basic-1"
+    rule_type                  = "Basic"
+    http_listener_name         = "listener-1"
+    backend_address_pool_name  = "pool-1"
     backend_http_settings_name = "backend-http-1"
   }
 
@@ -2799,7 +2746,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_lb" "test" {
@@ -2818,7 +2765,6 @@ resource "azurerm_lb" "test" {
 
 resource "azurerm_lb_backend_address_pool" "test" {
   name                = "test"
-  resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
 }
 
@@ -2869,7 +2815,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) priorityTemplate(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) priorityTemplate(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2916,7 +2862,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[4]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -2934,10 +2880,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), dnsLabel)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) userAssignedMSI(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) userAssignedMSI(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2949,7 +2895,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-%[4]s
+%[3]s
 
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
@@ -3001,7 +2947,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[3]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -3019,10 +2965,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, dnsLabel, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) extensionTemplate(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) extensionTemplate(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3068,7 +3014,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[4]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -3101,10 +3047,10 @@ SETTINGS
 
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), dnsLabel)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) extensionTemplateUpdated(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) extensionTemplateUpdated(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3150,7 +3096,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[4]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -3184,10 +3130,10 @@ SETTINGS
 
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), dnsLabel)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) multipleExtensionsTemplate(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) multipleExtensionsTemplate(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3231,7 +3177,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[4]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -3272,10 +3218,10 @@ SETTINGS
     auto_upgrade_minor_version = true
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), dnsLabel)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) multipleExtensionsTemplate_provision_after_extension(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) multipleExtensionsTemplate_provision_after_extension(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3319,7 +3265,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[4]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -3361,7 +3307,7 @@ SETTINGS
     provision_after_extensions = ["CustomScript"]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), dnsLabel)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) loadBalancerTemplateManagedDataDisks(data acceptance.TestData) string {
@@ -3386,7 +3332,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_lb" "test" {
@@ -3405,7 +3351,6 @@ resource "azurerm_lb" "test" {
 
 resource "azurerm_lb_backend_address_pool" "test" {
   name                = "test"
-  resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
 }
 
@@ -3464,7 +3409,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) nonStandardCasing(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) nonStandardCasing(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3508,7 +3453,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[4]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -3526,10 +3471,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), dnsLabel)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) multipleNetworkProfiles(data acceptance.TestData, dnsLabel string) string {
+func (OrchestratedVirtualMachineScaleSetResource) multipleNetworkProfiles(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3573,7 +3518,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label-%[4]s"
+        domain_name_label       = "test-domain-label"
         idle_timeout_in_minutes = 4
       }
     }
@@ -3602,7 +3547,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), dnsLabel)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) natgateway_template(data acceptance.TestData) string {
@@ -3626,7 +3571,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_nat_gateway" "test" {

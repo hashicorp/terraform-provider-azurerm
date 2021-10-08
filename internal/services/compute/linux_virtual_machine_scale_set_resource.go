@@ -283,7 +283,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	name := d.Get("name").(string)
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
-	exists, err := client.Get(ctx, resourceGroup, name, compute.ExpandTypesForGetVMScaleSets(""))
+	exists, err := client.Get(ctx, resourceGroup, name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		if !utils.ResponseWasNotFound(exists.Response) {
 			return fmt.Errorf("checking for existing Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -545,7 +545,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 
 	log.Printf("[DEBUG] Retrieving Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
 	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
-	resp, err := client.Get(ctx, resourceGroup, name, compute.ExpandTypesForGetVMScaleSets(""))
+	resp, err := client.Get(ctx, resourceGroup, name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		return fmt.Errorf("retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -572,7 +572,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 
 	// retrieve
 	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSets(""))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		return fmt.Errorf("retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
@@ -870,7 +870,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSets(""))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Linux Virtual Machine Scale Set %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
@@ -1078,7 +1078,7 @@ func resourceLinuxVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta i
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSets(""))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil
