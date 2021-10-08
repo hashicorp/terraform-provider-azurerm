@@ -47,7 +47,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_requiresImport(t *testing.T) {
 		},
 		{
 			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_virtual_machine_scale_set"),
+			ExpectError: acceptance.RequiresImportError("azurerm_orchestrated_virtual_machine_scale_set"),
 		},
 	})
 }
@@ -189,14 +189,14 @@ func TestAccOrchestratedVirtualMachineScaleSet_verify_key_data_changed(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password", "os_profile.0.custom_data"),
 		{
 			Config: r.linuxKeyDataUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password", "os_profile.0.custom_data"),
 	})
 }
 
@@ -2561,6 +2561,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) applicationGatewayTemplate(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2571,19 +2572,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
+%[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctovmss-%[1]d"
@@ -2609,9 +2598,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     primary = true
 
     ip_configuration {
-      name      = "TestIPConfiguration"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
+      name                    = "TestPublicIPConfiguration"
+      domain_name_label       = "test-domain-label"
+      primary                 = true
+      idle_timeout_in_minutes = 4
 
       application_gateway_backend_address_pool_ids = [azurerm_application_gateway.test.backend_address_pool[0].id]
     }
@@ -2721,7 +2711,7 @@ resource "azurerm_application_gateway" "test" {
     environment = "tf01"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) loadBalancerTemplate(data acceptance.TestData) string {
@@ -2895,7 +2885,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-%[3]s
+%[4]s
 
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
@@ -2965,7 +2955,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) extensionTemplate(data acceptance.TestData) string {
