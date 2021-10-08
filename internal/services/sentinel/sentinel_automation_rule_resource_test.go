@@ -149,115 +149,6 @@ resource "azurerm_role_assignment" "sentinel" {
   principal_id         = data.azuread_service_principal.securityinsights.object_id
 }
 
-resource "azurerm_template_deployment" "testconnection" {
-  name                = "testconnection"
-  resource_group_name = azurerm_resource_group.test.name
-  deployment_mode     = "Incremental"
-  template_body       = <<TEMPLATE
-	{
-		"$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-		"contentVersion": "1.0.0.0",
-		"parameters": {
-			"connections_azuresentinel_name": {
-				"defaultValue": "azuresentinel",
-				"type": "String"
-			}
-		},
-		"variables": {},
-		"resources": [
-			{
-				"type": "Microsoft.Web/connections",
-				"apiVersion": "2016-06-01",
-				"name": "[parameters('connections_azuresentinel_name')]",
-				"location": "${azurerm_resource_group.test.location}",
-				"kind": "V1",
-				"properties": {
-					"displayName": "test",
-					"customParameterValues": {},
-					"api": {
-						"id": "[concat('/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.Web/locations/${azurerm_resource_group.test.location}/managedApis/', parameters('connections_azuresentinel_name'))]"
-					}
-				}
-			}
-		]
-	}
-  TEMPLATE
-}
-
-resource "azurerm_template_deployment" "testlogicapp" {
-  name                = "testlogicapp"
-  resource_group_name = azurerm_resource_group.test.name
-  deployment_mode     = "Incremental"
-  template_body       = <<TEMPLATE
-  {
-	  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-	  "contentVersion": "1.0.0.0",
-	  "parameters": {
-		  "workflows_Test_name": {
-			  "defaultValue": "Test",
-			  "type": "String"
-		  },
-		  "connections_azuresentinel_externalid": {
-			  "defaultValue": "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.Web/connections/azuresentinel",
-			  "type": "String"
-		  }
-	  },
-	  "variables": {},
-	  "resources": [
-		  {
-			  "type": "Microsoft.Logic/workflows",
-			  "apiVersion": "2017-07-01",
-			  "name": "[parameters('workflows_Test_name')]",
-			  "location": "${azurerm_resource_group.test.location}",
-			  "properties": {
-				  "state": "Enabled",
-				  "definition": {
-					  "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
-					  "contentVersion": "1.0.0.0",
-					  "parameters": {
-						  "$connections": {
-							  "defaultValue": {},
-							  "type": "Object"
-						  }
-					  },
-					  "triggers": {
-						  "When_Azure_Sentinel_incident_creation_rule_was_triggered": {
-							  "type": "ApiConnectionWebhook",
-							  "inputs": {
-								  "body": {
-									  "callback_url": "@{listCallbackUrl()}"
-								  },
-								  "host": {
-									  "connection": {
-										  "name": "@parameters('$connections')['azuresentinel']['connectionId']"
-									  }
-								  },
-								  "path": "/incident-creation"
-							  }
-						  }
-					  },
-					  "outputs": {}
-				  },
-				  "parameters": {
-					  "$connections": {
-						  "value": {
-							  "azuresentinel": {
-								  "connectionId": "[parameters('connections_azuresentinel_externalid')]",
-								  "connectionName": "azuresentinel",
-								  "id": "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.Web/locations/${azurerm_resource_group.test.location}/managedApis/azuresentinel"
-							  }
-						  }
-					  }
-				  }
-			  }
-		  }
-	  ]
-  }
-  TEMPLATE
-
-  depends_on = [azurerm_template_deployment.testconnection]
-}
-
 resource "azurerm_sentinel_automation_rule" "test" {
   name                       = "%s"
   log_analytics_workspace_id = azurerm_log_analytics_solution.sentinel.workspace_resource_id
@@ -298,12 +189,7 @@ resource "azurerm_sentinel_automation_rule" "test" {
     owner_id = data.azurerm_client_config.current.object_id
   }
 
-  action_playbook {
-    order        = 5
-    logic_app_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.Logic/workflows/Test"
-  }
-
-  depends_on = [azurerm_role_assignment.sentinel, azurerm_template_deployment.testlogicapp]
+  depends_on = [azurerm_role_assignment.sentinel]
 }
 `, template, r.uuid, data.RandomInteger)
 }
