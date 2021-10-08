@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -27,17 +28,15 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *sql.D
 		return false
 	}
 
-	resp, err := replicationLinksClient.ListByDatabase(ctx, id.ResourceGroup, id.ServerName, id.Name)
-	if err != nil {
-		return nil, fmt.Errorf("reading Replication Links for %s: %+v", id, err)
-	}
-	if resp.Values() == nil {
-		return nil, fmt.Errorf("reading Replication Links for %s: response was nil", id)
-	}
+	for linksIterator, err := replicationLinksClient.ListByDatabaseComplete(ctx, id.ResourceGroup, id.ServerName, id.Name); linksIterator.NotDone(); err = linksIterator.NextWithContext(ctx) {
+		if err != nil {
+			return nil, fmt.Errorf("reading Replication Links for %s: %+v", id, err)
+		}
+		if linksIterator.Response().IsEmpty() {
+			return nil, fmt.Errorf("reading Replication Links for %s: response was empty", id)
+		}
 
-	for _, link := range resp.Values() {
-		linkProps := link.ReplicationLinkProperties
-
+		linkProps := linksIterator.Value().ReplicationLinkProperties
 		if linkProps == nil {
 			log.Printf("[INFO] Replication Link Properties was nil for %s", id)
 			continue
@@ -95,7 +94,12 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *sql.D
 					if err != nil {
 						return nil, fmt.Errorf("retrieving Partner %s: %+v", partnerDatabaseId, err)
 					}
-					if partnerDatabase.ID != nil && partnerDatabase.Location != nil && *partnerDatabase.Location == *linkProps.PartnerLocation {
+					if location.NormalizeNilable(partnerDatabase.Location) != location.Normalize(*linkProps.PartnerLocation) {
+						log.Printf("[INFO] Mismatch of possible Partner Database based on location (%s vs %s) for %s", location.NormalizeNilable(partnerDatabase.Location), location.Normalize(*linkProps.PartnerLocation), id)
+						continue
+					}
+					if partnerDatabase.ID != nil {
+						log.Printf("[INFO] Found Partner %s", partnerDatabaseId)
 						partnerDatabases = append(partnerDatabases, partnerDatabase)
 					}
 				}
