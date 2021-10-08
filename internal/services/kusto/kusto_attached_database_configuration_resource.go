@@ -86,7 +86,7 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"sharing_properties": {
+			"sharing": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -230,7 +230,7 @@ func resourceKustoAttachedDatabaseConfigurationRead(d *pluginsdk.ResourceData, m
 		d.Set("database_name", props.DatabaseName)
 		d.Set("default_principal_modification_kind", props.DefaultPrincipalsModificationKind)
 		d.Set("attached_database_names", props.AttachedDatabaseNames)
-		d.Set("sharing_properties", flattenAttachedDatabaseConfigurationTableLevelSharingProperties(props.TableLevelSharingProperties))
+		d.Set("sharing", flattenAttachedDatabaseConfigurationTableLevelSharingProperties(props.TableLevelSharingProperties))
 	}
 
 	return nil
@@ -273,7 +273,7 @@ func expandKustoAttachedDatabaseConfigurationProperties(d *pluginsdk.ResourceDat
 		AttachedDatabaseConfigurationProperties.DefaultPrincipalsModificationKind = kusto.DefaultPrincipalsModificationKind(defaultPrincipalModificationKind.(string))
 	}
 
-	AttachedDatabaseConfigurationProperties.TableLevelSharingProperties = expandAttachedDatabaseConfigurationTableLevelSharingProperties(d.Get("sharing_properties").([]interface{}))
+	AttachedDatabaseConfigurationProperties.TableLevelSharingProperties = expandAttachedDatabaseConfigurationTableLevelSharingProperties(d.Get("sharing").([]interface{}))
 
 	return AttachedDatabaseConfigurationProperties
 }

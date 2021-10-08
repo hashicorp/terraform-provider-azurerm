@@ -100,7 +100,7 @@ resource "azurerm_kusto_attached_database_configuration" "test" {
   cluster_resource_id = azurerm_kusto_cluster.cluster2.id
   database_name       = azurerm_kusto_database.test.name
 
-  sharing_properties {
+  sharing {
     external_tables_to_exclude    = ["ExternalTable2"]
     external_tables_to_include    = ["ExternalTable1"]
     materialized_views_to_exclude = ["MaterializedViewTable2"]
