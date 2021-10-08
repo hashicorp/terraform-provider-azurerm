@@ -6835,7 +6835,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   http_listener {
-    name                           = local.listener_name_1 
+    name                           = local.listener_name_1
     frontend_ip_configuration_name = local.frontend_ip_configuration_name
     frontend_port_name             = local.frontend_port_name_1
     protocol                       = "Http"
