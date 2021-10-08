@@ -291,7 +291,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"mongo_server_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.ServerVersionThreeFullStopTwo),
@@ -693,6 +692,12 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}
 		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
+	}
+
+	if v, ok := d.GetOk("mongo_server_version"); ok {
+		account.DatabaseAccountCreateUpdateProperties.APIProperties = &documentdb.APIProperties{
+			ServerVersion: documentdb.ServerVersion(v.(string)),
+		}
 	}
 
 	if v, ok := d.GetOk("backup"); ok {

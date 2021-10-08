@@ -24,8 +24,10 @@ func resourceDataFactoryLinkedServiceAzureFunction() *pluginsdk.Resource {
 		Update: resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceAzureFunctionDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.LinkedServiceID(id)
+			return err
+		}, importDataFactoryLinkedService(datafactory.TypeBasicLinkedServiceTypeAzureFunction)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

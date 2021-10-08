@@ -1,19 +1,56 @@
-## 2.79.0 (Unreleased)
+## 2.80.0 (Unreleased)
 
-IMPROVEMENTS:
+FEATURES: 
 
-* Data Source: `azurerm_key_vault_certificate` - exporting `expires` and `not_before` attributes [GH-13527]
-* Data Source: `azurerm_key_vault_certificate_data` - exporting the `not_before` attribute [GH-13527]
-* `azurerm_container_group` - refactoring to use ID Parsers [GH-13516]
-* `azurerm_container_registry` - refactoring to use ID Parsers [GH-13516]
-* `azurerm_container_registry_webhook` - refactoring to use ID Parsers [GH-13516]
+* **New Data Source:** `backup_policy_file_share` [GH-13444]
 
 BUG FIXES:
 
-* `azurerm_iothub` - update DiffSuppressFunc for `connection_string` [GH-13517]
-* `azurerm_kubernetes_cluster` - explicitly setting `upgrade_channel` to `None` when it's unset to workaround a breaking behavioural change in AKS [GH-13493]
-* `azurerm_linux_virtual_machine_scale_set` - define Hash function for extension block to ignore `protected_setting` [GH-13440]
-* `azurerm_windows_virtual_machine_scale_set` - define Hash function for extension block to ignore `protected_setting` [GH-13440]
+* `azurerm_function_app` - fix regressions in function app storage introduced in v2.77 [GH-13580]
+* `azurerm_managed_application` - fixed typecasting bug [GH-13641]
+
+IMPROVEMENTS:
+
+* Data Source `azurerm_public_ips` - deprecate the `attached` property infavour of the `attachment_status` property to improve filtering [GH-13500]
+* Data Source `azurerm_public_ips` - return public IPs associated with NAT gateways when `attached` set to `true` or `attachment_status` set to `Attached` [GH-13610]
+* `azurerm_kusto_eventhub_data_connection supports` - support for the `identity_id` property [GH-13488]
+* `azurerm_managed_disk` - support for the `logical_sector_size` property [GH-13637]
+* `azurerm_service_fabric_cluster` - support for the `service_fabric_zonal_upgrade_mode` and `service_fabric_zonal_upgrade_mode` properties [GH-13399]
+* `azurerm_stream_analytics_output_eventhub` - support for the `partition_key` property [GH-13562]
+* `azurerm_linux_virtual_machine_scale_set` - correctly update the `overprovision` property [GH-13653]
+
+## 2.79.1 (October 01, 2021)
+
+BUG FIXES: 
+
+* `azurerm_managed_disk` - the `max_shares` propety is now `Computed` to account for managed disks that are already managed by Terraform ([#13587](https://github.com/hashicorp/terraform-provider-azurerm/issues/13587))
+
+## 2.79.0 (October 01, 2021)
+
+FEATURES: 
+
+* **New Resource:** `azurerm_app_configuration_feature` ([#13452](https://github.com/hashicorp/terraform-provider-azurerm/issues/13452))
+* **New Resource:** `azurerm_logic_app_standard` ([#13196](https://github.com/hashicorp/terraform-provider-azurerm/issues/13196))
+
+IMPROVEMENTS:
+
+* Data Source: `azurerm_key_vault_certificate` - exporting the `expires` and `not_before` attributes ([#13527](https://github.com/hashicorp/terraform-provider-azurerm/issues/13527))
+* Data Source: `azurerm_key_vault_certificate_data` - exporting the `not_before` attribute ([#13527](https://github.com/hashicorp/terraform-provider-azurerm/issues/13527))
+* `azurerm_communication_service` - export the `primary_connection_string`, `secondary_connection_string`, `primary_key`, and `secondary_key` attributes ([#13549](https://github.com/hashicorp/terraform-provider-azurerm/issues/13549))
+* `azurerm_consumption_budget_subscription`  support for the `Forecasted` threshold type ([#13567](https://github.com/hashicorp/terraform-provider-azurerm/issues/13567))
+* `azurerm_consumption_budget_resource_group  support for the `Forecasted` threshold type ([#13567](https://github.com/hashicorp/terraform-provider-azurerm/issues/13567))
+* `azurerm_managed_disk` - support for the `max_shares` property ([#13571](https://github.com/hashicorp/terraform-provider-azurerm/issues/13571))
+* `azurerm_mssql_database` - will now update replicated databases SKUs first ([#13478](https://github.com/hashicorp/terraform-provider-azurerm/issues/13478))
+* `azurerm_virtual_hub_connection` - optimized state change refresh function ([#13548](https://github.com/hashicorp/terraform-provider-azurerm/issues/13548))
+
+BUG FIXES:
+
+* `azurerm_cosmosdb_account` - the `mongo_server_version` can now be changed without creating a new resouce ([#13520](https://github.com/hashicorp/terraform-provider-azurerm/issues/13520))
+* `azurerm_iothub` - correctly suppress diffs for the `connection_string` property ([#13517](https://github.com/hashicorp/terraform-provider-azurerm/issues/13517))
+* `azurerm_kubernetes_cluster` - explicitly setting `upgrade_channel` to `None` when it's unset to workaround a breaking behavioural change in AKS ([#13493](https://github.com/hashicorp/terraform-provider-azurerm/issues/13493))
+* `azurerm_linux_virtual_machine_scale_set` - will not correctly ignore the `protected_setting` block withing the `extension` block ([#13440](https://github.com/hashicorp/terraform-provider-azurerm/issues/13440))
+* `azurerm_windows_virtual_machine_scale_set` - will not correctly ignore the `protected_setting` block withing the `extension` block ([#13440](https://github.com/hashicorp/terraform-provider-azurerm/issues/13440))
+* `azurerm_app_configuration_key` - correctly set the `etag` property ([#13534](https://github.com/hashicorp/terraform-provider-azurerm/issues/13534))
 
 ## 2.78.0 (September 23, 2021)
 

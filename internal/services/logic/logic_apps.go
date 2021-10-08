@@ -5,10 +5,10 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -43,40 +43,32 @@ func expandLogicAppActionRunAfter(input []interface{}) map[string]interface{} {
 	return output
 }
 
-func resourceLogicAppActionUpdate(d *pluginsdk.ResourceData, meta interface{}, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
-	return resourceLogicAppComponentUpdate(d, meta, "Action", "actions", logicAppId, name, vals, resourceName)
+func resourceLogicAppActionUpdate(d *pluginsdk.ResourceData, meta interface{}, workflowId parse.WorkflowId, actionId parse.ActionId, vals map[string]interface{}, resourceName string) error {
+	return resourceLogicAppComponentUpdate(d, meta, "Action", "actions", workflowId, actionId.ID(), actionId.Name, vals, resourceName)
 }
 
-func resourceLogicAppTriggerUpdate(d *pluginsdk.ResourceData, meta interface{}, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
-	return resourceLogicAppComponentUpdate(d, meta, "Trigger", "triggers", logicAppId, name, vals, resourceName)
+func resourceLogicAppTriggerUpdate(d *pluginsdk.ResourceData, meta interface{}, workflowId parse.WorkflowId, triggerId parse.TriggerId, vals map[string]interface{}, resourceName string) error {
+	return resourceLogicAppComponentUpdate(d, meta, "Trigger", "triggers", workflowId, triggerId.ID(), triggerId.Name, vals, resourceName)
 }
 
-func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}, kind string, propertyName string, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
+func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}, kind string, propertyName string, workflowId parse.WorkflowId, resourceId string, name string, vals map[string]interface{}, resourceName string) error {
 	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(logicAppId)
-	if err != nil {
-		return err
-	}
-
-	resourceGroup := id.ResourceGroup
-	logicAppName := id.Path["workflows"]
-
-	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) %s %q", logicAppName, resourceGroup, kind, name)
+	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %s %s %q", workflowId, kind, name)
 
 	// lock to prevent against Actions or Triggers conflicting
-	locks.ByName(logicAppName, logicAppResourceName)
-	defer locks.UnlockByName(logicAppName, logicAppResourceName)
+	locks.ByName(workflowId.Name, logicAppResourceName)
+	defer locks.UnlockByName(workflowId.Name, logicAppResourceName)
 
-	read, err := client.Get(ctx, resourceGroup, logicAppName)
+	read, err := client.Get(ctx, workflowId.ResourceGroup, workflowId.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			return fmt.Errorf("[ERROR] Logic App Workflow %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("[ERROR] Logic App Workflow %s was not found", workflowId)
 		}
 
-		return fmt.Errorf("[ERROR] Error making Read request on Logic App Workflow %q (Resource Group %q): %+v", logicAppName, resourceGroup, err)
+		return fmt.Errorf("[ERROR] Error making Read request on Logic App Workflow %s: %+v", workflowId, err)
 	}
 
 	if read.WorkflowProperties == nil {
@@ -86,8 +78,6 @@ func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if read.WorkflowProperties.Definition == nil {
 		return fmt.Errorf("[ERROR] Error parsing Logic App Workflow - `WorkflowProperties.Definition` is nil")
 	}
-
-	resourceId := fmt.Sprintf("%s/%s/%s", *read.ID, propertyName, name)
 
 	definition := read.WorkflowProperties.Definition.(map[string]interface{})
 	vs := definition[propertyName].(map[string]interface{})
@@ -110,8 +100,8 @@ func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Tags: read.Tags,
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, resourceGroup, logicAppName, properties); err != nil {
-		return fmt.Errorf("updating Logic App Workspace %q (Resource Group %q) for %s %q: %+v", logicAppName, resourceGroup, kind, name, err)
+	if _, err = client.CreateOrUpdate(ctx, workflowId.ResourceGroup, workflowId.Name, properties); err != nil {
+		return fmt.Errorf("updating Logic App Workflow %s for %s %q: %+v", workflowId, kind, name, err)
 	}
 
 	if d.IsNewResource() {

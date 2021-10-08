@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -171,16 +171,14 @@ func TestAccLogicAppWorkflow_accessControl(t *testing.T) {
 }
 
 func (LogicAppWorkflowResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.WorkflowID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	name := id.Path["workflows"]
-
-	resp, err := clients.Logic.WorkflowClient.Get(ctx, id.ResourceGroup, name)
+	resp, err := clients.Logic.WorkflowClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Logic App Workflow %s (resource group: %s): %v", name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Logic App Workflow %s: %+v", id, err)
 	}
 
 	return utils.Bool(resp.WorkflowProperties != nil), nil
