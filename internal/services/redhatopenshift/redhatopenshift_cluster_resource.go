@@ -24,7 +24,7 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceOpenShiftClusterCreate,
 		Read:   resourceOpenShiftClusterRead,
-		// Update: resourceOpenShiftClusterUpdate,
+		Update: resourceOpenShiftClusterUpdate,
 		// Delete: resourceOpenShiftClusterDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -74,6 +74,7 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
+							ForceNew:     true,
 							Default:      GenerateRandomDomainName(),
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -91,6 +92,7 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -114,6 +116,7 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -196,6 +199,11 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 							Default:      "3",
 							ValidateFunc: validation.IntBetween(0, 1000),
 						},
+						"subnet_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
 					},
 				},
 			},
@@ -203,6 +211,7 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 			"api_server_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				ForceNew: true,
 				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -222,6 +231,7 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 			"ingress_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				ForceNew: true,
 				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -330,6 +340,51 @@ func resourceOpenShiftClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.SetId(*read.ID)
+
+	return resourceOpenShiftClusterRead(d, meta)
+}
+
+func resourceOpenShiftClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).RedHatOpenshift.OpenShiftClustersClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for Red Hat OpenShift Cluster update.")
+
+	id, err := parse.ClusterID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	d.Partial(true)
+
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
+	if err != nil {
+		return fmt.Errorf("retrieving existing Red Hat OpenShift Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
+	}
+	if existing.OpenShiftClusterProperties == nil {
+		return fmt.Errorf("retrieving existing Red Hat OpenShift Cluster %q (Resource Group %q): `properties` was nil", id.ManagedClusterName, id.ResourceGroup)
+	}
+
+	if d.HasChange("cluster_profile") {
+		clusterProfileRaw := d.Get("cluster_profile").([]interface{})
+		clusterProfile := expandOpenshiftClusterProfile(clusterProfileRaw)
+		existing.OpenShiftClusterProperties.ClusterProfile = clusterProfile
+	}
+
+	if d.HasChange("master_profile") {
+		masterProfileRaw := d.Get("master_profile").([]interface{})
+		masterProfile := expandOpenshiftMasterProfile(masterProfileRaw)
+		existing.OpenShiftClusterProperties.MasterProfile = masterProfile
+	}
+
+	if d.HasChange("worker_profile") {
+		workerProfilesRaw := d.Get("worker_profile").([]interface{})
+		workerProfiles := expandOpenshiftWorkerProfiles(workerProfilesRaw)
+		existing.OpenShiftClusterProperties.WorkerProfiles = workerProfiles
+	}
+
+	d.Partial(false)
 
 	return resourceOpenShiftClusterRead(d, meta)
 }
