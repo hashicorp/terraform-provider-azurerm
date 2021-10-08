@@ -77,6 +77,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/purview"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay"
@@ -193,6 +194,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		privatedns.Registration{},
 		purview.Registration{},
 		recoveryservices.Registration{},
+		redhatopenshift.Registration{},
 		redis.Registration{},
 		redisenterprise.Registration{},
 		relay.Registration{},
