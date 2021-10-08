@@ -921,9 +921,9 @@ func (r OrchestratedVirtualMachineScaleSetResource) requiresImport(data acceptan
 %s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "import" {
-  name                = azurerm_virtual_machine_scale_set.test.name
-  location            = azurerm_virtual_machine_scale_set.test.location
-  resource_group_name = azurerm_virtual_machine_scale_set.test.resource_group_name
+  name                = azurerm_orchestrated_virtual_machine_scale_set.test.name
+  location            = azurerm_orchestrated_virtual_machine_scale_set.test.location
+  resource_group_name = azurerm_orchestrated_virtual_machine_scale_set.test.resource_group_name
 
   sku_name = "Standard_D1_v2_2"
 
@@ -2628,7 +2628,7 @@ resource "azurerm_subnet" "gwtest" {
   address_prefixes     = ["10.0.3.0/24"]
 }
 
-resource "azurerm_public_ip" "test" {
+resource "azurerm_public_ip" "gwtest" {
   name                = "acctest-pubip-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -2653,7 +2653,7 @@ resource "azurerm_application_gateway" "test" {
 
   frontend_ip_configuration {
     name                 = "ip-config-public"
-    public_ip_address_id = azurerm_public_ip.test.id
+    public_ip_address_id = azurerm_public_ip.gwtest.id
   }
 
   frontend_ip_configuration {
