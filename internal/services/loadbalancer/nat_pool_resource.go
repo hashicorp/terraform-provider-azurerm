@@ -98,6 +98,23 @@ func resourceArmLoadBalancerNatPool() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"enable_floating_ip": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"enable_tcp_reset": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"idle_timeout_in_minutes": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(4, 30),
+			},
+
 			"frontend_ip_configuration_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -203,6 +220,8 @@ func resourceArmLoadBalancerNatPoolRead(d *pluginsdk.ResourceData, meta interfac
 			backendPort = int(*props.BackendPort)
 		}
 		d.Set("backend_port", backendPort)
+		d.Set("enable_floating_ip", props.EnableFloatingIP)
+		d.Set("enable_tcp_reset", props.EnableTCPReset)
 
 		frontendIPConfigName := ""
 		frontendIPConfigID := ""
@@ -229,6 +248,9 @@ func resourceArmLoadBalancerNatPoolRead(d *pluginsdk.ResourceData, meta interfac
 			frontendPortRangeStart = int(*props.FrontendPortRangeStart)
 		}
 		d.Set("frontend_port_start", frontendPortRangeStart)
+		if v := props.IdleTimeoutInMinutes; v != nil {
+			d.Set("idle_timeout_in_minutes", int(*v))
+		}
 		d.Set("protocol", string(props.Protocol))
 	}
 
@@ -286,6 +308,18 @@ func expandAzureRmLoadBalancerNatPool(d *pluginsdk.ResourceData, lb *network.Loa
 		FrontendPortRangeStart: utils.Int32(int32(d.Get("frontend_port_start").(int))),
 		FrontendPortRangeEnd:   utils.Int32(int32(d.Get("frontend_port_end").(int))),
 		BackendPort:            utils.Int32(int32(d.Get("backend_port").(int))),
+	}
+
+	if v, ok := d.GetOk("enable_floating_ip"); ok {
+		properties.EnableFloatingIP = utils.Bool(v.(bool))
+	}
+
+	if v, ok := d.GetOk("enable_tcp_reset"); ok {
+		properties.EnableTCPReset = utils.Bool(v.(bool))
+	}
+
+	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {
+		properties.IdleTimeoutInMinutes = utils.Int32(int32(v.(int)))
 	}
 
 	if v := d.Get("frontend_ip_configuration_name").(string); v != "" {
