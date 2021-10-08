@@ -368,7 +368,7 @@ func parseManagementGroupSubscriptionID(input string) (*subscriptionId, error) {
 	// /subscriptions/00000000-0000-0000-0000-000000000000
 
 	// we skip out the child managementGroup ID's
-	if isChildMgrGroupId(input) {
+	if strings.HasPrefix(input, "/providers/Microsoft.Management/managementGroups/") {
 		return nil, nil
 	}
 
@@ -386,10 +386,6 @@ func parseManagementGroupSubscriptionID(input string) (*subscriptionId, error) {
 		subscriptionId: components[2],
 	}
 	return &id, nil
-}
-
-func isChildMgrGroupId(input string) bool {
-	return strings.HasPrefix(input, "/providers/Microsoft.Management/managementGroups/")
 }
 
 func determineManagementGroupSubscriptionsIdsToRemove(existing *[]managementgroups.ChildInfo, updated []string) (*[]string, error) {
