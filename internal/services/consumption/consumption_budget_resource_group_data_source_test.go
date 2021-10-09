@@ -20,6 +20,7 @@ func TestAccDataSourceBudget_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				// TODO fill in remaining checks
+				check.That(data.ResourceName).Key("resource_group_id").Exists(),
 			),
 		},
 	})
