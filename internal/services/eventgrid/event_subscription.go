@@ -1274,25 +1274,34 @@ func flattenEventGridEventSubscriptionEventhubEndpoint(input *eventgrid.EventHub
 }
 
 func flattenDeliveryProperties(d *pluginsdk.ResourceData, input *[]eventgrid.BasicDeliveryAttributeMapping) []interface{} {
-
+	if input == nil {
+		return nil
+	}
 	deliveryProperties := make([]interface{}, len(*input))
 
 	for i, element := range *input {
 		attributeMapping := make(map[string]interface{})
 
 		if staticMapping, ok := element.AsStaticDeliveryAttributeMapping(); ok {
+
 			attributeMapping["type"] = staticMapping.Type
-			attributeMapping["header_name"] = staticMapping.Name
-			attributeMapping["secret"] = staticMapping.IsSecret
+			if staticMapping.Name != nil {
+				attributeMapping["header_name"] = staticMapping.Name
+			}
+			if staticMapping.IsSecret != nil {
+				attributeMapping["secret"] = staticMapping.IsSecret
+			}
 
 			if *staticMapping.IsSecret {
-				// If this is a secret, the value doesn't get returned by the Azure API which just returns a value of 'Secret',
-				// so we need to lookup the value that was provided from config to return, so that we don't generate Diffs
+				// If this is a secret, the Azure API just returns a value of 'Hidden',
+				// so we need to lookup the value that was provided from config to return (so that we don't generate Diffs)
 				propertiesFromConfig := expandDeliveryProperties(d)
 				for _, v := range propertiesFromConfig {
-					if cofigMap, ok := v.AsStaticDeliveryAttributeMapping(); ok {
-						if *cofigMap.Name == *staticMapping.Name {
-							attributeMapping["value"] = cofigMap.Value
+					if configMap, ok := v.AsStaticDeliveryAttributeMapping(); ok {
+						if *configMap.Name == *staticMapping.Name {
+							if configMap.Value != nil {
+								attributeMapping["value"] = configMap.Value
+							}
 							break
 						}
 					}
@@ -1304,8 +1313,12 @@ func flattenDeliveryProperties(d *pluginsdk.ResourceData, input *[]eventgrid.Bas
 
 		if dynamicMapping, ok := element.AsDynamicDeliveryAttributeMapping(); ok {
 			attributeMapping["type"] = dynamicMapping.Type
-			attributeMapping["header_name"] = dynamicMapping.Name
-			attributeMapping["source_field"] = dynamicMapping.SourceField
+			if dynamicMapping.Name != nil {
+				attributeMapping["header_name"] = dynamicMapping.Name
+			}
+			if dynamicMapping.SourceField != nil {
+				attributeMapping["source_field"] = dynamicMapping.SourceField
+			}
 		}
 
 		deliveryProperties[i] = attributeMapping

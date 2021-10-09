@@ -301,6 +301,48 @@ func TestAccEventGridEventSubscription_deliveryPropertiesForEventHubs(t *testing
 	})
 }
 
+func TestAccEventGridEventSubscription_deliveryPropertiesUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+	r := EventGridEventSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deliveryPropertiesWithMultipleTypes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("delivery_property.0.header_name").HasValue("test-static-1"),
+				check.That(data.ResourceName).Key("delivery_property.0.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.0.value").HasValue("1"),
+				check.That(data.ResourceName).Key("delivery_property.0.secret").HasValue("false"),
+				check.That(data.ResourceName).Key("delivery_property.1.header_name").HasValue("test-dynamic-1"),
+				check.That(data.ResourceName).Key("delivery_property.1.type").HasValue("Dynamic"),
+				check.That(data.ResourceName).Key("delivery_property.1.source_field").HasValue("data.system"),
+				check.That(data.ResourceName).Key("delivery_property.2.header_name").HasValue("test-secret-1"),
+				check.That(data.ResourceName).Key("delivery_property.2.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.2.secret").HasValue("true"),
+				check.That(data.ResourceName).Key("delivery_property.2.value").HasValue("this-value-is-secret!"),
+			),
+		},
+		{
+			Config: r.deliveryPropertiesUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("delivery_property.0.header_name").HasValue("test-static-1"),
+				check.That(data.ResourceName).Key("delivery_property.0.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.0.value").HasValue("2"),
+				check.That(data.ResourceName).Key("delivery_property.0.secret").HasValue("false"),
+				check.That(data.ResourceName).Key("delivery_property.1.header_name").HasValue("test-dynamic-1"),
+				check.That(data.ResourceName).Key("delivery_property.1.type").HasValue("Dynamic"),
+				check.That(data.ResourceName).Key("delivery_property.1.source_field").HasValue("data.topic"),
+				check.That(data.ResourceName).Key("delivery_property.2.header_name").HasValue("test-secret-1"),
+				check.That(data.ResourceName).Key("delivery_property.2.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.2.secret").HasValue("true"),
+				check.That(data.ResourceName).Key("delivery_property.2.value").HasValue("this-value-is-still-secret!"),
+			),
+		},
+	})
+}
+
 func TestAccEventGridEventSubscription_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 	r := EventGridEventSubscriptionResource{}
@@ -1089,6 +1131,65 @@ resource "azurerm_eventgrid_event_subscription" "test" {
     header_name = "test-secret-1"
     type        = "Static"
     value       = "this-value-is-secret!"
+    secret      = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (EventGridEventSubscriptionResource) deliveryPropertiesUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "acctestservicebusnamespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+resource "azurerm_servicebus_topic" "test" {
+  name                = "acctestservicebustopic-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.example.name
+  enable_partitioning = true
+}
+
+resource "azurerm_eventgrid_event_subscription" "test" {
+  name  = "acctest-eg-%[1]d"
+  scope = azurerm_resource_group.test.id
+
+  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+
+  advanced_filtering_on_arrays_enabled = true
+
+  subject_filter {
+    subject_begins_with = "test/test"
+  }
+
+  delivery_property {
+    header_name = "test-static-1"
+    type        = "Static"
+    value       = "2"
+    secret      = false
+  }
+
+  delivery_property {
+    header_name  = "test-dynamic-1"
+    type         = "Dynamic"
+    source_field = "data.topic"
+  }
+
+  delivery_property {
+    header_name = "test-secret-1"
+    type        = "Static"
+    value       = "this-value-is-still-secret!"
     secret      = true
   }
 }
