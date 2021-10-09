@@ -111,7 +111,7 @@ func resourceArmLoadBalancerNatPool() *pluginsdk.Resource {
 			"idle_timeout_in_minutes": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Default:      4,
 				ValidateFunc: validation.IntBetween(4, 30),
 			},
 
@@ -248,9 +248,7 @@ func resourceArmLoadBalancerNatPoolRead(d *pluginsdk.ResourceData, meta interfac
 			frontendPortRangeStart = int(*props.FrontendPortRangeStart)
 		}
 		d.Set("frontend_port_start", frontendPortRangeStart)
-		if v := props.IdleTimeoutInMinutes; v != nil {
-			d.Set("idle_timeout_in_minutes", int(*v))
-		}
+		d.Set("idle_timeout_in_minutes", int(*props.IdleTimeoutInMinutes))
 		d.Set("protocol", string(props.Protocol))
 	}
 
@@ -318,9 +316,7 @@ func expandAzureRmLoadBalancerNatPool(d *pluginsdk.ResourceData, lb *network.Loa
 		properties.EnableTCPReset = utils.Bool(v.(bool))
 	}
 
-	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {
-		properties.IdleTimeoutInMinutes = utils.Int32(int32(v.(int)))
-	}
+	properties.IdleTimeoutInMinutes = utils.Int32(int32(d.Get("idle_timeout_in_minutes").(int)))
 
 	if v := d.Get("frontend_ip_configuration_name").(string); v != "" {
 		rule, exists := FindLoadBalancerFrontEndIpConfigurationByName(lb, v)
