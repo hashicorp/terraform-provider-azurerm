@@ -45,7 +45,7 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
 					RollInstancesWhenRequired: true,
-					ScaleInOnDelete:           true,
+					ScaleToZeroOnDelete:       true,
 				},
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: false,
@@ -101,9 +101,9 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
-							"roll_instances_when_required": true,
-							"force_delete":                 true,
-							"scale_in_on_delete":           true,
+							"roll_instances_when_required":  true,
+							"force_delete":                  true,
+							"scale_to_zero_before_deletion": true,
 						},
 					},
 				},
@@ -139,7 +139,7 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					RollInstancesWhenRequired: true,
 					ForceDelete:               true,
-					ScaleInOnDelete:           true,
+					ScaleToZeroOnDelete:       true,
 				},
 			},
 		},
@@ -192,9 +192,9 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
-							"force_delete":                 false,
-							"roll_instances_when_required": false,
-							"scale_in_on_delete":           false,
+							"force_delete":                  false,
+							"roll_instances_when_required":  false,
+							"scale_to_zero_before_deletion": false,
 						},
 					},
 				},
@@ -230,7 +230,7 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
 					RollInstancesWhenRequired: false,
-					ScaleInOnDelete:           false,
+					ScaleToZeroOnDelete:       false,
 				},
 			},
 		},
@@ -710,7 +710,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 			Expected: features.UserFeatures{
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					RollInstancesWhenRequired: true,
-					ScaleInOnDelete:           true,
+					ScaleToZeroOnDelete:       true,
 				},
 			},
 		},
@@ -730,7 +730,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               true,
 					RollInstancesWhenRequired: false,
-					ScaleInOnDelete:           true,
+					ScaleToZeroOnDelete:       true,
 				},
 			},
 		},
@@ -750,7 +750,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
 					RollInstancesWhenRequired: true,
-					ScaleInOnDelete:           true,
+					ScaleToZeroOnDelete:       true,
 				},
 			},
 		},
@@ -760,16 +760,18 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 				map[string]interface{}{
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
-							"force_delete":       false,
-							"scale_in_on_delete": false,
+							"force_delete":                  false,
+							"roll_instances_when_required":  true,
+							"scale_to_zero_before_deletion": false,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
-					ScaleInOnDelete:           false,
+					ForceDelete:               false,
 					RollInstancesWhenRequired: true,
+					ScaleToZeroOnDelete:       false,
 				},
 			},
 		},
@@ -779,9 +781,9 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 				map[string]interface{}{
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
-							"force_delete":                 false,
-							"roll_instances_when_required": false,
-							"scale_in_on_delete":           false,
+							"force_delete":                  false,
+							"roll_instances_when_required":  false,
+							"scale_to_zero_before_deletion": false,
 						},
 					},
 				},
@@ -790,7 +792,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
 					RollInstancesWhenRequired: false,
-					ScaleInOnDelete:           false,
+					ScaleToZeroOnDelete:       false,
 				},
 			},
 		},
