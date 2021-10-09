@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
+	subscriptionParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/parse"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -108,33 +109,25 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 }
 
 func resourceArmConsumptionBudgetSubscriptionDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	id := resourceParse.NewConsumptionBudgetSubscriptionID(d.Get("resource_group_name").(string), d.Get("name").(string))
-	d.SetId(id.ID())
-
-	err := resourceArmConsumptionBudgetSubRead(d, meta, id.ID(), d.Get("name").(string))
-
-	if err != nil {
-		return fmt.Errorf("error making read request on Azure Consumption Budget %q for scope %q: %+v", d.Get("name").(string), id.ID(), err)
-	}
-
-	// The scope of a Subscription budget resource is the Subscription budget ID
-	d.Set("subscription_id", d.Get("subscription_id").(string))
-
-	return nil
-}
-
-func resourceArmConsumptionBudgetSubRead(d *pluginsdk.ResourceData, meta interface{}, scope, name string) error {
 	client := meta.(*clients.Client).Consumption.BudgetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resp, err := client.Get(ctx, scope, name)
+	subscriptionId, err := subscriptionParse.SubscriptionID(d.Get("subscription_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := parse.NewConsumptionBudgetSubscriptionID(subscriptionId.SubscriptionID, d.Get("name").(string))
+	d.SetId(id.ID())
+
+	resp, err := client.Get(ctx, subscriptionId.ID(), id.BudgetName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making read request on Azure Consumption Budget %q for scope %q: %+v", name, scope, err)
+		return fmt.Errorf("making read request on %s: %+v", id, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -146,6 +139,9 @@ func resourceArmConsumptionBudgetSubRead(d *pluginsdk.ResourceData, meta interfa
 	d.Set("time_period", FlattenConsumptionBudgetTimePeriod(resp.TimePeriod))
 	d.Set("notification", pluginsdk.NewSet(pluginsdk.HashResource(SchemaConsumptionBudgetNotificationElement()), FlattenConsumptionBudgetNotifications(resp.Notifications)))
 	d.Set("filter", FlattenConsumptionBudgetFilter(resp.Filter))
+
+	// The scope of a Subscription budget resource is the Subscription budget ID
+	d.Set("subscription_id", d.Get("subscription_id").(string))
 
 	return nil
 }
