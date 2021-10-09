@@ -38,39 +38,33 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 
 			"filter": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"dimension": {
 							Type:     pluginsdk.TypeSet,
-							Optional: true,
 							Computed: true,
 							Set:      pluginsdk.HashResource(SchemaConsumptionBudgetFilterDimensionElementForDataSource()),
 							Elem:     SchemaConsumptionBudgetFilterDimensionElementForDataSource(),
 						},
 						"tag": {
 							Type:     pluginsdk.TypeSet,
-							Optional: true,
 							Computed: true,
 							Set:      pluginsdk.HashResource(SchemaConsumptionBudgetFilterTagElementForDataSource()),
 							Elem:     SchemaConsumptionBudgetFilterTagElementForDataSource(),
 						},
 						"not": {
 							Type:     pluginsdk.TypeList,
-							Optional: true,
 							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"dimension": {
 										Type:     pluginsdk.TypeList,
-										Optional: true,
 										Computed: true,
 										Elem:     SchemaConsumptionBudgetFilterDimensionElementForDataSource(),
 									},
 									"tag": {
 										Type:     pluginsdk.TypeList,
-										Optional: true,
 										Computed: true,
 										Elem:     SchemaConsumptionBudgetFilterTagElementForDataSource(),
 									},
@@ -90,7 +84,6 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 
 			"time_grain": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 
@@ -105,7 +98,6 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 						},
 						"end_date": {
 							Type:     pluginsdk.TypeString,
-							Optional: true,
 							Computed: true,
 						},
 					},
