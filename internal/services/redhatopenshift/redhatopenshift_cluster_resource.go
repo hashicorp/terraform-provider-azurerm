@@ -1,7 +1,6 @@
 package redhatopenshift
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -15,9 +14,14 @@ import (
 	openShiftValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+)
+
+var (
+	domainName = GenerateRandomDomainName()
 )
 
 func resourceOpenShiftCluster() *pluginsdk.Resource {
@@ -32,12 +36,6 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 			return err
 		}),
 
-		CustomizeDiff: pluginsdk.CustomDiffInSequence(
-			pluginsdk.ForceNewIfChange("service_principal_profile.client_id", func(ctx context.Context, old, new, meta interface{}) bool {
-				return old.(string) != new.(string)
-			}),
-		),
-
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -49,7 +47,6 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -59,8 +56,7 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 
 			"cluster_profile": {
 				Type:     pluginsdk.TypeList,
-				Required: true,
-				Computed: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -73,33 +69,23 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 						"domain": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
 							ForceNew:     true,
-							Default:      GenerateRandomDomainName(),
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"openshift_version": {
-							Type:         pluginsdk.TypeString,
-							Optional:     false,
-							Computed:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
 			},
 
-			"service_principal_profile": {
+			"service_principal": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
+				Required: true,
 				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"client_id": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
+							Required:     true,
 							ValidateFunc: openShiftValidate.ClientID,
 						},
 						"client_secret": {
@@ -123,7 +109,6 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 						"pod_cidr": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
 							ForceNew:     true,
 							Default:      "10.128.0.0/14",
 							ValidateFunc: validate.CIDR,
@@ -131,7 +116,6 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 						"service_cidr": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
 							ForceNew:     true,
 							Default:      "172.30.0.0/16",
 							ValidateFunc: validate.CIDR,
@@ -143,7 +127,6 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 			"master_profile": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -153,11 +136,10 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 							ValidateFunc: azure.ValidateResourceID,
 						},
 						"vm_size": {
-							Type:         pluginsdk.TypeString,
-							Required:     false,
-							ForceNew:     true,
-							Default:      redhatopenshift.StandardD8sV3,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:             pluginsdk.TypeString,
+							Required:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc:     validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -166,36 +148,30 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 			"worker_profile": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     false,
-							ForceNew:     true,
-							Default:      "worker",
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "worker",
 						},
 						"vm_size": {
-							Type:         pluginsdk.TypeString,
-							Required:     false,
-							ForceNew:     true,
-							Default:      redhatopenshift.StandardD4sV3,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:             pluginsdk.TypeString,
+							Required:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc:     validation.StringIsNotEmpty,
 						},
 						"disk_size_gb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ForceNew:     true,
-							Computed:     true,
 							Default:      "128",
 							ValidateFunc: validation.IntAtLeast(1),
 						},
 						"node_count": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
 							Default:      "3",
 							ValidateFunc: validation.IntBetween(0, 1000),
 						},
@@ -219,7 +195,6 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 						"visibility": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
 							ForceNew:     true,
 							Default:      redhatopenshift.Public,
 							ValidateFunc: validate.CIDR,
@@ -237,22 +212,24 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     false,
-							ForceNew:     true,
-							Default:      "default",
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "default",
 						},
 						"visibility": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
 							ForceNew:     true,
 							Default:      redhatopenshift.Visibility1Public,
 							ValidateFunc: validate.CIDR,
 						},
 					},
 				},
+			},
+
+			"version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"tags": tags.Schema(),
@@ -267,13 +244,16 @@ func resourceOpenShiftClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	log.Printf("[INFO] preparing arguments for Red Hat Openshift Cluster create.")
 
-	resourceGroup := d.Get("resource_group_name").(string)
+	resourceGroupName := d.Get("resource_group_name").(string)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	resourceGroupId := ResourceGroupID(subscriptionId, resourceGroupName)
+
 	name := d.Get("name").(string)
 
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, resourceGroupName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Red Hat Openshift Cluster %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing Red Hat Openshift Cluster %q (Resource Group %q): %s", name, resourceGroupName, err)
 		}
 	}
 
@@ -284,9 +264,9 @@ func resourceOpenShiftClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	clusterProfileRaw := d.Get("cluster_profile").([]interface{})
-	clusterProfile := expandOpenshiftClusterProfile(clusterProfileRaw)
+	clusterProfile := expandOpenshiftClusterProfile(clusterProfileRaw, resourceGroupId)
 
-	servicePrincipalProfileRaw := d.Get("service_principal_profile").([]interface{})
+	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
 	servicePrincipalProfile := expandOpenshiftServicePrincipalProfile(servicePrincipalProfileRaw)
 
 	networkProfileRaw := d.Get("network_profile").([]interface{})
@@ -321,22 +301,22 @@ func resourceOpenShiftClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, resourceGroupName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("creating Red Hat OpenShift Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Red Hat OpenShift Cluster %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Red Hat OpenShift Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Red Hat OpenShift Cluster %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
+	read, err := client.Get(ctx, resourceGroupName, name)
 	if err != nil {
-		return fmt.Errorf("retrieving Red Hat OpenShift Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Red Hat OpenShift Cluster %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("cannot read ID for Red Hat OpenShift Cluster %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("cannot read ID for Red Hat OpenShift Cluster %q (Resource Group %q)", name, resourceGroupName)
 	}
 
 	d.SetId(*read.ID)
@@ -350,6 +330,10 @@ func resourceOpenShiftClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Red Hat OpenShift Cluster update.")
+
+	resourceGroupName := d.Get("resource_group_name").(string)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	resourceGroupId := ResourceGroupID(subscriptionId, resourceGroupName)
 
 	id, err := parse.ClusterID(d.Id())
 	if err != nil {
@@ -368,7 +352,7 @@ func resourceOpenShiftClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if d.HasChange("cluster_profile") {
 		clusterProfileRaw := d.Get("cluster_profile").([]interface{})
-		clusterProfile := expandOpenshiftClusterProfile(clusterProfileRaw)
+		clusterProfile := expandOpenshiftClusterProfile(clusterProfileRaw, resourceGroupId)
 		existing.OpenShiftClusterProperties.ClusterProfile = clusterProfile
 	}
 
@@ -424,8 +408,8 @@ func resourceOpenShiftClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		servicePrincipalProfile := flattenOpenShiftServicePrincipalProfile(props.ServicePrincipalProfile)
-		if err := d.Set("service_principal_profile", servicePrincipalProfile); err != nil {
-			return fmt.Errorf("setting `service_principal_profile`: %+v", err)
+		if err := d.Set("service_principal", servicePrincipalProfile); err != nil {
+			return fmt.Errorf("setting `service_principal`: %+v", err)
 		}
 
 		networkProfile := flattenOpenShiftNetworkProfile(props.NetworkProfile)
@@ -452,6 +436,8 @@ func resourceOpenShiftClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if err := d.Set("ingress_profile", ingressProfiles); err != nil {
 			return fmt.Errorf("setting `ingress_profile`: %+v", err)
 		}
+
+		d.Set("version", props.ClusterProfile.Version)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -494,16 +480,10 @@ func flattenOpenShiftClusterProfile(profile *redhatopenshift.ClusterProfile) []i
 		clusterDomain = *profile.Domain
 	}
 
-	version := ""
-	if profile.Version != nil {
-		version = *profile.Version
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"pull_secret":       pullSecret,
-			"domain":            clusterDomain,
-			"openshift_version": version,
+			"pull_secret": pullSecret,
+			"domain":      clusterDomain,
 		},
 	}
 }
@@ -633,21 +613,23 @@ func flattenOpenShiftIngressProfiles(profiles *[]redhatopenshift.IngressProfile)
 	return results
 }
 
-func expandOpenshiftClusterProfile(input []interface{}) *redhatopenshift.ClusterProfile {
+func expandOpenshiftClusterProfile(input []interface{}, resourceGroupId string) *redhatopenshift.ClusterProfile {
 	if len(input) == 0 {
-		return nil
+		return &redhatopenshift.ClusterProfile{
+			ResourceGroupID: utils.String(resourceGroupId),
+			Domain:          utils.String(domainName),
+		}
 	}
 
 	config := input[0].(map[string]interface{})
 
-	version := config["openshift_version"].(string)
 	pullSecret := config["pull_secret"].(string)
 	domain := config["domain"].(string)
 
 	return &redhatopenshift.ClusterProfile{
-		PullSecret: utils.String(pullSecret),
-		Domain:     utils.String(domain),
-		Version:    utils.String(version),
+		ResourceGroupID: utils.String(resourceGroupId),
+		PullSecret:      utils.String(pullSecret),
+		Domain:          utils.String(domain),
 	}
 }
 
@@ -669,7 +651,10 @@ func expandOpenshiftServicePrincipalProfile(input []interface{}) *redhatopenshif
 
 func expandOpenshiftNetworkProfile(input []interface{}) *redhatopenshift.NetworkProfile {
 	if len(input) == 0 {
-		return nil
+		return &redhatopenshift.NetworkProfile{
+			PodCidr:     utils.String("10.128.0.0/14"),
+			ServiceCidr: utils.String("172.30.0.0/16"),
+		}
 	}
 
 	config := input[0].(map[string]interface{})
@@ -711,9 +696,9 @@ func expandOpenshiftWorkerProfiles(inputs []interface{}) *[]redhatopenshift.Work
 
 		name := config["name"].(string)
 		vmSize := config["vm_size"].(string)
-		diskSizeGb := config["disk_size_gb"].(int32)
+		diskSizeGb := int32(config["disk_size_gb"].(int))
 		subnetId := config["subnet_id"].(string)
-		nodeCount := config["node_count"].(int32)
+		nodeCount := int32(config["node_count"].(int))
 
 		profile := redhatopenshift.WorkerProfile{
 			Name:       utils.String((name)),
@@ -731,9 +716,10 @@ func expandOpenshiftWorkerProfiles(inputs []interface{}) *[]redhatopenshift.Work
 
 func expandOpenshiftApiServerProfile(input []interface{}) *redhatopenshift.APIServerProfile {
 	if len(input) == 0 {
-		return nil
+		return &redhatopenshift.APIServerProfile{
+			Visibility: redhatopenshift.Public,
+		}
 	}
-
 	config := input[0].(map[string]interface{})
 
 	visibility := config["visibility"].(string)
@@ -744,11 +730,18 @@ func expandOpenshiftApiServerProfile(input []interface{}) *redhatopenshift.APISe
 }
 
 func expandOpenshiftIngressProfiles(inputs []interface{}) *[]redhatopenshift.IngressProfile {
-	if len(inputs) == 0 {
-		return nil
-	}
-
 	profiles := make([]redhatopenshift.IngressProfile, 0)
+
+	if len(inputs) == 0 {
+		profile := redhatopenshift.IngressProfile{
+			Name:       utils.String("default"),
+			Visibility: redhatopenshift.Visibility1Public,
+		}
+
+		profiles = append(profiles, profile)
+
+		return &profiles
+	}
 
 	for index := range inputs {
 		config := inputs[index].(map[string]interface{})
