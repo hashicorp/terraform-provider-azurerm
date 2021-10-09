@@ -49,6 +49,7 @@ func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
 						},
 						"tag": {
 							Type: pluginsdk.TypeSet,
+							Computed: true,
 							Set:  pluginsdk.HashResource(SchemaConsumptionBudgetFilterTagElement()),
 							Elem: SchemaConsumptionBudgetFilterTagElement(),
 						},
