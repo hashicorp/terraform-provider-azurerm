@@ -25,3 +25,8 @@ func GenerateRandomDomainName() string {
 
 	return fmt.Sprintf("%s%s", randomPrefix, randomName)
 }
+
+func ResourceGroupID(subscriptionId string, resourceGroupName string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s"
+	return fmt.Sprintf(fmtString, subscriptionId, resourceGroupName)
+}
