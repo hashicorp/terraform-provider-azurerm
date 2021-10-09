@@ -264,8 +264,8 @@ func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if strings.ToLower(d.Get("sku_tier").(string)) == strings.ToLower(string(network.LoadBalancerSkuTierGlobal)) {
-		if strings.ToLower(d.Get("sku").(string)) != strings.ToLower(string(network.LoadBalancerSkuNameStandard)) {
+	if strings.EqualFold(d.Get("sku_tier").(string), string(network.LoadBalancerSkuTierGlobal)) {
+		if !strings.EqualFold(d.Get("sku").(string), string(network.LoadBalancerSkuNameStandard)) {
 			return fmt.Errorf("global load balancing is only supported for standard SKU load balancers %q (Resource Group %q)", id.Name, id.ResourceGroup)
 		}
 	}
