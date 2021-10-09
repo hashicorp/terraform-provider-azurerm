@@ -174,10 +174,10 @@ func resourceCassandraMIClusterRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("account_name", id.ClusterName)
+	//d.Set("account_name", id.ClusterName)
 	if props := resp.Properties; props != nil {
 		if res := props; res != nil {
-			d.Set("name", res.ProvisioningState)
+			//d.Set("name", res.ProvisioningState)
 		}
 	}
 	return nil
