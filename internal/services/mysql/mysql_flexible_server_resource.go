@@ -1,7 +1,6 @@
 package mysql
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -65,35 +64,22 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.FlexibleServerAdministratorLogin,
 			},
 
 			"administrator_password": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Sensitive:    true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.FlexibleServerAdministratorPassword,
 			},
 
-			"sku_name": {
-				Type:         pluginsdk.TypeString,
+			"backup_retention_days": {
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validate.FlexibleServerSkuName,
+				Default:      7,
+				ValidateFunc: validation.IntBetween(7, 35),
 			},
-
-			"version": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(mysqlflexibleservers.ServerVersionFiveFullStopSeven),
-					string(mysqlflexibleservers.ServerVersionEightFullStopZeroFullStopTwoOne),
-				}, false),
-			},
-
-			"zone": azure.SchemaZoneComputed(),
 
 			"create_mode": {
 				Type:     pluginsdk.TypeString,
@@ -114,25 +100,40 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: networkValidate.SubnetID,
 			},
 
-			"private_dns_zone_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: privateDnsValidate.PrivateDnsZoneID,
+			"geo_redundant_backup_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Default:  false,
 			},
 
-			"point_in_time_restore_time_in_utc": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IsRFC3339Time,
-			},
+			"high_availability": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"mode": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(mysqlflexibleservers.HighAvailabilityModeZoneRedundant),
+								string(mysqlflexibleservers.HighAvailabilityModeSameZone),
+							}, false),
+						},
 
-			"source_server_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.FlexibleServerID,
+						"standby_availability_zone": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"1",
+								"2",
+								"3",
+							}, false),
+						},
+					},
+				},
 			},
 
 			"maintenance_window": {
@@ -165,43 +166,41 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				},
 			},
 
-			"backup_retention_days": {
-				Type:         pluginsdk.TypeInt,
+			"point_in_time_restore_time_in_utc": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsRFC3339Time,
+			},
+
+			"private_dns_zone_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: privateDnsValidate.PrivateDnsZoneID,
+			},
+
+			"replication_role": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(mysqlflexibleservers.ReplicationRoleNone),
+				}, false),
+			},
+
+			"sku_name": {
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntBetween(7, 35),
+				ValidateFunc: validate.FlexibleServerSkuName,
 			},
 
-			"geo_redundant_backup_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
-				Default:  false,
-			},
-
-			"high_availability": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"mode": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(mysqlflexibleservers.HighAvailabilityModeZoneRedundant),
-								string(mysqlflexibleservers.HighAvailabilityModeSameZone),
-							}, false),
-						},
-
-						"standby_availability_zone": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
+			"source_server_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.FlexibleServerID,
 			},
 
 			"storage": {
@@ -211,27 +210,49 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"size_gb": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.IntBetween(20, 16384),
+						"auto_grow_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
 						},
 
 						"iops": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validation.IntInSlice([]int{400, 640, 1280, 3200, 6400, 12800, 20000}),
+							ValidateFunc: validation.IntBetween(360, 20000),
 						},
 
-						"auto_grow_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  true,
+						"size_gb": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IntBetween(20, 16384),
 						},
 					},
 				},
+			},
+
+			"version": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(mysqlflexibleservers.ServerVersionFiveFullStopSeven),
+					string(mysqlflexibleservers.ServerVersionEightFullStopZeroFullStopTwoOne),
+				}, false),
+			},
+
+			"zone": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"1",
+					"2",
+					"3",
+				}, false),
 			},
 
 			"fqdn": {
@@ -249,21 +270,8 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"replication_role": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
 			"tags": tags.Schema(),
 		},
-
-		CustomizeDiff: pluginsdk.CustomDiffInSequence(
-			// Updating HA mode from SameZone to ZoneRedundant is not allowed.
-			pluginsdk.ForceNewIfChange("high_availability.0.mode", func(ctx context.Context, old, new, meta interface{}) bool {
-				return old.(string) == string(mysqlflexibleservers.HighAvailabilityModeSameZone) && new.(string) == string(mysqlflexibleservers.HighAvailabilityModeZoneRedundant)
-			}),
-		),
 	}
 }
 
@@ -290,11 +298,14 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 
 	createMode := mysqlflexibleservers.CreateMode(d.Get("create_mode").(string))
 
+	if _, ok := d.GetOk("replication_role"); ok {
+		return fmt.Errorf("`replication_role` cannot be set while creating")
+	}
+
 	if _, ok := d.GetOk("source_server_id"); !ok {
 		if createMode == mysqlflexibleservers.CreateModePointInTimeRestore || createMode == mysqlflexibleservers.CreateModeReplica || createMode == mysqlflexibleservers.CreateModeGeoRestore {
 			return fmt.Errorf("`source_server_id` is required when `create_mode` is `PointInTimeRestore`, `GeoRestore`, or `Replica`")
 		}
-
 	}
 
 	if createMode == mysqlflexibleservers.CreateModePointInTimeRestore {
@@ -466,6 +477,58 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
+	// failover is only supported when `zone` and `standby_availability_zone` is exchanged
+	var requireFailover bool
+	switch {
+	case d.HasChange("zone") && d.HasChange("high_availability.0.standby_availability_zone"):
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return err
+		}
+
+		if props := resp.ServerProperties; props != nil {
+			zone := d.Get("zone").(string)
+			standbyZone := d.Get("high_availability.0.standby_availability_zone").(string)
+
+			if props.AvailabilityZone != nil && props.HighAvailability != nil && props.HighAvailability.StandbyAvailabilityZone != nil {
+				if zone == *props.HighAvailability.StandbyAvailabilityZone && standbyZone == *props.AvailabilityZone {
+					requireFailover = true
+				} else {
+					return fmt.Errorf("failover only supports exchange between `zone` and `standby_availability_zone`")
+				}
+			} else {
+				return fmt.Errorf("`standby_availability_zone` cannot be added while changing `zone`")
+			}
+		}
+	case d.HasChange("zone") && !d.HasChange("high_availability.0.standby_availability_zone"):
+		return fmt.Errorf("`zone` cannot be changed independently")
+	default:
+		// No need failover when only `standby_availability_zone` is changed and both `zone` and `standby_availability_zone` aren't changed
+		requireFailover = false
+	}
+
+	if d.HasChange("replication_role") {
+		oldReplicationRole, newReplicationRole := d.GetChange("replication_role")
+		if oldReplicationRole == "Replica" && newReplicationRole == "None" {
+			parameters := mysqlflexibleservers.ServerForUpdate{
+				ServerPropertiesForUpdate: &mysqlflexibleservers.ServerPropertiesForUpdate{
+					ReplicationRole: mysqlflexibleservers.ReplicationRoleNone,
+				},
+			}
+
+			future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
+			if err != nil {
+				return fmt.Errorf("updating Mysql Flexible Server %q (Resource Group %q) to update `replication_role`: %+v", id.Name, id.ResourceGroup, err)
+			}
+
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for the update of the Mysql Flexible Server %q (Resource Group %q) to update `replication_role`: %+v", id.Name, id.ResourceGroup, err)
+			}
+		} else {
+			return fmt.Errorf("`replication_role` only can be updated from `Replica` to `None`")
+		}
+	}
+
 	// ha Enabled is dependent on storage auto grow Enabled. But when we enabled this two features in one request, it returns bad request.
 	// Thus we need to separate these two updates in two requests.
 	if d.HasChange("storage") && d.Get("storage.0.auto_grow_enabled").(bool) {
@@ -485,9 +548,16 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	// Update HA from SameZone-> ZoneRedundant is not allowed
-	// Update HA from ZoneRedundant-> disable -> SameZone or change Standby AZ requires to disable it firstly.
-	if d.HasChange("high_availability") {
+	if requireFailover {
+		future, err := client.Failover(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("failing over %s: %+v", *id, err)
+		}
+
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for failover of %s: %+v", *id, err)
+		}
+	} else if d.HasChange("high_availability") {
 		parameters := mysqlflexibleservers.ServerForUpdate{
 			ServerPropertiesForUpdate: &mysqlflexibleservers.ServerPropertiesForUpdate{
 				HighAvailability: &mysqlflexibleservers.HighAvailability{
@@ -572,6 +642,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("waiting for the update of the Mysql Flexible Server %q (Resource Group %q) to disable `auto_grow_enabled`: %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
+
 	return resourceMysqlFlexibleServerRead(d, meta)
 }
 
