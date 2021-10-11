@@ -314,6 +314,11 @@ func TestAccMySqlFlexibleServer_replica(t *testing.T) {
 }
 
 func TestAccMySqlFlexibleServer_geoRestore(t *testing.T) {
+	if os.Getenv("ARM_GEO_RESTORE_LOCATION") == "" {
+		t.Skip("Skipping as `ARM_GEO_RESTORE_LOCATION` is not specified")
+		return
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
 	r := MySqlFlexibleServerResource{}
 
