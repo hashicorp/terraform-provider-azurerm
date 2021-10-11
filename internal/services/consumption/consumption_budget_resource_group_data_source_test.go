@@ -21,6 +21,11 @@ func TestAccDataSourceBudget_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("name").Exists(),
 				// TODO fill in remaining checks
 				check.That(data.ResourceName).Key("resource_group_id").Exists(),
+				check.That(data.ResourceName).Key("amount").Exists(),
+				check.That(data.ResourceName).Key("notification").Exists(),
+				check.That(data.ResourceName).Key("notification.0.threshold").Exists(),
+				check.That(data.ResourceName).Key("notification.0.operator").Exists(),
+				check.That(data.ResourceName).Key("time_period.start_date").Exists(),
 			),
 		},
 	})
