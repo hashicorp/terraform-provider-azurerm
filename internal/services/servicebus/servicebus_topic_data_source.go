@@ -138,7 +138,7 @@ func dataSourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) 
 					return err
 				}
 
-				if namespace.Sku.Name != servicebus.Premium {
+				if namespace.Sku.Name != servicebus.SkuNamePremium {
 					const partitionCount = 16
 					maxSize = int(*props.MaxSizeInMegabytes / partitionCount)
 				}
