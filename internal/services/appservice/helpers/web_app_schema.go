@@ -870,7 +870,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"2.7",
 						"3.4.0",
 					}, false),
 				},
@@ -1096,7 +1095,6 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"2.7", // TODO - Remove? 2.7 is available, but deprecated in the service
 						"3.6",
 						"3.7",
 						"3.8",

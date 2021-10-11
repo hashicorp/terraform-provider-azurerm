@@ -578,21 +578,6 @@ func TestAccLinuxWebApp_withPhp74(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebApp_withPython27(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
-	r := LinuxWebAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.python(data, "2.7"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccLinuxWebApp_withPython36(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
