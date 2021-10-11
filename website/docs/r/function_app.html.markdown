@@ -127,7 +127,7 @@ resource "azurerm_function_app" "example" {
   version                    = "~3"
 }
 ```
-~> **Note:** Currently the version arguments defaults to ~1. Version ~3 is required for Linux Function Apps.
+~> **Note:** Version `~3` is required for Linux Function Apps.
 
 ## Argument Reference
 
