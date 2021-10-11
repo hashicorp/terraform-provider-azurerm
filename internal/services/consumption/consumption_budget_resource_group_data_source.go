@@ -44,14 +44,84 @@ func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
 						"dimension": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Set:      pluginsdk.HashResource(SchemaConsumptionBudgetFilterDimensionElement()),
-							Elem:     SchemaConsumptionBudgetFilterDimensionElement(),
+							Set: pluginsdk.HashResource(
+								&pluginsdk.Resource{
+									Schema: map[string]*pluginsdk.Schema{
+										"name": {
+											Type:     pluginsdk.TypeString,
+											Computed: true,
+										},
+										"operator": {
+											Type:     pluginsdk.TypeString,
+											Computed: true,
+										},
+										"values": {
+											Type:     pluginsdk.TypeList,
+											Computed: true,
+										},
+									},
+								},
+							),
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"operator": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"values": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+									},
+								},
+							},
 						},
 						"tag": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Set:      pluginsdk.HashResource(SchemaConsumptionBudgetFilterTagElement()),
-							Elem:     SchemaConsumptionBudgetFilterTagElement(),
+							Set: pluginsdk.HashResource(
+								&pluginsdk.Resource{
+									Schema: map[string]*pluginsdk.Schema{
+										"name": {
+											Type:     pluginsdk.TypeString,
+											Computed: true,
+										},
+										"operator": {
+											Type:     pluginsdk.TypeString,
+											Computed: true,
+										},
+										"values": {
+											Type:     pluginsdk.TypeList,
+											Computed: true,
+											Elem: &pluginsdk.Schema{
+												Type: pluginsdk.TypeString,
+											},
+										},
+									},
+								},
+							),
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"operator": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"values": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+								},
+							},
 						},
 						"not": {
 							Type:     pluginsdk.TypeList,
@@ -61,12 +131,42 @@ func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
 									"dimension": {
 										Type:     pluginsdk.TypeList,
 										Computed: true,
-										Elem:     SchemaConsumptionBudgetFilterDimensionElement(),
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"name": {
+													Type:     pluginsdk.TypeString,
+													Computed: true,
+												},
+												"operator": {
+													Type:     pluginsdk.TypeString,
+													Computed: true,
+												},
+												"values": {
+													Type:     pluginsdk.TypeList,
+													Computed: true,
+												},
+											},
+										},
 									},
 									"tag": {
 										Type:     pluginsdk.TypeList,
 										Computed: true,
-										Elem:     SchemaConsumptionBudgetFilterTagElement(),
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"name": {
+													Type:     pluginsdk.TypeString,
+													Computed: true,
+												},
+												"operator": {
+													Type:     pluginsdk.TypeString,
+													Computed: true,
+												},
+												"values": {
+													Type:     pluginsdk.TypeList,
+													Computed: true,
+												},
+											},
+										},
 									},
 								},
 							},
@@ -78,8 +178,88 @@ func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
 			"notification": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
-				Set:      pluginsdk.HashResource(SchemaConsumptionBudgetNotificationElement()),
-				Elem:     SchemaConsumptionBudgetNotificationElement(),
+				Set: pluginsdk.HashResource(
+					&pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"enabled": {
+								Type:     pluginsdk.TypeBool,
+								Computed: true,
+							},
+							"threshold": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+							"operator": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"contact_emails": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							"contact_groups": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							"contact_roles": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+				),
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"threshold": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+						"operator": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"contact_emails": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"contact_groups": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"contact_roles": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+					},
+				},
 			},
 
 			"time_grain": {
