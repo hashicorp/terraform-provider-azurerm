@@ -58,6 +58,9 @@ func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
 										"values": {
 											Type:     pluginsdk.TypeList,
 											Computed: true,
+											Elem: &pluginsdk.Schema{
+												Type:         pluginsdk.TypeString,
+											},
 										},
 									},
 								},
@@ -75,6 +78,9 @@ func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
 									"values": {
 										Type:     pluginsdk.TypeList,
 										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+										},
 									},
 								},
 							},
@@ -144,6 +150,9 @@ func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
 												"values": {
 													Type:     pluginsdk.TypeList,
 													Computed: true,
+													Elem: &pluginsdk.Schema{
+														Type: pluginsdk.TypeString,
+													},
 												},
 											},
 										},
@@ -164,6 +173,9 @@ func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
 												"values": {
 													Type:     pluginsdk.TypeList,
 													Computed: true,
+													Elem: &pluginsdk.Schema{
+														Type: pluginsdk.TypeString,
+													},
 												},
 											},
 										},
