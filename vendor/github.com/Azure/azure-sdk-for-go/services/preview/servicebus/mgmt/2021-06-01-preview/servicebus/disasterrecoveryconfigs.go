@@ -15,7 +15,7 @@ import (
 	"net/http"
 )
 
-// DisasterRecoveryConfigsClient is the azure Service Bus client
+// DisasterRecoveryConfigsClient is the client for the DisasterRecoveryConfigs methods of the Servicebus service.
 type DisasterRecoveryConfigsClient struct {
 	BaseClient
 }
@@ -93,7 +93,7 @@ func (client DisasterRecoveryConfigsClient) BreakPairingPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -181,7 +181,7 @@ func (client DisasterRecoveryConfigsClient) CheckNameAvailabilityMethodPreparer(
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -275,11 +275,12 @@ func (client DisasterRecoveryConfigsClient) CreateOrUpdatePreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -368,7 +369,7 @@ func (client DisasterRecoveryConfigsClient) DeletePreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -403,7 +404,8 @@ func (client DisasterRecoveryConfigsClient) DeleteResponder(resp *http.Response)
 // resourceGroupName - name of the Resource group within the Azure subscription.
 // namespaceName - the namespace name
 // alias - the Disaster Recovery configuration name
-func (client DisasterRecoveryConfigsClient) FailOver(ctx context.Context, resourceGroupName string, namespaceName string, alias string) (result autorest.Response, err error) {
+// parameters - parameters required to create an Alias(Disaster Recovery configuration)
+func (client DisasterRecoveryConfigsClient) FailOver(ctx context.Context, resourceGroupName string, namespaceName string, alias string, parameters *FailoverProperties) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DisasterRecoveryConfigsClient.FailOver")
 		defer func() {
@@ -427,7 +429,7 @@ func (client DisasterRecoveryConfigsClient) FailOver(ctx context.Context, resour
 		return result, validation.NewError("servicebus.DisasterRecoveryConfigsClient", "FailOver", err.Error())
 	}
 
-	req, err := client.FailOverPreparer(ctx, resourceGroupName, namespaceName, alias)
+	req, err := client.FailOverPreparer(ctx, resourceGroupName, namespaceName, alias, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.DisasterRecoveryConfigsClient", "FailOver", nil, "Failure preparing request")
 		return
@@ -450,7 +452,7 @@ func (client DisasterRecoveryConfigsClient) FailOver(ctx context.Context, resour
 }
 
 // FailOverPreparer prepares the FailOver request.
-func (client DisasterRecoveryConfigsClient) FailOverPreparer(ctx context.Context, resourceGroupName string, namespaceName string, alias string) (*http.Request, error) {
+func (client DisasterRecoveryConfigsClient) FailOverPreparer(ctx context.Context, resourceGroupName string, namespaceName string, alias string, parameters *FailoverProperties) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"alias":             autorest.Encode("path", alias),
 		"namespaceName":     autorest.Encode("path", namespaceName),
@@ -458,16 +460,21 @@ func (client DisasterRecoveryConfigsClient) FailOverPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
 	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ServiceBus/namespaces/{namespaceName}/disasterRecoveryConfigs/{alias}/failover", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
+	if parameters != nil {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithJSON(parameters))
+	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -548,7 +555,7 @@ func (client DisasterRecoveryConfigsClient) GetPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -644,7 +651,7 @@ func (client DisasterRecoveryConfigsClient) GetAuthorizationRulePreparer(ctx con
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -652,7 +659,7 @@ func (client DisasterRecoveryConfigsClient) GetAuthorizationRulePreparer(ctx con
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ServiceBus/namespaces/{namespaceName}/disasterRecoveryConfigs/{alias}/AuthorizationRules/{authorizationRuleName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ServiceBus/namespaces/{namespaceName}/disasterRecoveryConfigs/{alias}/authorizationRules/{authorizationRuleName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -735,7 +742,7 @@ func (client DisasterRecoveryConfigsClient) ListPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -868,7 +875,7 @@ func (client DisasterRecoveryConfigsClient) ListAuthorizationRulesPreparer(ctx c
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -876,7 +883,7 @@ func (client DisasterRecoveryConfigsClient) ListAuthorizationRulesPreparer(ctx c
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ServiceBus/namespaces/{namespaceName}/disasterRecoveryConfigs/{alias}/AuthorizationRules", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ServiceBus/namespaces/{namespaceName}/disasterRecoveryConfigs/{alias}/authorizationRules", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -1001,7 +1008,7 @@ func (client DisasterRecoveryConfigsClient) ListKeysPreparer(ctx context.Context
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1009,7 +1016,7 @@ func (client DisasterRecoveryConfigsClient) ListKeysPreparer(ctx context.Context
 	preparer := autorest.CreatePreparer(
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ServiceBus/namespaces/{namespaceName}/disasterRecoveryConfigs/{alias}/AuthorizationRules/{authorizationRuleName}/listKeys", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ServiceBus/namespaces/{namespaceName}/disasterRecoveryConfigs/{alias}/authorizationRules/{authorizationRuleName}/listKeys", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }

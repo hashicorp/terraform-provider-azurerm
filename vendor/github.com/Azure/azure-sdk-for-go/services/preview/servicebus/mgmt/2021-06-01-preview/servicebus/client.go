@@ -1,6 +1,6 @@
-// Package servicebus implements the Azure ARM Servicebus service API version 2017-04-01.
+// Package servicebus implements the Azure ARM Servicebus service API version 2021-06-01-preview.
 //
-// Azure Service Bus client
+//
 package servicebus
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
