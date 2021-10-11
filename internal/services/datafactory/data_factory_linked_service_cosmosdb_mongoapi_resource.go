@@ -23,8 +23,10 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPI() *pluginsdk.Resource {
 		Update: resourceDataFactoryLinkedServiceCosmosDbMongoAPICreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceCosmosDbMongoAPIDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.LinkedServiceID(id)
+			return err
+		}, importDataFactoryLinkedService(datafactory.TypeBasicLinkedServiceTypeCosmosDbMongoDbAPI)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -66,7 +68,7 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPI() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"server_version_above_32": {
+			"server_version_is_32_or_higher": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -113,18 +115,17 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPI() *pluginsdk.Resource {
 
 func resourceDataFactoryLinkedServiceCosmosDbMongoAPICreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
+	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	dataFactoryName := d.Get("data_factory_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewLinkedServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("data_factory_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Linked Service CosmosDb %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Data Factory Linked Service CosmosDb %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 			}
 		}
 
@@ -135,22 +136,16 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPICreateUpdate(d *pluginsdk.R
 
 	cosmosdbProperties := &datafactory.CosmosDbMongoDbAPILinkedServiceTypeProperties{}
 
-	databaseName := d.Get("database").(string)
-	versionAbove32 := d.Get("server_version_above_32").(bool)
-
-	connectionString := d.Get("connection_string").(string)
 	connectionStringSecureString := datafactory.SecureString{
-		Value: &connectionString,
+		Value: utils.String(d.Get("connection_string").(string)),
 		Type:  datafactory.TypeSecureString,
 	}
 	cosmosdbProperties.ConnectionString = connectionStringSecureString
-	cosmosdbProperties.Database = databaseName
-	cosmosdbProperties.IsServerVersionAbove32 = versionAbove32
-
-	description := d.Get("description").(string)
+	cosmosdbProperties.Database = d.Get("database").(string)
+	cosmosdbProperties.IsServerVersionAbove32 = d.Get("server_version_is_32_or_higher").(bool)
 
 	cosmosdbLinkedService := &datafactory.CosmosDbMongoDbAPILinkedService{
-		Description: &description,
+		Description: utils.String(d.Get("description").(string)),
 		CosmosDbMongoDbAPILinkedServiceTypeProperties: cosmosdbProperties,
 		Type: datafactory.TypeBasicLinkedServiceTypeCosmosDbMongoDbAPI,
 	}
@@ -176,20 +171,11 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPICreateUpdate(d *pluginsdk.R
 		Properties: cosmosdbLinkedService,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, linkedService, ""); err != nil {
-		return fmt.Errorf("creating/updating Data Factory Linked Service CosmosDb %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, linkedService, ""); err != nil {
+		return fmt.Errorf("creating/updating Data Factory Linked Service CosmosDb %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Data Factory Linked Service CosmosDb %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory Linked Service CosmosDb %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceDataFactoryLinkedServiceCosmosDbMongoAPIRead(d, meta)
 }
@@ -246,7 +232,7 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPIRead(d *pluginsdk.ResourceD
 	d.Set("database", databaseName)
 
 	versionAbove32 := cosmosdb.CosmosDbMongoDbAPILinkedServiceTypeProperties.IsServerVersionAbove32
-	d.Set("server_version_above_32", versionAbove32)
+	d.Set("server_version_is_32_or_higher", versionAbove32)
 
 	return nil
 }
