@@ -55,17 +55,17 @@ resource "azurerm_redhatopenshift_cluster" "example" {
   
   service_principal {
     client_id     = "00000000-0000-0000-0000-000000000000"
-    client_secret = "MyCl1eNtSeCr3t"
+    client_secret = "00000000000000000000000000000000"
   }
 
   master_profile {
-    vm_size = "Standard_D8s_v3"
+    vm_size   = "Standard_D8s_v3"
     subnet_id = azurerm_subnet.master_subnet.id
   }
   
   worker_profile {
-    vm_size      = "Standard_D4s_v3"
-    subnet_id      = azurerm_subnet.worker_subnet.id
+    vm_size   = "Standard_D4s_v3"
+    subnet_id = azurerm_subnet.worker_subnet.id
   }
 
   tags = {
@@ -74,7 +74,11 @@ resource "azurerm_redhatopenshift_cluster" "example" {
 }
 
 output "openshift_version" {
-    value = azurerm_redhatopenshift_cluster.example.version
+  value = azurerm_redhatopenshift_cluster.example.version
+}
+
+output "console_url" {
+  value = azurerm_redhatopenshift_cluster.example.console_url
 }
 ```
 
