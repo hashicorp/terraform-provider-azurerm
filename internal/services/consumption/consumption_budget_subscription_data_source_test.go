@@ -25,10 +25,9 @@ func TestAccBudgetSubscriptionDataSource_basic(t *testing.T) {
 	})
 }
 
-
 func (d ConsumptionBudgetSubscriptionDataSource) basic(data acceptance.TestData) string {
-  config := ConsumptionBudgetResourceGroupResource{}.basic(data)
-  return fmt.Sprintf(`
+	config := ConsumptionBudgetResourceGroupResource{}.basic(data)
+	return fmt.Sprintf(`
   %s
 
 data "azurerm_consumption_budget_subscription" "test" {

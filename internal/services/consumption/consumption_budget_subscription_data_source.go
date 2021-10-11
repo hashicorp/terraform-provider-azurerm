@@ -275,7 +275,6 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 				},
 			},
 
-
 			"time_grain": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
