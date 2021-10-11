@@ -1031,7 +1031,7 @@ func TestAccAppServiceSlot_windowsPython(t *testing.T) {
 			Config: r.windowsPython(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.python_version").HasValue("3.4"),
+				check.That(data.ResourceName).Key("site_config.0.python_version").HasValue("3.6"),
 			),
 		},
 	})
@@ -3275,7 +3275,7 @@ resource "azurerm_app_service_slot" "test" {
   app_service_name    = azurerm_app_service.test.name
 
   site_config {
-    python_version = "3.4"
+    python_version = "3.6"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
