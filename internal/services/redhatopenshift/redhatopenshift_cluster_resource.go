@@ -57,13 +57,13 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 			"cluster_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"pull_secret": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"domain": {
@@ -160,7 +160,7 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 						"name": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  "worker",
+							Computed: true,
 						},
 						"vm_size": {
 							Type:             pluginsdk.TypeString,
@@ -171,14 +171,13 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 						"disk_size_gb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ForceNew:     true,
-							Default:      "128",
-							ValidateFunc: validation.IntAtLeast(1),
+							Default:      128,
+							ValidateFunc: openShiftValidate.DiskSizeGB,
 						},
 						"node_count": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Default:      "3",
+							Default:      3,
 							ValidateFunc: validation.IntBetween(3, 20),
 						},
 						"subnet_id": {
@@ -728,7 +727,15 @@ func expandOpenshiftWorkerProfiles(inputs []interface{}) *[]redhatopenshift.Work
 		config := inputs[index].(map[string]interface{})
 
 		name := config["name"].(string)
+		if name == "" {
+			name = "worker"
+		}
+
 		vmSize := config["vm_size"].(string)
+		if vmSize == "" {
+			vmSize = "128"
+		}
+
 		diskSizeGb := int32(config["disk_size_gb"].(int))
 		subnetId := config["subnet_id"].(string)
 		nodeCount := int32(config["node_count"].(int))
