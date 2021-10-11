@@ -716,6 +716,57 @@ func TestAccAzureRMServiceFabricCluster_tags(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceFabricCluster_nodeTypesStateless(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nodeTypeStateless(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_type.#").HasValue("2"),
+				check.That(data.ResourceName).Key("node_type.0.name").HasValue("first"),
+				check.That(data.ResourceName).Key("node_type.0.instance_count").HasValue("3"),
+				check.That(data.ResourceName).Key("node_type.0.is_primary").HasValue("true"),
+				check.That(data.ResourceName).Key("node_type.1.name").HasValue("second"),
+				check.That(data.ResourceName).Key("node_type.1.instance_count").HasValue("4"),
+				check.That(data.ResourceName).Key("node_type.1.is_primary").HasValue("false"),
+				check.That(data.ResourceName).Key("node_type.1.is_stateless").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMServiceFabricCluster_zonalUpgradeMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zonalUpgradeMode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("0"),
+				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("0"),
+				check.That(data.ResourceName).Key("diagnostics_config.#").HasValue("0"),
+				check.That(data.ResourceName).Key("node_type.#").HasValue("1"),
+				check.That(data.ResourceName).Key("node_type.0.instance_count").HasValue("3"),
+				check.That(data.ResourceName).Key("node_type.0.multiple_availability_zones").HasValue("true"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("service_fabric_zonal_upgrade_mode").HasValue("Hierarchical"),
+				check.That(data.ResourceName).Key("vmss_zonal_upgrade_mode").HasValue("Parallel"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ServiceFabricClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ClusterID(state.ID)
 	if err != nil {
@@ -1322,7 +1373,7 @@ data "azurerm_client_config" "current" {
 resource "azuread_application" "cluster_explorer" {
   name                       = "${azurerm_resource_group.test.name}-explorer-AAD"
   homepage                   = "https://example:19080/Explorer/index.html"
-  identifier_uris            = ["https://example:19080/Explorer/index.html"]
+  identifier_uris            = ["https://example%d:19080/Explorer/index.html"]
   reply_urls                 = ["https://example:19080/Explorer/index.html"]
   available_to_other_tenants = false
   oauth2_allow_implicit_flow = true
@@ -1365,7 +1416,7 @@ resource "azuread_application" "cluster_console" {
     resource_app_id = azuread_application.cluster_explorer.application_id
 
     resource_access {
-      id   = azuread_application.cluster_explorer.oauth2_permissions[0].id
+      id   = "311a71cc-e848-46a1-bdf8-97ff7156d8e6" # sign in and user profile permission ctx https://github.com/Azure/azure-cli/issues/7925
       type = "Scope"
     }
   }
@@ -1411,7 +1462,7 @@ resource "azurerm_service_fabric_cluster" "test" {
     http_endpoint_port   = 19080
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r ServiceFabricClusterResource) azureActiveDirectoryDelete(data acceptance.TestData) string {
@@ -1855,4 +1906,78 @@ resource "azurerm_service_fabric_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+}
+
+func (r ServiceFabricClusterResource) nodeTypeStateless(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_service_fabric_cluster" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  reliability_level   = "Bronze"
+  upgrade_mode        = "Automatic"
+  vm_image            = "Windows"
+  management_endpoint = "http://example:80"
+
+  node_type {
+    name                 = "first"
+    instance_count       = 3
+    is_primary           = true
+    client_endpoint_port = 2020
+    http_endpoint_port   = 80
+  }
+
+  node_type {
+    name                 = "second"
+    instance_count       = 4
+    is_primary           = false
+    is_stateless         = true
+    client_endpoint_port = 2121
+    http_endpoint_port   = 81
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r ServiceFabricClusterResource) zonalUpgradeMode(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_service_fabric_cluster" "test" {
+  name                              = "acctest-%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  location                          = azurerm_resource_group.test.location
+  reliability_level                 = "Bronze"
+  upgrade_mode                      = "Automatic"
+  vm_image                          = "Windows"
+  management_endpoint               = "http://example:80"
+  service_fabric_zonal_upgrade_mode = "Hierarchical"
+  vmss_zonal_upgrade_mode           = "Parallel"
+
+  node_type {
+    name                        = "first"
+    instance_count              = 3
+    is_primary                  = true
+    client_endpoint_port        = 2020
+    http_endpoint_port          = 80
+    multiple_availability_zones = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -179,7 +179,7 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  version                      = "5.6"
+  version                      = "5.7"
   ssl_enforcement_enabled      = true
 
   sku_name = "GP_Gen5_2"
@@ -232,7 +232,7 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  version                      = "5.6"
+  version                      = "5.7"
   ssl_enforcement_enabled      = true
 
   sku_name = "GP_Gen5_2"
@@ -306,7 +306,7 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  version                      = "5.6"
+  version                      = "5.7"
   ssl_enforcement_enabled      = true
 
   sku_name = "GP_Gen5_2"
@@ -367,7 +367,7 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  version                      = "5.6"
+  version                      = "5.7"
   ssl_enforcement_enabled      = true
 
   sku_name = "GP_Gen5_2"
@@ -443,7 +443,7 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  version                      = "5.6"
+  version                      = "5.7"
   ssl_enforcement_enabled      = true
 
   sku_name = "GP_Gen5_2"

@@ -411,7 +411,12 @@ resource "azurerm_linux_virtual_machine" "test" {
 func (LinuxVirtualMachineResource) diskOSDiskDiskEncryptionSetDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      recover_soft_deleted_key_vaults = false
+      purge_soft_delete_on_destroy    = false
+    }
+  }
 }
 
 # note: whilst these aren't used in all tests, it saves us redefining these everywhere

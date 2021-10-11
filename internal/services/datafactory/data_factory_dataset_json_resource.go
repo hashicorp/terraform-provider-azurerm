@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -23,8 +24,10 @@ func resourceDataFactoryDatasetJSON() *pluginsdk.Resource {
 		Update: resourceDataFactoryDatasetJSONCreateUpdate,
 		Delete: resourceDataFactoryDatasetJSONDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.DataSetID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -78,10 +81,20 @@ func resourceDataFactoryDatasetJSON() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"dynamic_path_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 						"filename": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_filename_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -106,10 +119,20 @@ func resourceDataFactoryDatasetJSON() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"dynamic_path_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 						"filename": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_filename_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -203,18 +226,17 @@ func resourceDataFactoryDatasetJSON() *pluginsdk.Resource {
 
 func resourceDataFactoryDatasetJSONCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
+	subscriptionId := meta.(*clients.Client).DataFactory.DatasetClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	dataFactoryName := d.Get("data_factory_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewDataSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("data_factory_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Dataset JSON %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Data Factory Dataset JSON %s: %+v", id, err)
 			}
 		}
 
@@ -278,20 +300,11 @@ func resourceDataFactoryDatasetJSONCreateUpdate(d *pluginsdk.ResourceData, meta 
 		Type:       &datasetType,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, dataset, ""); err != nil {
-		return fmt.Errorf("creating/updating Data Factory Dataset JSON  %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataset, ""); err != nil {
+		return fmt.Errorf("creating/updating Data Factory Dataset JSON %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Data Factory Dataset JSON %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory Dataset JSON %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceDataFactoryDatasetJSONRead(d, meta)
 }
@@ -301,31 +314,28 @@ func resourceDataFactoryDatasetJSONRead(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DataSetID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["datasets"]
 
-	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Data Factory Dataset JSON %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("retrieving Data Factory Dataset JSON %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("data_factory_name", dataFactoryName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("data_factory_name", id.FactoryName)
 
 	jsonTable, ok := resp.Properties.AsJSONDataset()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Dataset JSON %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypeJSON, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Dataset JSON %s: Expected: %q Received: %q", *id, datafactory.TypeBasicDatasetTypeJSON, *resp.Type)
 	}
 
 	d.Set("additional_properties", jsonTable.AdditionalProperties)
@@ -389,18 +399,15 @@ func resourceDataFactoryDatasetJSONDelete(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DataSetID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["datasets"]
 
-	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
+	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting Data Factory Dataset JSON %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("deleting Data Factory Dataset JSON %s: %+v", *id, err)
 		}
 	}
 

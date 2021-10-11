@@ -1016,6 +1016,36 @@ func TestAccAzureRMStorageAccount_shareSoftDelete(t *testing.T) {
 	})
 }
 
+func TestAccStorageAccount_allowSharedKeyAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.allowSharedKeyAccess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("account_tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("account_replication_type").HasValue("LRS"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
+				check.That(data.ResourceName).Key("shared_access_key_enabled").HasValue("false"),
+			),
+		},
+		{
+			Config: r.allowSharedKeyAccessUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("account_tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("account_replication_type").HasValue("LRS"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
+				check.That(data.ResourceName).Key("shared_access_key_enabled").HasValue("true"),
+			),
+		},
+	})
+}
+
 func (r StorageAccountResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.StorageAccountID(state.ID)
 	if err != nil {
@@ -2958,6 +2988,62 @@ resource "azurerm_storage_account" "test" {
     retention_policy {
       days = 3
     }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) allowSharedKeyAccess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+  storage_use_azuread = true
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                  = azurerm_resource_group.test.location
+  account_tier              = "Standard"
+  account_replication_type  = "LRS"
+  shared_access_key_enabled = false
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) allowSharedKeyAccessUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+  storage_use_azuread = true
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                  = azurerm_resource_group.test.location
+  account_tier              = "Standard"
+  account_replication_type  = "LRS"
+  shared_access_key_enabled = true
+
+  tags = {
+    environment = "production"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

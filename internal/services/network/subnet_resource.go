@@ -1,12 +1,13 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -116,6 +117,7 @@ func resourceSubnet() *pluginsdk.Resource {
 											"Microsoft.BareMetal/CrayServers",
 											"Microsoft.Batch/batchAccounts",
 											"Microsoft.ContainerInstance/containerGroups",
+											"Microsoft.ContainerService/managedClusters",
 											"Microsoft.Databricks/workspaces",
 											"Microsoft.DBforMySQL/flexibleServers",
 											"Microsoft.DBforMySQL/serversv2",
@@ -179,6 +181,7 @@ func resourceSubnet() *pluginsdk.Resource {
 // TODO: refactor the create/flatten functions
 func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
+	vnetClient := meta.(*clients.Client).Network.VnetClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -240,11 +243,36 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, subnet)
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+	}
+
+	timeout, _ := ctx.Deadline()
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{string(network.ProvisioningStateUpdating)},
+		Target:     []string{string(network.ProvisioningStateSucceeded)},
+		Refresh:    SubnetProvisioningStateRefreshFunc(ctx, client, id),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    time.Until(timeout),
+	}
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
+	}
+
+	vnetId := parse.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroup, id.VirtualNetworkName)
+	vnetStateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{string(network.ProvisioningStateUpdating)},
+		Target:     []string{string(network.ProvisioningStateSucceeded)},
+		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, vnetClient, vnetId),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    time.Until(timeout),
+	}
+	if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for provisioning state of virtual network for %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -253,6 +281,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
+	vnetClient := meta.(*clients.Client).Network.VnetClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -332,6 +361,31 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
+	}
+
+	timeout, _ := ctx.Deadline()
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{string(network.ProvisioningStateUpdating)},
+		Target:     []string{string(network.ProvisioningStateSucceeded)},
+		Refresh:    SubnetProvisioningStateRefreshFunc(ctx, client, *id),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    time.Until(timeout),
+	}
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
+	}
+
+	vnetId := parse.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroup, id.VirtualNetworkName)
+	vnetStateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{string(network.ProvisioningStateUpdating)},
+		Target:     []string{string(network.ProvisioningStateSucceeded)},
+		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, vnetClient, vnetId),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    time.Until(timeout),
+	}
+	if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for provisioning state of virtual network for %s: %+v", id, err)
 	}
 
 	return resourceSubnetRead(d, meta)
@@ -562,4 +616,15 @@ func flattenSubnetServiceEndpointPolicies(input *[]network.ServiceEndpointPolicy
 		output = append(output, id)
 	}
 	return output
+}
+
+func SubnetProvisioningStateRefreshFunc(ctx context.Context, client *network.SubnetsClient, id parse.SubnetId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for %s: %+v", id.String(), err)
+		}
+
+		return res, string(res.ProvisioningState), nil
+	}
 }

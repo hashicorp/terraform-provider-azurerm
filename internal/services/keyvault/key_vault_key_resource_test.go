@@ -30,7 +30,7 @@ func TestAccKeyVaultKey_basicEC(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("key_size"),
+		data.ImportStep("key_size", "key_vault_id"),
 	})
 }
 
@@ -77,7 +77,7 @@ func TestAccKeyVaultKey_curveEC(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("key_vault_id"),
 	})
 }
 
@@ -92,7 +92,7 @@ func TestAccKeyVaultKey_curveECDeprecated(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("key_vault_id"),
 	})
 }
 
@@ -107,7 +107,7 @@ func TestAccKeyVaultKey_basicRSA(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("key_size"),
+		data.ImportStep("key_size", "key_vault_id"),
 	})
 }
 
@@ -122,7 +122,7 @@ func TestAccKeyVaultKey_basicRSAHSM(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("key_size"),
+		data.ImportStep("key_size", "key_vault_id"),
 	})
 }
 
@@ -142,7 +142,7 @@ func TestAccKeyVaultKey_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("versionless_id").HasValue(fmt.Sprintf("https://acctestkv-%s.vault.azure.net/keys/key-%s", data.RandomString, data.RandomString)),
 			),
 		},
-		data.ImportStep("key_size"),
+		data.ImportStep("key_size", "key_vault_id"),
 	})
 }
 
@@ -161,7 +161,7 @@ func TestAccKeyVaultKey_softDeleteRecovery(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
 			),
 		},
-		data.ImportStep("key_size"),
+		data.ImportStep("key_size", "key_vault_id"),
 		{
 			Config:  r.softDeleteRecovery(data, false),
 			Destroy: true,
@@ -226,7 +226,7 @@ func TestAccKeyVaultKey_updatedExternally(t *testing.T) {
 			Config:   r.basicECUpdatedExternally(data),
 			PlanOnly: true,
 		},
-		data.ImportStep("key_size"),
+		data.ImportStep("key_size", "key_vault_id"),
 	})
 }
 
@@ -268,14 +268,14 @@ func TestAccKeyVaultKey_withExternalAccessPolicy(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("key_size"),
+		data.ImportStep("key_size", "key_vault_id"),
 		{
 			Config: r.withExternalAccessPolicyUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("key_size"),
+		data.ImportStep("key_size", "key_vault_id"),
 	})
 }
 

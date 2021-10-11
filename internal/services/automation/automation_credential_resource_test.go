@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -65,17 +65,14 @@ func TestAccAutomationCredential_complete(t *testing.T) {
 }
 
 func (t AutomationCredentialResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.CredentialID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	accountName := id.Path["automationAccounts"]
-	name := id.Path["credentials"]
 
-	resp, err := clients.Automation.CredentialClient.Get(ctx, resGroup, accountName, name)
+	resp, err := clients.Automation.CredentialClient.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Automation Credential %q (resource group: %q): %+v", name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Automation Credential %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.CredentialProperties != nil), nil

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -22,8 +23,10 @@ func resourceIotHubDPSCertificate() *pluginsdk.Resource {
 		Update: resourceIotHubDPSCertificateCreateUpdate,
 		Delete: resourceIotHubDPSCertificateDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.DpsCertificateID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -61,18 +64,17 @@ func resourceIotHubDPSCertificate() *pluginsdk.Resource {
 
 func resourceIotHubDPSCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.DPSCertificateClient
+	subscriptionId := meta.(*clients.Client).IoTHub.DPSResourceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	iotDPSName := d.Get("iot_dps_name").(string)
+	id := parse.NewDpsCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iot_dps_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, name, resourceGroup, iotDPSName, "")
+		existing, err := client.Get(ctx, id.CertificateName, id.ResourceGroup, id.ProvisioningServiceName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q): %+v", name, iotDPSName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing IoT Device Provisioning Service Certificate %s: %+v", id.String(), err)
 			}
 		}
 
@@ -85,20 +87,11 @@ func resourceIotHubDPSCertificateCreateUpdate(d *pluginsdk.ResourceData, meta in
 		Certificate: utils.String(d.Get("certificate_content").(string)),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, iotDPSName, name, certificate, ""); err != nil {
-		return fmt.Errorf("creating/updating IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q): %+v", name, iotDPSName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ProvisioningServiceName, id.CertificateName, certificate, ""); err != nil {
+		return fmt.Errorf("creating/updating IoT Device Provisioning Service Certificate %s: %+v", id.String(), err)
 	}
 
-	resp, err := client.Get(ctx, name, resourceGroup, iotDPSName, "")
-	if err != nil {
-		return fmt.Errorf("retrieving IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q): %+v", name, iotDPSName, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q): %+v", name, iotDPSName, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceIotHubDPSCertificateRead(d, meta)
 }
@@ -108,26 +101,23 @@ func resourceIotHubDPSCertificateRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DpsCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	iotDPSName := id.Path["provisioningServices"]
-	name := id.Path["certificates"]
 
-	resp, err := client.Get(ctx, name, resourceGroup, iotDPSName, "")
+	resp, err := client.Get(ctx, id.CertificateName, id.ResourceGroup, id.ProvisioningServiceName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q): %+v", name, iotDPSName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id.String(), err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("iot_dps_name", iotDPSName)
+	d.Set("name", id.CertificateName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("iot_dps_name", id.ProvisioningServiceName)
 	// We are unable to set `certificate_content` since it is not returned from the API
 
 	return nil
@@ -138,29 +128,26 @@ func resourceIotHubDPSCertificateDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DpsCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	iotDPSName := id.Path["provisioningServices"]
-	name := id.Path["certificates"]
 
-	resp, err := client.Get(ctx, name, resourceGroup, iotDPSName, "")
+	resp, err := client.Get(ctx, id.CertificateName, id.ResourceGroup, id.ProvisioningServiceName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil
 		}
-		return fmt.Errorf("retrieving IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q): %+v", name, iotDPSName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	if resp.Etag == nil {
-		return fmt.Errorf("deleting IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q) because Etag is nil", name, iotDPSName, resourceGroup)
+		return fmt.Errorf("deleting  %s because Etag is nil", id)
 	}
 
 	// TODO address this delete call if https://github.com/Azure/azure-rest-api-specs/pull/6311 get's merged
-	if _, err := client.Delete(ctx, resourceGroup, *resp.Etag, iotDPSName, name, "", nil, nil, iothub.ServerAuthentication, nil, nil, nil, ""); err != nil {
-		return fmt.Errorf("deleting IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q): %+v", name, iotDPSName, resourceGroup, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, *resp.Etag, id.ProvisioningServiceName, id.CertificateName, "", nil, nil, iothub.ServerAuthentication, nil, nil, nil, ""); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 	return nil
 }

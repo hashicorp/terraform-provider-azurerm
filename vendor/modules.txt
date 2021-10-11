@@ -9,20 +9,19 @@ cloud.google.com/go/internal/version
 # cloud.google.com/go/storage v1.16.0
 ## explicit
 cloud.google.com/go/storage
-# github.com/Azure/azure-sdk-for-go v56.0.0+incompatible
+# github.com/Azure/azure-sdk-for-go v57.4.0+incompatible
 ## explicit
 github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources
 github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad
 github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor
 github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement
-github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2020-06-01/appconfiguration
 github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights
 github.com/Azure/azure-sdk-for-go/services/attestation/mgmt/2018-09-01/attestation
 github.com/Azure/azure-sdk-for-go/services/azurestackhci/mgmt/2020-10-01/azurestackhci
 github.com/Azure/azure-sdk-for-go/services/batch/2020-03-01.11.0/batch
 github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch
 github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice
-github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn
+github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn
 github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2021-04-30/cognitiveservices
 github.com/Azure/azure-sdk-for-go/services/communication/mgmt/2020-08-20/communication
 github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute
@@ -30,7 +29,7 @@ github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumpti
 github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2019-12-01/containerinstance
 github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-08-01/containerservice
 github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-05-01/containerservice
-github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb
+github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-06-15/documentdb
 github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2019-10-01/costmanagement
 github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2020-12-01/databoxedge
 github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory
@@ -40,22 +39,22 @@ github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/accoun
 github.com/Azure/azure-sdk-for-go/services/datamigration/mgmt/2018-04-19/datamigration
 github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare
 github.com/Azure/azure-sdk-for-go/services/devspaces/mgmt/2019-04-01/devspaces
-github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl
+github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2018-09-15/dtl
 github.com/Azure/azure-sdk-for-go/services/digitaltwins/mgmt/2020-10-31/digitaltwins
 github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns
 github.com/Azure/azure-sdk-for-go/services/domainservices/mgmt/2020-01-01/aad
-github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor
+github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-05-01/frontdoor
 github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac
 github.com/Azure/azure-sdk-for-go/services/guestconfiguration/mgmt/2020-06-25/guestconfiguration
 github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight
 github.com/Azure/azure-sdk-for-go/services/healthbot/mgmt/2020-12-08/healthbot
 github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2020-03-30/healthcareapis
 github.com/Azure/azure-sdk-for-go/services/iotcentral/mgmt/2018-09-01/iotcentral
-github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices
+github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices
 github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault
-github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto
+github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto
 github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic
-github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-04-01/machinelearningservices
+github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-07-01/machinelearningservices
 github.com/Azure/azure-sdk-for-go/services/maintenance/mgmt/2021-05-01/maintenance
 github.com/Azure/azure-sdk-for-go/services/managedservices/mgmt/2019-06-01/managedservices
 github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2021-02-01/maps
@@ -66,7 +65,7 @@ github.com/Azure/azure-sdk-for-go/services/mixedreality/mgmt/2021-01-01/mixedrea
 github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2020-10-01/insights
 github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql
 github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2020-09-01/netapp
-github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network
+github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network
 github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs
 github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights
 github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql
@@ -83,7 +82,7 @@ github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/20
 github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid
 github.com/Azure/azure-sdk-for-go/services/preview/hardwaresecuritymodules/mgmt/2018-10-31-preview/hardwaresecuritymodules
 github.com/Azure/azure-sdk-for-go/services/preview/keyvault/mgmt/2020-04-01-preview/keyvault
-github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights
+github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights
 github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement
 github.com/Azure/azure-sdk-for-go/services/preview/policyinsights/mgmt/2019-10-01-preview/policyinsights
 github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal
@@ -93,9 +92,9 @@ github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2019-06-01-pre
 github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security
 github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight
 github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus
-github.com/Azure/azure-sdk-for-go/services/preview/servicefabric/mgmt/2018-02-01-preview/servicefabric
 github.com/Azure/azure-sdk-for-go/services/preview/servicefabricmesh/mgmt/2018-09-01-preview/servicefabricmesh
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql
+github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2018-06-01-preview/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2017-03-01-preview/sqlvirtualmachine
 github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics
@@ -117,6 +116,7 @@ github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-11-01/subscriptio
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources
 github.com/Azure/azure-sdk-for-go/services/search/mgmt/2020-03-13/search
 github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus
+github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2021-06-01/servicefabric
 github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage
 github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache
 github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync
@@ -124,7 +124,7 @@ github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscrip
 github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse
 github.com/Azure/azure-sdk-for-go/services/timeseriesinsights/mgmt/2020-05-15/timeseriesinsights
 github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-08-01/trafficmanager
-github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web
+github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web
 github.com/Azure/azure-sdk-for-go/version
 # github.com/Azure/go-autorest v14.2.0+incompatible
 github.com/Azure/go-autorest
@@ -133,7 +133,6 @@ github.com/Azure/go-autorest
 github.com/Azure/go-autorest/autorest
 github.com/Azure/go-autorest/autorest/azure
 # github.com/Azure/go-autorest/autorest/adal v0.9.14
-## explicit
 github.com/Azure/go-autorest/autorest/adal
 # github.com/Azure/go-autorest/autorest/azure/cli v0.4.2
 github.com/Azure/go-autorest/autorest/azure/cli
@@ -224,7 +223,6 @@ github.com/dimchansky/utfbom
 ## explicit
 github.com/fatih/color
 # github.com/form3tech-oss/jwt-go v3.2.3+incompatible
-## explicit
 github.com/form3tech-oss/jwt-go
 # github.com/gofrs/uuid v4.0.0+incompatible
 ## explicit
@@ -398,19 +396,19 @@ github.com/sergi/go-diff/diffmatchpatch
 # github.com/shopspring/decimal v1.2.0
 ## explicit
 github.com/shopspring/decimal
-# github.com/tombuildsstuff/giovanni v0.15.1
+# github.com/tombuildsstuff/giovanni v0.16.0
 ## explicit
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/containers
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/filesystems
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/paths
-github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/directories
-github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/files
-github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/queue/queues
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/entities
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/tables
+github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/directories
+github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/files
+github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/shares
 github.com/tombuildsstuff/giovanni/storage/accesscontrol
 github.com/tombuildsstuff/giovanni/storage/internal/endpoints
 github.com/tombuildsstuff/giovanni/storage/internal/metadata
@@ -449,7 +447,7 @@ go.opencensus.io/trace
 go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
-# golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
+# golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97
 ## explicit
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/cast5

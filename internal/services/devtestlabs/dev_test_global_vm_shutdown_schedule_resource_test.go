@@ -55,6 +55,7 @@ func TestAccDevTestGlobalVMShutdownSchedule_autoShutdownComplete(t *testing.T) {
 				check.That(data.ResourceName).Key("notification_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("notification_settings.0.time_in_minutes").HasValue("15"),
 				check.That(data.ResourceName).Key("notification_settings.0.webhook_url").HasValue("https://www.bing.com/2/4"),
+				check.That(data.ResourceName).Key("notification_settings.0.email").HasValue("alerts@devtest.com"),
 				check.That(data.ResourceName).Key("daily_recurrence_time").HasValue("1100"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.Environment").HasValue("Production"),
@@ -217,6 +218,7 @@ resource "azurerm_dev_test_global_vm_shutdown_schedule" "test" {
   notification_settings {
     time_in_minutes = 15
     webhook_url     = "https://www.bing.com/2/4"
+    email           = "alerts@devtest.com"
     enabled         = true
   }
 

@@ -100,6 +100,30 @@ func TestAccApiManagement_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("certificate.0.expiry").Exists(),
+				check.That(data.ResourceName).Key("certificate.0.subject").Exists(),
+				check.That(data.ResourceName).Key("certificate.0.thumbprint").Exists(),
+				check.That(data.ResourceName).Key("certificate.1.expiry").Exists(),
+				check.That(data.ResourceName).Key("certificate.1.subject").Exists(),
+				check.That(data.ResourceName).Key("certificate.1.thumbprint").Exists(),
+				check.That(data.ResourceName).Key("certificate.2.expiry").Exists(),
+				check.That(data.ResourceName).Key("certificate.2.subject").Exists(),
+				check.That(data.ResourceName).Key("certificate.2.thumbprint").Exists(),
+				check.That(data.ResourceName).Key("certificate.3.expiry").Exists(),
+				check.That(data.ResourceName).Key("certificate.3.subject").Exists(),
+				check.That(data.ResourceName).Key("certificate.3.thumbprint").Exists(),
+				check.That(data.ResourceName).Key("hostname_configuration.0.developer_portal.0.expiry").Exists(),
+				check.That(data.ResourceName).Key("hostname_configuration.0.developer_portal.0.subject").Exists(),
+				check.That(data.ResourceName).Key("hostname_configuration.0.developer_portal.0.thumbprint").Exists(),
+				check.That(data.ResourceName).Key("hostname_configuration.0.portal.0.expiry").Exists(),
+				check.That(data.ResourceName).Key("hostname_configuration.0.portal.0.subject").Exists(),
+				check.That(data.ResourceName).Key("hostname_configuration.0.portal.0.thumbprint").Exists(),
+				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.0.expiry").Exists(),
+				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.0.subject").Exists(),
+				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.0.thumbprint").Exists(),
+				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.1.expiry").Exists(),
+				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.1.subject").Exists(),
+				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.1.thumbprint").Exists(),
 			),
 		},
 		{
@@ -107,7 +131,12 @@ func TestAccApiManagement_complete(t *testing.T) {
 			ImportState:       true,
 			ImportStateVerify: true,
 			ImportStateVerifyIgnore: []string{
-				"certificate", // not returned from API, sensitive
+				"certificate.0.certificate_password",
+				"certificate.0.encoded_certificate",
+				"certificate.1.certificate_password",
+				"certificate.1.encoded_certificate",
+				"certificate.2.encoded_certificate",
+				"certificate.3.encoded_certificate",
 				"hostname_configuration.0.portal.0.certificate",                    // not returned from API, sensitive
 				"hostname_configuration.0.portal.0.certificate_password",           // not returned from API, sensitive
 				"hostname_configuration.0.developer_portal.0.certificate",          // not returned from API, sensitive
@@ -317,6 +346,21 @@ func TestAccApiManagement_identitySystemAssignedUpdateHostnameConfigurationsVers
 	})
 }
 
+func TestAccApiManagement_identityUserAssignedHostnameConfigurationsKeyVaultId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identityUserAssignedHostnameConfigurationsKeyVaultId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApiManagement_consumption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
@@ -418,6 +462,31 @@ func TestAccApiManagement_minApiVersion(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.consumption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagement_purgeSoftDelete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumptionPurgeSoftDeleteRecovery(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.consumptionPurgeSoftDelete(data),
+		},
+		{
+			Config: r.consumptionPurgeSoftDeleteRecovery(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1653,6 +1722,137 @@ resource "azurerm_api_management" "test" {
 `, r.identitySystemAssignedUpdateHostnameConfigurationsTemplate(data), data.RandomInteger)
 }
 
+func (ApiManagementResource) identityUserAssignedHostnameConfigurationsKeyVaultId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestKV-%[3]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+}
+
+resource "azurerm_key_vault_access_policy" "test" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+  certificate_permissions = [
+    "Create",
+    "Delete",
+    "Deleteissuers",
+    "Get",
+    "Getissuers",
+    "Import",
+    "List",
+    "Listissuers",
+    "Managecontacts",
+    "Manageissuers",
+    "Setissuers",
+    "Update",
+    "Purge",
+  ]
+  secret_permissions = [
+    "Delete",
+    "Get",
+    "List",
+    "Purge",
+  ]
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_key_vault_access_policy" "test2" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_user_assigned_identity.test.tenant_id
+  object_id    = azurerm_user_assigned_identity.test.principal_id
+  secret_permissions = [
+    "Get",
+    "List",
+  ]
+}
+
+resource "azurerm_key_vault_certificate" "test" {
+  depends_on   = [azurerm_key_vault_access_policy.test]
+  name         = "acctestKVCert-%[1]d"
+  key_vault_id = azurerm_key_vault.test.id
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+    x509_certificate_properties {
+      # Server Authentication = 1.3.6.1.5.5.7.3.1
+      # Client Authentication = 1.3.6.1.5.5.7.3.2
+      extended_key_usage = ["1.3.6.1.5.5.7.3.1"]
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+      subject_alternative_names {
+        dns_names = ["api.terraform.io"]
+      }
+      subject            = "CN=api.terraform.io"
+      validity_in_months = 1
+    }
+  }
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Developer_1"
+
+  hostname_configuration {
+    proxy {
+      host_name                       = "api.terraform.io"
+      key_vault_id                    = azurerm_key_vault_certificate.test.secret_id
+      default_ssl_binding             = true
+      negotiate_client_certificate    = false
+      ssl_keyvault_identity_client_id = azurerm_user_assigned_identity.test.client_id
+    }
+  }
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+  depends_on = [azurerm_key_vault_access_policy.test2]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
 func (ApiManagementResource) consumption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1816,6 +2016,45 @@ resource "azurerm_api_management" "test" {
   min_api_version     = "2020-12-01"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r ApiManagementResource) consumptionPurgeSoftDeleteRecovery(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Consumption_0"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementResource) consumptionPurgeSoftDelete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    api_management {
+      purge_soft_delete_on_destroy = true
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (ApiManagementResource) tenantAccess(data acceptance.TestData) string {

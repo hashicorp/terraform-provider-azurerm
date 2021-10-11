@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -64,36 +65,34 @@ func dataSourceIotHubDPSSharedAccessPolicy() *pluginsdk.Resource {
 
 func dataSourceIotHubDPSSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.DPSResourceClient
+	subscriptionId := meta.(*clients.Client).IoTHub.DPSResourceClient.SubscriptionID
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	keyName := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	iothubDpsName := d.Get("iothub_dps_name").(string)
+	id := parse.NewDpsSharedAccessPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_dps_name").(string), d.Get("name").(string))
 
-	iothubDps, err := client.Get(ctx, iothubDpsName, resourceGroup)
+	iothubDps, err := client.Get(ctx, id.ProvisioningServiceName, id.ResourceGroup)
 	if err != nil {
 		if utils.ResponseWasNotFound(iothubDps.Response) {
-			return fmt.Errorf("Error: IotHub DPS %q (Resource Group %q) was not found", iothubDpsName, resourceGroup)
+			return fmt.Errorf("Error: IotHub DPS %q (Resource Group %q) was not found", id.ProvisioningServiceName, id.ResourceGroup)
 		}
 
-		return fmt.Errorf("retrieving IotHub DPS %q (Resource Group %q): %+v", iothubDpsName, resourceGroup, err)
+		return fmt.Errorf("retrieving IotHub DPS %q (Resource Group %q): %+v", id.ProvisioningServiceName, id.ResourceGroup, err)
 	}
 
-	accessPolicy, err := client.ListKeysForKeyName(ctx, iothubDpsName, keyName, resourceGroup)
+	accessPolicy, err := client.ListKeysForKeyName(ctx, id.ProvisioningServiceName, id.KeyName, id.ResourceGroup)
 	if err != nil {
 		if utils.ResponseWasNotFound(accessPolicy.Response) {
-			return fmt.Errorf("Error: Shared Access Policy %q (IotHub DPS %q / Resource Group %q) was not found", keyName, iothubDpsName, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("loading Shared Access Policy %q (IotHub DPS %q / Resource Group %q): %+v", keyName, iothubDpsName, resourceGroup, err)
+		return fmt.Errorf("loading %s: %+v", id, err)
 	}
 
-	d.Set("name", keyName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.KeyName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
-	resourceID := fmt.Sprintf("%s/keys/%s", *iothubDps.ID, keyName)
-	d.SetId(resourceID)
+	d.SetId(id.ID())
 
 	d.Set("primary_key", accessPolicy.PrimaryKey)
 	d.Set("secondary_key", accessPolicy.SecondaryKey)
@@ -103,10 +102,10 @@ func dataSourceIotHubDPSSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta i
 	if iothubDps.Properties != nil && iothubDps.Properties.ServiceOperationsHostName != nil {
 		hostname := iothubDps.Properties.ServiceOperationsHostName
 		if primary := accessPolicy.PrimaryKey; primary != nil {
-			primaryConnectionString = getSAPConnectionString(*hostname, keyName, *primary)
+			primaryConnectionString = getSAPConnectionString(*hostname, id.KeyName, *primary)
 		}
 		if secondary := accessPolicy.SecondaryKey; secondary != nil {
-			secondaryConnectionString = getSAPConnectionString(*hostname, keyName, *secondary)
+			secondaryConnectionString = getSAPConnectionString(*hostname, id.KeyName, *secondary)
 		}
 	}
 	d.Set("primary_connection_string", primaryConnectionString)

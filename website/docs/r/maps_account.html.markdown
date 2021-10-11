@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Azure Maps Account should exist. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) The sku of the Azure Maps Account. Possible values are `S0` and `S1`.
+* `sku_name` - (Required) The sku of the Azure Maps Account. Possible values are `S0`, `S1` and `G2`.
 
 * `tags` - (Optional) A mapping of tags to assign to the Azure Maps Account.
 

@@ -30,6 +30,7 @@ func TestAccMonitorAutoScaleSetting_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("profile.0.name").HasValue("metricRules"),
 				check.That(data.ResourceName).Key("profile.0.rule.#").HasValue("1"),
 				check.That(data.ResourceName).Key("profile.0.rule.0.metric_trigger.0.time_aggregation").HasValue("Last"),
+				check.That(data.ResourceName).Key("profile.0.rule.0.metric_trigger.0.divide_by_instance_count").HasValue("true"),
 				check.That(data.ResourceName).Key("notification.#").HasValue("0"),
 				acceptance.TestCheckNoResourceAttr(data.ResourceName, "tags.$type"),
 			),
@@ -325,14 +326,15 @@ resource "azurerm_monitor_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name        = "Percentage CPU"
-        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
-        time_grain         = "PT1M"
-        statistic          = "Average"
-        time_window        = "PT5M"
-        time_aggregation   = "Last"
-        operator           = "GreaterThan"
-        threshold          = 75
+        metric_name              = "Percentage CPU"
+        metric_resource_id       = azurerm_virtual_machine_scale_set.test.id
+        time_grain               = "PT1M"
+        statistic                = "Average"
+        time_window              = "PT5M"
+        time_aggregation         = "Last"
+        operator                 = "GreaterThan"
+        threshold                = 75
+        divide_by_instance_count = true
       }
 
       scale_action {

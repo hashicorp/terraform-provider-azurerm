@@ -3,7 +3,7 @@ package common
 import (
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-06-15/documentdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -129,6 +129,10 @@ func FlattenCosmosCorsRule(input *[]documentdb.CorsPolicy) []interface{} {
 }
 
 func flattenCorsProperty(input *string) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
 	results := make([]interface{}, 0, len(*input))
 
 	origins := strings.Split(*input, ",")

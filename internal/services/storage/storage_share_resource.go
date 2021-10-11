@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/shares"
 )
 
 func resourceStorageShare() *pluginsdk.Resource {

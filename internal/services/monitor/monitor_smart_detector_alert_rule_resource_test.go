@@ -182,7 +182,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-monitor-%d"
+  name     = "acctestrg-monitor-%d"
   location = "%s"
 }
 

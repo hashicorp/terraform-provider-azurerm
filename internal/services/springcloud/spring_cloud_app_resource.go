@@ -280,8 +280,8 @@ func expandSpringCloudAppIdentity(input []interface{}) (*appplatform.ManagedIden
 
 	return &appplatform.ManagedIdentityProperties{
 		Type:        appplatform.ManagedIdentityType(config.Type),
-		TenantID:    config.TenantId,
-		PrincipalID: config.PrincipalId,
+		TenantID:    &config.TenantId,
+		PrincipalID: &config.PrincipalId,
 	}, nil
 }
 
@@ -298,11 +298,22 @@ func expandSpringCloudAppPersistentDisk(input []interface{}) *appplatform.Persis
 
 func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties) []interface{} {
 	var config *identity.ExpandedConfig
+
 	if input != nil {
+		principalId := ""
+		if input.PrincipalID != nil {
+			principalId = *input.PrincipalID
+		}
+
+		tenantId := ""
+		if input.TenantID != nil {
+			tenantId = *input.TenantID
+		}
+
 		config = &identity.ExpandedConfig{
 			Type:        identity.Type(string(input.Type)),
-			PrincipalId: input.PrincipalID,
-			TenantId:    input.TenantID,
+			PrincipalId: principalId,
+			TenantId:    tenantId,
 		}
 	}
 	return springCloudAppIdentity{}.Flatten(config)

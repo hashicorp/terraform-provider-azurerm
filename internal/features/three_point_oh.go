@@ -1,5 +1,10 @@
 package features
 
+import (
+	"os"
+	"strings"
+)
+
 // nolint gocritic
 // DeprecatedInThreePointOh returns the deprecation message if the provider
 // is running in 3.0 mode - otherwise is returns an empty string (such that
@@ -24,4 +29,14 @@ func DeprecatedInThreePointOh(deprecationMessage string) string {
 // a Beta and then GA at 3.0 release.
 func ThreePointOh() bool {
 	return false
+}
+
+// ThreePointOhBetaResources returns whether this provider is opted into
+// the Beta Resources coming in v3.0 - or explicitly opted into v3.0.
+func ThreePointOhBetaResources() bool {
+	if ThreePointOh() {
+		return true
+	}
+
+	return strings.EqualFold(os.Getenv("ARM_THREEPOINTZERO_BETA_RESOURCES"), "true")
 }

@@ -55,6 +55,8 @@ func resourceEventGridSystemTopic() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"identity": IdentitySchema(),
+
 			"source_arm_resource_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -105,13 +107,24 @@ func resourceEventGridSystemTopicCreateUpdate(d *pluginsdk.ResourceData, meta in
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
+	systemTopicProperties := &eventgrid.SystemTopicProperties{
+		Source:    &source,
+		TopicType: &topicType,
+	}
+
 	systemTopic := eventgrid.SystemTopic{
-		Location: &location,
-		SystemTopicProperties: &eventgrid.SystemTopicProperties{
-			Source:    &source,
-			TopicType: &topicType,
-		},
-		Tags: tags.Expand(t),
+		Location:              &location,
+		SystemTopicProperties: systemTopicProperties,
+		Tags:                  tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("identity"); ok {
+		identityRaw := v.([]interface{})
+		identity, err := expandIdentity(identityRaw)
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		systemTopic.Identity = identity
 	}
 
 	log.Printf("[INFO] preparing arguments for AzureRM Event Grid System Topic creation with Properties: %+v.", systemTopic)
@@ -169,6 +182,10 @@ func resourceEventGridSystemTopicRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("source_arm_resource_id", props.Source)
 		d.Set("topic_type", props.TopicType)
 		d.Set("metric_arm_resource_id", props.MetricResourceID)
+	}
+
+	if err := d.Set("identity", flattenIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

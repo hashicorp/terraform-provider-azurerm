@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	validate2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
@@ -40,8 +41,10 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			0: migration.LegacyVMSSV0ToV1{},
 		}),
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.VirtualMachineScaleSetID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -942,25 +945,23 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["virtualMachineScaleSets"]
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] AzureRM Virtual Machine Scale Set (%s) Not Found. Removing from State", name)
+			log.Printf("[INFO] AzureRM Virtual Machine Scale Set (%s) Not Found. Removing from State", id.Name)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Azure Virtual Machine Scale Set %s: %+v", name, err)
+		return fmt.Errorf("making Read request on Azure Virtual Machine Scale Set %s: %+v", id.Name, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -1104,17 +1105,15 @@ func resourceVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["virtualMachineScaleSets"]
 
 	// @ArcturusZhang (mimicking from virtual_machine_pluginsdk.go): sending `nil` here omits this value from being sent
 	// which matches the previous behaviour - we're only splitting this out so it's clear why
 	var forceDeletion *bool = nil
-	future, err := client.Delete(ctx, resGroup, name, forceDeletion)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, forceDeletion)
 	if err != nil {
 		return err
 	}
@@ -1260,9 +1259,14 @@ func flattenAzureRmVirtualMachineScaleSetOsProfileSecrets(secrets *[]compute.Vau
 }
 
 func flattenAzureRmVirtualMachineScaleSetBootDiagnostics(bootDiagnostic *compute.BootDiagnostics) []interface{} {
-	b := map[string]interface{}{
-		"enabled":     *bootDiagnostic.Enabled,
-		"storage_uri": *bootDiagnostic.StorageURI,
+	b := make(map[string]interface{})
+
+	if bootDiagnostic.Enabled != nil {
+		b["enabled"] = *bootDiagnostic.Enabled
+	}
+
+	if bootDiagnostic.StorageURI != nil {
+		b["storage_uri"] = *bootDiagnostic.StorageURI
 	}
 
 	return []interface{}{b}

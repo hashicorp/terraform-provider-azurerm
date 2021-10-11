@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,16 +23,16 @@ func importDataConnection(kind kusto.KindBasicDataConnection) pluginsdk.Importer
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Kusto Data Connection %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
-		if _, ok := dataConnection.Value.AsEventHubDataConnection(); ok && kind != kusto.KindEventHub {
-			return nil, fmt.Errorf(`kusto data connection "kind" mismatch, expected "%s", got "%s"`, kind, kusto.KindEventHub)
+		if _, ok := dataConnection.Value.AsEventHubDataConnection(); ok && kind != kusto.KindBasicDataConnectionKindEventHub {
+			return nil, fmt.Errorf(`kusto data connection "kind" mismatch, expected "%s", got "%s"`, kind, kusto.KindBasicDataConnectionKindEventHub)
 		}
 
-		if _, ok := dataConnection.Value.AsIotHubDataConnection(); ok && kind != kusto.KindIotHub {
-			return nil, fmt.Errorf(`kusto data connection "kind" mismatch, expected "%s", got "%s"`, kind, kusto.KindIotHub)
+		if _, ok := dataConnection.Value.AsIotHubDataConnection(); ok && kind != kusto.KindBasicDataConnectionKindIotHub {
+			return nil, fmt.Errorf(`kusto data connection "kind" mismatch, expected "%s", got "%s"`, kind, kusto.KindBasicDataConnectionKindIotHub)
 		}
 
-		if _, ok := dataConnection.Value.AsEventGridDataConnection(); ok && kind != kusto.KindEventGrid {
-			return nil, fmt.Errorf(`kusto data connection "kind" mismatch, expected "%s", got "%s"`, kind, kusto.KindEventGrid)
+		if _, ok := dataConnection.Value.AsEventGridDataConnection(); ok && kind != kusto.KindBasicDataConnectionKindEventGrid {
+			return nil, fmt.Errorf(`kusto data connection "kind" mismatch, expected "%s", got "%s"`, kind, kusto.KindBasicDataConnectionKindEventGrid)
 		}
 
 		return []*pluginsdk.ResourceData{d}, nil

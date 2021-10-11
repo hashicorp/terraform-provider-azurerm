@@ -118,6 +118,10 @@ func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
 
 			"advanced_filter": eventSubscriptionSchemaAdvancedFilter(),
 
+			"delivery_identity": eventSubscriptionSchemaIdentity(),
+
+			"dead_letter_identity": eventSubscriptionSchemaIdentity(),
+
 			"storage_blob_dead_letter_destination": eventSubscriptionSchemaStorageBlobDeadletterDestination(),
 
 			"retry_policy": eventSubscriptionSchemaRetryPolicy(),
@@ -166,14 +170,39 @@ func resourceEventGridSystemTopicEventSubscriptionCreateUpdate(d *pluginsdk.Reso
 		return fmt.Errorf("creating/updating EventGrid System Topic Event Subscription %q (System Topic %q): %s", name, systemTopic, err)
 	}
 
+	deadLetterDestination := expandEventGridEventSubscriptionStorageBlobDeadLetterDestination(d)
+
 	eventSubscriptionProperties := eventgrid.EventSubscriptionProperties{
-		Destination:           destination,
-		Filter:                filter,
-		DeadLetterDestination: expandEventGridEventSubscriptionStorageBlobDeadLetterDestination(d),
-		RetryPolicy:           expandEventGridEventSubscriptionRetryPolicy(d),
-		Labels:                utils.ExpandStringSlice(d.Get("labels").([]interface{})),
-		EventDeliverySchema:   eventgrid.EventDeliverySchema(d.Get("event_delivery_schema").(string)),
-		ExpirationTimeUtc:     expirationTime,
+		Filter:              filter,
+		RetryPolicy:         expandEventGridEventSubscriptionRetryPolicy(d),
+		Labels:              utils.ExpandStringSlice(d.Get("labels").([]interface{})),
+		EventDeliverySchema: eventgrid.EventDeliverySchema(d.Get("event_delivery_schema").(string)),
+		ExpirationTimeUtc:   expirationTime,
+	}
+
+	if v, ok := d.GetOk("delivery_identity"); ok {
+		deliveryIdentityRaw := v.([]interface{})
+		deliveryIdentity := expandEventGridEventSubscriptionIdentity(deliveryIdentityRaw)
+		eventSubscriptionProperties.DeliveryWithResourceIdentity = &eventgrid.DeliveryWithResourceIdentity{
+			Identity:    deliveryIdentity,
+			Destination: destination,
+		}
+	} else {
+		eventSubscriptionProperties.Destination = destination
+	}
+
+	if v, ok := d.GetOk("dead_letter_identity"); ok {
+		if deadLetterDestination == nil {
+			return fmt.Errorf("`dead_letter_identity`: `storage_blob_dead_letter_destination` must be specified")
+		}
+		deadLetterIdentityRaw := v.([]interface{})
+		deadLetterIdentity := expandEventGridEventSubscriptionIdentity(deadLetterIdentityRaw)
+		eventSubscriptionProperties.DeadLetterWithResourceIdentity = &eventgrid.DeadLetterWithResourceIdentity{
+			Identity:              deadLetterIdentity,
+			DeadLetterDestination: deadLetterDestination,
+		}
+	} else {
+		eventSubscriptionProperties.DeadLetterDestination = deadLetterDestination
 	}
 
 	eventSubscription := eventgrid.EventSubscription{
@@ -236,43 +265,71 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 
 		d.Set("event_delivery_schema", string(props.EventDeliverySchema))
 
-		if azureFunctionEndpoint, ok := props.Destination.AsAzureFunctionEventSubscriptionDestination(); ok {
+		destination := props.Destination
+		deliveryIdentityFlattened := make([]interface{}, 0)
+		if deliveryIdentity := props.DeliveryWithResourceIdentity; deliveryIdentity != nil {
+			destination = deliveryIdentity.Destination
+			deliveryIdentityFlattened = flattenEventGridEventSubscriptionIdentity(deliveryIdentity.Identity)
+		}
+		if err := d.Set("delivery_identity", deliveryIdentityFlattened); err != nil {
+			return fmt.Errorf("setting `delivery_identity` for EventGrid System Topic Event Subscription %q (System Topic  %q): %s", id.Name, id.SystemTopic, err)
+		}
+
+		if azureFunctionEndpoint, ok := destination.AsAzureFunctionEventSubscriptionDestination(); ok {
 			if err := d.Set("azure_function_endpoint", flattenEventGridEventSubscriptionAzureFunctionEndpoint(azureFunctionEndpoint)); err != nil {
 				return fmt.Errorf("setting `%q` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", "azure_function_endpoint", id.Name, id.SystemTopic, err)
 			}
 		}
-		if v, ok := props.Destination.AsEventHubEventSubscriptionDestination(); ok {
+		if v, ok := destination.AsEventHubEventSubscriptionDestination(); ok {
 			if err := d.Set("eventhub_endpoint_id", v.ResourceID); err != nil {
 				return fmt.Errorf("setting `%q` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", "eventhub_endpoint_id", id.Name, id.SystemTopic, err)
 			}
 		}
-		if v, ok := props.Destination.AsHybridConnectionEventSubscriptionDestination(); ok {
+		if v, ok := destination.AsHybridConnectionEventSubscriptionDestination(); ok {
 			if err := d.Set("hybrid_connection_endpoint_id", v.ResourceID); err != nil {
 				return fmt.Errorf("setting `%q` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", "hybrid_connection_endpoint_id", id.Name, id.SystemTopic, err)
 			}
 		}
-		if serviceBusQueueEndpoint, ok := props.Destination.AsServiceBusQueueEventSubscriptionDestination(); ok {
+		if serviceBusQueueEndpoint, ok := destination.AsServiceBusQueueEventSubscriptionDestination(); ok {
 			if err := d.Set("service_bus_queue_endpoint_id", serviceBusQueueEndpoint.ResourceID); err != nil {
 				return fmt.Errorf("setting `%q` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", "service_bus_queue_endpoint_id", id.Name, id.SystemTopic, err)
 			}
 		}
-		if serviceBusTopicEndpoint, ok := props.Destination.AsServiceBusTopicEventSubscriptionDestination(); ok {
+		if serviceBusTopicEndpoint, ok := destination.AsServiceBusTopicEventSubscriptionDestination(); ok {
 			if err := d.Set("service_bus_topic_endpoint_id", serviceBusTopicEndpoint.ResourceID); err != nil {
 				return fmt.Errorf("setting `%q` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", "service_bus_topic_endpoint_id", id.Name, id.SystemTopic, err)
 			}
 		}
-		if v, ok := props.Destination.AsStorageQueueEventSubscriptionDestination(); ok {
+		if v, ok := destination.AsStorageQueueEventSubscriptionDestination(); ok {
 			if err := d.Set("storage_queue_endpoint", flattenEventGridEventSubscriptionStorageQueueEndpoint(v)); err != nil {
 				return fmt.Errorf("setting `%q` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", "storage_queue_endpoint", id.Name, id.SystemTopic, err)
 			}
 		}
-		if v, ok := props.Destination.AsWebHookEventSubscriptionDestination(); ok {
+		if v, ok := destination.AsWebHookEventSubscriptionDestination(); ok {
 			fullURL, err := client.GetFullURL(ctx, id.ResourceGroup, id.SystemTopic, id.Name)
 			if err != nil {
 				return fmt.Errorf("making Read request on EventGrid System Topic Event Subscription full URL '%s': %+v", id.Name, err)
 			}
 			if err := d.Set("webhook_endpoint", flattenEventGridEventSubscriptionWebhookEndpoint(v, &fullURL)); err != nil {
 				return fmt.Errorf("setting `%q` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", "webhook_endpoint", id.Name, id.SystemTopic, err)
+			}
+		}
+
+		deadLetterDestination := props.DeadLetterDestination
+		deadLetterIdentityFlattened := make([]interface{}, 0)
+		if deadLetterIdentity := props.DeadLetterWithResourceIdentity; deadLetterIdentity != nil {
+			deadLetterDestination = deadLetterIdentity.DeadLetterDestination
+			deadLetterIdentityFlattened = flattenEventGridEventSubscriptionIdentity(deadLetterIdentity.Identity)
+		}
+		if err := d.Set("dead_letter_identity", deadLetterIdentityFlattened); err != nil {
+			return fmt.Errorf("setting `dead_letter_identity` for EventGrid System Topic Event Subscription %q (Scope %q): %s", id.Name, id.SystemTopic, err)
+		}
+
+		if deadLetterDestination != nil {
+			if storageBlobDeadLetterDestination, ok := deadLetterDestination.AsStorageBlobDeadLetterDestination(); ok {
+				if err := d.Set("storage_blob_dead_letter_destination", flattenEventGridEventSubscriptionStorageBlobDeadLetterDestination(storageBlobDeadLetterDestination)); err != nil {
+					return fmt.Errorf("Error setting `storage_blob_dead_letter_destination` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", id.Name, id.SystemTopic, err)
+				}
 			}
 		}
 

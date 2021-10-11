@@ -66,9 +66,15 @@ resource "azurerm_storage_account_network_rules" "test" {
 
 The following arguments are supported:
 
-* `storage_account_name` - (Required) Specifies the name of the storage account. Changing this forces a new resource to be created. This must be unique across the entire Azure service, not just within the resource group.
+* `storage_account_name` - (Optional) Specifies the name of the storage account. Changing this forces a new resource to be created. This must be unique across the entire Azure service, not just within the resource group.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the storage account. Changing this forces a new resource to be created.
+-> **NOTE:** This property has been deprecated in favour of the `storage_account_id` property and will be removed in version 3.0 of the provider.
+
+* `resource_group_name` - (Optional) The name of the resource group in which to create the storage account. Changing this forces a new resource to be created.
+
+-> **NOTE:** This property has been deprecated in favour of the `storage_account_id` property and will be removed in version 3.0 of the provider.
+
+* `storage_account_id` - (Optional) Specifies the ID of the storage account. Changing this forces a new resource to be created.
 
 * `default_action` - (Required) Specifies the default action of allow or deny when no other rules match. Valid options are `Deny` or `Allow`.
 

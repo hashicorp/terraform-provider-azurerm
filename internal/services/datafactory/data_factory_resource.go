@@ -36,8 +36,10 @@ func resourceDataFactory() *pluginsdk.Resource {
 			1: migration.DataFactoryV1ToV2{},
 		}),
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.DataFactoryID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -73,6 +75,7 @@ func resourceDataFactory() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(datafactory.FactoryIdentityTypeSystemAssigned),
 								string(datafactory.FactoryIdentityTypeUserAssigned),
+								string(datafactory.FactoryIdentityTypeSystemAssignedUserAssigned),
 							}, false),
 						},
 
@@ -273,8 +276,8 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		identityIdsRaw := d.Get("identity.0.identity_ids").([]interface{})
 		if len(identityIdsRaw) > 0 {
-			if identityType != string(datafactory.FactoryIdentityTypeUserAssigned) {
-				return fmt.Errorf("`identity_ids` can only be specified when `type` is `%s`", string(datafactory.FactoryIdentityTypeUserAssigned))
+			if !(identityType == string(datafactory.FactoryIdentityTypeUserAssigned) || identityType == string(datafactory.FactoryIdentityTypeSystemAssignedUserAssigned)) {
+				return fmt.Errorf("`identity_ids` can only be specified when `type` is `%s` or `%s`", string(datafactory.FactoryIdentityTypeUserAssigned), string(datafactory.FactoryIdentityTypeSystemAssignedUserAssigned))
 			}
 
 			identityIds := make(map[string]interface{})

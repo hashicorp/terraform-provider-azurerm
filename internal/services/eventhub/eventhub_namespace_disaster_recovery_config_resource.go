@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/checknameavailabilitydisasterrecoveryconfigs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/disasterrecoveryconfigs"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/checknameavailabilitydisasterrecoveryconfigs"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/disasterrecoveryconfigs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -124,7 +124,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resource
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := disasterrecoveryconfigs.DisasterRecoveryConfigID(d.Id())
+	id, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -169,7 +169,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := disasterrecoveryconfigs.DisasterRecoveryConfigID(d.Id())
+	id, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -200,7 +200,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := disasterrecoveryconfigs.DisasterRecoveryConfigID(d.Id())
+	id, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigID(d.Id())
 	if err != nil {
 		return err
 	}

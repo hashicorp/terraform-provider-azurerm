@@ -143,7 +143,7 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 * `disable_terraform_partner_id` - (Optional) Disable sending the Terraform Partner ID if a custom `partner_id` isn't specified, which allows Microsoft to better understand the usage of Terraform. The Partner ID does not give HashiCorp any direct access to usage information. This can also be sourced from the `ARM_DISABLE_TERRAFORM_PARTNER_ID` environment variable. Defaults to `false`.
 
-* `metadata_host` - (Optional) The Hostname of the Azure Metadata Service (for example `management.azure.com`), used to obtain the Cloud Environment when using a Custom Azure Environment. This can also be sourced from the `ARM_METADATA_HOST` Environment Variable.
+* `metadata_host` - (Optional) The Hostname of the Azure Metadata Service (for example `management.azure.com`), used to obtain the Cloud Environment when using a Custom Azure Environment. This can also be sourced from the `ARM_METADATA_HOSTNAME` Environment Variable.
 
 ~> **Note:** `environment` must be set to the requested environment name in the list of available environments held in the `metadata_host`.
 
@@ -169,17 +169,27 @@ It's possible to configure the behaviour of certain resources using the `feature
 
 The `features` block supports the following:
 
+* `api_management` - (Optional) An `api_management` block as defined below.
+
 * `cognitive_account` - (Optional) A `cognitive_account` block as defined below.
 
 * `key_vault` - (Optional) A `key_vault` block as defined below.
 
 * `log_analytics_workspace` - (Optional) A `log_analytics_workspace` block as defined below.
 
+* `resource_group` - (Optional) A `resource_group` block as defined below.
+
 * `template_deployment` - (Optional) A `template_deployment` block as defined below.
 
 * `virtual_machine` - (Optional) A `virtual_machine` block as defined below.
 
 * `virtual_machine_scale_set` - (Optional) A `virtual_machine_scale_set` block as defined below.
+
+---
+
+The `api_management` block supports the following:
+
+* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_api_management` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
 
 ---
 
@@ -204,6 +214,14 @@ The `key_vault` block supports the following:
 The `log_analytics_workspace` block supports the following:
 
 * `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
+
+---
+
+The `resource_group` block supports the following:
+
+* `prevent_deletion_if_contains_resources` - (Optional) Should the `azurerm_resource_group` resource check that there are no Resources within the Resource Group during deletion? This means that all Resources within the Resource Group must be deleted prior to deleting the Resource Group. Defaults to `false`.
+
+-> **Note:** This will be defaulted to `true` in the next major version of the Azure Provider (3.0).
 
 ---
 

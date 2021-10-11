@@ -59,7 +59,7 @@ resource "azurerm_data_protection_backup_policy_disk" "example" {
 
 resource "azurerm_data_protection_backup_instance_disk" "example" {
   name                         = "example-backup-instance"
-  resource_group_name          = azurerm_resource_group.rg.name
+  location                     = azurerm_data_protection_backup_vault.example.location
   vault_id                     = azurerm_data_protection_backup_vault.example.id
   disk_id                      = azurerm_managed_disk.example.id
   snapshot_resource_group_name = azurerm_resource_group.rg.name
@@ -73,8 +73,6 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Backup Instance Disk. Changing this forces a new Backup Instance Disk to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Backup Instance Disk should exist. Changing this forces a new Backup Instance Disk to be created.
-
 * `location` - (Required) The Azure Region where the Backup Instance Disk should exist. Changing this forces a new Backup Instance Disk to be created.
 
 * `vault_id` - (Required) The ID of the Backup Vault within which the Backup Instance Disk should exist. Changing this forces a new Backup Instance Disk to be created.
@@ -87,7 +85,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Backup Instance Disk.
 

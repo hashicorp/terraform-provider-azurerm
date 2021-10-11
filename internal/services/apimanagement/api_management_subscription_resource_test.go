@@ -111,7 +111,7 @@ func TestAccApiManagementSubscription_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("state").HasValue("active"),
 				check.That(data.ResourceName).Key("allow_tracing").HasValue("false"),
-				check.That(data.ResourceName).Key("subscription_id").Exists(),
+				check.That(data.ResourceName).Key("subscription_id").HasValue("This-Is-A-Valid-Subscription-ID"),
 				check.That(data.ResourceName).Key("primary_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_key").Exists(),
 			),
@@ -241,6 +241,7 @@ func (r ApiManagementSubscriptionResource) complete(data acceptance.TestData) st
 %s
 
 resource "azurerm_api_management_subscription" "test" {
+  subscription_id     = "This-Is-A-Valid-Subscription-ID"
   resource_group_name = azurerm_api_management.test.resource_group_name
   api_management_name = azurerm_api_management.test.name
   user_id             = azurerm_api_management_user.test.id

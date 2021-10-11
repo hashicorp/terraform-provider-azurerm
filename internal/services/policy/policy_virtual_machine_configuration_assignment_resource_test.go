@@ -3,6 +3,7 @@ package policy_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -45,6 +46,28 @@ func TestAccPolicyVirtualMachineConfigurationAssignment_requiresImport(t *testin
 	})
 }
 
+func TestAccPolicyVirtualMachineConfigurationAssignment_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_virtual_machine_configuration_assignment", "test")
+	r := PolicyVirtualMachineConfigurationAssignmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateGuestConfiguration(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r PolicyVirtualMachineConfigurationAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualMachineConfigurationPolicyAssignmentID(state.ID)
 	if err != nil {
@@ -62,6 +85,10 @@ func (r PolicyVirtualMachineConfigurationAssignmentResource) Exists(ctx context.
 
 func (r PolicyVirtualMachineConfigurationAssignmentResource) templateBase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 locals {
   vm_name = "acctestvm%s"
 }
@@ -100,6 +127,15 @@ resource "azurerm_network_interface" "test" {
 }
 
 func (r PolicyVirtualMachineConfigurationAssignmentResource) template(data acceptance.TestData) string {
+	tags := ""
+	if strings.HasPrefix(strings.ToLower(data.Client().SubscriptionID), "85b3dbca") {
+		tags = `
+  tags = {
+    "azsecpack"                                                                = "nonprod"
+    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true"
+  }
+`
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -125,8 +161,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     sku       = "2016-Datacenter"
     version   = "latest"
   }
+
+%s
 }
-`, r.templateBase(data))
+`, r.templateBase(data), tags)
 }
 
 func (r PolicyVirtualMachineConfigurationAssignmentResource) basic(data acceptance.TestData) string {
@@ -134,11 +172,12 @@ func (r PolicyVirtualMachineConfigurationAssignmentResource) basic(data acceptan
 %s
 
 resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
-  name               = "acctest-gca-%d"
-  location           = azurerm_windows_virtual_machine.test.location
+  name     = "WhitelistedApplication"
+  location = azurerm_windows_virtual_machine.test.location
+
   virtual_machine_id = azurerm_windows_virtual_machine.test.id
+
   configuration {
-    name    = "WhitelistedApplication"
     version = "1.*"
 
     parameter {
@@ -147,7 +186,7 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data))
 }
 
 func (r PolicyVirtualMachineConfigurationAssignmentResource) requiresImport(data acceptance.TestData) string {
@@ -160,7 +199,6 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "import" {
   virtual_machine_id = azurerm_policy_virtual_machine_configuration_assignment.test.virtual_machine_id
 
   configuration {
-    name    = "WhitelistedApplication"
     version = "1.*"
 
     parameter {
@@ -170,4 +208,52 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "import" {
   }
 }
 `, r.basic(data))
+}
+
+func (r PolicyVirtualMachineConfigurationAssignmentResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
+  name               = "WhitelistedApplication"
+  location           = azurerm_windows_virtual_machine.test.location
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
+
+  configuration {
+    version         = "1.1.1.1"
+    assignment_type = "ApplyAndAutoCorrect"
+    content_hash    = "testcontenthash"
+    content_uri     = "https://testcontenturi/package"
+
+    parameter {
+      name  = "[InstalledApplication]bwhitelistedapp;Name"
+      value = "NotePad,sql"
+    }
+  }
+}
+`, r.template(data))
+}
+
+func (r PolicyVirtualMachineConfigurationAssignmentResource) updateGuestConfiguration(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
+  name               = "WhitelistedApplication"
+  location           = azurerm_windows_virtual_machine.test.location
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
+
+  configuration {
+    version         = "1.1.1.1"
+    assignment_type = "Audit"
+    content_hash    = "testcontenthash2"
+    content_uri     = "https://testcontenturi/package2"
+
+    parameter {
+      name  = "[InstalledApplication]bwhitelistedapp;Name"
+      value = "NotePad,sql"
+    }
+  }
+}
+`, r.template(data))
 }

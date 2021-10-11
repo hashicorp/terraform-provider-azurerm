@@ -13,10 +13,10 @@ func SqlPoolName(i interface{}, k string) (warnings []string, errors []error) {
 	}
 
 	// The name attribute rules are :
-	// 1. can contain only letters, numbers and underscore.
-	// 2. The value must be between 1 and 15 characters long
-
-	if !regexp.MustCompile(`^[a-zA-Z_\d]{1,15}$`).MatchString(v) {
+	// 1. can't contain '<,>,*,%,&,:,\,/,?,@,-' or control characters
+	// 2. can't end with '.' or ' '
+	// 3. The value must be between 1 and 60 characters long
+	if !regexp.MustCompile(`^[^<>*%&:\\\/?@-]{0,59}[^\s.<>*%&:\\\/?@-]$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%s can contain only letters, numbers or underscore, The value must be between 1 and 15 characters long", k))
 		return
 	}

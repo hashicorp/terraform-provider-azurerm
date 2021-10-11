@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -188,7 +188,46 @@ func TestAccEventGridEventSubscription_advancedFilterMaxItems(t *testing.T) {
 	})
 }
 
-func (EventGridEventSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func TestAccEventGridEventSubscription_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+	r := EventGridEventSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("delivery_identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("delivery_identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("dead_letter_identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("dead_letter_identity.0.type").HasValue("SystemAssigned"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("delivery_identity.#").HasValue("0"),
+				check.That(data.ResourceName).Key("dead_letter_identity.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("delivery_identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("delivery_identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("dead_letter_identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("dead_letter_identity.0.type").HasValue("SystemAssigned"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (EventGridEventSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.EventSubscriptionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -718,6 +757,66 @@ resource "azurerm_eventgrid_event_subscription" "test" {
       key    = "data.blobType"
       values = ["24", "25"]
     }
+  }
+
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (EventGridEventSubscriptionResource) identity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_queue" "test" {
+  name                 = "mysamplequeue-%[1]d"
+  storage_account_name = azurerm_storage_account.test.name
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "dead-letter-destination"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_eventgrid_event_subscription" "test" {
+  name  = "acctesteg-%[1]d"
+  scope = azurerm_resource_group.test.id
+
+  delivery_identity {
+    type = "SystemAssigned"
+  }
+
+  dead_letter_identity {
+    type = "SystemAssigned"
+  }
+
+  storage_queue_endpoint {
+    storage_account_id = azurerm_storage_account.test.id
+    queue_name         = azurerm_storage_queue.test.name
+  }
+
+  storage_blob_dead_letter_destination {
+    storage_account_id          = azurerm_storage_account.test.id
+    storage_blob_container_name = azurerm_storage_container.test.name
   }
 
 }

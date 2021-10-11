@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
@@ -63,7 +63,7 @@ func (r BackendAddressPoolAddressResource) Attributes() map[string]*pluginsdk.Sc
 }
 
 func (r BackendAddressPoolAddressResource) ModelObject() interface{} {
-	return BackendAddressPoolAddressModel{}
+	return &BackendAddressPoolAddressModel{}
 }
 
 func (r BackendAddressPoolAddressResource) ResourceType() string {

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/legacysdk/dataprotection"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	postgresParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	postgresValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -67,6 +68,12 @@ func resourceDataProtectionBackupInstancePostgreSQL() *pluginsdk.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.BackupPolicyID,
+			},
+
+			"database_credential_key_vault_secret_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 			},
 		},
 	}
@@ -125,6 +132,17 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 			},
 		},
 	}
+
+	if v, ok := d.GetOk("database_credential_key_vault_secret_id"); ok {
+		parameters.Properties.DatasourceAuthCredentials = &dataprotection.SecretStoreBasedAuthCredentials{
+			SecretStoreResource: &dataprotection.SecretStoreResource{
+				URI:             utils.String(v.(string)),
+				SecretStoreType: dataprotection.SecretStoreTypeAzureKeyVault,
+			},
+			ObjectType: dataprotection.ObjectTypeSecretStoreBasedAuthCredentials,
+		}
+	}
+
 	future, err := client.CreateOrUpdate(ctx, id.BackupVaultName, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
 		return fmt.Errorf("creating/updating DataProtection BackupInstance (%q): %+v", id, err)
@@ -139,8 +157,8 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 		return fmt.Errorf("context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(dataprotection.ConfiguringProtection), string(dataprotection.UpdatingProtection)},
-		Target:     []string{string(dataprotection.ProtectionConfigured)},
+		Pending:    []string{string(dataprotection.StatusConfiguringProtection), "UpdatingProtection"},
+		Target:     []string{string(dataprotection.StatusProtectionConfigured)},
 		Refresh:    policyProtectionStateRefreshFunc(ctx, client, id),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(deadline),
@@ -183,6 +201,15 @@ func resourceDataProtectionBackupInstancePostgreSQLRead(d *schema.ResourceData, 
 		}
 		if props.PolicyInfo != nil {
 			d.Set("backup_policy_id", props.PolicyInfo.PolicyID)
+		}
+		if props.DatasourceAuthCredentials != nil {
+			if credential, ok := props.DatasourceAuthCredentials.AsSecretStoreBasedAuthCredentials(); ok {
+				if credential.SecretStoreResource != nil {
+					d.Set("database_credential_key_vault_secret_id", credential.SecretStoreResource.URI)
+				}
+			} else {
+				log.Printf("[DEBUG] Skipping setting database_credential_key_vault_secret_id since this DatasourceAuthCredentials is not supported")
+			}
 		}
 	}
 	return nil

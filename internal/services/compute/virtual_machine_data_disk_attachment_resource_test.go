@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -190,15 +190,13 @@ func TestAccVirtualMachineDataDiskAttachment_virtualMachineExtension(t *testing.
 }
 
 func (t VirtualMachineDataDiskAttachmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.DataDiskID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	virtualMachineName := id.Path["virtualMachines"]
-	name := id.Path["dataDisks"]
 
-	resp, err := clients.Compute.VMClient.Get(ctx, resourceGroup, virtualMachineName, "")
+	resp, err := clients.Compute.VMClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
+
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Virtual Machine Data Disk Attachment %q", id)
 	}
@@ -208,7 +206,7 @@ func (t VirtualMachineDataDiskAttachmentResource) Exists(ctx context.Context, cl
 		if dataDisks := profile.DataDisks; dataDisks != nil {
 			for _, dataDisk := range *dataDisks {
 				// since this field isn't (and shouldn't be) case-sensitive; we're deliberately not using `strings.EqualFold`
-				if *dataDisk.Name == name {
+				if *dataDisk.Name == id.Name {
 					disk = &dataDisk
 					break
 				}
@@ -220,15 +218,12 @@ func (t VirtualMachineDataDiskAttachmentResource) Exists(ctx context.Context, cl
 }
 
 func (VirtualMachineDataDiskAttachmentResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.DataDiskID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	virtualMachineName := id.Path["virtualMachines"]
-	name := id.Path["dataDisks"]
 
-	resp, err := client.Compute.VMClient.Get(ctx, resourceGroup, virtualMachineName, "")
+	resp, err := client.Compute.VMClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Virtual Machine Data Disk Attachment %q", id)
 	}
@@ -236,7 +231,7 @@ func (VirtualMachineDataDiskAttachmentResource) Destroy(ctx context.Context, cli
 	outputDisks := make([]compute.DataDisk, 0)
 	for _, disk := range *resp.StorageProfile.DataDisks {
 		// deliberately not using strings.Equals as this is case sensitive
-		if *disk.Name == name {
+		if *disk.Name == id.Name {
 			continue
 		}
 
@@ -249,7 +244,7 @@ func (VirtualMachineDataDiskAttachmentResource) Destroy(ctx context.Context, cli
 	// fixes #1600
 	resp.Resources = nil
 
-	future, err := client.Compute.VMClient.CreateOrUpdate(ctx, resourceGroup, virtualMachineName, resp)
+	future, err := client.Compute.VMClient.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualMachineName, resp)
 	if err != nil {
 		return nil, fmt.Errorf("updating Virtual Machine %q: %+v", id, err)
 	}

@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -234,9 +234,9 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(insights.Low),
-								string(insights.Medium),
-								string(insights.High),
+								string(insights.DynamicThresholdSensitivityLow),
+								string(insights.DynamicThresholdSensitivityMedium),
+								string(insights.DynamicThresholdSensitivityHigh),
 							}, false),
 						},
 
@@ -603,7 +603,7 @@ func expandMonitorMetricAlertSingleResourceMultiMetricCriteria(input []interface
 			Name:                 utils.String(fmt.Sprintf("Metric%d", i+1)),
 			MetricNamespace:      utils.String(v["metric_namespace"].(string)),
 			MetricName:           utils.String(v["metric_name"].(string)),
-			TimeAggregation:      v["aggregation"].(string),
+			TimeAggregation:      insights.AggregationTypeEnum(v["aggregation"].(string)),
 			Dimensions:           &dimensions,
 			Operator:             insights.Operator(v["operator"].(string)),
 			Threshold:            utils.Float(v["threshold"].(float64)),
@@ -612,7 +612,7 @@ func expandMonitorMetricAlertSingleResourceMultiMetricCriteria(input []interface
 	}
 	return &insights.MetricAlertSingleResourceMultipleMetricCriteria{
 		AllOf:     &criteria,
-		OdataType: insights.OdataTypeMicrosoftAzureMonitorSingleResourceMultipleMetricCriteria,
+		OdataType: insights.OdataTypeBasicMetricAlertCriteriaOdataTypeMicrosoftAzureMonitorSingleResourceMultipleMetricCriteria,
 	}
 }
 
@@ -625,7 +625,7 @@ func expandMonitorMetricAlertMultiResourceMultiMetricForStaticMetricCriteria(inp
 			Name:                 utils.String(fmt.Sprintf("Metric%d", i+1)),
 			MetricNamespace:      utils.String(v["metric_namespace"].(string)),
 			MetricName:           utils.String(v["metric_name"].(string)),
-			TimeAggregation:      v["aggregation"].(string),
+			TimeAggregation:      insights.AggregationTypeEnum(v["aggregation"].(string)),
 			Dimensions:           &dimensions,
 			Operator:             insights.Operator(v["operator"].(string)),
 			Threshold:            utils.Float(v["threshold"].(float64)),
@@ -634,7 +634,7 @@ func expandMonitorMetricAlertMultiResourceMultiMetricForStaticMetricCriteria(inp
 	}
 	return &insights.MetricAlertMultipleResourceMultipleMetricCriteria{
 		AllOf:     &criteria,
-		OdataType: insights.OdataTypeMicrosoftAzureMonitorMultipleResourceMultipleMetricCriteria,
+		OdataType: insights.OdataTypeBasicMetricAlertCriteriaOdataTypeMicrosoftAzureMonitorMultipleResourceMultipleMetricCriteria,
 	}
 }
 
@@ -653,7 +653,7 @@ func expandMonitorMetricAlertMultiResourceMultiMetricForDynamicMetricCriteria(in
 			Name:             utils.String(fmt.Sprintf("Metric%d", i+1)),
 			MetricNamespace:  utils.String(v["metric_namespace"].(string)),
 			MetricName:       utils.String(v["metric_name"].(string)),
-			TimeAggregation:  v["aggregation"].(string),
+			TimeAggregation:  insights.AggregationTypeEnum(v["aggregation"].(string)),
 			Dimensions:       &dimensions,
 			Operator:         insights.DynamicThresholdOperator(v["operator"].(string)),
 			AlertSensitivity: insights.DynamicThresholdSensitivity(v["alert_sensitivity"].(string)),
@@ -667,7 +667,7 @@ func expandMonitorMetricAlertMultiResourceMultiMetricForDynamicMetricCriteria(in
 	}
 	return &insights.MetricAlertMultipleResourceMultipleMetricCriteria{
 		AllOf:     &criteria,
-		OdataType: insights.OdataTypeMicrosoftAzureMonitorMultipleResourceMultipleMetricCriteria,
+		OdataType: insights.OdataTypeBasicMetricAlertCriteriaOdataTypeMicrosoftAzureMonitorMultipleResourceMultipleMetricCriteria,
 	}
 }
 
@@ -680,7 +680,7 @@ func expandMonitorMetricAlertWebtestLocAvailCriteria(input []interface{}) insigh
 		WebTestID:           utils.String(v["web_test_id"].(string)),
 		ComponentID:         utils.String(v["component_id"].(string)),
 		FailedLocationCount: utils.Float(float64(v["failed_location_count"].(int))),
-		OdataType:           insights.OdataTypeMicrosoftAzureMonitorWebtestLocationAvailabilityCriteria,
+		OdataType:           insights.OdataTypeBasicMetricAlertCriteriaOdataTypeMicrosoftAzureMonitorWebtestLocationAvailabilityCriteria,
 	}
 }
 
