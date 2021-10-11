@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -21,8 +22,11 @@ func resourceLogicAppActionHTTP() *pluginsdk.Resource {
 		Read:   resourceLogicAppActionHTTPRead,
 		Update: resourceLogicAppActionHTTPCreateUpdate,
 		Delete: resourceLogicAppActionHTTPDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ActionID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -104,8 +108,12 @@ func resourceLogicAppActionHTTP() *pluginsdk.Resource {
 }
 
 func resourceLogicAppActionHTTPCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	logicAppId := d.Get("logic_app_id").(string)
-	name := d.Get("name").(string)
+	workflowId, err := parse.WorkflowID(d.Get("logic_app_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := parse.NewActionID(workflowId.SubscriptionId, workflowId.ResourceGroup, workflowId.Name, d.Get("name").(string))
 
 	headersRaw := d.Get("headers").(map[string]interface{})
 	headers, err := expandLogicAppActionHttpHeaders(headersRaw)
@@ -123,7 +131,7 @@ func resourceLogicAppActionHTTPCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	if bodyRaw, ok := d.GetOk("body"); ok {
 		var body map[string]interface{}
 		if err := json.Unmarshal([]byte(bodyRaw.(string)), &body); err != nil {
-			return fmt.Errorf("unmarshalling JSON for Action %q: %+v", name, err)
+			return fmt.Errorf("unmarshalling JSON for Action %q: %+v", id.Name, err)
 		}
 		inputs["body"] = body
 	}
@@ -137,7 +145,7 @@ func resourceLogicAppActionHTTPCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		action["runAfter"] = expandLogicAppActionRunAfter(v.(*pluginsdk.Set).List())
 	}
 
-	err = resourceLogicAppActionUpdate(d, meta, logicAppId, name, action, "azurerm_logic_app_action_http")
+	err = resourceLogicAppActionUpdate(d, meta, *workflowId, id, action, "azurerm_logic_app_action_http")
 	if err != nil {
 		return err
 	}
@@ -146,44 +154,40 @@ func resourceLogicAppActionHTTPCreateUpdate(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ActionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	logicAppName := id.Path["workflows"]
-	name := id.Path["actions"]
-
-	t, app, err := retrieveLogicAppAction(d, meta, resourceGroup, logicAppName, name)
+	t, app, err := retrieveLogicAppAction(d, meta, id.ResourceGroup, id.WorkflowName, id.Name)
 	if err != nil {
 		return err
 	}
 
 	if t == nil {
-		log.Printf("[DEBUG] Logic App %q (Resource Group %q) does not contain Action %q - removing from state", logicAppName, resourceGroup, name)
+		log.Printf("[DEBUG] Logic App %q (Resource Group %q) does not contain Action %q - removing from state", id.WorkflowName, id.ResourceGroup, id.Name)
 		d.SetId("")
 		return nil
 	}
 
 	action := *t
 
-	d.Set("name", name)
+	d.Set("name", id.Name)
 	d.Set("logic_app_id", app.ID)
 
 	actionType := action["type"].(string)
 	if !strings.EqualFold(actionType, "http") {
-		return fmt.Errorf("Expected an HTTP Action for Action %q (Logic App %q / Resource Group %q) - got %q", name, logicAppName, resourceGroup, actionType)
+		return fmt.Errorf("expected an HTTP Action for Action %s - got %q", id, actionType)
 	}
 
 	v := action["inputs"]
 	if v == nil {
-		return fmt.Errorf("Error`inputs` was nil for HTTP Action %q (Logic App %q / Resource Group %q)", name, logicAppName, resourceGroup)
+		return fmt.Errorf("`inputs` was nil for HTTP Action %s", id)
 	}
 
 	inputs, ok := v.(map[string]interface{})
 	if !ok {
-		return fmt.Errorf("parsing `inputs` for HTTP Action %q (Logic App %q / Resource Group %q)", name, logicAppName, resourceGroup)
+		return fmt.Errorf("parsing `inputs` for HTTP Action %s", id)
 	}
 
 	if uri := inputs["uri"]; uri != nil {
@@ -202,7 +206,7 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 			// if user edit workflow in portal, the body becomes json object
 			v, err := json.Marshal(body)
 			if err != nil {
-				return fmt.Errorf("serializing `body` for Action %q: %+v", name, err)
+				return fmt.Errorf("serializing `body` for Action %q: %+v", id.Name, err)
 			}
 			d.Set("body", string(v))
 		}
@@ -211,7 +215,7 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 	if headers := inputs["headers"]; headers != nil {
 		hv := headers.(map[string]interface{})
 		if err := d.Set("headers", hv); err != nil {
-			return fmt.Errorf("setting `headers` for HTTP Action %q: %+v", name, err)
+			return fmt.Errorf("setting `headers` for HTTP Action %q: %+v", id.Name, err)
 		}
 	}
 
@@ -219,10 +223,10 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 	if v != nil {
 		runAfter, ok := v.(map[string]interface{})
 		if !ok {
-			return fmt.Errorf("parsing `runAfter` for HTTP Action %q (Logic App %q / Resource Group %q)", name, logicAppName, resourceGroup)
+			return fmt.Errorf("parsing `runAfter` for HTTP Action %s", id)
 		}
 		if err := d.Set("run_after", flattenLogicAppActionRunAfter(runAfter)); err != nil {
-			return fmt.Errorf("setting `runAfter` for HTTP Action %q: %+v", name, err)
+			return fmt.Errorf("setting `runAfter` for HTTP Action %q: %+v", id.Name, err)
 		}
 	}
 
@@ -230,18 +234,14 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceLogicAppActionHTTPDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ActionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	logicAppName := id.Path["workflows"]
-	name := id.Path["actions"]
-
-	err = resourceLogicAppActionRemove(d, meta, resourceGroup, logicAppName, name)
+	err = resourceLogicAppActionRemove(d, meta, id.ResourceGroup, id.WorkflowName, id.Name)
 	if err != nil {
-		return fmt.Errorf("removing Action %q from Logic App %q (Resource Group %q): %+v", name, logicAppName, resourceGroup, err)
+		return fmt.Errorf("removing Action %s: %+v", id, err)
 	}
 
 	return nil

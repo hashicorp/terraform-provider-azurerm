@@ -100,7 +100,7 @@ A `storage_account` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Identity that should be configured on this Video Analyzer. At this time the only possible value is `UserAssigned`. 
+* `type` - (Required) Specifies the type of Managed Identity that should be configured on this Video Analyzer. At this time the only possible value is `UserAssigned`.
 
 * `identity_ids` - (Required) A list of User Assigned Identity ID's to be assigned to this Video Analyzer.
 
@@ -118,7 +118,7 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Video Analyzer.
-* `update` - (Defaults to 30 minutes) Used when updating the Video Analyzert.
+* `update` - (Defaults to 30 minutes) Used when updating the Video Analyzer.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Video Analyzer.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Video Analyzer.
 

@@ -26,6 +26,7 @@ func TestAccAppConfigurationKey_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("etag").IsSet(),
 			),
 		},
 		data.ImportStep(),
@@ -116,7 +117,7 @@ func TestAccAppConfigurationKey_lockUpdate(t *testing.T) {
 }
 func (t AppConfigurationKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 
-	resourceID, err := parse.AppConfigurationKeyID(state.ID)
+	resourceID, err := parse.KeyId(state.ID)
 	if err != nil {
 		return nil, fmt.Errorf("while parsing resource ID: %+v", err)
 	}

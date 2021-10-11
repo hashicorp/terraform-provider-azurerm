@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
+	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,8 +30,10 @@ func resourceFirewall() *pluginsdk.Resource {
 		Read:   resourceFirewallRead,
 		Update: resourceFirewallCreateUpdate,
 		Delete: resourceFirewallDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.FirewallID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
@@ -381,22 +384,20 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.AzureFirewallName
 
-	read, err := client.Get(ctx, resourceGroup, name)
+	read, err := client.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			log.Printf("[DEBUG] Firewall %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] Firewall %q was not found in Resource Group %q - removing from state!", id.AzureFirewallName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Firewall %s : %+v", *id, err)
 	}
 
-	d.Set("name", read.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.AzureFirewallName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := read.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -451,22 +452,20 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.FirewallID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["azureFirewalls"]
 
-	read, err := client.Get(ctx, resourceGroup, name)
+	read, err := client.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
 			// deleted outside of TF
-			log.Printf("[DEBUG] Firewall %q was not found in Resource Group %q - assuming removed!", name, resourceGroup)
+			log.Printf("[DEBUG] Firewall %q was not found in Resource Group %q - assuming removed!", id.AzureFirewallName, id.ResourceGroup)
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Firewall %s : %+v", *id, err)
 	}
 
 	subnetNamesToLock := make([]string, 0)
@@ -478,45 +477,41 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 					continue
 				}
 
-				parsedSubnetID, err2 := azure.ParseAzureResourceID(*config.Subnet.ID)
+				parsedSubnetID, err2 := networkParse.SubnetID(*config.Subnet.ID)
 				if err2 != nil {
 					return err2
 				}
-				subnetName := parsedSubnetID.Path["subnets"]
 
-				if !utils.SliceContainsValue(subnetNamesToLock, subnetName) {
-					subnetNamesToLock = append(subnetNamesToLock, subnetName)
+				if !utils.SliceContainsValue(subnetNamesToLock, parsedSubnetID.Name) {
+					subnetNamesToLock = append(subnetNamesToLock, parsedSubnetID.Name)
 				}
 
-				virtualNetworkName := parsedSubnetID.Path["virtualNetworks"]
-				if !utils.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
-					virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
+				if !utils.SliceContainsValue(virtualNetworkNamesToLock, parsedSubnetID.VirtualNetworkName) {
+					virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, parsedSubnetID.VirtualNetworkName)
 				}
 			}
 		}
 
 		if mconfig := props.ManagementIPConfiguration; mconfig != nil {
 			if mconfig.Subnet != nil && mconfig.Subnet.ID != nil {
-				parsedSubnetID, err2 := azure.ParseAzureResourceID(*mconfig.Subnet.ID)
+				parsedSubnetID, err2 := networkParse.SubnetID(*mconfig.Subnet.ID)
 				if err2 != nil {
 					return err2
 				}
-				subnetName := parsedSubnetID.Path["subnets"]
 
-				if !utils.SliceContainsValue(subnetNamesToLock, subnetName) {
-					subnetNamesToLock = append(subnetNamesToLock, subnetName)
+				if !utils.SliceContainsValue(subnetNamesToLock, parsedSubnetID.Name) {
+					subnetNamesToLock = append(subnetNamesToLock, parsedSubnetID.Name)
 				}
 
-				virtualNetworkName := parsedSubnetID.Path["virtualNetworks"]
-				if !utils.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
-					virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
+				if !utils.SliceContainsValue(virtualNetworkNamesToLock, parsedSubnetID.VirtualNetworkName) {
+					virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, parsedSubnetID.VirtualNetworkName)
 				}
 			}
 		}
 	}
 
-	locks.ByName(name, azureFirewallResourceName)
-	defer locks.UnlockByName(name, azureFirewallResourceName)
+	locks.ByName(id.AzureFirewallName, azureFirewallResourceName)
+	defer locks.UnlockByName(id.AzureFirewallName, azureFirewallResourceName)
 
 	locks.MultipleByName(&virtualNetworkNamesToLock, VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNamesToLock, VirtualNetworkResourceName)
@@ -524,13 +519,13 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	locks.MultipleByName(&subnetNamesToLock, SubnetResourceName)
 	defer locks.UnlockMultipleByName(&subnetNamesToLock, SubnetResourceName)
 
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {
-		return fmt.Errorf("deleting Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Azure Firewall %s : %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of Azure Firewall %s : %+v", *id, err)
 	}
 
 	return err
@@ -557,20 +552,17 @@ func expandFirewallIPConfigurations(configs []interface{}) (*[]network.AzureFire
 		}
 
 		if subnetId != "" {
-			subnetID, err := azure.ParseAzureResourceID(subnetId)
+			subnetID, err := networkParse.SubnetID(subnetId)
 			if err != nil {
 				return nil, nil, nil, err
 			}
 
-			subnetName := subnetID.Path["subnets"]
-			virtualNetworkName := subnetID.Path["virtualNetworks"]
-
-			if !utils.SliceContainsValue(subnetNamesToLock, subnetName) {
-				subnetNamesToLock = append(subnetNamesToLock, subnetName)
+			if !utils.SliceContainsValue(subnetNamesToLock, subnetID.Name) {
+				subnetNamesToLock = append(subnetNamesToLock, subnetID.Name)
 			}
 
-			if !utils.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
-				virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
+			if !utils.SliceContainsValue(virtualNetworkNamesToLock, subnetID.VirtualNetworkName) {
+				virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, subnetID.VirtualNetworkName)
 			}
 
 			ipConfig.AzureFirewallIPConfigurationPropertiesFormat.Subnet = &network.SubResource{
