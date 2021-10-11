@@ -3,7 +3,7 @@ subcategory: "Red Hat Openshift"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_redhatopenshift_cluster"
 description: |-
-  Manages an Azure Red Hat Openshift Cluster (also known as ARO)
+  Manages fully managed Azure Red Hat Openshift Cluster (also known as ARO)
 ---
 
 # azurerm_redhatopenshift_cluster
