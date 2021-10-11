@@ -31,6 +31,9 @@ type VirtualMachineScaleSetFeatures struct {
 type KeyVaultFeatures struct {
 	PurgeSoftDeleteOnDestroy    bool
 	RecoverSoftDeletedKeyVaults bool
+	RecoverSoftDeletedKeys      bool
+	RecoverSoftDeletedCerts     bool
+	RecoverSoftDeletedSecrets   bool
 }
 
 type NetworkFeatures struct {

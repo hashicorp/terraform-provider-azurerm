@@ -147,7 +147,7 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	if resp, err := client.SetSecret(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
 		// In the case that the Secret already exists in a Soft Deleted / Recoverable state we check if `recover_soft_deleted_key_vaults` is set
 		// and attempt recovery where appropriate
-		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) {
+		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedSecrets && utils.ResponseWasConflict(resp.Response) {
 			recoveredSecret, err := client.RecoverDeletedSecret(ctx, *keyVaultBaseUrl, name)
 			if err != nil {
 				return err
