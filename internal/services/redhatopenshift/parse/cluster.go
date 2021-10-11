@@ -52,7 +52,7 @@ func ClusterID(input string) (*ClusterId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.ManagedClusterName, err = id.PopSegment("managedClusters"); err != nil {
+	if resourceId.ManagedClusterName, err = id.PopSegment("openShiftClusters"); err != nil {
 		return nil, err
 	}
 
