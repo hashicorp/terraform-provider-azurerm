@@ -238,6 +238,11 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"console_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -446,6 +451,7 @@ func resourceOpenShiftClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		d.Set("version", props.ClusterProfile.Version)
+		d.Set("console_url", props.ConsoleProfile.URL)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
