@@ -27,7 +27,7 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 				ValidateFunc: validate.ConsumptionBudgetName(),
 			},
 
-			"resource_group_name": {
+			"subscription_id": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
@@ -45,14 +45,90 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 						"dimension": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Set:      pluginsdk.HashResource(SchemaConsumptionBudgetFilterDimensionElementForDataSource()),
-							Elem:     SchemaConsumptionBudgetFilterDimensionElementForDataSource(),
+							Set: pluginsdk.HashResource(
+								&pluginsdk.Resource{
+									Schema: map[string]*pluginsdk.Schema{
+										"name": {
+											Type:     pluginsdk.TypeString,
+											Computed: true,
+										},
+										"operator": {
+											Type:     pluginsdk.TypeString,
+											Computed: true,
+										},
+										"values": {
+											Type:     pluginsdk.TypeList,
+											Computed: true,
+											Elem: &pluginsdk.Schema{
+												Type: pluginsdk.TypeString,
+											},
+										},
+									},
+								},
+							),
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"operator": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"values": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+								},
+							},
 						},
 						"tag": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Set:      pluginsdk.HashResource(SchemaConsumptionBudgetFilterTagElementForDataSource()),
-							Elem:     SchemaConsumptionBudgetFilterTagElementForDataSource(),
+							Set: pluginsdk.HashResource(
+								&pluginsdk.Resource{
+									Schema: map[string]*pluginsdk.Schema{
+										"name": {
+											Type:     pluginsdk.TypeString,
+											Computed: true,
+										},
+										"operator": {
+											Type:     pluginsdk.TypeString,
+											Computed: true,
+										},
+										"values": {
+											Type:     pluginsdk.TypeList,
+											Computed: true,
+											Elem: &pluginsdk.Schema{
+												Type: pluginsdk.TypeString,
+											},
+										},
+									},
+								},
+							),
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"operator": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"values": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+								},
+							},
 						},
 						"not": {
 							Type:     pluginsdk.TypeList,
@@ -62,12 +138,48 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 									"dimension": {
 										Type:     pluginsdk.TypeList,
 										Computed: true,
-										Elem:     SchemaConsumptionBudgetFilterDimensionElementForDataSource(),
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"name": {
+													Type:     pluginsdk.TypeString,
+													Computed: true,
+												},
+												"operator": {
+													Type:     pluginsdk.TypeString,
+													Computed: true,
+												},
+												"values": {
+													Type:     pluginsdk.TypeList,
+													Computed: true,
+													Elem: &pluginsdk.Schema{
+														Type: pluginsdk.TypeString,
+													},
+												},
+											},
+										},
 									},
 									"tag": {
 										Type:     pluginsdk.TypeList,
 										Computed: true,
-										Elem:     SchemaConsumptionBudgetFilterTagElementForDataSource(),
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"name": {
+													Type:     pluginsdk.TypeString,
+													Computed: true,
+												},
+												"operator": {
+													Type:     pluginsdk.TypeString,
+													Computed: true,
+												},
+												"values": {
+													Type:     pluginsdk.TypeList,
+													Computed: true,
+													Elem: &pluginsdk.Schema{
+														Type: pluginsdk.TypeString,
+													},
+												},
+											},
+										},
 									},
 								},
 							},
@@ -79,9 +191,90 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 			"notification": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
-				Set:      pluginsdk.HashResource(SchemaConsumptionBudgetNotificationElementForDataSource()),
-				Elem:     SchemaConsumptionBudgetNotificationElementForDataSource(),
+				Set: pluginsdk.HashResource(
+					&pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"enabled": {
+								Type:     pluginsdk.TypeBool,
+								Computed: true,
+							},
+							"threshold": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+							"operator": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"contact_emails": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							"contact_groups": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							"contact_roles": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+				),
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"threshold": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+						"operator": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"contact_emails": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"contact_groups": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"contact_roles": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+					},
+				},
 			},
+
 
 			"time_grain": {
 				Type:     pluginsdk.TypeString,
