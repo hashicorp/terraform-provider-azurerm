@@ -21,7 +21,7 @@ import (
 )
 
 var (
-	domainName = GenerateRandomDomainName()
+	randomDomainName = GenerateRandomDomainName()
 )
 
 func resourceOpenShiftCluster() *pluginsdk.Resource {
@@ -67,6 +67,12 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"domain": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"resource_group_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
@@ -246,7 +252,6 @@ func resourceOpenShiftClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	resourceGroupId := ResourceGroupID(subscriptionId, resourceGroupName)
 
 	name := d.Get("name").(string)
 
@@ -264,7 +269,9 @@ func resourceOpenShiftClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	clusterProfileRaw := d.Get("cluster_profile").([]interface{})
-	clusterProfile := expandOpenshiftClusterProfile(clusterProfileRaw, resourceGroupId)
+	clusterProfile := expandOpenshiftClusterProfile(clusterProfileRaw, subscriptionId)
+
+	consoleProfile := &redhatopenshift.ConsoleProfile{}
 
 	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
 	servicePrincipalProfile := expandOpenshiftServicePrincipalProfile(servicePrincipalProfileRaw)
@@ -291,6 +298,7 @@ func resourceOpenShiftClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 		Location: &location,
 		OpenShiftClusterProperties: &redhatopenshift.OpenShiftClusterProperties{
 			ClusterProfile:          clusterProfile,
+			ConsoleProfile:          consoleProfile,
 			ServicePrincipalProfile: servicePrincipalProfile,
 			NetworkProfile:          networkProfile,
 			MasterProfile:           masterProfile,
@@ -613,19 +621,31 @@ func flattenOpenShiftIngressProfiles(profiles *[]redhatopenshift.IngressProfile)
 	return results
 }
 
-func expandOpenshiftClusterProfile(input []interface{}, resourceGroupId string) *redhatopenshift.ClusterProfile {
+func expandOpenshiftClusterProfile(input []interface{}, subscriptionId string) *redhatopenshift.ClusterProfile {
 	if len(input) == 0 {
+		randomClusterResourceGroupName := fmt.Sprintf("aro-%s", randomDomainName)
+		randomClusterResourceGroupId := ResourceGroupID(subscriptionId, randomClusterResourceGroupName)
+
 		return &redhatopenshift.ClusterProfile{
-			ResourceGroupID: utils.String(resourceGroupId),
-			Domain:          utils.String(domainName),
-			PullSecret:      utils.String(""),
+			ResourceGroupID: utils.String(randomClusterResourceGroupId),
+			Domain:          utils.String(randomDomainName),
 		}
 	}
 
 	config := input[0].(map[string]interface{})
 
 	pullSecret := config["pull_secret"].(string)
+
 	domain := config["domain"].(string)
+	if domain == "" {
+		domain = randomDomainName
+	}
+
+	resourceGroupId := config["resource_group_id"].(string)
+	if resourceGroupId == "" {
+		randomClusterResourceGroupName := fmt.Sprintf("aro-%s", randomDomainName)
+		resourceGroupId = ResourceGroupID(subscriptionId, randomClusterResourceGroupName)
+	}
 
 	return &redhatopenshift.ClusterProfile{
 		ResourceGroupID: utils.String(resourceGroupId),
