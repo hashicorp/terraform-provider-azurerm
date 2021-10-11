@@ -381,7 +381,6 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"2.7",
 						"3.4",
 					}, false),
 				},
