@@ -59,7 +59,7 @@ func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
 											Type:     pluginsdk.TypeList,
 											Computed: true,
 											Elem: &pluginsdk.Schema{
-												Type:         pluginsdk.TypeString,
+												Type: pluginsdk.TypeString,
 											},
 										},
 									},
@@ -79,7 +79,7 @@ func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeList,
 										Computed: true,
 										Elem: &pluginsdk.Schema{
-											Type:         pluginsdk.TypeString,
+											Type: pluginsdk.TypeString,
 										},
 									},
 								},
