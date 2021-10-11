@@ -169,7 +169,8 @@ A `ingress_profile` block supports the following:
 
 The following attributes are exported:
 
-* `version` - The Red Hat Openshift version used by the cluster.
+* `version` - The Openshift version used by the The Red Hat Openshift cluster.
+* `console_url` - The Red Hat Openshift cluster console URL.
 
 ---
 
