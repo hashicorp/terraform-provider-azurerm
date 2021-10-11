@@ -22,15 +22,16 @@ func FlexibleServerAdministratorPassword(i interface{}, k string) (warnings []st
 		return
 	}
 
-	if regexp.MustCompile(`^.*[a-z]+.*$`).MatchString(v) && regexp.MustCompile(`^.*[A-Z]+.*$`).MatchString(v) && regexp.MustCompile(`^.*[0-9]+.*$`).MatchString(v) {
+	switch {
+	case regexp.MustCompile(`^.*[a-z]+.*$`).MatchString(v) && regexp.MustCompile(`^.*[A-Z]+.*$`).MatchString(v) && regexp.MustCompile(`^.*[0-9]+.*$`).MatchString(v):
 		return
-	} else if regexp.MustCompile(`^.*[a-z]+.*$`).MatchString(v) && regexp.MustCompile(`^.*[A-Z]+.*$`).MatchString(v) && regexp.MustCompile(`^.*[\W]+.*$`).MatchString(v) {
+	case regexp.MustCompile(`^.*[a-z]+.*$`).MatchString(v) && regexp.MustCompile(`^.*[A-Z]+.*$`).MatchString(v) && regexp.MustCompile(`^.*[\W]+.*$`).MatchString(v):
 		return
-	} else if regexp.MustCompile(`^.*[a-z]+.*$`).MatchString(v) && regexp.MustCompile(`^.*[\W]+.*$`).MatchString(v) && regexp.MustCompile(`^.*[0-9]+.*$`).MatchString(v) {
+	case regexp.MustCompile(`^.*[a-z]+.*$`).MatchString(v) && regexp.MustCompile(`^.*[\W]+.*$`).MatchString(v) && regexp.MustCompile(`^.*[0-9]+.*$`).MatchString(v):
 		return
-	} else if regexp.MustCompile(`^.*[A-Z]+.*$`).MatchString(v) && regexp.MustCompile(`^.*[\W]+.*$`).MatchString(v) && regexp.MustCompile(`^.*[0-9]+.*$`).MatchString(v) {
+	case regexp.MustCompile(`^.*[A-Z]+.*$`).MatchString(v) && regexp.MustCompile(`^.*[\W]+.*$`).MatchString(v) && regexp.MustCompile(`^.*[0-9]+.*$`).MatchString(v):
 		return
-	} else {
+	default:
 		errors = append(errors, fmt.Errorf("%q must contain characters from three of the categories – uppercase letters, lowercase letters, numbers and non-alphanumeric characters, got %v", k, v))
 		return
 	}
