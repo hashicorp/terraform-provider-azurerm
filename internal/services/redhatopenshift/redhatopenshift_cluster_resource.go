@@ -488,10 +488,16 @@ func flattenOpenShiftClusterProfile(profile *redhatopenshift.ClusterProfile) []i
 		clusterDomain = *profile.Domain
 	}
 
+	clusterResourceGroupId := ""
+	if profile.ResourceGroupID != nil {
+		clusterResourceGroupId = *profile.ResourceGroupID
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"pull_secret": pullSecret,
-			"domain":      clusterDomain,
+			"pull_secret":       pullSecret,
+			"domain":            clusterDomain,
+			"resource_group_id": clusterResourceGroupId,
 		},
 	}
 }
