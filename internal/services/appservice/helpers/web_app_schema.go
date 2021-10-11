@@ -870,7 +870,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"3.4.0",
+						"3.6.0",
 					}, false),
 				},
 

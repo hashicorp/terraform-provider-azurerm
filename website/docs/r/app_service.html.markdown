@@ -245,7 +245,7 @@ Additional examples of how to run Containers via the `azurerm_app_service` resou
 
 * `php_version` - (Optional) The version of PHP to use in this App Service. Possible values are `5.5`, `5.6`, `7.0`, `7.1`, `7.2`, `7.3` and `7.4`.
 
-* `python_version` - (Optional) The version of Python to use in this App Service. Possible value is `3.4`.
+* `python_version` - (Optional) The version of Python to use in this App Service. Possible value is `3.6`.
 
 * `remote_debugging_enabled` - (Optional) Is Remote Debugging Enabled? Defaults to `false`.
 
