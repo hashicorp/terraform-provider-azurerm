@@ -12,7 +12,7 @@ var _ resourceid.Formatter = ScheduledQueryRulesId{}
 
 func TestScheduledQueryRulesIDFormatter(t *testing.T) {
 	actual := NewScheduledQueryRulesID("12345678-1234-9876-4563-123456789012", "group1", "rule1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/scheduledQueryRules/rule1"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/scheduledQueryRules/rule1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -57,19 +57,19 @@ func TestScheduledQueryRulesID(t *testing.T) {
 
 		{
 			// missing ScheduledQueryRuleName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/",
 			Error: true,
 		},
 
 		{
 			// missing value for ScheduledQueryRuleName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/scheduledQueryRules/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/scheduledQueryRules/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/scheduledQueryRules/rule1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/scheduledQueryRules/rule1",
 			Expected: &ScheduledQueryRulesId{
 				SubscriptionId:         "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:          "group1",

@@ -33,7 +33,7 @@ func (id ScheduledQueryRulesId) String() string {
 }
 
 func (id ScheduledQueryRulesId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/scheduledQueryRules/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Insights/scheduledQueryRules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ScheduledQueryRuleName)
 }
 

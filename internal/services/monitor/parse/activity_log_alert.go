@@ -33,7 +33,7 @@ func (id ActivityLogAlertId) String() string {
 }
 
 func (id ActivityLogAlertId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/activityLogAlerts/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Insights/activityLogAlerts/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 

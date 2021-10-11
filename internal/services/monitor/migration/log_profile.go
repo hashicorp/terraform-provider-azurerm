@@ -6,15 +6,11 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ pluginsdk.StateUpgrade = AutoscaleSettingUpgradeV0ToV1{}
+var _ pluginsdk.StateUpgrade = LogProfileUpgradeV0ToV1{}
 
 type LogProfileUpgradeV0ToV1 struct{}
 
@@ -52,29 +48,23 @@ func (LogProfileUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 func logProfileSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 		"storage_account_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: azure.ValidateResourceIDOrEmpty,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
 		},
 		"servicebus_rule_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: azure.ValidateResourceIDOrEmpty,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
 		},
 		"locations": {
 			Type:     pluginsdk.TypeSet,
 			MinItems: 1,
 			Required: true,
 			Elem: &pluginsdk.Schema{
-				Type:             pluginsdk.TypeString,
-				StateFunc:        location.StateFunc,
-				DiffSuppressFunc: location.DiffSuppressFunc,
+				Type: pluginsdk.TypeString,
 			},
 			Set: pluginsdk.HashString,
 		},
@@ -83,8 +73,7 @@ func logProfileSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Schema{
-				Type:             pluginsdk.TypeString,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type: pluginsdk.TypeString,
 			},
 			Set: pluginsdk.HashString,
 		},
@@ -101,7 +90,6 @@ func logProfileSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 					"days": {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
-						Default:  0,
 					},
 				},
 			},
