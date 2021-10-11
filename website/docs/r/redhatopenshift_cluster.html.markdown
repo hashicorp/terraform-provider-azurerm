@@ -16,7 +16,7 @@ Manages a fully managed Azure Red Hat Openshift Cluster (also known as ARO).
 
 ## Example Usage
 
-This example provisions a basic Azure Red Hat Openshift Cluster.
+This example provisions a basic Azure Red Hat Openshift Cluster. Other examples of the `azurerm_redhatopenshift_cluster` resource can be found in [the `./examples/redhatopenshift` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/kubernetes)
 
 ```hcl
 resource "azurerm_resource_group" "example" {
