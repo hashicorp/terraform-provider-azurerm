@@ -762,6 +762,11 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		updateProps.DoNotRunExtensionsOnOverprovisionedVMs = utils.Bool(v)
 	}
 
+	if d.HasChange("overprovision") {
+		v := d.Get("overprovision").(bool)
+		updateProps.Overprovision = utils.Bool(v)
+	}
+
 	if d.HasChange("scale_in_policy") {
 		scaleInPolicy := d.Get("scale_in_policy").(string)
 		updateProps.ScaleInPolicy = &compute.ScaleInPolicy{
