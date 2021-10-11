@@ -173,7 +173,7 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      "3",
-							ValidateFunc: validation.IntBetween(0, 1000),
+							ValidateFunc: validation.IntBetween(3, 20),
 						},
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
@@ -618,6 +618,7 @@ func expandOpenshiftClusterProfile(input []interface{}, resourceGroupId string) 
 		return &redhatopenshift.ClusterProfile{
 			ResourceGroupID: utils.String(resourceGroupId),
 			Domain:          utils.String(domainName),
+			PullSecret:      utils.String(""),
 		}
 	}
 
@@ -628,8 +629,8 @@ func expandOpenshiftClusterProfile(input []interface{}, resourceGroupId string) 
 
 	return &redhatopenshift.ClusterProfile{
 		ResourceGroupID: utils.String(resourceGroupId),
-		PullSecret:      utils.String(pullSecret),
 		Domain:          utils.String(domain),
+		PullSecret:      utils.String(pullSecret),
 	}
 }
 
