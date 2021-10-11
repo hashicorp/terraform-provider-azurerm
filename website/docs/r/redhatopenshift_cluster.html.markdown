@@ -141,7 +141,8 @@ A `worker_profile` block supports the following:
 A `cluster_profile` block supports the following:
 
 * `pull_secret` - (Optional) The Red Hat pull secret for the cluster.
-* `domain` - (Optional) The custom domain for the cluster. For more info, see [Prepare a custom domain for your cluster](https://docs.microsoft.com/azure/openshift/tutorial-create-cluster#prepare-a-custom-domain-for-your-cluster-optional).
+* `domain` - (Optional) The custom domain for the cluster. Defaults to `<random>.<location>.aroapp.io`. For more info, see [Prepare a custom domain for your cluster](https://docs.microsoft.com/azure/openshift/tutorial-create-cluster#prepare-a-custom-domain-for-your-cluster-optional).
+* `resource_group_id` - (Optional) The Red Hat Openshift cluster resource group ID. Defaults to `aro-<random>`.
 
 ---
 
