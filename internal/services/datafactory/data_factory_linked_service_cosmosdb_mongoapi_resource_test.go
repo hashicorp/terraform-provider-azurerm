@@ -137,11 +137,11 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_cosmosdb_mongoapi" "test" {
-  name                    = "acctestlscosmosdb%d"
-  resource_group_name     = azurerm_resource_group.test.name
-  data_factory_name       = azurerm_data_factory.test.name
-  connection_string       = "mongodb://testinstance:testkey@testinstance.documents.azure.com:10255/?ssl=true"
-  server_version_above_32 = true
+  name                           = "acctestlscosmosdb%d"
+  resource_group_name            = azurerm_resource_group.test.name
+  data_factory_name              = azurerm_data_factory.test.name
+  connection_string              = "mongodb://testinstance:testkey@testinstance.documents.azure.com:10255/?ssl=true"
+  server_version_is_32_or_higher = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
