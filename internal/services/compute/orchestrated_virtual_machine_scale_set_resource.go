@@ -496,48 +496,90 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		}
 	}
 
-	// TODO: Move this to Win Config update section
-	if d.HasChange("enable_automatic_updates") ||
-		d.HasChange("custom_data") ||
-		d.HasChange("provision_vm_agent") ||
-		d.HasChange("secret") ||
-		d.HasChange("timezone") {
-		osProfile := compute.VirtualMachineScaleSetUpdateOSProfile{}
+	osType := compute.OperatingSystemTypesWindows
+	osProfileRaw := d.Get("os_profile").([]interface{})
+	vmssOsProfile := compute.VirtualMachineScaleSetUpdateOSProfile{}
+	windowsConfig := compute.WindowsConfiguration{}
+	linuxConfig := compute.LinuxConfiguration{}
 
-		if d.HasChange("enable_automatic_updates") || d.HasChange("provision_vm_agent") || d.HasChange("timezone") {
-			windowsConfig := compute.WindowsConfiguration{}
+	if len(osProfileRaw) > 0 {
+		osProfile := osProfileRaw[0].(map[string]interface{})
+		winConfigRaw := osProfile["windows_configuration"].([]interface{})
+		linConfigRaw := osProfile["linux_configuration"].([]interface{})
 
-			if d.HasChange("enable_automatic_updates") {
-				windowsConfig.EnableAutomaticUpdates = utils.Bool(d.Get("enable_automatic_updates").(bool))
-			}
-
-			if d.HasChange("provision_vm_agent") {
-				windowsConfig.ProvisionVMAgent = utils.Bool(d.Get("provision_vm_agent").(bool))
-			}
-
-			if d.HasChange("timezone") {
-				windowsConfig.TimeZone = utils.String(d.Get("timezone").(string))
-			}
-
-			osProfile.WindowsConfiguration = &windowsConfig
-		}
-
-		if d.HasChange("custom_data") {
+		if d.HasChange("os_profile.0.custom_data") {
 			updateInstances = true
 
 			// customData can only be sent if it's a base64 encoded string,
 			// so it's not possible to remove this without tainting the resource
-			if v, ok := d.GetOk("custom_data"); ok {
-				osProfile.CustomData = utils.String(v.(string))
+			vmssOsProfile.CustomData = utils.String(osProfile["custom_data"].(string))
+		}
+
+		if len(winConfigRaw) > 0 {
+			winConfig := winConfigRaw[0].(map[string]interface{})
+
+			if d.HasChange("os_profile.0.windows_configuration.0.enable_automatic_updates") ||
+				d.HasChange("os_profile.0.windows_configuration.0.provision_vm_agent") ||
+				d.HasChange("os_profile.0.windows_configuration.0.timezone") ||
+				d.HasChange("os_profile.0.windows_configuration.0.secret") ||
+				d.HasChange("os_profile.0.windows_configuration.0.winrm_listener") {
+				updateInstances = true
 			}
+
+			if d.HasChange("os_profile.0.windows_configuration.0.enable_automatic_updates") {
+				windowsConfig.EnableAutomaticUpdates = utils.Bool(winConfig["enable_automatic_updates"].(bool))
+			}
+
+			if d.HasChange("os_profile.0.windows_configuration.0.provision_vm_agent") {
+				windowsConfig.ProvisionVMAgent = utils.Bool(winConfig["provision_vm_agent"].(bool))
+			}
+
+			if d.HasChange("os_profile.0.windows_configuration.0.timezone") {
+				windowsConfig.TimeZone = utils.String(winConfig["timezone"].(string))
+			}
+
+			if d.HasChange("os_profile.0.windows_configuration.0.secret") {
+				vmssOsProfile.Secrets = expandWindowsSecrets(winConfig["secret"].([]interface{}))
+			}
+
+			if d.HasChange("os_profile.0.windows_configuration.0.winrm_listener") {
+				winRmListenersRaw := winConfig["winrm_listener"].(*pluginsdk.Set).List()
+				vmssOsProfile.WindowsConfiguration.WinRM = expandWinRMListener(winRmListenersRaw)
+			}
+
+			vmssOsProfile.WindowsConfiguration = &windowsConfig
 		}
 
-		if d.HasChange("secret") {
-			secretsRaw := d.Get("secret").([]interface{})
-			osProfile.Secrets = expandWindowsSecrets(secretsRaw)
+		if len(linConfigRaw) > 0 {
+			osType = compute.OperatingSystemTypesLinux
+			linConfig := linConfigRaw[0].(map[string]interface{})
+
+			if d.HasChange("os_profile.0.linux_configuration.0.provision_vm_agent") ||
+				d.HasChange("os_profile.0.linux_configuration.0.disable_password_authentication") ||
+				d.HasChange("os_profile.0.linux_configuration.0.admin_ssh_key") {
+				updateInstances = true
+			}
+
+			if d.HasChange("os_profile.0.linux_configuration.0.provision_vm_agent") {
+				linuxConfig.ProvisionVMAgent = utils.Bool(linConfig["provision_vm_agent"].(bool))
+			}
+
+			if d.HasChange("os_profile.0.linux_configuration.0.disable_password_authentication") {
+				linuxConfig.DisablePasswordAuthentication = utils.Bool(linConfig["disable_password_authentication"].(bool))
+			}
+
+			if d.HasChange("os_profile.0.linux_configuration.0.admin_ssh_key") {
+				sshPublicKeys := ExpandSSHKeys(linConfig["admin_ssh_key"].(*pluginsdk.Set).List())
+				if linuxConfig.SSH == nil {
+					linuxConfig.SSH = &compute.SSHConfiguration{}
+				}
+				linuxConfig.SSH.PublicKeys = &sshPublicKeys
+			}
+
+			vmssOsProfile.LinuxConfiguration = &linuxConfig
 		}
 
-		updateProps.VirtualMachineProfile.OsProfile = &osProfile
+		updateProps.VirtualMachineProfile.OsProfile = &vmssOsProfile
 	}
 
 	if d.HasChange("data_disk") || d.HasChange("os_disk") || d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
@@ -687,7 +729,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		Client:                       meta.(*clients.Client).Compute,
 		Existing:                     existing,
 		ID:                           id,
-		OSType:                       compute.OperatingSystemTypesWindows,
+		OSType:                       osType,
 	}
 
 	if err := metaData.performUpdate(ctx, update); err != nil {
