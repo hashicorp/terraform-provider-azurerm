@@ -114,7 +114,7 @@ func eventSubscriptionSchemaDeliveryProperty() *pluginsdk.Schema {
 				"value": {
 					Type:      pluginsdk.TypeString,
 					Optional:  true,
-					Sensitive: true, // must mark as Sensitive, as it's possible for this to be 'Secret'
+					Sensitive: true,
 				},
 
 				"source_field": {
@@ -1029,36 +1029,36 @@ func expandDeliveryProperties(d *pluginsdk.ResourceData) []eventgrid.BasicDelive
 
 	var basicDeliveryAttributeMapping []eventgrid.BasicDeliveryAttributeMapping
 
-	if deliveryMappingsConfig, ok := d.GetOk("delivery_property"); ok {
-		input := deliveryMappingsConfig.([]interface{})
+	deliveryMappingsConfig, deliveryMappingsExists := d.GetOk("delivery_property")
+	if !deliveryMappingsExists {
+		return basicDeliveryAttributeMapping
+	}
 
-		if len(input) == 0 {
-			return nil
-		}
+	input := deliveryMappingsConfig.([]interface{})
+	if len(input) == 0 {
+		return basicDeliveryAttributeMapping
+	}
 
-		for _, r := range input {
-			mappingBlock := r.(map[string]interface{})
+	for _, r := range input {
+		mappingBlock := r.(map[string]interface{})
 
-			if mappingBlock["type"].(string) == "Static" {
-				basicDeliveryAttributeMapping = append(basicDeliveryAttributeMapping, eventgrid.StaticDeliveryAttributeMapping{
-					Name: utils.String(mappingBlock["header_name"].(string)),
-					Type: eventgrid.TypeStatic,
-					StaticDeliveryAttributeMappingProperties: &eventgrid.StaticDeliveryAttributeMappingProperties{
-						Value:    utils.String(mappingBlock["value"].(string)),
-						IsSecret: utils.Bool(mappingBlock["secret"].(bool)),
-					},
-				})
-			}
-
-			if mappingBlock["type"].(string) == "Dynamic" {
-				basicDeliveryAttributeMapping = append(basicDeliveryAttributeMapping, eventgrid.DynamicDeliveryAttributeMapping{
-					Name: utils.String(mappingBlock["header_name"].(string)),
-					Type: eventgrid.TypeDynamic,
-					DynamicDeliveryAttributeMappingProperties: &eventgrid.DynamicDeliveryAttributeMappingProperties{
-						SourceField: utils.String(mappingBlock["source_field"].(string)),
-					},
-				})
-			}
+		if mappingBlock["type"].(string) == "Static" {
+			basicDeliveryAttributeMapping = append(basicDeliveryAttributeMapping, eventgrid.StaticDeliveryAttributeMapping{
+				Name: utils.String(mappingBlock["header_name"].(string)),
+				Type: eventgrid.TypeStatic,
+				StaticDeliveryAttributeMappingProperties: &eventgrid.StaticDeliveryAttributeMappingProperties{
+					Value:    utils.String(mappingBlock["value"].(string)),
+					IsSecret: utils.Bool(mappingBlock["secret"].(bool)),
+				},
+			})
+		} else if mappingBlock["type"].(string) == "Dynamic" {
+			basicDeliveryAttributeMapping = append(basicDeliveryAttributeMapping, eventgrid.DynamicDeliveryAttributeMapping{
+				Name: utils.String(mappingBlock["header_name"].(string)),
+				Type: eventgrid.TypeDynamic,
+				DynamicDeliveryAttributeMappingProperties: &eventgrid.DynamicDeliveryAttributeMappingProperties{
+					SourceField: utils.String(mappingBlock["source_field"].(string)),
+				},
+			})
 		}
 	}
 
@@ -1277,8 +1277,8 @@ func flattenDeliveryProperties(d *pluginsdk.ResourceData, input *[]eventgrid.Bas
 	if input == nil {
 		return nil
 	}
-	deliveryProperties := make([]interface{}, len(*input))
 
+	deliveryProperties := make([]interface{}, len(*input))
 	for i, element := range *input {
 		attributeMapping := make(map[string]interface{})
 
@@ -1294,7 +1294,7 @@ func flattenDeliveryProperties(d *pluginsdk.ResourceData, input *[]eventgrid.Bas
 
 			if *staticMapping.IsSecret {
 				// If this is a secret, the Azure API just returns a value of 'Hidden',
-				// so we need to lookup the value that was provided from config to return (so that we don't generate Diffs)
+				// so we need to lookup the value that was provided from config to return
 				propertiesFromConfig := expandDeliveryProperties(d)
 				for _, v := range propertiesFromConfig {
 					if configMap, ok := v.AsStaticDeliveryAttributeMapping(); ok {
@@ -1309,9 +1309,7 @@ func flattenDeliveryProperties(d *pluginsdk.ResourceData, input *[]eventgrid.Bas
 			} else {
 				attributeMapping["value"] = staticMapping.Value
 			}
-		}
-
-		if dynamicMapping, ok := element.AsDynamicDeliveryAttributeMapping(); ok {
+		} else if dynamicMapping, ok := element.AsDynamicDeliveryAttributeMapping(); ok {
 			attributeMapping["type"] = dynamicMapping.Type
 			if dynamicMapping.Name != nil {
 				attributeMapping["header_name"] = dynamicMapping.Name
