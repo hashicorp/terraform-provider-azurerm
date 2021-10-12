@@ -51,63 +51,6 @@ func (r LabServicesPlanResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		"properties": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*schema.Schema{
-					"default_rollout_percentage": {
-						Type:         pluginsdk.TypeInt,
-						Required:     true,
-						ValidateFunc: validation.IntBetween(0, 100),
-					},
-
-					"groups": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*schema.Schema{
-								"name": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-								},
-								"rollout_percentage": {
-									Type:         pluginsdk.TypeInt,
-									Required:     true,
-									ValidateFunc: validation.IntBetween(0, 100),
-								},
-							},
-						},
-					},
-					"users": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &schema.Schema{
-							Type:         schema.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-			},
-		},
-		"timewindow_filter": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*schema.Schema{
-					"start": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.IsRFC3339Time,
-					},
-					"end": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.IsRFC3339Time,
-					},
-				},
-			},
-		},
 		"tags": tags.Schema(),
 	}
 }
