@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/labservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/labservices/sdk/2021-10-01-preview/labplan"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/labservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -20,34 +19,28 @@ import (
 type LabServicesPlanResource struct {
 }
 
-var _ sdk.Resource = LabServicesPlanResource{}
+var _ sdk.ResourceWithUpdate = LabServicesPlanResource{}
 
 type LabServicesPlanResourceModel struct {
 	Name          string                    `tfschema:"name"`
 	ResourceGroup string                    `tfschema:"resource_group_name"`
 	Location      string                    `tfschema:"location"`
 	Type          string                    `tfschema:"type"`
-	Tags          map[string]interface{}    `tfschema:"tags"`
+	Tags          map[string]string         `tfschema:"tags"`
 	Properties    labplan.LabPlanProperties `tfschema:"properties"`
 }
 
 func (r LabServicesPlanResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
 
 		"location": location.Schema(),
-
-		"type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-		},
 
 		"tags": tags.Schema(),
 	}
@@ -75,7 +68,7 @@ func (r LabServicesPlanResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.LabServices.LabPlanClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := parse.NewLabPlanID(subscriptionId, model.ResourceGroup, model.Name)
+			id := labplan.NewLabPlanID(subscriptionId, model.ResourceGroup, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -86,14 +79,15 @@ func (r LabServicesPlanResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			labplan := labplan.LabPlan{
+			plan := labplan.LabPlan{
 				Name:     &model.Name,
 				Location: model.Location,
+				Tags:     &model.Tags,
 			}
 
-			_, err = client.CreateOrUpdate(ctx, id, labplan)
+			_, err = client.CreateOrUpdate(ctx, id, plan)
 			if err != nil {
-				return fmt.Errorf("creating Lab Plan %s: %+v", id, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -103,17 +97,52 @@ func (r LabServicesPlanResource) Create() sdk.ResourceFunc {
 	}
 }
 
+func (r LabServicesPlanResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+
+			client := metadata.Client.LabServices.LabPlanClient
+			id, err := labplan.ParseLabPlanID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var state LabServicesPlanResourceModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("reading Lab Plan %s: %v", id, err)
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				existing.Model.Tags = &state.Tags
+			}
+
+			_, err = client.CreateOrUpdate(ctx, *id, *existing.Model)
+			if err != nil {
+				return fmt.Errorf("updating Lab Plan %s: %+v", id, err)
+			}
+
+			return nil
+		},
+		Timeout: 30 * time.Minute,
+	}
+}
+
 func (r LabServicesPlanResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.LabPlanID(metadata.ResourceData.Id())
+			id, err := labplan.ParseLabPlanID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
 			client := metadata.Client.LabServices.LabPlanClient
 
-			labPlan, err := client.Get(ctx, id)
+			labPlan, err := client.Get(ctx, *id)
 			if err != nil {
 				if !response.WasNotFound(labPlan.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -124,6 +153,7 @@ func (r LabServicesPlanResource) Read() sdk.ResourceFunc {
 			model := LabServicesPlanResourceModel{
 				Name:     id.Name,
 				Location: location.NormalizeNilable(utils.String(labPlan.Model.Location)),
+				Tags:     *labPlan.Model.Tags,
 			}
 
 			return metadata.Encode(&model)
@@ -135,7 +165,7 @@ func (r LabServicesPlanResource) Read() sdk.ResourceFunc {
 func (r LabServicesPlanResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.LabPlanID(metadata.ResourceData.Id())
+			id, err := labplan.ParseLabPlanID(metadata.ResourceData.Id())
 
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
@@ -143,7 +173,7 @@ func (r LabServicesPlanResource) Delete() sdk.ResourceFunc {
 
 			client := metadata.Client.LabServices.LabPlanClient
 
-			_, err = client.Delete(ctx, id)
+			_, err = client.Delete(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("while removing Lab Plan %q: %+v", id.Name, err)
 			}
