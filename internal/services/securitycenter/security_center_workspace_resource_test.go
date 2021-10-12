@@ -108,7 +108,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_security_center_subscription_pricing" "test" {
-  tier          = "Standard"
+  tier          = "Free"
   resource_type = "VirtualMachines"
 }
 
@@ -149,7 +149,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_security_center_subscription_pricing" "test" {
-  tier = "Standard"
+  tier = "Free"
 }
 
 resource "azurerm_resource_group" "test" {

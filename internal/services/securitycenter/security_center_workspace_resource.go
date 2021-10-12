@@ -1,7 +1,6 @@
 package securitycenter
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -55,7 +54,6 @@ func resourceSecurityCenterWorkspace() *pluginsdk.Resource {
 }
 
 func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	priceClient := meta.(*clients.Client).SecurityCenter.PricingClient
 	client := meta.(*clients.Client).SecurityCenter.WorkspaceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -73,17 +71,6 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_security_center_workspace", *existing.ID)
 		}
-	}
-
-	// get pricing tier, workspace can only be configured when tier is not Free.
-	// API does not error, it just doesn't set the workspace scope
-	isPricingStandard, err := isPricingStandard(ctx, priceClient)
-	if err != nil {
-		return fmt.Errorf("Checking Security Center Subscription pricing tier %v", err)
-	}
-
-	if !isPricingStandard {
-		return fmt.Errorf("Security Center Subscription workspace cannot be set when pricing tier is `Free`")
 	}
 
 	workspaceID, err := parse.LogAnalyticsWorkspaceID(d.Get("workspace_id").(string))
@@ -143,27 +130,6 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	return resourceSecurityCenterWorkspaceRead(d, meta)
-}
-
-func isPricingStandard(ctx context.Context, priceClient *security.PricingsClient) (bool, error) {
-	prices, err := priceClient.List(ctx)
-	if err != nil {
-		return false, fmt.Errorf("Listing Security Center Subscription pricing: %+v", err)
-	}
-
-	if prices.Value != nil {
-		for _, resourcePrice := range *prices.Value {
-			if resourcePrice.PricingProperties == nil {
-				return false, fmt.Errorf("%v Security Center Subscription pricing properties is nil", *resourcePrice.Type)
-			}
-
-			if resourcePrice.PricingProperties.PricingTier == security.PricingTierStandard {
-				return true, nil
-			}
-		}
-	}
-
-	return false, nil
 }
 
 func resourceSecurityCenterWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
