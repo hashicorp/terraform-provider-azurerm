@@ -64,7 +64,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			// Examples: Standard_HC44rs_4, Standard_D48_v3_6, Standard_M64s_20, Standard_HB120-96rs_v3_8
 			"sku_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: azure.ValidateOrchestratedVirtualMachineScaleSetSku,
 			},
 
@@ -263,15 +263,9 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 	}
 
+	// This needs to be ignored for back compat
 	bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
 	bootDiagnostics := expandBootDiagnostics(bootDiagnosticsRaw)
-
-	dataDisksRaw := d.Get("data_disk").([]interface{})
-	ultraSSDEnabled := false // Currently not supported in orchestrated VMSS
-	dataDisks, err := ExpandVirtualMachineScaleSetDataDisk(dataDisksRaw, ultraSSDEnabled)
-	if err != nil {
-		return fmt.Errorf("expanding `data_disk`: %+v", err)
-	}
 
 	identityRaw := d.Get("identity").([]interface{})
 	identity, err := ExpandVirtualMachineScaleSetIdentity(identityRaw)
@@ -279,49 +273,69 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	networkInterfacesRaw := d.Get("network_interface").([]interface{})
-	networkInterfaces, err := ExpandOrchestratedVirtualMachineScaleSetNetworkInterface(networkInterfacesRaw)
-	if err != nil {
-		return fmt.Errorf("expanding `network_interface`: %+v", err)
-	}
-
-	osDiskRaw := d.Get("os_disk").([]interface{})
-	osDisk := ExpandOrchestratedVirtualMachineScaleSetOSDisk(osDiskRaw, osType)
-
 	planRaw := d.Get("plan").([]interface{})
 	plan := expandPlan(planRaw)
-
-	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
-	sourceImageId := d.Get("source_image_id").(string)
-	sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-	if err != nil {
-		return err
-	}
 
 	zonesRaw := d.Get("zones").([]interface{})
 	zones := azure.ExpandZones(zonesRaw)
 
-	networkProfile := &compute.VirtualMachineScaleSetNetworkProfile{
-		NetworkInterfaceConfigurations: networkInterfaces,
-		// 2020-11-01 is the only valid value for this value and is only valid for VMSS in Orchestration Mode flex
-		NetworkAPIVersion: compute.NetworkAPIVersionTwoZeroTwoZeroHyphenMinusOneOneHyphenMinusZeroOne,
-	}
-
 	priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
+
+	// NET NEW STUFF
 	virtualMachineProfile := compute.VirtualMachineScaleSetVMProfile{
 		Priority:           priority,
 		OsProfile:          vmssOsProfile,
 		DiagnosticsProfile: bootDiagnostics,
-		NetworkProfile:     networkProfile,
-		StorageProfile: &compute.VirtualMachineScaleSetStorageProfile{
-			ImageReference: sourceImageReference,
-			OsDisk:         osDisk,
-			DataDisks:      dataDisks,
-		},
+		StorageProfile:     &compute.VirtualMachineScaleSetStorageProfile{},
 	}
 
-	if vmExtensionsRaw, ok := d.GetOk("extension"); ok {
-		virtualMachineProfile.ExtensionProfile, err = expandOrchestratedVirtualMachineScaleSetExtensions(vmExtensionsRaw.(*pluginsdk.Set).List())
+	if v, ok := d.GetOk("os_disk"); ok {
+		osDiskRaw := v.([]interface{})
+		osDisk := ExpandOrchestratedVirtualMachineScaleSetOSDisk(osDiskRaw, osType)
+
+		virtualMachineProfile.StorageProfile.OsDisk = osDisk
+	}
+
+	if v, ok := d.GetOk("source_image_reference"); ok {
+		sourceImageReferenceRaw := v.([]interface{})
+		sourceImageId := d.Get("source_image_id").(string)
+		sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+		if err != nil {
+			return err
+		}
+
+		virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
+	}
+
+	if v, ok := d.GetOk("data_disk"); ok {
+		ultraSSDEnabled := false // Currently not supported in orchestrated VMSS
+		dataDisks, err := ExpandVirtualMachineScaleSetDataDisk(v.([]interface{}), ultraSSDEnabled)
+		if err != nil {
+			return fmt.Errorf("expanding `data_disk`: %+v", err)
+		}
+
+		virtualMachineProfile.StorageProfile.DataDisks = dataDisks
+	}
+
+	if v, ok := d.GetOk("network_interface"); ok {
+		//networkInterfacesRaw := d.Get("network_interface").([]interface{})
+		ni := v.([]interface{})
+		networkInterfaces, err := ExpandOrchestratedVirtualMachineScaleSetNetworkInterface(ni)
+		if err != nil {
+			return fmt.Errorf("expanding `network_interface`: %+v", err)
+		}
+
+		networkProfile := &compute.VirtualMachineScaleSetNetworkProfile{
+			NetworkInterfaceConfigurations: networkInterfaces,
+			// 2020-11-01 is the only valid value for this value and is only valid for VMSS in Orchestration Mode flex
+			NetworkAPIVersion: compute.NetworkAPIVersionTwoZeroTwoZeroHyphenMinusOneOneHyphenMinusZeroOne,
+		}
+
+		virtualMachineProfile.NetworkProfile = networkProfile
+	}
+
+	if v, ok := d.GetOk("extension"); ok {
+		virtualMachineProfile.ExtensionProfile, err = expandOrchestratedVirtualMachineScaleSetExtensions(v.(*pluginsdk.Set).List())
 		if err != nil {
 			return err
 		}
@@ -370,21 +384,15 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
 	automaticRepairsPolicy := ExpandOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
 
-	sku, err := azure.ExpandOrchestratedVirtualMachineScaleSetSku(d.Get("sku_name").(string))
-	if err != nil {
-		return fmt.Errorf("expanding 'sku_name': %+v", err)
-	}
-
 	props := compute.VirtualMachineScaleSet{
 		Location: utils.String(location),
-		Sku:      sku,
 		Identity: identity,
 		Plan:     plan,
 		Tags:     tags.Expand(t),
 		VirtualMachineScaleSetProperties: &compute.VirtualMachineScaleSetProperties{
 			AutomaticRepairsPolicy: automaticRepairsPolicy,
 			SinglePlacementGroup:   utils.Bool(false),
-			VirtualMachineProfile:  &virtualMachineProfile,
+			// VirtualMachineProfile:  &virtualMachineProfile,
 			// OrchestrationMode needs to be hardcoded to Uniform, for the
 			// standard VMSS resource, since virtualMachineProfile is now supported
 			// in both VMSS and Orchestrated VMSS...
@@ -392,6 +400,17 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		},
 		Zones: zones,
 	}
+
+	// Comment this out for quick back compat test
+	// props.VirtualMachineScaleSetProperties.VirtualMachineProfile = &virtualMachineProfile
+
+	// if v, ok := d.GetOk("sku_name"); ok {
+	// 	sku, err := azure.ExpandOrchestratedVirtualMachineScaleSetSku(v.(string))
+	// 	if err != nil {
+	// 		return fmt.Errorf("expanding 'sku_name': %+v", err)
+	// 	}
+	// 	props.Sku = sku
+	// }
 
 	if v, ok := d.GetOk("platform_fault_domain_count"); ok {
 		props.VirtualMachineScaleSetProperties.PlatformFaultDomainCount = utils.Int32(int32(v.(int)))
@@ -771,8 +790,9 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 		if err != nil || skuName == nil {
 			return fmt.Errorf("setting `sku_name`: %+v", err)
 		}
+
+		d.Set("sku_name", skuName)
 	}
-	d.Set("sku_name", skuName)
 
 	identity, err := FlattenOrchestratedVirtualMachineScaleSetIdentity(resp.Identity)
 	if err != nil {

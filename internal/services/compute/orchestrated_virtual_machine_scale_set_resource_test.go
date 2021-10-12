@@ -18,6 +18,80 @@ import (
 type OrchestratedVirtualMachineScaleSetResource struct {
 }
 
+func TestAccOrchestratedVirtualMachineScaleSet_legacyBasicZonal(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.legacyBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccOrchestratedVirtualMachineScaleSet_legacyUpdateZonal(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.legacyBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.legacyUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.legacyBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccOrchestratedVirtualMachineScaleSet_legacyBasicNonZonal(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.legacyBasicNonZonal(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccOrchestratedVirtualMachineScaleSet_legacyRequiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.legacyRequiresImport(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func TestAccOrchestratedVirtualMachineScaleSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
@@ -326,7 +400,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_basicWindows(t *testing.T) {
 // 			Config: r.singlePlacementGroupFalse(data),
 // 			Check: acceptance.ComposeTestCheckFunc(
 // 				check.That(data.ResourceName).ExistsInAzure(r),
-// 				check.That(data.ResourceName).Key("single_placement_group").HasValue("false"),
 // 			),
 // 		},
 // 	})
@@ -849,6 +922,94 @@ func (t OrchestratedVirtualMachineScaleSetResource) Exists(ctx context.Context, 
 	return utils.Bool(resp.ID != nil), nil
 }
 
+// legacy test cases for backward compatibility validation
+func (r OrchestratedVirtualMachineScaleSetResource) legacyBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  platform_fault_domain_count = 1
+
+  zones = ["1"]
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, r.legacyTemplate(data), data.RandomInteger)
+}
+
+func (r OrchestratedVirtualMachineScaleSetResource) legacyUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  platform_fault_domain_count = 1
+
+  zones = ["1"]
+
+  tags = {
+    ENV = "Test",
+    FOO = "Bar"
+  }
+}
+`, r.legacyTemplate(data), data.RandomInteger)
+}
+
+func (r OrchestratedVirtualMachineScaleSetResource) legacyRequiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "import" {
+  name                = azurerm_orchestrated_virtual_machine_scale_set.test.name
+  location            = azurerm_orchestrated_virtual_machine_scale_set.test.location
+  resource_group_name = azurerm_orchestrated_virtual_machine_scale_set.test.resource_group_name
+
+  platform_fault_domain_count = azurerm_orchestrated_virtual_machine_scale_set.test.platform_fault_domain_count
+}
+`, r.legacyBasic(data))
+}
+
+func (r OrchestratedVirtualMachineScaleSetResource) legacyBasicNonZonal(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  platform_fault_domain_count = 2
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, r.legacyTemplate(data), data.RandomInteger)
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) legacyTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%d"
+  location = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+// Net new tests for the 2021-07-01 version of the API
 func (OrchestratedVirtualMachineScaleSetResource) basic(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
@@ -864,7 +1025,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -980,7 +1141,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1054,7 +1215,7 @@ resource "azurerm_proximity_placement_group" "test" {
 }
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1121,7 +1282,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1186,7 +1347,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1255,7 +1416,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1324,7 +1485,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1394,7 +1555,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1469,7 +1630,7 @@ resource "azurerm_application_security_group" "test" {
 }
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1536,7 +1697,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1602,7 +1763,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1668,7 +1829,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1741,7 +1902,7 @@ resource "azurerm_network_security_group" "test" {
 }
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1807,7 +1968,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1915,7 +2076,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -2017,7 +2178,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -2123,7 +2284,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -2206,7 +2367,7 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -2275,7 +2436,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -2379,7 +2540,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -2444,7 +2605,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -2509,7 +2670,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -2575,7 +2736,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -2758,7 +2919,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -2819,7 +2980,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -2894,7 +3055,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -2972,7 +3133,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -3054,7 +3215,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -3137,7 +3298,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -3225,7 +3386,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -3344,7 +3505,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -3413,7 +3574,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -3478,7 +3639,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctovmss-%[1]d"
+  name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
