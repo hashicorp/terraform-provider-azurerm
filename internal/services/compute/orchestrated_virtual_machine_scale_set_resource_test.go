@@ -83,12 +83,12 @@ func TestAccOrchestratedVirtualMachineScaleSet_legacyRequiresImport(t *testing.T
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.legacyRequiresImport(data),
+			Config: r.legacyBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiresImport),
+		data.RequiresImportErrorStep(r.legacyRequiresImport),
 	})
 }
 
