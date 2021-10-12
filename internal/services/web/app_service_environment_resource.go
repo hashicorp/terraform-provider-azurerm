@@ -431,13 +431,11 @@ func resourceAppServiceEnvironmentDelete(d *pluginsdk.ResourceData, meta interfa
 	forceDeleteAllChildren := utils.Bool(false)
 	future, err := client.Delete(ctx, id.ResourceGroup, id.HostingEnvironmentName, forceDeleteAllChildren)
 	if err != nil {
-
 		return fmt.Errorf("deleting App Service Environment %q (Resource Group %q): %+v", id.HostingEnvironmentName, id.ResourceGroup, err)
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-
 		return fmt.Errorf("waiting for deletion of App Service Environment %q (Resource Group %q): %+v", id.HostingEnvironmentName, id.ResourceGroup, err)
 	}
 

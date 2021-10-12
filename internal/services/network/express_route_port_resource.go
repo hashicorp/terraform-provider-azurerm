@@ -335,7 +335,6 @@ func resourceArmExpressRoutePortDelete(d *pluginsdk.ResourceData, meta interface
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-
 		return fmt.Errorf("waiting for deletion of Express Route Port %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
