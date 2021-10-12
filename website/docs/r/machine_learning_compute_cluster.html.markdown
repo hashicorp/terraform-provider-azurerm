@@ -106,7 +106,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Machine Learning Compute Cluster should exist. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `vm_priority` - (Required) The priority of the VM. Changing this forces a new Machine Learning Compute Cluster to be created. Valid values are: `Dedicated` and `LowPriority`.
+* `vm_priority` - (Required) The priority of the VM. Changing this forces a new Machine Learning Compute Cluster to be created. Accepted values are `Dedicated` and `LowPriority`.
 
 * `vm_size` - (Required) The size of the VM. Changing this forces a new Machine Learning Compute Cluster to be created.
 
