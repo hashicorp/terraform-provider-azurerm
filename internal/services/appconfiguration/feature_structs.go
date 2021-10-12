@@ -84,7 +84,6 @@ func (p *ClientFilter) UnmarshalJSON(b []byte) error {
 		default:
 			return fmt.Errorf("unknown type %q", name)
 		}
-
 	}
 
 	p.Filters = filtersOut

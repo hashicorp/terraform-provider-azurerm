@@ -257,7 +257,6 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 func (k KeyResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			resourceID, err := parse.KeyId(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
@@ -274,7 +273,6 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("value") || metadata.ResourceData.HasChange("content_type") || metadata.ResourceData.HasChange("tags") || metadata.ResourceData.HasChange("type") || metadata.ResourceData.HasChange("vault_key_reference") {
-
 				entity := appconfiguration.KeyValue{
 					Key:   utils.String(model.Key),
 					Label: utils.String(model.Label),

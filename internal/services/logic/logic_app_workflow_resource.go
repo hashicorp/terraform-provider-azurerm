@@ -722,7 +722,7 @@ func expandLogicAppWorkflowAccessControl(input []interface{}) *logic.FlowAccessC
 }
 
 func expandLogicAppWorkflowAccessControlConfigurationPolicy(input []interface{}) *logic.FlowAccessControlConfigurationPolicy {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	v := input[0].(map[string]interface{})

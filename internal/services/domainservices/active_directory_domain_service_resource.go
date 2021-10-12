@@ -506,7 +506,6 @@ func resourceActiveDirectoryDomainServiceDelete(d *pluginsdk.ResourceData, meta 
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

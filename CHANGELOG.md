@@ -1,8 +1,17 @@
 ## 2.81.0 (Unreleased)
 
+FEATURES: 
+
+* **New Resource:** `azurerm_data_factory_linked_service_cosmosdb_mongoapi` [GH-13636]
+
 BUG FIXES:
 
 * `azurerm_management_group` - nil check for child management groups when deassociating a subscription from a management group [GH-13540]
+* `azurerm_logic_app_workflow` - nil check for empty access control properties [GH-13689]
+
+IMPROVEMENTS:
+
+* `azurerm_network_connection_monitor` - add support for the `destination_port_behavior` property [GH-13518]
 
 ## 2.80.0 (October 08, 2021)
 

@@ -7,7 +7,6 @@ type AuthorizationRulePredicate struct {
 }
 
 func (p AuthorizationRulePredicate) Matches(input AuthorizationRule) bool {
-
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false
 	}
@@ -30,7 +29,6 @@ type HybridConnectionPredicate struct {
 }
 
 func (p HybridConnectionPredicate) Matches(input HybridConnection) bool {
-
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false
 	}
