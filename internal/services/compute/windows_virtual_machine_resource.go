@@ -156,6 +156,16 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"secure_boot_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"vtpm_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
 				Type:     pluginsdk.TypeString,
@@ -479,11 +489,32 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
+	var securitytype string = ""
+	vtpmEnabled := d.Get("vtpm_enabled").(bool)
+	securebootEnabled := d.Get("secure_boot_enabled").(bool)
+	encryptionAtHostEnabled := d.Get("encryption_at_host_enabled").(bool)
+
+	//If vtpm or secure boot are enabled then securityType must be set to TrustedLaunch
+	if vtpmEnabled || securebootEnabled {
+		securitytype = "TrustedLaunch"
+	}
+	//if vtpm, secure boot or encryptionAtHost are set then create a security profile
+	if vtpmEnabled || securebootEnabled || encryptionAtHostEnabled {
 		params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
-			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
+			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled),
+			SecurityType:     compute.SecurityTypes(securitytype),
+			UefiSettings: &compute.UefiSettings{
+				SecureBootEnabled: utils.Bool(securebootEnabled),
+				VTpmEnabled:       utils.Bool(vtpmEnabled),
+			},
 		}
 	}
+
+	//if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
+	//	params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
+	//		EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
+	//	}
+	//}
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
 		if params.Priority != compute.Spot {
@@ -724,11 +755,19 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	encryptionAtHostEnabled := false
-	if props.SecurityProfile != nil && props.SecurityProfile.EncryptionAtHost != nil {
-		encryptionAtHostEnabled = *props.SecurityProfile.EncryptionAtHost
+	// encryptionAtHostEnabled := false
+	// vtpmEnabled := false
+	// securebootEnabled := false
+	// SecurityType := ""
+	if secprofile := props.SecurityProfile; secprofile != nil {
+		d.Set("encryption_at_host_enabled", secprofile.EncryptionAtHost)
+		d.Set("security_type", secprofile.SecurityType)
+
+		if uefi := props.SecurityProfile.UefiSettings; uefi != nil {
+			d.Set("vtpm_enabled", uefi.VTpmEnabled)
+			d.Set("secure_boot_enabled", uefi.SecureBootEnabled)
+		}
 	}
-	d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 
 	d.Set("virtual_machine_id", props.VMID)
 
