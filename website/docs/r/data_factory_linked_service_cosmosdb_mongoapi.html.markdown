@@ -20,11 +20,6 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-data "azurerm_cosmosdb_account" "example" {
-  name                = "tfex-cosmosdb-account"
-  resource_group_name = "tfex-cosmosdb-account-rg"
-}
-
 resource "azurerm_data_factory" "example" {
   name                = "example"
   location            = azurerm_resource_group.example.location
