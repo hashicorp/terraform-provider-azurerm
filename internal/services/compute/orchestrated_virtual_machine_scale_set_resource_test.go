@@ -29,7 +29,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_legacyBasicZonal(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("extensions_time_budget", "max_bid_price", "priority"),
 	})
 }
 
@@ -44,21 +44,21 @@ func TestAccOrchestratedVirtualMachineScaleSet_legacyUpdateZonal(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("extensions_time_budget", "max_bid_price", "priority"),
 		{
 			Config: r.legacyUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("extensions_time_budget", "max_bid_price", "priority"),
 		{
 			Config: r.legacyBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("extensions_time_budget", "max_bid_price", "priority"),
 	})
 }
 
@@ -73,7 +73,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_legacyBasicNonZonal(t *testing.T)
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("extensions_time_budget", "max_bid_price", "priority"),
 	})
 }
 
