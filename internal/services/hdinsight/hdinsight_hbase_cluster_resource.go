@@ -26,11 +26,16 @@ var hdInsightHBaseClusterHeadNodeDefinition = HDInsightNodeDefinition{
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
 }
 
+/*
+Due to constrain on the Schema design HARD CODING Accelerated Writes for Worker Node
+ */
+
 var hdInsightHBaseClusterWorkerNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
-	CanSpecifyDisks:         false,
+	CanSpecifyDisks:         true,
 	CanAutoScaleOnSchedule:  true,
+	MaxNumberOfDisksPerNode: utils.Int(1),
 }
 
 var hdInsightHBaseClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
