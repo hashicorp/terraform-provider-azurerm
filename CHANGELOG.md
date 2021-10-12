@@ -1,5 +1,9 @@
 ## 2.81.0 (Unreleased)
 
+FEATURES: 
+
+* **New Resource:** `azurerm_data_factory_linked_service_cosmosdb_mongoapi` [GH-13636]
+
 BUG FIXES:
 
 * `azurerm_management_group` - nil check for child management groups when deassociating a subscription from a management group [GH-13540]
