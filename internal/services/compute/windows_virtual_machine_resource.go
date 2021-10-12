@@ -156,16 +156,6 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"secure_boot_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
-			"vtpm_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
 				Type:     pluginsdk.TypeString,
@@ -252,6 +242,17 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			"secret": windowsSecretSchema(),
 
+			"secure_boot_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
+			"security_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"source_image_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -290,6 +291,12 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ForceNew:     true,
 				RequiredWith: []string{"virtual_machine_scale_set_id"},
 				ValidateFunc: validation.IntAtLeast(-1),
+			},
+
+			"vtpm_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"winrm_listener": winRmListenerSchema(),
@@ -500,13 +507,23 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 	//if vtpm, secure boot or encryptionAtHost are set then create a security profile
 	if vtpmEnabled || securebootEnabled || encryptionAtHostEnabled {
-		params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
-			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled),
-			SecurityType:     compute.SecurityTypes(securitytype),
-			UefiSettings: &compute.UefiSettings{
-				SecureBootEnabled: utils.Bool(securebootEnabled),
-				VTpmEnabled:       utils.Bool(vtpmEnabled),
-			},
+		if encryptionAtHostEnabled {
+			params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
+				EncryptionAtHost: utils.Bool(encryptionAtHostEnabled),
+				SecurityType:     compute.SecurityTypes(securitytype),
+				UefiSettings: &compute.UefiSettings{
+					SecureBootEnabled: utils.Bool(securebootEnabled),
+					VTpmEnabled:       utils.Bool(vtpmEnabled),
+				},
+			}
+		} else {
+			params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
+				SecurityType: compute.SecurityTypes(securitytype),
+				UefiSettings: &compute.UefiSettings{
+					SecureBootEnabled: utils.Bool(securebootEnabled),
+					VTpmEnabled:       utils.Bool(vtpmEnabled),
+				},
+			}
 		}
 	}
 
@@ -755,10 +772,6 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	// encryptionAtHostEnabled := false
-	// vtpmEnabled := false
-	// securebootEnabled := false
-	// SecurityType := ""
 	if secprofile := props.SecurityProfile; secprofile != nil {
 		d.Set("encryption_at_host_enabled", secprofile.EncryptionAtHost)
 		d.Set("security_type", secprofile.SecurityType)
@@ -766,7 +779,15 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 		if uefi := props.SecurityProfile.UefiSettings; uefi != nil {
 			d.Set("vtpm_enabled", uefi.VTpmEnabled)
 			d.Set("secure_boot_enabled", uefi.SecureBootEnabled)
+		} else {
+			d.Set("vtpm_enabled", false)
+			d.Set("secure_boot_enabled", false)
 		}
+	} else {
+		d.Set("encryption_at_host_enabled", false)
+		//d.Set("security_type", "") // security type can only be set on create so if it has ever been set then it will still exist in the security profile
+		d.Set("vtpm_enabled", false)
+		d.Set("secure_boot_enabled", false)
 	}
 
 	d.Set("virtual_machine_id", props.VMID)
@@ -1048,10 +1069,11 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	if d.HasChange("encryption_at_host_enabled") {
 		shouldUpdate = true
 		shouldDeallocate = true // API returns the following error if not deallocate: 'securityProfile.encryptionAtHost' can be updated only when VM is in deallocated state
-
-		update.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
-			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
+		if update.SecurityProfile == nil {
+			update.SecurityProfile = &compute.SecurityProfile{}
 		}
+		update.SecurityProfile.EncryptionAtHost = utils.Bool(d.Get("encryption_at_host_enabled").(bool))
+
 	}
 
 	if d.HasChange("license_type") {
