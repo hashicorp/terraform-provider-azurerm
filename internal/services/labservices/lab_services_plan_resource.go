@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -15,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/labservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -157,5 +155,5 @@ func (r LabServicesPlanResource) Delete() sdk.ResourceFunc {
 }
 
 func (r LabServicesPlanResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.LabServicesPlanID
+	return validate.LabPlanID
 }
