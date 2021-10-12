@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"reflect"
 	"strings"
 	"sync"
 
+	"github.com/Azure/azure-sdk-for-go/services/resourcegraph/mgmt/2021-03-01/resourcegraph"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
+	resourcesGraphClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resourcegraph/client"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -93,7 +95,7 @@ func (c *Client) Exists(ctx context.Context, keyVaultId parse.VaultId) (bool, er
 	return true, nil
 }
 
-func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesClient *resourcesClient.Client, keyVaultBaseUrl string) (*string, error) {
+func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesGraphClient *resourcesGraphClient.Client, keyVaultBaseUrl string) (*string, error) {
 	keyVaultName, err := c.parseNameFromBaseUrl(keyVaultBaseUrl)
 	if err != nil {
 		return nil, err
@@ -112,40 +114,39 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesClient *res
 		return &v.keyVaultId, nil
 	}
 
-	filter := fmt.Sprintf("resourceType eq 'Microsoft.KeyVault/vaults' and name eq '%s'", *keyVaultName)
-	result, err := resourcesClient.ResourcesClient.List(ctx, filter, "", utils.Int32(5))
-	if err != nil {
-		return nil, fmt.Errorf("listing resources matching %q: %+v", filter, err)
+	query := fmt.Sprintf("resources | where type =~ 'Microsoft.KeyVault/vaults' and name =~ '%s'", *keyVaultName)
+	request := resourcegraph.QueryRequest{
+		Subscriptions: &[]string{c.VaultsClient.SubscriptionID},
+		Query:         &query,
+		Options: &resourcegraph.QueryRequestOptions{
+			ResultFormat: resourcegraph.ResultFormatObjectArray,
+		},
 	}
 
-	for result.NotDone() {
-		for _, v := range result.Values() {
-			if v.ID == nil {
-				continue
-			}
+	results, err := resourcesGraphClient.ResourceClient.Resources(context.Background(), request)
+	if err != nil {
+		return nil, fmt.Errorf("listing resources matching %q: %+v", query, err)
+	}
 
-			id, err := parse.VaultID(*v.ID)
-			if err != nil {
-				return nil, fmt.Errorf("parsing %q: %+v", *v.ID, err)
-			}
-			if !strings.EqualFold(id.Name, *keyVaultName) {
-				continue
-			}
+	if results.Data != nil && reflect.TypeOf(results.Data).Kind() == reflect.Slice {
+		if d := results.Data.([]interface{}); len(d) > 0 && reflect.TypeOf(d[0]).Kind() == reflect.Map {
+			if v, ok := d[0].(map[string]interface{})["id"]; ok {
+				id, err := parse.VaultID(v.(string))
+				if err != nil {
+					return nil, fmt.Errorf("parsing %q: %+v", d, err)
+				}
 
-			props, err := c.VaultsClient.Get(ctx, id.ResourceGroup, id.Name)
-			if err != nil {
-				return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-			if props.Properties == nil || props.Properties.VaultURI == nil {
-				return nil, fmt.Errorf("retrieving %s: `properties.VaultUri` was nil", *id)
-			}
+				props, err := c.VaultsClient.Get(ctx, id.ResourceGroup, id.Name)
+				if err != nil {
+					return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
+				}
+				if props.Properties == nil || props.Properties.VaultURI == nil {
+					return nil, fmt.Errorf("retrieving %s: `properties.VaultUri` was nil", *id)
+				}
 
-			c.AddToCache(*id, *props.Properties.VaultURI)
-			return utils.String(id.ID()), nil
-		}
-
-		if err := result.NextWithContext(ctx); err != nil {
-			return nil, fmt.Errorf("iterating over results: %+v", err)
+				c.AddToCache(*id, *props.Properties.VaultURI)
+				return utils.String(id.ID()), nil
+			}
 		}
 	}
 

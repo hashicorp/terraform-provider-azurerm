@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
+	resourcesGraphClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resourcegraph/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -96,7 +96,7 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	resourcesClient := meta.(*clients.Client).Resource
+	resourcesClient := meta.(*clients.Client).ResourceGraph
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -207,7 +207,7 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	resourcesClient := meta.(*clients.Client).Resource
+	resourcesGraphClient := meta.(*clients.Client).ResourceGraph
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -223,7 +223,7 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChange("key_vault_key_id") {
 		keyVaultKeyId := d.Get("key_vault_key_id").(string)
-		keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, keyVaultsClient, resourcesClient, keyVaultKeyId)
+		keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, keyVaultsClient, resourcesGraphClient, keyVaultKeyId)
 		if err != nil {
 			return fmt.Errorf("validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKeyId, err)
 		}
@@ -315,7 +315,7 @@ type diskEncryptionSetKeyVault struct {
 	softDeleteEnabled      bool
 }
 
-func diskEncryptionSetRetrieveKeyVault(ctx context.Context, keyVaultsClient *client.Client, resourcesClient *resourcesClient.Client, id string) (*diskEncryptionSetKeyVault, error) {
+func diskEncryptionSetRetrieveKeyVault(ctx context.Context, keyVaultsClient *client.Client, resourcesClient *resourcesGraphClient.Client, id string) (*diskEncryptionSetKeyVault, error) {
 	keyVaultKeyId, err := keyVaultParse.ParseNestedItemID(id)
 	if err != nil {
 		return nil, err

@@ -85,6 +85,7 @@ import (
 	redisenterprise "github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/client"
 	relay "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/client"
 	resource "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
+	resourceGraph "github.com/hashicorp/terraform-provider-azurerm/internal/services/resourcegraph/client"
 	search "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/client"
 	securityCenter "github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/client"
 	sentinel "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
@@ -190,6 +191,7 @@ type Client struct {
 	RedisEnterprise       *redisenterprise.Client
 	Relay                 *relay.Client
 	Resource              *resource.Client
+	ResourceGraph         *resourceGraph.Client
 	Search                *search.Client
 	SecurityCenter        *securityCenter.Client
 	Sentinel              *sentinel.Client
@@ -297,6 +299,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.RedisEnterprise = redisenterprise.NewClient(o)
 	client.Relay = relay.NewClient(o)
 	client.Resource = resource.NewClient(o)
+	client.ResourceGraph = resourceGraph.NewClient(o)
 	client.Search = search.NewClient(o)
 	client.SecurityCenter = securityCenter.NewClient(o)
 	client.Sentinel = sentinel.NewClient(o)

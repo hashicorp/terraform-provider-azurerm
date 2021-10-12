@@ -183,7 +183,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.AccountsClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	resourcesClient := meta.(*clients.Client).Resource
+	resourcesGraphClient := meta.(*clients.Client).ResourceGraph
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -239,7 +239,7 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving Storage Account %q (Resource Group %q): `properties.encryption.keyVaultProperties.keyVaultURI` was nil", storageAccountID.Name, storageAccountID.ResourceGroup)
 	}
 
-	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultURI)
+	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesGraphClient, keyVaultURI)
 	if err != nil {
 		return fmt.Errorf("retrieving Key Vault ID from the Base URI %q: %+v", keyVaultURI, err)
 	}

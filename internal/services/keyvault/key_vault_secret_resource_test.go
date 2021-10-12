@@ -226,7 +226,7 @@ func (KeyVaultSecretResource) Exists(ctx context.Context, clients *clients.Clien
 		return nil, err
 	}
 
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, clients.Resource, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, clients.ResourceGraph, id.KeyVaultBaseUrl)
 	if err != nil || keyVaultIdRaw == nil {
 		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}

@@ -136,13 +136,13 @@ func keyVaultChildItemRefreshFunc(secretUri string) pluginsdk.StateRefreshFunc {
 
 func nestedItemResourceImporter(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	resourcesClient := meta.(*clients.Client).Resource
+	resourcesGraphClient := meta.(*clients.Client).ResourceGraph
 	id, err := parse.ParseNestedItemID(d.Id())
 	if err != nil {
 		return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing ID %q for Key Vault Child import: %v", d.Id(), err)
 	}
 
-	keyVaultId, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
+	keyVaultId, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesGraphClient, id.KeyVaultBaseUrl)
 	if err != nil {
 		return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}

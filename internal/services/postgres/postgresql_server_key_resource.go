@@ -15,7 +15,7 @@ import (
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
-	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
+	resourcesGraphClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resourcegraph/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -57,12 +57,12 @@ func resourcePostgreSQLServerKey() *pluginsdk.Resource {
 	}
 }
 
-func getPostgreSQLServerKeyName(ctx context.Context, keyVaultsClient *client.Client, resourcesClient *resourcesClient.Client, keyVaultKeyURI string) (*string, error) {
+func getPostgreSQLServerKeyName(ctx context.Context, keyVaultsClient *client.Client, resourcesGraphClient *resourcesGraphClient.Client, keyVaultKeyURI string) (*string, error) {
 	keyVaultKeyID, err := keyVaultParse.ParseNestedItemID(keyVaultKeyURI)
 	if err != nil {
 		return nil, err
 	}
-	keyVaultIDRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultKeyID.KeyVaultBaseUrl)
+	keyVaultIDRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesGraphClient, keyVaultKeyID.KeyVaultBaseUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func getPostgreSQLServerKeyName(ctx context.Context, keyVaultsClient *client.Cli
 func resourcePostgreSQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	keysClient := meta.(*clients.Client).Postgres.ServerKeysClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	resourcesClient := meta.(*clients.Client).Resource
+	resourcesGraphClient := meta.(*clients.Client).ResourceGraph
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -89,7 +89,7 @@ func resourcePostgreSQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 	keyVaultKeyURI := d.Get("key_vault_key_id").(string)
-	name, err := getPostgreSQLServerKeyName(ctx, keyVaultsClient, resourcesClient, keyVaultKeyURI)
+	name, err := getPostgreSQLServerKeyName(ctx, keyVaultsClient, resourcesGraphClient, keyVaultKeyURI)
 	if err != nil {
 		return fmt.Errorf("cannot compose name for PostgreSQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroup, serverID.Name, err)
 	}
