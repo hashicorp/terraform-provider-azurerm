@@ -8,9 +8,9 @@ func TestAccSecurityCenter_pricingAndWorkspace(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests
 	// due to the workspace tests depending on the current pricing tier
 	testCases := map[string]map[string]func(t *testing.T){
-		// "pricing": {
-		// 	"update": testAccSecurityCenterSubscriptionPricing_update,
-		// },
+		"pricing": {
+			"update": testAccSecurityCenterSubscriptionPricing_update,
+		},
 		"workspace": {
 			"basic":          testAccSecurityCenterWorkspace_basic,
 			"update":         testAccSecurityCenterWorkspace_update,
