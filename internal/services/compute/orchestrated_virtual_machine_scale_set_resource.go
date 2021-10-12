@@ -192,6 +192,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	isLegacy := true
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
@@ -211,19 +212,14 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
-
-	planRaw := d.Get("plan").([]interface{})
-	plan := expandPlan(planRaw)
-
-	zonesRaw := d.Get("zones").([]interface{})
-	zones := azure.ExpandZones(zonesRaw)
+	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
 	props := compute.VirtualMachineScaleSet{
 		Location: utils.String(location),
-		Plan:     plan,
 		Tags:     tags.Expand(t),
 		VirtualMachineScaleSetProperties: &compute.VirtualMachineScaleSetProperties{
-			SinglePlacementGroup: utils.Bool(false),
+			PlatformFaultDomainCount: utils.Int32(int32(d.Get("platform_fault_domain_count").(int))),
+			SinglePlacementGroup:     utils.Bool(false),
 			// OrchestrationMode needs to be hardcoded to Uniform, for the
 			// standard VMSS resource, since virtualMachineProfile is now supported
 			// in both VMSS and Orchestrated VMSS...
@@ -232,15 +228,23 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		Zones: zones,
 	}
 
-	if v, ok := d.GetOk("identity"); ok {
-		identity, err := ExpandVirtualMachineScaleSetIdentity(v.([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `identity`: %+v", err)
+	virtualMachineProfile := compute.VirtualMachineScaleSetVMProfile{
+		StorageProfile: &compute.VirtualMachineScaleSetStorageProfile{},
+	}
+
+	networkProfile := &compute.VirtualMachineScaleSetNetworkProfile{
+		// 2020-11-01 is the only valid value for this value and is only valid for VMSS in Orchestration Mode flex
+		NetworkAPIVersion: compute.NetworkAPIVersionTwoZeroTwoZeroHyphenMinusOneOneHyphenMinusZeroOne,
+	}
+
+	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
+		props.VirtualMachineScaleSetProperties.ProximityPlacementGroup = &compute.SubResource{
+			ID: utils.String(v.(string)),
 		}
-		props.Identity = identity
 	}
 
 	if v, ok := d.GetOk("sku_name"); ok {
+		isLegacy = false
 		sku, err := azure.ExpandOrchestratedVirtualMachineScaleSetSku(v.(string))
 		if err != nil {
 			return fmt.Errorf("expanding 'sku_name': %+v", err)
@@ -295,11 +299,8 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 				vmssOsProfile.ComputerNamePrefix = utils.String(name)
 			}
 		}
-	}
 
-	virtualMachineProfile := compute.VirtualMachineScaleSetVMProfile{
-		OsProfile:      vmssOsProfile,
-		StorageProfile: &compute.VirtualMachineScaleSetStorageProfile{},
+		virtualMachineProfile.OsProfile = vmssOsProfile
 	}
 
 	if v, ok := d.GetOk("boot_diagnostics"); ok {
@@ -311,15 +312,15 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	if v, ok := d.GetOk("os_disk"); ok {
-		osDiskRaw := v.([]interface{})
-		osDisk := ExpandOrchestratedVirtualMachineScaleSetOSDisk(osDiskRaw, osType)
-		virtualMachineProfile.StorageProfile.OsDisk = osDisk
+		virtualMachineProfile.StorageProfile.OsDisk = ExpandOrchestratedVirtualMachineScaleSetOSDisk(v.([]interface{}), osType)
 	}
 
 	if v, ok := d.GetOk("source_image_reference"); ok {
-		sourceImageReferenceRaw := v.([]interface{})
-		sourceImageId := d.Get("source_image_id").(string)
-		sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+		sourceImageId := ""
+		if sid, ok := d.GetOk("source_image_id"); ok {
+			sourceImageId = sid.(string)
+		}
+		sourceImageReference, err := expandSourceImageReference(v.([]interface{}), sourceImageId)
 		if err != nil {
 			return err
 		}
@@ -341,11 +342,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			return fmt.Errorf("expanding `network_interface`: %+v", err)
 		}
 
-		networkProfile := &compute.VirtualMachineScaleSetNetworkProfile{
-			NetworkInterfaceConfigurations: networkInterfaces,
-			// 2020-11-01 is the only valid value for this value and is only valid for VMSS in Orchestration Mode flex
-			NetworkAPIVersion: compute.NetworkAPIVersionTwoZeroTwoZeroHyphenMinusOneOneHyphenMinusZeroOne,
-		}
+		networkProfile.NetworkInterfaceConfigurations = networkInterfaces
 		virtualMachineProfile.NetworkProfile = networkProfile
 	}
 
@@ -397,31 +394,32 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
 	}
 
-	if v, ok := d.GetOk("automatic_instance_repair"); ok {
-		props.VirtualMachineScaleSetProperties.AutomaticRepairsPolicy = ExpandOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(v.([]interface{}))
-	}
-
-	if v, ok := d.GetOk("platform_fault_domain_count"); ok {
-		props.VirtualMachineScaleSetProperties.PlatformFaultDomainCount = utils.Int32(int32(v.(int)))
-	}
-
-	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
-		props.VirtualMachineScaleSetProperties.ProximityPlacementGroup = &compute.SubResource{
-			ID: utils.String(v.(string)),
-		}
-	}
-
-	if v, ok := d.GetOk("zone_balance"); ok && v.(bool) {
-		if len(zonesRaw) == 0 {
-			return fmt.Errorf("`zone_balance` can only be set to `true` when zones are specified")
+	// Only inclued the virtual machine profile if this is not a legacy configuration
+	if !isLegacy {
+		if v, ok := d.GetOk("plan"); ok {
+			props.Plan = expandPlan(v.([]interface{}))
 		}
 
-		props.VirtualMachineScaleSetProperties.ZoneBalance = utils.Bool(v.(bool))
-	}
+		if v, ok := d.GetOk("identity"); ok {
+			identity, err := ExpandVirtualMachineScaleSetIdentity(v.([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+			props.Identity = identity
+		}
 
-	// I am using SKU as a flag to determin if I should include the
-	// virtual machine profile or not into the payload for back compat
-	if props.Sku != nil {
+		if v, ok := d.GetOk("automatic_instance_repair"); ok {
+			props.VirtualMachineScaleSetProperties.AutomaticRepairsPolicy = ExpandOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(v.([]interface{}))
+		}
+
+		if v, ok := d.GetOk("zone_balance"); ok && v.(bool) {
+			if len(*zones) == 0 {
+				return fmt.Errorf("`zone_balance` can only be set to `true` when zones are specified")
+			}
+
+			props.VirtualMachineScaleSetProperties.ZoneBalance = utils.Bool(v.(bool))
+		}
+
 		props.VirtualMachineScaleSetProperties.VirtualMachineProfile = &virtualMachineProfile
 	}
 
