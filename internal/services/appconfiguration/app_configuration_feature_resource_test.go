@@ -101,7 +101,6 @@ func TestAccAppConfigurationFeature_enabledUpdate(t *testing.T) {
 }
 
 func (t AppConfigurationFeatureResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-
 	resourceID, err := parse.FeatureId(state.ID)
 	if err != nil {
 		return nil, fmt.Errorf("while parsing resource ID: %+v", err)

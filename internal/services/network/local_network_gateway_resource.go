@@ -223,12 +223,10 @@ func resourceLocalNetworkGatewayDelete(d *pluginsdk.ResourceData, meta interface
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
-
 		return fmt.Errorf("issuing delete request for local network gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-
 		return fmt.Errorf("waiting for completion of local network gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 

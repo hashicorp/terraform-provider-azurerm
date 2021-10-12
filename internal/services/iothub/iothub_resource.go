@@ -742,7 +742,6 @@ func resourceIotHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-
 		return err
 	}
 
