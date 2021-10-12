@@ -212,9 +212,43 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	// used for osDisk type
-	osType := compute.OperatingSystemTypesWindows
+	planRaw := d.Get("plan").([]interface{})
+	plan := expandPlan(planRaw)
 
+	zonesRaw := d.Get("zones").([]interface{})
+	zones := azure.ExpandZones(zonesRaw)
+
+	props := compute.VirtualMachineScaleSet{
+		Location: utils.String(location),
+		Plan:     plan,
+		Tags:     tags.Expand(t),
+		VirtualMachineScaleSetProperties: &compute.VirtualMachineScaleSetProperties{
+			SinglePlacementGroup: utils.Bool(false),
+			// OrchestrationMode needs to be hardcoded to Uniform, for the
+			// standard VMSS resource, since virtualMachineProfile is now supported
+			// in both VMSS and Orchestrated VMSS...
+			OrchestrationMode: compute.OrchestrationModeFlexible,
+		},
+		Zones: zones,
+	}
+
+	if v, ok := d.GetOk("identity"); ok {
+		identity, err := ExpandVirtualMachineScaleSetIdentity(v.([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		props.Identity = identity
+	}
+
+	if v, ok := d.GetOk("sku_name"); ok {
+		sku, err := azure.ExpandOrchestratedVirtualMachineScaleSetSku(v.(string))
+		if err != nil {
+			return fmt.Errorf("expanding 'sku_name': %+v", err)
+		}
+		props.Sku = sku
+	}
+
+	osType := compute.OperatingSystemTypesWindows
 	var winConfigRaw []interface{}
 	var linConfigRaw []interface{}
 	var vmssOsProfile *compute.VirtualMachineScaleSetOSProfile
@@ -263,36 +297,22 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 	}
 
-	// This needs to be ignored for back compat
-	bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
-	bootDiagnostics := expandBootDiagnostics(bootDiagnosticsRaw)
-
-	identityRaw := d.Get("identity").([]interface{})
-	identity, err := ExpandVirtualMachineScaleSetIdentity(identityRaw)
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
+	virtualMachineProfile := compute.VirtualMachineScaleSetVMProfile{
+		OsProfile:      vmssOsProfile,
+		StorageProfile: &compute.VirtualMachineScaleSetStorageProfile{},
 	}
 
-	planRaw := d.Get("plan").([]interface{})
-	plan := expandPlan(planRaw)
+	if v, ok := d.GetOk("boot_diagnostics"); ok {
+		virtualMachineProfile.DiagnosticsProfile = expandBootDiagnostics(v.([]interface{}))
+	}
 
-	zonesRaw := d.Get("zones").([]interface{})
-	zones := azure.ExpandZones(zonesRaw)
-
-	priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
-
-	// NET NEW STUFF
-	virtualMachineProfile := compute.VirtualMachineScaleSetVMProfile{
-		Priority:           priority,
-		OsProfile:          vmssOsProfile,
-		DiagnosticsProfile: bootDiagnostics,
-		StorageProfile:     &compute.VirtualMachineScaleSetStorageProfile{},
+	if v, ok := d.GetOk("priority"); ok {
+		virtualMachineProfile.Priority = compute.VirtualMachinePriorityTypes(v.(string))
 	}
 
 	if v, ok := d.GetOk("os_disk"); ok {
 		osDiskRaw := v.([]interface{})
 		osDisk := ExpandOrchestratedVirtualMachineScaleSetOSDisk(osDiskRaw, osType)
-
 		virtualMachineProfile.StorageProfile.OsDisk = osDisk
 	}
 
@@ -303,7 +323,6 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		if err != nil {
 			return err
 		}
-
 		virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 	}
 
@@ -313,14 +332,11 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		if err != nil {
 			return fmt.Errorf("expanding `data_disk`: %+v", err)
 		}
-
 		virtualMachineProfile.StorageProfile.DataDisks = dataDisks
 	}
 
 	if v, ok := d.GetOk("network_interface"); ok {
-		//networkInterfacesRaw := d.Get("network_interface").([]interface{})
-		ni := v.([]interface{})
-		networkInterfaces, err := ExpandOrchestratedVirtualMachineScaleSetNetworkInterface(ni)
+		networkInterfaces, err := ExpandOrchestratedVirtualMachineScaleSetNetworkInterface(v.([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `network_interface`: %+v", err)
 		}
@@ -330,15 +346,15 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			// 2020-11-01 is the only valid value for this value and is only valid for VMSS in Orchestration Mode flex
 			NetworkAPIVersion: compute.NetworkAPIVersionTwoZeroTwoZeroHyphenMinusOneOneHyphenMinusZeroOne,
 		}
-
 		virtualMachineProfile.NetworkProfile = networkProfile
 	}
 
 	if v, ok := d.GetOk("extension"); ok {
-		virtualMachineProfile.ExtensionProfile, err = expandOrchestratedVirtualMachineScaleSetExtensions(v.(*pluginsdk.Set).List())
+		extensionProfile, err := expandOrchestratedVirtualMachineScaleSetExtensions(v.(*pluginsdk.Set).List())
 		if err != nil {
 			return err
 		}
+		virtualMachineProfile.ExtensionProfile = extensionProfile
 	}
 
 	if v, ok := d.GetOk("extensions_time_budget"); ok {
@@ -349,7 +365,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
-		if priority != compute.VirtualMachinePriorityTypesSpot {
+		if virtualMachineProfile.Priority != compute.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
@@ -358,18 +374,18 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 	}
 
-	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
+	if v, ok := d.GetOk("encryption_at_host_enabled"); ok {
 		virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{
-			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
+			EncryptionAtHost: utils.Bool(v.(bool)),
 		}
 	}
 
-	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
+	if v, ok := d.GetOk("eviction_policy"); ok {
 		if virtualMachineProfile.Priority != compute.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
-		virtualMachineProfile.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string))
-	} else if priority == compute.VirtualMachinePriorityTypesSpot {
+		virtualMachineProfile.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(v.(string))
+	} else if virtualMachineProfile.Priority == compute.VirtualMachinePriorityTypesSpot {
 		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
@@ -381,36 +397,9 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
 	}
 
-	automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
-	automaticRepairsPolicy := ExpandOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
-
-	props := compute.VirtualMachineScaleSet{
-		Location: utils.String(location),
-		Identity: identity,
-		Plan:     plan,
-		Tags:     tags.Expand(t),
-		VirtualMachineScaleSetProperties: &compute.VirtualMachineScaleSetProperties{
-			AutomaticRepairsPolicy: automaticRepairsPolicy,
-			SinglePlacementGroup:   utils.Bool(false),
-			// VirtualMachineProfile:  &virtualMachineProfile,
-			// OrchestrationMode needs to be hardcoded to Uniform, for the
-			// standard VMSS resource, since virtualMachineProfile is now supported
-			// in both VMSS and Orchestrated VMSS...
-			OrchestrationMode: compute.OrchestrationModeFlexible,
-		},
-		Zones: zones,
+	if v, ok := d.GetOk("automatic_instance_repair"); ok {
+		props.VirtualMachineScaleSetProperties.AutomaticRepairsPolicy = ExpandOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(v.([]interface{}))
 	}
-
-	// Comment this out for quick back compat test
-	// props.VirtualMachineScaleSetProperties.VirtualMachineProfile = &virtualMachineProfile
-
-	// if v, ok := d.GetOk("sku_name"); ok {
-	// 	sku, err := azure.ExpandOrchestratedVirtualMachineScaleSetSku(v.(string))
-	// 	if err != nil {
-	// 		return fmt.Errorf("expanding 'sku_name': %+v", err)
-	// 	}
-	// 	props.Sku = sku
-	// }
 
 	if v, ok := d.GetOk("platform_fault_domain_count"); ok {
 		props.VirtualMachineScaleSetProperties.PlatformFaultDomainCount = utils.Int32(int32(v.(int)))
@@ -428,6 +417,12 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 
 		props.VirtualMachineScaleSetProperties.ZoneBalance = utils.Bool(v.(bool))
+	}
+
+	// I am using SKU as a flag to determin if I should include the
+	// virtual machine profile or not into the payload for back compat
+	if props.Sku != nil {
+		props.VirtualMachineScaleSetProperties.VirtualMachineProfile = &virtualMachineProfile
 	}
 
 	log.Printf("[DEBUG] Creating Orchestrated Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
