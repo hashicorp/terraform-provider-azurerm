@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
-
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -82,7 +81,7 @@ func (t LinkedServiceCosmosDBMongoAPIResource) Exists(ctx context.Context, clien
 		return nil, err
 	}
 
-	resp, err := clients.DataFactory.LinkedServiceClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name "")
+	resp, err := clients.DataFactory.LinkedServiceClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("reading Data Factory CosmosDB (%s): %+v", *id, err)
 	}
