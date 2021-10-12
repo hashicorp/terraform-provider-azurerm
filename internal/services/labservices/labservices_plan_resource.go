@@ -1,6 +1,7 @@
 package labservices
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/labservices/sdk/2021-10-01-preview/labplan"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -108,30 +110,27 @@ func (k LabPlanResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (k FeatureResource) Attributes() map[string]*pluginsdk.Schema {
+func (k LabPlanResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (k FeatureResource) ModelObject() interface{} {
-	return &FeatureResourceModel{}
+func (k LabPlanResource) ModelObject() interface{} {
+	return &LabPlanResourceModel{}
 }
 
-func (k FeatureResource) ResourceType() string {
-	return "azurerm_app_configuration_feature"
+func (k LabPlanResource) ResourceType() string {
+	return "azurerm_labservices_plan"
 }
 
-func (k FeatureResource) Create() sdk.ResourceFunc {
+func (k LabPlanResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model FeatureResourceModel
+			var model LabPlanResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, model.ConfigurationStoreId)
-			if err != nil {
-				return err
-			}
+			client := metadata.Client.LabServices.LabPlanClient
 
 			appCfgFeatureResourceID := parse.AppConfigurationFeatureId{
 				ConfigurationStoreId: model.ConfigurationStoreId,
