@@ -3,6 +3,7 @@
 BUG FIXES:
 
 * `azurerm_management_group` - nil check for child management groups when deassociating a subscription from a management group [GH-13540]
+* `azurerm_logic_app_workflow` - nil check for empty access control properties [GH-13689]
 
 IMPROVEMENTS:
 
