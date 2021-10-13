@@ -16,7 +16,7 @@ import (
 type SecurityCenterSubscriptionPricingResource struct {
 }
 
-func testAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
+func TestAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 
