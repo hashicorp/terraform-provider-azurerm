@@ -4,6 +4,11 @@
 
 # Terraform Provider for Azure (Resource Manager)
 
+---
+#### Please Note: [sl0wc0d3r/terraform-provider-azurerm](https://github.com/sl0wc0d3r/terraform-provider-azurerm) forces accelerated writes to be enabled for `HBase` cluster. Apart from that it is exactly same as  [hashicorp/terraform-provider-azurerm](https://github.com/hashicorp/terraform-provider-azurerm)
+
+---
+
 Version 2.x of the AzureRM Provider requires Terraform 0.12.x and later, but 1.0 is recommended.
 
 * [Terraform Website](https://www.terraform.io)

@@ -198,6 +198,8 @@ A `storage_account_gen2` block supports the following:
 
 A `worker_node` block supports the following:
 
+-> **NOTE** This fork uses a **hack** to force `accelerated_writes` for **HBase** clusters [by default]. Due to the constraints in Azure API and Schema the **hack** is introduced
+
 * `username` - (Required) The Username of the local administrator for the Worker Nodes. Changing this forces a new resource to be created.
 
 * `vm_size` - (Required) The Size of the Virtual Machine which should be used as the Worker Nodes. Changing this forces a new resource to be created.
