@@ -805,7 +805,6 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 		}
 	} else {
 		d.Set("encryption_at_host_enabled", false)
-		//d.Set("security_type", "") // security type can only be set on create so if it has ever been set then it will still exist in the security profile
 		d.Set("vtpm_enabled", false)
 		d.Set("secure_boot_enabled", false)
 	}
