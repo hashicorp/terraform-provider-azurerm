@@ -9,6 +9,7 @@ IMPROVEMENTS:
 * upgrading `batch` to API Version `2021-06-01`[GH-13718]
 * upgrading `mssql` to API Version `v5.0`[GH-13622]
 * Data Source: `azurerm_key_vault` - exports the `enable_rbac_authorization` attribute [GH-13717]
+* `azurerm_eventgrid_event_subscription` - support the `delivery_property` block [GH-13595]
 * `azurerm_network_connection_monitor` - add support for the `destination_port_behavior` property [GH-13518]
 * `azurerm_security_center_workspace` - Allow creation with `Free` pricing tier [GH-13710]
 * `azurerm_kusto_attached_database_configuration` - support for the `sharing` property [GH-13487]
