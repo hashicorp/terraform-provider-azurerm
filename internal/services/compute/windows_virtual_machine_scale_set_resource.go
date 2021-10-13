@@ -229,6 +229,17 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"secret": windowsSecretSchema(),
 
+			"secure_boot_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
+			"security_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"single_placement_group": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -261,6 +272,12 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 					string(compute.Manual),
 					string(compute.Rolling),
 				}, false),
+			},
+
+			"vtpm_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"winrm_listener": winRmListenerSchema(),
@@ -475,9 +492,43 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
-		virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{
-			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
+		if virtualMachineProfile.SecurityProfile == nil {
+			virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{}
 		}
+		virtualMachineProfile.SecurityProfile.EncryptionAtHost = utils.Bool(encryptionAtHostEnabled.(bool))
+	}
+
+	if securebootEnabled, ok := d.GetOk("secure_boot_enabled"); ok {
+		if virtualMachineProfile.SecurityProfile == nil {
+			virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{}
+		}
+
+		if virtualMachineProfile.SecurityProfile.UefiSettings == nil {
+			virtualMachineProfile.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		}
+		secureboot := d.Get("secure_boot_enabled").(bool)
+		if secureboot {
+			securityType := "TrustedLaunch"
+			virtualMachineProfile.SecurityProfile.SecurityType = compute.SecurityTypes(securityType)
+		}
+
+		virtualMachineProfile.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(securebootEnabled.(bool))
+	}
+
+	if vtpmEnabled, ok := d.GetOk("vtpm_enabled"); ok {
+		if virtualMachineProfile.SecurityProfile == nil {
+			virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{}
+		}
+		if virtualMachineProfile.SecurityProfile.UefiSettings == nil {
+			virtualMachineProfile.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		}
+		vtpm := d.Get("vtpm_enabled").(bool)
+		if vtpm {
+			securityType := "TrustedLaunch"
+			virtualMachineProfile.SecurityProfile.SecurityType = compute.SecurityTypes(securityType)
+		}
+
+		virtualMachineProfile.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled.(bool))
 	}
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
@@ -807,9 +858,12 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if d.HasChange("encryption_at_host_enabled") {
-		updateProps.VirtualMachineProfile.SecurityProfile = &compute.SecurityProfile{
-			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
+
+		if updateProps.VirtualMachineProfile.SecurityProfile == nil {
+			updateProps.VirtualMachineProfile.SecurityProfile = &compute.SecurityProfile{}
 		}
+		updateProps.VirtualMachineProfile.SecurityProfile.EncryptionAtHost = utils.Bool(d.Get("encryption_at_host_enabled").(bool))
+
 	}
 
 	if d.HasChange("license_type") {
@@ -1104,11 +1158,38 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 		}
 		d.Set("extensions_time_budget", extensionsTimeBudget)
 
-		encryptionAtHostEnabled := false
-		if profile.SecurityProfile != nil && profile.SecurityProfile.EncryptionAtHost != nil {
-			encryptionAtHostEnabled = *profile.SecurityProfile.EncryptionAtHost
+		if secprofile := profile.SecurityProfile; secprofile != nil {
+			if secprofile.EncryptionAtHost != nil {
+				d.Set("encryption_at_host_enabled", secprofile.EncryptionAtHost)
+			} else {
+				d.Set("encryption_at_host_enabled", false)
+			}
+			if secprofile.SecurityType != "" {
+				d.Set("security_type", secprofile.SecurityType)
+			} else {
+				d.Set("security_type", "")
+			}
+			if uefi := profile.SecurityProfile.UefiSettings; uefi != nil {
+				if uefi.VTpmEnabled != nil {
+					d.Set("vtpm_enabled", uefi.VTpmEnabled)
+				} else {
+					d.Set("vtpm_enabled", false)
+				}
+				if uefi.SecureBootEnabled != nil {
+					d.Set("secure_boot_enabled", uefi.SecureBootEnabled)
+				} else {
+					d.Set("secure_boot_enabled", false)
+				}
+			} else {
+				d.Set("vtpm_enabled", false)
+				d.Set("secure_boot_enabled", false)
+			}
+		} else {
+			d.Set("encryption_at_host_enabled", false)
+			//d.Set("security_type", "") // security type can only be set on create so if it has ever been set then it will still exist in the security profile
+			d.Set("vtpm_enabled", false)
+			d.Set("secure_boot_enabled", false)
 		}
-		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 	}
 
 	if err := d.Set("zones", resp.Zones); err != nil {

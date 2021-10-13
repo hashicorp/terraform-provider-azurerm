@@ -496,42 +496,47 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	var securitytype string = ""
-	vtpmEnabled := d.Get("vtpm_enabled").(bool)
-	securebootEnabled := d.Get("secure_boot_enabled").(bool)
-	encryptionAtHostEnabled := d.Get("encryption_at_host_enabled").(bool)
-
-	//If vtpm or secure boot are enabled then securityType must be set to TrustedLaunch
-	if vtpmEnabled || securebootEnabled {
-		securitytype = "TrustedLaunch"
-	}
-	//if vtpm, secure boot or encryptionAtHost are set then create a security profile
-	if vtpmEnabled || securebootEnabled || encryptionAtHostEnabled {
-		if encryptionAtHostEnabled {
-			params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
-				EncryptionAtHost: utils.Bool(encryptionAtHostEnabled),
-				SecurityType:     compute.SecurityTypes(securitytype),
-				UefiSettings: &compute.UefiSettings{
-					SecureBootEnabled: utils.Bool(securebootEnabled),
-					VTpmEnabled:       utils.Bool(vtpmEnabled),
-				},
-			}
-		} else {
-			params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
-				SecurityType: compute.SecurityTypes(securitytype),
-				UefiSettings: &compute.UefiSettings{
-					SecureBootEnabled: utils.Bool(securebootEnabled),
-					VTpmEnabled:       utils.Bool(vtpmEnabled),
-				},
-			}
+	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
+		if params.SecurityProfile == nil {
+			params.SecurityProfile = &compute.SecurityProfile{}
 		}
+		params.SecurityProfile.EncryptionAtHost = utils.Bool(encryptionAtHostEnabled.(bool))
 	}
 
-	//if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
-	//	params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
-	//		EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
-	//	}
-	//}
+	if securebootEnabled, ok := d.GetOk("secure_boot_enabled"); ok {
+		if params.SecurityProfile == nil {
+			params.SecurityProfile = &compute.SecurityProfile{}
+		}
+
+		if params.SecurityProfile.UefiSettings == nil {
+			params.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		}
+
+		secureboot := d.Get("secure_boot_enabled").(bool)
+		if secureboot {
+			securityType := "TrustedLaunch"
+			params.SecurityProfile.SecurityType = compute.SecurityTypes(securityType)
+		}
+
+		params.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(securebootEnabled.(bool))
+	}
+
+	if vtpmEnabled, ok := d.GetOk("vtpm_enabled"); ok {
+		if params.SecurityProfile == nil {
+			params.SecurityProfile = &compute.SecurityProfile{}
+		}
+
+		if params.SecurityProfile.UefiSettings == nil {
+			params.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		}
+		vtpm := d.Get("vtpm_enabled").(bool)
+		if vtpm {
+			securityType := "TrustedLaunch"
+			params.SecurityProfile.SecurityType = compute.SecurityTypes(securityType)
+		}
+
+		params.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled.(bool))
+	}
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
 		if params.Priority != compute.Spot {
@@ -773,12 +778,27 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if secprofile := props.SecurityProfile; secprofile != nil {
-		d.Set("encryption_at_host_enabled", secprofile.EncryptionAtHost)
-		d.Set("security_type", secprofile.SecurityType)
-
+		if secprofile.EncryptionAtHost != nil {
+			d.Set("encryption_at_host_enabled", secprofile.EncryptionAtHost)
+		} else {
+			d.Set("encryption_at_host_enabled", false)
+		}
+		if secprofile.SecurityType != "" {
+			d.Set("security_type", secprofile.SecurityType)
+		} else {
+			d.Set("security_type", "")
+		}
 		if uefi := props.SecurityProfile.UefiSettings; uefi != nil {
-			d.Set("vtpm_enabled", uefi.VTpmEnabled)
-			d.Set("secure_boot_enabled", uefi.SecureBootEnabled)
+			if uefi.VTpmEnabled != nil {
+				d.Set("vtpm_enabled", uefi.VTpmEnabled)
+			} else {
+				d.Set("vtpm_enabled", false)
+			}
+			if uefi.SecureBootEnabled != nil {
+				d.Set("secure_boot_enabled", uefi.SecureBootEnabled)
+			} else {
+				d.Set("secure_boot_enabled", false)
+			}
 		} else {
 			d.Set("vtpm_enabled", false)
 			d.Set("secure_boot_enabled", false)
