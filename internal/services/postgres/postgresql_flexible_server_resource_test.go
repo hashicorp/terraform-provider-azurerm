@@ -221,6 +221,13 @@ func TestAccPostgresqlflexibleServer_failover(t *testing.T) {
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.failover(data, "1", "2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
 	})
 }
 
