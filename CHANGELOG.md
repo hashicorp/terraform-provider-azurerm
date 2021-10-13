@@ -4,28 +4,23 @@ FEATURES:
 
 * **New Resource:** `azurerm_data_factory_linked_service_cosmosdb_mongoapi` [GH-13636]
 
-BUG FIXES:
-
-* `azurerm_management_group` - nil check for child management groups when deassociating a subscription from a management group [GH-13540]
-* `azurerm_logic_app_workflow` - nil check for empty access control properties [GH-13689]
-* `azurerm_subnet_resource` - will now lock the virtual network and subnet on updates [GH-13726]
-* 
 IMPROVEMENTS:
 
 * upgrading `batch` to API Version `2021-06-01`[GH-13718]
 * `azurerm_network_connection_monitor` - add support for the `destination_port_behavior` property [GH-13518]
 * `azurerm_security_center_workspace` - Allow creation with `Free` pricing tier [GH-13710]
 
+BUG FIXES:
+
+* `azurerm_management_group` - nil check for child management groups when deassociating a subscription from a management group [GH-13540]
+* `azurerm_logic_app_workflow` - nil check for empty access control properties [GH-13689]
+* `azurerm_subnet_resource` - will now lock the virtual network and subnet on updates [GH-13726]
+ 
 ## 2.80.0 (October 08, 2021)
 
 FEATURES: 
 
 * **New Data Source:** `backup_policy_file_share` ([#13444](https://github.com/hashicorp/terraform-provider-azurerm/issues/13444))
-
-BUG FIXES:
-
-* `azurerm_function_app` - fix regressions in function app storage introduced in v2.77 ([#13580](https://github.com/hashicorp/terraform-provider-azurerm/issues/13580))
-* `azurerm_managed_application` - fixed typecasting bug ([#13641](https://github.com/hashicorp/terraform-provider-azurerm/issues/13641))
 
 IMPROVEMENTS:
 
@@ -36,6 +31,11 @@ IMPROVEMENTS:
 * `azurerm_service_fabric_cluster` - support for the `service_fabric_zonal_upgrade_mode` and `service_fabric_zonal_upgrade_mode` properties ([#13399](https://github.com/hashicorp/terraform-provider-azurerm/issues/13399))
 * `azurerm_stream_analytics_output_eventhub` - support for the `partition_key` property ([#13562](https://github.com/hashicorp/terraform-provider-azurerm/issues/13562))
 * `azurerm_linux_virtual_machine_scale_set` - correctly update the `overprovision` property ([#13653](https://github.com/hashicorp/terraform-provider-azurerm/issues/13653))
+
+BUG FIXES:
+
+* `azurerm_function_app` - fix regressions in function app storage introduced in v2.77 ([#13580](https://github.com/hashicorp/terraform-provider-azurerm/issues/13580))
+* `azurerm_managed_application` - fixed typecasting bug ([#13641](https://github.com/hashicorp/terraform-provider-azurerm/issues/13641))
 
 ## 2.79.1 (October 01, 2021)
 
