@@ -410,6 +410,14 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for creation of Linux %s: %+v", id, err)
 			}
 
+			updateFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
+			if err != nil {
+				return fmt.Errorf("updating properties of Linux %s: %+v", id, err)
+			}
+			if err := updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for creation of Linux %s: %+v", id, err)
+			}
+
 			backupConfig := helpers.ExpandBackupConfig(functionApp.Backup)
 			if backupConfig.BackupRequestProperties != nil {
 				if _, err := client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backupConfig); err != nil {
