@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
 	subscriptionParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/parse"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -68,27 +67,6 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 						"tag": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Set: pluginsdk.HashResource(
-								&pluginsdk.Resource{
-									Schema: map[string]*pluginsdk.Schema{
-										"name": {
-											Type:     pluginsdk.TypeString,
-											Computed: true,
-										},
-										"operator": {
-											Type:     pluginsdk.TypeString,
-											Computed: true,
-										},
-										"values": {
-											Type:     pluginsdk.TypeList,
-											Computed: true,
-											Elem: &pluginsdk.Schema{
-												Type: pluginsdk.TypeString,
-											},
-										},
-									},
-								},
-							),
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {

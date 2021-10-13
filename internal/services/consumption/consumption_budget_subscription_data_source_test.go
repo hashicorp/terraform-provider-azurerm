@@ -10,7 +10,7 @@ import (
 
 type ConsumptionBudgetSubscriptionDataSource struct{}
 
-func TestAccBudgetSubscriptionDataSource_basic(t *testing.T) {
+func TestAccDataSourceConsumptionBudgetSubscription_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_consumption_budget_subscription", "test")
 	r := ConsumptionBudgetSubscriptionDataSource{}
 
