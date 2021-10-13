@@ -101,7 +101,7 @@ func (client ApplicationPackageClient) ActivatePreparer(ctx context.Context, res
 		"versionName":       autorest.Encode("path", versionName),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -134,9 +134,9 @@ func (client ApplicationPackageClient) ActivateResponder(resp *http.Response) (r
 	return
 }
 
-// Create creates an application package record. The record contains the SAS where the package should be uploaded to.
-// Once it is uploaded the `ApplicationPackage` needs to be activated using `ApplicationPackageActive` before it can be
-// used.
+// Create creates an application package record. The record contains a storageUrl where the package should be uploaded
+// to.  Once it is uploaded the `ApplicationPackage` needs to be activated using `ApplicationPackageActive` before it
+// can be used. If the auto storage account was configured to use storage keys, the URL returned will contain a SAS.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the Batch account.
 // accountName - the name of the Batch account.
@@ -202,7 +202,7 @@ func (client ApplicationPackageClient) CreatePreparer(ctx context.Context, resou
 		"versionName":       autorest.Encode("path", versionName),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -303,7 +303,7 @@ func (client ApplicationPackageClient) DeletePreparer(ctx context.Context, resou
 		"versionName":       autorest.Encode("path", versionName),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -398,7 +398,7 @@ func (client ApplicationPackageClient) GetPreparer(ctx context.Context, resource
 		"versionName":       autorest.Encode("path", versionName),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -494,7 +494,7 @@ func (client ApplicationPackageClient) ListPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
