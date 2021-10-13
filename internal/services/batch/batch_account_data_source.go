@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
@@ -106,7 +106,7 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("pool_allocation_mode", props.PoolAllocationMode)
 		poolAllocationMode := d.Get("pool_allocation_mode").(string)
 
-		if poolAllocationMode == string(batch.BatchService) {
+		if poolAllocationMode == string(batch.PoolAllocationModeBatchService) {
 			keys, err := client.GetKeys(ctx, resourceGroup, name)
 			if err != nil {
 				return fmt.Errorf("Cannot read keys for Batch account %q (resource group %q): %v", name, resourceGroup, err)
@@ -117,7 +117,7 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 			// set empty keyvault reference which is not needed in Batch Service allocation mode.
 			d.Set("key_vault_reference", []interface{}{})
-		} else if poolAllocationMode == string(batch.UserSubscription) {
+		} else if poolAllocationMode == string(batch.PoolAllocationModeUserSubscription) {
 			if err := d.Set("key_vault_reference", flattenBatchAccountKeyvaultReference(props.KeyVaultReference)); err != nil {
 				return fmt.Errorf("flattening `key_vault_reference`: %+v", err)
 			}

@@ -95,7 +95,7 @@ func (client CertificateClient) CancelDeletionPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -137,13 +137,13 @@ func (client CertificateClient) CancelDeletionResponder(resp *http.Response) (re
 // the operation only if the certificate already exists. If omitted, this operation will always be applied.
 // ifNoneMatch - set to '*' to allow a new certificate to be created, but to prevent updating an existing
 // certificate. Other values will be ignored.
-func (client CertificateClient) Create(ctx context.Context, resourceGroupName string, accountName string, certificateName string, parameters CertificateCreateOrUpdateParameters, ifMatch string, ifNoneMatch string) (result CertificateCreateFuture, err error) {
+func (client CertificateClient) Create(ctx context.Context, resourceGroupName string, accountName string, certificateName string, parameters CertificateCreateOrUpdateParameters, ifMatch string, ifNoneMatch string) (result Certificate, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CertificateClient.Create")
 		defer func() {
 			sc := -1
-			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
-				sc = result.FutureAPI.Response().StatusCode
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -169,9 +169,16 @@ func (client CertificateClient) Create(ctx context.Context, resourceGroupName st
 		return
 	}
 
-	result, err = client.CreateSender(req)
+	resp, err := client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "batch.CertificateClient", "Create", nil, "Failure sending request")
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "batch.CertificateClient", "Create", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.CreateResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "batch.CertificateClient", "Create", resp, "Failure responding to request")
 		return
 	}
 
@@ -187,7 +194,7 @@ func (client CertificateClient) CreatePreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -212,17 +219,8 @@ func (client CertificateClient) CreatePreparer(ctx context.Context, resourceGrou
 
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
-func (client CertificateClient) CreateSender(req *http.Request) (future CertificateCreateFuture, err error) {
-	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
-	if err != nil {
-		return
-	}
-	var azf azure.Future
-	azf, err = azure.NewFutureFromResponse(resp)
-	future.FutureAPI = &azf
-	future.Result = future.result
-	return
+func (client CertificateClient) CreateSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -290,7 +288,7 @@ func (client CertificateClient) DeletePreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -389,7 +387,7 @@ func (client CertificateClient) GetPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -483,7 +481,7 @@ func (client CertificateClient) ListByBatchAccountPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -623,7 +621,7 @@ func (client CertificateClient) UpdatePreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

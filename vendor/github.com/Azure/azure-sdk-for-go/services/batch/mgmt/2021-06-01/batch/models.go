@@ -18,13 +18,15 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
 
 // Account contains information about an Azure Batch account.
 type Account struct {
 	autorest.Response `json:"-"`
 	// AccountProperties - The properties associated with the account.
 	*AccountProperties `json:"properties,omitempty"`
+	// Identity - The identity of the Batch account.
+	Identity *AccountIdentity `json:"identity,omitempty"`
 	// ID - READ-ONLY; The ID of the resource.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource.
@@ -42,6 +44,9 @@ func (a Account) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if a.AccountProperties != nil {
 		objectMap["properties"] = a.AccountProperties
+	}
+	if a.Identity != nil {
+		objectMap["identity"] = a.Identity
 	}
 	return json.Marshal(objectMap)
 }
@@ -63,6 +68,15 @@ func (a *Account) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				a.AccountProperties = &accountProperties
+			}
+		case "identity":
+			if v != nil {
+				var identity AccountIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				a.Identity = &identity
 			}
 		case "id":
 			if v != nil {
@@ -166,6 +180,8 @@ type AccountCreateParameters struct {
 	Tags map[string]*string `json:"tags"`
 	// AccountCreateProperties - The properties of the Batch account.
 	*AccountCreateProperties `json:"properties,omitempty"`
+	// Identity - The identity of the Batch account.
+	Identity *AccountIdentity `json:"identity,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AccountCreateParameters.
@@ -179,6 +195,9 @@ func (acp AccountCreateParameters) MarshalJSON() ([]byte, error) {
 	}
 	if acp.AccountCreateProperties != nil {
 		objectMap["properties"] = acp.AccountCreateProperties
+	}
+	if acp.Identity != nil {
+		objectMap["identity"] = acp.Identity
 	}
 	return json.Marshal(objectMap)
 }
@@ -219,6 +238,15 @@ func (acp *AccountCreateParameters) UnmarshalJSON(body []byte) error {
 				}
 				acp.AccountCreateProperties = &accountCreateProperties
 			}
+		case "identity":
+			if v != nil {
+				var identity AccountIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				acp.Identity = &identity
+			}
 		}
 	}
 
@@ -229,13 +257,16 @@ func (acp *AccountCreateParameters) UnmarshalJSON(body []byte) error {
 type AccountCreateProperties struct {
 	// AutoStorage - The properties related to the auto-storage account.
 	AutoStorage *AutoStorageBaseProperties `json:"autoStorage,omitempty"`
-	// PoolAllocationMode - The pool allocation mode also affects how clients may authenticate to the Batch Service API. If the mode is BatchService, clients may authenticate using access keys or Azure Active Directory. If the mode is UserSubscription, clients must use Azure Active Directory. The default is BatchService. Possible values include: 'BatchService', 'UserSubscription'
+	// PoolAllocationMode - The pool allocation mode also affects how clients may authenticate to the Batch Service API. If the mode is BatchService, clients may authenticate using access keys or Azure Active Directory. If the mode is UserSubscription, clients must use Azure Active Directory. The default is BatchService. Possible values include: 'PoolAllocationModeBatchService', 'PoolAllocationModeUserSubscription'
 	PoolAllocationMode PoolAllocationMode `json:"poolAllocationMode,omitempty"`
 	// KeyVaultReference - A reference to the Azure key vault associated with the Batch account.
 	KeyVaultReference *KeyVaultReference `json:"keyVaultReference,omitempty"`
 	// PublicNetworkAccess - If not specified, the default value is 'enabled'. Possible values include: 'PublicNetworkAccessTypeEnabled', 'PublicNetworkAccessTypeDisabled'
 	PublicNetworkAccess PublicNetworkAccessType `json:"publicNetworkAccess,omitempty"`
-	Encryption          *EncryptionProperties   `json:"encryption,omitempty"`
+	// Encryption - Configures how customer data is encrypted inside the Batch account. By default, accounts are encrypted using a Microsoft managed key. For additional control, a customer-managed key can be used instead.
+	Encryption *EncryptionProperties `json:"encryption,omitempty"`
+	// AllowedAuthenticationModes - List of allowed authentication modes for the Batch account that can be used to authenticate with the data plane. This does not affect authentication with the control plane.
+	AllowedAuthenticationModes *[]AuthenticationMode `json:"allowedAuthenticationModes,omitempty"`
 }
 
 // AccountDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -273,6 +304,32 @@ func (future *AccountDeleteFuture) result(client AccountClient) (ar autorest.Res
 	}
 	ar.Response = future.Response()
 	return
+}
+
+// AccountIdentity the identity of the Batch account, if configured. This is used when the user specifies
+// 'Microsoft.KeyVault' as their Batch account encryption configuration or when `ManagedIdentity` is
+// selected as the auto-storage authentication mode.
+type AccountIdentity struct {
+	// PrincipalID - READ-ONLY; The principal id of the Batch account. This property will only be provided for a system assigned identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// TenantID - READ-ONLY; The tenant id associated with the Batch account. This property will only be provided for a system assigned identity.
+	TenantID *string `json:"tenantId,omitempty"`
+	// Type - The type of identity used for the Batch account. Possible values include: 'ResourceIdentityTypeSystemAssigned', 'ResourceIdentityTypeUserAssigned', 'ResourceIdentityTypeNone'
+	Type ResourceIdentityType `json:"type,omitempty"`
+	// UserAssignedIdentities - The list of user identities associated with the Batch account.
+	UserAssignedIdentities map[string]*UserAssignedIdentities `json:"userAssignedIdentities"`
+}
+
+// MarshalJSON is the custom marshaler for AccountIdentity.
+func (ai AccountIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ai.Type != "" {
+		objectMap["type"] = ai.Type
+	}
+	if ai.UserAssignedIdentities != nil {
+		objectMap["userAssignedIdentities"] = ai.UserAssignedIdentities
+	}
+	return json.Marshal(objectMap)
 }
 
 // AccountKeys a set of Azure Batch account keys.
@@ -457,7 +514,7 @@ type AccountProperties struct {
 	AccountEndpoint *string `json:"accountEndpoint,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'ProvisioningStateInvalid', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCancelled'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
-	// PoolAllocationMode - READ-ONLY; Possible values include: 'BatchService', 'UserSubscription'
+	// PoolAllocationMode - READ-ONLY; Possible values include: 'PoolAllocationModeBatchService', 'PoolAllocationModeUserSubscription'
 	PoolAllocationMode PoolAllocationMode `json:"poolAllocationMode,omitempty"`
 	// KeyVaultReference - READ-ONLY
 	KeyVaultReference *KeyVaultReference `json:"keyVaultReference,omitempty"`
@@ -467,7 +524,7 @@ type AccountProperties struct {
 	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
 	// AutoStorage - READ-ONLY
 	AutoStorage *AutoStorageProperties `json:"autoStorage,omitempty"`
-	// Encryption - READ-ONLY
+	// Encryption - READ-ONLY; Configures how customer data is encrypted inside the Batch account. By default, accounts are encrypted using a Microsoft managed key. For additional control, a customer-managed key can be used instead.
 	Encryption *EncryptionProperties `json:"encryption,omitempty"`
 	// DedicatedCoreQuota - READ-ONLY; For accounts with PoolAllocationMode set to UserSubscription, quota is managed on the subscription so this value is not returned.
 	DedicatedCoreQuota *int32 `json:"dedicatedCoreQuota,omitempty"`
@@ -481,6 +538,8 @@ type AccountProperties struct {
 	PoolQuota *int32 `json:"poolQuota,omitempty"`
 	// ActiveJobAndJobScheduleQuota - READ-ONLY
 	ActiveJobAndJobScheduleQuota *int32 `json:"activeJobAndJobScheduleQuota,omitempty"`
+	// AllowedAuthenticationModes - READ-ONLY; List of allowed authentication modes for the Batch account that can be used to authenticate with the data plane. This does not affect authentication with the control plane.
+	AllowedAuthenticationModes *[]AuthenticationMode `json:"allowedAuthenticationModes,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AccountProperties.
@@ -491,7 +550,7 @@ func (ap AccountProperties) MarshalJSON() ([]byte, error) {
 
 // AccountRegenerateKeyParameters parameters supplied to the RegenerateKey operation.
 type AccountRegenerateKeyParameters struct {
-	// KeyName - The type of account key to regenerate. Possible values include: 'Primary', 'Secondary'
+	// KeyName - The type of account key to regenerate. Possible values include: 'AccountKeyTypePrimary', 'AccountKeyTypeSecondary'
 	KeyName AccountKeyType `json:"keyName,omitempty"`
 }
 
@@ -501,6 +560,8 @@ type AccountUpdateParameters struct {
 	Tags map[string]*string `json:"tags"`
 	// AccountUpdateProperties - The properties of the account.
 	*AccountUpdateProperties `json:"properties,omitempty"`
+	// Identity - The identity of the Batch account.
+	Identity *AccountIdentity `json:"identity,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AccountUpdateParameters.
@@ -511,6 +572,9 @@ func (aup AccountUpdateParameters) MarshalJSON() ([]byte, error) {
 	}
 	if aup.AccountUpdateProperties != nil {
 		objectMap["properties"] = aup.AccountUpdateProperties
+	}
+	if aup.Identity != nil {
+		objectMap["identity"] = aup.Identity
 	}
 	return json.Marshal(objectMap)
 }
@@ -542,6 +606,15 @@ func (aup *AccountUpdateParameters) UnmarshalJSON(body []byte) error {
 				}
 				aup.AccountUpdateProperties = &accountUpdateProperties
 			}
+		case "identity":
+			if v != nil {
+				var identity AccountIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				aup.Identity = &identity
+			}
 		}
 	}
 
@@ -552,7 +625,10 @@ func (aup *AccountUpdateParameters) UnmarshalJSON(body []byte) error {
 type AccountUpdateProperties struct {
 	// AutoStorage - The properties related to the auto-storage account.
 	AutoStorage *AutoStorageBaseProperties `json:"autoStorage,omitempty"`
-	Encryption  *EncryptionProperties      `json:"encryption,omitempty"`
+	// Encryption - Configures how customer data is encrypted inside the Batch account. By default, accounts are encrypted using a Microsoft managed key. For additional control, a customer-managed key can be used instead.
+	Encryption *EncryptionProperties `json:"encryption,omitempty"`
+	// AllowedAuthenticationModes - List of allowed authentication modes for the Batch account that can be used to authenticate with the data plane. This does not affect authentication with the control plane.
+	AllowedAuthenticationModes *[]AuthenticationMode `json:"allowedAuthenticationModes,omitempty"`
 }
 
 // ActivateApplicationPackageParameters parameters for an activating an application package.
@@ -731,7 +807,7 @@ func (ap *ApplicationPackage) UnmarshalJSON(body []byte) error {
 
 // ApplicationPackageProperties properties of an application package
 type ApplicationPackageProperties struct {
-	// State - READ-ONLY; The current state of the application package. Possible values include: 'Pending', 'Active'
+	// State - READ-ONLY; The current state of the application package. Possible values include: 'PackageStatePending', 'PackageStateActive'
 	State PackageState `json:"state,omitempty"`
 	// Format - READ-ONLY; The format of the application package, if the package is active.
 	Format *string `json:"format,omitempty"`
@@ -794,6 +870,10 @@ type AutoScaleSettings struct {
 type AutoStorageBaseProperties struct {
 	// StorageAccountID - The resource ID of the storage account to be used for auto-storage account.
 	StorageAccountID *string `json:"storageAccountId,omitempty"`
+	// AuthenticationMode - The authentication mode which the Batch service will use to manage the auto-storage account. Possible values include: 'AutoStorageAuthenticationModeStorageKeys', 'AutoStorageAuthenticationModeBatchAccountManagedIdentity'
+	AuthenticationMode AutoStorageAuthenticationMode `json:"authenticationMode,omitempty"`
+	// NodeIdentityReference - The identity referenced here must be assigned to pools which have compute nodes that need access to auto-storage.
+	NodeIdentityReference *ComputeNodeIdentityReference `json:"nodeIdentityReference,omitempty"`
 }
 
 // AutoStorageProperties contains information about the auto-storage account associated with a Batch
@@ -803,13 +883,17 @@ type AutoStorageProperties struct {
 	LastKeySync *date.Time `json:"lastKeySync,omitempty"`
 	// StorageAccountID - The resource ID of the storage account to be used for auto-storage account.
 	StorageAccountID *string `json:"storageAccountId,omitempty"`
+	// AuthenticationMode - The authentication mode which the Batch service will use to manage the auto-storage account. Possible values include: 'AutoStorageAuthenticationModeStorageKeys', 'AutoStorageAuthenticationModeBatchAccountManagedIdentity'
+	AuthenticationMode AutoStorageAuthenticationMode `json:"authenticationMode,omitempty"`
+	// NodeIdentityReference - The identity referenced here must be assigned to pools which have compute nodes that need access to auto-storage.
+	NodeIdentityReference *ComputeNodeIdentityReference `json:"nodeIdentityReference,omitempty"`
 }
 
 // AutoUserSpecification ...
 type AutoUserSpecification struct {
 	// Scope - The default value is Pool. If the pool is running Windows a value of Task should be specified if stricter isolation between tasks is required. For example, if the task mutates the registry in a way which could impact other tasks, or if certificates have been specified on the pool which should not be accessible by normal tasks but should be accessible by start tasks. Possible values include: 'AutoUserScopeTask', 'AutoUserScopePool'
 	Scope AutoUserScope `json:"scope,omitempty"`
-	// ElevationLevel - The default value is nonAdmin. Possible values include: 'NonAdmin', 'Admin'
+	// ElevationLevel - The default value is nonAdmin. Possible values include: 'ElevationLevelNonAdmin', 'ElevationLevelAdmin'
 	ElevationLevel ElevationLevel `json:"elevationLevel,omitempty"`
 }
 
@@ -817,14 +901,16 @@ type AutoUserSpecification struct {
 type AzureBlobFileSystemConfiguration struct {
 	AccountName   *string `json:"accountName,omitempty"`
 	ContainerName *string `json:"containerName,omitempty"`
-	// AccountKey - This property is mutually exclusive with sasKey and one must be specified.
+	// AccountKey - This property is mutually exclusive with both sasKey and identity; exactly one must be specified.
 	AccountKey *string `json:"accountKey,omitempty"`
-	// SasKey - This property is mutually exclusive with accountKey and one must be specified.
+	// SasKey - This property is mutually exclusive with both accountKey and identity; exactly one must be specified.
 	SasKey *string `json:"sasKey,omitempty"`
 	// BlobfuseOptions - These are 'net use' options in Windows and 'mount' options in Linux.
 	BlobfuseOptions *string `json:"blobfuseOptions,omitempty"`
 	// RelativeMountPath - All file systems are mounted relative to the Batch mounts directory, accessible via the AZ_BATCH_NODE_MOUNTS_DIR environment variable.
 	RelativeMountPath *string `json:"relativeMountPath,omitempty"`
+	// IdentityReference - This property is mutually exclusive with both accountKey and sasKey; exactly one must be specified.
+	IdentityReference *ComputeNodeIdentityReference `json:"identityReference,omitempty"`
 }
 
 // AzureFileShareConfiguration ...
@@ -923,57 +1009,14 @@ func (c *Certificate) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// CertificateBaseProperties ...
+// CertificateBaseProperties base certificate properties.
 type CertificateBaseProperties struct {
 	// ThumbprintAlgorithm - This must match the first portion of the certificate name. Currently required to be 'SHA1'.
 	ThumbprintAlgorithm *string `json:"thumbprintAlgorithm,omitempty"`
 	// Thumbprint - This must match the thumbprint from the name.
 	Thumbprint *string `json:"thumbprint,omitempty"`
-	// Format - The format of the certificate - either Pfx or Cer. If omitted, the default is Pfx. Possible values include: 'Pfx', 'Cer'
+	// Format - The format of the certificate - either Pfx or Cer. If omitted, the default is Pfx. Possible values include: 'CertificateFormatPfx', 'CertificateFormatCer'
 	Format CertificateFormat `json:"format,omitempty"`
-}
-
-// CertificateCreateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type CertificateCreateFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(CertificateClient) (Certificate, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *CertificateCreateFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for CertificateCreateFuture.Result.
-func (future *CertificateCreateFuture) result(client CertificateClient) (c Certificate, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "batch.CertificateCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		c.Response.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("batch.CertificateCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if c.Response.Response, err = future.GetResult(sender); err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
-		c, err = client.CreateResponder(c.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "batch.CertificateCreateFuture", "Result", c.Response.Response, "Failure responding to request")
-		}
-	}
-	return
 }
 
 // CertificateCreateOrUpdateParameters contains information about a certificate.
@@ -1069,7 +1112,7 @@ type CertificateCreateOrUpdateProperties struct {
 	ThumbprintAlgorithm *string `json:"thumbprintAlgorithm,omitempty"`
 	// Thumbprint - This must match the thumbprint from the name.
 	Thumbprint *string `json:"thumbprint,omitempty"`
-	// Format - The format of the certificate - either Pfx or Cer. If omitted, the default is Pfx. Possible values include: 'Pfx', 'Cer'
+	// Format - The format of the certificate - either Pfx or Cer. If omitted, the default is Pfx. Possible values include: 'CertificateFormatPfx', 'CertificateFormatCer'
 	Format CertificateFormat `json:"format,omitempty"`
 }
 
@@ -1112,11 +1155,11 @@ func (future *CertificateDeleteFuture) result(client CertificateClient) (ar auto
 
 // CertificateProperties certificate properties.
 type CertificateProperties struct {
-	// ProvisioningState - READ-ONLY; Possible values include: 'Succeeded', 'Deleting', 'Failed'
+	// ProvisioningState - READ-ONLY; Possible values include: 'CertificateProvisioningStateSucceeded', 'CertificateProvisioningStateDeleting', 'CertificateProvisioningStateFailed'
 	ProvisioningState CertificateProvisioningState `json:"provisioningState,omitempty"`
 	// ProvisioningStateTransitionTime - READ-ONLY
 	ProvisioningStateTransitionTime *date.Time `json:"provisioningStateTransitionTime,omitempty"`
-	// PreviousProvisioningState - READ-ONLY; The previous provisioned state of the resource. Possible values include: 'Succeeded', 'Deleting', 'Failed'
+	// PreviousProvisioningState - READ-ONLY; The previous provisioned state of the resource. Possible values include: 'CertificateProvisioningStateSucceeded', 'CertificateProvisioningStateDeleting', 'CertificateProvisioningStateFailed'
 	PreviousProvisioningState CertificateProvisioningState `json:"previousProvisioningState,omitempty"`
 	// PreviousProvisioningStateTransitionTime - READ-ONLY
 	PreviousProvisioningStateTransitionTime *date.Time `json:"previousProvisioningStateTransitionTime,omitempty"`
@@ -1128,7 +1171,7 @@ type CertificateProperties struct {
 	ThumbprintAlgorithm *string `json:"thumbprintAlgorithm,omitempty"`
 	// Thumbprint - This must match the thumbprint from the name.
 	Thumbprint *string `json:"thumbprint,omitempty"`
-	// Format - The format of the certificate - either Pfx or Cer. If omitted, the default is Pfx. Possible values include: 'Pfx', 'Cer'
+	// Format - The format of the certificate - either Pfx or Cer. If omitted, the default is Pfx. Possible values include: 'CertificateFormatPfx', 'CertificateFormatCer'
 	Format CertificateFormat `json:"format,omitempty"`
 }
 
@@ -1150,7 +1193,7 @@ func (cp CertificateProperties) MarshalJSON() ([]byte, error) {
 // CertificateReference ...
 type CertificateReference struct {
 	ID *string `json:"id,omitempty"`
-	// StoreLocation - The default value is currentUser. This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable AZ_BATCH_CERTIFICATES_DIR is supplied to the task to query for this location. For certificates with visibility of 'remoteUser', a 'certs' directory is created in the user's home directory (e.g., /home/{user-name}/certs) and certificates are placed in that directory. Possible values include: 'CurrentUser', 'LocalMachine'
+	// StoreLocation - The default value is currentUser. This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable AZ_BATCH_CERTIFICATES_DIR is supplied to the task to query for this location. For certificates with visibility of 'remoteUser', a 'certs' directory is created in the user's home directory (e.g., /home/{user-name}/certs) and certificates are placed in that directory. Possible values include: 'CertificateStoreLocationCurrentUser', 'CertificateStoreLocationLocalMachine'
 	StoreLocation CertificateStoreLocation `json:"storeLocation,omitempty"`
 	// StoreName - This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). Common store names include: My, Root, CA, Trust, Disallowed, TrustedPeople, TrustedPublisher, AuthRoot, AddressBook, but any custom store name can also be used. The default value is My.
 	StoreName  *string                  `json:"storeName,omitempty"`
@@ -1170,7 +1213,7 @@ type CheckNameAvailabilityResult struct {
 	autorest.Response `json:"-"`
 	// NameAvailable - READ-ONLY; Gets a boolean value that indicates whether the name is available for you to use. If true, the name is available. If false, the name has already been taken or invalid and cannot be used.
 	NameAvailable *bool `json:"nameAvailable,omitempty"`
-	// Reason - READ-ONLY; Gets the reason that a Batch account name could not be used. The Reason element is only returned if NameAvailable is false. Possible values include: 'Invalid', 'AlreadyExists'
+	// Reason - READ-ONLY; Gets the reason that a Batch account name could not be used. The Reason element is only returned if NameAvailable is false. Possible values include: 'NameAvailabilityReasonInvalid', 'NameAvailabilityReasonAlreadyExists'
 	Reason NameAvailabilityReason `json:"reason,omitempty"`
 	// Message - READ-ONLY; Gets an error message explaining the Reason value in more detail.
 	Message *string `json:"message,omitempty"`
@@ -1195,6 +1238,7 @@ type CIFSMountConfiguration struct {
 
 // CloudError an error response from the Batch service.
 type CloudError struct {
+	// Error - The body of the error response.
 	Error *CloudErrorBody `json:"error,omitempty"`
 }
 
@@ -1218,6 +1262,13 @@ type CloudServiceConfiguration struct {
 	OsVersion *string `json:"osVersion,omitempty"`
 }
 
+// ComputeNodeIdentityReference the reference to a user assigned identity associated with the Batch pool
+// which a compute node will use.
+type ComputeNodeIdentityReference struct {
+	// ResourceID - The ARM resource id of the user assigned identity.
+	ResourceID *string `json:"resourceId,omitempty"`
+}
+
 // ContainerConfiguration ...
 type ContainerConfiguration struct {
 	Type *string `json:"type,omitempty"`
@@ -1229,27 +1280,28 @@ type ContainerConfiguration struct {
 
 // ContainerRegistry ...
 type ContainerRegistry struct {
+	UserName *string `json:"username,omitempty"`
+	Password *string `json:"password,omitempty"`
 	// RegistryServer - If omitted, the default is "docker.io".
-	RegistryServer *string `json:"registryServer,omitempty"`
-	UserName       *string `json:"username,omitempty"`
-	Password       *string `json:"password,omitempty"`
+	RegistryServer    *string                       `json:"registryServer,omitempty"`
+	IdentityReference *ComputeNodeIdentityReference `json:"identityReference,omitempty"`
 }
 
 // DataDisk settings which will be used by the data disks associated to Compute Nodes in the Pool. When
 // using attached data disks, you need to mount and format the disks from within a VM to use them.
 type DataDisk struct {
-	// Lun - The lun is used to uniquely identify each data disk. If attaching multiple disks, each should have a distinct lun.
+	// Lun - The lun is used to uniquely identify each data disk. If attaching multiple disks, each should have a distinct lun. The value must be between 0 and 63, inclusive.
 	Lun *int32 `json:"lun,omitempty"`
 	// Caching - Values are:
 	//  none - The caching mode for the disk is not enabled.
 	//  readOnly - The caching mode for the disk is read only.
 	//  readWrite - The caching mode for the disk is read and write.
-	//  The default value for caching is none. For information about the caching options see: https://blogs.msdn.microsoft.com/windowsazurestorage/2012/06/27/exploring-windows-azure-drives-disks-and-images/. Possible values include: 'None', 'ReadOnly', 'ReadWrite'
+	//  The default value for caching is none. For information about the caching options see: https://blogs.msdn.microsoft.com/windowsazurestorage/2012/06/27/exploring-windows-azure-drives-disks-and-images/. Possible values include: 'CachingTypeNone', 'CachingTypeReadOnly', 'CachingTypeReadWrite'
 	Caching    CachingType `json:"caching,omitempty"`
 	DiskSizeGB *int32      `json:"diskSizeGB,omitempty"`
 	// StorageAccountType - If omitted, the default is "Standard_LRS". Values are:
 	//  Standard_LRS - The data disk should use standard locally redundant storage.
-	//  Premium_LRS - The data disk should use premium locally redundant storage. Possible values include: 'StandardLRS', 'PremiumLRS'
+	//  Premium_LRS - The data disk should use premium locally redundant storage. Possible values include: 'StorageAccountTypeStandardLRS', 'StorageAccountTypePremiumLRS'
 	StorageAccountType StorageAccountType `json:"storageAccountType,omitempty"`
 }
 
@@ -1273,6 +1325,12 @@ type DeploymentConfiguration struct {
 	VirtualMachineConfiguration *VirtualMachineConfiguration `json:"virtualMachineConfiguration,omitempty"`
 }
 
+// DiffDiskSettings ...
+type DiffDiskSettings struct {
+	// Placement - This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements and Linux VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements. Possible values include: 'DiffDiskPlacementCacheDisk'
+	Placement DiffDiskPlacement `json:"placement,omitempty"`
+}
+
 // DiskEncryptionConfiguration the disk encryption configuration applied on compute nodes in the pool. Disk
 // encryption configuration is not supported on Linux pool created with Virtual Machine Image or Shared
 // Image Gallery Image.
@@ -1281,12 +1339,42 @@ type DiskEncryptionConfiguration struct {
 	Targets *[]DiskEncryptionTarget `json:"targets,omitempty"`
 }
 
-// EncryptionProperties ...
+// EncryptionProperties configures how customer data is encrypted inside the Batch account. By default,
+// accounts are encrypted using a Microsoft managed key. For additional control, a customer-managed key can
+// be used instead.
 type EncryptionProperties struct {
-	// KeySource - Type of the key source. Possible values include: 'MicrosoftBatch', 'MicrosoftKeyVault'
+	// KeySource - Type of the key source. Possible values include: 'KeySourceMicrosoftBatch', 'KeySourceMicrosoftKeyVault'
 	KeySource KeySource `json:"keySource,omitempty"`
 	// KeyVaultProperties - Additional details when using Microsoft.KeyVault
 	KeyVaultProperties *KeyVaultProperties `json:"keyVaultProperties,omitempty"`
+}
+
+// EndpointDependency a domain name and connection details used to access a dependency.
+type EndpointDependency struct {
+	// DomainName - READ-ONLY; The domain name of the dependency. Domain names may be fully qualified or may contain a * wildcard.
+	DomainName *string `json:"domainName,omitempty"`
+	// Description - READ-ONLY; Human-readable supplemental information about the dependency and when it is applicable.
+	Description *string `json:"description,omitempty"`
+	// EndpointDetails - READ-ONLY; The list of connection details for this endpoint.
+	EndpointDetails *[]EndpointDetail `json:"endpointDetails,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for EndpointDependency.
+func (ed EndpointDependency) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// EndpointDetail details about the connection between the Batch service and the endpoint.
+type EndpointDetail struct {
+	// Port - READ-ONLY; The port an endpoint is connected to.
+	Port *int32 `json:"port,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for EndpointDetail.
+func (ed EndpointDetail) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // EnvironmentSetting ...
@@ -1303,7 +1391,7 @@ type FixedScaleSettings struct {
 	TargetDedicatedNodes *int32 `json:"targetDedicatedNodes,omitempty"`
 	// TargetLowPriorityNodes - At least one of targetDedicatedNodes, targetLowPriorityNodes must be set.
 	TargetLowPriorityNodes *int32 `json:"targetLowPriorityNodes,omitempty"`
-	// NodeDeallocationOption - If omitted, the default value is Requeue. Possible values include: 'Requeue', 'Terminate', 'TaskCompletion', 'RetainedData'
+	// NodeDeallocationOption - If omitted, the default value is Requeue. Possible values include: 'ComputeNodeDeallocationOptionRequeue', 'ComputeNodeDeallocationOptionTerminate', 'ComputeNodeDeallocationOptionTaskCompletion', 'ComputeNodeDeallocationOptionRetainedData'
 	NodeDeallocationOption ComputeNodeDeallocationOption `json:"nodeDeallocationOption,omitempty"`
 }
 
@@ -1325,7 +1413,7 @@ type ImageReference struct {
 type InboundNatPool struct {
 	// Name - The name must be unique within a Batch pool, can contain letters, numbers, underscores, periods, and hyphens. Names must start with a letter or number, must end with a letter, number, or underscore, and cannot exceed 77 characters.  If any invalid values are provided the request fails with HTTP status code 400.
 	Name *string `json:"name,omitempty"`
-	// Protocol - Possible values include: 'TCP', 'UDP'
+	// Protocol - Possible values include: 'InboundEndpointProtocolTCP', 'InboundEndpointProtocolUDP'
 	Protocol InboundEndpointProtocol `json:"protocol,omitempty"`
 	// BackendPort - This must be unique within a Batch pool. Acceptable values are between 1 and 65535 except for 22, 3389, 29876 and 29877 as these are reserved. If any reserved values are provided the request fails with HTTP status code 400.
 	BackendPort *int32 `json:"backendPort,omitempty"`
@@ -1337,9 +1425,12 @@ type InboundNatPool struct {
 	NetworkSecurityGroupRules *[]NetworkSecurityGroupRule `json:"networkSecurityGroupRules,omitempty"`
 }
 
-// KeyVaultProperties ...
+// KeyVaultProperties keyVault configuration when using an encryption KeySource of Microsoft.KeyVault.
 type KeyVaultProperties struct {
-	// KeyIdentifier - Full path to the versioned secret. Example https://mykeyvault.vault.azure.net/keys/testkey/6e34a81fef704045975661e297a4c053
+	// KeyIdentifier - Full path to the versioned secret. Example https://mykeyvault.vault.azure.net/keys/testkey/6e34a81fef704045975661e297a4c053. To be usable the following prerequisites must be met:
+	//  The Batch Account has a System Assigned identity
+	//  The account identity has been granted Key/Get, Key/Unwrap and Key/Wrap permissions
+	//  The KeyVault has soft-delete and purge protection enabled
 	KeyIdentifier *string `json:"keyIdentifier,omitempty"`
 }
 
@@ -2364,7 +2455,7 @@ type NetworkConfiguration struct {
 type NetworkSecurityGroupRule struct {
 	// Priority - Priorities within a pool must be unique and are evaluated in order of priority. The lower the number the higher the priority. For example, rules could be specified with order numbers of 150, 250, and 350. The rule with the order number of 150 takes precedence over the rule that has an order of 250. Allowed priorities are 150 to 4096. If any reserved or duplicate values are provided the request fails with HTTP status code 400.
 	Priority *int32 `json:"priority,omitempty"`
-	// Access - Possible values include: 'Allow', 'Deny'
+	// Access - Possible values include: 'NetworkSecurityGroupRuleAccessAllow', 'NetworkSecurityGroupRuleAccessDeny'
 	Access NetworkSecurityGroupRuleAccess `json:"access,omitempty"`
 	// SourceAddressPrefix - Valid values are a single IP address (i.e. 10.10.10.10), IP subnet (i.e. 192.168.1.0/24), default tag, or * (for all addresses).  If any other values are provided the request fails with HTTP status code 400.
 	SourceAddressPrefix *string `json:"sourceAddressPrefix,omitempty"`
@@ -2381,13 +2472,21 @@ type NFSMountConfiguration struct {
 	MountOptions *string `json:"mountOptions,omitempty"`
 }
 
+// NodePlacementConfiguration allocation configuration used by Batch Service to provision the nodes.
+type NodePlacementConfiguration struct {
+	// Policy - Allocation policy used by Batch Service to provision the nodes. If not specified, Batch will use the regional policy. Possible values include: 'NodePlacementPolicyTypeRegional', 'NodePlacementPolicyTypeZonal'
+	Policy NodePlacementPolicyType `json:"policy,omitempty"`
+}
+
 // Operation ...
 type Operation struct {
 	// Name - This is of the format {provider}/{resource}/{operation}
-	Name       *string           `json:"name,omitempty"`
-	Display    *OperationDisplay `json:"display,omitempty"`
-	Origin     *string           `json:"origin,omitempty"`
-	Properties interface{}       `json:"properties,omitempty"`
+	Name *string `json:"name,omitempty"`
+	// IsDataAction - Indicates whether the operation is a data action
+	IsDataAction *bool             `json:"isDataAction,omitempty"`
+	Display      *OperationDisplay `json:"display,omitempty"`
+	Origin       *string           `json:"origin,omitempty"`
+	Properties   interface{}       `json:"properties,omitempty"`
 }
 
 // OperationDisplay ...
@@ -2556,11 +2655,202 @@ func NewOperationListResultPage(cur OperationListResult, getNextPage func(contex
 	}
 }
 
+// OSDisk ...
+type OSDisk struct {
+	EphemeralOSDiskSettings *DiffDiskSettings `json:"ephemeralOSDiskSettings,omitempty"`
+}
+
+// OutboundEnvironmentEndpoint a collection of related endpoints from the same service for which the Batch
+// service requires outbound access.
+type OutboundEnvironmentEndpoint struct {
+	// Category - READ-ONLY; The type of service that the Batch service connects to.
+	Category *string `json:"category,omitempty"`
+	// Endpoints - READ-ONLY; The endpoints for this service to which the Batch service makes outbound calls.
+	Endpoints *[]EndpointDependency `json:"endpoints,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OutboundEnvironmentEndpoint.
+func (oee OutboundEnvironmentEndpoint) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// OutboundEnvironmentEndpointCollection values returned by the List operation.
+type OutboundEnvironmentEndpointCollection struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; The collection of outbound network dependency endpoints returned by the listing operation.
+	Value *[]OutboundEnvironmentEndpoint `json:"value,omitempty"`
+	// NextLink - The continuation token.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OutboundEnvironmentEndpointCollection.
+func (oeec OutboundEnvironmentEndpointCollection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if oeec.NextLink != nil {
+		objectMap["nextLink"] = oeec.NextLink
+	}
+	return json.Marshal(objectMap)
+}
+
+// OutboundEnvironmentEndpointCollectionIterator provides access to a complete listing of
+// OutboundEnvironmentEndpoint values.
+type OutboundEnvironmentEndpointCollectionIterator struct {
+	i    int
+	page OutboundEnvironmentEndpointCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *OutboundEnvironmentEndpointCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/OutboundEnvironmentEndpointCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *OutboundEnvironmentEndpointCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter OutboundEnvironmentEndpointCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter OutboundEnvironmentEndpointCollectionIterator) Response() OutboundEnvironmentEndpointCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter OutboundEnvironmentEndpointCollectionIterator) Value() OutboundEnvironmentEndpoint {
+	if !iter.page.NotDone() {
+		return OutboundEnvironmentEndpoint{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the OutboundEnvironmentEndpointCollectionIterator type.
+func NewOutboundEnvironmentEndpointCollectionIterator(page OutboundEnvironmentEndpointCollectionPage) OutboundEnvironmentEndpointCollectionIterator {
+	return OutboundEnvironmentEndpointCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (oeec OutboundEnvironmentEndpointCollection) IsEmpty() bool {
+	return oeec.Value == nil || len(*oeec.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (oeec OutboundEnvironmentEndpointCollection) hasNextLink() bool {
+	return oeec.NextLink != nil && len(*oeec.NextLink) != 0
+}
+
+// outboundEnvironmentEndpointCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (oeec OutboundEnvironmentEndpointCollection) outboundEnvironmentEndpointCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if !oeec.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(oeec.NextLink)))
+}
+
+// OutboundEnvironmentEndpointCollectionPage contains a page of OutboundEnvironmentEndpoint values.
+type OutboundEnvironmentEndpointCollectionPage struct {
+	fn   func(context.Context, OutboundEnvironmentEndpointCollection) (OutboundEnvironmentEndpointCollection, error)
+	oeec OutboundEnvironmentEndpointCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *OutboundEnvironmentEndpointCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/OutboundEnvironmentEndpointCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.oeec)
+		if err != nil {
+			return err
+		}
+		page.oeec = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *OutboundEnvironmentEndpointCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page OutboundEnvironmentEndpointCollectionPage) NotDone() bool {
+	return !page.oeec.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page OutboundEnvironmentEndpointCollectionPage) Response() OutboundEnvironmentEndpointCollection {
+	return page.oeec
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page OutboundEnvironmentEndpointCollectionPage) Values() []OutboundEnvironmentEndpoint {
+	if page.oeec.IsEmpty() {
+		return nil
+	}
+	return *page.oeec.Value
+}
+
+// Creates a new instance of the OutboundEnvironmentEndpointCollectionPage type.
+func NewOutboundEnvironmentEndpointCollectionPage(cur OutboundEnvironmentEndpointCollection, getNextPage func(context.Context, OutboundEnvironmentEndpointCollection) (OutboundEnvironmentEndpointCollection, error)) OutboundEnvironmentEndpointCollectionPage {
+	return OutboundEnvironmentEndpointCollectionPage{
+		fn:   getNextPage,
+		oeec: cur,
+	}
+}
+
 // Pool contains information about a pool.
 type Pool struct {
 	autorest.Response `json:"-"`
 	// PoolProperties - The properties associated with the pool.
 	*PoolProperties `json:"properties,omitempty"`
+	// Identity - The type of identity used for the Batch Pool.
+	Identity *PoolIdentity `json:"identity,omitempty"`
 	// ID - READ-ONLY; The ID of the resource.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource.
@@ -2576,6 +2866,9 @@ func (p Pool) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if p.PoolProperties != nil {
 		objectMap["properties"] = p.PoolProperties
+	}
+	if p.Identity != nil {
+		objectMap["identity"] = p.Identity
 	}
 	return json.Marshal(objectMap)
 }
@@ -2597,6 +2890,15 @@ func (p *Pool) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				p.PoolProperties = &poolProperties
+			}
+		case "identity":
+			if v != nil {
+				var identity PoolIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				p.Identity = &identity
 			}
 		case "id":
 			if v != nil {
@@ -2640,48 +2942,6 @@ func (p *Pool) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// PoolCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
-type PoolCreateFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(PoolClient) (Pool, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *PoolCreateFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for PoolCreateFuture.Result.
-func (future *PoolCreateFuture) result(client PoolClient) (p Pool, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "batch.PoolCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		p.Response.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("batch.PoolCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if p.Response.Response, err = future.GetResult(sender); err == nil && p.Response.Response.StatusCode != http.StatusNoContent {
-		p, err = client.CreateResponder(p.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "batch.PoolCreateFuture", "Result", p.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
 // PoolDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type PoolDeleteFuture struct {
 	azure.FutureAPI
@@ -2720,8 +2980,30 @@ func (future *PoolDeleteFuture) result(client PoolClient) (ar autorest.Response,
 
 // PoolEndpointConfiguration ...
 type PoolEndpointConfiguration struct {
-	// InboundNatPools - The maximum number of inbound NAT pools per Batch pool is 5. If the maximum number of inbound NAT pools is exceeded the request fails with HTTP status code 400.
+	// InboundNatPools - The maximum number of inbound NAT pools per Batch pool is 5. If the maximum number of inbound NAT pools is exceeded the request fails with HTTP status code 400. This cannot be specified if the IPAddressProvisioningType is NoPublicIPAddresses.
 	InboundNatPools *[]InboundNatPool `json:"inboundNatPools,omitempty"`
+}
+
+// PoolIdentity the identity of the Batch pool, if configured. If the pool identity is updated during
+// update an existing pool, only the new vms which are created after the pool shrinks to 0 will have the
+// updated identities
+type PoolIdentity struct {
+	// Type - The type of identity used for the Batch Pool. Possible values include: 'PoolIdentityTypeUserAssigned', 'PoolIdentityTypeNone'
+	Type PoolIdentityType `json:"type,omitempty"`
+	// UserAssignedIdentities - The list of user identities associated with the Batch pool.
+	UserAssignedIdentities map[string]*UserAssignedIdentities `json:"userAssignedIdentities"`
+}
+
+// MarshalJSON is the custom marshaler for PoolIdentity.
+func (pi PoolIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pi.Type != "" {
+		objectMap["type"] = pi.Type
+	}
+	if pi.UserAssignedIdentities != nil {
+		objectMap["userAssignedIdentities"] = pi.UserAssignedIdentities
+	}
+	return json.Marshal(objectMap)
 }
 
 // PoolProperties pool properties.
@@ -2736,7 +3018,7 @@ type PoolProperties struct {
 	ProvisioningState PoolProvisioningState `json:"provisioningState,omitempty"`
 	// ProvisioningStateTransitionTime - READ-ONLY
 	ProvisioningStateTransitionTime *date.Time `json:"provisioningStateTransitionTime,omitempty"`
-	// AllocationState - READ-ONLY; Possible values include: 'Steady', 'Resizing', 'Stopping'
+	// AllocationState - READ-ONLY; Possible values include: 'AllocationStateSteady', 'AllocationStateResizing', 'AllocationStateStopping'
 	AllocationState AllocationState `json:"allocationState,omitempty"`
 	// AllocationStateTransitionTime - READ-ONLY
 	AllocationStateTransitionTime *date.Time `json:"allocationStateTransitionTime,omitempty"`
@@ -2751,11 +3033,11 @@ type PoolProperties struct {
 	ScaleSettings           *ScaleSettings `json:"scaleSettings,omitempty"`
 	// AutoScaleRun - READ-ONLY; This property is set only if the pool automatically scales, i.e. autoScaleSettings are used.
 	AutoScaleRun *AutoScaleRun `json:"autoScaleRun,omitempty"`
-	// InterNodeCommunication - This imposes restrictions on which nodes can be assigned to the pool. Enabling this value can reduce the chance of the requested number of nodes to be allocated in the pool. If not specified, this value defaults to 'Disabled'. Possible values include: 'Enabled', 'Disabled'
+	// InterNodeCommunication - This imposes restrictions on which nodes can be assigned to the pool. Enabling this value can reduce the chance of the requested number of nodes to be allocated in the pool. If not specified, this value defaults to 'Disabled'. Possible values include: 'InterNodeCommunicationStateEnabled', 'InterNodeCommunicationStateDisabled'
 	InterNodeCommunication InterNodeCommunicationState `json:"interNodeCommunication,omitempty"`
 	NetworkConfiguration   *NetworkConfiguration       `json:"networkConfiguration,omitempty"`
-	// MaxTasksPerNode - The default value is 1. The maximum value is the smaller of 4 times the number of cores of the vmSize of the pool or 256.
-	MaxTasksPerNode *int32 `json:"maxTasksPerNode,omitempty"`
+	// TaskSlotsPerNode - The default value is 1. The maximum value is the smaller of 4 times the number of cores of the vmSize of the pool or 256.
+	TaskSlotsPerNode *int32 `json:"taskSlotsPerNode,omitempty"`
 	// TaskSchedulingPolicy - If not specified, the default is spread.
 	TaskSchedulingPolicy *TaskSchedulingPolicy `json:"taskSchedulingPolicy,omitempty"`
 	UserAccounts         *[]UserAccount        `json:"userAccounts,omitempty"`
@@ -2796,8 +3078,8 @@ func (pp PoolProperties) MarshalJSON() ([]byte, error) {
 	if pp.NetworkConfiguration != nil {
 		objectMap["networkConfiguration"] = pp.NetworkConfiguration
 	}
-	if pp.MaxTasksPerNode != nil {
-		objectMap["maxTasksPerNode"] = pp.MaxTasksPerNode
+	if pp.TaskSlotsPerNode != nil {
+		objectMap["taskSlotsPerNode"] = pp.TaskSlotsPerNode
 	}
 	if pp.TaskSchedulingPolicy != nil {
 		objectMap["taskSchedulingPolicy"] = pp.TaskSchedulingPolicy
@@ -2940,6 +3222,49 @@ func (pecp PrivateEndpointConnectionProperties) MarshalJSON() ([]byte, error) {
 		objectMap["privateLinkServiceConnectionState"] = pecp.PrivateLinkServiceConnectionState
 	}
 	return json.Marshal(objectMap)
+}
+
+// PrivateEndpointConnectionUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type PrivateEndpointConnectionUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PrivateEndpointConnectionClient) (PrivateEndpointConnection, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *PrivateEndpointConnectionUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for PrivateEndpointConnectionUpdateFuture.Result.
+func (future *PrivateEndpointConnectionUpdateFuture) result(client PrivateEndpointConnectionClient) (pec PrivateEndpointConnection, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "batch.PrivateEndpointConnectionUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		pec.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("batch.PrivateEndpointConnectionUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if pec.Response.Response, err = future.GetResult(sender); err == nil && pec.Response.Response.StatusCode != http.StatusNoContent {
+		pec, err = client.UpdateResponder(pec.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "batch.PrivateEndpointConnectionUpdateFuture", "Result", pec.Response.Response, "Failure responding to request")
+		}
+	}
+	return
 }
 
 // PrivateLinkResource contains information about a private link resource.
@@ -3085,9 +3410,9 @@ func (pr ProxyResource) MarshalJSON() ([]byte, error) {
 // PublicIPAddressConfiguration the public IP Address configuration of the networking configuration of a
 // Pool.
 type PublicIPAddressConfiguration struct {
-	// Provision - The default value is BatchManaged. Possible values include: 'BatchManaged', 'UserManaged', 'NoPublicIPAddresses'
+	// Provision - The default value is BatchManaged. Possible values include: 'IPAddressProvisioningTypeBatchManaged', 'IPAddressProvisioningTypeUserManaged', 'IPAddressProvisioningTypeNoPublicIPAddresses'
 	Provision IPAddressProvisioningType `json:"provision,omitempty"`
-	// IPAddressIds - The number of IPs specified here limits the maximum size of the Pool - 50 dedicated nodes or 20 low-priority nodes can be allocated for each public IP. For example, a pool needing 150 dedicated VMs would need at least 3 public IPs specified. Each element of this collection is of the form: /subscriptions/{subscription}/resourceGroups/{group}/providers/Microsoft.Network/publicIPAddresses/{ip}.
+	// IPAddressIds - The number of IPs specified here limits the maximum size of the Pool - 100 dedicated nodes or 100 low-priority nodes can be allocated for each public IP. For example, a pool needing 250 dedicated VMs would need at least 3 public IPs specified. Each element of this collection is of the form: /subscriptions/{subscription}/resourceGroups/{group}/providers/Microsoft.Network/publicIPAddresses/{ip}.
 	IPAddressIds *[]string `json:"ipAddressIds,omitempty"`
 }
 
@@ -3107,7 +3432,7 @@ type ResizeOperationStatus struct {
 	TargetLowPriorityNodes *int32 `json:"targetLowPriorityNodes,omitempty"`
 	// ResizeTimeout - The default value is 15 minutes. The minimum value is 5 minutes. If you specify a value less than 5 minutes, the Batch service returns an error; if you are calling the REST API directly, the HTTP status code is 400 (Bad Request).
 	ResizeTimeout *string `json:"resizeTimeout,omitempty"`
-	// NodeDeallocationOption - The default value is requeue. Possible values include: 'Requeue', 'Terminate', 'TaskCompletion', 'RetainedData'
+	// NodeDeallocationOption - The default value is requeue. Possible values include: 'ComputeNodeDeallocationOptionRequeue', 'ComputeNodeDeallocationOptionTerminate', 'ComputeNodeDeallocationOptionTaskCompletion', 'ComputeNodeDeallocationOptionRetainedData'
 	NodeDeallocationOption ComputeNodeDeallocationOption `json:"nodeDeallocationOption,omitempty"`
 	StartTime              *date.Time                    `json:"startTime,omitempty"`
 	// Errors - This property is set only if an error occurred during the last pool resize, and only when the pool allocationState is Steady.
@@ -3138,16 +3463,17 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 type ResourceFile struct {
 	// AutoStorageContainerName - The autoStorageContainerName, storageContainerUrl and httpUrl properties are mutually exclusive and one of them must be specified.
 	AutoStorageContainerName *string `json:"autoStorageContainerName,omitempty"`
-	// StorageContainerURL - The autoStorageContainerName, storageContainerUrl and httpUrl properties are mutually exclusive and one of them must be specified. This URL must be readable and listable using anonymous access; that is, the Batch service does not present any credentials when downloading the blob. There are two ways to get such a URL for a blob in Azure storage: include a Shared Access Signature (SAS) granting read and list permissions on the blob, or set the ACL for the blob or its container to allow public access.
+	// StorageContainerURL - The autoStorageContainerName, storageContainerUrl and httpUrl properties are mutually exclusive and one of them must be specified. This URL must be readable and listable from compute nodes. There are three ways to get such a URL for a container in Azure storage: include a Shared Access Signature (SAS) granting read and list permissions on the container, use a managed identity with read and list permissions, or set the ACL for the container to allow public access.
 	StorageContainerURL *string `json:"storageContainerUrl,omitempty"`
-	// HTTPURL - The autoStorageContainerName, storageContainerUrl and httpUrl properties are mutually exclusive and one of them must be specified. If the URL is Azure Blob Storage, it must be readable using anonymous access; that is, the Batch service does not present any credentials when downloading the blob. There are two ways to get such a URL for a blob in Azure storage: include a Shared Access Signature (SAS) granting read permissions on the blob, or set the ACL for the blob or its container to allow public access.
+	// HTTPURL - The autoStorageContainerName, storageContainerUrl and httpUrl properties are mutually exclusive and one of them must be specified. If the URL points to Azure Blob Storage, it must be readable from compute nodes. There are three ways to get such a URL for a blob in Azure storage: include a Shared Access Signature (SAS) granting read permissions on the blob, use a managed identity with read permission, or set the ACL for the blob or its container to allow public access.
 	HTTPURL *string `json:"httpUrl,omitempty"`
 	// BlobPrefix - The property is valid only when autoStorageContainerName or storageContainerUrl is used. This prefix can be a partial filename or a subdirectory. If a prefix is not specified, all the files in the container will be downloaded.
 	BlobPrefix *string `json:"blobPrefix,omitempty"`
 	// FilePath - If the httpUrl property is specified, the filePath is required and describes the path which the file will be downloaded to, including the filename. Otherwise, if the autoStorageContainerName or storageContainerUrl property is specified, filePath is optional and is the directory to download the files to. In the case where filePath is used as a directory, any directory structure already associated with the input data will be retained in full and appended to the specified filePath directory. The specified relative path cannot break out of the task's working directory (for example by using '..').
 	FilePath *string `json:"filePath,omitempty"`
 	// FileMode - This property applies only to files being downloaded to Linux compute nodes. It will be ignored if it is specified for a resourceFile which will be downloaded to a Windows node. If this property is not specified for a Linux node, then a default value of 0770 is applied to the file.
-	FileMode *string `json:"fileMode,omitempty"`
+	FileMode          *string                       `json:"fileMode,omitempty"`
+	IdentityReference *ComputeNodeIdentityReference `json:"identityReference,omitempty"`
 }
 
 // ScaleSettings defines the desired size of the pool. This can either be 'fixedScale' where the requested
@@ -3159,6 +3485,20 @@ type ScaleSettings struct {
 	FixedScale *FixedScaleSettings `json:"fixedScale,omitempty"`
 	// AutoScale - This property and fixedScale are mutually exclusive and one of the properties must be specified.
 	AutoScale *AutoScaleSettings `json:"autoScale,omitempty"`
+}
+
+// SkuCapability a SKU capability, such as the number of cores.
+type SkuCapability struct {
+	// Name - READ-ONLY; The name of the feature.
+	Name *string `json:"name,omitempty"`
+	// Value - READ-ONLY; The value of the feature.
+	Value *string `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SkuCapability.
+func (sc SkuCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // StartTask in some cases the start task may be re-run even though the node was not rebooted. Due to this,
@@ -3181,6 +3521,190 @@ type StartTask struct {
 	ContainerSettings *TaskContainerSettings `json:"containerSettings,omitempty"`
 }
 
+// SupportedSku describes a Batch supported SKU.
+type SupportedSku struct {
+	// Name - READ-ONLY; The name of the SKU.
+	Name *string `json:"name,omitempty"`
+	// FamilyName - READ-ONLY; The family name of the SKU.
+	FamilyName *string `json:"familyName,omitempty"`
+	// Capabilities - READ-ONLY; A collection of capabilities which this SKU supports.
+	Capabilities *[]SkuCapability `json:"capabilities,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SupportedSku.
+func (ss SupportedSku) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// SupportedSkusResult the Batch List supported SKUs operation response.
+type SupportedSkusResult struct {
+	autorest.Response `json:"-"`
+	// Value - The list of SKUs available for the Batch service in the location.
+	Value *[]SupportedSku `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URL to use for getting the next set of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SupportedSkusResult.
+func (ssr SupportedSkusResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ssr.Value != nil {
+		objectMap["value"] = ssr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// SupportedSkusResultIterator provides access to a complete listing of SupportedSku values.
+type SupportedSkusResultIterator struct {
+	i    int
+	page SupportedSkusResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *SupportedSkusResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SupportedSkusResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *SupportedSkusResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter SupportedSkusResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter SupportedSkusResultIterator) Response() SupportedSkusResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter SupportedSkusResultIterator) Value() SupportedSku {
+	if !iter.page.NotDone() {
+		return SupportedSku{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the SupportedSkusResultIterator type.
+func NewSupportedSkusResultIterator(page SupportedSkusResultPage) SupportedSkusResultIterator {
+	return SupportedSkusResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (ssr SupportedSkusResult) IsEmpty() bool {
+	return ssr.Value == nil || len(*ssr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (ssr SupportedSkusResult) hasNextLink() bool {
+	return ssr.NextLink != nil && len(*ssr.NextLink) != 0
+}
+
+// supportedSkusResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (ssr SupportedSkusResult) supportedSkusResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !ssr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(ssr.NextLink)))
+}
+
+// SupportedSkusResultPage contains a page of SupportedSku values.
+type SupportedSkusResultPage struct {
+	fn  func(context.Context, SupportedSkusResult) (SupportedSkusResult, error)
+	ssr SupportedSkusResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *SupportedSkusResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SupportedSkusResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.ssr)
+		if err != nil {
+			return err
+		}
+		page.ssr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *SupportedSkusResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page SupportedSkusResultPage) NotDone() bool {
+	return !page.ssr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page SupportedSkusResultPage) Response() SupportedSkusResult {
+	return page.ssr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page SupportedSkusResultPage) Values() []SupportedSku {
+	if page.ssr.IsEmpty() {
+		return nil
+	}
+	return *page.ssr.Value
+}
+
+// Creates a new instance of the SupportedSkusResultPage type.
+func NewSupportedSkusResultPage(cur SupportedSkusResult, getNextPage func(context.Context, SupportedSkusResult) (SupportedSkusResult, error)) SupportedSkusResultPage {
+	return SupportedSkusResultPage{
+		fn:  getNextPage,
+		ssr: cur,
+	}
+}
+
 // TaskContainerSettings ...
 type TaskContainerSettings struct {
 	// ContainerRunOptions - These additional options are supplied as arguments to the "docker create" command, in addition to those controlled by the Batch Service.
@@ -3189,13 +3713,13 @@ type TaskContainerSettings struct {
 	ImageName *string `json:"imageName,omitempty"`
 	// Registry - This setting can be omitted if was already provided at pool creation.
 	Registry *ContainerRegistry `json:"registry,omitempty"`
-	// WorkingDirectory - Possible values include: 'TaskWorkingDirectory', 'ContainerImageDefault'
+	// WorkingDirectory - Possible values include: 'ContainerWorkingDirectoryTaskWorkingDirectory', 'ContainerWorkingDirectoryContainerImageDefault'
 	WorkingDirectory ContainerWorkingDirectory `json:"workingDirectory,omitempty"`
 }
 
 // TaskSchedulingPolicy ...
 type TaskSchedulingPolicy struct {
-	// NodeFillType - Possible values include: 'Spread', 'Pack'
+	// NodeFillType - Possible values include: 'ComputeNodeFillTypeSpread', 'ComputeNodeFillTypePack'
 	NodeFillType ComputeNodeFillType `json:"nodeFillType,omitempty"`
 }
 
@@ -3203,12 +3727,26 @@ type TaskSchedulingPolicy struct {
 type UserAccount struct {
 	Name     *string `json:"name,omitempty"`
 	Password *string `json:"password,omitempty"`
-	// ElevationLevel - nonAdmin - The auto user is a standard user without elevated access. admin - The auto user is a user with elevated access and operates with full Administrator permissions. The default value is nonAdmin. Possible values include: 'NonAdmin', 'Admin'
+	// ElevationLevel - nonAdmin - The auto user is a standard user without elevated access. admin - The auto user is a user with elevated access and operates with full Administrator permissions. The default value is nonAdmin. Possible values include: 'ElevationLevelNonAdmin', 'ElevationLevelAdmin'
 	ElevationLevel ElevationLevel `json:"elevationLevel,omitempty"`
 	// LinuxUserConfiguration - This property is ignored if specified on a Windows pool. If not specified, the user is created with the default options.
 	LinuxUserConfiguration *LinuxUserConfiguration `json:"linuxUserConfiguration,omitempty"`
 	// WindowsUserConfiguration - This property can only be specified if the user is on a Windows pool. If not specified and on a Windows pool, the user is created with the default options.
 	WindowsUserConfiguration *WindowsUserConfiguration `json:"windowsUserConfiguration,omitempty"`
+}
+
+// UserAssignedIdentities the list of associated user identities.
+type UserAssignedIdentities struct {
+	// PrincipalID - READ-ONLY; The principal id of user assigned identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// ClientID - READ-ONLY; The client id of user assigned identity.
+	ClientID *string `json:"clientId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for UserAssignedIdentities.
+func (uai UserAssignedIdentities) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // UserIdentity specify either the userName or autoUser property, but not both.
@@ -3236,6 +3774,12 @@ type VirtualMachineConfiguration struct {
 	ContainerConfiguration *ContainerConfiguration `json:"containerConfiguration,omitempty"`
 	// DiskEncryptionConfiguration - If specified, encryption is performed on each node in the pool during node provisioning.
 	DiskEncryptionConfiguration *DiskEncryptionConfiguration `json:"diskEncryptionConfiguration,omitempty"`
+	// NodePlacementConfiguration - This configuration will specify rules on how nodes in the pool will be physically allocated.
+	NodePlacementConfiguration *NodePlacementConfiguration `json:"nodePlacementConfiguration,omitempty"`
+	// Extensions - If specified, the extensions mentioned in this configuration will be installed on each node.
+	Extensions *[]VMExtension `json:"extensions,omitempty"`
+	// OsDisk - Contains configuration for ephemeral OSDisk settings.
+	OsDisk *OSDisk `json:"osDisk,omitempty"`
 }
 
 // VirtualMachineFamilyCoreQuota a VM Family and its associated core quota for the Batch account.
@@ -3252,6 +3796,21 @@ func (vmfcq VirtualMachineFamilyCoreQuota) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// VMExtension ...
+type VMExtension struct {
+	Name               *string `json:"name,omitempty"`
+	Publisher          *string `json:"publisher,omitempty"`
+	Type               *string `json:"type,omitempty"`
+	TypeHandlerVersion *string `json:"typeHandlerVersion,omitempty"`
+	// AutoUpgradeMinorVersion - Indicates whether the extension should use a newer minor version if one is available at deployment time. Once deployed, however, the extension will not upgrade minor versions unless redeployed, even with this property set to true.
+	AutoUpgradeMinorVersion *bool       `json:"autoUpgradeMinorVersion,omitempty"`
+	Settings                interface{} `json:"settings,omitempty"`
+	// ProtectedSettings - The extension can contain either protectedSettings or protectedSettingsFromKeyVault or no protected settings at all.
+	ProtectedSettings interface{} `json:"protectedSettings,omitempty"`
+	// ProvisionAfterExtensions - Collection of extension names after which this extension needs to be provisioned.
+	ProvisionAfterExtensions *[]string `json:"provisionAfterExtensions,omitempty"`
+}
+
 // WindowsConfiguration ...
 type WindowsConfiguration struct {
 	// EnableAutomaticUpdates - If omitted, the default value is true.
@@ -3260,6 +3819,6 @@ type WindowsConfiguration struct {
 
 // WindowsUserConfiguration ...
 type WindowsUserConfiguration struct {
-	// LoginMode - Specifies login mode for the user. The default value for VirtualMachineConfiguration pools is interactive mode and for CloudServiceConfiguration pools is batch mode. Possible values include: 'Batch', 'Interactive'
+	// LoginMode - Specifies login mode for the user. The default value for VirtualMachineConfiguration pools is interactive mode and for CloudServiceConfiguration pools is batch mode. Possible values include: 'LoginModeBatch', 'LoginModeInteractive'
 	LoginMode LoginMode `json:"loginMode,omitempty"`
 }

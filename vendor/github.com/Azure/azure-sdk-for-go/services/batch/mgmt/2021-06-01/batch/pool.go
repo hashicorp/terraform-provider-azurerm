@@ -41,13 +41,13 @@ func NewPoolClientWithBaseURI(baseURI string, subscriptionID string) PoolClient 
 // operation only if the pool already exists. If omitted, this operation will always be applied.
 // ifNoneMatch - set to '*' to allow a new pool to be created, but to prevent updating an existing pool. Other
 // values will be ignored.
-func (client PoolClient) Create(ctx context.Context, resourceGroupName string, accountName string, poolName string, parameters Pool, ifMatch string, ifNoneMatch string) (result PoolCreateFuture, err error) {
+func (client PoolClient) Create(ctx context.Context, resourceGroupName string, accountName string, poolName string, parameters Pool, ifMatch string, ifNoneMatch string) (result Pool, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PoolClient.Create")
 		defer func() {
 			sc := -1
-			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
-				sc = result.FutureAPI.Response().StatusCode
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -90,12 +90,7 @@ func (client PoolClient) Create(ctx context.Context, resourceGroupName string, a
 						}},
 					{Target: "parameters.PoolProperties.StartTask", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "parameters.PoolProperties.StartTask.ContainerSettings", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.PoolProperties.StartTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil},
-								{Target: "parameters.PoolProperties.StartTask.ContainerSettings.Registry", Name: validation.Null, Rule: false,
-									Chain: []validation.Constraint{{Target: "parameters.PoolProperties.StartTask.ContainerSettings.Registry.UserName", Name: validation.Null, Rule: true, Chain: nil},
-										{Target: "parameters.PoolProperties.StartTask.ContainerSettings.Registry.Password", Name: validation.Null, Rule: true, Chain: nil},
-									}},
-							}},
+							Chain: []validation.Constraint{{Target: "parameters.PoolProperties.StartTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil}}},
 						}},
 				}}}}}); err != nil {
 		return result, validation.NewError("batch.PoolClient", "Create", err.Error())
@@ -107,9 +102,16 @@ func (client PoolClient) Create(ctx context.Context, resourceGroupName string, a
 		return
 	}
 
-	result, err = client.CreateSender(req)
+	resp, err := client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "batch.PoolClient", "Create", nil, "Failure sending request")
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "batch.PoolClient", "Create", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.CreateResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "batch.PoolClient", "Create", resp, "Failure responding to request")
 		return
 	}
 
@@ -125,7 +127,7 @@ func (client PoolClient) CreatePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -150,17 +152,8 @@ func (client PoolClient) CreatePreparer(ctx context.Context, resourceGroupName s
 
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
-func (client PoolClient) CreateSender(req *http.Request) (future PoolCreateFuture, err error) {
-	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
-	if err != nil {
-		return
-	}
-	var azf azure.Future
-	azf, err = azure.NewFutureFromResponse(resp)
-	future.FutureAPI = &azf
-	future.Result = future.result
-	return
+func (client PoolClient) CreateSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -227,7 +220,7 @@ func (client PoolClient) DeletePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -325,7 +318,7 @@ func (client PoolClient) DisableAutoScalePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -415,7 +408,7 @@ func (client PoolClient) GetPreparer(ctx context.Context, resourceGroupName stri
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -520,7 +513,7 @@ func (client PoolClient) ListByBatchAccountPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -660,7 +653,7 @@ func (client PoolClient) StopResizePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -754,7 +747,7 @@ func (client PoolClient) UpdatePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
