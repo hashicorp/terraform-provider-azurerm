@@ -138,7 +138,7 @@ func resourceAppService() *pluginsdk.Resource {
 			"key_vault_reference_identity_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed: true,
+				Computed:     true,
 				ValidateFunc: msivalidate.UserAssignedIdentityID,
 			},
 
