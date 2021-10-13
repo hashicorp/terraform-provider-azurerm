@@ -21,7 +21,7 @@ func TestAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
 	r := SecurityCenterSubscriptionPricingResource{}
 
 	// lintignore:AT001
-	data.ResourceSequentialTestIgnoreCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.tier("Standard", "AppServices"),
 			Check: acceptance.ComposeTestCheckFunc(

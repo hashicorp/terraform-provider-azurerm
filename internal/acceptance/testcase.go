@@ -53,7 +53,7 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 
 // ResourceTestIgnoreCheckDestroyed skips the check to confirm the resource test has been destroyed.
 // This is done because certain resources can't actually be deleted.
-func (td TestData) ResourceTestIgnoreCheckDestroyed(t *testing.T, steps []TestStep) {
+func (td TestData) ResourceTestSkipCheckDestroyed(t *testing.T, steps []TestStep) {
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
 		Steps:    steps,
@@ -61,7 +61,7 @@ func (td TestData) ResourceTestIgnoreCheckDestroyed(t *testing.T, steps []TestSt
 	td.runAcceptanceTest(t, testCase)
 }
 
-func (td TestData) ResourceSequentialTestIgnoreCheckDestroyed(t *testing.T, steps []TestStep) {
+func (td TestData) ResourceSequentialTestSkipCheckDestroyed(t *testing.T, steps []TestStep) {
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
 		Steps:    steps,
