@@ -170,48 +170,6 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 			"notification": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
-				Set: pluginsdk.HashResource(
-					&pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Computed: true,
-							},
-							"threshold": {
-								Type:     pluginsdk.TypeInt,
-								Computed: true,
-							},
-							"operator": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-
-							"contact_emails": {
-								Type:     pluginsdk.TypeList,
-								Computed: true,
-								Elem: &pluginsdk.Schema{
-									Type: pluginsdk.TypeString,
-								},
-							},
-
-							"contact_groups": {
-								Type:     pluginsdk.TypeList,
-								Computed: true,
-								Elem: &pluginsdk.Schema{
-									Type: pluginsdk.TypeString,
-								},
-							},
-
-							"contact_roles": {
-								Type:     pluginsdk.TypeList,
-								Computed: true,
-								Elem: &pluginsdk.Schema{
-									Type: pluginsdk.TypeString,
-								},
-							},
-						},
-					},
-				),
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
