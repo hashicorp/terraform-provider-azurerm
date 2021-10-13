@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
 	subscriptionParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
