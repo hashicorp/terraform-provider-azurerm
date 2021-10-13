@@ -88,7 +88,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * upgrading `iothub` to API Version `2021-03-31` ([#13324](https://github.com/hashicorp/terraform-provider-azurerm/issues/13324))
-* `data.azurerm_private_endpoint_connection` - Export `network_interface` attributes from private endpoints ([#13421](https://github.com/hashicorp/terraform-provider-azurerm/issues/13421))
+* Data Source: `azurerm_private_endpoint_connection` - Export `network_interface` attributes from private endpoints ([#13421](https://github.com/hashicorp/terraform-provider-azurerm/issues/13421))
 * `azurerm_app_service` - support for the `vnet_route_all_enabled` property ([#13310](https://github.com/hashicorp/terraform-provider-azurerm/issues/13310))
 * `azurerm_bot_channel_slack` - support for the `signing_secret` property ([#13454](https://github.com/hashicorp/terraform-provider-azurerm/issues/13454))
 * `azurerm_data_factory` - support for `identity` being `SystemAssiged` and `UserAssigned` ([#13473](https://github.com/hashicorp/terraform-provider-azurerm/issues/13473))
