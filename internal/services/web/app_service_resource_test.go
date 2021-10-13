@@ -5641,10 +5641,10 @@ resource "azurerm_app_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
   app_service_plan_id = azurerm_app_service_plan.test.id
 
-  key_vault_reference_identity_id  = azurerm_user_assigned_identity.test.id
+  key_vault_reference_identity_id = azurerm_user_assigned_identity.test.id
 
   identity {
-    type ="UserAssigned"
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
