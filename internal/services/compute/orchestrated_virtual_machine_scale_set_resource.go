@@ -750,15 +750,19 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	// Currently not supported in orchestrated VMSS
-	// automaticOSUpgradeIsEnabled := false
-
 	update.VirtualMachineScaleSetUpdateProperties = &updateProps
 
-	// TODO: Make this two sections one windows one linux
+	if updateInstances {
+		log.Printf("[DEBUG] Orchestrated Virtual Machine Scale Set %q in Resource Group %q - updateInstances is true", id.Name, id.ResourceGroup)
+	}
+
+	// AutomaticOSUpgradeIsEnabled currently is not supported in orchestrated VMSS flex
 	metaData := virtualMachineScaleSetUpdateMetaData{
-		CanRollInstancesWhenRequired: meta.(*clients.Client).Features.VirtualMachineScaleSet.RollInstancesWhenRequired,
-		UpdateInstances:              updateInstances,
+		AutomaticOSUpgradeIsEnabled: false,
+		// CanRollInstancesWhenRequired: meta.(*clients.Client).Features.VirtualMachineScaleSet.RollInstancesWhenRequired,
+		// UpdateInstances:              updateInstances,
+		CanRollInstancesWhenRequired: false,
+		UpdateInstances:              false,
 		Client:                       meta.(*clients.Client).Compute,
 		Existing:                     existing,
 		ID:                           id,
