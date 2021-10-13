@@ -228,7 +228,7 @@ func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta 
 	vnetStateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(network.ProvisioningStateUpdating)},
 		Target:     []string{string(network.ProvisioningStateSucceeded)},
-		Refresh:    virtualHubConnectionProvisioningStateRefreshFunc(ctx, client, id),
+		Refresh:    VirtualHubConnectionProvisioningStateRefreshFunc(ctx, client, id),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
 	}
@@ -497,7 +497,7 @@ func flattenSubResourcesToIDs(input *[]network.SubResource) []interface{} {
 	return ids
 }
 
-func virtualHubConnectionProvisioningStateRefreshFunc(ctx context.Context, client *network.HubVirtualNetworkConnectionsClient, id parse.HubVirtualNetworkConnectionId) pluginsdk.StateRefreshFunc {
+func VirtualHubConnectionProvisioningStateRefreshFunc(ctx context.Context, client *network.HubVirtualNetworkConnectionsClient, id parse.HubVirtualNetworkConnectionId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
 		if err != nil {
