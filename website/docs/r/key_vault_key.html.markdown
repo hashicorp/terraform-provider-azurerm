@@ -96,6 +96,8 @@ The following attributes are exported:
 * `e` - The RSA public exponent of this Key Vault Key.
 * `x` - The EC X component of this Key Vault Key.
 * `y` - The EC Y component of this Key Vault Key.
+* `public_key_pem` - The PEM encoded public key of this Key Vault Key.
+* `public_key_openssh` - The OpenSSH encoded public key of this Key Vault Key.
 
 ## Timeouts
 
