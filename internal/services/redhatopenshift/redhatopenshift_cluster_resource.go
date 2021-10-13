@@ -85,7 +85,6 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 			"service_principal": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -154,14 +153,8 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 			"worker_profile": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
-				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-						},
 						"vm_size": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
@@ -171,13 +164,13 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 						"disk_size_gb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Default:      128,
+							Computed:     true,
 							ValidateFunc: openShiftValidate.DiskSizeGB,
 						},
 						"node_count": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Default:      3,
+							Computed:     true,
 							ValidateFunc: validation.IntBetween(3, 20),
 						},
 						"subnet_id": {
@@ -580,10 +573,6 @@ func flattenOpenShiftWorkerProfiles(profiles *[]redhatopenshift.WorkerProfile) [
 	for _, profile := range *profiles {
 		result := make(map[string]interface{})
 
-		if profile.Name != nil {
-			result["name"] = *profile.Name
-		}
-
 		result["vm_size"] = string(profile.VMSize)
 
 		if profile.DiskSizeGB != nil {
@@ -726,22 +715,28 @@ func expandOpenshiftWorkerProfiles(inputs []interface{}) *[]redhatopenshift.Work
 	for index := range inputs {
 		config := inputs[index].(map[string]interface{})
 
-		name := config["name"].(string)
-		if name == "" {
-			name = "worker"
-		}
+		// Hardcoded name required by ARO interface
+		workerName := "worker"
 
 		vmSize := config["vm_size"].(string)
 		if vmSize == "" {
-			vmSize = "128"
+			vmSize = "Standard_D4s_v3"
 		}
 
 		diskSizeGb := int32(config["disk_size_gb"].(int))
-		subnetId := config["subnet_id"].(string)
+		if diskSizeGb == 0 {
+			diskSizeGb = 128
+		}
+
 		nodeCount := int32(config["node_count"].(int))
+		if nodeCount == 0 {
+			nodeCount = 3
+		}
+
+		subnetId := config["subnet_id"].(string)
 
 		profile := redhatopenshift.WorkerProfile{
-			Name:       utils.String((name)),
+			Name:       utils.String(workerName),
 			VMSize:     redhatopenshift.VMSize1(vmSize),
 			DiskSizeGB: utils.Int32(diskSizeGb),
 			SubnetID:   utils.String(subnetId),
