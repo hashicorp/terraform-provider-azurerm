@@ -16,7 +16,7 @@ import (
 type SecurityCenterWorkspaceResource struct {
 }
 
-func testAccSecurityCenterWorkspace_basic(t *testing.T) {
+func TestAccSecurityCenterWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
 
@@ -38,7 +38,7 @@ func testAccSecurityCenterWorkspace_basic(t *testing.T) {
 	})
 }
 
-func testAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
+func TestAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
@@ -62,7 +62,7 @@ func testAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccSecurityCenterWorkspace_update(t *testing.T) {
+func TestAccSecurityCenterWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
