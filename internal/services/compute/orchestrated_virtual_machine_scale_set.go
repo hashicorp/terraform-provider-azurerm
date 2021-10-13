@@ -248,6 +248,7 @@ func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schem
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+
 				"ip_configuration": orchestratedVirtualMachineScaleSetIPConfigurationSchema(),
 
 				"dns_servers": {

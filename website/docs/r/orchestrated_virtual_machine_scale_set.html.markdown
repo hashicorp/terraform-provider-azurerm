@@ -36,11 +36,20 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 The following arguments are supported:
 
+* `name` - (Required) The name of the Orchestrated Virtual Machine Scale Set. Changing this forces a new resource to be created.
+
+* `location` - (Required) The Azure location where the Orchestrated Virtual Machine Scale Set should exist. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) The name of the Resource Group in which the Orchestrated Virtual Machine Scale Set should exist. Changing this forces a new resource to be created.
+
+* `platform_fault_domain_count` - (Required) Specifies the number of fault domains that are used by this Orchestrated Virtual Machine Scale Set. Changing this forces a new resource to be created.
+
+~> **NOTE:** The number of Fault Domains varies depending on which Azure Region you're using - a list can be found [here](https://github.com/MicrosoftDocs/azure-docs/blob/master/includes/managed-disks-common-fault-domain-region-list.md).
+
 * `sku_name` - (Optional) A string consisting of two segments separated by an underscore(\_). The first segment is the `name`, valid values include: any of the [General purpose](https://docs.microsoft.com/azure/virtual-machines/sizes-general), [Compute optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-compute), [Memory optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-memory), [Storage optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-storage), [GPU optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-gpu), [FPGA optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-field-programmable-gate-arrays), [High performance](https://docs.microsoft.com/azure/virtual-machines/sizes-hpc), or [Previous generation](https://docs.microsoft.com/azure/virtual-machines/sizes-previous-gen) virtual machine sku's. The second segment is the `capacity` (e.g. the number of virtual machines in the Orchestrated Virtual Machine Scale Set). Valid values for the `capacity` segment of the `sku_name` are positive `integers` between `0` and `1000`(e.g. `Standard_D48_v3_6`).
 
 * `network_interface` - (Optional) One or more `network_interface` blocks as defined below.
 
-TODO: Add Block definition below
 * `os_profile` - (Optional) An `os_profile` block as defined below.
 
 * `os_disk` - (Optional) An `os_disk` block as defined below.
@@ -48,10 +57,6 @@ TODO: Add Block definition below
 * `boot_diagnostics` - (Optional) A `boot_diagnostics` block as defined below.
 
 * `computer_name_prefix` - (Optional) The prefix which should be used for the name of the Virtual Machines in this Scale Set. If unspecified this defaults to the value for the name field. If the value of the name field is not a valid `computer_name_prefix`, then you must specify `computer_name_prefix`.
-
-* `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Orchestrated Virtual Machine Scale Set.
-
-~> **NOTE:** When Custom Data has been configured, it's not possible to remove it without tainting the Orchestrated Virtual Machine Scale Set, due to a limitation of the Azure API.
 
 * `data_disk` - (Optional) One or more `data_disk` blocks as defined below.
 
@@ -71,23 +76,11 @@ TODO: Add Block definition below
 
 * `priority` - (Optional) The Priority of this Orchestrated Virtual Machine Scale Set. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this value forces a new resource.
 
-* `secret` - (Optional) One or more `secret` blocks as defined below.
-
 * `source_image_id` - (Optional) The ID of an Image which each Virtual Machine in this Scale Set should be based on.
 
+* `source_image_reference` - (Optional) A `source_image_reference` block as defined below.
+
 * `terminate_notification` - (Optional) A `terminate_notification` block as defined below.
-
-**END NEW**
-
-* `name` - (Required) The name of the Orchestrated Virtual Machine Scale Set. Changing this forces a new resource to be created.
-
-* `location` - (Required) The Azure location where the Orchestrated Virtual Machine Scale Set should exist. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the Resource Group in which the Orchestrated Virtual Machine Scale Set should exist. Changing this forces a new resource to be created.
-
-* `platform_fault_domain_count` - (Required) Specifies the number of fault domains that are used by this Orchestrated Virtual Machine Scale Set. Changing this forces a new resource to be created.
-
-~> **NOTE:** The number of Fault Domains varies depending on which Azure Region you're using - a list can be found [here](https://github.com/MicrosoftDocs/azure-docs/blob/master/includes/managed-disks-common-fault-domain-region-list.md).
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group which the Orchestrated Virtual Machine should be assigned to. Changing this forces a new resource to be created.
 
@@ -97,6 +90,98 @@ TODO: Add Block definition below
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Orchestrated Virtual Machine Scale Set.
 
+
+---
+
+A `os_profile` block supports the following: 
+
+* `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Orchestrated Virtual Machine Scale Set.
+
+~> **NOTE:** When Custom Data has been configured, it's not possible to remove it without tainting the Orchestrated Virtual Machine Scale Set, due to a limitation of the Azure API.
+
+* `windows_configuration` - (Optional) A `windows_configuration` block as documented below.
+
+* `linux_configuration` - (Optional) A `linux_configuration` block as documented below.
+
+---
+
+A `windows_configuration` block supports the following:
+
+* `admin_username` - (Required) The username of the local administrator on each Orchestrated Virtual Machine Scale Set instance. Changing this forces a new resource to be created.
+
+* `admin_password` - (Required) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
+
+* `computer_name_prefix` - (Optional) The prefix which should be used for the name of the Virtual Machines in this Scale Set. If unspecified this defaults to the value for the `name` field. If the value of the `name` field is not a valid `computer_name_prefix`, then you must specify `computer_name_prefix`.
+
+* `enable_automatic_updates` - (Optional) Are automatic updates enabled for this Virtual Machine? Defaults to `true`.
+
+* `provision_vm_agent` - (Optional) Should the Azure VM Agent be provisioned on each Virtual Machine in the Scale Set? Defaults to `true`. Changing this value forces a new resource to be created.
+
+* `secret` - (Optional) One or more `secret` blocks as defined below.
+
+* `timezone` - (Optional) Specifies the time zone of the virtual machine, the possible values are defined [here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/).
+
+* `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below. 
+
+---
+
+A `linux_configuration` block supports the following:
+
+* `admin_username` - (Required) The username of the local administrator on each Orchestrated Virtual Machine Scale Set instance. Changing this forces a new resource to be created.
+
+* `admin_password` - (Optional) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
+
+*	`admin_ssh_key` - (Optional) A `admin_ssh_key` block as documented below.
+
+* `disable_password_authentication` - (Optional) When an `admin_password` is specified `disable_password_authentication` must be set to `false`. Defaults to `true`.
+
+~> **NOTE:** Either `admin_password` or `admin_ssh_key` must be specified.
+
+* `provision_vm_agent` - (Optional) Should the Azure VM Agent be provisioned on each Virtual Machine in the Scale Set? Defaults to `true`. Changing this value forces a new resource to be created.
+
+* `secret` - (Optional) One or more `secret` blocks as defined below.
+
+---
+
+A `secret` block supports the following:
+
+* `key_vault_id` - (Required) The ID of the Key Vault from which all Secrets should be sourced.
+
+* `certificate` - (Required) One or more `certificate` blocks as defined below.
+
+~> **NOTE:** The schema of the `certificate` block is slightly different depending on if you are provisioning a `windows_configuration` or a `linux_configuration`.
+
+---
+
+A (Windows) `certificate` block supports the following:
+
+* `store` - (Required) The certificate store on the Virtual Machine where the certificate should be added.
+
+* `url` - (Required) The Secret URL of a Key Vault Certificate.
+
+---
+
+A (Linux) `certificate` block supports the following:
+
+* `url` - (Required) The Secret URL of a Key Vault Certificate.
+
+---
+
+A `admin_ssh_key` block supports the following:
+
+* `public_key` - (Required) The Public Key which should be used for authentication, which needs to be at least 2048-bit and in ssh-rsa format. Changing this forces a new resource to be created.
+
+* `username` - (Required) The Username for which this Public SSH Key should be configured. Changing this forces a new resource to be created.
+
+~> **NOTE:** The Azure VM Agent only allows creating SSH Keys at the path `/home/{username}/.ssh/authorized_keys` - as such this public key will be written to the authorized keys file.
+
+---
+
+A `winrm_listener` block supports the following: 
+
+* `certificate_url` - (Optional) The Secret URL of a Key Vault Certificate, which must be specified when protocol is set to `Https`.
+
+~> **NOTE:** This can be sourced from the `secret_id` field within the `azurerm_key_vault_certificate` Resource.
 
 ---
 
@@ -192,11 +277,11 @@ A `ip_configuration` block supports the following:
 
 ---
 
-A `ip_tag` block supports the following: 
+A `ip_tag` block supports the following:
 
-* `tag` - The IP Tag associated with the Public IP, such as `SQL` or `Storage`. 
+* `tag` - The IP Tag associated with the Public IP, such as `SQL` or `Storage`.
 
-* `type` - The Type of IP Tag, such as `FirstPartyUsage`. 
+* `type` - The Type of IP Tag, such as `FirstPartyUsage`.
 
 ---
 
@@ -264,17 +349,9 @@ A `public_ip_address` block supports the following:
 
 * `idle_timeout_in_minutes` - (Optional) The Idle Timeout in Minutes for the Public IP Address. Possible values are in the range `4` to `32`. 
 
-* `ip_tag` - (Optional) One or more `ip_tag` blocks as defined above. 
+* `ip_tag` - (Optional) One or more `ip_tag` blocks as defined above.
 
 * `public_ip_prefix_id` - (Optional) The ID of the Public IP Address Prefix from where Public IP Addresses should be allocated. Changing this forces a new resource to be created. 
-
----
-
-A `secret` block supports the following:
-
-* `certificate` - (Required) One or more `certificate` blocks as defined above.
-
-* `key_vault_id` - (Required) The ID of the Key Vault from which all Secrets should be sourced.
 
 ---
 
@@ -283,6 +360,18 @@ A `terminate_notification` block supports the following:
 * `enabled` - (Required) Should the terminate notification be enabled on this Virtual Machine Scale Set? Possible values `true` or `false` Defaults to `false`. 
 
 * `timeout` - (Optional) Length of time (in minutes, between 5 and 15) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in `ISO 8601` format. Defaults to `PT5M`.
+
+---
+
+A `source_image_reference` block supports the following: 
+
+* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines. 
+
+* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines. 
+
+* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines. 
+
+* `version` - (Optional) Specifies the version of the image used to create the virtual machines. 
 
 ---
 
