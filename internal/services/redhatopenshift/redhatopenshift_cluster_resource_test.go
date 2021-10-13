@@ -36,11 +36,11 @@ func (t OpenShiftClusterResource) Exists(ctx context.Context, clients *clients.C
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func TestAccOpenShiftCluster_version(t *testing.T) {
-	testAccOpenShiftCluster_version(t)
+func TestAccOpenShiftCluster_basic(t *testing.T) {
+	testAccOpenShiftCluster_basic(t)
 }
 
-func testAccOpenShiftCluster_version(t *testing.T) {
+func testAccOpenShiftCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhatopenshift_cluster", "test")
 	r := OpenShiftClusterResource{}
 
@@ -49,7 +49,6 @@ func testAccOpenShiftCluster_version(t *testing.T) {
 			Config: r.version(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("version").Exists(),
 			),
 		},
 	})
@@ -74,16 +73,16 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "master_subnet" {
-  name                 = "master-subnet"
+  name                 = "master-subnet-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.0.0/23"]
   service_endpoints    = ["Microsoft.ContainerRegistry"]
-  enforce_private_link_endpoint_network_policies = true
+  enforce_private_link_service_network_policies = true
 }
 
 resource "azurerm_subnet" "worker_subnet" {
-  name                 = "worker-subnet"
+  name                 = "worker-subnet-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/23"]
@@ -102,6 +101,8 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   
   worker_profile {
 		vm_size   = "Standard_D4s_v3"
+		disk_size_gb = 128
+		node_count = 3
     subnet_id = azurerm_subnet.worker_subnet.id
   }
 
@@ -110,5 +111,5 @@ resource "azurerm_redhatopenshift_cluster" "test" {
     client_secret = %q
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
 }

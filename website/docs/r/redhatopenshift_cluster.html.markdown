@@ -132,7 +132,6 @@ A `master_profile` block supports the following:
 
 A `worker_profile` block supports the following:
 
-* `name` - (Optional) The worker profile name. Defaults to `worker`. Changing this forces a new resource to be created.
 * `vm_size` - (Required) The size of the Virtual Machines for the worker nodes. Currently supported values are `Standard_D2s_v3`, `Standard_D4s_v3` and `Standard_D8s_v3`. Changing this forces a new resource to be created.
 * `subnet_id` - (Required) The ID of the subnet where worker nodes will be hosted.
 * `disk_size_gb` - (Optional) The internal OS disk size of the worker Virtual Machines in GB. Must be `128` or greater. Defaults to `128`.
