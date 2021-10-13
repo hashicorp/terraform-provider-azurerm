@@ -37,7 +37,6 @@ type LinuxFunctionAppModel struct {
 	AuthSettings              []helpers.AuthSettings               `tfschema:"auth_settings"`
 	Backup                    []helpers.Backup                     `tfschema:"backup"` // Not supported on Dynamic or Basic plans
 	BuiltinLogging            bool                                 `tfschema:"builtin_logging_enabled"`
-	ClientAffinityEnabled     bool                                 `tfschema:"client_affinity_enabled"` // Not supported on Dynamic plans
 	ClientCertEnabled         bool                                 `tfschema:"client_cert_enabled"`
 	ClientCertMode            string                               `tfschema:"client_cert_mode"`
 	ConnectionStrings         []helpers.ConnectionString           `tfschema:"connection_string"`
@@ -143,12 +142,6 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"backup": helpers.BackupSchema(),
 
 		"builtin_logging_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-
-		"client_affinity_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
@@ -386,14 +379,13 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				Tags:     tags.FromTypedObject(functionApp.Tags),
 				Kind:     utils.String("functionapp,linux"),
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:          utils.String(functionApp.ServicePlanId),
-					Enabled:               utils.Bool(functionApp.Enabled),
-					HTTPSOnly:             utils.Bool(functionApp.HttpsOnly),
-					SiteConfig:            siteConfig,
-					ClientAffinityEnabled: utils.Bool(functionApp.ClientAffinityEnabled),
-					ClientCertEnabled:     utils.Bool(functionApp.ClientCertEnabled),
-					ClientCertMode:        web.ClientCertMode(functionApp.ClientCertMode),
-					DailyMemoryTimeQuota:  utils.Int32(int32(functionApp.DailyMemoryTimeQuota)), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
+					ServerFarmID:         utils.String(functionApp.ServicePlanId),
+					Enabled:              utils.Bool(functionApp.Enabled),
+					HTTPSOnly:            utils.Bool(functionApp.HttpsOnly),
+					SiteConfig:           siteConfig,
+					ClientCertEnabled:    utils.Bool(functionApp.ClientCertEnabled),
+					ClientCertMode:       web.ClientCertMode(functionApp.ClientCertMode),
+					DailyMemoryTimeQuota: utils.Int32(int32(functionApp.DailyMemoryTimeQuota)), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
 				},
 			}
 
@@ -550,10 +542,6 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				state.ClientCertEnabled = *functionApp.ClientCertEnabled
 			}
 
-			if functionApp.ClientAffinityEnabled != nil {
-				state.ClientAffinityEnabled = *functionApp.ClientAffinityEnabled
-			}
-
 			return metadata.Encode(&state)
 		},
 	}
@@ -610,15 +598,15 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("enabled") {
 				existing.SiteProperties.Enabled = utils.Bool(state.Enabled)
 			}
+
 			if metadata.ResourceData.HasChange("https_only") {
 				existing.SiteProperties.HTTPSOnly = utils.Bool(state.HttpsOnly)
 			}
-			if metadata.ResourceData.HasChange("client_affinity_enabled") {
-				existing.SiteProperties.ClientAffinityEnabled = utils.Bool(state.ClientAffinityEnabled)
-			}
+
 			if metadata.ResourceData.HasChange("client_cert_enabled") {
 				existing.SiteProperties.ClientCertEnabled = utils.Bool(state.ClientCertEnabled)
 			}
+
 			if metadata.ResourceData.HasChange("client_cert_mode") {
 				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
 			}

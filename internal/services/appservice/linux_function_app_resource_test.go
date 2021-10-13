@@ -1157,7 +1157,6 @@ resource "azurerm_linux_function_app" "test" {
   }
 
   builtin_logging_enabled = false
-  client_affinity_enabled = true
   client_cert_enabled     = true
   client_cert_mode        = "OptionalInteractiveUser"
 
