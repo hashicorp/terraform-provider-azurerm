@@ -711,40 +711,37 @@ func expandOpenshiftWorkerProfiles(inputs []interface{}) *[]redhatopenshift.Work
 	}
 
 	profiles := make([]redhatopenshift.WorkerProfile, 0)
+	config := inputs[0].(map[string]interface{})
 
-	for index := range inputs {
-		config := inputs[index].(map[string]interface{})
+	// Hardcoded name required by ARO interface
+	workerName := "worker"
 
-		// Hardcoded name required by ARO interface
-		workerName := "worker"
-
-		vmSize := config["vm_size"].(string)
-		if vmSize == "" {
-			vmSize = "Standard_D4s_v3"
-		}
-
-		diskSizeGb := int32(config["disk_size_gb"].(int))
-		if diskSizeGb == 0 {
-			diskSizeGb = 128
-		}
-
-		nodeCount := int32(config["node_count"].(int))
-		if nodeCount == 0 {
-			nodeCount = 3
-		}
-
-		subnetId := config["subnet_id"].(string)
-
-		profile := redhatopenshift.WorkerProfile{
-			Name:       utils.String(workerName),
-			VMSize:     redhatopenshift.VMSize1(vmSize),
-			DiskSizeGB: utils.Int32(diskSizeGb),
-			SubnetID:   utils.String(subnetId),
-			Count:      utils.Int32(nodeCount),
-		}
-
-		profiles = append(profiles, profile)
+	vmSize := config["vm_size"].(string)
+	if vmSize == "" {
+		vmSize = "Standard_D4s_v3"
 	}
+
+	diskSizeGb := int32(config["disk_size_gb"].(int))
+	if diskSizeGb == 0 {
+		diskSizeGb = 128
+	}
+
+	nodeCount := int32(config["node_count"].(int))
+	if nodeCount == 0 {
+		nodeCount = 3
+	}
+
+	subnetId := config["subnet_id"].(string)
+
+	profile := redhatopenshift.WorkerProfile{
+		Name:       utils.String(workerName),
+		VMSize:     redhatopenshift.VMSize1(vmSize),
+		DiskSizeGB: utils.Int32(diskSizeGb),
+		SubnetID:   utils.String(subnetId),
+		Count:      utils.Int32(nodeCount),
+	}
+
+	profiles = append(profiles, profile)
 
 	return &profiles
 }
