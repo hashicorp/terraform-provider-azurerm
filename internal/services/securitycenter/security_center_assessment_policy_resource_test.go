@@ -19,7 +19,7 @@ func TestAccSecurityCenterAssessmentPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment_policy", "test")
 	r := SecurityCenterAssessmentPolicyResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.basic(),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -34,7 +34,7 @@ func TestAccSecurityCenterAssessmentPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment_policy", "test")
 	r := SecurityCenterAssessmentPolicyResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.complete(),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -49,7 +49,7 @@ func TestAccSecurityCenterAssessmentPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment_policy", "test")
 	r := SecurityCenterAssessmentPolicyResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.complete(),
 			Check: acceptance.ComposeTestCheckFunc(

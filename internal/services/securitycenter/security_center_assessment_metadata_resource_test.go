@@ -19,7 +19,7 @@ func TestAccSecurityCenterAssessmentMetadata_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment_metadata", "test")
 	r := SecurityCenterAssessmentMetadataResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.basic(),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -34,7 +34,7 @@ func TestAccSecurityCenterAssessmentMetadata_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment_metadata", "test")
 	r := SecurityCenterAssessmentMetadataResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.complete(),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -49,7 +49,7 @@ func TestAccSecurityCenterAssessmentMetadata_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment_metadata", "test")
 	r := SecurityCenterAssessmentMetadataResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.complete(),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -71,7 +71,7 @@ func TestAccSecurityCenterAssessmentMetadata_categories(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment_metadata", "test")
 	r := SecurityCenterAssessmentMetadataResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.categories(),
 			Check: acceptance.ComposeTestCheckFunc(
