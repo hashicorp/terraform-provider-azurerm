@@ -816,8 +816,7 @@ func (t OrchestratedVirtualMachineScaleSetResource) Exists(ctx context.Context, 
 	name := id.Path["virtualMachineScaleSets"]
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	//resp, err := clients.Compute.VMScaleSetClient.Get(ctx, resGroup, name, compute.ExpandTypesForGetVMScaleSetsUserData)
-	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, resGroup, name, "")
+	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, resGroup, name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Virtual Machine Scale Set %q", id)
 	}

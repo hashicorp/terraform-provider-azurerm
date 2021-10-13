@@ -460,6 +460,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		return err
 	}
 
+	isLegacy := true
 	updateInstances := false
 
 	// retrieve
@@ -468,269 +469,289 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 	if err != nil {
 		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
+	if existing.Sku != nil {
+		isLegacy = false
+	}
 	if existing.VirtualMachineScaleSetProperties == nil {
 		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
 	}
-	if existing.VirtualMachineScaleSetProperties.VirtualMachineProfile == nil {
-		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile` was nil", id.Name, id.ResourceGroup)
-	}
-	if existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile == nil {
-		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile,storageProfile` was nil", id.Name, id.ResourceGroup)
+
+	if !isLegacy {
+		if existing.VirtualMachineScaleSetProperties.VirtualMachineProfile == nil {
+			return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile` was nil", id.Name, id.ResourceGroup)
+		}
+		if existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile == nil {
+			return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile,storageProfile` was nil", id.Name, id.ResourceGroup)
+		}
 	}
 
-	updateProps := compute.VirtualMachineScaleSetUpdateProperties{
-		VirtualMachineProfile: &compute.VirtualMachineScaleSetUpdateVMProfile{
-			// if an image reference has been configured previously (it has to be), we would better to include that in this
-			// update request to avoid some circumstances that the API will complain ImageReference is null
-			// issue tracking: https://github.com/Azure/azure-rest-api-specs/issues/10322
-			StorageProfile: &compute.VirtualMachineScaleSetUpdateStorageProfile{
-				ImageReference: existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.ImageReference,
-			},
-		},
-		// Currently not suppored in orchestrated VMSS
-		// if an upgrade policy's been configured previously (which it will have) it must be threaded through
-		// this doesn't matter for Manual - but breaks when updating anything on a Automatic and Rolling Mode Scale Set
-		// UpgradePolicy: existing.VirtualMachineScaleSetProperties.UpgradePolicy,
-	}
+	updateProps := compute.VirtualMachineScaleSetUpdateProperties{}
 	update := compute.VirtualMachineScaleSetUpdate{}
-
-	// Currently not supported in orchestrated VMSS
-	// automaticOSUpgradeIsEnabled := false
-
-	priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
-	if d.HasChange("max_bid_price") {
-		if priority != compute.VirtualMachinePriorityTypesSpot {
-			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
-		}
-
-		updateProps.VirtualMachineProfile.BillingProfile = &compute.BillingProfile{
-			MaxPrice: utils.Float(d.Get("max_bid_price").(float64)),
-		}
-	}
-
 	osType := compute.OperatingSystemTypesWindows
-	osProfileRaw := d.Get("os_profile").([]interface{})
-	vmssOsProfile := compute.VirtualMachineScaleSetUpdateOSProfile{}
-	windowsConfig := compute.WindowsConfiguration{}
-	linuxConfig := compute.LinuxConfiguration{}
 
-	if len(osProfileRaw) > 0 {
-		osProfile := osProfileRaw[0].(map[string]interface{})
-		winConfigRaw := osProfile["windows_configuration"].([]interface{})
-		linConfigRaw := osProfile["linux_configuration"].([]interface{})
+	if !isLegacy {
+		updateProps = compute.VirtualMachineScaleSetUpdateProperties{
+			VirtualMachineProfile: &compute.VirtualMachineScaleSetUpdateVMProfile{
+				// if an image reference has been configured previously (it has to be), we would better to include that in this
+				// update request to avoid some circumstances that the API will complain ImageReference is null
+				// issue tracking: https://github.com/Azure/azure-rest-api-specs/issues/10322
+				StorageProfile: &compute.VirtualMachineScaleSetUpdateStorageProfile{
+					ImageReference: existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.ImageReference,
+				},
+			},
+			// Currently not suppored in orchestrated VMSS
+			// if an upgrade policy's been configured previously (which it will have) it must be threaded through
+			// this doesn't matter for Manual - but breaks when updating anything on a Automatic and Rolling Mode Scale Set
+			// UpgradePolicy: existing.VirtualMachineScaleSetProperties.UpgradePolicy,
+		}
 
-		if d.HasChange("os_profile.0.custom_data") {
+		priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
+		if d.HasChange("max_bid_price") {
+			if priority != compute.VirtualMachinePriorityTypesSpot {
+				return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
+			}
+
+			updateProps.VirtualMachineProfile.BillingProfile = &compute.BillingProfile{
+				MaxPrice: utils.Float(d.Get("max_bid_price").(float64)),
+			}
+		}
+
+		osProfileRaw := d.Get("os_profile").([]interface{})
+		vmssOsProfile := compute.VirtualMachineScaleSetUpdateOSProfile{}
+		windowsConfig := compute.WindowsConfiguration{}
+		linuxConfig := compute.LinuxConfiguration{}
+
+		if len(osProfileRaw) > 0 {
+			osProfile := osProfileRaw[0].(map[string]interface{})
+			winConfigRaw := osProfile["windows_configuration"].([]interface{})
+			linConfigRaw := osProfile["linux_configuration"].([]interface{})
+
+			if d.HasChange("os_profile.0.custom_data") {
+				updateInstances = true
+
+				// customData can only be sent if it's a base64 encoded string,
+				// so it's not possible to remove this without tainting the resource
+				vmssOsProfile.CustomData = utils.String(osProfile["custom_data"].(string))
+			}
+
+			if len(winConfigRaw) > 0 {
+				winConfig := winConfigRaw[0].(map[string]interface{})
+
+				if d.HasChange("os_profile.0.windows_configuration.0.enable_automatic_updates") ||
+					d.HasChange("os_profile.0.windows_configuration.0.provision_vm_agent") ||
+					d.HasChange("os_profile.0.windows_configuration.0.timezone") ||
+					d.HasChange("os_profile.0.windows_configuration.0.secret") ||
+					d.HasChange("os_profile.0.windows_configuration.0.winrm_listener") {
+					updateInstances = true
+				}
+
+				if d.HasChange("os_profile.0.windows_configuration.0.enable_automatic_updates") {
+					windowsConfig.EnableAutomaticUpdates = utils.Bool(winConfig["enable_automatic_updates"].(bool))
+				}
+
+				if d.HasChange("os_profile.0.windows_configuration.0.provision_vm_agent") {
+					windowsConfig.ProvisionVMAgent = utils.Bool(winConfig["provision_vm_agent"].(bool))
+				}
+
+				if d.HasChange("os_profile.0.windows_configuration.0.timezone") {
+					windowsConfig.TimeZone = utils.String(winConfig["timezone"].(string))
+				}
+
+				if d.HasChange("os_profile.0.windows_configuration.0.secret") {
+					vmssOsProfile.Secrets = expandWindowsSecrets(winConfig["secret"].([]interface{}))
+				}
+
+				if d.HasChange("os_profile.0.windows_configuration.0.winrm_listener") {
+					winRmListenersRaw := winConfig["winrm_listener"].(*pluginsdk.Set).List()
+					vmssOsProfile.WindowsConfiguration.WinRM = expandWinRMListener(winRmListenersRaw)
+				}
+
+				vmssOsProfile.WindowsConfiguration = &windowsConfig
+			}
+
+			if len(linConfigRaw) > 0 {
+				osType = compute.OperatingSystemTypesLinux
+				linConfig := linConfigRaw[0].(map[string]interface{})
+
+				if d.HasChange("os_profile.0.linux_configuration.0.provision_vm_agent") ||
+					d.HasChange("os_profile.0.linux_configuration.0.disable_password_authentication") ||
+					d.HasChange("os_profile.0.linux_configuration.0.admin_ssh_key") {
+					updateInstances = true
+				}
+
+				if d.HasChange("os_profile.0.linux_configuration.0.provision_vm_agent") {
+					linuxConfig.ProvisionVMAgent = utils.Bool(linConfig["provision_vm_agent"].(bool))
+				}
+
+				if d.HasChange("os_profile.0.linux_configuration.0.disable_password_authentication") {
+					linuxConfig.DisablePasswordAuthentication = utils.Bool(linConfig["disable_password_authentication"].(bool))
+				}
+
+				if d.HasChange("os_profile.0.linux_configuration.0.admin_ssh_key") {
+					sshPublicKeys := ExpandSSHKeys(linConfig["admin_ssh_key"].(*pluginsdk.Set).List())
+					if linuxConfig.SSH == nil {
+						linuxConfig.SSH = &compute.SSHConfiguration{}
+					}
+					linuxConfig.SSH.PublicKeys = &sshPublicKeys
+				}
+
+				vmssOsProfile.LinuxConfiguration = &linuxConfig
+			}
+
+			updateProps.VirtualMachineProfile.OsProfile = &vmssOsProfile
+		}
+
+		if d.HasChange("data_disk") || d.HasChange("os_disk") || d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
 			updateInstances = true
 
-			// customData can only be sent if it's a base64 encoded string,
-			// so it's not possible to remove this without tainting the resource
-			vmssOsProfile.CustomData = utils.String(osProfile["custom_data"].(string))
-		}
-
-		if len(winConfigRaw) > 0 {
-			winConfig := winConfigRaw[0].(map[string]interface{})
-
-			if d.HasChange("os_profile.0.windows_configuration.0.enable_automatic_updates") ||
-				d.HasChange("os_profile.0.windows_configuration.0.provision_vm_agent") ||
-				d.HasChange("os_profile.0.windows_configuration.0.timezone") ||
-				d.HasChange("os_profile.0.windows_configuration.0.secret") ||
-				d.HasChange("os_profile.0.windows_configuration.0.winrm_listener") {
-				updateInstances = true
+			if updateProps.VirtualMachineProfile.StorageProfile == nil {
+				updateProps.VirtualMachineProfile.StorageProfile = &compute.VirtualMachineScaleSetUpdateStorageProfile{}
 			}
 
-			if d.HasChange("os_profile.0.windows_configuration.0.enable_automatic_updates") {
-				windowsConfig.EnableAutomaticUpdates = utils.Bool(winConfig["enable_automatic_updates"].(bool))
-			}
-
-			if d.HasChange("os_profile.0.windows_configuration.0.provision_vm_agent") {
-				windowsConfig.ProvisionVMAgent = utils.Bool(winConfig["provision_vm_agent"].(bool))
-			}
-
-			if d.HasChange("os_profile.0.windows_configuration.0.timezone") {
-				windowsConfig.TimeZone = utils.String(winConfig["timezone"].(string))
-			}
-
-			if d.HasChange("os_profile.0.windows_configuration.0.secret") {
-				vmssOsProfile.Secrets = expandWindowsSecrets(winConfig["secret"].([]interface{}))
-			}
-
-			if d.HasChange("os_profile.0.windows_configuration.0.winrm_listener") {
-				winRmListenersRaw := winConfig["winrm_listener"].(*pluginsdk.Set).List()
-				vmssOsProfile.WindowsConfiguration.WinRM = expandWinRMListener(winRmListenersRaw)
-			}
-
-			vmssOsProfile.WindowsConfiguration = &windowsConfig
-		}
-
-		if len(linConfigRaw) > 0 {
-			osType = compute.OperatingSystemTypesLinux
-			linConfig := linConfigRaw[0].(map[string]interface{})
-
-			if d.HasChange("os_profile.0.linux_configuration.0.provision_vm_agent") ||
-				d.HasChange("os_profile.0.linux_configuration.0.disable_password_authentication") ||
-				d.HasChange("os_profile.0.linux_configuration.0.admin_ssh_key") {
-				updateInstances = true
-			}
-
-			if d.HasChange("os_profile.0.linux_configuration.0.provision_vm_agent") {
-				linuxConfig.ProvisionVMAgent = utils.Bool(linConfig["provision_vm_agent"].(bool))
-			}
-
-			if d.HasChange("os_profile.0.linux_configuration.0.disable_password_authentication") {
-				linuxConfig.DisablePasswordAuthentication = utils.Bool(linConfig["disable_password_authentication"].(bool))
-			}
-
-			if d.HasChange("os_profile.0.linux_configuration.0.admin_ssh_key") {
-				sshPublicKeys := ExpandSSHKeys(linConfig["admin_ssh_key"].(*pluginsdk.Set).List())
-				if linuxConfig.SSH == nil {
-					linuxConfig.SSH = &compute.SSHConfiguration{}
+			if d.HasChange("data_disk") {
+				ultraSSDEnabled := false // Currently not supported in orchestrated vmss
+				dataDisks, err := ExpandOrchestratedVirtualMachineScaleSetDataDisk(d.Get("data_disk").([]interface{}), ultraSSDEnabled)
+				if err != nil {
+					return fmt.Errorf("expanding `data_disk`: %+v", err)
 				}
-				linuxConfig.SSH.PublicKeys = &sshPublicKeys
+				updateProps.VirtualMachineProfile.StorageProfile.DataDisks = dataDisks
 			}
 
-			vmssOsProfile.LinuxConfiguration = &linuxConfig
+			if d.HasChange("os_disk") {
+				osDiskRaw := d.Get("os_disk").([]interface{})
+				updateProps.VirtualMachineProfile.StorageProfile.OsDisk = ExpandOrchestratedVirtualMachineScaleSetOSDiskUpdate(osDiskRaw)
+			}
+
+			if d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
+				sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
+				sourceImageId := d.Get("source_image_id").(string)
+				sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+				if err != nil {
+					return err
+				}
+
+				// Must include all storage profile properties when updating disk image.  See: https://github.com/hashicorp/terraform-provider-azurerm/issues/8273
+				updateProps.VirtualMachineProfile.StorageProfile.DataDisks = existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.DataDisks
+				updateProps.VirtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
+				updateProps.VirtualMachineProfile.StorageProfile.OsDisk = &compute.VirtualMachineScaleSetUpdateOSDisk{
+					Caching:                 existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.Caching,
+					WriteAcceleratorEnabled: existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.WriteAcceleratorEnabled,
+					DiskSizeGB:              existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.DiskSizeGB,
+					Image:                   existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.Image,
+					VhdContainers:           existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.VhdContainers,
+					ManagedDisk:             existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.ManagedDisk,
+				}
+			}
 		}
 
-		updateProps.VirtualMachineProfile.OsProfile = &vmssOsProfile
-	}
-
-	if d.HasChange("data_disk") || d.HasChange("os_disk") || d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
-		updateInstances = true
-
-		if updateProps.VirtualMachineProfile.StorageProfile == nil {
-			updateProps.VirtualMachineProfile.StorageProfile = &compute.VirtualMachineScaleSetUpdateStorageProfile{}
-		}
-
-		if d.HasChange("data_disk") {
-			ultraSSDEnabled := false // Currently not supported in orchestrated vmss
-			dataDisks, err := ExpandOrchestratedVirtualMachineScaleSetDataDisk(d.Get("data_disk").([]interface{}), ultraSSDEnabled)
+		if d.HasChange("network_interface") {
+			networkInterfacesRaw := d.Get("network_interface").([]interface{})
+			networkInterfaces, err := ExpandOrchestratedVirtualMachineScaleSetNetworkInterfaceUpdate(networkInterfacesRaw)
 			if err != nil {
-				return fmt.Errorf("expanding `data_disk`: %+v", err)
+				return fmt.Errorf("expanding `network_interface`: %+v", err)
 			}
-			updateProps.VirtualMachineProfile.StorageProfile.DataDisks = dataDisks
+
+			updateProps.VirtualMachineProfile.NetworkProfile = &compute.VirtualMachineScaleSetUpdateNetworkProfile{
+				NetworkInterfaceConfigurations: networkInterfaces,
+				// 2020-11-01 is the only valid value for this value and is only valid for VMSS in Orchestration Mode flex
+				NetworkAPIVersion: compute.NetworkAPIVersionTwoZeroTwoZeroHyphenMinusOneOneHyphenMinusZeroOne,
+			}
 		}
 
-		if d.HasChange("os_disk") {
-			osDiskRaw := d.Get("os_disk").([]interface{})
-			updateProps.VirtualMachineProfile.StorageProfile.OsDisk = ExpandOrchestratedVirtualMachineScaleSetOSDiskUpdate(osDiskRaw)
+		if d.HasChange("boot_diagnostics") {
+			updateInstances = true
+
+			bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
+			updateProps.VirtualMachineProfile.DiagnosticsProfile = expandBootDiagnostics(bootDiagnosticsRaw)
 		}
 
-		if d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
-			sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
-			sourceImageId := d.Get("source_image_id").(string)
-			sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+		if d.HasChange("terminate_notification") {
+			notificationRaw := d.Get("terminate_notification").([]interface{})
+			updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandOrchestratedVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
+		}
+
+		if d.HasChange("encryption_at_host_enabled") {
+			updateProps.VirtualMachineProfile.SecurityProfile = &compute.SecurityProfile{
+				EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
+			}
+		}
+
+		if d.HasChange("license_type") {
+			license := d.Get("license_type").(string)
+			if license == "" {
+				// Only for create no specification is possible in the API. API does not allow empty string in update.
+				// So removing attribute license_type from Terraform configuration if it was set to value other than 'None' would lead to an endless loop in apply.
+				// To allow updating in this case set value explicitly to 'None'.
+				license = "None"
+			}
+			updateProps.VirtualMachineProfile.LicenseType = &license
+		}
+
+		if d.HasChange("automatic_instance_repair") {
+			automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
+			automaticRepairsPolicy := ExpandOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
+			updateProps.AutomaticRepairsPolicy = automaticRepairsPolicy
+		}
+
+		if d.HasChange("identity") {
+			identityRaw := d.Get("identity").([]interface{})
+			identity, err := ExpandOrchestratedVirtualMachineScaleSetIdentity(identityRaw)
 			if err != nil {
-				return err
+				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			// Must include all storage profile properties when updating disk image.  See: https://github.com/hashicorp/terraform-provider-azurerm/issues/8273
-			updateProps.VirtualMachineProfile.StorageProfile.DataDisks = existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.DataDisks
-			updateProps.VirtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
-			updateProps.VirtualMachineProfile.StorageProfile.OsDisk = &compute.VirtualMachineScaleSetUpdateOSDisk{
-				Caching:                 existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.Caching,
-				WriteAcceleratorEnabled: existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.WriteAcceleratorEnabled,
-				DiskSizeGB:              existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.DiskSizeGB,
-				Image:                   existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.Image,
-				VhdContainers:           existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.VhdContainers,
-				ManagedDisk:             existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.OsDisk.ManagedDisk,
-			}
-		}
-	}
-
-	if d.HasChange("network_interface") {
-		networkInterfacesRaw := d.Get("network_interface").([]interface{})
-		networkInterfaces, err := ExpandOrchestratedVirtualMachineScaleSetNetworkInterfaceUpdate(networkInterfacesRaw)
-		if err != nil {
-			return fmt.Errorf("expanding `network_interface`: %+v", err)
+			update.Identity = identity
 		}
 
-		updateProps.VirtualMachineProfile.NetworkProfile = &compute.VirtualMachineScaleSetUpdateNetworkProfile{
-			NetworkInterfaceConfigurations: networkInterfaces,
-			// 2020-11-01 is the only valid value for this value and is only valid for VMSS in Orchestration Mode flex
-			NetworkAPIVersion: compute.NetworkAPIVersionTwoZeroTwoZeroHyphenMinusOneOneHyphenMinusZeroOne,
+		if d.HasChange("plan") {
+			planRaw := d.Get("plan").([]interface{})
+			update.Plan = expandPlan(planRaw)
 		}
-	}
-
-	if d.HasChange("boot_diagnostics") {
-		updateInstances = true
-
-		bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
-		updateProps.VirtualMachineProfile.DiagnosticsProfile = expandBootDiagnostics(bootDiagnosticsRaw)
-	}
-
-	if d.HasChange("terminate_notification") {
-		notificationRaw := d.Get("terminate_notification").([]interface{})
-		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandOrchestratedVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
-	}
-
-	if d.HasChange("encryption_at_host_enabled") {
-		updateProps.VirtualMachineProfile.SecurityProfile = &compute.SecurityProfile{
-			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
-		}
-	}
-
-	if d.HasChange("license_type") {
-		license := d.Get("license_type").(string)
-		if license == "" {
-			// Only for create no specification is possible in the API. API does not allow empty string in update.
-			// So removing attribute license_type from Terraform configuration if it was set to value other than 'None' would lead to an endless loop in apply.
-			// To allow updating in this case set value explicitly to 'None'.
-			license = "None"
-		}
-		updateProps.VirtualMachineProfile.LicenseType = &license
-	}
-
-	if d.HasChange("automatic_instance_repair") {
-		automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
-		automaticRepairsPolicy := ExpandOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
-		updateProps.AutomaticRepairsPolicy = automaticRepairsPolicy
-	}
-
-	if d.HasChange("identity") {
-		identityRaw := d.Get("identity").([]interface{})
-		identity, err := ExpandOrchestratedVirtualMachineScaleSetIdentity(identityRaw)
-		if err != nil {
-			return fmt.Errorf("expanding `identity`: %+v", err)
-		}
-
-		update.Identity = identity
-	}
-
-	if d.HasChange("plan") {
-		planRaw := d.Get("plan").([]interface{})
-		update.Plan = expandPlan(planRaw)
-	}
-
-	if d.HasChange("sku_name") {
-		// in-case ignore_changes is being used, since both fields are required
-		// look up the current values and override them as needed
-		sku := existing.Sku
 
 		if d.HasChange("sku_name") {
+			// in-case ignore_changes is being used, since both fields are required
+			// look up the current values and override them as needed
+			sku := existing.Sku
+
+			if d.HasChange("sku_name") {
+				updateInstances = true
+				sku, err = azure.ExpandOrchestratedVirtualMachineScaleSetSku(d.Get("sku").(string))
+				if err != nil {
+					return err
+				}
+			}
+
+			update.Sku = sku
+		}
+
+		if d.HasChanges("extension", "extensions_time_budget") {
 			updateInstances = true
-			sku, err = azure.ExpandOrchestratedVirtualMachineScaleSetSku(d.Get("sku").(string))
+
+			extensionProfile, err := expandOrchestratedVirtualMachineScaleSetExtensions(d.Get("extension").(*pluginsdk.Set).List())
 			if err != nil {
 				return err
 			}
+			updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
+			updateProps.VirtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
 		}
-
-		update.Sku = sku
 	}
 
-	if d.HasChanges("extension", "extensions_time_budget") {
-		updateInstances = true
-
-		extensionProfile, err := expandOrchestratedVirtualMachineScaleSetExtensions(d.Get("extension").(*pluginsdk.Set).List())
-		if err != nil {
-			return err
+	// Only two fields that can change in legacy mode
+	if d.HasChange("proximity_placement_group_id") {
+		if v, ok := d.GetOk("proximity_placement_group_id"); ok {
+			updateInstances = true
+			updateProps.ProximityPlacementGroup = &compute.SubResource{
+				ID: utils.String(v.(string)),
+			}
 		}
-		updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
-		updateProps.VirtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
 	}
 
 	if d.HasChange("tags") {
 		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
+
+	// Currently not supported in orchestrated VMSS
+	// automaticOSUpgradeIsEnabled := false
 
 	update.VirtualMachineScaleSetUpdateProperties = &updateProps
 
