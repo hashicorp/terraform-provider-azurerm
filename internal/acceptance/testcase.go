@@ -51,9 +51,9 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 	td.runAcceptanceTest(t, testCase)
 }
 
+// lintignore:AT001
 // ResourceTestIgnoreCheckDestroyed skips the check to confirm the resource test has been destroyed.
 // This is done because certain resources can't actually be deleted.
-// lintignore:AT001
 func (td TestData) ResourceTestSkipCheckDestroyed(t *testing.T, steps []TestStep) {
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
