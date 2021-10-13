@@ -1,4 +1,4 @@
-// Package batch implements the Azure ARM Batch service API version 2020-03-01.
+// Package batch implements the Azure ARM Batch service API version 2021-06-01.
 //
 //
 package batch

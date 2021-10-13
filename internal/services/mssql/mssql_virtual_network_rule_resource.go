@@ -184,12 +184,10 @@ func resourceMsSqlVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta inter
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
-
 		return fmt.Errorf("deleting MSSQL %s: %+v", id.String(), err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-
 		return fmt.Errorf("waiting for deletion of MSSQL %s: %+v", id.String(), err)
 	}
 

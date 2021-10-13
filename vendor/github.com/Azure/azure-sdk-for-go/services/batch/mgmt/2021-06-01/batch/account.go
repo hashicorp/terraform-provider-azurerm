@@ -92,7 +92,7 @@ func (client AccountClient) CreatePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -180,7 +180,7 @@ func (client AccountClient) DeletePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -272,7 +272,7 @@ func (client AccountClient) GetPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -303,9 +303,9 @@ func (client AccountClient) GetResponder(resp *http.Response) (result Account, e
 	return
 }
 
-// GetKeys this operation applies only to Batch accounts created with a poolAllocationMode of 'BatchService'. If the
-// Batch account was created with a poolAllocationMode of 'UserSubscription', clients cannot use access to keys to
-// authenticate, and must use Azure Active Directory instead. In this case, getting the keys will fail.
+// GetKeys this operation applies only to Batch accounts with allowedAuthenticationModes containing 'SharedKey'. If the
+// Batch account doesn't contain 'SharedKey' in its allowedAuthenticationMode, clients cannot use shared keys to
+// authenticate, and must use another allowedAuthenticationModes instead. In this case, getting the keys will fail.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the Batch account.
 // accountName - the name of the Batch account.
@@ -358,7 +358,7 @@ func (client AccountClient) GetKeysPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -434,7 +434,7 @@ func (client AccountClient) ListPreparer(ctx context.Context) (*http.Request, er
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -550,7 +550,7 @@ func (client AccountClient) ListByResourceGroupPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -618,7 +618,140 @@ func (client AccountClient) ListByResourceGroupComplete(ctx context.Context, res
 	return
 }
 
-// RegenerateKey regenerates the specified account key for the Batch account.
+// ListOutboundNetworkDependenciesEndpoints lists the endpoints that a Batch Compute Node under this Batch Account may
+// call as part of Batch service administration. If you are deploying a Pool inside of a virtual network that you
+// specify, you must make sure your network allows outbound access to these endpoints. Failure to allow access to these
+// endpoints may cause Batch to mark the affected nodes as unusable. For more information about creating a pool inside
+// of a virtual network, see https://docs.microsoft.com/en-us/azure/batch/batch-virtual-network.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the Batch account.
+// accountName - the name of the Batch account.
+func (client AccountClient) ListOutboundNetworkDependenciesEndpoints(ctx context.Context, resourceGroupName string, accountName string) (result OutboundEnvironmentEndpointCollectionPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AccountClient.ListOutboundNetworkDependenciesEndpoints")
+		defer func() {
+			sc := -1
+			if result.oeec.Response.Response != nil {
+				sc = result.oeec.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: accountName,
+			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
+				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("batch.AccountClient", "ListOutboundNetworkDependenciesEndpoints", err.Error())
+	}
+
+	result.fn = client.listOutboundNetworkDependenciesEndpointsNextResults
+	req, err := client.ListOutboundNetworkDependenciesEndpointsPreparer(ctx, resourceGroupName, accountName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "batch.AccountClient", "ListOutboundNetworkDependenciesEndpoints", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListOutboundNetworkDependenciesEndpointsSender(req)
+	if err != nil {
+		result.oeec.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "batch.AccountClient", "ListOutboundNetworkDependenciesEndpoints", resp, "Failure sending request")
+		return
+	}
+
+	result.oeec, err = client.ListOutboundNetworkDependenciesEndpointsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "batch.AccountClient", "ListOutboundNetworkDependenciesEndpoints", resp, "Failure responding to request")
+		return
+	}
+	if result.oeec.hasNextLink() && result.oeec.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
+	}
+
+	return
+}
+
+// ListOutboundNetworkDependenciesEndpointsPreparer prepares the ListOutboundNetworkDependenciesEndpoints request.
+func (client AccountClient) ListOutboundNetworkDependenciesEndpointsPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"accountName":       autorest.Encode("path", accountName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-06-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Batch/batchAccounts/{accountName}/outboundNetworkDependenciesEndpoints", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListOutboundNetworkDependenciesEndpointsSender sends the ListOutboundNetworkDependenciesEndpoints request. The method will close the
+// http.Response Body if it receives an error.
+func (client AccountClient) ListOutboundNetworkDependenciesEndpointsSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListOutboundNetworkDependenciesEndpointsResponder handles the response to the ListOutboundNetworkDependenciesEndpoints request. The method always
+// closes the http.Response Body.
+func (client AccountClient) ListOutboundNetworkDependenciesEndpointsResponder(resp *http.Response) (result OutboundEnvironmentEndpointCollection, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listOutboundNetworkDependenciesEndpointsNextResults retrieves the next set of results, if any.
+func (client AccountClient) listOutboundNetworkDependenciesEndpointsNextResults(ctx context.Context, lastResults OutboundEnvironmentEndpointCollection) (result OutboundEnvironmentEndpointCollection, err error) {
+	req, err := lastResults.outboundEnvironmentEndpointCollectionPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "batch.AccountClient", "listOutboundNetworkDependenciesEndpointsNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListOutboundNetworkDependenciesEndpointsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "batch.AccountClient", "listOutboundNetworkDependenciesEndpointsNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListOutboundNetworkDependenciesEndpointsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "batch.AccountClient", "listOutboundNetworkDependenciesEndpointsNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListOutboundNetworkDependenciesEndpointsComplete enumerates all values, automatically crossing page boundaries as required.
+func (client AccountClient) ListOutboundNetworkDependenciesEndpointsComplete(ctx context.Context, resourceGroupName string, accountName string) (result OutboundEnvironmentEndpointCollectionIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AccountClient.ListOutboundNetworkDependenciesEndpoints")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListOutboundNetworkDependenciesEndpoints(ctx, resourceGroupName, accountName)
+	return
+}
+
+// RegenerateKey this operation applies only to Batch accounts with allowedAuthenticationModes containing 'SharedKey'.
+// If the Batch account doesn't contain 'SharedKey' in its allowedAuthenticationMode, clients cannot use shared keys to
+// authenticate, and must use another allowedAuthenticationModes instead. In this case, regenerating the keys will
+// fail.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the Batch account.
 // accountName - the name of the Batch account.
@@ -672,7 +805,7 @@ func (client AccountClient) RegenerateKeyPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -706,7 +839,7 @@ func (client AccountClient) RegenerateKeyResponder(resp *http.Response) (result 
 }
 
 // SynchronizeAutoStorageKeys synchronizes access keys for the auto-storage account configured for the specified Batch
-// account.
+// account, only if storage key authentication is being used.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the Batch account.
 // accountName - the name of the Batch account.
@@ -759,7 +892,7 @@ func (client AccountClient) SynchronizeAutoStorageKeysPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -843,7 +976,7 @@ func (client AccountClient) UpdatePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

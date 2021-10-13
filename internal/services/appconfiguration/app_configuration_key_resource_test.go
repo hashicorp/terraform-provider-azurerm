@@ -116,7 +116,6 @@ func TestAccAppConfigurationKey_lockUpdate(t *testing.T) {
 	})
 }
 func (t AppConfigurationKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-
 	resourceID, err := parse.KeyId(state.ID)
 	if err != nil {
 		return nil, fmt.Errorf("while parsing resource ID: %+v", err)

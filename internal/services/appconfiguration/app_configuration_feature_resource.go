@@ -281,7 +281,6 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 func (k FeatureResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			resourceID, err := parse.FeatureId(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
