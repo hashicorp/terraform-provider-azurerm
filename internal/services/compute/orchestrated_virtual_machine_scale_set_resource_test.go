@@ -807,6 +807,24 @@ func TestAccOrchestratedVirtualMachineScaleSet_importBasic_managedDisk_withZones
 	})
 }
 
+func (t OrchestratedVirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resGroup := id.ResourceGroup
+	name := id.Path["virtualMachineScaleSets"]
+
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	//resp, err := clients.Compute.VMScaleSetClient.Get(ctx, resGroup, name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, resGroup, name, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Virtual Machine Scale Set %q", id)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
+}
+
 func (OrchestratedVirtualMachineScaleSetResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualMachineScaleSetID(state.ID)
 	if err != nil {
@@ -903,23 +921,6 @@ func (OrchestratedVirtualMachineScaleSetResource) hasApplicationGateway(ctx cont
 	}
 
 	return fmt.Errorf("application gateway configuration was missing")
-}
-
-func (t OrchestratedVirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
-	if err != nil {
-		return nil, err
-	}
-	resGroup := id.ResourceGroup
-	name := id.Path["virtualMachineScaleSets"]
-
-	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, resGroup, name, compute.ExpandTypesForGetVMScaleSetsUserData)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving Virtual Machine Scale Set %q", id)
-	}
-
-	return utils.Bool(resp.ID != nil), nil
 }
 
 // legacy test cases for backward compatibility validation
