@@ -47,6 +47,7 @@ resource "azurerm_synapse_spark_pool" "example" {
   synapse_workspace_id = azurerm_synapse_workspace.example.id
   node_size_family     = "MemoryOptimized"
   node_size            = "Small"
+  cache_size           = 100
 
   auto_scale {
     max_node_count = 50
@@ -55,6 +56,21 @@ resource "azurerm_synapse_spark_pool" "example" {
 
   auto_pause {
     delay_in_minutes = 15
+  }
+
+  library_requirement {
+    content  = <<EOF
+appnope==0.1.0
+beautifulsoup4==4.6.3
+EOF
+    filename = "requirements.txt"
+  }
+
+  spark_config {
+    content  = <<EOF
+spark.shuffle.spill                true
+EOF
+    filename = "config.txt"
   }
 
   tags = {
@@ -83,13 +99,15 @@ The following arguments are supported:
 
 * `cache_size` - (Optional) The cache size in the Spark Pool.
 
-* `compute_isolation_enabled` - (Optional) Indicates whether compute isolation is enabled or not. Defaults to `false`.
+* `compute_isolation_enabled` - (Optional) Indicates whether compute isolation is enabled or not. Defaults to `false`. 
+
+~> **NOTE:** The `compute_isolation_enabled` is only available with the XXXLarge (80 vCPU / 504 GB) node size and only available in the following regions: East US, West US 2, South Central US, US Gov Arizona, US Gov Virginia. See [Isolated Compute](https://docs.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-pool-configurations#isolated-compute) for more information.
 
 * `dynamic_executor_allocation_enabled` - (Optional) Indicates whether Dynamic Executor Allocation is enabled or not. Defaults to `false`.
   
 * `library_requirement` - (Optional)  A `library_requirement` block as defined below.
 
-* `session_level_packages_enabled` - (Optional) Indicates whether session level package is enabled or not. Defaults to `false`.
+* `session_level_packages_enabled` - (Optional) Indicates whether session level packages are enabled or not. Defaults to `false`.
 
 * `spark_config` - (Optional)  A `spark_config` block as defined below.
 
@@ -127,7 +145,7 @@ An `library_requirement` block supports the following:
 
 An `spark_config` block supports the following:
 
-* `content` - (Required) The content of spark configuration.
+* `content` - (Required) The contents of a spark configuration.
 
 * `filename` - (Required) The name of the spark configuration file.
 

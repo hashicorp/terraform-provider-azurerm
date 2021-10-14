@@ -241,7 +241,7 @@ func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{})
 		BigDataPoolResourceProperties: &synapse.BigDataPoolResourceProperties{
 			AutoPause:                 expandArmSparkPoolAutoPauseProperties(d.Get("auto_pause").([]interface{})),
 			AutoScale:                 autoScale,
-			CacheSize:                 utils.Int32((int32(d.Get("cache_size").(int)))),
+			CacheSize:                 utils.Int32(int32(d.Get("cache_size").(int))),
 			IsComputeIsolationEnabled: utils.Bool(d.Get("compute_isolation_enabled").(bool)),
 			DynamicExecutorAllocation: &synapse.DynamicExecutorAllocation{
 				Enabled: utils.Bool(d.Get("dynamic_executor_allocation_enabled").(bool)),
@@ -359,7 +359,7 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 		BigDataPoolResourceProperties: &synapse.BigDataPoolResourceProperties{
 			AutoPause:                 expandArmSparkPoolAutoPauseProperties(d.Get("auto_pause").([]interface{})),
 			AutoScale:                 autoScale,
-			CacheSize:                 utils.Int32((int32(d.Get("cache_size").(int)))),
+			CacheSize:                 utils.Int32(int32(d.Get("cache_size").(int))),
 			IsComputeIsolationEnabled: utils.Bool(d.Get("compute_isolation_enabled").(bool)),
 			DynamicExecutorAllocation: &synapse.DynamicExecutorAllocation{
 				Enabled: utils.Bool(d.Get("dynamic_executor_allocation_enabled").(bool)),
