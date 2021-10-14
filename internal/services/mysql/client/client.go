@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/mysql/mgmt/2021-05-01-preview/mysqlflexibleservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -9,6 +10,7 @@ type Client struct {
 	ConfigurationsClient              *mysql.ConfigurationsClient
 	DatabasesClient                   *mysql.DatabasesClient
 	FirewallRulesClient               *mysql.FirewallRulesClient
+	FlexibleServerClient              *mysqlflexibleservers.ServersClient
 	ServersClient                     *mysql.ServersClient
 	ServerKeysClient                  *mysql.ServerKeysClient
 	ServerSecurityAlertPoliciesClient *mysql.ServerSecurityAlertPoliciesClient
@@ -25,6 +27,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	FirewallRulesClient := mysql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&FirewallRulesClient.Client, o.ResourceManagerAuthorizer)
+
+	flexibleServerClient := mysqlflexibleservers.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&flexibleServerClient.Client, o.ResourceManagerAuthorizer)
 
 	ServersClient := mysql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ServersClient.Client, o.ResourceManagerAuthorizer)
@@ -45,6 +50,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ConfigurationsClient:              &ConfigurationsClient,
 		DatabasesClient:                   &DatabasesClient,
 		FirewallRulesClient:               &FirewallRulesClient,
+		FlexibleServerClient:              &flexibleServerClient,
 		ServersClient:                     &ServersClient,
 		ServerKeysClient:                  &ServerKeysClient,
 		ServerSecurityAlertPoliciesClient: &serverSecurityAlertPoliciesClient,
