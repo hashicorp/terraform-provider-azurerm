@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -54,6 +55,14 @@ func dataSourceMsSqlServer() *pluginsdk.Resource {
 						"type": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
+						},
+						"user_assigned_identity_ids": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: msivalidate.UserAssignedIdentityID,
+							},
 						},
 						"principal_id": {
 							Type:     pluginsdk.TypeString,
@@ -110,7 +119,12 @@ func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
 	}
 
-	if err := d.Set("identity", flattenSqlServerIdentity(resp.Identity)); err != nil {
+	identity, err := flattenSqlServerIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
+	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
