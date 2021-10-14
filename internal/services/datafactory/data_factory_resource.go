@@ -21,7 +21,6 @@ import (
 	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -204,7 +203,6 @@ func resourceDataFactory() *pluginsdk.Resource {
 								"Object",
 								"String",
 							}, false),
-							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"value": {
@@ -622,7 +620,7 @@ func flattenDataFactoryGlobalParameters(input map[string]*datafactory.GlobalPara
 		}
 		result = append(result, map[string]interface{}{
 			"name":  name,
-			"type":  string(item.Type),
+			"type":  strings.Title(string(item.Type)),
 			"value": valueResult,
 		})
 	}
