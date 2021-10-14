@@ -60,6 +60,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 					string(network.LoadBalancerSkuNameBasic),
 					string(network.LoadBalancerSkuNameStandard),
 				}, true),
+				// TODO - 3.0 remove this property
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
@@ -71,8 +72,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.LoadBalancerSkuTierRegional),
 					string(network.LoadBalancerSkuTierGlobal),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, false),
 			},
 
 			"frontend_ip_configuration": {
@@ -266,7 +266,7 @@ func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	if strings.EqualFold(d.Get("sku_tier").(string), string(network.LoadBalancerSkuTierGlobal)) {
 		if !strings.EqualFold(d.Get("sku").(string), string(network.LoadBalancerSkuNameStandard)) {
-			return fmt.Errorf("global load balancing is only supported for standard SKU load balancers %q (Resource Group %q)", id.Name, id.ResourceGroup)
+			return fmt.Errorf("global load balancing is only supported for standard SKU load balancers")
 		}
 	}
 
