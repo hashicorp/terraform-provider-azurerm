@@ -47,6 +47,20 @@ func TestAccAppConfigurationKey_basicNoLabel(t *testing.T) {
 	})
 }
 
+func TestAccAppConfigurationKey_basicNoLabel_afterLabel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration_key", "test")
+	r := AppConfigurationKeyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicNoLabelAfterLabel(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAppConfigurationKey_basicVault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_key", "test")
 	r := AppConfigurationKeyResource{}
@@ -189,6 +203,19 @@ resource "azurerm_app_configuration_key" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
+func (t AppConfigurationKeyResource) basicNoLabelAfterLabel(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_configuration_key" "test1" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  key                    = "acctest-ackey-%d"
+  content_type           = "test"
+  value                  = "a test"
+}
+`, t.basic(data), data.RandomInteger)
+}
+
 func (t AppConfigurationKeyResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -198,7 +225,7 @@ resource "azurerm_app_configuration_key" "import" {
   key                    = azurerm_app_configuration_key.test.key
   content_type           = azurerm_app_configuration_key.test.content_type
   label                  = azurerm_app_configuration_key.test.label
-  value                  = azurerm_app_configuration_key.test.value
+  value                  = "${azurerm_app_configuration_key.test.value}-another"
 }
 `, t.basic(data))
 }
