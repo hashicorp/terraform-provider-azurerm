@@ -50,8 +50,8 @@ func (d ConsumptionBudgetSubscriptionDataSource) basic(data acceptance.TestData)
   %s
 
 data "azurerm_consumption_budget_subscription" "test" {
-  name            = azurerm_subscription.test.name
-  subscription_id = azurerm_subscription.test.subscription_id
+  name            = azurerm_consumption_budget_subscription.test.name
+  subscription_id = azurerm_consumption_budget_subscription.test.subscription_id
 }
 `, config)
 }

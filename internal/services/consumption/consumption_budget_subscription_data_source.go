@@ -42,7 +42,7 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"dimension": {
-							Type:     pluginsdk.TypeSet,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -65,7 +65,7 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 							},
 						},
 						"tag": {
-							Type:     pluginsdk.TypeSet,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -146,7 +146,7 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 			},
 
 			"notification": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -197,7 +197,7 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 
 			"time_period": {
 				Type:     pluginsdk.TypeList,
-				Required: true,
+				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"start_date": {
@@ -244,7 +244,7 @@ func resourceArmConsumptionBudgetSubscriptionDataSourceRead(d *pluginsdk.Resourc
 	}
 	d.Set("time_grain", string(resp.TimeGrain))
 	d.Set("time_period", FlattenConsumptionBudgetTimePeriod(resp.TimePeriod))
-	d.Set("notification", pluginsdk.NewSet(pluginsdk.HashResource(SchemaConsumptionBudgetNotificationElement()), FlattenConsumptionBudgetNotifications(resp.Notifications)))
+	d.Set("notification", FlattenConsumptionBudgetNotifications(resp.Notifications))
 	d.Set("filter", FlattenConsumptionBudgetFilter(resp.Filter))
 
 	// The scope of a Subscription budget resource is the Subscription budget ID
