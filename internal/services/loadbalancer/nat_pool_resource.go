@@ -98,12 +98,12 @@ func resourceArmLoadBalancerNatPool() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"enable_floating_ip": {
+			"floating_ip_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
-			"enable_tcp_reset": {
+			"tcp_reset_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
@@ -220,8 +220,8 @@ func resourceArmLoadBalancerNatPoolRead(d *pluginsdk.ResourceData, meta interfac
 			backendPort = int(*props.BackendPort)
 		}
 		d.Set("backend_port", backendPort)
-		d.Set("enable_floating_ip", props.EnableFloatingIP)
-		d.Set("enable_tcp_reset", props.EnableTCPReset)
+		d.Set("floating_ip_enabled", props.EnableFloatingIP)
+		d.Set("tcp_reset_enabled", props.EnableTCPReset)
 
 		frontendIPConfigName := ""
 		frontendIPConfigID := ""
@@ -308,11 +308,11 @@ func expandAzureRmLoadBalancerNatPool(d *pluginsdk.ResourceData, lb *network.Loa
 		BackendPort:            utils.Int32(int32(d.Get("backend_port").(int))),
 	}
 
-	if v, ok := d.GetOk("enable_floating_ip"); ok {
+	if v, ok := d.GetOk("floating_ip_enabled"); ok {
 		properties.EnableFloatingIP = utils.Bool(v.(bool))
 	}
 
-	if v, ok := d.GetOk("enable_tcp_reset"); ok {
+	if v, ok := d.GetOk("tcp_reset_enabled"); ok {
 		properties.EnableTCPReset = utils.Bool(v.(bool))
 	}
 
