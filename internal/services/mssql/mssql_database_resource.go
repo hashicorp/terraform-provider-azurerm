@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/Azure/go-autorest/autorest/date"
 
@@ -27,7 +29,7 @@ import (
 )
 
 func resourceMsSqlDatabase() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resourceData := &pluginsdk.Resource{
 		Create: resourceMsSqlDatabaseCreateUpdate,
 		Read:   resourceMsSqlDatabaseRead,
 		Update: resourceMsSqlDatabaseCreateUpdate,
@@ -304,7 +306,6 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 			},
-
 			"tags": tags.Schema(),
 		},
 
@@ -315,6 +316,14 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 			}),
 		),
 	}
+	if features.ThreePointOh() {
+		resourceData.Schema["transparent_data_encryption"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		}
+	}
+	return resourceData
 }
 
 func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
@@ -361,6 +370,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
 	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
 	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
+	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -558,6 +568,24 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
+	if features.ThreePointOh() {
+		var statusProperty sql.TransparentDataEncryptionStatus
+		encryptionStatus := d.Get("transparent_data_encryption").(bool)
+		if encryptionStatus {
+			statusProperty = sql.TransparentDataEncryptionStatusEnabled
+		} else {
+			statusProperty = sql.TransparentDataEncryptionStatusDisabled
+		}
+		_, err := transparentEncryptionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, sql.TransparentDataEncryption{
+			TransparentDataEncryptionProperties: &sql.TransparentDataEncryptionProperties{
+				Status: statusProperty,
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("while enabling Transparent Data Encryption for %q: %+v", id.String(), err)
+		}
+	}
+
 	d.SetId(id.ID())
 
 	// For datawarehouse SKUs only
@@ -651,6 +679,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
+	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -759,6 +788,21 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if err := d.Set("geo_backup_enabled", geoBackupPolicy); err != nil {
 		return fmt.Errorf("setting `geo_backup_enabled`: %+v", err)
+	}
+
+	if features.ThreePointOh() {
+		tde, err := transparentEncryptionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		if err != nil {
+			return fmt.Errorf("while retrieving Transparent Data Encryption status of %q: %+v", id.String(), err)
+		}
+		tdeStatus := false
+		switch tde.Status {
+		case sql.TransparentDataEncryptionStatusEnabled:
+			tdeStatus = true
+		}
+		if err := d.Set("transparent_data_encryption", tdeStatus); err != nil {
+			return fmt.Errorf("setting transparent_data_encryption: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

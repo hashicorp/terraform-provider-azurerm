@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -689,6 +691,34 @@ func TestAccMsSqlDatabase_geoBackupPolicy(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("geo_backup_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_transitDataEncryption(t *testing.T) {
+	if !features.ThreePointOh() {
+		t.Skipf("This test runs only on 3.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withTransitDataEncryptionOnDwSku(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("transparent_data_encryption").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withTransitDataEncryptionOnDwSku(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("transparent_data_encryption").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -1677,4 +1707,18 @@ resource "azurerm_mssql_database" "test" {
   geo_backup_enabled = false
 }
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) withTransitDataEncryptionOnDwSku(data acceptance.TestData, state bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_database" "test" {
+  name                        = "acctest-db-%d"
+  server_id                   = azurerm_mssql_server.test.id
+  sku_name                    = "DW100c"
+  transparent_data_encryption = %t
+}
+
+`, r.template(data), data.RandomInteger, state)
 }

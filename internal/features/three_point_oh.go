@@ -28,7 +28,7 @@ func DeprecatedInThreePointOh(deprecationMessage string) string {
 // infrastructure as required - but in time we'll flip this through
 // a Beta and then GA at 3.0 release.
 func ThreePointOh() bool {
-	return false
+	return true
 }
 
 // ThreePointOhBetaResources returns whether this provider is opted into
