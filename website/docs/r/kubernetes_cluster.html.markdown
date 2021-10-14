@@ -678,11 +678,15 @@ The following attributes are exported:
 
 * `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled.
 
+~> **NOTE:** To mark the whole of `kube_admin_config` as Sensitive in State, set the environment variable `ARM_AKS_KUBE_CONFIGS_SENSITIVE` to `true`. Any values from this block used in `outputs` will then also need to be marked as sensitive.
+
 * `kube_admin_config_raw` - Raw Kubernetes config for the admin account to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools. This is only available when Role Based Access Control with Azure Active Directory is enabled.
 
 * `kube_config` - A `kube_config` block as defined below.
 
-* `kube_config_raw` - Raw Kubernetes config to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools
+~> **NOTE:** To mark the whole of `kube_config` as Sensitive in State, set the environment variable `ARM_AKS_KUBE_CONFIGS_SENSITIVE` to `true`. Any values from this block used in `outputs` will then also need to be marked as sensitive. 
+
+* `kube_config_raw` - Raw Kubernetes config to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools.
 
 * `http_application_routing` - A `http_application_routing` block as defined below.
 
