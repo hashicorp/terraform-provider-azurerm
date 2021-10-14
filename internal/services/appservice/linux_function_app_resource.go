@@ -48,7 +48,7 @@ type LinuxFunctionAppModel struct {
 	SiteConfig                []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
 	Tags                      map[string]string                    `tfschema:"tags"`
 
-	// Computed Props
+	// Computed
 	CustomDomainVerificationId    string                   `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string                   `tfschema:"default_hostname"`
 	Kind                          string                   `tfschema:"kind"`

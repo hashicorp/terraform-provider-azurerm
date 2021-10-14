@@ -41,7 +41,6 @@ func (r Registration) Resources() []sdk.Resource {
 			LinuxFunctionAppResource{},
 			LinuxWebAppResource{},
 			ServicePlanResource{},
-			// WindowsFunctionAppResource{},
 			WindowsWebAppResource{},
 		}
 	}
