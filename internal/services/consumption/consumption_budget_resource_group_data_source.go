@@ -42,7 +42,7 @@ func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"dimension": {
-							Type:     pluginsdk.TypeSet,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
