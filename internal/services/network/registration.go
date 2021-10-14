@@ -103,6 +103,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_virtual_hub":                               resourceVirtualHub(),
 		"azurerm_virtual_hub_bgp_connection":                resourceVirtualHubBgpConnection(),
 		"azurerm_virtual_hub_connection":                    resourceVirtualHubConnection(),
+		"azurerm_virtual_hub_connection_configuration":      resourceVirtualHubConnectionConfiguration(),
 		"azurerm_virtual_hub_ip":                            resourceVirtualHubIP(),
 		"azurerm_virtual_hub_route_table":                   resourceVirtualHubRouteTable(),
 		"azurerm_virtual_network_dns_servers":               resourceVirtualNetworkDnsServers(),
