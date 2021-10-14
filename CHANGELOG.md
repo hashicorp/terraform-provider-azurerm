@@ -12,6 +12,7 @@ IMPROVEMENTS:
 * upgrading `mssql` to API Version `v5.0`[GH-13622]
 * Data Source: `azurerm_key_vault` - exports the `enable_rbac_authorization` attribute [GH-13717]
 * `azurerm_app_service` - support for the `key_vault_reference_identity_id` property [GH-13720]
+* `azurerm_lb` - support for the `sku_tier` property [GH-13680]
 * `azurerm_eventgrid_event_subscription` - support the `delivery_property` block [GH-13595]
 * `azurerm_mssql_server` - support for the `user_assigned_identity_ids` and `primary_user_assigned_identity_id` properties [GH-13683]
 * `azurerm_network_connection_monitor` - add support for the `destination_port_behavior` property [GH-13518]
