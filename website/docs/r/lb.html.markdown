@@ -45,7 +45,7 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the Resource Group in which to create the Load Balancer.
 * `location` - (Required) Specifies the supported Azure Region where the Load Balancer should be created.
 * `frontend_ip_configuration` - (Optional) One or multiple `frontend_ip_configuration` blocks as documented below.
-* `sku` - (Optional) The SKU of the Azure Load Balancer. Possible values are `Basic` and `Standard`. Defaults to `Basic`.
+* `sku` - (Optional) The SKU of the Azure Load Balancer. Accepted values are `Basic` and `Standard`. Defaults to `Basic`.
 * `sku_tier` - (Optional) `sku_tier` - (Optional) The Sku Tier of this Load Balancer. Possible values are `Global` and `Regional`. Defaults to `Regional`. Changing this forces a new resource to be created.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
