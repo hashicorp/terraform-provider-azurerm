@@ -65,7 +65,7 @@ func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
 							},
 						},
 						"tag": {
-							Type:     pluginsdk.TypeSet,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -146,7 +146,7 @@ func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
 			},
 
 			"notification": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -246,7 +246,7 @@ func resourceArmConsumptionBudgetResourceGroupDataSourceRead(d *pluginsdk.Resour
 
 	d.Set("time_grain", string(resp.TimeGrain))
 	d.Set("time_period", FlattenConsumptionBudgetTimePeriod(resp.TimePeriod))
-	d.Set("notification", pluginsdk.NewSet(pluginsdk.HashResource(SchemaConsumptionBudgetNotificationElement()), FlattenConsumptionBudgetNotifications(resp.Notifications)))
+	d.Set("notification", FlattenConsumptionBudgetNotifications(resp.Notifications))
 	d.Set("filter", FlattenConsumptionBudgetFilter(resp.Filter))
 
 	return nil
