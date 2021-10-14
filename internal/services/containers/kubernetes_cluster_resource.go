@@ -792,12 +792,14 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"host": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"username": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"password": {
 							Type:      pluginsdk.TypeString,
@@ -836,12 +838,14 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"host": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"username": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"password": {
 							Type:      pluginsdk.TypeString,
