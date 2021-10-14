@@ -16,6 +16,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_cosmosdb_account`- prevent a panic due to index out of range [GH-13560]
 * `azurerm_management_group` - nil check for child management groups when deassociating a subscription from a management group [GH-13540]
 * `azurerm_logic_app_workflow` - nil check for empty access control properties [GH-13689]
 * `azurerm_subnet_resource` - will now lock the virtual network and subnet on updates [GH-13726]
