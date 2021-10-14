@@ -609,18 +609,22 @@ func flattenDataFactoryGlobalParameters(input map[string]*datafactory.GlobalPara
 	if len(input) == 0 {
 		return []interface{}{}
 	}
+
 	result := make([]interface{}, 0)
 	for name, item := range input {
 		var valueResult string
-		if (strings.ToLower(string(item.Type)) == "array" || strings.ToLower(string(item.Type)) == "object") && reflect.TypeOf(item.Value).Name() != "string" {
+		typeResult := strings.Title(string(item.Type))
+
+		if (typeResult == "Array" || typeResult == "Object") && reflect.TypeOf(item.Value).Name() != "string" {
 			j, _ := json.Marshal(item.Value)
 			valueResult = string(j)
 		} else {
 			valueResult = fmt.Sprintf("%v", item.Value)
 		}
+
 		result = append(result, map[string]interface{}{
 			"name":  name,
-			"type":  strings.Title(string(item.Type)),
+			"type":  typeResult,
 			"value": valueResult,
 		})
 	}
