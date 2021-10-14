@@ -13,7 +13,7 @@ Manages a 3rd Generation (v3) App Service Environment.
 
 ## Example Usage
 
-This example provisions an App Service Environment V3. Additional examples of how to use the azurerm_app_service_environment_v3 resource can be found in the ./examples/app-service-environment-v3 directory within the Github Repository.
+This example provisions an App Service Environment V3. Additional examples of how to use the `azurerm_app_service_environment_v3` resource can be found [in the `./examples/app-service-environment-v3` directory](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/app-service-environment-v3) within the Github Repository.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -111,17 +111,13 @@ A `cluster_setting` block supports the following:
 
 ## Attribute Reference
 
-* `allow_new_private_endpoint_connections` - New Private Endpoint Connections be allowed. Defaults to `true`.
+In addition to the Arguments above, the following Attributes are exported:
 
 * `dns_suffix` - the DNS suffix for this App Service Environment V3. 
 
 * `external_inbound_ip_addresses` - The external outbound IP addresses of the App Service Environment V3.
 
-* `id` - The ID of the App Service Environment.
-
 * `internal_inbound_ip_addresses` - The internal outbound IP addresses of the App Service Environment V3.
-
-* `internal_load_balancing_mode` - Endpoints to serve internally in the Virtual Network for the App Service Environment. Possible values are `None` (for an External VIP Type), and `"Web, Publishing"` (for an Internal VIP Type). Defaults to `None`.
 
 * `ip_ssl_address_count` - The number of IP SSL addresses reserved for the App Service Environment V3.
 
@@ -129,17 +125,9 @@ A `cluster_setting` block supports the following:
 
 * `location` - The location where the App Service Environment exists.
 
-* `name` - The name of the App Service Environment V3.
-
 * `pricing_tier` - Pricing tier for the front end instances.
 
-* `resource_group_name` - The name of the Resource Group where the App Service Environment exists.
-
-* `subnet_id` - The ID of the Subnet which the App Service Environment connected.
-
 * `windows_outbound_ip_addresses` - Outbound addresses of Windows based Apps in this App Service Environment V3. 
-
-* `zone_redundant` - ASEv3 deployed in availability zones or not.
 
 --- 
 
