@@ -2,9 +2,10 @@
 
 FEATURES: 
 
-* **New Resource:** `azurerm_data_factory_linked_service_cosmosdb_mongoapi` [GH-13636]
 * **New Data Source:** `azurerm_consumption_budget_resource_group`[GH-12538]
 * **New Data Source:** `azurerm_consumption_budget_subscription`[GH-12540]
+* **New Resource:** `azurerm_data_factory_linked_service_cosmosdb_mongoapi` [GH-13636]
+* **New Resource:** `azurerm_mysql_flexible_server` [GH-13678]
 
 IMPROVEMENTS:
 
