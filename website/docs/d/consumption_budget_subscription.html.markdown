@@ -67,6 +67,8 @@ A `filter` block exports the following:
 
 * `tag` - A `tag` block as defined below.
 
+-> **Note:** The order of multiple filter entries is not guaranteed to be consistent by the API.
+
 ---
 
 A `not` block exports the following:
@@ -90,6 +92,8 @@ A `notification` block exports the following:
 * `operator` - The comparison operator for the notification.
 
 * `threshold` - Threshold value associated with the notification.
+
+-> **Note:** The order of multiple notification entries is not guaranteed to be consistent by the API.
 
 ---
 
