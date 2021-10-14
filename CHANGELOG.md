@@ -17,16 +17,16 @@ IMPROVEMENTS:
 * `azurerm_eventgrid_event_subscription` - support the `delivery_property` block [GH-13595]
 * `azurerm_mssql_server` - support for the `user_assigned_identity_ids` and `primary_user_assigned_identity_id` properties [GH-13683]
 * `azurerm_network_connection_monitor` - add support for the `destination_port_behavior` property [GH-13518]
-* `azurerm_security_center_workspace` - Allow creation with `Free` pricing tier [GH-13710]
+* `azurerm_security_center_workspace` - now supports the `Free` pricing tier [GH-13710]
 * `azurerm_kusto_attached_database_configuration` - support for the `sharing` property [GH-13487]
 
 BUG FIXES:
 
-* Data Source: `azurerm_cosmosdb_account`- prevent a panic due to index out of range [GH-13560]
+* Data Source: `azurerm_cosmosdb_account`- prevent a panic from an index out of range error [GH-13560]
 * `azurerm_function_app_slot` - the `client_affinity` property has been deprecated as it is no longer configurable in the service's API [GH-13711]
 * `azurerm_kubernetes_cluster` - the `kube_config` and `kube_admin_config` blocks can now be marked entirely as `Sensitive` via an environment variable [GH-13732]
-* `azurerm_logic_app_workflow` - nil check for empty access control properties [GH-13689]
-* `azurerm_management_group` - nil check for child management groups when deassociating a subscription from a management group [GH-13540]
+* `azurerm_logic_app_workflow` - will not check for `nil` and empty access control properties [GH-13689]
+* `azurerm_management_group` - will not nil check child management groups when deassociating a subscription from a management group [GH-13540]
 * `azurerm_subnet_resource` - will now lock the virtual network and subnet on updates [GH-13726]
 * `azurerm_app_configuration_key` - can now mix labeled and unlabeled keys [GH-13736]
  
