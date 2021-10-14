@@ -248,8 +248,8 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		props.Identity = sqlServerIdentity
 	}
 
-	if d.HasChange("primary_user_assigned_identity_id") {
-		props.PrimaryUserAssignedIdentityID = utils.String(d.Get("primary_user_assigned_identity_id").(string))
+	if primaryUserAssignedIdentityID, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
+		props.PrimaryUserAssignedIdentityID = utils.String(primaryUserAssignedIdentityID.(string))
 	}
 
 	if v := d.Get("public_network_access_enabled"); !v.(bool) {

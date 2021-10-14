@@ -269,6 +269,10 @@ resource "azurerm_mssql_server" "test" {
   administrator_login_password = "thisIsKat11"
   minimum_tls_version          = "1.2"
   extended_auditing_policy     = []
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
