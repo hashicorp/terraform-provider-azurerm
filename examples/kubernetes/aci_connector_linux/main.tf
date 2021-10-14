@@ -55,9 +55,8 @@ resource "azurerm_kubernetes_cluster" "example" {
     load_balancer_sku = "standard"
   }
 
-  service_principal {
-    client_id     = azuread_service_principal.example.application_id
-    client_secret = var.password
+  identity {
+    type = "SystemAssigned"
   }
 
   addon_profile {
@@ -87,26 +86,5 @@ resource "azurerm_kubernetes_cluster" "example" {
 resource "azurerm_role_assignment" "example" {
   scope                = azurerm_subnet.example-aci.id
   role_definition_name = "Network Contributor"
-  principal_id         = azuread_service_principal.example.object_id
-}
-
-resource "azuread_application" "example" {
-  name                       = "example"
-  homepage                   = "http://homepage"
-  identifier_uris            = ["http://uri"]
-  reply_urls                 = ["http://replyurl"]
-  available_to_other_tenants = false
-  oauth2_allow_implicit_flow = true
-}
-
-resource "azuread_service_principal" "example" {
-  application_id               = azuread_application.example.application_id
-  app_role_assignment_required = false
-}
-
-resource "azuread_service_principal_password" "example" {
-  service_principal_id = azuread_service_principal.example.id
-  description          = "My managed password"
-  value                = var.password
-  end_date             = "2099-01-01T01:02:03Z"
+  principal_id         = azurerm_kubernetes_cluster.example.identity.0.principal_id
 }

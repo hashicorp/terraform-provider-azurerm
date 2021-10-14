@@ -34,8 +34,11 @@ resource "azurerm_container_group" "example" {
     image    = "seanmckenna/aci-hellofiles"
     cpu      = "1"
     memory   = "1.5"
-    port     = "80"
-    protocol = "tcp"
+
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
 
     volume {
       name       = "logs"

@@ -1,3 +1,11 @@
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "${var.prefix}-resources"
+  location = var.location
+}
 
 resource "azurerm_virtual_network" "example" {
   name                = "${var.prefix}-VN"
@@ -115,41 +123,32 @@ resource "azurerm_mssql_virtual_machine" "example" {
   virtual_machine_id = azurerm_virtual_machine.example.id
   sql_license_type   = "PAYG"
 }
----
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "example" {
-  name     = "${var.prefix}-resources"
-  location = var.location
-}
 
 resource "azurerm_virtual_network" "test" {
   name                = "${var.prefix}-VN"
   address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
+  resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
   name                = "${var.prefix}-PIP"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   allocation_method   = "Dynamic"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "${var.prefix}-INT"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   ip_configuration {
     name                          = "internal"
@@ -161,8 +160,8 @@ resource "azurerm_network_interface" "test" {
 
 resource "azurerm_virtual_machine" "test" {
   name                         = "${var.prefix}-VM"
-  location                     = azurerm_resource_group.test.location
-  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.example.location
+  resource_group_name          = azurerm_resource_group.example.name
   network_interface_ids        = [ azurerm_network_interface.test.id ]
   vm_size                      = "Standard_F4"
 

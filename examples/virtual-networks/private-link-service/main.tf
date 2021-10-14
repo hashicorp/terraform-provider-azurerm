@@ -19,7 +19,7 @@ resource "azurerm_subnet" "test" {
   resource_group_name                   = azurerm_resource_group.test.name
   virtual_network_name                  = azurerm_virtual_network.test.name
   address_prefixes                        = ["10.5.1.0/24"]
-  private_link_service_network_policies = "Disabled"
+  enforce_private_link_service_network_policies = true
 }
 
 resource "azurerm_public_ip" "test" {
@@ -51,6 +51,7 @@ resource "azurerm_private_link_service" "test" {
     name                         = azurerm_public_ip.test.name
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.17"
+    primary                    = true
   }
 
   load_balancer_frontend_ip_configuration_ids = [

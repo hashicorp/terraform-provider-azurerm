@@ -46,10 +46,6 @@ resource "azurerm_netapp_pool" "example" {
 }
 
 resource "azurerm_netapp_volume" "example" {
-  lifecycle {
-    prevent_destroy = true
-  }
-
   name                = "${var.prefix}-netappvolume"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
@@ -70,10 +66,6 @@ resource "azurerm_netapp_volume" "example" {
 }
 
 resource "azurerm_netapp_snapshot" "example" {
-  lifecycle {
-    prevent_destroy = true
-  }
-
   name                = "${var.prefix}-netappsnapshot"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
@@ -83,10 +75,6 @@ resource "azurerm_netapp_snapshot" "example" {
 }
 
 resource "azurerm_netapp_volume" "example-snapshot" {
-  lifecycle {
-    prevent_destroy = true
-  }
-
   name                 = "${var.prefix}-netappvolume-snapshot"
   location             = azurerm_resource_group.example.location
   resource_group_name  = azurerm_resource_group.example.name
@@ -97,7 +85,7 @@ resource "azurerm_netapp_volume" "example-snapshot" {
   protocols            = ["NFSv3"]
   subnet_id            = azurerm_subnet.example.id
   storage_quota_in_gb  = 100
-  snapshot_resource_id = azurerm_netapp_snapshot.example.id
+  create_from_snapshot_resource_id = azurerm_netapp_snapshot.example.id
 
   export_policy_rule {
     rule_index        = 1

@@ -73,21 +73,21 @@ resource "azurerm_subnet" "azusubnetjb" {
   name                 = "JumpboxSubnet"
   resource_group_name      = "${azurerm_resource_group.azurg.name}"
   virtual_network_name = "${azurerm_virtual_network.azuvnet.name}"
-  address_prefix       = "10.0.0.0/24"
+  address_prefixes       = ["10.0.0.0/24"]
 }
 
 resource "azurerm_subnet" "azusubnetfw" {
   name                 = "AzureFirewallSubnet"
   resource_group_name      = "${azurerm_resource_group.azurg.name}"
   virtual_network_name = "${azurerm_virtual_network.azuvnet.name}"
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes       = ["10.0.1.0/24"]
 }
 
 resource "azurerm_subnet" "azusubnet" {
   name                 = "ServersSubnet"
   resource_group_name      = "${azurerm_resource_group.azurg.name}"
   virtual_network_name = "${azurerm_virtual_network.azuvnet.name}"
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes       = ["10.0.2.0/24"]
 }
 
 resource "azurerm_subnet_route_table_association" "azurtassoc" {
@@ -155,7 +155,6 @@ resource "azurerm_network_interface" "azunicjb" {
   name                     = "JumpHostNIC"
   resource_group_name      = "${azurerm_resource_group.azurg.name}"
   location                 = "${azurerm_resource_group.azurg.location}"
-  network_security_group_id = "${azurerm_network_security_group.azunsgjb.id}"
 
   ip_configuration {
     name                          = "ipconfig1"
@@ -169,6 +168,11 @@ resource "azurerm_network_interface" "azunicjb" {
     owner = "Someone@contoso.com"
     costcenter = "IT"
   }
+}
+
+resource "azurerm_network_interface_security_group_association" "azunicjb" {
+  network_interface_id      = azurerm_network_interface.azunicjb.id
+  network_security_group_id = azurerm_network_security_group.azunsgjb.id
 }
 
 # Nic for Server
@@ -227,6 +231,8 @@ resource "azurerm_virtual_machine" "vmjb" {
     owner = "Someone@contoso.com"
     costcenter = "IT"
   }
+
+  depends_on = [ azurerm_network_interface_security_group_association.azunicjb ]
 }
 
 # Server VM

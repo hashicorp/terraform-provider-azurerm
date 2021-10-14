@@ -7,12 +7,10 @@ resource "azurerm_resource_group" "example" {
   location = var.location
 }
 
-resource "azuread_application" "example" {
-  name = "${var.prefix}_aad_app"
-}
-
-resource "azuread_service_principal" "example" {
-  application_id = azuread_application.example.application_id
+resource "azurerm_user_assigned_identity" "example" {
+  name = "search-api"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 
 resource "azurerm_storage_account" "example" {
@@ -26,8 +24,7 @@ resource "azurerm_storage_account" "example" {
   is_hns_enabled            = true
 }
 
-data "azurerm_client_config" "current" {
-}
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_role_assignment" "storageAccountRoleAssignment" {
   scope                = azurerm_storage_account.example.id
@@ -44,7 +41,7 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "example" {
   }
   ace {
     type        = "user"
-    id          = azuread_service_principal.example.object_id
+    id          = azurerm_user_assigned_identity.example.principal_id
     permissions = "--x"
   }
   ace {
@@ -75,7 +72,7 @@ resource "azurerm_storage_data_lake_gen2_path" "example" {
   }
   ace {
     type        = "user"
-    id          = azuread_service_principal.example.object_id
+    id          = azurerm_user_assigned_identity.example.principal_id
     permissions = "r-x"
   }
   ace {
@@ -98,7 +95,7 @@ resource "azurerm_storage_data_lake_gen2_path" "example" {
   ace {
     scope       = "default"
     type        = "user"
-    id          = azuread_service_principal.example.object_id
+    id          = azurerm_user_assigned_identity.example.principal_id
     permissions = "r-x"
   }
   ace {
