@@ -181,7 +181,7 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 			kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []string{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
-					if v.Response.StatusCode != 404 {
+					if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
 						return fmt.Errorf("got http status code %d while checking for key's %q existence: %+v", v.Response.StatusCode, featureKey, v.Error())
 					}
 				} else {
@@ -230,7 +230,7 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 			kv, err := client.GetKeyValue(ctx, featureKey, resourceID.Label, "", "", "", []string{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
-					if v.Response.StatusCode == 404 {
+					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
 						return metadata.MarkAsGone(resourceID)
 					}
 				} else {

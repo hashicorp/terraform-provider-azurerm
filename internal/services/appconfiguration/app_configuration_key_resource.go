@@ -135,7 +135,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			kv, err := client.GetKeyValue(ctx, model.Key, model.Label, "", "", "", []string{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
-					if v.Response.StatusCode != 404 {
+					if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
 						return fmt.Errorf("got http status code %d while checking for key's %q existence: %+v", v.Response.StatusCode, model.Key, v.Error())
 					}
 				} else {
@@ -209,7 +209,7 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 			kv, err := client.GetKeyValue(ctx, resourceID.Key, resourceID.Label, "", "", "", []string{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
-					if v.Response.StatusCode == 404 {
+					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
 						return metadata.MarkAsGone(resourceID)
 					}
 				} else {
