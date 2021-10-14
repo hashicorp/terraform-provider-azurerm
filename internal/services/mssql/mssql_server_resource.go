@@ -158,6 +158,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 			"primary_user_assigned_identity_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: msivalidate.UserAssignedIdentityID,
 				RequiredWith: []string{
 					"identity.0.user_assigned_identity_ids",
@@ -372,13 +373,15 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
 		d.Set("minimum_tls_version", props.MinimalTLSVersion)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == sql.ServerNetworkAccessFlagEnabled)
+		primaryUserAssignedIdentityID := ""
 		if props.PrimaryUserAssignedIdentityID != nil && *props.PrimaryUserAssignedIdentityID != "" {
-			primaryUserAssignedIdentityID, err := msiparse.UserAssignedIdentityID(*props.PrimaryUserAssignedIdentityID)
+			parsedPrimaryUserAssignedIdentityID, err := msiparse.UserAssignedIdentityID(*props.PrimaryUserAssignedIdentityID)
 			if err != nil {
 				return err
 			}
-			d.Set("primary_user_assigned_identity_id", primaryUserAssignedIdentityID.ID())
+			primaryUserAssignedIdentityID = parsedPrimaryUserAssignedIdentityID.ID()
 		}
+		d.Set("primary_user_assigned_identity_id", primaryUserAssignedIdentityID)
 	}
 
 	adminResp, err := adminClient.Get(ctx, id.ResourceGroup, id.Name)
