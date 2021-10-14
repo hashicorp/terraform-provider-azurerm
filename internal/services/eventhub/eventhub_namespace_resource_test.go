@@ -666,6 +666,7 @@ resource "azurerm_eventhub_namespace" "test" {
     default_action = "Deny"
     ip_rule {
       ip_mask = "10.0.0.0/16"
+      action  = "Allow"
     }
   }
 }
@@ -695,6 +696,7 @@ resource "azurerm_eventhub_namespace" "test" {
     trusted_service_access_enabled = true
     ip_rule {
       ip_mask = "10.0.0.0/16"
+      action  = "Allow"
     }
   }
 }
@@ -806,10 +808,12 @@ resource "azurerm_eventhub_namespace" "test" {
 
     ip_rule {
       ip_mask = "10.0.1.0/24"
+      action  = "Allow"
     }
 
     ip_rule {
       ip_mask = "10.1.1.0/24"
+      action  = "Allow"
     }
   }
 }
