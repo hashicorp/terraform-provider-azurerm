@@ -55,6 +55,7 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					"Standard_1",
 					"Standard_4",
 					"Standard_16",
 				}, false),
