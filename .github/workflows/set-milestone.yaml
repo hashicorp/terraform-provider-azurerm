@@ -1,0 +1,29 @@
+---
+name: Set Milestone
+on:
+  pull_request:
+    branches: [main]
+    types: ['closed']
+#    paths:
+#      - '**.go'
+#      - 'vendor/**'
+#      - '.github/workflows/**'
+
+jobs:
+  set-milestone:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+      - id: compute-milestone
+        run: |
+          echo "MILESTONE=$(cat CHANGELOG.md | grep Unreleased | cut -d ' ' -f2)" >> $GITHUB_ENV
+      - uses: actions/github-script@v5
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const milestone = process.env.MILESTONE
+
