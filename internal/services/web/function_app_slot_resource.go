@@ -135,7 +135,7 @@ func resourceFunctionAppSlot() *pluginsdk.Resource {
 				Type:       pluginsdk.TypeBool,
 				Optional:   true,
 				Computed:   true,
-				Deprecated: "This doesn't do anything so it is deprecated and will be removed in 3.0 of the provider.",
+				Deprecated: "This property is no longer configurable in the service and has been deprecated. It will be removed in 3.0 of the provider.",
 			},
 
 			"connection_string": {
