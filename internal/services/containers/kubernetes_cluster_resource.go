@@ -786,8 +786,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"kube_admin_config": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Type:      pluginsdk.TypeList,
+				Computed:  true,
+				Sensitive: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"host": {
@@ -829,8 +830,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"kube_config": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Type:      pluginsdk.TypeList,
+				Computed:  true,
+				Sensitive: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"host": {
