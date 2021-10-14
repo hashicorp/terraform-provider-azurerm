@@ -75,16 +75,16 @@ resource "azurerm_netapp_snapshot" "example" {
 }
 
 resource "azurerm_netapp_volume" "example-snapshot" {
-  name                 = "${var.prefix}-netappvolume-snapshot"
-  location             = azurerm_resource_group.example.location
-  resource_group_name  = azurerm_resource_group.example.name
-  account_name         = azurerm_netapp_account.example.name
-  pool_name            = azurerm_netapp_pool.example.name
-  volume_path          = "${var.prefix}-netappvolume-snapshot"
-  service_level        = "Standard"
-  protocols            = ["NFSv3"]
-  subnet_id            = azurerm_subnet.example.id
-  storage_quota_in_gb  = 100
+  name                             = "${var.prefix}-netappvolume-snapshot"
+  location                         = azurerm_resource_group.example.location
+  resource_group_name              = azurerm_resource_group.example.name
+  account_name                     = azurerm_netapp_account.example.name
+  pool_name                        = azurerm_netapp_pool.example.name
+  volume_path                      = "${var.prefix}-netappvolume-snapshot"
+  service_level                    = "Standard"
+  protocols                        = ["NFSv3"]
+  subnet_id                        = azurerm_subnet.example.id
+  storage_quota_in_gb              = 100
   create_from_snapshot_resource_id = azurerm_netapp_snapshot.example.id
 
   export_policy_rule {

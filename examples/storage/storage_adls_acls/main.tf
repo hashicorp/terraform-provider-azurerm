@@ -8,7 +8,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_user_assigned_identity" "example" {
-  name = "search-api"
+  name                = "search-api"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 }
@@ -18,10 +18,10 @@ resource "azurerm_storage_account" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
-  account_tier              = "Standard"
-  account_kind              = "StorageV2"
-  account_replication_type  = "LRS"
-  is_hns_enabled            = true
+  account_tier             = "Standard"
+  account_kind             = "StorageV2"
+  account_replication_type = "LRS"
+  is_hns_enabled           = true
 }
 
 data "azurerm_client_config" "current" {}

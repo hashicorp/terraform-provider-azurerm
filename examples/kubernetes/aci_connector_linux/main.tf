@@ -43,15 +43,15 @@ resource "azurerm_kubernetes_cluster" "example" {
   dns_prefix          = "${var.prefix}-k8s"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.example-nodepool.id
   }
 
   network_profile {
-    network_plugin = "azure"
-    network_policy = "azure"
+    network_plugin    = "azure"
+    network_policy    = "azure"
     load_balancer_sku = "standard"
   }
 
@@ -61,7 +61,7 @@ resource "azurerm_kubernetes_cluster" "example" {
 
   addon_profile {
     aci_connector_linux {
-      enabled = true
+      enabled     = true
       subnet_name = azurerm_subnet.example-aci.name
     }
 

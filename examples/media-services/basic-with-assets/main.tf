@@ -38,5 +38,5 @@ resource "azurerm_media_asset" "example" {
 }
 
 output "rendered" {
-  value = "${azurerm_media_asset.example.id}"
+  value = azurerm_media_asset.example.id
 }
