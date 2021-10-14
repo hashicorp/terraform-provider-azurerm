@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -20,17 +20,31 @@ func triggerExists(ctx context.Context, clients *clients.Client, state *pluginsd
 }
 
 func componentExists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState, kind, propertyName string) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
-	if err != nil {
-		return nil, err
+	var resourceGroup string
+	var workflowName string
+	var name string
+
+	if kind == "Action" {
+		id, err := parse.ActionID(state.ID)
+		if err != nil {
+			return nil, err
+		}
+		resourceGroup = id.ResourceGroup
+		workflowName = id.WorkflowName
+		name = id.Name
+	} else {
+		id, err := parse.TriggerID(state.ID)
+		if err != nil {
+			return nil, err
+		}
+		resourceGroup = id.ResourceGroup
+		workflowName = id.WorkflowName
+		name = id.Name
 	}
 
-	workflowName := id.Path["workflows"]
-	componentName := id.Path[propertyName]
-
-	resp, err := clients.Logic.WorkflowClient.Get(ctx, id.ResourceGroup, workflowName)
+	resp, err := clients.Logic.WorkflowClient.Get(ctx, resourceGroup, workflowName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Logic App Workflow %s %s (resource group: %s): %v", kind, workflowName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Logic App Workflow %s %s (resource group: %s): %v", kind, workflowName, resourceGroup, err)
 	}
 
 	if resp.WorkflowProperties == nil {
@@ -38,7 +52,7 @@ func componentExists(ctx context.Context, clients *clients.Client, state *plugin
 	}
 
 	if resp.WorkflowProperties.Definition == nil {
-		return nil, fmt.Errorf("Logic App Workflow %s %s (resource group: %s) Definition is nil", kind, workflowName, id.ResourceGroup)
+		return nil, fmt.Errorf("Logic App Workflow %s %s (resource group: %s) Definition is nil", kind, workflowName, resourceGroup)
 	}
 
 	definition := resp.WorkflowProperties.Definition.(map[string]interface{})
@@ -46,7 +60,7 @@ func componentExists(ctx context.Context, clients *clients.Client, state *plugin
 
 	exists := false
 	for k := range actions {
-		if strings.EqualFold(k, componentName) {
+		if strings.EqualFold(k, name) {
 			exists = true
 			break
 		}

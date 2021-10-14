@@ -428,14 +428,13 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	existing, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
+	var currentAppSettings map[string]*string
+	appSettingsList, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("reading %s: %+v", id, err)
+		return fmt.Errorf("reading App Settings for %s: %+v", id, err)
 	}
-
-	var currentAppSettings *[]web.NameValuePair
-	if existing.AppSettings != nil {
-		currentAppSettings = existing.AppSettings
+	if appSettingsList.Properties != nil {
+		currentAppSettings = appSettingsList.Properties
 	}
 
 	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix, currentAppSettings)

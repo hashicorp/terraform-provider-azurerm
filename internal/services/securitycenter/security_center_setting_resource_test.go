@@ -21,7 +21,7 @@ func TestAccSecurityCenterSetting_update(t *testing.T) {
 	r := SecurityCenterSettingResource{}
 
 	// lintignore:AT001
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.cfg("MCAS", true),
 			Check: acceptance.ComposeTestCheckFunc(

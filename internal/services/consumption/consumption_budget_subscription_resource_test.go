@@ -197,9 +197,10 @@ resource "azurerm_consumption_budget_subscription" "test" {
 
   // Changed threshold and operator
   notification {
-    enabled   = true
-    threshold = 95.0
-    operator  = "GreaterThan"
+    enabled        = true
+    threshold      = 95.0
+    threshold_type = "Forecasted"
+    operator       = "GreaterThan"
 
     contact_emails = [
       "foo@example.com",
@@ -325,9 +326,10 @@ resource "azurerm_consumption_budget_subscription" "test" {
   }
 
   notification {
-    enabled   = false
-    threshold = 100.0
-    operator  = "GreaterThan"
+    enabled        = false
+    threshold      = 100.0
+    operator       = "GreaterThan"
+    threshold_type = "Forecasted"
 
     contact_emails = [
       "foo@example.com",
@@ -399,9 +401,10 @@ resource "azurerm_consumption_budget_subscription" "test" {
   }
 
   notification {
-    enabled   = true
-    threshold = 90.0
-    operator  = "EqualTo"
+    enabled        = true
+    threshold      = 90.0
+    operator       = "EqualTo"
+    threshold_type = "Actual"
 
     contact_emails = [
       // Added baz@example.com
@@ -418,8 +421,9 @@ resource "azurerm_consumption_budget_subscription" "test" {
 
   notification {
     // Set enabled to true
-    enabled   = true
-    threshold = 100.0
+    enabled        = true
+    threshold      = 100.0
+    threshold_type = "Forecasted"
     // Changed from EqualTo to GreaterThanOrEqualTo 
     operator = "GreaterThanOrEqualTo"
 

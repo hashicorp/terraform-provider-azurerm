@@ -138,12 +138,6 @@ An `export_policy_rule` block supports the following:
 
 * `protocols_enabled` - (Optional) A list of allowed protocols. Valid values include `CIFS`, `NFSv3`, or `NFSv4.1`. Only one value is supported at this time. This replaces the previous arguments: `cifs_enabled`, `nfsv3_enabled` and `nfsv4_enabled`.
 
-* `cifs_enabled` - (Optional / **Deprecated in favour of `protocols_enabled`**) Is the CIFS protocol allowed?
-
-* `nfsv3_enabled` - (Optional / **Deprecated in favour of `protocols_enabled`**) Is the NFSv3 protocol allowed?
-
-* `nfsv4_enabled` - (Optional / **Deprecated in favour of `protocols_enabled`**)  Is the NFSv4 protocol allowed?
-
 * `unix_read_only` - (Optional) Is the file system on unix read only?
 
 * `unix_read_write` - (Optional) Is the file system on unix read and write?

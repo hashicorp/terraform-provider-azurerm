@@ -20,7 +20,7 @@ func TestAccSecurityCenterAutoProvision_update(t *testing.T) {
 	r := SecurityCenterAutoProvisionResource{}
 
 	// lintignore:AT001
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.setting("On"),
 			Check: acceptance.ComposeTestCheckFunc(

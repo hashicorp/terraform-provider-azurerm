@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -78,6 +79,16 @@ func resourceManagedDisk() *pluginsdk.Resource {
 					string(compute.Import),
 					string(compute.Restore),
 				}, false),
+			},
+
+			"logical_sector_size": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.IntInSlice([]int{
+					512,
+					4096}),
+				Computed: true,
 			},
 
 			"source_uri": {
@@ -169,6 +180,13 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"max_shares": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(2, 10),
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -223,6 +241,10 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.DiskSizeGB = &diskSize
 	}
 
+	if v, ok := d.GetOk("max_shares"); ok {
+		props.MaxShares = utils.Int32(int32(v.(int)))
+	}
+
 	if storageAccountType == string(compute.UltraSSDLRS) {
 		if d.HasChange("disk_iops_read_write") {
 			v := d.Get("disk_iops_read_write")
@@ -235,8 +257,12 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			diskMBps := int64(v.(int))
 			props.DiskMBpsReadWrite = &diskMBps
 		}
-	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") {
-		return fmt.Errorf("[ERROR] disk_iops_read_write and disk_mbps_read_write are only available for UltraSSD disks")
+
+		if v, ok := d.GetOk("logical_sector_size"); ok {
+			props.CreationData.LogicalSectorSize = utils.Int32(int32(v.(int)))
+		}
+	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") || d.HasChange("logical_sector_size") {
+		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write and logical_sector_size are only available for UltraSSD disks")
 	}
 
 	if createOption == compute.Import {
@@ -365,6 +391,21 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	diskUpdate := compute.DiskUpdate{
 		DiskUpdateProperties: &compute.DiskUpdateProperties{},
+	}
+
+	if d.HasChange("max_shares") {
+		v := d.Get("max_shares")
+		maxShares := int32(v.(int))
+		diskUpdate.MaxShares = &maxShares
+		var skuName compute.DiskStorageAccountTypes
+		for _, v := range compute.PossibleDiskStorageAccountTypesValues() {
+			if strings.EqualFold(storageAccountType, string(v)) {
+				skuName = v
+			}
+		}
+		diskUpdate.Sku = &compute.DiskSku{
+			Name: skuName,
+		}
 	}
 
 	if d.HasChange("tier") {
@@ -607,6 +648,9 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	if props := resp.DiskProperties; props != nil {
 		if creationData := props.CreationData; creationData != nil {
 			d.Set("create_option", string(creationData.CreateOption))
+			if creationData.LogicalSectorSize != nil {
+				d.Set("logical_sector_size", creationData.LogicalSectorSize)
+			}
 
 			imageReferenceID := ""
 			if creationData.ImageReference != nil && creationData.ImageReference.ID != nil {
@@ -624,6 +668,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
 		d.Set("os_type", props.OsType)
 		d.Set("tier", props.Tier)
+		d.Set("max_shares", props.MaxShares)
 
 		if networkAccessPolicy := props.NetworkAccessPolicy; networkAccessPolicy != compute.AllowAll {
 			d.Set("network_access_policy", props.NetworkAccessPolicy)
