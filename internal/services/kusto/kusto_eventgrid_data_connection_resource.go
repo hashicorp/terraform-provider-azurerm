@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -30,7 +30,7 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.DataConnectionID(id)
 			return err
-		}, importDataConnection(kusto.KindEventGrid)),
+		}, importDataConnection(kusto.KindBasicDataConnectionKindEventGrid)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -89,10 +89,10 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 			"blob_storage_event_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(kusto.MicrosoftStorageBlobCreated),
+				Default:  string(kusto.BlobStorageEventTypeMicrosoftStorageBlobCreated),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(kusto.MicrosoftStorageBlobCreated),
-					string(kusto.MicrosoftStorageBlobRenamed),
+					string(kusto.BlobStorageEventTypeMicrosoftStorageBlobCreated),
+					string(kusto.BlobStorageEventTypeMicrosoftStorageBlobRenamed),
 				}, false),
 			},
 
@@ -118,22 +118,22 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(kusto.APACHEAVRO),
-					string(kusto.AVRO),
-					string(kusto.CSV),
-					string(kusto.JSON),
-					string(kusto.MULTIJSON),
-					string(kusto.ORC),
-					string(kusto.PARQUET),
-					string(kusto.PSV),
-					string(kusto.RAW),
-					string(kusto.SCSV),
-					string(kusto.SINGLEJSON),
-					string(kusto.SOHSV),
-					string(kusto.TSV),
-					string(kusto.TSVE),
-					string(kusto.TXT),
-					string(kusto.W3CLOGFILE),
+					string(kusto.EventGridDataFormatAPACHEAVRO),
+					string(kusto.EventGridDataFormatAVRO),
+					string(kusto.EventGridDataFormatCSV),
+					string(kusto.EventGridDataFormatJSON),
+					string(kusto.EventGridDataFormatMULTIJSON),
+					string(kusto.EventGridDataFormatORC),
+					string(kusto.EventGridDataFormatPARQUET),
+					string(kusto.EventGridDataFormatPSV),
+					string(kusto.EventGridDataFormatRAW),
+					string(kusto.EventGridDataFormatSCSV),
+					string(kusto.EventGridDataFormatSINGLEJSON),
+					string(kusto.EventGridDataFormatSOHSV),
+					string(kusto.EventGridDataFormatTSV),
+					string(kusto.EventGridDataFormatTSVE),
+					string(kusto.EventGridDataFormatTXT),
+					string(kusto.EventGridDataFormatW3CLOGFILE),
 				}, false),
 			},
 		},

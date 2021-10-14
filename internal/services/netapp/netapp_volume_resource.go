@@ -169,6 +169,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							},
 						},
 
+						// todo remove this in version 3.0 of the provider
 						"cifs_enabled": {
 							Type:       pluginsdk.TypeBool,
 							Optional:   true,
@@ -176,6 +177,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							Deprecated: "Deprecated in favour of `protocols_enabled`",
 						},
 
+						// todo remove this in version 3.0 of the provider
 						"nfsv3_enabled": {
 							Type:       pluginsdk.TypeBool,
 							Optional:   true,
@@ -183,6 +185,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							Deprecated: "Deprecated in favour of `protocols_enabled`",
 						},
 
+						// todo remove this in version 3.0 of the provider
 						"nfsv4_enabled": {
 							Type:       pluginsdk.TypeBool,
 							Optional:   true,
@@ -254,6 +257,12 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"snapshot_directory_visible": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 		},
 	}
 }
@@ -312,6 +321,8 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		authorizeReplication = true
 		volumeType = "DataProtection"
 	}
+
+	snapshotDirectoryVisible := d.Get("snapshot_directory_visible").(bool)
 
 	// Handling volume creation from snapshot case
 	snapshotResourceID := d.Get("create_from_snapshot_resource_id").(string)
@@ -383,16 +394,17 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	parameters := netapp.Volume{
 		Location: utils.String(location),
 		VolumeProperties: &netapp.VolumeProperties{
-			CreationToken:  utils.String(volumePath),
-			ServiceLevel:   netapp.ServiceLevel(serviceLevel),
-			SubnetID:       utils.String(subnetID),
-			ProtocolTypes:  utils.ExpandStringSlice(protocols),
-			SecurityStyle:  netapp.SecurityStyle(securityStyle),
-			UsageThreshold: utils.Int64(storageQuotaInGB),
-			ExportPolicy:   exportPolicyRule,
-			VolumeType:     utils.String(volumeType),
-			SnapshotID:     utils.String(snapshotID),
-			DataProtection: dataProtectionReplication,
+			CreationToken:            utils.String(volumePath),
+			ServiceLevel:             netapp.ServiceLevel(serviceLevel),
+			SubnetID:                 utils.String(subnetID),
+			ProtocolTypes:            utils.ExpandStringSlice(protocols),
+			SecurityStyle:            netapp.SecurityStyle(securityStyle),
+			UsageThreshold:           utils.Int64(storageQuotaInGB),
+			ExportPolicy:             exportPolicyRule,
+			VolumeType:               utils.String(volumeType),
+			SnapshotID:               utils.String(snapshotID),
+			DataProtection:           dataProtectionReplication,
+			SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -483,6 +495,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("subnet_id", props.SubnetID)
 		d.Set("protocols", props.ProtocolTypes)
 		d.Set("security_style", props.SecurityStyle)
+		d.Set("snapshot_directory_visible", props.SnapshotDirectoryVisible)
 		if props.UsageThreshold != nil {
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
 		}
@@ -753,9 +766,11 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePrope
 						}
 					}
 				} else {
-					// TODO: Remove in next major version
+					// todo remove this in version 3.0 of the provider
 					cifsEnabled = v["cifs_enabled"].(bool)
+					// todo remove this in version 3.0 of the provider
 					nfsv3Enabled = v["nfsv3_enabled"].(bool)
+					// todo remove this in version 3.0 of the provider
 					nfsv41Enabled = v["nfsv4_enabled"].(bool)
 				}
 			}
@@ -826,29 +841,33 @@ func flattenNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExportPol
 		if v := item.AllowedClients; v != nil {
 			allowedClients = strings.Split(*v, ",")
 		}
-		// TODO: Start - Remove in next major version
+		// todo remove this in version 3.0 of the provider
 		cifsEnabled := false
+		// todo remove this in version 3.0 of the provider
 		nfsv3Enabled := false
+		// todo remove this in version 3.0 of the provider
 		nfsv4Enabled := false
-		// End - Remove in next major version
 		protocolsEnabled := []string{}
 		if v := item.Cifs; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "CIFS")
 			}
-			cifsEnabled = *v // TODO: Remove in next major version
+			// todo remove this in version 3.0 of the provider
+			cifsEnabled = *v
 		}
 		if v := item.Nfsv3; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "NFSv3")
 			}
-			nfsv3Enabled = *v // TODO: Remove in next major version
+			// todo remove this in version 3.0 of the provider
+			nfsv3Enabled = *v
 		}
 		if v := item.Nfsv41; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
 			}
-			nfsv4Enabled = *v // TODO: Remove in next major version
+			// todo remove this in version 3.0 of the provider
+			nfsv4Enabled = *v
 		}
 		unixReadOnly := false
 		if v := item.UnixReadOnly; v != nil {
@@ -870,9 +889,11 @@ func flattenNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExportPol
 			"unix_read_write":     unixReadWrite,
 			"root_access_enabled": rootAccessEnabled,
 			"protocols_enabled":   utils.FlattenStringSlice(&protocolsEnabled),
-			// TODO: Remove in next major version
-			"cifs_enabled":  cifsEnabled,
+			// todo remove this in version 3.0 of the provider
+			"cifs_enabled": cifsEnabled,
+			// todo remove this in version 3.0 of the provider
 			"nfsv3_enabled": nfsv3Enabled,
+			// todo remove this in version 3.0 of the provider
 			"nfsv4_enabled": nfsv4Enabled,
 		})
 	}

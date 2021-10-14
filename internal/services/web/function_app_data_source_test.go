@@ -107,6 +107,19 @@ func TestAccFunctionAppDataSource_clientCertMode(t *testing.T) {
 	})
 }
 
+func TestAccFunctionAppDataSource_siteConfigVnetRouteAllEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_function_app", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: FunctionAppDataSource{}.siteConfigVnetRouteAllEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("site_config.0.vnet_route_all_enabled").HasValue("true"),
+			),
+		},
+	})
+}
+
 func (d FunctionAppDataSource) basic(data acceptance.TestData) string {
 	template := FunctionAppResource{}.basic(data)
 	return fmt.Sprintf(`
@@ -169,6 +182,18 @@ data "azurerm_function_app" "test" {
 
 func (d FunctionAppDataSource) certClientMode(data acceptance.TestData, modeValue string) string {
 	template := FunctionAppResource{}.clientCertMode(data, modeValue)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_function_app" "test" {
+  name                = azurerm_function_app.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, template)
+}
+
+func (d FunctionAppDataSource) siteConfigVnetRouteAllEnabled(data acceptance.TestData) string {
+	template := FunctionAppResource{}.siteConfigVnetRouteAllEnabled(data)
 	return fmt.Sprintf(`
 %s
 

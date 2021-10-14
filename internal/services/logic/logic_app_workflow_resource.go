@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,8 +30,11 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 		Read:   resourceLogicAppWorkflowRead,
 		Update: resourceLogicAppWorkflowUpdate,
 		Delete: resourceLogicAppWorkflowDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.WorkflowID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -64,6 +68,99 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 				ValidateFunc: validate.IntegrationServiceEnvironmentID,
 			},
 
+			"access_control": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"action": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"allowed_caller_ip_address_range": {
+										Type:     pluginsdk.TypeSet,
+										Required: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.Any(
+												validation.IsCIDR,
+												validation.IsIPv4Range,
+											),
+										},
+									},
+								},
+							},
+						},
+
+						"content": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"allowed_caller_ip_address_range": {
+										Type:     pluginsdk.TypeSet,
+										Required: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.Any(
+												validation.IsCIDR,
+												validation.IsIPv4Range,
+											),
+										},
+									},
+								},
+							},
+						},
+
+						"trigger": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"allowed_caller_ip_address_range": {
+										Type:     pluginsdk.TypeSet,
+										Required: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.Any(
+												validation.IsCIDR,
+												validation.IsIPv4Range,
+											),
+										},
+									},
+								},
+							},
+						},
+
+						"workflow_management": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"allowed_caller_ip_address_range": {
+										Type:     pluginsdk.TypeSet,
+										Required: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.Any(
+												validation.IsCIDR,
+												validation.IsIPv4Range,
+											),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"logic_app_integration_account_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -77,6 +174,12 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
+			},
+
+			"enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 
 			"workflow_schema": {
@@ -134,19 +237,19 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 
 func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.WorkflowClient
+	subscriptionId := meta.(*clients.Client).Logic.WorkflowClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Logic App Workflow creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewWorkflowID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Logic App Workflow %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Logic App Workflow %s: %+v", id, err)
 			}
 		}
 
@@ -170,6 +273,11 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 	t := d.Get("tags").(map[string]interface{})
 
+	isEnabled := logic.WorkflowStateEnabled
+	if v := d.Get("enabled").(bool); !v {
+		isEnabled = logic.WorkflowStateDisabled
+	}
+
 	properties := logic.Workflow{
 		Location: utils.String(location),
 		WorkflowProperties: &logic.WorkflowProperties{
@@ -181,8 +289,13 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 				"parameters":     workflowParameters,
 			},
 			Parameters: parameters,
+			State:      isEnabled,
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("access_control"); ok {
+		properties.WorkflowProperties.AccessControl = expandLogicAppWorkflowAccessControl(v.([]interface{}))
 	}
 
 	if iseID, ok := d.GetOk("integration_service_environment_id"); ok {
@@ -197,19 +310,11 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties); err != nil {
-		return fmt.Errorf("[ERROR] Error creating Logic App Workflow %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, properties); err != nil {
+		return fmt.Errorf("[ERROR] Error creating Logic App Workflow %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("[ERROR] Error making Read request on Logic App Workflow %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("[ERROR] Cannot read Logic App Workflow %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceLogicAppWorkflowRead(d, meta)
 }
@@ -219,26 +324,23 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.WorkflowID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["workflows"]
-
 	// lock to prevent against Actions, Parameters or Triggers conflicting
-	locks.ByName(name, logicAppResourceName)
-	defer locks.UnlockByName(name, logicAppResourceName)
+	locks.ByName(id.Name, logicAppResourceName)
+	defer locks.UnlockByName(id.Name, logicAppResourceName)
 
-	read, err := client.Get(ctx, resourceGroup, name)
+	read, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("[ERROR] Error making Read request on Logic App Workflow %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("[ERROR] Error making Read request on Logic App Workflow %s: %+v", id, err)
 	}
 
 	if read.WorkflowProperties == nil {
@@ -260,13 +362,23 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 	definition := read.WorkflowProperties.Definition.(map[string]interface{})
 	definition["parameters"] = workflowParameters
 
+	isEnabled := logic.WorkflowStateEnabled
+	if v := d.Get("enabled").(bool); !v {
+		isEnabled = logic.WorkflowStateDisabled
+	}
+
 	properties := logic.Workflow{
 		Location: utils.String(location),
 		WorkflowProperties: &logic.WorkflowProperties{
 			Definition: definition,
 			Parameters: parameters,
+			State:      isEnabled,
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("access_control"); ok {
+		properties.WorkflowProperties.AccessControl = expandLogicAppWorkflowAccessControl(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("logic_app_integration_account_id"); ok {
@@ -275,8 +387,8 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, properties); err != nil {
-		return fmt.Errorf("updating Logic App Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, properties); err != nil {
+		return fmt.Errorf("updating Logic App Workflow %s: %+v", id, err)
 	}
 
 	return resourceLogicAppWorkflowRead(d, meta)
@@ -287,25 +399,23 @@ func resourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.WorkflowID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["workflows"]
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Logic App Workflow %q (Resource Group %q) was not found - removing from state", name, resourceGroup)
+			log.Printf("[DEBUG] Logic App Workflow %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("[ERROR] Error making Read request on Logic App Workflow %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("[ERROR] Error making Read request on Logic App Workflow %s: %+v", id, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -313,6 +423,14 @@ func resourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if props := resp.WorkflowProperties; props != nil {
 		d.Set("access_endpoint", props.AccessEndpoint)
+
+		if err := d.Set("access_control", flattenLogicAppWorkflowFlowAccessControl(props.AccessControl)); err != nil {
+			return fmt.Errorf("setting `access_control`: %+v", err)
+		}
+
+		if props.State != "" {
+			d.Set("enabled", props.State == logic.WorkflowStateEnabled)
+		}
 
 		if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Connector == nil {
 			d.Set("connector_endpoint_ip_addresses", []interface{}{})
@@ -384,24 +502,22 @@ func resourceLogicAppWorkflowDelete(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.WorkflowID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["workflows"]
 
 	// lock to prevent against Actions, Parameters or Triggers conflicting
-	locks.ByName(name, logicAppResourceName)
-	defer locks.UnlockByName(name, logicAppResourceName)
+	locks.ByName(id.Name, logicAppResourceName)
+	defer locks.UnlockByName(id.Name, logicAppResourceName)
 
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 
-		return fmt.Errorf("issuing delete request for Logic App Workflow %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("issuing delete request for Logic App Workflow %s: %+v", id, err)
 	}
 
 	return nil
@@ -578,6 +694,58 @@ func expandLogicAppWorkflowWorkflowParameters(input map[string]interface{}) (map
 	return output, nil
 }
 
+func expandLogicAppWorkflowAccessControl(input []interface{}) *logic.FlowAccessControlConfiguration {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+
+	result := logic.FlowAccessControlConfiguration{}
+
+	if contents := v["content"].([]interface{}); len(contents) != 0 {
+		result.Contents = expandLogicAppWorkflowAccessControlConfigurationPolicy(contents)
+	}
+
+	if actions := v["action"].([]interface{}); len(actions) != 0 {
+		result.Actions = expandLogicAppWorkflowAccessControlConfigurationPolicy(actions)
+	}
+
+	if triggers := v["trigger"].([]interface{}); len(triggers) != 0 {
+		result.Triggers = expandLogicAppWorkflowAccessControlConfigurationPolicy(triggers)
+	}
+
+	if workflowManagement := v["workflow_management"].([]interface{}); len(workflowManagement) != 0 {
+		result.WorkflowManagement = expandLogicAppWorkflowAccessControlConfigurationPolicy(workflowManagement)
+	}
+
+	return &result
+}
+
+func expandLogicAppWorkflowAccessControlConfigurationPolicy(input []interface{}) *logic.FlowAccessControlConfigurationPolicy {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+
+	result := logic.FlowAccessControlConfigurationPolicy{
+		AllowedCallerIPAddresses: expandLogicAppWorkflowIPAddressRanges(v["allowed_caller_ip_address_range"].(*pluginsdk.Set).List()),
+	}
+
+	return &result
+}
+
+func expandLogicAppWorkflowIPAddressRanges(input []interface{}) *[]logic.IPAddressRange {
+	results := make([]logic.IPAddressRange, 0)
+
+	for _, item := range input {
+		results = append(results, logic.IPAddressRange{
+			AddressRange: utils.String(item.(string)),
+		})
+	}
+
+	return &results
+}
+
 func flattenLogicAppWorkflowWorkflowParameters(input map[string]interface{}) (map[string]interface{}, error) {
 	if input == nil {
 		return nil, nil
@@ -603,4 +771,51 @@ func flattenIPAddresses(input *[]logic.IPAddress) []interface{} {
 		addresses = append(addresses, *addr.Address)
 	}
 	return addresses
+}
+
+func flattenLogicAppWorkflowFlowAccessControl(input *logic.FlowAccessControlConfiguration) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"action":              flattenLogicAppWorkflowAccessControlConfigurationPolicy(input.Actions),
+			"content":             flattenLogicAppWorkflowAccessControlConfigurationPolicy(input.Contents),
+			"trigger":             flattenLogicAppWorkflowAccessControlConfigurationPolicy(input.Triggers),
+			"workflow_management": flattenLogicAppWorkflowAccessControlConfigurationPolicy(input.WorkflowManagement),
+		},
+	}
+}
+
+func flattenLogicAppWorkflowAccessControlConfigurationPolicy(input *logic.FlowAccessControlConfigurationPolicy) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	result := make(map[string]interface{})
+
+	if input.AllowedCallerIPAddresses != nil {
+		result["allowed_caller_ip_address_range"] = flattenLogicAppWorkflowIPAddressRanges(input.AllowedCallerIPAddresses)
+	}
+
+	return append(results, result)
+}
+
+func flattenLogicAppWorkflowIPAddressRanges(input *[]logic.IPAddressRange) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		var addressRange string
+		if item.AddressRange != nil {
+			addressRange = *item.AddressRange
+		}
+		results = append(results, addressRange)
+	}
+
+	return results
 }

@@ -1,7 +1,7 @@
 package monitor
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -26,7 +26,7 @@ func expandMonitorScheduledQueryRulesCommonSource(d *pluginsdk.ResourceData) *in
 	source := insights.Source{
 		AuthorizedResources: utils.ExpandStringSlice(authorizedResourceIDs),
 		DataSourceID:        utils.String(dataSourceID),
-		QueryType:           insights.ResultCount,
+		QueryType:           insights.QueryTypeResultCount,
 	}
 	if ok {
 		source.Query = utils.String(query.(string))

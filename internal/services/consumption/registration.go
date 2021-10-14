@@ -12,6 +12,7 @@ const (
 	consumptionBudgetResourceGroupName           = "azurerm_consumption_budget_resource_group"
 	consumptionBudgetSubscriptionName            = "azurerm_consumption_budget_subscription"
 	consumptionBudgetResourceGroupDataSourceName = "azurerm_consumption_budget_resource_group"
+	consumptionBudgetSubscriptionDataSourceName  = "azurerm_consumption_budget_subscription"
 )
 
 type Registration struct{}
@@ -32,6 +33,7 @@ func (r Registration) WebsiteCategories() []string {
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		consumptionBudgetResourceGroupDataSourceName: resourceArmConsumptionBudgetResourceGroupDataSource(),
+		consumptionBudgetSubscriptionDataSourceName:  resourceArmConsumptionBudgetSubscriptionDataSource(),
 	}
 }
 

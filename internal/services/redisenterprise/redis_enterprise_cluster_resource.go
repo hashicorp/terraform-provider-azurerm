@@ -26,6 +26,7 @@ func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceRedisEnterpriseClusterCreate,
 		Read:   resourceRedisEnterpriseClusterRead,
+		Update: resourceRedisEnterpriseClusterUpdate,
 		Delete: resourceRedisEnterpriseClusterDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.RedisEnterpriseClusterID(id)
@@ -35,6 +36,7 @@ func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -103,7 +105,7 @@ func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 				Deprecated: "This field currently is not yet being returned from the service API, please see https://github.com/Azure/azure-sdk-for-go/issues/14420 for more information",
 			},
 
-			"tags": tags.ForceNewSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -224,6 +226,44 @@ func resourceRedisEnterpriseClusterRead(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func resourceRedisEnterpriseClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).RedisEnterprise.Client
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+	log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache update.")
+
+	id, err := parse.RedisEnterpriseClusterID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
+
+	parameters := redisenterprise.ClusterUpdate{
+		Tags: expandedTags,
+	}
+
+	if _, err := client.Update(ctx, id.ResourceGroup, id.RedisEnterpriseName, parameters); err != nil {
+		return fmt.Errorf("updating Redis Cache %q (Resource Group %q): %+v", id.RedisEnterpriseName, id.ResourceGroup, err)
+	}
+
+	log.Printf("[DEBUG] Waiting for Redis Cache %q (Resource Group %q) to become available", id.RedisEnterpriseName, id.ResourceGroup)
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{"Creating", "Updating", "Enabling", "Deleting", "Disabling"},
+		Target:     []string{"Running"},
+		Refresh:    redisEnterpriseClusterStateRefreshFunc(ctx, client, *id),
+		MinTimeout: 15 * time.Second,
+		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+	}
+
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for Redis Cache %q (Resource Group %q) to become available: %+v", id.RedisEnterpriseName, id.ResourceGroup, err)
+	}
+
+	return resourceRedisEnterpriseClusterRead(d, meta)
 }
 
 func resourceRedisEnterpriseClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {

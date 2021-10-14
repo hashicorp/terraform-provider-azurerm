@@ -286,6 +286,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			// todo 3.0 rename this to replicas_per_main? or something else to confirm to inclusive language guidelines
 			"replicas_per_master": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
@@ -742,20 +743,22 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (map[string]*string, er
 		output["maxclients"] = utils.String(strconv.Itoa(v))
 	}
 
-	if v := raw["maxmemory_delta"].(int); v > 0 {
-		output["maxmemory-delta"] = utils.String(strconv.Itoa(v))
-	}
+	if d.Get("sku_name").(string) != string(redis.SkuNameBasic) {
+		if v := raw["maxmemory_delta"].(int); v > 0 {
+			output["maxmemory-delta"] = utils.String(strconv.Itoa(v))
+		}
 
-	if v := raw["maxmemory_reserved"].(int); v > 0 {
-		output["maxmemory-reserved"] = utils.String(strconv.Itoa(v))
+		if v := raw["maxmemory_reserved"].(int); v > 0 {
+			output["maxmemory-reserved"] = utils.String(strconv.Itoa(v))
+		}
+
+		if v := raw["maxfragmentationmemory_reserved"].(int); v > 0 {
+			output["maxfragmentationmemory-reserved"] = utils.String(strconv.Itoa(v))
+		}
 	}
 
 	if v := raw["maxmemory_policy"].(string); v != "" {
 		output["maxmemory-policy"] = utils.String(v)
-	}
-
-	if v := raw["maxfragmentationmemory_reserved"].(int); v > 0 {
-		output["maxfragmentationmemory-reserved"] = utils.String(strconv.Itoa(v))
 	}
 
 	// RDB Backup

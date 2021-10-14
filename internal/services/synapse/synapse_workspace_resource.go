@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"regexp"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -150,15 +150,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				},
 			},
 
-			"managed_resource_group_name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[-\w\._\(\)]{0,89}[-\w_\(\)]$`),
-					"The resource group name must be no longer than 90 characters long, and must be alphanumeric characters and '-', '_', '(', ')' and'.'. Note that the name cannot end with '.'"),
-			},
+			"managed_resource_group_name": azure.SchemaResourceGroupNameOptionalComputed(),
 
 			"azure_devops_repo": {
 				Type:          pluginsdk.TypeList,
@@ -191,6 +183,12 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.RepoRootFolder(),
+						},
+						"tenant_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IsUUID,
 						},
 					},
 				},
@@ -237,10 +235,26 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"customer_managed_key_versionless_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
+			"customer_managed_key": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_versionless_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
+						},
+
+						// Default to cmk to ensure backwards compatibility with previous version that hardcoded the key name to cmk
+						"key_name": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "cmk",
+						},
+					},
+				},
 			},
 
 			"tags": tags.Schema(),
@@ -384,7 +398,10 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("sql_administrator_login", props.SQLAdministratorLogin)
 		d.Set("managed_resource_group_name", props.ManagedResourceGroupName)
 		d.Set("connectivity_endpoints", utils.FlattenMapStringPtrString(props.ConnectivityEndpoints))
-		d.Set("customer_managed_key_versionless_id", flattenEncryptionDetails(props.Encryption))
+		cmk := flattenEncryptionDetails(props.Encryption)
+		if err := d.Set("customer_managed_key", cmk); err != nil {
+			return fmt.Errorf("setting `customer_managed_key`: %+v", err)
+		}
 
 		repoType, repo := flattenWorkspaceRepositoryConfiguration(props.WorkspaceRepositoryConfiguration)
 		if repoType == workspaceVSTSConfiguration {
@@ -523,7 +540,7 @@ func expandArmWorkspaceAadAdmin(input []interface{}) *synapse.WorkspaceAadAdminI
 func expandWorkspaceRepositoryConfiguration(d *pluginsdk.ResourceData) *synapse.WorkspaceRepositoryConfiguration {
 	if azdoList, ok := d.GetOk("azure_devops_repo"); ok {
 		azdo := azdoList.([]interface{})[0].(map[string]interface{})
-		return &synapse.WorkspaceRepositoryConfiguration{
+		config := synapse.WorkspaceRepositoryConfiguration{
 			Type:                utils.String(workspaceVSTSConfiguration),
 			AccountName:         utils.String(azdo["account_name"].(string)),
 			CollaborationBranch: utils.String(azdo["branch_name"].(string)),
@@ -531,6 +548,10 @@ func expandWorkspaceRepositoryConfiguration(d *pluginsdk.ResourceData) *synapse.
 			RepositoryName:      utils.String(azdo["repository_name"].(string)),
 			RootFolder:          utils.String(azdo["root_folder"].(string)),
 		}
+		if azdoTenantId := uuid.FromStringOrNil(azdo["tenant_id"].(string)); azdoTenantId != uuid.Nil {
+			config.TenantID = &azdoTenantId
+		}
+		return &config
 	}
 
 	if githubList, ok := d.GetOk("github_repo"); ok {
@@ -566,16 +587,18 @@ func expandIdentityControlSQLSettings(enabled bool) *synapse.ManagedIdentitySQLC
 }
 
 func expandEncryptionDetails(d *pluginsdk.ResourceData) *synapse.EncryptionDetails {
-	if key, ok := d.GetOk("customer_managed_key_versionless_id"); ok {
+	if cmkList, ok := d.GetOk("customer_managed_key"); ok {
+		cmk := cmkList.([]interface{})[0].(map[string]interface{})
 		return &synapse.EncryptionDetails{
 			Cmk: &synapse.CustomerManagedKeyDetails{
 				Key: &synapse.WorkspaceKeyDetails{
-					Name:        utils.String("cmk"),
-					KeyVaultURL: utils.String(key.(string)),
+					Name:        utils.String(cmk["key_name"].(string)),
+					KeyVaultURL: utils.String(cmk["key_versionless_id"].(string)),
 				},
 			},
 		}
 	}
+
 	return nil
 }
 
@@ -643,6 +666,9 @@ func flattenWorkspaceRepositoryConfiguration(config *synapse.WorkspaceRepository
 			if config.ProjectName != nil {
 				repo["project_name"] = *config.ProjectName
 			}
+			if config.TenantID != nil {
+				repo["tenant_id"] = config.TenantID.String()
+			}
 		} else if *repoType == workspaceGitHubConfiguration {
 			if config.HostName != nil {
 				repo["git_url"] = *config.HostName
@@ -680,11 +706,23 @@ func flattenIdentityControlSQLSettings(settings synapse.ManagedIdentitySQLContro
 	return false
 }
 
-func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) *string {
-	if cmk := encryption.Cmk; cmk != nil {
-		if key := cmk.Key; key != nil {
-			return key.KeyVaultURL
+func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) []interface{} {
+	if encryption != nil {
+		if cmk := encryption.Cmk; cmk != nil {
+			if cmk.Key != nil {
+				resultMap := map[string]interface{}{}
+				resultMap["key_name"] = *cmk.Key.Name
+				resultMap["key_versionless_id"] = *cmk.Key.KeyVaultURL
+				return []interface{}{resultMap}
+			}
 		}
+
+		// if cmk := encryption.Cmk; cmk != nil {
+		// 	if key := cmk.Key; key != nil {
+		// 		return key.Name, key.KeyVaultURL
+		// 	}
+		// }
 	}
-	return nil
+
+	return make([]interface{}, 0)
 }

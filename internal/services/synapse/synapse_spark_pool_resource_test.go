@@ -97,7 +97,7 @@ func TestAccSynapseSpark3Pool_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, "3.0"),
+			Config: r.complete(data, "3.1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -120,7 +120,7 @@ func TestAccSynapseSpark3Pool_update(t *testing.T) {
 		},
 		data.ImportStep("spark_events_folder", "spark_log_folder"),
 		{
-			Config: r.complete(data, "3.0"),
+			Config: r.complete(data, "3.1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

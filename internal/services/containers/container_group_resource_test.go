@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -491,6 +491,21 @@ func TestAccContainerGroup_emptyDirVolume(t *testing.T) {
 	})
 }
 
+func TestAccContainerGroup_emptyDirVolumeShared(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.emptyDirVolumeShared(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccContainerGroup_secretVolume(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 	r := ContainerGroupResource{}
@@ -526,7 +541,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -573,7 +588,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -621,7 +636,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -662,7 +677,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -703,7 +718,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -743,7 +758,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -773,7 +788,7 @@ resource "azurerm_container_group" "import" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -809,7 +824,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -832,7 +847,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "sidecar"
-    image  = "microsoft/aci-tutorial-sidecar"
+    image  = "mcr.microsoft.com/azuredocs/aci-tutorial-sidecar"
     cpu    = "0.5"
     memory = "0.5"
   }
@@ -864,7 +879,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
 
@@ -881,7 +896,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "sidecar"
-    image  = "microsoft/aci-tutorial-sidecar"
+    image  = "mcr.microsoft.com/azuredocs/aci-tutorial-sidecar"
     cpu    = "0.5"
     memory = "0.5"
   }
@@ -920,7 +935,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -962,7 +977,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
 
@@ -978,7 +993,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "sidecar"
-    image  = "microsoft/aci-tutorial-sidecar"
+    image  = "mcr.microsoft.com/azuredocs/aci-tutorial-sidecar"
     cpu    = "0.5"
     memory = "0.5"
   }
@@ -1019,7 +1034,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
 
@@ -1099,7 +1114,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1139,7 +1154,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "windowsservercore"
-    image  = "microsoft/iis:windowsservercore"
+    image  = "mcr.microsoft.com/windows/servercore/iis:20210810-windowsservercore-ltsc2019"
     cpu    = "2.0"
     memory = "3.5"
 
@@ -1203,7 +1218,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "windowsservercore"
-    image  = "microsoft/iis:windowsservercore"
+    image  = "mcr.microsoft.com/windows/servercore/iis:20210810-windowsservercore-ltsc2019"
     cpu    = "2.0"
     memory = "3.5"
 
@@ -1553,6 +1568,66 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
+func (ContainerGroupResource) emptyDirVolumeShared(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroupemptyshared-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ip_address_type     = "public"
+  dns_name_label      = "acctestcontainergroup-%d"
+  os_type             = "Linux"
+  restart_policy      = "Never"
+
+  container {
+    name     = "writer"
+    image    = "ubuntu:20.04"
+    cpu      = "1"
+    memory   = "1.5"
+    commands = ["touch", "/sharedempty/file.txt"]
+
+    # Dummy port not used, workaround for https://github.com/hashicorp/terraform-provider-azurerm/issues/1697
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
+
+    volume {
+      name       = "logs"
+      mount_path = "/sharedempty"
+      read_only  = false
+      empty_dir  = true
+    }
+  }
+
+  container {
+    name   = "reader"
+    image  = "ubuntu:20.04"
+    cpu    = "1"
+    memory = "1.5"
+
+    volume {
+      name       = "logs"
+      mount_path = "/sharedempty"
+      read_only  = false
+      empty_dir  = true
+    }
+
+    commands = ["/bin/bash", "-c", "timeout 30 watch --interval 1 --errexit \"! cat /sharedempty/file.txt\""]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
 func (ContainerGroupResource) secretVolume(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1573,7 +1648,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1600,16 +1675,14 @@ resource "azurerm_container_group" "test" {
 }
 
 func (t ContainerGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ContainerGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["containerGroups"]
 
-	resp, err := clients.Containers.GroupsClient.Get(ctx, resourceGroup, name)
+	resp, err := clients.Containers.GroupsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Container Group (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading Container Group (%s): %+v", id.String(), err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -1636,7 +1709,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hello-world"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "1.5"
 

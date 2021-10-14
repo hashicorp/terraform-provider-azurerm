@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -92,6 +92,12 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
+			"auto_mitigation_enabled": {
+				Type:          pluginsdk.TypeBool,
+				Optional:      true,
+				Default:       false,
+				ConflictsWith: []string{"throttling"},
+			},
 			"description": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -126,9 +132,10 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(0, 4),
 			},
 			"throttling": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntBetween(0, 10000),
+				Type:          pluginsdk.TypeInt,
+				Optional:      true,
+				ValidateFunc:  validation.IntBetween(0, 10000),
+				ConflictsWith: []string{"auto_mitigation_enabled"},
 			},
 			"time_window": {
 				Type:         pluginsdk.TypeInt,
@@ -165,7 +172,9 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"GreaterThan",
+											"GreaterThanOrEqual",
 											"LessThan",
+											"LessThanOrEqual",
 											"Equal",
 										}, false),
 									},
@@ -182,7 +191,9 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"GreaterThan",
+								"GreaterThanOrEqual",
 								"LessThan",
+								"LessThanOrEqual",
 								"Equal",
 							}, false),
 						},
@@ -239,12 +250,13 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 		}
 	}
 
+	autoMitigate := d.Get("auto_mitigation_enabled").(bool)
 	description := d.Get("description").(string)
 	enabledRaw := d.Get("enabled").(bool)
 
-	enabled := insights.True
+	enabled := insights.EnabledTrue
 	if !enabledRaw {
-		enabled = insights.False
+		enabled = insights.EnabledFalse
 	}
 
 	location := azure.NormalizeLocation(d.Get("location"))
@@ -257,11 +269,12 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 	parameters := insights.LogSearchRuleResource{
 		Location: utils.String(location),
 		LogSearchRule: &insights.LogSearchRule{
-			Description: utils.String(description),
-			Enabled:     enabled,
-			Source:      source,
-			Schedule:    schedule,
-			Action:      action,
+			Description:  utils.String(description),
+			Enabled:      enabled,
+			Source:       source,
+			Schedule:     schedule,
+			Action:       action,
+			AutoMitigate: utils.Bool(autoMitigate),
 		},
 		Tags: expandedTags,
 	}
@@ -310,8 +323,9 @@ func resourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, meta
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	d.Set("auto_mitigation_enabled", resp.AutoMitigate)
 	d.Set("description", resp.Description)
-	if resp.Enabled == insights.True {
+	if resp.Enabled == insights.EnabledTrue {
 		d.Set("enabled", true)
 	} else {
 		d.Set("enabled", false)
@@ -385,17 +399,19 @@ func expandMonitorScheduledQueryRulesAlertingAction(d *pluginsdk.ResourceData) *
 	alertAction := expandMonitorScheduledQueryRulesAlertAction(alertActionRaw)
 	severityRaw := d.Get("severity").(int)
 	severity := strconv.Itoa(severityRaw)
-	throttling := d.Get("throttling").(int)
 
 	triggerRaw := d.Get("trigger").([]interface{})
 	trigger := expandMonitorScheduledQueryRulesAlertTrigger(triggerRaw)
 
 	action := insights.AlertingAction{
-		AznsAction:      alertAction,
-		Severity:        insights.AlertSeverity(severity),
-		ThrottlingInMin: utils.Int32(int32(throttling)),
-		Trigger:         trigger,
-		OdataType:       insights.OdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesAlertingAction,
+		AznsAction: alertAction,
+		Severity:   insights.AlertSeverity(severity),
+		Trigger:    trigger,
+		OdataType:  insights.OdataTypeBasicActionOdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesAlertingAction,
+	}
+
+	if throttling, ok := d.Get("throttling").(int); ok && throttling != 0 {
+		action.ThrottlingInMin = utils.Int32(int32(throttling))
 	}
 
 	return &action

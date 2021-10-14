@@ -35,6 +35,9 @@ type ClientOptions struct {
 	Environment                 azure.Environment
 	Features                    features.UserFeatures
 	StorageUseAzureAD           bool
+
+	// Some Dataplane APIs require a token scoped for a specific endpoint
+	TokenFunc func(endpoint string) (autorest.Authorizer, error)
 }
 
 func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.Authorizer) {

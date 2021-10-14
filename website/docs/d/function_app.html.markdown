@@ -118,6 +118,8 @@ A `site_config` block exports the following:
 
 * `cors` - A `cors` block as defined above.
 
+* `dotnet_framework_version` - The version of the .net framework's CLR used in this App Service.
+
 * `elastic_instance_minimum` - The number of minimum instances for this function app. Only applicable to apps on the Premium plan.
 
 * `http2_enabled` - Is HTTP2 Enabled on this App Service?
@@ -143,6 +145,8 @@ A `site_config` block exports the following:
 * `scm_type` - The type of Source Control enabled for this App Service.
 
 * `use_32_bit_worker_process` - Does the App Service run in 32 bit mode, rather than 64 bit mode?
+
+* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied?
 
 * `websockets_enabled` - Are WebSockets enabled for this App Service?
 

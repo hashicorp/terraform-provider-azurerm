@@ -476,6 +476,15 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 
 func (WindowsVirtualMachineScaleSetResource) disksDataDisk_diskEncryptionSetDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      recover_soft_deleted_key_vaults = false
+      purge_soft_delete_on_destroy    = false
+    }
+  }
+}
+
 locals {
   vm_name = "acctestVM-%d"
 }

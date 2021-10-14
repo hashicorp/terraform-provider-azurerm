@@ -80,6 +80,18 @@ func dataSourceServiceBusTopicAuthorizationRule() *pluginsdk.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"primary_connection_string_alias": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_connection_string_alias": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -121,6 +133,8 @@ func dataSourceServiceBusTopicAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 	d.Set("primary_connection_string", keysResp.PrimaryConnectionString)
 	d.Set("secondary_key", keysResp.SecondaryKey)
 	d.Set("secondary_connection_string", keysResp.SecondaryConnectionString)
+	d.Set("primary_connection_string_alias", keysResp.AliasPrimaryConnectionString)
+	d.Set("secondary_connection_string_alias", keysResp.AliasSecondaryConnectionString)
 
 	return nil
 }

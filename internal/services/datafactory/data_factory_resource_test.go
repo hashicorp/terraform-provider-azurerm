@@ -117,7 +117,7 @@ func TestAccDataFactory_github(t *testing.T) {
 				check.That(data.ResourceName).Key("github_configuration.0.account_name").HasValue(fmt.Sprintf("acctestGH-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("github_configuration.0.git_url").HasValue("https://github.com/hashicorp/"),
 				check.That(data.ResourceName).Key("github_configuration.0.repository_name").HasValue("terraform-provider-azurerm"),
-				check.That(data.ResourceName).Key("github_configuration.0.branch_name").HasValue("master"),
+				check.That(data.ResourceName).Key("github_configuration.0.branch_name").HasValue("main"),
 				check.That(data.ResourceName).Key("github_configuration.0.root_folder").HasValue("/"),
 			),
 		},
@@ -172,6 +172,21 @@ func TestAccDataFactory_userAssignedIdentity(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDataFactory_systemAssignedUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
+	r := DataFactoryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedUserAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -493,6 +508,38 @@ resource "azurerm_data_factory" "test" {
 
   identity {
     type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (DataFactoryResource) systemAssignedUserAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctest%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type = "SystemAssigned,UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id
     ]

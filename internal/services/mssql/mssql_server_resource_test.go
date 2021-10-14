@@ -200,7 +200,7 @@ func (MsSqlServerResource) Exists(ctx context.Context, client *clients.Client, s
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.ServersClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.MSSQL.ServersClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil, fmt.Errorf("SQL Server %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)

@@ -159,7 +159,7 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_blueprint_assignment" "test" {
-  name                   = "testAccBPAssignment"
+  name                   = "testAccBPAssignment%d"
   target_subscription_id = data.azurerm_subscription.test.id
   version_id             = data.azurerm_blueprint_published_version.test.id
   location               = "%s"
@@ -173,7 +173,7 @@ resource "azurerm_blueprint_assignment" "test" {
     azurerm_role_assignment.test
   ]
 }
-`, subscription, bpName, version, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
+`, subscription, bpName, version, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
 
 // This test config creates a UM-MSI and assigns Owner to the target subscription.  This is necessary due to the changes
@@ -231,7 +231,7 @@ resource "azurerm_role_assignment" "owner" {
 }
 
 resource "azurerm_blueprint_assignment" "test" {
-  name                   = "testAccBPAssignment"
+  name                   = "testAccBPAssignment%d"
   target_subscription_id = data.azurerm_subscription.test.id
   version_id             = data.azurerm_blueprint_published_version.test.id
   location               = "%s"
@@ -268,7 +268,7 @@ resource "azurerm_blueprint_assignment" "test" {
     azurerm_role_assignment.owner
   ]
 }
-`, subscription, bpName, version, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, subscription, bpName, version, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (BlueprintAssignmentResource) rootManagementGroup(data acceptance.TestData, bpName string, version string) string {
@@ -324,7 +324,7 @@ resource "azurerm_role_assignment" "owner" {
 }
 
 resource "azurerm_blueprint_assignment" "test" {
-  name                   = "testAccBPAssignment"
+  name                   = "testAccBPAssignment%d"
   target_subscription_id = data.azurerm_subscription.test.id
   version_id             = data.azurerm_blueprint_published_version.test.id
   location               = "%s"
@@ -339,7 +339,7 @@ resource "azurerm_blueprint_assignment" "test" {
     azurerm_role_assignment.owner
   ]
 }
-`, bpName, version, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
+`, bpName, version, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
 
 func (BlueprintAssignmentResource) requiresImport(data acceptance.TestData, bpName string, version string) string {

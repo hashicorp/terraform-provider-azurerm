@@ -199,9 +199,6 @@ func resourceDatabaseMigrationServiceDelete(d *pluginsdk.ResourceData, meta inte
 	toDeleteRunningTasks := false
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, &toDeleteRunningTasks)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

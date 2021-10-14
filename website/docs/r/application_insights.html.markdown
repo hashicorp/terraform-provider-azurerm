@@ -96,6 +96,8 @@ The following arguments are supported:
 
 * `workspace_id` - (Optional) Specifies the id of a log analytics workspace resource
 
+* `local_authentication_disabled` - (Optional) Disable Non-Azure AD based Auth. Defaults to `false`.
+
 ## Attributes Reference
 
 The following attributes are exported:

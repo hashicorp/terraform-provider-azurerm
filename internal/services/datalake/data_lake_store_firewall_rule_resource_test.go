@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -101,17 +101,14 @@ func TestAccDataLakeStoreFirewallRule_azureServices(t *testing.T) {
 }
 
 func (t DataLakeStoreFirewallRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.FirewallRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	accountName := id.Path["accounts"]
-	name := id.Path["firewallRules"]
 
-	resp, err := clients.Datalake.StoreFirewallRulesClient.Get(ctx, resourceGroup, accountName, name)
+	resp, err := clients.Datalake.StoreFirewallRulesClient.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Date Lake Store Firewall Rule %q (Account %q / Resource Group: %q): %v", name, accountName, resourceGroup, err)
+		return nil, fmt.Errorf("retrieving Date Lake Store Firewall Rule %s: %v", id, err)
 	}
 
 	return utils.Bool(resp.FirewallRuleProperties != nil), nil

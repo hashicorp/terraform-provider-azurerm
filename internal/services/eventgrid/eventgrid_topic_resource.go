@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -55,6 +54,8 @@ func resourceEventGridTopic() *pluginsdk.Resource {
 			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
+
+			"identity": IdentitySchema(),
 
 			"input_schema": {
 				Type:     pluginsdk.TypeString,
@@ -194,15 +195,24 @@ func resourceEventGridTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		InboundIPRules:      expandInboundIPRules(d),
 	}
 
-	properties := eventgrid.Topic{
+	topic := eventgrid.Topic{
 		Location:        &location,
 		TopicProperties: topicProperties,
 		Tags:            tags.Expand(t),
 	}
 
-	log.Printf("[INFO] preparing arguments for AzureRM EventGrid Topic creation with Properties: %+v.", properties)
+	if v, ok := d.GetOk("identity"); ok {
+		identityRaw := v.([]interface{})
+		identity, err := expandIdentity(identityRaw)
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		topic.Identity = identity
+	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
+	log.Printf("[INFO] preparing arguments for AzureRM EventGrid Topic creation with Properties: %+v.", topic)
+
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, topic)
 	if err != nil {
 		return err
 	}
@@ -291,6 +301,10 @@ func resourceEventGridTopicRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("endpoint", props.Endpoint)
 	}
 
+	if err := d.Set("identity", flattenIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
 	d.Set("primary_access_key", keys.Key1)
 	d.Set("secondary_access_key", keys.Key2)
 
@@ -309,16 +323,10 @@ func resourceEventGridTopicDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 		return fmt.Errorf("deleting EventGrid Topic %q: %+v", id.Name, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 		return fmt.Errorf("deleting EventGrid Topic %q: %+v", id.Name, err)
 	}
 

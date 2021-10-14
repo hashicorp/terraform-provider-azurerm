@@ -275,7 +275,7 @@ A `container_registries` block supports the following:
 
 A `network_configuration` block supports the following:
 
-* `subnet_id` - (Optional) The ARM resource identifier of the virtual network subnet which the compute nodes of the pool will join. Changing this forces a new resource to be created.
+* `subnet_id` - (Required) The ARM resource identifier of the virtual network subnet which the compute nodes of the pool will join. Changing this forces a new resource to be created.
 
 * `public_ips` - (Optional) A list of public ip ids that will be allocated to nodes. Changing this forces a new resource to be created.
 

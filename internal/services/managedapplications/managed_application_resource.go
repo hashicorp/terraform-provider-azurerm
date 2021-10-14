@@ -372,13 +372,21 @@ func flattenManagedApplicationParametersOrOutputs(input interface{}) (map[string
 		return results, nil
 	}
 
-	for k, v := range input.(map[string]interface{}) {
-		if v != nil {
+	for k, val := range input.(map[string]interface{}) {
+		mapVal, ok := val.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("unexpected managed application parameter or output type: %+v", mapVal)
+		}
+		if mapVal != nil {
+			v, ok := mapVal["value"]
+			if !ok {
+				return nil, fmt.Errorf("missing key 'value' in parameters or output map %+v", mapVal)
+			}
 			switch t := v.(type) {
 			case float64:
-				results[k] = v.(map[string]interface{})["value"].(float64)
+				results[k] = v.(float64)
 			case string:
-				results[k] = v.(map[string]interface{})["value"].(string)
+				results[k] = v.(string)
 			default:
 				return nil, fmt.Errorf("unexpected parameter type %T", t)
 			}

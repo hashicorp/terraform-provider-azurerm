@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -111,7 +111,47 @@ func TestAccEventGridTopic_inboundIPRules(t *testing.T) {
 	})
 }
 
-func (EventGridTopicResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func TestAccEventGridTopic_basicWithSystemManagedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
+	r := EventGridTopicResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithSystemManagedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("0"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventGridTopic_basicWithUserAssignedManagedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
+	r := EventGridTopicResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithUserAssignedManagedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsEmpty(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (EventGridTopicResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.TopicID(state.ID)
 	if err != nil {
 		return nil, err
@@ -187,8 +227,6 @@ resource "azurerm_eventgrid_topic" "test" {
 }
 
 func (EventGridTopicResource) basicWithTags(data acceptance.TestData) string {
-	// currently only supported in "West Central US" & "West US 2"
-	location := "westus2"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -208,7 +246,7 @@ resource "azurerm_eventgrid_topic" "test" {
     "foo" = "bar"
   }
 }
-`, data.RandomInteger, location, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (EventGridTopicResource) inboundIPRules(data acceptance.TestData) string {
@@ -240,4 +278,59 @@ resource "azurerm_eventgrid_topic" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (EventGridTopicResource) basicWithSystemManagedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_eventgrid_topic" "test" {
+  name                = "acctesteg-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (EventGridTopicResource) basicWithUserAssignedManagedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctesteg-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_eventgrid_topic" "test" {
+  name                = "acctesteg-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

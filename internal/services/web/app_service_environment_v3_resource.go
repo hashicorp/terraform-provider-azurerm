@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
@@ -28,18 +28,33 @@ type ClusterSettingModel struct {
 }
 
 type AppServiceEnvironmentV3Model struct {
-	Name           string                 `tfschema:"name"`
-	ResourceGroup  string                 `tfschema:"resource_group_name"`
-	SubnetId       string                 `tfschema:"subnet_id"`
-	ClusterSetting []ClusterSettingModel  `tfschema:"cluster_setting"`
-	PricingTier    string                 `tfschema:"pricing_tier"`
-	Location       string                 `tfschema:"location"`
-	Tags           map[string]interface{} `tfschema:"tags"`
+	Name                               string                            `tfschema:"name"`
+	ResourceGroup                      string                            `tfschema:"resource_group_name"`
+	SubnetId                           string                            `tfschema:"subnet_id"`
+	AllowNewPrivateEndpointConnections bool                              `tfschema:"allow_new_private_endpoint_connections"`
+	ClusterSetting                     []ClusterSettingModel             `tfschema:"cluster_setting"`
+	DedicatedHostCount                 int                               `tfschema:"dedicated_host_count"`
+	InternalLoadBalancingMode          string                            `tfschema:"internal_load_balancing_mode"`
+	ZoneRedundant                      bool                              `tfschema:"zone_redundant"`
+	Tags                               map[string]interface{}            `tfschema:"tags"`
+	DnsSuffix                          string                            `tfschema:"dns_suffix"`
+	ExternalInboundIPAddresses         []string                          `tfschema:"external_inbound_ip_addresses"`
+	InboundNetworkDependencies         []AppServiceV3InboundDependencies `tfschema:"inbound_network_dependencies"`
+	InternalInboundIPAddresses         []string                          `tfschema:"internal_inbound_ip_addresses"`
+	IpSSLAddressCount                  int                               `tfschema:"ip_ssl_address_count"`
+	LinuxOutboundIPAddresses           []string                          `tfschema:"linux_outbound_ip_addresses"`
+	Location                           string                            `tfschema:"location"`
+	PricingTier                        string                            `tfschema:"pricing_tier"`
+	WindowsOutboundIPAddresses         []string                          `tfschema:"windows_outbound_ip_addresses"`
 }
 
-// (@jackofallops) - Two important properties are missing from the SDK / Swagger that will need to be added later
-// these are `dedicated_host_count` https://docs.microsoft.com/en-gb/azure/app-service/environment/creation#dedicated-hosts
-// and `upgrade_preference` https://docs.microsoft.com/en-us/azure/app-service/environment/using#upgrade-preference
+type AppServiceV3InboundDependencies struct {
+	Description string   `tfschema:"description"`
+	IPAddresses []string `tfschema:"ip_addresses"`
+	Ports       []string `tfschema:"ports"`
+}
+
+// (@jackofallops) - Important property missing from the SDK / Swagger that will need to be added later: `upgrade_preference` https://docs.microsoft.com/en-us/azure/app-service/environment/using#upgrade-preference
 
 type AppServiceEnvironmentV3Resource struct{}
 
@@ -57,11 +72,17 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schem
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
 
-		"subnet_id": {
+		"subnet_id": { // (@jackofallops) - This _should_ be updatable via `ChangeVnet`, but the service returns Code="NotImplemented" Message="The requested method is not implemented."
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: networkValidate.SubnetID,
+		},
+
+		"allow_new_private_endpoint_connections": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
 		},
 
 		"cluster_setting": {
@@ -84,26 +105,128 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schem
 			},
 		},
 
+		"dedicated_host_count": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IntBetween(2, 2), // Docs suggest is limited to 2 physical hosts at this time
+			ConflictsWith: []string{
+				"zone_redundant",
+			},
+		},
+
+		"internal_load_balancing_mode": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  string(web.LoadBalancingModeNone),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(web.LoadBalancingModeNone),
+				string(web.LoadBalancingModeWebPublishing),
+			}, false),
+		},
+
+		"zone_redundant": {
+			Type:     pluginsdk.TypeBool,
+			ForceNew: true,
+			Optional: true,
+			Default:  false,
+			ConflictsWith: []string{
+				"dedicated_host_count",
+			},
+		},
+
 		"tags": tags.ForceNewSchema(),
 	}
 }
 
 func (r AppServiceEnvironmentV3Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"pricing_tier": {
+		"dns_suffix": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
+		},
+
+		"external_inbound_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"inbound_network_dependencies": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"description": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"ip_addresses": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
+					"ports": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+				},
+			},
+		},
+
+		"internal_inbound_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"ip_ssl_address_count": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
+		"linux_outbound_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
 		},
 
 		"location": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
+		"pricing_tier": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"windows_outbound_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
 	}
 }
 
 func (r AppServiceEnvironmentV3Resource) ModelObject() interface{} {
-	return AppServiceEnvironmentV3Model{}
+	return &AppServiceEnvironmentV3Model{}
 }
 
 func (r AppServiceEnvironmentV3Resource) ResourceType() string {
@@ -153,11 +276,13 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 				Kind:     utils.String(KindASEV3),
 				Location: utils.String(vnetLoc),
 				AppServiceEnvironment: &web.AppServiceEnvironment{
+					DedicatedHostCount:        utils.Int32(int32(model.DedicatedHostCount)),
+					ClusterSettings:           expandClusterSettingsModel(model.ClusterSetting),
+					InternalLoadBalancingMode: web.LoadBalancingMode(model.InternalLoadBalancingMode),
 					VirtualNetwork: &web.VirtualNetworkProfile{
-						ID:     utils.String(model.SubnetId),
-						Subnet: utils.String(subnet.Name),
+						ID: utils.String(model.SubnetId),
 					},
-					ClusterSettings: expandClusterSettingsModel(model.ClusterSetting),
+					ZoneRedundant: utils.Bool(model.ZoneRedundant),
 				},
 				Tags: tags.Expand(model.Tags),
 			}
@@ -173,8 +298,9 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 				Target: []string{
 					string(web.ProvisioningStateSucceeded),
 				},
-				MinTimeout: 1 * time.Minute,
-				Refresh:    appServiceEnvironmentRefresh(ctx, client, id.ResourceGroup, id.HostingEnvironmentName),
+				MinTimeout:     1 * time.Minute,
+				NotFoundChecks: 20,
+				Refresh:        appServiceEnvironmentRefresh(ctx, client, id.ResourceGroup, id.HostingEnvironmentName),
 			}
 
 			timeout, _ := ctx.Deadline()
@@ -182,6 +308,17 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 
 			if _, err := createWait.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
+			}
+
+			if !model.AllowNewPrivateEndpointConnections {
+				aseNetworkConfig := web.AseV3NetworkingConfiguration{
+					AseV3NetworkingConfigurationProperties: &web.AseV3NetworkingConfigurationProperties{
+						AllowNewPrivateEndpointConnections: utils.Bool(model.AllowNewPrivateEndpointConnections),
+					},
+				}
+				if _, err := client.UpdateAseNetworkingConfiguration(ctx, id.ResourceGroup, id.HostingEnvironmentName, aseNetworkConfig); err != nil {
+					return fmt.Errorf("setting Allow New Private Endpoint Connections on %s: %+v", id, err)
+				}
 			}
 
 			metadata.SetID(id)
@@ -219,11 +356,33 @@ func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
 				if props.VirtualNetwork != nil {
 					model.SubnetId = utils.NormalizeNilableString(props.VirtualNetwork.ID)
 				}
-
+				model.InternalLoadBalancingMode = string(props.InternalLoadBalancingMode)
+				model.DedicatedHostCount = int(utils.NormaliseNilableInt32(props.DedicatedHostCount))
 				model.PricingTier = utils.NormalizeNilableString(props.MultiSize)
 				model.ClusterSetting = flattenClusterSettingsModel(props.ClusterSettings)
+				model.DnsSuffix = utils.NormalizeNilableString(props.DNSSuffix)
+				model.IpSSLAddressCount = int(utils.NormaliseNilableInt32(existing.IpsslAddressCount))
+				model.ZoneRedundant = *props.ZoneRedundant
 			}
 
+			existingNetwork, err := client.GetAseV3NetworkingConfiguration(ctx, id.ResourceGroup, id.HostingEnvironmentName)
+			if err != nil {
+				return fmt.Errorf("reading network configuration for %s: %+v", id, err)
+			}
+
+			if props := existingNetwork.AseV3NetworkingConfigurationProperties; props != nil {
+				model.WindowsOutboundIPAddresses = *props.WindowsOutboundIPAddresses
+				model.LinuxOutboundIPAddresses = *props.LinuxOutboundIPAddresses
+				model.InternalInboundIPAddresses = *props.InternalInboundIPAddresses
+				model.ExternalInboundIPAddresses = *props.ExternalInboundIPAddresses
+				model.AllowNewPrivateEndpointConnections = *props.AllowNewPrivateEndpointConnections
+			}
+
+			inboundNetworkDependencies, err := flattenInboundNetworkDependencies(ctx, client, id)
+			if err != nil {
+				return err
+			}
+			model.InboundNetworkDependencies = *inboundNetworkDependencies
 			model.Tags = tags.Flatten(existing.Tags)
 
 			return metadata.Encode(&model)
@@ -329,5 +488,37 @@ func expandClusterSettingsModel(input []ClusterSettingModel) *[]web.NameValuePai
 			Value: utils.String(v.Value),
 		})
 	}
+
 	return &clusterSettings
+}
+
+func flattenInboundNetworkDependencies(ctx context.Context, client *web.AppServiceEnvironmentsClient, id *parse.AppServiceEnvironmentId) (*[]AppServiceV3InboundDependencies, error) {
+	var results []AppServiceV3InboundDependencies
+	inboundNetworking, err := client.GetInboundNetworkDependenciesEndpointsComplete(ctx, id.ResourceGroup, id.HostingEnvironmentName)
+	for inboundNetworking.NotDone() {
+		if err != nil {
+			return nil, fmt.Errorf("reading Inbound Network dependencies for %s: %+v", id, err)
+		}
+		value := inboundNetworking.Value()
+		result := AppServiceV3InboundDependencies{
+			Description: utils.NormalizeNilableString(value.Description),
+		}
+
+		if value.Endpoints != nil {
+			result.IPAddresses = *value.Endpoints
+		}
+
+		if value.Ports != nil {
+			result.Ports = *value.Ports
+		}
+
+		results = append(results, result)
+
+		err = inboundNetworking.NextWithContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("reading paged results for Inbound Network Dependencies for %s: %+v", id, err)
+		}
+	}
+
+	return &results, nil
 }

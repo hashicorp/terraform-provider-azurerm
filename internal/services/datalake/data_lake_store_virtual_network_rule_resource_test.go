@@ -309,7 +309,7 @@ func (r DataLakeStoreVirtualNetworkRuleResource) Exists(ctx context.Context, cli
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Data Lake Store Virtual Network Rule %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Data Lake Store Virtual Network Rule %s: %+v", id, err)
 	}
 	return utils.Bool(true), nil
 }

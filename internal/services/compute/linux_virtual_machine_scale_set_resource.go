@@ -603,17 +603,23 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if d.HasChange("automatic_os_upgrade_policy") || d.HasChange("rolling_upgrade_policy") {
-		upgradePolicy := compute.UpgradePolicy{
-			Mode: compute.UpgradeMode(d.Get("upgrade_mode").(string)),
+		upgradePolicy := compute.UpgradePolicy{}
+		if existing.VirtualMachineScaleSetProperties.UpgradePolicy == nil {
+			upgradePolicy = compute.UpgradePolicy{
+				Mode: compute.UpgradeMode(d.Get("upgrade_mode").(string)),
+			}
+		} else {
+			upgradePolicy = *existing.VirtualMachineScaleSetProperties.UpgradePolicy
+			upgradePolicy.Mode = compute.UpgradeMode(d.Get("upgrade_mode").(string))
 		}
 
 		if d.HasChange("automatic_os_upgrade_policy") {
 			automaticRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
 			upgradePolicy.AutomaticOSUpgradePolicy = ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticRaw)
 
-			// however if this block has been changed then we need to pull it
-			// we can guarantee this always has a value since it'll have been expanded and thus is safe to de-ref
-			automaticOSUpgradeIsEnabled = *upgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade
+			if upgradePolicy.AutomaticOSUpgradePolicy != nil {
+				automaticOSUpgradeIsEnabled = *upgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade
+			}
 		}
 
 		if d.HasChange("rolling_upgrade_policy") {
@@ -754,6 +760,11 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 	if d.HasChange("do_not_run_extensions_on_overprovisioned_machines") {
 		v := d.Get("do_not_run_extensions_on_overprovisioned_machines").(bool)
 		updateProps.DoNotRunExtensionsOnOverprovisionedVMs = utils.Bool(v)
+	}
+
+	if d.HasChange("overprovision") {
+		v := d.Get("overprovision").(bool)
+		updateProps.Overprovision = utils.Bool(v)
 	}
 
 	if d.HasChange("scale_in_policy") {

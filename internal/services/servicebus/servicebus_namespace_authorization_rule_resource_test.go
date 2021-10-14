@@ -71,6 +71,8 @@ func TestAccServiceBusNamespaceAuthorizationRule_rightsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("secondary_key").Exists(),
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string_alias").HasValue(""),
+				check.That(data.ResourceName).Key("secondary_connection_string_alias").HasValue(""),
 				check.That(data.ResourceName).Key("listen").HasValue("true"),
 				check.That(data.ResourceName).Key("send").HasValue("true"),
 				check.That(data.ResourceName).Key("manage").HasValue("true"),
@@ -159,4 +161,58 @@ resource "azurerm_servicebus_namespace_authorization_rule" "import" {
   manage = azurerm_servicebus_namespace_authorization_rule.test.manage
 }
 `, r.base(data, listen, send, manage))
+}
+
+func (ServiceBusNamespaceAuthorizationRuleResource) withAliasConnectionString(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "primary" {
+  name     = "acctest1RG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_resource_group" "secondary" {
+  name     = "acctest2RG-%[1]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_servicebus_namespace" "primary_namespace_test" {
+  name                = "acctest1-%[1]d"
+  location            = azurerm_resource_group.primary.location
+  resource_group_name = azurerm_resource_group.primary.name
+  sku                 = "Premium"
+  capacity            = "1"
+}
+
+resource "azurerm_servicebus_namespace" "secondary_namespace_test" {
+  name                = "acctest2-%[1]d"
+  location            = azurerm_resource_group.secondary.location
+  resource_group_name = azurerm_resource_group.secondary.name
+  sku                 = "Premium"
+  capacity            = "1"
+}
+
+resource "azurerm_servicebus_namespace_disaster_recovery_config" "pairing_test" {
+  name                 = "acctest-alias-%[1]d"
+  primary_namespace_id = azurerm_servicebus_namespace.primary_namespace_test.id
+  partner_namespace_id = azurerm_servicebus_namespace.secondary_namespace_test.id
+}
+
+resource "azurerm_servicebus_namespace_authorization_rule" "test" {
+  name                = "namespace_rule_test"
+  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
+  resource_group_name = azurerm_resource_group.primary.name
+  listen              = true
+  send                = true
+  manage              = true
+
+  depends_on = [
+    azurerm_servicebus_namespace_disaster_recovery_config.pairing_test
+  ]
+}
+
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }

@@ -89,7 +89,7 @@ func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("sql Server %q was not found in Resource Group %q", name, resourceGroup)
@@ -114,11 +114,11 @@ func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
-	restorableResp, err := restorableDroppedDatabasesClient.ListByServer(ctx, resourceGroup, name)
+	restorableListPage, err := restorableDroppedDatabasesClient.ListByServerComplete(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("listing SQL Server %s Restorable Dropped Databases: %v", name, err)
 	}
-	if err := d.Set("restorable_dropped_database_ids", flattenSqlServerRestorableDatabases(restorableResp)); err != nil {
+	if err := d.Set("restorable_dropped_database_ids", flattenSqlServerRestorableDatabases(restorableListPage.Response())); err != nil {
 		return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
 	}
 

@@ -7,13 +7,18 @@ import (
 
 type Client struct {
 	VideoAnalyzersClient *videoanalyzer.VideoAnalyzersClient
+	EdgeModulesClient    *videoanalyzer.EdgeModulesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	VideoAnalyzersClient := videoanalyzer.NewVideoAnalyzersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	EdgeModulesClient := videoanalyzer.NewEdgeModulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+
 	o.ConfigureClient(&VideoAnalyzersClient.Client, o.ResourceManagerAuthorizer)
+	o.ConfigureClient(&EdgeModulesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		VideoAnalyzersClient: &VideoAnalyzersClient,
+		EdgeModulesClient:    &EdgeModulesClient,
 	}
 }

@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	recoveryServicesValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
+	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -25,8 +27,10 @@ func resourceBackupProtectedFileShare() *pluginsdk.Resource {
 		Update: resourceBackupProtectedFileShareCreateUpdate,
 		Delete: resourceBackupProtectedFileShareDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ProtectedItemID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(80 * time.Minute),
@@ -85,13 +89,9 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 	policyID := d.Get("backup_policy_id").(string)
 
 	// get storage account name from id
-	parsedStorageAccountID, err := azure.ParseAzureResourceID(storageAccountID)
+	parsedStorageAccountID, err := storageParse.StorageAccountID(storageAccountID)
 	if err != nil {
 		return fmt.Errorf("[ERROR] Unable to parse source_storage_account_id '%s': %+v", storageAccountID, err)
-	}
-	accountName, hasName := parsedStorageAccountID.Path["storageAccounts"]
-	if !hasName {
-		return fmt.Errorf("[ERROR] parsed source_storage_account_id '%s' doesn't contain 'storageAccounts'", storageAccountID)
 	}
 
 	// the fileshare has a user defined name, but its system name (fileShareSystemName) is only known to Azure Backup
@@ -112,7 +112,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 		azureFileShareProtectableItem, check := protectableItem.Properties.AsAzureFileShareProtectableItem()
 
 		// check if protected item has the same fileshare name and is from the same storage account
-		if check && *azureFileShareProtectableItem.FriendlyName == fileShareName && *azureFileShareProtectableItem.ParentContainerFriendlyName == accountName {
+		if check && *azureFileShareProtectableItem.FriendlyName == fileShareName && *azureFileShareProtectableItem.ParentContainerFriendlyName == parsedStorageAccountID.Name {
 			fileShareSystemName = *protectableItem.Name
 			break
 		}
@@ -139,10 +139,10 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 		}
 	}
 	if fileShareSystemName == "" {
-		return fmt.Errorf("[ERROR] fileshare '%s' not found in protectable or protected fileshares, make sure Storage Account %q is registered with Recovery Service Vault %q (Resource Group %q)", fileShareName, accountName, vaultName, resourceGroup)
+		return fmt.Errorf("[ERROR] fileshare '%s' not found in protectable or protected fileshares, make sure Storage Account %q is registered with Recovery Service Vault %q (Resource Group %q)", fileShareName, parsedStorageAccountID.Name, vaultName, resourceGroup)
 	}
 
-	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, accountName)
+	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, parsedStorageAccountID.Name)
 	log.Printf("[DEBUG] creating/updating Recovery Service Protected File Share %q (Container Name %q)", fileShareName, containerName)
 
 	if d.IsNewResource() {
@@ -207,30 +207,25 @@ func resourceBackupProtectedFileShareRead(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProtectedItemID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	fileShareSystemName := id.Path["protectedItems"]
-	vaultName := id.Path["vaults"]
-	resourceGroup := id.ResourceGroup
-	containerName := id.Path["protectionContainers"]
+	log.Printf("[DEBUG] Reading Recovery Service Protected File Share %q (resource group %q)", id.Name, id.ResourceGroup)
 
-	log.Printf("[DEBUG] Reading Recovery Service Protected File Share %q (resource group %q)", fileShareSystemName, resourceGroup)
-
-	resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, fileShareSystemName, "")
+	resp, err := client.Get(ctx, id.VaultName, id.ResourceGroup, "Azure", id.ProtectionContainerName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Recovery Service Protected File Share %q (Vault %q Resource Group %q): %+v", fileShareSystemName, vaultName, resourceGroup, err)
+		return fmt.Errorf("making Read request on Recovery Service Protected File Share %q (Vault %q Resource Group %q): %+v", id.Name, id.VaultName, id.ResourceGroup, err)
 	}
 
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("recovery_vault_name", vaultName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("recovery_vault_name", id.VaultName)
 
 	if properties := resp.Properties; properties != nil {
 		if item, ok := properties.AsAzureFileshareProtectedItem(); ok {
@@ -253,28 +248,23 @@ func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProtectedItemID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	fileShareSystemName := id.Path["protectedItems"]
-	resourceGroup := id.ResourceGroup
-	vaultName := id.Path["vaults"]
-	containerName := id.Path["protectionContainers"]
+	log.Printf("[DEBUG] Deleting Recovery Service Protected Item %q (resource group %q)", id.Name, id.ResourceGroup)
 
-	log.Printf("[DEBUG] Deleting Recovery Service Protected Item %q (resource group %q)", fileShareSystemName, resourceGroup)
-
-	resp, err := client.Delete(ctx, vaultName, resourceGroup, "Azure", containerName, fileShareSystemName)
+	resp, err := client.Delete(ctx, id.VaultName, id.ResourceGroup, "Azure", id.ProtectionContainerName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("issuing delete request for Recovery Service Protected File Share %q (Resource Group %q): %+v", fileShareSystemName, resourceGroup, err)
+			return fmt.Errorf("issuing delete request for Recovery Service Protected File Share %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
 	locationURL, err := resp.Response.Location()
 	if err != nil || locationURL == nil {
-		return fmt.Errorf("deleting Azure File Share backups item %s (Vault %s): Location header missing or empty", containerName, vaultName)
+		return fmt.Errorf("deleting Azure File Share backups item %s (Vault %s): Location header missing or empty", id.ProtectionContainerName, id.VaultName)
 	}
 
 	opResourceID := handleAzureSdkForGoBug2824(locationURL.Path)
@@ -285,7 +275,7 @@ func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta inte
 	}
 	operationID := parsedLocation.Path["backupOperationResults"] // This is different for create and delete requests ¯\_(ツ)_/¯
 
-	if _, err := resourceBackupProtectedFileShareWaitForOperation(ctx, opClient, vaultName, resourceGroup, operationID, d); err != nil {
+	if _, err := resourceBackupProtectedFileShareWaitForOperation(ctx, opClient, id.VaultName, id.ResourceGroup, operationID, d); err != nil {
 		return err
 	}
 

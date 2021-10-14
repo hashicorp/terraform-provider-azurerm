@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -622,15 +622,12 @@ resource "azurerm_container_registry_webhook" "test" {
 }
 
 func (t ContainerRegistryWebhookResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.WebhookID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	registryName := id.Path["registries"]
-	name := id.Path["webhooks"]
 
-	resp, err := clients.Containers.WebhooksClient.Get(ctx, resourceGroup, registryName, name)
+	resp, err := clients.Containers.WebhooksClient.Get(ctx, id.ResourceGroup, id.RegistryName, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("reading Container Registry Webhook (%s): %+v", id, err)
 	}

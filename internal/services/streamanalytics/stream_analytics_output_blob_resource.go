@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -89,6 +90,17 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 			},
 
 			"serialization": schemaStreamAnalyticsOutputSerialization(),
+
+			"batch_max_wait_time": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.BatchMaxWaitTime,
+			},
+			"batch_min_rows": {
+				Type:         pluginsdk.TypeFloat,
+				Optional:     true,
+				ValidateFunc: validation.FloatBetween(0, 10000),
+			},
 		},
 	}
 }
@@ -149,6 +161,20 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 			},
 			Serialization: serialization,
 		},
+	}
+
+	if batchMaxWaitTime, ok := d.GetOk("batch_max_wait_time"); ok {
+		props.TimeWindow = utils.String(batchMaxWaitTime.(string))
+	}
+
+	if batchMinRows, ok := d.GetOk("batch_min_rows"); ok {
+		props.SizeWindow = utils.Float(batchMinRows.(float64))
+	}
+
+	// timeWindow and sizeWindow must be set for Parquet serialization
+	_, isParquet := serialization.AsParquetSerialization()
+	if isParquet && (props.TimeWindow == nil || props.SizeWindow == nil) {
+		return fmt.Errorf("cannot create Stream Analytics Output Blob %q (Job %q / Resource Group %q): batch_min_rows and batch_time_window must be set for Parquet serialization", name, jobName, resourceGroup)
 	}
 
 	if d.IsNewResource() {
@@ -216,6 +242,8 @@ func resourceStreamAnalyticsOutputBlobRead(d *pluginsdk.ResourceData, meta inter
 		if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
 			return fmt.Errorf("setting `serialization`: %+v", err)
 		}
+		d.Set("batch_max_wait_time", props.TimeWindow)
+		d.Set("batch_min_rows", props.SizeWindow)
 	}
 
 	return nil

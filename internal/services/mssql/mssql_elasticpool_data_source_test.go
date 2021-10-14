@@ -27,6 +27,11 @@ func TestAccDataSourceMsSqlElasticPool_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("per_db_max_capacity").HasValue("4"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 				check.That(data.ResourceName).Key("zone_redundant").HasValue("false"),
+				check.That(data.ResourceName).Key("sku.#").HasValue("1"),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("GP_Gen5"),
+				check.That(data.ResourceName).Key("sku.0.tier").HasValue("GeneralPurpose"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("4"),
+				check.That(data.ResourceName).Key("sku.0.family").HasValue("Gen5"),
 			),
 		},
 	})

@@ -90,7 +90,7 @@ A `custom_parameters` block supports the following:
 
 * `storage_account_name` - (Optional) Default Databricks File Storage account name. Defaults to a randomized name(e.g. `dbstoragel6mfeghoe5kxu`). Changing this forces a new resource to be created.
 
-* `storage_account_sku_name` - (Optional) Storage account SKU name. Possible values inclued`Standard_LRS`, `Standard_GRS`, `Standard_RAGRS`, `Standard_GZRS`, `Standard_RAGZRS`, `Standard_ZRS`, `Premium_LRS` or `Premium_ZRS`. Defaults to `Standard_GRS`. Changing this forces a new resource to be created.
+* `storage_account_sku_name` - (Optional) Storage account SKU name. Possible values include `Standard_LRS`, `Standard_GRS`, `Standard_RAGRS`, `Standard_GZRS`, `Standard_RAGZRS`, `Standard_ZRS`, `Premium_LRS` or `Premium_ZRS`. Defaults to `Standard_GRS`. Changing this forces a new resource to be created.
 
 * `virtual_network_id` - (Optional) The ID of a Virtual Network where this Databricks Cluster should be created. Changing this forces a new resource to be created.
 
@@ -101,12 +101,12 @@ A `custom_parameters` block supports the following:
 
 ## Example HCL Configurations
 
-* [Databricks Workspace Secure Connectivity Cluster with Load Balancer](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/databricks/secure-connectivity-cluster/with-load-balancer)
-* [Databricks Workspace Secure Connectivity Cluster without Load Balancer](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/databricks/secure-connectivity-cluster/without-load-balancer)
-* [Databricks Workspace with Private Endpoint](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/private-endpoint/databricks/private-endpoint)
-* [Databricks Workspace with Private Endpoint, Customer Managed Keys for Managed Services and Databricks File System Customer Managed Keys](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/private-endpoint/databricks/managed-services)
-* [Databricks Workspace with Databricks File System Customer Managed Keys](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/databricks/customer-managed-key/dbfs)
-* [Databricks Workspace with Customer Managed Keys for Managed Services](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/databricks/customer-managed-key/managed-services)
+* [Databricks Workspace Secure Connectivity Cluster with Load Balancer](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/secure-connectivity-cluster/with-load-balancer)
+* [Databricks Workspace Secure Connectivity Cluster without Load Balancer](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/secure-connectivity-cluster/without-load-balancer)
+* [Databricks Workspace with Private Endpoint](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/databricks/private-endpoint)
+* [Databricks Workspace with Private Endpoint, Customer Managed Keys for Managed Services and Databricks File System Customer Managed Keys](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/databricks/managed-services)
+* [Databricks Workspace with Databricks File System Customer Managed Keys](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/customer-managed-key/dbfs)
+* [Databricks Workspace with Customer Managed Keys for Managed Services](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/customer-managed-key/managed-services)
 
 
 ## Attributes Reference

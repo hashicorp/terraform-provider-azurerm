@@ -86,6 +86,11 @@ func dataSourceAppServicePlan() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"zone_redundant": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -134,6 +139,7 @@ func AppServicePlanDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		d.Set("is_xenon", props.IsXenon)
+		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 
 	if err := d.Set("sku", flattenAppServicePlanSku(resp.Sku)); err != nil {
