@@ -1,16 +1,16 @@
 ---
 subcategory: "Network"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_virtual_hub_route_table"
+page_title: "Azure Resource Manager: azurerm_virtual_hub_route"
 description: |-
-  Manages a Virtual Hub Route Table.
+  Manages a Virtual Hub Route.
 ---
 
-# azurerm_virtual_hub_route_table
+# azurerm_virtual_hub_route
 
-Manages a Virtual Hub Route Table.
+Manages a Virtual Hub Route.
 
-~> **Note:** The Routes can be set inline here, as well as with the [virtual_hub_route resource](virtual_hub_route.html) resource. You can only use one or the other and using both will cause a conflict.
+~> **Note:** The Route can be created, as well as with the [virtual_hub_route_table resource](virtual_hub_route_table.html) resource. You can only use one or the other and using both will cause a conflict.
 
 ## Example Usage
 
@@ -63,20 +63,26 @@ resource "azurerm_virtual_hub_connection" "example" {
   name                      = "example-vhubconn"
   virtual_hub_id            = azurerm_virtual_hub.example.id
   remote_virtual_network_id = azurerm_virtual_network.example.id
+
+  routing {
+    associated_route_table_id = azurerm_virtual_hub_route_table.example.id
+  }
 }
 
 resource "azurerm_virtual_hub_route_table" "example" {
   name           = "example-vhubroutetable"
   virtual_hub_id = azurerm_virtual_hub.example.id
   labels         = ["label1"]
+}
 
-  route {
-    name              = "example-route"
-    destinations_type = "CIDR"
-    destinations      = ["10.0.0.0/16"]
-    next_hop_type     = "ResourceId"
-    next_hop          = azurerm_virtual_hub_connection.example.id
-  }
+resource "azurerm_virtual_hub_route" "example" {
+  route_table_id = azurerm_virtual_hub_route_table.example.id
+
+  name              = "example-route"
+  destinations_type = "CIDR"
+  destinations      = ["10.0.0.0/16"]
+  next_hop_type     = "ResourceId"
+  next_hop          = azurerm_virtual_hub_connection.example.id
 }
 ```
 
@@ -84,19 +90,9 @@ resource "azurerm_virtual_hub_route_table" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for Virtual Hub Route Table. Changing this forces a new resource to be created.
+* `route_table_id` - (Required) The ID of the Virtual Hub Route Table to link this route to. Changing this forces a new resource to be created.
 
-* `virtual_hub_id` - (Required) The ID of the Virtual Hub within which this route table should be created. Changing this forces a new resource to be created.
-
-* `labels` - (Optional) List of labels associated with this route table.
-
-* `route` - (Optional)  A `route` block as defined below.
-
----
-
-An `route` block exports the following:
-
-* `name` - (Required) The name which should be used for this route.
+* `name` - (Required) The name which should be used for this route. Changing this forces a new resource to be created.
 
 * `destinations` - (Required) A list of destination addresses for this route.
 
@@ -123,8 +119,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Virtual Hub Route Tables can be imported using the `resource id`, e.g.
+Virtual Hub Route Tables can be imported using `<Route Table Resource Id>/<Route Name>`, e.g.
 
 ```shell
-terraform import azurerm_virtual_hub_route_table.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/virtualHubs/virtualHub1/hubRouteTables/routeTable1
+terraform import azurerm_virtual_hub_route_table.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/virtualHubs/virtualHub1/hubRouteTables/routeTable1/routeName
 ```
