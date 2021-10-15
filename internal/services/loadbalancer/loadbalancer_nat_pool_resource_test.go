@@ -282,8 +282,8 @@ resource "azurerm_lb_nat_pool" "test" {
   frontend_port_end              = 81
   backend_port                   = 3389
   frontend_ip_configuration_name = "one-%[1]d"
-  floating_ip_enabled             = true
-  tcp_reset_enabled               = true
+  floating_ip_enabled            = true
+  tcp_reset_enabled              = true
   idle_timeout_in_minutes        = 10
 }
 `, data.RandomInteger, data.Locations.Primary, sku)
