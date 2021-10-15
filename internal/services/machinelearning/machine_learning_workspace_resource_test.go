@@ -15,6 +15,111 @@ import (
 
 type WorkspaceResource struct{}
 
+var config = `
+
+//data "azurerm_client_config" "current" {}
+//
+//resource "azurerm_resource_group" "test" {
+//  name     = "acctestRG-ml-%[1]d"
+//  location = "%[2]s"
+//}
+//
+//resource "azurerm_application_insights" "test" {
+//  name                = "acctestai-%[1]d"
+//  location            = azurerm_resource_group.test.location
+//  resource_group_name = azurerm_resource_group.test.name
+//  application_type    = "web"
+//}
+//
+//resource "azurerm_key_vault" "test" {
+//  name                = "acctestvault%[3]d"
+//  location            = azurerm_resource_group.test.location
+//  resource_group_name = azurerm_resource_group.test.name
+//  tenant_id           = data.azurerm_client_config.current.tenant_id
+//
+//  sku_name = "standard"
+//
+//  purge_protection_enabled = true
+//
+//	access_policy {
+//    tenant_id = data.azurerm_client_config.current.tenant_id
+//    object_id = data.azurerm_client_config.current.object_id
+//
+//    key_permissions = [
+//      "create",
+//      "get",
+//      "purge",
+//      "recover"
+//    ]
+//
+//    secret_permissions = [
+//      "set",
+//    ]
+//  }
+//}
+//
+//resource "azurerm_storage_account" "test" {
+//  name                     = "acctestsa%[4]d"
+//  location                 = azurerm_resource_group.test.location
+//  resource_group_name      = azurerm_resource_group.test.name
+//  account_tier             = "Standard"
+//  account_replication_type = "LRS"
+//}
+//
+//
+//resource "azurerm_key_vault_key" "generated" {
+//  name         = "generated-certificate"
+//  key_vault_id = azurerm_key_vault.example.id
+//  key_type     = "RSA"
+//  key_size     = 2048
+//
+//  key_opts = [
+//    "decrypt",
+//    "encrypt",
+//    "sign",
+//    "unwrapKey",
+//    "verify",
+//    "wrapKey",
+//  ]
+//}
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                    = "xz3-acctest"
+  location                = "eastus"
+  resource_group_name     = "xz3-ml-test-rg"
+  application_insights_id = "/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourcegroups/xz3-ml-test-rg/providers/microsoft.insights/components/xz3ml-appinsight01"
+  key_vault_id            = "/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/xz3-ml-test-rg/providers/Microsoft.KeyVault/vaults/xz3ml-tes1001"
+  storage_account_id      = "/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/xz3-ml-test-rg/providers/Microsoft.Storage/storageAccounts/xz3mlaccount"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  encryption {
+    key_vault {
+      id                 = "/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/xz3-ml-test-rg/providers/Microsoft.KeyVault/vaults/xz3ml-tes1001"
+      identifier         = "https://xz3ml-tes1001.vault.azure.net/keys/test1/164498577cc54960ad575d6ac7bf54d9"
+    }
+  }
+}
+
+`
+
+func TestAccMachineLearningWorkspace_sdsdsd(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
+	r := WorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: config,
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMachineLearningWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 	r := WorkspaceResource{}
@@ -209,6 +314,24 @@ resource "azurerm_container_registry" "test" {
   admin_enabled       = true
 }
 
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctest-kv-key-%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [azurerm_key_vault.test, azurerm_key_vault_access_policy.test]
+}
+
 resource "azurerm_machine_learning_workspace" "test" {
   name                    = "acctest-MLW-%[2]d"
   location                = azurerm_resource_group.test.location
@@ -224,6 +347,11 @@ resource "azurerm_machine_learning_workspace" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  encryption {
+     key_vault_id       = azurerm_key_vault.test.id
+     identifier         = azurerm_key_vault_key.test.id
   }
 
 
@@ -247,6 +375,24 @@ resource "azurerm_container_registry" "test" {
   admin_enabled       = true
 }
 
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctest-kv-key-%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [azurerm_key_vault.test, azurerm_key_vault_access_policy.test]
+}
+
 resource "azurerm_machine_learning_workspace" "test" {
   name                    = "acctest-MLW-%[2]d"
   location                = azurerm_resource_group.test.location
@@ -262,6 +408,11 @@ resource "azurerm_machine_learning_workspace" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  encryption {
+    key_vault_id       = azurerm_key_vault.test.id
+    identifier         = azurerm_key_vault_key.test.id
   }
 
   tags = {
@@ -295,7 +446,11 @@ resource "azurerm_machine_learning_workspace" "import" {
 func (r WorkspaceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}
@@ -321,6 +476,19 @@ resource "azurerm_key_vault" "test" {
   sku_name = "standard"
 
   purge_protection_enabled = true
+}
+
+resource "azurerm_key_vault_access_policy" "test" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Create",
+    "Get",
+    "Delete",
+    "Purge",
+  ]
 }
 
 resource "azurerm_storage_account" "test" {

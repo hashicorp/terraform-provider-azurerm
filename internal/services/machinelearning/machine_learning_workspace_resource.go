@@ -128,6 +128,27 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"encryption": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyVaultValidate.VaultID,
+						},
+						"identifier": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+						},
+					},
+				},
+			},
+
 			"friendly_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -180,11 +201,13 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 			Name: utils.String(d.Get("sku_name").(string)),
 			Tier: utils.String(d.Get("sku_name").(string)),
 		},
+
 		Identity: expandMachineLearningWorkspaceIdentity(d.Get("identity").([]interface{})),
 		WorkspaceProperties: &machinelearningservices.WorkspaceProperties{
 			StorageAccount:      utils.String(d.Get("storage_account_id").(string)),
 			ApplicationInsights: utils.String(d.Get("application_insights_id").(string)),
 			KeyVault:            utils.String(d.Get("key_vault_id").(string)),
+			Encryption:          expandMachineLearningWorkspaceEncryption(d.Get("encryption").([]interface{})),
 		},
 	}
 
@@ -262,6 +285,10 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 
 	if err := d.Set("identity", flattenMachineLearningWorkspaceIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("flattening identity on Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	if err := d.Set("encryption", flattenMachineLearningWorkspaceEncryption(resp.Encryption)); err != nil {
+		return fmt.Errorf("flattening encryption on Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -362,6 +389,37 @@ func flattenMachineLearningWorkspaceIdentity(identity *machinelearningservices.I
 			"type":         string(identity.Type),
 			"principal_id": principalID,
 			"tenant_id":    tenantID,
+		},
+	}
+}
+
+func expandMachineLearningWorkspaceEncryption(input []interface{}) *machinelearningservices.EncryptionProperty {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	encryption := &machinelearningservices.EncryptionProperty{
+		Status: machinelearningservices.EncryptionStatusEnabled,
+	}
+
+	encryption.KeyVaultProperties = &machinelearningservices.KeyVaultProperties{
+		KeyVaultArmID: utils.String(raw["key_vault_id"].(string)),
+		KeyIdentifier: utils.String(raw["identifier"].(string)),
+	}
+
+	return encryption
+}
+
+func flattenMachineLearningWorkspaceEncryption(encryption *machinelearningservices.EncryptionProperty) []interface{} {
+	if encryption == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"key_vault_id": *encryption.KeyVaultProperties.KeyVaultArmID,
+			"identifier":   *encryption.KeyVaultProperties.KeyIdentifier,
 		},
 	}
 }
