@@ -38,14 +38,14 @@ func TestAccDataSourceDiskEncryptionSet_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").Exists(),
-				check.That(data.ResourceName).Key("enable_auto_key_rotation").HasValue("true"),
+				check.That(data.ResourceName).Key("auto_key_rotation_enabled").HasValue("true"),
 			),
 		},
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").Exists(),
-				check.That(data.ResourceName).Key("enable_auto_key_rotation").HasValue("false"),
+				check.That(data.ResourceName).Key("auto_key_rotation_enabled").HasValue("false"),
 			),
 		},
 	})

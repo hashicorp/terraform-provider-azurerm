@@ -32,7 +32,7 @@ func dataSourceDiskEncryptionSet() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 			
-			"enable_auto_key_rotation": {
+			"auto_key_rotation_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,  
 			},
@@ -67,7 +67,7 @@ func dataSourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if props := resp.Properties; props != nil {
-		d.Set("enable_auto_key_rotation", props.rotationToLatestKeyVersionEnabled)
+		d.Set("auto_key_rotation_enabled", props.rotationToLatestKeyVersionEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
