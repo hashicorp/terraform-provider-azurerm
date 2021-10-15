@@ -266,6 +266,10 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		props.ServerProperties.MinimalTLSVersion = utils.String(v.(string))
 	}
 
+	if azureADAdministrator, ok := d.GetOk("azuread_administrator"); d.IsNewResource() && ok {
+		props.ServerProperties.Administrators = expandMsSqlServerAdministrators(azureADAdministrator.([]interface{}))
+	}
+
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props)
 	if err != nil {
 		return fmt.Errorf("issuing create/update request for %s: %+v", id.String(), err)
@@ -281,16 +285,7 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	d.SetId(id.ID())
 
-	if d.HasChange("azuread_administrator") {
-		adminDelFuture, err := adminClient.Delete(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			return fmt.Errorf("deleting AAD admin  %s: %+v", id.String(), err)
-		}
-
-		if err = adminDelFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
-			return fmt.Errorf("waiting for deletion of AAD admin %s: %+v", id.String(), err)
-		}
-
+	if d.HasChange("azuread_administrator") && !d.IsNewResource() {
 		if adminParams := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminParams != nil {
 			adminFuture, err := adminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *adminParams)
 			if err != nil {
@@ -299,6 +294,15 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 			if err = adminFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
 				return fmt.Errorf("waiting for creation of AAD admin %s: %+v", id.String(), err)
+			}
+		} else {
+			adminDelFuture, err := adminClient.Delete(ctx, id.ResourceGroup, id.Name)
+			if err != nil {
+				return fmt.Errorf("deleting AAD admin  %s: %+v", id.String(), err)
+			}
+
+			if err = adminDelFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
+				return fmt.Errorf("waiting for deletion of AAD admin %s: %+v", id.String(), err)
 			}
 		}
 	}
@@ -332,7 +336,6 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
-	adminClient := meta.(*clients.Client).MSSQL.ServerAzureADAdministratorsClient
 	restorableDroppedDatabasesClient := meta.(*clients.Client).MSSQL.RestorableDroppedDatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -382,17 +385,10 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			primaryUserAssignedIdentityID = parsedPrimaryUserAssignedIdentityID.ID()
 		}
 		d.Set("primary_user_assigned_identity_id", primaryUserAssignedIdentityID)
-	}
+		if props.Administrators != nil {
+			d.Set("azuread_administrator", flatternMsSqlServerAdministrators(*props.Administrators))
+		}
 
-	adminResp, err := adminClient.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(adminResp.Response) {
-			return fmt.Errorf("reading AAD admin %s: %v", id.Name, err)
-		}
-	} else {
-		if err := d.Set("azuread_administrator", flatternMsSqlServerAdministrator(adminResp)); err != nil {
-			return fmt.Errorf("setting `azuread_administrator`: %+v", err)
-		}
 	}
 
 	connection, err := connectionClient.Get(ctx, id.ResourceGroup, id.Name)
@@ -518,7 +514,29 @@ func expandMsSqlServerAdministrator(input []interface{}) *sql.ServerAzureADAdmin
 	return &adminParams
 }
 
-func flatternMsSqlServerAdministrator(admin sql.ServerAzureADAdministrator) []interface{} {
+func expandMsSqlServerAdministrators(input []interface{}) *sql.ServerExternalAdministrator {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	admin := input[0].(map[string]interface{})
+	sid, _ := uuid.FromString(admin["object_id"].(string))
+
+	adminParams := sql.ServerExternalAdministrator{
+		AdministratorType: sql.AdministratorTypeActiveDirectory,
+		Login:             utils.String(admin["login_username"].(string)),
+		Sid:               &sid,
+	}
+
+	if v, ok := admin["tenant_id"]; ok && v != "" {
+		tid, _ := uuid.FromString(v.(string))
+		adminParams.TenantID = &tid
+	}
+
+	return &adminParams
+}
+
+func flatternMsSqlServerAdministrators(admin sql.ServerExternalAdministrator) []interface{} {
 	var login, sid, tid string
 	if admin.Login != nil {
 		login = *admin.Login
