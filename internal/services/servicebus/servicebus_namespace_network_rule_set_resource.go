@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus"
+	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -55,10 +55,10 @@ func resourceServiceBusNamespaceNetworkRuleSet() *pluginsdk.Resource {
 			"default_action": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(servicebus.Allow),
+				Default:  string(servicebus.DefaultActionAllow),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(servicebus.Allow),
-					string(servicebus.Deny),
+					string(servicebus.DefaultActionAllow),
+					string(servicebus.DefaultActionDeny),
 				}, false),
 			},
 
@@ -96,7 +96,7 @@ func resourceServiceBusNamespaceNetworkRuleSet() *pluginsdk.Resource {
 }
 
 func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
+	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,7 +134,7 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.Resource
 }
 
 func resourceServiceBusNamespaceNetworkRuleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
+	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -172,7 +172,7 @@ func resourceServiceBusNamespaceNetworkRuleSetRead(d *pluginsdk.ResourceData, me
 }
 
 func resourceServiceBusNamespaceNetworkRuleSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
+	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -186,7 +186,7 @@ func resourceServiceBusNamespaceNetworkRuleSetDelete(d *pluginsdk.ResourceData, 
 
 	parameters := servicebus.NetworkRuleSet{
 		NetworkRuleSetProperties: &servicebus.NetworkRuleSetProperties{
-			DefaultAction: servicebus.Deny,
+			DefaultAction: servicebus.DefaultActionDeny,
 		},
 	}
 
@@ -288,7 +288,7 @@ func CheckNetworkRuleNullified(resp servicebus.NetworkRuleSet) bool {
 	if resp.NetworkRuleSetProperties == nil {
 		return true
 	}
-	if resp.DefaultAction != servicebus.Deny {
+	if resp.DefaultAction != servicebus.DefaultActionDeny {
 		return false
 	}
 	if resp.VirtualNetworkRules != nil && len(*resp.VirtualNetworkRules) > 0 {
