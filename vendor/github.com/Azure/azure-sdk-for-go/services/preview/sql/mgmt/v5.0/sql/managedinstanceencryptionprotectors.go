@@ -59,7 +59,7 @@ func (client ManagedInstanceEncryptionProtectorsClient) CreateOrUpdate(ctx conte
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -95,6 +95,7 @@ func (client ManagedInstanceEncryptionProtectorsClient) CreateOrUpdatePreparer(c
 // http.Response Body if it receives an error.
 func (client ManagedInstanceEncryptionProtectorsClient) CreateOrUpdateSender(req *http.Request) (future ManagedInstanceEncryptionProtectorsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -339,7 +340,7 @@ func (client ManagedInstanceEncryptionProtectorsClient) Revalidate(ctx context.C
 
 	result, err = client.RevalidateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsClient", "Revalidate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsClient", "Revalidate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -372,6 +373,7 @@ func (client ManagedInstanceEncryptionProtectorsClient) RevalidatePreparer(ctx c
 // http.Response Body if it receives an error.
 func (client ManagedInstanceEncryptionProtectorsClient) RevalidateSender(req *http.Request) (future ManagedInstanceEncryptionProtectorsRevalidateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

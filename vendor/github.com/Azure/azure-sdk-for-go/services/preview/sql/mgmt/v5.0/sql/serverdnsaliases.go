@@ -65,7 +65,7 @@ func (client ServerDNSAliasesClient) Acquire(ctx context.Context, resourceGroupN
 
 	result, err = client.AcquireSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesClient", "Acquire", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesClient", "Acquire", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -100,6 +100,7 @@ func (client ServerDNSAliasesClient) AcquirePreparer(ctx context.Context, resour
 // http.Response Body if it receives an error.
 func (client ServerDNSAliasesClient) AcquireSender(req *http.Request) (future ServerDNSAliasesAcquireFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -148,7 +149,7 @@ func (client ServerDNSAliasesClient) CreateOrUpdate(ctx context.Context, resourc
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -181,6 +182,7 @@ func (client ServerDNSAliasesClient) CreateOrUpdatePreparer(ctx context.Context,
 // http.Response Body if it receives an error.
 func (client ServerDNSAliasesClient) CreateOrUpdateSender(req *http.Request) (future ServerDNSAliasesCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -229,7 +231,7 @@ func (client ServerDNSAliasesClient) Delete(ctx context.Context, resourceGroupNa
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -262,6 +264,7 @@ func (client ServerDNSAliasesClient) DeletePreparer(ctx context.Context, resourc
 // http.Response Body if it receives an error.
 func (client ServerDNSAliasesClient) DeleteSender(req *http.Request) (future ServerDNSAliasesDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

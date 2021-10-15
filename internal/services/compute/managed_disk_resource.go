@@ -58,12 +58,12 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.StandardLRS),
-					string(compute.StandardSSDZRS),
-					string(compute.PremiumLRS),
-					string(compute.PremiumZRS),
-					string(compute.StandardSSDLRS),
-					string(compute.UltraSSDLRS),
+					string(compute.StorageAccountTypesStandardLRS),
+					string(compute.StorageAccountTypesStandardSSDZRS),
+					string(compute.StorageAccountTypesPremiumLRS),
+					string(compute.StorageAccountTypesPremiumZRS),
+					string(compute.StorageAccountTypesStandardSSDLRS),
+					string(compute.StorageAccountTypesUltraSSDLRS),
 				}, false),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -73,11 +73,11 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Copy),
-					string(compute.Empty),
-					string(compute.FromImage),
-					string(compute.Import),
-					string(compute.Restore),
+					string(compute.DiskCreateOptionCopy),
+					string(compute.DiskCreateOptionEmpty),
+					string(compute.DiskCreateOptionFromImage),
+					string(compute.DiskCreateOptionImport),
+					string(compute.DiskCreateOptionRestore),
 				}, false),
 			},
 
@@ -121,8 +121,8 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Windows),
-					string(compute.Linux),
+					string(compute.OperatingSystemTypesWindows),
+					string(compute.OperatingSystemTypesLinux),
 				}, true),
 			},
 
@@ -160,9 +160,9 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.AllowAll),
-					string(compute.AllowPrivate),
-					string(compute.DenyAll),
+					string(compute.NetworkAccessPolicyAllowAll),
+					string(compute.NetworkAccessPolicyAllowPrivate),
+					string(compute.NetworkAccessPolicyDenyAll),
 				}, false),
 			},
 			"disk_access_id": {
@@ -245,7 +245,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.MaxShares = utils.Int32(int32(v.(int)))
 	}
 
-	if storageAccountType == string(compute.UltraSSDLRS) {
+	if storageAccountType == string(compute.StorageAccountTypesUltraSSDLRS) {
 		if d.HasChange("disk_iops_read_write") {
 			v := d.Get("disk_iops_read_write")
 			diskIOPS := int64(v.(int))
@@ -265,7 +265,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write and logical_sector_size are only available for UltraSSD disks")
 	}
 
-	if createOption == compute.Import {
+	if createOption == compute.DiskCreateOptionImport {
 		sourceUri := d.Get("source_uri").(string)
 		if sourceUri == "" {
 			return fmt.Errorf("`source_uri` must be specified when `create_option` is set to `Import`")
@@ -279,7 +279,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.CreationData.StorageAccountID = utils.String(storageAccountId)
 		props.CreationData.SourceURI = utils.String(sourceUri)
 	}
-	if createOption == compute.Copy || createOption == compute.Restore {
+	if createOption == compute.DiskCreateOptionCopy || createOption == compute.DiskCreateOptionRestore {
 		sourceResourceId := d.Get("source_resource_id").(string)
 		if sourceResourceId == "" {
 			return fmt.Errorf("`source_resource_id` must be specified when `create_option` is set to `Copy` or `Restore`")
@@ -287,7 +287,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 		props.CreationData.SourceResourceID = utils.String(sourceResourceId)
 	}
-	if createOption == compute.FromImage {
+	if createOption == compute.DiskCreateOptionFromImage {
 		imageReferenceId := d.Get("image_reference_id").(string)
 		if imageReferenceId == "" {
 			return fmt.Errorf("`image_reference_id` must be specified when `create_option` is set to `Import`")
@@ -314,14 +314,14 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if networkAccessPolicy := d.Get("network_access_policy").(string); networkAccessPolicy != "" {
 		props.NetworkAccessPolicy = compute.NetworkAccessPolicy(networkAccessPolicy)
 	} else {
-		props.NetworkAccessPolicy = compute.AllowAll
+		props.NetworkAccessPolicy = compute.NetworkAccessPolicyAllowAll
 	}
 
 	if diskAccessID := d.Get("disk_access_id").(string); d.HasChange("disk_access_id") {
 		switch {
-		case props.NetworkAccessPolicy == compute.AllowPrivate:
+		case props.NetworkAccessPolicy == compute.NetworkAccessPolicyAllowPrivate:
 			props.DiskAccessID = utils.String(diskAccessID)
-		case diskAccessID != "" && props.NetworkAccessPolicy != compute.AllowPrivate:
+		case diskAccessID != "" && props.NetworkAccessPolicy != compute.NetworkAccessPolicyAllowPrivate:
 			return fmt.Errorf("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
 		default:
 			props.DiskAccessID = nil
@@ -329,7 +329,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if tier := d.Get("tier").(string); tier != "" {
-		if storageAccountType != string(compute.PremiumZRS) && storageAccountType != string(compute.PremiumLRS) {
+		if storageAccountType != string(compute.StorageAccountTypesPremiumZRS) && storageAccountType != string(compute.StorageAccountTypesPremiumLRS) {
 			return fmt.Errorf("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
 		}
 		props.Tier = &tier
@@ -409,7 +409,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("tier") {
-		if storageAccountType != string(compute.PremiumZRS) && storageAccountType != string(compute.PremiumLRS) {
+		if storageAccountType != string(compute.StorageAccountTypesPremiumZRS) && storageAccountType != string(compute.StorageAccountTypesPremiumLRS) {
 			return fmt.Errorf("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
 		}
 		shouldShutDown = true
@@ -435,7 +435,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if strings.EqualFold(storageAccountType, string(compute.UltraSSDLRS)) {
+	if strings.EqualFold(storageAccountType, string(compute.StorageAccountTypesUltraSSDLRS)) {
 		if d.HasChange("disk_iops_read_write") {
 			v := d.Get("disk_iops_read_write")
 			diskIOPS := int64(v.(int))
@@ -479,14 +479,14 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if networkAccessPolicy := d.Get("network_access_policy").(string); networkAccessPolicy != "" {
 		diskUpdate.NetworkAccessPolicy = compute.NetworkAccessPolicy(networkAccessPolicy)
 	} else {
-		diskUpdate.NetworkAccessPolicy = compute.AllowAll
+		diskUpdate.NetworkAccessPolicy = compute.NetworkAccessPolicyAllowAll
 	}
 
 	if diskAccessID := d.Get("disk_access_id").(string); d.HasChange("disk_access_id") {
 		switch {
-		case diskUpdate.NetworkAccessPolicy == compute.AllowPrivate:
+		case diskUpdate.NetworkAccessPolicy == compute.NetworkAccessPolicyAllowPrivate:
 			diskUpdate.DiskAccessID = utils.String(diskAccessID)
-		case diskAccessID != "" && diskUpdate.NetworkAccessPolicy != compute.AllowPrivate:
+		case diskAccessID != "" && diskUpdate.NetworkAccessPolicy != compute.NetworkAccessPolicyAllowPrivate:
 			return fmt.Errorf("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
 		default:
 			diskUpdate.DiskAccessID = nil
@@ -670,7 +670,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("tier", props.Tier)
 		d.Set("max_shares", props.MaxShares)
 
-		if networkAccessPolicy := props.NetworkAccessPolicy; networkAccessPolicy != compute.AllowAll {
+		if networkAccessPolicy := props.NetworkAccessPolicy; networkAccessPolicy != compute.NetworkAccessPolicyAllowAll {
 			d.Set("network_access_policy", props.NetworkAccessPolicy)
 		}
 		d.Set("disk_access_id", props.DiskAccessID)

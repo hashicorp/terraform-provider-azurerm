@@ -159,7 +159,7 @@ func (client SnapshotPoliciesClient) Delete(ctx context.Context, resourceGroupNa
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.SnapshotPoliciesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.SnapshotPoliciesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -192,6 +192,7 @@ func (client SnapshotPoliciesClient) DeletePreparer(ctx context.Context, resourc
 // http.Response Body if it receives an error.
 func (client SnapshotPoliciesClient) DeleteSender(req *http.Request) (future SnapshotPoliciesDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

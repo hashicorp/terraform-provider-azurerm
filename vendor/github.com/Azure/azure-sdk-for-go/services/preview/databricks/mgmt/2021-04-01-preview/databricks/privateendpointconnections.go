@@ -72,7 +72,7 @@ func (client PrivateEndpointConnectionsClient) Create(ctx context.Context, resou
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databricks.PrivateEndpointConnectionsClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databricks.PrivateEndpointConnectionsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -110,6 +110,7 @@ func (client PrivateEndpointConnectionsClient) CreatePreparer(ctx context.Contex
 // http.Response Body if it receives an error.
 func (client PrivateEndpointConnectionsClient) CreateSender(req *http.Request) (future PrivateEndpointConnectionsCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -168,7 +169,7 @@ func (client PrivateEndpointConnectionsClient) Delete(ctx context.Context, resou
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databricks.PrivateEndpointConnectionsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databricks.PrivateEndpointConnectionsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -201,6 +202,7 @@ func (client PrivateEndpointConnectionsClient) DeletePreparer(ctx context.Contex
 // http.Response Body if it receives an error.
 func (client PrivateEndpointConnectionsClient) DeleteSender(req *http.Request) (future PrivateEndpointConnectionsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
