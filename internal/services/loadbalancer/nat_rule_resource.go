@@ -124,7 +124,8 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 }
 
 func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
+	client := meta.(*clients.Client).LoadBalancers.LoadBalancerInboundNatRulesClient
+	lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -135,11 +136,24 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 	id := parse.NewLoadBalancerInboundNatRuleID(subscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, d.Get("name").(string))
 
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, id.InboundNatRuleName, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing Load Balancer Inbound Nat Rule %q: %+v", id, err)
+			}
+		}
+
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_lb_nat_rule", id.ID())
+		}
+	}
+
 	loadBalancerIdRaw := loadBalancerId.ID()
 	locks.ByID(loadBalancerIdRaw)
 	defer locks.UnlockByID(loadBalancerIdRaw)
 
-	loadBalancer, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
+	loadBalancer, err := lbClient.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(loadBalancer.Response) {
 			d.SetId("")
@@ -154,23 +168,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("expanding NAT Rule: %+v", err)
 	}
 
-	natRules := append(*loadBalancer.LoadBalancerPropertiesFormat.InboundNatRules, *newNatRule)
-
-	existingNatRule, existingNatRuleIndex, exists := FindLoadBalancerNatRuleByName(&loadBalancer, id.InboundNatRuleName)
-	if exists {
-		if id.InboundNatRuleName == *existingNatRule.Name {
-			if d.IsNewResource() {
-				return tf.ImportAsExistsError("azurerm_lb_nat_rule", *existingNatRule.ID)
-			}
-
-			// this nat rule is being updated/reapplied remove old copy from the slice
-			natRules = append(natRules[:existingNatRuleIndex], natRules[existingNatRuleIndex+1:]...)
-		}
-	}
-
-	loadBalancer.LoadBalancerPropertiesFormat.InboundNatRules = &natRules
-
-	future, err := client.CreateOrUpdate(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, loadBalancer)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, id.InboundNatRuleName, *newNatRule)
 	if err != nil {
 		return fmt.Errorf("updating Load Balancer %q (Resource Group %q) for Nat Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.InboundNatRuleName, err)
 	}
@@ -185,7 +183,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 }
 
 func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
+	client := meta.(*clients.Client).LoadBalancers.LoadBalancerInboundNatRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -194,9 +192,9 @@ func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	loadBalancer, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, id.InboundNatRuleName, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(loadBalancer.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.LoadBalancerName)
 			return nil
@@ -204,17 +202,10 @@ func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Nat Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.InboundNatRuleName, err)
 	}
 
-	config, _, exists := FindLoadBalancerNatRuleByName(&loadBalancer, id.InboundNatRuleName)
-	if !exists {
-		d.SetId("")
-		log.Printf("[INFO] Load Balancer Nat Rule %q not found. Removing from state", id.InboundNatRuleName)
-		return nil
-	}
-
-	d.Set("name", config.Name)
+	d.Set("name", id.InboundNatRuleName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if props := config.InboundNatRulePropertiesFormat; props != nil {
+	if props := resp.InboundNatRulePropertiesFormat; props != nil {
 		backendIPConfigId := ""
 		if props.BackendIPConfiguration != nil && props.BackendIPConfiguration.ID != nil {
 			backendIPConfigId = *props.BackendIPConfiguration.ID
@@ -261,7 +252,8 @@ func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceArmLoadBalancerNatRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
+	client := meta.(*clients.Client).LoadBalancers.LoadBalancerInboundNatRulesClient
+	lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -275,7 +267,7 @@ func resourceArmLoadBalancerNatRuleDelete(d *pluginsdk.ResourceData, meta interf
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
-	loadBalancer, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
+	loadBalancer, err := lbClient.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(loadBalancer.Response) {
 			d.SetId("")
@@ -283,22 +275,14 @@ func resourceArmLoadBalancerNatRuleDelete(d *pluginsdk.ResourceData, meta interf
 		}
 		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Nat Rule %q: %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, id.InboundNatRuleName, err)
 	}
-	_, index, exists := FindLoadBalancerNatRuleByName(&loadBalancer, id.InboundNatRuleName)
-	if !exists {
-		return nil
-	}
 
-	natRules := *loadBalancer.LoadBalancerPropertiesFormat.InboundNatRules
-	natRules = append(natRules[:index], natRules[index+1:]...)
-	loadBalancer.LoadBalancerPropertiesFormat.InboundNatRules = &natRules
-
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, loadBalancer)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.LoadBalancerName, id.InboundNatRuleName)
 	if err != nil {
-		return fmt.Errorf("Creating/Updating Load Balancer %q (Resource Group %q) %+v", id.LoadBalancerName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Load Balancer Nat Rule %q: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the completion of Load Balancer updates for %q (Resource Group %q) %+v", id.LoadBalancerName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the completion of deleting Load Balancer Nat Rule %q: %+v", id, err)
 	}
 
 	return nil
