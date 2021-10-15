@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
@@ -295,7 +296,7 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("azuread_administrator") && !d.IsNewResource() {
 		aadOnlyDeleteFuture, err := aadOnlyAuthentictionsClient.Delete(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			if aadOnlyDeleteFuture.Response().StatusCode != 400 {
+			if aadOnlyDeleteFuture.Response() == nil || aadOnlyDeleteFuture.Response().StatusCode != http.StatusBadRequest {
 				return fmt.Errorf("deleting AD Only Authentications %s: %+v", id.String(), err)
 			}
 			log.Printf("[INFO] AD Only Authentication is not removed as AD Admin is not set for %s: %+v", id.String(), err)
