@@ -4,6 +4,8 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: upgrading to `v58.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-13613]
+
 BUG FIXES:
 
 ## 2.81.0 (October 14, 2021)
