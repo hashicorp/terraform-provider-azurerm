@@ -8,14 +8,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/response"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/sdk/2021-04-01-preview/workspaces"
-
-	"github.com/Azure/azure-sdk-for-go/services/preview/databricks/mgmt/2021-04-01-preview/databricks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/sdk/2021-04-01-preview/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -216,7 +213,7 @@ func DatabricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	if strings.EqualFold(keySource, string(databricks.KeySourceMicrosoftKeyvault)) && (keyName == "" || keyVersion == "" || keyVaultURI == "") {
+	if strings.EqualFold(keySource, string(workspaces.KeySourceMicrosoftPointKeyvault)) && (keyName == "" || keyVersion == "" || keyVaultURI == "") {
 		return fmt.Errorf("Databricks Workspace %q (Resource Group %q): `Workspace.WorkspaceProperties.Parameters.Encryption.Value(s)` were nil", id.CustomerMangagedKeyName, id.ResourceGroup)
 	}
 
