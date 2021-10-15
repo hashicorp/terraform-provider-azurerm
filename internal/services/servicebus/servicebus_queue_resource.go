@@ -128,9 +128,10 @@ func resourceServiceBusQueue() *pluginsdk.Resource {
 			},
 
 			"max_message_size_in_kilobytes": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				Computed: true,
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: azValidate.ServiceBusMaxMessageSizeInKilobytes(),
 			},
 
 			"max_size_in_megabytes": {
