@@ -55,6 +55,15 @@ func TestAccDiskEncryptionSet_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_auto_key_rotation").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_auto_key_rotation").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -77,6 +86,15 @@ func TestAccDiskEncryptionSet_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_auto_key_rotation").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_auto_key_rotation").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -108,6 +126,7 @@ func TestAccDiskEncryptionSet_keyRotate(t *testing.T) {
 			Config: r.keyRotate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_auto_key_rotation").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -240,6 +259,7 @@ resource "azurerm_disk_encryption_set" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   key_vault_key_id    = azurerm_key_vault_key.test.id
+  enable_auto_key_rotation = true
 
   identity {
     type = "SystemAssigned"
@@ -322,6 +342,7 @@ resource "azurerm_disk_encryption_set" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   key_vault_key_id    = azurerm_key_vault_key.new.id
+  enable_auto_key_rotation = true
 
   identity {
     type = "SystemAssigned"
