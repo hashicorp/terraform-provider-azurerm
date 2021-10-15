@@ -60,7 +60,7 @@ resource "azurerm_machine_learning_workspace" "example" {
 }
 ```
 
-## Example Usage with custom managed key
+## Example Usage with Data encryption
 
 ~> **NOTE:** The Key Vault must enable purge protection.
 
