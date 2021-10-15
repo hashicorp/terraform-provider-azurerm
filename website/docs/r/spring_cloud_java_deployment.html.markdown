@@ -42,14 +42,14 @@ resource "azurerm_spring_cloud_java_deployment" "example" {
   name                = "deploy1"
   spring_cloud_app_id = azurerm_spring_cloud_app.example.id
   quota {
-  cpu           = "2"
-  memory              = "4Gi"
+    cpu    = "2"
+    memory = "4Gi"
   }
-  
-  instance_count      = 2
-  jvm_options         = "-XX:+PrintGC"
-  runtime_version     = "Java_11"
-  
+
+  instance_count  = 2
+  jvm_options     = "-XX:+PrintGC"
+  runtime_version = "Java_11"
+
   environment_variables = {
     "Foo" : "Bar"
     "Env" : "Staging"
