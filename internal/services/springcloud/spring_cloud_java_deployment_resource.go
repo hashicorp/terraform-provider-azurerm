@@ -61,9 +61,42 @@ func resourceSpringCloudJavaDeployment() *pluginsdk.Resource {
 				Deprecated:    "This field has been deprecated in favour of `cpu` within `quota` and will be removed in a future version of the provider",
 			},
 
+			"environment_variables": {
+				Type:     pluginsdk.TypeMap,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"instance_count": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ValidateFunc: validation.IntBetween(1, 500),
+			},
+
+			"jvm_options": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+
+			// TODO: Remove in 3.0
+			// The value returned in GET will be recalculated by the service if "memory" is honored, so make this property as Computed.
+			"memory_in_gb": {
+				Type:          pluginsdk.TypeInt,
+				Optional:      true,
+				Computed:      true,
+				ValidateFunc:  validation.IntBetween(1, 8),
+				ConflictsWith: []string{"quota.0.memory"},
+				Deprecated:    "This field has been deprecated in favour of `memory` within `quota` and will be removed in a future version of the provider",
+			},
+
 			"quota": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				//nanxu add below codes
+				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -102,37 +135,6 @@ func resourceSpringCloudJavaDeployment() *pluginsdk.Resource {
 						},
 					},
 				},
-			},
-
-			"environment_variables": {
-				Type:     pluginsdk.TypeMap,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"instance_count": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      1,
-				ValidateFunc: validation.IntBetween(1, 500),
-			},
-
-			"jvm_options": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-			},
-
-			// TODO: Remove in 3.0
-			// The value returned in GET will be recalculated by the service if "memory" is honored, so make this property as Computed.
-			"memory_in_gb": {
-				Type:          pluginsdk.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ValidateFunc:  validation.IntBetween(1, 8),
-				ConflictsWith: []string{"quota.0.memory"},
-				Deprecated:    "This field has been deprecated in favour of `memory` within `quota` and will be removed in a future version of the provider",
 			},
 
 			"runtime_version": {
