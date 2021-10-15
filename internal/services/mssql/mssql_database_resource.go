@@ -796,8 +796,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("while retrieving Transparent Data Encryption status of %q: %+v", id.String(), err)
 		}
 		tdeStatus := false
-		switch tde.Status {
-		case sql.TransparentDataEncryptionStatusEnabled:
+		if tde.Status == sql.TransparentDataEncryptionStatusEnabled {
 			tdeStatus = true
 		}
 		if err := d.Set("transparent_data_encryption", tdeStatus); err != nil {
