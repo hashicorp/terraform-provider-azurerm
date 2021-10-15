@@ -3,6 +3,7 @@ package cosmos_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"testing"
 
@@ -467,6 +468,17 @@ func TestAccCosmosDBAccount_capabilities_EnableMongo(t *testing.T) {
 
 func TestAccCosmosDBAccount_capabilities_MongoDBv34(t *testing.T) {
 	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.DatabaseAccountKindMongoDB, []string{"EnableMongo", "MongoDBv3.4"})
+}
+
+func TestAccCosmosDBAccount_capabilities_MongoDBv34_NoEnableMongo(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.capabilities(data, documentdb.DatabaseAccountKindMongoDB, []string{"MongoDBv3.4"}),
+			ExpectError: regexp.MustCompile("capability EnableMongo must be enabled if MongoDBv3.4 is also enabled"),
+		},
+	})
 }
 
 func TestAccCosmosDBAccount_capabilities_mongoEnableDocLevelTTL(t *testing.T) {
