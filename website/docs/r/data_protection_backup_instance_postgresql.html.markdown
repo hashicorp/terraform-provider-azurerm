@@ -34,7 +34,7 @@ resource "azurerm_postgresql_server" "example" {
   geo_redundant_backup_enabled = false
   auto_grow_enabled            = true
 
-  administrator_login          = "psqladminun"
+  administrator_login          = "psqladmin"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.5"
   ssl_enforcement_enabled      = true
@@ -109,7 +109,7 @@ resource "azurerm_key_vault" "example" {
 
 resource "azurerm_key_vault_secret" "example" {
   name         = "example"
-  value        = "Server=${azurerm_postgresql_server.example.name}.postgres.database.azure.com;Database=${azurerm_postgresql_database.example.name};Port=5432;User Id=psqladminun@${azurerm_postgresql_server.example.name};Password=H@Sh1CoR3!;Ssl Mode=Require;"
+  value        = "Server=${azurerm_postgresql_server.example.name}.postgres.database.azure.com;Database=${azurerm_postgresql_database.example.name};Port=5432;User Id=psqladmin@${azurerm_postgresql_server.example.name};Password=H@Sh1CoR3!;Ssl Mode=Require;"
   key_vault_id = azurerm_key_vault.example.id
 }
 
