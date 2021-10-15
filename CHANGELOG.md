@@ -5,6 +5,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * dependencies: upgrading to `v58.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-13613]
+* `azurerm_lb_nat_pool` - support for the `floating_ip_enabled`, `tcp_reset_enabled`, and `idle_timeout_in_minutes` properties [GH-13674]
 
 BUG FIXES:
 
