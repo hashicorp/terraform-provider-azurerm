@@ -514,8 +514,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 
 		secureboot := d.Get("secure_boot_enabled").(bool)
 		if secureboot {
-			securityType := "TrustedLaunch"
-			params.SecurityProfile.SecurityType = compute.SecurityTypes(securityType)
+			params.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
 		}
 
 		params.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(securebootEnabled.(bool))
@@ -531,8 +530,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 		vtpm := d.Get("vtpm_enabled").(bool)
 		if vtpm {
-			securityType := "TrustedLaunch"
-			params.SecurityProfile.SecurityType = compute.SecurityTypes(securityType)
+			params.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
 		}
 
 		params.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled.(bool))
@@ -777,37 +775,32 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
+	encryptionAtHostEnabled := false
+	securityType := ""
+	vtpmEnabled := false
+	secureBootEnabled := false
+
 	if secprofile := props.SecurityProfile; secprofile != nil {
 		if secprofile.EncryptionAtHost != nil {
-			d.Set("encryption_at_host_enabled", secprofile.EncryptionAtHost)
-		} else {
-			d.Set("encryption_at_host_enabled", false)
+			encryptionAtHostEnabled = *secprofile.EncryptionAtHost
 		}
 		if secprofile.SecurityType != "" {
-			d.Set("security_type", secprofile.SecurityType)
-		} else {
-			d.Set("security_type", "")
+			securityType = string(secprofile.SecurityType)
 		}
 		if uefi := props.SecurityProfile.UefiSettings; uefi != nil {
 			if uefi.VTpmEnabled != nil {
-				d.Set("vtpm_enabled", uefi.VTpmEnabled)
-			} else {
-				d.Set("vtpm_enabled", false)
+				vtpmEnabled = *uefi.VTpmEnabled
 			}
 			if uefi.SecureBootEnabled != nil {
-				d.Set("secure_boot_enabled", uefi.SecureBootEnabled)
-			} else {
-				d.Set("secure_boot_enabled", false)
+				secureBootEnabled = *uefi.SecureBootEnabled
 			}
-		} else {
-			d.Set("vtpm_enabled", false)
-			d.Set("secure_boot_enabled", false)
 		}
-	} else {
-		d.Set("encryption_at_host_enabled", false)
-		d.Set("vtpm_enabled", false)
-		d.Set("secure_boot_enabled", false)
 	}
+
+	d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
+	d.Set("security_type", securityType)
+	d.Set("vtpm_enabled", vtpmEnabled)
+	d.Set("secure_boot_enabled", secureBootEnabled)
 
 	d.Set("virtual_machine_id", props.VMID)
 
