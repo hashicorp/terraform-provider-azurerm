@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -177,12 +178,16 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 			}
 
 			featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, model.Name)
-			kv, err := client.GetKeyValues(ctx, featureKey, model.Label, "", "", []string{})
+			kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []string{})
 			if err != nil {
-				return fmt.Errorf("while checking for feature's %q existence: %+v", model.Name, err)
-			}
-			keysFound := kv.Values()
-			if len(keysFound) > 0 {
+				if v, ok := err.(autorest.DetailedError); ok {
+					if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
+						return fmt.Errorf("got http status code %d while checking for key's %q existence: %+v", v.Response.StatusCode, featureKey, v.Error())
+					}
+				} else {
+					return fmt.Errorf("while checking for key's %q existence: %+v", featureKey, err)
+				}
+			} else if kv.Response.StatusCode == 200 {
 				return tf.ImportAsExistsError(k.ResourceType(), appCfgFeatureResourceID.ID())
 			}
 
@@ -222,19 +227,17 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			res, err := client.GetKeyValues(ctx, featureKey, resourceID.Label, "", "", []string{})
+			kv, err := client.GetKeyValue(ctx, featureKey, resourceID.Label, "", "", "", []string{})
 			if err != nil {
-				if !utils.ResponseWasNotFound(res.Response().Response) {
-					return metadata.MarkAsGone(resourceID)
+				if v, ok := err.(autorest.DetailedError); ok {
+					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
+						return metadata.MarkAsGone(resourceID)
+					}
+				} else {
+					return fmt.Errorf("while checking for key's %q existence: %+v", featureKey, err)
 				}
-				return fmt.Errorf("while checking for key's %q existence: %+v", resourceID.Name, err)
+				return fmt.Errorf("while checking for key's %q existence: %+v", featureKey, err)
 			}
-
-			if len(res.Values()) > 1 || len(res.Values()) == 0 {
-				return fmt.Errorf("unexpected API response. Zero or more than one value returned for Key/Label pair %s/%s", resourceID.Name, resourceID.Label)
-			}
-
-			kv := res.Values()[0]
 
 			var fv FeatureValue
 			err = json.Unmarshal([]byte(utils.NormalizeNilableString(kv.Value)), &fv)

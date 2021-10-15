@@ -82,7 +82,7 @@ func (client BaseClient) CreateRecommendedActionSession(ctx context.Context, res
 
 	result, err = client.CreateRecommendedActionSessionSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "mariadb.BaseClient", "CreateRecommendedActionSession", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "mariadb.BaseClient", "CreateRecommendedActionSession", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -116,6 +116,7 @@ func (client BaseClient) CreateRecommendedActionSessionPreparer(ctx context.Cont
 // http.Response Body if it receives an error.
 func (client BaseClient) CreateRecommendedActionSessionSender(req *http.Request) (future CreateRecommendedActionSessionFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

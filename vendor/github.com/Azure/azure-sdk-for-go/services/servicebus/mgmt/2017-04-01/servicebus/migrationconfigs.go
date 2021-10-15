@@ -160,7 +160,7 @@ func (client MigrationConfigsClient) CreateAndStartMigration(ctx context.Context
 
 	result, err = client.CreateAndStartMigrationSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicebus.MigrationConfigsClient", "CreateAndStartMigration", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "servicebus.MigrationConfigsClient", "CreateAndStartMigration", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -195,6 +195,7 @@ func (client MigrationConfigsClient) CreateAndStartMigrationPreparer(ctx context
 // http.Response Body if it receives an error.
 func (client MigrationConfigsClient) CreateAndStartMigrationSender(req *http.Request) (future MigrationConfigsCreateAndStartMigrationFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

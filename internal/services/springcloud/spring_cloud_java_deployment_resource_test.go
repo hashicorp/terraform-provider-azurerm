@@ -183,8 +183,10 @@ func (r SpringCloudJavaDeploymentResource) halfCpuMemory(data acceptance.TestDat
 resource "azurerm_spring_cloud_java_deployment" "test" {
   name                = "acctest-scjd%s"
   spring_cloud_app_id = azurerm_spring_cloud_app.test.id
-  cpu_units           = "500m"
-  memory              = "512Mi"
+quota = {  
+"cpu"           = "500m"
+"memory" = "512Mi"
+}
 }
 `, r.template(data), data.RandomString)
 }
@@ -196,8 +198,10 @@ func (r SpringCloudJavaDeploymentResource) nonHalfCpuMemory(data acceptance.Test
 resource "azurerm_spring_cloud_java_deployment" "test" {
   name                = "acctest-scjd%s"
   spring_cloud_app_id = azurerm_spring_cloud_app.test.id
-  cpu_units           = "2"
-  memory              = "4Gi"
+quota = {  
+  "cpu"           = "2"
+  "memory"              = "4Gi"
+}
 }
 `, r.template(data), data.RandomString)
 }

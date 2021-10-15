@@ -547,7 +547,7 @@ func (client Client) MoveResources(ctx context.Context, sourceResourceGroupName 
 
 	result, err = client.MoveResourcesSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.Client", "MoveResources", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.Client", "MoveResources", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -580,6 +580,7 @@ func (client Client) MoveResourcesPreparer(ctx context.Context, sourceResourceGr
 // http.Response Body if it receives an error.
 func (client Client) MoveResourcesSender(req *http.Request) (future MoveResourcesFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -638,7 +639,7 @@ func (client Client) Update(ctx context.Context, resourceGroupName string, resou
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.Client", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.Client", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -674,6 +675,7 @@ func (client Client) UpdatePreparer(ctx context.Context, resourceGroupName strin
 // http.Response Body if it receives an error.
 func (client Client) UpdateSender(req *http.Request) (future UpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

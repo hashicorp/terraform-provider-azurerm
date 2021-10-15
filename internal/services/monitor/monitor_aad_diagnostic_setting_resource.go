@@ -142,11 +142,10 @@ func resourceMonitorAADDiagnosticSettingCreateUpdate(d *pluginsdk.ResourceData, 
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure ARM AAD Diagnostic Setting.")
 
-	name := d.Get("name").(string)
-	id := parse.NewMonitorAADDiagnosticSettingID(name)
+	id := parse.NewMonitorAADDiagnosticSettingID(d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, name)
+		existing, err := client.Get(ctx, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
@@ -196,7 +195,7 @@ func resourceMonitorAADDiagnosticSettingCreateUpdate(d *pluginsdk.ResourceData, 
 		properties.DiagnosticSettings.StorageAccountID = utils.String(storageAccountId)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, properties, name); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, properties, id.Name); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

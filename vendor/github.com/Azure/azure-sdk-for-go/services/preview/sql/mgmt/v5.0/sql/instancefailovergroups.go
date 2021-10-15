@@ -70,7 +70,7 @@ func (client InstanceFailoverGroupsClient) CreateOrUpdate(ctx context.Context, r
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.InstanceFailoverGroupsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.InstanceFailoverGroupsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -105,6 +105,7 @@ func (client InstanceFailoverGroupsClient) CreateOrUpdatePreparer(ctx context.Co
 // http.Response Body if it receives an error.
 func (client InstanceFailoverGroupsClient) CreateOrUpdateSender(req *http.Request) (future InstanceFailoverGroupsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -153,7 +154,7 @@ func (client InstanceFailoverGroupsClient) Delete(ctx context.Context, resourceG
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.InstanceFailoverGroupsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.InstanceFailoverGroupsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -186,6 +187,7 @@ func (client InstanceFailoverGroupsClient) DeletePreparer(ctx context.Context, r
 // http.Response Body if it receives an error.
 func (client InstanceFailoverGroupsClient) DeleteSender(req *http.Request) (future InstanceFailoverGroupsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -233,7 +235,7 @@ func (client InstanceFailoverGroupsClient) Failover(ctx context.Context, resourc
 
 	result, err = client.FailoverSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.InstanceFailoverGroupsClient", "Failover", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.InstanceFailoverGroupsClient", "Failover", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -266,6 +268,7 @@ func (client InstanceFailoverGroupsClient) FailoverPreparer(ctx context.Context,
 // http.Response Body if it receives an error.
 func (client InstanceFailoverGroupsClient) FailoverSender(req *http.Request) (future InstanceFailoverGroupsFailoverFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -315,7 +318,7 @@ func (client InstanceFailoverGroupsClient) ForceFailoverAllowDataLoss(ctx contex
 
 	result, err = client.ForceFailoverAllowDataLossSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.InstanceFailoverGroupsClient", "ForceFailoverAllowDataLoss", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.InstanceFailoverGroupsClient", "ForceFailoverAllowDataLoss", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -348,6 +351,7 @@ func (client InstanceFailoverGroupsClient) ForceFailoverAllowDataLossPreparer(ct
 // http.Response Body if it receives an error.
 func (client InstanceFailoverGroupsClient) ForceFailoverAllowDataLossSender(req *http.Request) (future InstanceFailoverGroupsForceFailoverAllowDataLossFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

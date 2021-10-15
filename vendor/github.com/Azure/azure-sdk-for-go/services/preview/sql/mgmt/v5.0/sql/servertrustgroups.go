@@ -69,7 +69,7 @@ func (client ServerTrustGroupsClient) CreateOrUpdate(ctx context.Context, resour
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -104,6 +104,7 @@ func (client ServerTrustGroupsClient) CreateOrUpdatePreparer(ctx context.Context
 // http.Response Body if it receives an error.
 func (client ServerTrustGroupsClient) CreateOrUpdateSender(req *http.Request) (future ServerTrustGroupsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -152,7 +153,7 @@ func (client ServerTrustGroupsClient) Delete(ctx context.Context, resourceGroupN
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -185,6 +186,7 @@ func (client ServerTrustGroupsClient) DeletePreparer(ctx context.Context, resour
 // http.Response Body if it receives an error.
 func (client ServerTrustGroupsClient) DeleteSender(req *http.Request) (future ServerTrustGroupsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

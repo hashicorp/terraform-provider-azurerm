@@ -77,7 +77,7 @@ func (client AccountClient) Create(ctx context.Context, resourceGroupName string
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "batch.AccountClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "batch.AccountClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -111,6 +111,7 @@ func (client AccountClient) CreatePreparer(ctx context.Context, resourceGroupNam
 // http.Response Body if it receives an error.
 func (client AccountClient) CreateSender(req *http.Request) (future AccountCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -165,7 +166,7 @@ func (client AccountClient) Delete(ctx context.Context, resourceGroupName string
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "batch.AccountClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "batch.AccountClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -197,6 +198,7 @@ func (client AccountClient) DeletePreparer(ctx context.Context, resourceGroupNam
 // http.Response Body if it receives an error.
 func (client AccountClient) DeleteSender(req *http.Request) (future AccountDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

@@ -83,7 +83,7 @@ func (client BackupsClient) Create(ctx context.Context, resourceGroupName string
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.BackupsClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.BackupsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -123,6 +123,7 @@ func (client BackupsClient) CreatePreparer(ctx context.Context, resourceGroupNam
 // http.Response Body if it receives an error.
 func (client BackupsClient) CreateSender(req *http.Request) (future BackupsCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -188,7 +189,7 @@ func (client BackupsClient) Delete(ctx context.Context, resourceGroupName string
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.BackupsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.BackupsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -223,6 +224,7 @@ func (client BackupsClient) DeletePreparer(ctx context.Context, resourceGroupNam
 // http.Response Body if it receives an error.
 func (client BackupsClient) DeleteSender(req *http.Request) (future BackupsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

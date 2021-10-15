@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -126,7 +128,20 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(sql.IdentityTypeSystemAssigned),
+								string(sql.IdentityTypeUserAssigned),
 							}, false),
+						},
+						"user_assigned_identity_ids": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							MinItems: 1,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: msivalidate.UserAssignedIdentityID,
+							},
+							RequiredWith: []string{
+								"primary_user_assigned_identity_id",
+							},
 						},
 						"principal_id": {
 							Type:     pluginsdk.TypeString,
@@ -137,6 +152,16 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 							Computed: true,
 						},
 					},
+				},
+			},
+
+			"primary_user_assigned_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: msivalidate.UserAssignedIdentityID,
+				RequiredWith: []string{
+					"identity.0.user_assigned_identity_ids",
 				},
 			},
 
@@ -222,6 +247,10 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if _, ok := d.GetOk("identity"); ok {
 		sqlServerIdentity := expandSqlServerIdentity(d)
 		props.Identity = sqlServerIdentity
+	}
+
+	if primaryUserAssignedIdentityID, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
+		props.PrimaryUserAssignedIdentityID = utils.String(primaryUserAssignedIdentityID.(string))
 	}
 
 	if v := d.Get("public_network_access_enabled"); !v.(bool) {
@@ -329,8 +358,12 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
+	identity, err := flattenSqlServerIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
 
-	if err := d.Set("identity", flattenSqlServerIdentity(resp.Identity)); err != nil {
+	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
@@ -340,6 +373,15 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
 		d.Set("minimum_tls_version", props.MinimalTLSVersion)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == sql.ServerNetworkAccessFlagEnabled)
+		primaryUserAssignedIdentityID := ""
+		if props.PrimaryUserAssignedIdentityID != nil && *props.PrimaryUserAssignedIdentityID != "" {
+			parsedPrimaryUserAssignedIdentityID, err := msiparse.UserAssignedIdentityID(*props.PrimaryUserAssignedIdentityID)
+			if err != nil {
+				return err
+			}
+			primaryUserAssignedIdentityID = parsedPrimaryUserAssignedIdentityID.ID()
+		}
+		d.Set("primary_user_assigned_identity_id", primaryUserAssignedIdentityID)
 	}
 
 	adminResp, err := adminClient.Get(ctx, id.ResourceGroup, id.Name)
@@ -408,14 +450,25 @@ func expandSqlServerIdentity(d *pluginsdk.ResourceData) *sql.ResourceIdentity {
 	identity := identities[0].(map[string]interface{})
 	identityType := sql.IdentityType(identity["type"].(string))
 
-	return &sql.ResourceIdentity{
+	userAssignedIdentityIds := make(map[string]*sql.UserIdentity)
+	for _, id := range identity["user_assigned_identity_ids"].(*pluginsdk.Set).List() {
+		userAssignedIdentityIds[id.(string)] = &sql.UserIdentity{}
+	}
+
+	managedServiceIdentity := sql.ResourceIdentity{
 		Type: identityType,
 	}
+
+	if identityType == sql.IdentityTypeUserAssigned {
+		managedServiceIdentity.UserAssignedIdentities = userAssignedIdentityIds
+	}
+
+	return &managedServiceIdentity
 }
 
-func flattenSqlServerIdentity(identity *sql.ResourceIdentity) []interface{} {
+func flattenSqlServerIdentity(identity *sql.ResourceIdentity) ([]interface{}, error) {
 	if identity == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 	result := make(map[string]interface{})
 	result["type"] = identity.Type
@@ -426,7 +479,19 @@ func flattenSqlServerIdentity(identity *sql.ResourceIdentity) []interface{} {
 		result["tenant_id"] = identity.TenantID.String()
 	}
 
-	return []interface{}{result}
+	identityIds := make([]string, 0)
+	if identity.UserAssignedIdentities != nil {
+		for key := range identity.UserAssignedIdentities {
+			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
+		}
+	}
+	result["user_assigned_identity_ids"] = identityIds
+
+	return []interface{}{result}, nil
 }
 
 func expandMsSqlServerAdministrator(input []interface{}) *sql.ServerAzureADAdministrator {

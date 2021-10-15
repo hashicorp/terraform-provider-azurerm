@@ -58,7 +58,7 @@ func (client ReplicationStorageClassificationMappingsClient) Create(ctx context.
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationMappingsClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationMappingsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -95,6 +95,7 @@ func (client ReplicationStorageClassificationMappingsClient) CreatePreparer(ctx 
 // http.Response Body if it receives an error.
 func (client ReplicationStorageClassificationMappingsClient) CreateSender(req *http.Request) (future ReplicationStorageClassificationMappingsCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -142,7 +143,7 @@ func (client ReplicationStorageClassificationMappingsClient) Delete(ctx context.
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationMappingsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationMappingsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -177,6 +178,7 @@ func (client ReplicationStorageClassificationMappingsClient) DeletePreparer(ctx 
 // http.Response Body if it receives an error.
 func (client ReplicationStorageClassificationMappingsClient) DeleteSender(req *http.Request) (future ReplicationStorageClassificationMappingsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

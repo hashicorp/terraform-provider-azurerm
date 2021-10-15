@@ -143,9 +143,9 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Automatic),
-					string(compute.Manual),
-					string(compute.Rolling),
+					string(compute.UpgradeModeAutomatic),
+					string(compute.UpgradeModeManual),
+					string(compute.UpgradeModeRolling),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -218,8 +218,8 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Low),
-					string(compute.Regular),
+					string(compute.VirtualMachinePriorityTypesLow),
+					string(compute.VirtualMachinePriorityTypesRegular),
 				}, true),
 			},
 
@@ -228,8 +228,8 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Deallocate),
-					string(compute.Delete),
+					string(compute.VirtualMachineEvictionPolicyTypesDeallocate),
+					string(compute.VirtualMachineEvictionPolicyTypesDelete),
 				}, false),
 			},
 
@@ -876,7 +876,7 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 		SinglePlacementGroup: &singlePlacementGroup,
 	}
 
-	if strings.EqualFold(priority, string(compute.Low)) {
+	if strings.EqualFold(priority, string(compute.VirtualMachinePriorityTypesLow)) {
 		scaleSetProps.VirtualMachineProfile.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicy)
 	}
 
@@ -2079,7 +2079,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d *pluginsdk.Res
 		if managedDiskType != "" {
 			managedDiskVMSS.StorageAccountType = compute.StorageAccountTypes(managedDiskType)
 		} else {
-			managedDiskVMSS.StorageAccountType = compute.StorageAccountTypes(compute.StandardLRS)
+			managedDiskVMSS.StorageAccountType = compute.StorageAccountTypes(compute.StorageAccountTypeStandardLRS)
 		}
 
 		// assume that data disks in VMSS can only be Managed Disks

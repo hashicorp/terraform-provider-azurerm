@@ -71,7 +71,7 @@ func (client EndpointsClient) PurgeContent(ctx context.Context, resourceGroupNam
 
 	result, err = client.PurgeContentSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "frontdoor.EndpointsClient", "PurgeContent", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "frontdoor.EndpointsClient", "PurgeContent", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -105,6 +105,7 @@ func (client EndpointsClient) PurgeContentPreparer(ctx context.Context, resource
 // http.Response Body if it receives an error.
 func (client EndpointsClient) PurgeContentSender(req *http.Request) (future EndpointsPurgeContentFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

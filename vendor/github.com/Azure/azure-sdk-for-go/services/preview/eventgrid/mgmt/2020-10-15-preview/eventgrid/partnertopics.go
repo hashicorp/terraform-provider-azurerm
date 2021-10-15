@@ -205,7 +205,7 @@ func (client PartnerTopicsClient) Delete(ctx context.Context, resourceGroupName 
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -237,6 +237,7 @@ func (client PartnerTopicsClient) DeletePreparer(ctx context.Context, resourceGr
 // http.Response Body if it receives an error.
 func (client PartnerTopicsClient) DeleteSender(req *http.Request) (future PartnerTopicsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

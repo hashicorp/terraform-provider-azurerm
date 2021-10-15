@@ -139,7 +139,7 @@ func (client ReplicationLinksClient) Failover(ctx context.Context, resourceGroup
 
 	result, err = client.FailoverSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "Failover", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "Failover", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -173,6 +173,7 @@ func (client ReplicationLinksClient) FailoverPreparer(ctx context.Context, resou
 // http.Response Body if it receives an error.
 func (client ReplicationLinksClient) FailoverSender(req *http.Request) (future ReplicationLinksFailoverFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -222,7 +223,7 @@ func (client ReplicationLinksClient) FailoverAllowDataLoss(ctx context.Context, 
 
 	result, err = client.FailoverAllowDataLossSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "FailoverAllowDataLoss", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "FailoverAllowDataLoss", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -256,6 +257,7 @@ func (client ReplicationLinksClient) FailoverAllowDataLossPreparer(ctx context.C
 // http.Response Body if it receives an error.
 func (client ReplicationLinksClient) FailoverAllowDataLossSender(req *http.Request) (future ReplicationLinksFailoverAllowDataLossFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -465,7 +467,7 @@ func (client ReplicationLinksClient) Unlink(ctx context.Context, resourceGroupNa
 
 	result, err = client.UnlinkSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "Unlink", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "Unlink", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -501,6 +503,7 @@ func (client ReplicationLinksClient) UnlinkPreparer(ctx context.Context, resourc
 // http.Response Body if it receives an error.
 func (client ReplicationLinksClient) UnlinkSender(req *http.Request) (future ReplicationLinksUnlinkFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

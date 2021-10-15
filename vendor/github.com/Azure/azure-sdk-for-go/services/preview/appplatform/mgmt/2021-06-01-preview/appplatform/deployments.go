@@ -57,7 +57,7 @@ func (client DeploymentsClient) CreateOrUpdate(ctx context.Context, resourceGrou
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -93,6 +93,7 @@ func (client DeploymentsClient) CreateOrUpdatePreparer(ctx context.Context, reso
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) CreateOrUpdateSender(req *http.Request) (future DeploymentsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -142,7 +143,7 @@ func (client DeploymentsClient) Delete(ctx context.Context, resourceGroupName st
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -176,6 +177,7 @@ func (client DeploymentsClient) DeletePreparer(ctx context.Context, resourceGrou
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) DeleteSender(req *http.Request) (future DeploymentsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -634,7 +636,7 @@ func (client DeploymentsClient) Restart(ctx context.Context, resourceGroupName s
 
 	result, err = client.RestartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "Restart", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "Restart", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -668,6 +670,7 @@ func (client DeploymentsClient) RestartPreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) RestartSender(req *http.Request) (future DeploymentsRestartFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -716,7 +719,7 @@ func (client DeploymentsClient) Start(ctx context.Context, resourceGroupName str
 
 	result, err = client.StartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "Start", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "Start", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -750,6 +753,7 @@ func (client DeploymentsClient) StartPreparer(ctx context.Context, resourceGroup
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) StartSender(req *http.Request) (future DeploymentsStartFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -798,7 +802,7 @@ func (client DeploymentsClient) Stop(ctx context.Context, resourceGroupName stri
 
 	result, err = client.StopSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "Stop", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "Stop", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -832,6 +836,7 @@ func (client DeploymentsClient) StopPreparer(ctx context.Context, resourceGroupN
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) StopSender(req *http.Request) (future DeploymentsStopFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -881,7 +886,7 @@ func (client DeploymentsClient) Update(ctx context.Context, resourceGroupName st
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -917,6 +922,7 @@ func (client DeploymentsClient) UpdatePreparer(ctx context.Context, resourceGrou
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) UpdateSender(req *http.Request) (future DeploymentsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

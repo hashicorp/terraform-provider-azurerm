@@ -197,7 +197,7 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 								Required: true,
 								ForceNew: true,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(compute.Local),
+									string(compute.DiffDiskOptionsLocal),
 								}, false),
 							},
 						},

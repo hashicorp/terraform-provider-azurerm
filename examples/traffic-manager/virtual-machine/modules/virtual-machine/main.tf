@@ -49,9 +49,7 @@ resource "azurerm_virtual_machine" "example" {
 
 resource "azurerm_virtual_machine_extension" "example" {
   name                       = "CustomScript"
-  location                   = "${data.azurerm_resource_group.example.location}"
-  resource_group_name        = "${data.azurerm_resource_group.example.name}"
-  virtual_machine_name       = "${azurerm_virtual_machine.example.name}"
+  virtual_machine_id       = azurerm_virtual_machine.example.id
   publisher                  = "Microsoft.Azure.Extensions"
   type                       = "CustomScript"
   type_handler_version       = "2.0"
