@@ -104,7 +104,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 							ValidateFunc: validation.IsUUID,
 						},
 
-						"azuread_only_authentication": {
+						"azuread_authentication_only": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Computed: true,
@@ -529,7 +529,7 @@ func expandMsSqlServerAADOnlyAuthentictions(input []interface{}) bool {
 		return false
 	}
 	admin := input[0].(map[string]interface{})
-	if v, ok := admin["azuread_only_authentication"]; ok && v != nil {
+	if v, ok := admin["azuread_authentication_only"]; ok && v != nil {
 		return v.(bool)
 	}
 	return false
@@ -605,7 +605,7 @@ func flatternMsSqlServerAdministrators(admin sql.ServerExternalAdministrator) []
 			"login_username":              login,
 			"object_id":                   sid,
 			"tenant_id":                   tid,
-			"azuread_only_authentication": aadOnlyAuthentictionsEnabled,
+			"azuread_authentication_only": aadOnlyAuthentictionsEnabled,
 		},
 	}
 }
