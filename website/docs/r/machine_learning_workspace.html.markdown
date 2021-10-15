@@ -201,7 +201,7 @@ An `identity` block supports the following:
 
 An `encryption` block supports the following:
 
-* `key_vault_id` - (Required) The ID of the keyVault where the customer owned encryption key is pnhresent.
+* `key_vault_id` - (Required) The ID of the keyVault where the customer owned encryption key is present.
 
 * `identifier` - (Required) The Key vault URI to access the encryption key.
 
