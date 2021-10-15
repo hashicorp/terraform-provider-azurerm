@@ -15,7 +15,7 @@ import (
 	"net/http"
 )
 
-// NamespacesClient is the azure Service Bus client
+// NamespacesClient is the client for the Namespaces methods of the Servicebus service.
 type NamespacesClient struct {
 	BaseClient
 }
@@ -79,7 +79,7 @@ func (client NamespacesClient) CheckNameAvailabilityMethodPreparer(ctx context.C
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -159,11 +159,12 @@ func (client NamespacesClient) CreateOrUpdatePreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -266,11 +267,12 @@ func (client NamespacesClient) CreateOrUpdateAuthorizationRulePreparer(ctx conte
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -355,11 +357,12 @@ func (client NamespacesClient) CreateOrUpdateNetworkRuleSetPreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -436,7 +439,7 @@ func (client NamespacesClient) DeletePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -536,7 +539,7 @@ func (client NamespacesClient) DeleteAuthorizationRulePreparer(ctx context.Conte
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -621,7 +624,7 @@ func (client NamespacesClient) GetPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -712,7 +715,7 @@ func (client NamespacesClient) GetAuthorizationRulePreparer(ctx context.Context,
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -798,7 +801,7 @@ func (client NamespacesClient) GetNetworkRuleSetPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -874,7 +877,7 @@ func (client NamespacesClient) ListPreparer(ctx context.Context) (*http.Request,
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1002,7 +1005,7 @@ func (client NamespacesClient) ListAuthorizationRulesPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1125,7 +1128,7 @@ func (client NamespacesClient) ListByResourceGroupPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1253,7 +1256,7 @@ func (client NamespacesClient) ListKeysPreparer(ctx context.Context, resourceGro
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1344,7 +1347,7 @@ func (client NamespacesClient) ListNetworkRuleSetsPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1412,94 +1415,6 @@ func (client NamespacesClient) ListNetworkRuleSetsComplete(ctx context.Context, 
 	return
 }
 
-// Migrate this operation Migrate the given namespace to provided name type
-// Parameters:
-// resourceGroupName - name of the Resource group within the Azure subscription.
-// namespaceName - the namespace name
-// parameters - parameters supplied to migrate namespace type.
-func (client NamespacesClient) Migrate(ctx context.Context, resourceGroupName string, namespaceName string, parameters SBNamespaceMigrate) (result autorest.Response, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/NamespacesClient.Migrate")
-		defer func() {
-			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: namespaceName,
-			Constraints: []validation.Constraint{{Target: "namespaceName", Name: validation.MaxLength, Rule: 50, Chain: nil},
-				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("servicebus.NamespacesClient", "Migrate", err.Error())
-	}
-
-	req, err := client.MigratePreparer(ctx, resourceGroupName, namespaceName, parameters)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "Migrate", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.MigrateSender(req)
-	if err != nil {
-		result.Response = resp
-		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "Migrate", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.MigrateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "Migrate", resp, "Failure responding to request")
-		return
-	}
-
-	return
-}
-
-// MigratePreparer prepares the Migrate request.
-func (client NamespacesClient) MigratePreparer(ctx context.Context, resourceGroupName string, namespaceName string, parameters SBNamespaceMigrate) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"namespaceName":     autorest.Encode("path", namespaceName),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2017-04-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ServiceBus/namespaces/{namespaceName}/migrate", pathParameters),
-		autorest.WithJSON(parameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// MigrateSender sends the Migrate request. The method will close the
-// http.Response Body if it receives an error.
-func (client NamespacesClient) MigrateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
-}
-
-// MigrateResponder handles the response to the Migrate request. The method always
-// closes the http.Response Body.
-func (client NamespacesClient) MigrateResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByClosing())
-	result.Response = resp
-	return
-}
-
 // RegenerateKeys regenerates the primary or secondary connection strings for the namespace.
 // Parameters:
 // resourceGroupName - name of the Resource group within the Azure subscription.
@@ -1561,7 +1476,7 @@ func (client NamespacesClient) RegenerateKeysPreparer(ctx context.Context, resou
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1651,7 +1566,7 @@ func (client NamespacesClient) UpdatePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

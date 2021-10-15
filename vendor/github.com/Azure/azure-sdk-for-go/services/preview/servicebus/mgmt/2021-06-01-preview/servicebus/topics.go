@@ -15,7 +15,7 @@ import (
 	"net/http"
 )
 
-// TopicsClient is the azure Service Bus client
+// TopicsClient is the client for the Topics methods of the Servicebus service.
 type TopicsClient struct {
 	BaseClient
 }
@@ -91,11 +91,12 @@ func (client TopicsClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -192,11 +193,12 @@ func (client TopicsClient) CreateOrUpdateAuthorizationRulePreparer(ctx context.C
 		"topicName":             autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -284,7 +286,7 @@ func (client TopicsClient) DeletePreparer(ctx context.Context, resourceGroupName
 		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -378,7 +380,7 @@ func (client TopicsClient) DeleteAuthorizationRulePreparer(ctx context.Context, 
 		"topicName":             autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -467,7 +469,7 @@ func (client TopicsClient) GetPreparer(ctx context.Context, resourceGroupName st
 		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -562,7 +564,7 @@ func (client TopicsClient) GetAuthorizationRulePreparer(ctx context.Context, res
 		"topicName":             autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -657,7 +659,7 @@ func (client TopicsClient) ListAuthorizationRulesPreparer(ctx context.Context, r
 		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -799,7 +801,7 @@ func (client TopicsClient) ListByNamespacePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -937,7 +939,7 @@ func (client TopicsClient) ListKeysPreparer(ctx context.Context, resourceGroupNa
 		"topicName":             autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1033,7 +1035,7 @@ func (client TopicsClient) RegenerateKeysPreparer(ctx context.Context, resourceG
 		"topicName":             autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
