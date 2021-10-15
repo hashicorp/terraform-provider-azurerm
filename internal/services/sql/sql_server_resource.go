@@ -424,7 +424,6 @@ func flattenAzureRmSqlServerIdentity(identity *sql.ResourceIdentity) []interface
 }
 
 func flattenSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, policy sql.ServerSecurityAlertPolicy) []interface{} {
-
 	properties := policy.SecurityAlertPolicyProperties
 
 	securityAlertPolicy := make(map[string]interface{})

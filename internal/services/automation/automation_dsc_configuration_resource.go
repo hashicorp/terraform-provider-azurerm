@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -26,8 +27,10 @@ func resourceAutomationDscConfiguration() *pluginsdk.Resource {
 		Update: resourceAutomationDscConfigurationCreateUpdate,
 		Delete: resourceAutomationDscConfigurationDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ConfigurationID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -151,27 +154,24 @@ func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	accName := id.Path["automationAccounts"]
-	name := id.Path["configurations"]
 
-	resp, err := client.Get(ctx, resGroup, accName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on AzureRM Automation Dsc Configuration %q: %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM Automation Dsc Configuration %q: %+v", id.Name, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("automation_account_name", accName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("automation_account_name", id.AutomationAccountName)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -183,14 +183,14 @@ func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("state", resp.State)
 	}
 
-	contentresp, err := client.GetContent(ctx, resGroup, accName, name)
+	contentresp, err := client.GetContent(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM Automation Dsc Configuration content %q: %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM Automation Dsc Configuration content %q: %+v", id.Name, err)
 	}
 
 	buf := new(bytes.Buffer)
 	if _, err := buf.ReadFrom(contentresp.Body); err != nil {
-		return fmt.Errorf("reading from AzureRM Automation Dsc Configuration buffer %q: %+v", name, err)
+		return fmt.Errorf("reading from AzureRM Automation Dsc Configuration buffer %q: %+v", id.Name, err)
 	}
 	content := buf.String()
 
@@ -204,21 +204,18 @@ func resourceAutomationDscConfigurationDelete(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	accName := id.Path["automationAccounts"]
-	name := id.Path["configurations"]
 
-	resp, err := client.Delete(ctx, resGroup, accName, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 
-		return fmt.Errorf("issuing AzureRM delete request for Automation Dsc Configuration %q: %+v", name, err)
+		return fmt.Errorf("issuing AzureRM delete request for Automation Dsc Configuration %q: %+v", id.Name, err)
 	}
 
 	return nil

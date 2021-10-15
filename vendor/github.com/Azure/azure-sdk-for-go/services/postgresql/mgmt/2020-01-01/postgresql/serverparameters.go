@@ -67,7 +67,7 @@ func (client ServerParametersClient) ListUpdateConfigurations(ctx context.Contex
 
 	result, err = client.ListUpdateConfigurationsSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "postgresql.ServerParametersClient", "ListUpdateConfigurations", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "postgresql.ServerParametersClient", "ListUpdateConfigurations", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -101,6 +101,7 @@ func (client ServerParametersClient) ListUpdateConfigurationsPreparer(ctx contex
 // http.Response Body if it receives an error.
 func (client ServerParametersClient) ListUpdateConfigurationsSender(req *http.Request) (future ServerParametersListUpdateConfigurationsFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

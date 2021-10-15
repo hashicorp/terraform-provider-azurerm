@@ -19,7 +19,20 @@ import (
 // var person Person
 // if err := metadata.Decode(&person); err != nil { .. }
 func (rmd ResourceMetaData) Decode(input interface{}) error {
+	if rmd.ResourceData == nil {
+		return fmt.Errorf("ResourceData was nil")
+	}
 	return decodeReflectedType(input, rmd.ResourceData, rmd.serializationDebugLogger)
+}
+
+// DecodeDiff decodes the Terraform Schema into the specified object in the
+// same manner as Decode, but using the ResourceDiff as a source. Intended
+// for use in CustomizeDiff functions.
+func (rmd ResourceMetaData) DecodeDiff(input interface{}) error {
+	if rmd.ResourceDiff == nil {
+		return fmt.Errorf("ResourceDiff was nil")
+	}
+	return decodeReflectedType(input, rmd.ResourceDiff, rmd.serializationDebugLogger)
 }
 
 // stateRetriever is a convenience wrapper around the Plugin SDK to be able to test it more accurately

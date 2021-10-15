@@ -263,6 +263,15 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 
 func (WindowsVirtualMachineScaleSetResource) disksOSDisk_diskEncryptionSetDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      recover_soft_deleted_key_vaults = false
+      purge_soft_delete_on_destroy    = false
+    }
+  }
+}
+
 locals {
   vm_name = "accVM-%d"
 }
@@ -379,13 +388,14 @@ func (r WindowsVirtualMachineScaleSetResource) disksOSDisk_diskEncryptionSet(dat
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
+  name                 = local.vm_name
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  sku                  = "Standard_F2"
+  instances            = 1
+  admin_username       = "adminuser"
+  admin_password       = "P@ssword1234!"
+  computer_name_prefix = "destest"
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"

@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
@@ -309,10 +310,10 @@ func virtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema {
 				"version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  string(compute.IPv4),
+					Default:  string(compute.IPVersionIPv4),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.IPv4),
-						string(compute.IPv6),
+						string(compute.IPVersionIPv4),
+						string(compute.IPVersionIPv6),
 					}, false),
 				},
 			},
@@ -551,7 +552,7 @@ func expandVirtualMachineScaleSetIPConfiguration(raw map[string]interface{}) (*c
 
 	primary := raw["primary"].(bool)
 	version := compute.IPVersion(raw["version"].(string))
-	if primary && version == compute.IPv6 {
+	if primary && version == compute.IPVersionIPv6 {
 		return nil, fmt.Errorf("An IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
 	}
 
@@ -682,7 +683,7 @@ func expandVirtualMachineScaleSetIPConfigurationUpdate(raw map[string]interface{
 	primary := raw["primary"].(bool)
 	version := compute.IPVersion(raw["version"].(string))
 
-	if primary && version == compute.IPv6 {
+	if primary && version == compute.IPVersionIPv6 {
 		return nil, fmt.Errorf("An IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
 	}
 
@@ -1097,7 +1098,7 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 								Required: true,
 								ForceNew: true,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(compute.Local),
+									string(compute.DiffDiskOptionsLocal),
 								}, false),
 							},
 						},
@@ -1553,13 +1554,61 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 				},
 			},
 		},
+		Set: virtualMachineScaleSetExtensionHash,
 	}
+}
+
+func virtualMachineScaleSetExtensionHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["type"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["type_handler_version"].(string)))
+		buf.WriteString(fmt.Sprintf("%t-", m["auto_upgrade_minor_version"].(bool)))
+
+		if v, ok = m["force_update_tag"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v))
+		}
+
+		if v, ok := m["provision_after_extensions"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v))
+		}
+
+		// we need to ensure the whitespace is consistent
+		settings := m["settings"].(string)
+		if settings != "" {
+			expandedSettings, err := pluginsdk.ExpandJsonFromString(settings)
+			if err == nil {
+				serializedSettings, err := pluginsdk.FlattenJsonToString(expandedSettings)
+				if err == nil {
+					buf.WriteString(fmt.Sprintf("%s-", serializedSettings))
+				}
+			}
+		}
+
+		if v, ok := m["protected_settings"]; ok {
+			settings := v.(string)
+			if settings != "" {
+				expandedSettings, err := pluginsdk.ExpandJsonFromString(settings)
+				if err == nil {
+					serializedSettings, err := pluginsdk.FlattenJsonToString(expandedSettings)
+					if err == nil {
+						buf.WriteString(fmt.Sprintf("%s-", serializedSettings))
+					}
+				}
+			}
+		}
+	}
+
+	return pluginsdk.HashString(buf.String())
 }
 
 func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfile *compute.VirtualMachineScaleSetExtensionProfile, hasHealthExtension bool, err error) {
 	extensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
 	if len(input) == 0 {
-		return nil, false, nil
+		return extensionProfile, false, nil
 	}
 
 	extensions := make([]compute.VirtualMachineScaleSetExtension, 0)
@@ -1616,7 +1665,21 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 		return result, nil
 	}
 
-	for k, v := range *input.Extensions {
+	// extensionsFromState holds the "extension" block, which is used to retrieve the "protected_settings" to fill it back the state,
+	// since it is not returned from the API.
+	extensionsFromState := map[string]map[string]interface{}{}
+	if extSet, ok := d.GetOk("extension"); ok && extSet != nil {
+		extensions := extSet.(*pluginsdk.Set).List()
+		for _, ext := range extensions {
+			if ext == nil {
+				continue
+			}
+			ext := ext.(map[string]interface{})
+			extensionsFromState[ext["name"].(string)] = ext
+		}
+	}
+
+	for _, v := range *input.Extensions {
 		name := ""
 		if v.Name != nil {
 			name = *v.Name
@@ -1664,10 +1727,12 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 				extSettings = extSettingsRaw
 			}
 		}
-		// protected_settings isn't returned, so we attempt to get it from config otherwise set to empty string
-		if protectedSettingsFromConfig, ok := d.GetOk(fmt.Sprintf("extension.%d.protected_settings", k)); ok {
-			if protectedSettingsFromConfig.(string) != "" && protectedSettingsFromConfig.(string) != "{}" {
-				protectedSettings = protectedSettingsFromConfig.(string)
+		// protected_settings isn't returned, so we attempt to get it from state otherwise set to empty string
+		if ext, ok := extensionsFromState[name]; ok {
+			if protectedSettingsFromState, ok := ext["protected_settings"]; ok {
+				if protectedSettingsFromState.(string) != "" && protectedSettingsFromState.(string) != "{}" {
+					protectedSettings = protectedSettingsFromState.(string)
+				}
 			}
 		}
 

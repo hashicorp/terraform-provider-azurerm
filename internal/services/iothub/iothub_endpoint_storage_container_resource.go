@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -98,9 +98,9 @@ func resourceIotHubEndpointStorageContainer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(devices.Avro),
-					string(devices.AvroDeflate),
-					string(devices.JSON),
+					string(devices.EncodingAvro),
+					string(devices.EncodingAvroDeflate),
+					string(devices.EncodingJSON),
 				}, true),
 			},
 		},

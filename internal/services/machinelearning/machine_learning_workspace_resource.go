@@ -123,6 +123,19 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Default:  false,
+			},
+
+			"image_build_compute_name": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"description": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -170,6 +183,11 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				}, true),
 			},
 
+			"discovery_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -201,13 +219,13 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 			Name: utils.String(d.Get("sku_name").(string)),
 			Tier: utils.String(d.Get("sku_name").(string)),
 		},
-
 		Identity: expandMachineLearningWorkspaceIdentity(d.Get("identity").([]interface{})),
 		WorkspaceProperties: &machinelearningservices.WorkspaceProperties{
-			StorageAccount:      utils.String(d.Get("storage_account_id").(string)),
-			ApplicationInsights: utils.String(d.Get("application_insights_id").(string)),
-			KeyVault:            utils.String(d.Get("key_vault_id").(string)),
-			Encryption:          expandMachineLearningWorkspaceEncryption(d.Get("encryption").([]interface{})),
+			StorageAccount:                  utils.String(d.Get("storage_account_id").(string)),
+			ApplicationInsights:             utils.String(d.Get("application_insights_id").(string)),
+			KeyVault:                        utils.String(d.Get("key_vault_id").(string)),
+			AllowPublicAccessWhenBehindVnet: utils.Bool(d.Get("public_network_access_enabled").(bool)),
+			Encryption:                      expandMachineLearningWorkspaceEncryption(d.Get("encryption").([]interface{})),
 		},
 	}
 
@@ -225,6 +243,10 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 
 	if v, ok := d.GetOk("high_business_impact"); ok {
 		workspace.HbiWorkspace = utils.Bool(v.(bool))
+	}
+
+	if v, ok := d.GetOk("image_build_compute_name"); ok {
+		workspace.WorkspaceProperties.ImageBuildCompute = utils.String(v.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, workspace)
@@ -281,6 +303,9 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("description", props.Description)
 		d.Set("friendly_name", props.FriendlyName)
 		d.Set("high_business_impact", props.HbiWorkspace)
+		d.Set("public_network_access_enabled", props.AllowPublicAccessWhenBehindVnet)
+		d.Set("image_build_compute_name", props.ImageBuildCompute)
+		d.Set("discovery_url", props.DiscoveryURL)
 	}
 
 	if err := d.Set("identity", flattenMachineLearningWorkspaceIdentity(resp.Identity)); err != nil {

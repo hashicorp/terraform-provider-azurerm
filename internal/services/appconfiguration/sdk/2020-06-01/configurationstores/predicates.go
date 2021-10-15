@@ -10,7 +10,6 @@ type ApiKeyPredicate struct {
 }
 
 func (p ApiKeyPredicate) Matches(input ApiKey) bool {
-
 	if p.ConnectionString != nil && (input.ConnectionString == nil && *p.ConnectionString != *input.ConnectionString) {
 		return false
 	}
@@ -46,7 +45,6 @@ type ConfigurationStorePredicate struct {
 }
 
 func (p ConfigurationStorePredicate) Matches(input ConfigurationStore) bool {
-
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false
 	}

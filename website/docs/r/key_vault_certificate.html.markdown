@@ -247,7 +247,7 @@ The following arguments are supported:
 
 * `certificate_policy` - (Required) A `certificate_policy` block as defined below.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
 
 ---
 

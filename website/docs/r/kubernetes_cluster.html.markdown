@@ -80,7 +80,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 ---
 
-* `automatic_channel_upgrade` - (Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `patch`, `rapid`, `node-image` and `stable`.
+* `automatic_channel_upgrade` - (Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `patch`, `rapid`, `node-image` and `stable`. Omitting this field sets this value to `none`.
 
 !> **Note:** Cluster Auto-Upgrade will update the Kubernetes Cluster (and it's Node Pools) to the latest GA version of Kubernetes automatically - please [see the Azure documentation for more information](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#set-auto-upgrade-channel-preview).
 
@@ -110,7 +110,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `local_account_disabled` - (Optional) Is local account disabled for AAD integrated kubernetes cluster?
 
--> NOTE: This requires that the Preview Feature Microsoft.ContainerService/DisableLocalAccountsPreview is enabled and the Resource Provider is re-registered, see the documentation for more information.
+-> NOTE: This requires that the Preview Feature `Microsoft.ContainerService/DisableLocalAccountsPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/managed-aad#disable-local-accounts-preview) for more information.
 
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
@@ -678,11 +678,15 @@ The following attributes are exported:
 
 * `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled.
 
+~> **NOTE:** To mark the whole of `kube_admin_config` as Sensitive in State, set the environment variable `ARM_AKS_KUBE_CONFIGS_SENSITIVE` to `true`. Any values from this block used in `outputs` will then also need to be marked as sensitive.
+
 * `kube_admin_config_raw` - Raw Kubernetes config for the admin account to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools. This is only available when Role Based Access Control with Azure Active Directory is enabled.
 
 * `kube_config` - A `kube_config` block as defined below.
 
-* `kube_config_raw` - Raw Kubernetes config to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools
+~> **NOTE:** To mark the whole of `kube_config` as Sensitive in State, set the environment variable `ARM_AKS_KUBE_CONFIGS_SENSITIVE` to `true`. Any values from this block used in `outputs` will then also need to be marked as sensitive. 
+
+* `kube_config_raw` - Raw Kubernetes config to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools.
 
 * `http_application_routing` - A `http_application_routing` block as defined below.
 

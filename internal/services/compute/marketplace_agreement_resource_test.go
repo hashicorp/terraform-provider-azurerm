@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -86,15 +86,12 @@ func testAccMarketplaceAgreement_agreementCanceled(t *testing.T) {
 }
 
 func (t MarketplaceAgreementResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.PlanID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	publisher := id.Path["agreements"]
-	offer := id.Path["offers"]
-	plan := id.Path["plans"]
 
-	resp, err := clients.Compute.MarketplaceAgreementsClient.Get(ctx, publisher, offer, plan)
+	resp, err := clients.Compute.MarketplaceAgreementsClient.Get(ctx, id.AgreementName, id.OfferName, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Marketplace Agreement %q", id)
 	}
@@ -103,15 +100,12 @@ func (t MarketplaceAgreementResource) Exists(ctx context.Context, clients *clien
 }
 
 func (MarketplaceAgreementResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.PlanID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	publisher := id.Path["agreements"]
-	offer := id.Path["offers"]
-	plan := id.Path["plans"]
 
-	resp, err := client.Compute.MarketplaceAgreementsClient.Cancel(ctx, publisher, offer, plan)
+	resp, err := client.Compute.MarketplaceAgreementsClient.Cancel(ctx, id.AgreementName, id.OfferName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil, fmt.Errorf("marketplace agreement %q does not exist", id)

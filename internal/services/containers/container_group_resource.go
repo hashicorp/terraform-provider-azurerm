@@ -31,8 +31,10 @@ func resourceContainerGroup() *pluginsdk.Resource {
 		Read:   resourceContainerGroupRead,
 		Delete: resourceContainerGroupDelete,
 		Update: resourceContainerGroupUpdate,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ContainerGroupID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -655,26 +657,23 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ContainerGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["containerGroups"]
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Container Group %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] Container Group %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 		return err
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -750,23 +749,20 @@ func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ContainerGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["containerGroups"]
-
 	networkProfileId := ""
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(existing.Response) {
 			// already deleted
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Container Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Container Group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if props := existing.ContainerGroupProperties; props != nil {
@@ -777,15 +773,16 @@ func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Container Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Container Group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Container Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Container Group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if networkProfileId != "" {
+		// TODO update with NetworkProfile parser when this has been added
 		parsedProfileId, err := azure.ParseAzureResourceID(networkProfileId)
 		if err != nil {
 			return err
@@ -796,18 +793,18 @@ func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		networkProfileName := parsedProfileId.Path["networkProfiles"]
 
 		// TODO: remove when https://github.com/Azure/azure-sdk-for-go/issues/5082 has been fixed
-		log.Printf("[DEBUG] Waiting for Container Group %q (Resource Group %q) to be finish deleting", name, resourceGroup)
+		log.Printf("[DEBUG] Waiting for Container Group %q (Resource Group %q) to be finish deleting", id.Name, id.ResourceGroup)
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending:                   []string{"Attached"},
 			Target:                    []string{"Detached"},
-			Refresh:                   containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx, networkProfileClient, networkProfileResourceGroup, networkProfileName, resourceGroup, name),
+			Refresh:                   containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx, networkProfileClient, networkProfileResourceGroup, networkProfileName, id.ResourceGroup, id.Name),
 			MinTimeout:                15 * time.Second,
 			ContinuousTargetOccurence: 5,
 			Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
 		}
 
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for Container Group %q (Resource Group %q) to finish deleting: %s", name, resourceGroup, err)
+			return fmt.Errorf("waiting for Container Group %q (Resource Group %q) to finish deleting: %s", id.Name, id.ResourceGroup, err)
 		}
 	}
 
@@ -833,7 +830,7 @@ func containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx context.Conte
 						continue
 					}
 
-					parsedId, err := azure.ParseAzureResourceID(*nicProps.Container.ID)
+					parsedId, err := parse.ContainerGroupID(*nicProps.Container.ID)
 					if err != nil {
 						return nil, "", err
 					}
@@ -842,8 +839,7 @@ func containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx context.Conte
 						continue
 					}
 
-					name := parsedId.Path["containerGroups"]
-					if name == "" || name != containerName {
+					if parsedId.Name == "" || parsedId.Name != containerName {
 						continue
 					}
 
@@ -867,6 +863,7 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData) (*[]containerinst
 	containerInstancePorts := make([]containerinstance.Port, 0)
 	containerGroupPorts := make([]containerinstance.Port, 0)
 	containerGroupVolumes := make([]containerinstance.Volume, 0)
+	addedEmptyDirs := map[string]bool{}
 
 	for _, containerConfig := range containersConfig {
 		data := containerConfig.(map[string]interface{})
@@ -964,7 +961,17 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData) (*[]containerinst
 			}
 			container.VolumeMounts = volumeMounts
 			if containerGroupVolumesPartial != nil {
-				containerGroupVolumes = append(containerGroupVolumes, *containerGroupVolumesPartial...)
+				for _, cgVol := range *containerGroupVolumesPartial {
+					if cgVol.EmptyDir != nil {
+						if addedEmptyDirs[*cgVol.Name] {
+							// empty_dir-volumes are allowed to overlap across containers, in fact that is their primary purpose,
+							// but the containerGroup must not declare same name of such volumes twice.
+							continue
+						}
+						addedEmptyDirs[*cgVol.Name] = true
+					}
+					containerGroupVolumes = append(containerGroupVolumes, cgVol)
+				}
 			}
 		}
 
