@@ -111,7 +111,7 @@ func (t MonitorActionRuleSuppressionResource) Exists(ctx context.Context, client
 
 	resp, err := clients.Monitor.ActionRulesClient.GetByName(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading action rule (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

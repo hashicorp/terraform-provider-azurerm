@@ -436,6 +436,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 AutoScale Setting can be imported using the `resource id`, e.g.
 
-```
-terraform import azurerm_monitor_autoscale_setting.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/microsoft.insights/autoscalesettings/setting1
+```shell
+terraform import azurerm_monitor_autoscale_setting.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/autoscaleSettings/setting1
 ```

@@ -291,7 +291,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"mongo_server_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.ServerVersionThreeFullStopTwo),
@@ -695,6 +694,12 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
 	}
 
+	if v, ok := d.GetOk("mongo_server_version"); ok {
+		account.DatabaseAccountCreateUpdateProperties.APIProperties = &documentdb.APIProperties{
+			ServerVersion: documentdb.ServerVersion(v.(string)),
+		}
+	}
+
 	if v, ok := d.GetOk("backup"); ok {
 		policy, err := expandCosmosdbAccountBackup(v.([]interface{}))
 		if err != nil {
@@ -1085,6 +1090,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *pluginsdk.ResourceData) ([]docu
 	// all priorities & locations must be unique
 	byPriorities := make(map[int]interface{}, len(locations))
 	byName := make(map[string]interface{}, len(locations))
+	locationsCount := len(locations)
 	for _, location := range locations {
 		priority := int(*location.FailoverPriority)
 		name := *location.LocationName
@@ -1095,6 +1101,10 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *pluginsdk.ResourceData) ([]docu
 
 		if _, ok := byName[name]; ok {
 			return nil, fmt.Errorf("Each `geo_location` needs to be in unique location. Multiple instances of '%s' found", name)
+		}
+
+		if priority > locationsCount-1 {
+			return nil, fmt.Errorf("The maximum value for a failover priority = (total number of regions - 1). '%d' was found", priority)
 		}
 
 		byPriorities[priority] = location

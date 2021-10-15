@@ -63,7 +63,7 @@ func (client AccountBackupsClient) Delete(ctx context.Context, resourceGroupName
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.AccountBackupsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.AccountBackupsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -96,6 +96,7 @@ func (client AccountBackupsClient) DeletePreparer(ctx context.Context, resourceG
 // http.Response Body if it receives an error.
 func (client AccountBackupsClient) DeleteSender(req *http.Request) (future AccountBackupsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

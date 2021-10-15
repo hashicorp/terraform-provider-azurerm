@@ -569,7 +569,6 @@ func resourceFrontDoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta inter
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
 	if err != nil {
-
 		return fmt.Errorf("deleting Front Door Firewall %q (Resource Group %q): %+v", id.FrontDoorWebApplicationFirewallPolicyName, id.ResourceGroup, err)
 	}
 

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -67,19 +68,21 @@ func dataSourceMonitorLogProfile() *pluginsdk.Resource {
 
 func dataSourceLogProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.LogProfilesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resp, err := client.Get(ctx, name)
+	id := parse.NewLogProfileID(subscriptionId, d.Get("name").(string))
+
+	resp, err := client.Get(ctx, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Log Profile %q was not found", name)
+			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("reading Log Profile: %+v", err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	if props := resp.LogProfileProperties; props != nil {
 		d.Set("storage_account_id", props.StorageAccountID)

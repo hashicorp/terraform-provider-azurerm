@@ -99,6 +99,22 @@ func TestAccStreamAnalyticsOutputEventHub_propertyColumns(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsOutputEventHub_partitionKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_eventhub", "test")
+	r := StreamAnalyticsOutputEventhubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.partitionKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("partition_key").HasValue("partitionKey"),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+	})
+}
+
 func TestAccStreamAnalyticsOutputEventHub_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_eventhub", "test")
 	r := StreamAnalyticsOutputEventhubResource{}
@@ -209,6 +225,30 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
   shared_access_policy_key  = azurerm_eventhub_namespace.test.default_primary_key
   shared_access_policy_name = "RootManageSharedAccessKey"
   property_columns          = ["col1", "col2"]
+
+  serialization {
+    type            = "Csv"
+    encoding        = "UTF8"
+    field_delimiter = ","
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r StreamAnalyticsOutputEventhubResource) partitionKey(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_output_eventhub" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  eventhub_name             = azurerm_eventhub.test.name
+  servicebus_namespace      = azurerm_eventhub_namespace.test.name
+  shared_access_policy_key  = azurerm_eventhub_namespace.test.default_primary_key
+  shared_access_policy_name = "RootManageSharedAccessKey"
+  partition_key             = "partitionKey"
 
   serialization {
     type            = "Csv"

@@ -62,8 +62,8 @@ func resourceSharedImage() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Linux),
-					string(compute.Windows),
+					string(compute.OperatingSystemTypesLinux),
+					string(compute.OperatingSystemTypesWindows),
 				}, false),
 			},
 
@@ -73,8 +73,8 @@ func resourceSharedImage() *pluginsdk.Resource {
 				Default:  string(compute.HyperVGenerationTypesV1),
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.V1),
-					string(compute.V2),
+					string(compute.HyperVGenerationV1),
+					string(compute.HyperVGenerationV2),
 				}, false),
 			},
 
@@ -199,9 +199,9 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.Get("specialized").(bool) {
-		image.GalleryImageProperties.OsState = compute.Specialized
+		image.GalleryImageProperties.OsState = compute.OperatingSystemStateTypesSpecialized
 	} else {
-		image.GalleryImageProperties.OsState = compute.Generalized
+		image.GalleryImageProperties.OsState = compute.OperatingSystemStateTypesGeneralized
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, galleryName, name, image)
@@ -259,7 +259,7 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("description", props.Description)
 		d.Set("eula", props.Eula)
 		d.Set("os_type", string(props.OsType))
-		d.Set("specialized", props.OsState == compute.Specialized)
+		d.Set("specialized", props.OsState == compute.OperatingSystemStateTypesSpecialized)
 		d.Set("hyper_v_generation", string(props.HyperVGeneration))
 		d.Set("privacy_statement_uri", props.PrivacyStatementURI)
 		d.Set("release_note_uri", props.ReleaseNoteURI)

@@ -66,7 +66,7 @@ func (client UsersClient) CreateOrUpdate(ctx context.Context, deviceName string,
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.UsersClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.UsersClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -101,6 +101,7 @@ func (client UsersClient) CreateOrUpdatePreparer(ctx context.Context, deviceName
 // http.Response Body if it receives an error.
 func (client UsersClient) CreateOrUpdateSender(req *http.Request) (future UsersCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -148,7 +149,7 @@ func (client UsersClient) Delete(ctx context.Context, deviceName string, name st
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.UsersClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.UsersClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -181,6 +182,7 @@ func (client UsersClient) DeletePreparer(ctx context.Context, deviceName string,
 // http.Response Body if it receives an error.
 func (client UsersClient) DeleteSender(req *http.Request) (future UsersDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

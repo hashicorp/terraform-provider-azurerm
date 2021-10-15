@@ -260,7 +260,6 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 			webApp.Location = location.NormalizeNilable(existing.Location)
 			webApp.Tags = tags.ToTypedObject(existing.Tags)
 			if props := existing.SiteProperties; props != nil {
-
 				if props.ClientAffinityEnabled != nil {
 					webApp.ClientAffinityEnabled = *props.ClientAffinityEnabled
 				}

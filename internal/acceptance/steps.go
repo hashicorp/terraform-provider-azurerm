@@ -76,6 +76,20 @@ func (td TestData) CheckWithClientForResource(check ClientCheckFunc, resourceNam
 	)
 }
 
+// CheckWithClientWithoutResource returns a TestCheckFunc which will call a ClientCheckFunc
+// with the provider context and clients to find if a resource exists when the resource that created it is destroyed.
+func (td TestData) CheckWithClientWithoutResource(check ClientCheckFunc) resource.TestCheckFunc {
+	return resource.ComposeTestCheckFunc(
+		func(state *terraform.State) error {
+			client, err := testclient.Build()
+			if err != nil {
+				return fmt.Errorf("building client: %+v", err)
+			}
+			return check(client.StopContext, client, nil)
+		},
+	)
+}
+
 // ImportStep returns a Test Step which Imports the Resource, optionally
 // ignoring any fields which may not be imported (for example, as they're
 // not returned from the API)

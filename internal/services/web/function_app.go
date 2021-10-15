@@ -283,7 +283,7 @@ func schemaFunctionAppDataSourceSiteConfig() *pluginsdk.Schema {
 	}
 }
 
-func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, endpointSuffix string, existingSettings *[]web.NameValuePair) ([]web.NameValuePair, error) {
+func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, endpointSuffix string, existingSettings map[string]*string) ([]web.NameValuePair, error) {
 	// TODO: This is a workaround since there are no public Functions API
 	// You may track the API request here: https://github.com/Azure/azure-rest-api-specs/issues/3750
 	dashboardPropName := "AzureWebJobsDashboard"
@@ -323,17 +323,13 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 
 	functionVersion := d.Get("version").(string)
 	var contentShare string
-	if existingSettings == nil {
-		// generate and use a new value
+	contentSharePreviouslySet := false
+	if currentContentShare, ok := existingSettings[contentSharePropName]; ok {
+		contentShare = *currentContentShare
+		contentSharePreviouslySet = true
+	} else {
 		suffix := uuid.New().String()[0:4]
 		contentShare = strings.ToLower(d.Get("name").(string)) + suffix
-	} else {
-		// find and re-use the current
-		for _, v := range *existingSettings {
-			if v.Name != nil && *v.Name == contentSharePropName {
-				contentShare = *v.Name
-			}
-		}
 	}
 
 	basicSettings := []web.NameValuePair{
@@ -353,8 +349,13 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 		{Name: &contentFileConnStringPropName, Value: &storageConnection},
 	}
 
+	// If there's an existing value for content, we need to send it. This can be the case for PremiumV2/PremiumV3 plans where the value has been previously configured.
+	if contentSharePreviouslySet {
+		return append(basicSettings, consumptionSettings...), nil
+	}
+
 	// On consumption and premium plans include WEBSITE_CONTENT components, unless it's a Linux consumption plan
-	// (see https://github.com/Azure/azure-functions-python-worker/issues/598)
+	// Note: The docs on this are misleading. Premium here refers explicitly to `ElasticPremium`, and not `PremiumV2` / `PremiumV3` etc.
 	if !(strings.EqualFold(appServiceTier, "dynamic") && strings.EqualFold(d.Get("os_type").(string), "linux")) &&
 		(strings.EqualFold(appServiceTier, "dynamic") || strings.HasPrefix(strings.ToLower(appServiceTier), "elastic")) {
 		return append(basicSettings, consumptionSettings...), nil

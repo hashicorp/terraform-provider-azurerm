@@ -34,7 +34,10 @@ func TestAccDataSourcePublicIPs_assigned(t *testing.T) {
 	r := PublicIPsResource{}
 
 	attachedDataSourceName := "data.azurerm_public_ips.attached"
+	attachedDataSourceName2 := "data.azurerm_public_ips.attached2"
 	unattachedDataSourceName := "data.azurerm_public_ips.unattached"
+	unattachedDataSourceName2 := "data.azurerm_public_ips.unattached2"
+	unattachedAndAttachedDataSourceName := "data.azurerm_public_ips.unattached_and_attached"
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -43,10 +46,18 @@ func TestAccDataSourcePublicIPs_assigned(t *testing.T) {
 		{
 			Config: r.attachedDataSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				acceptance.TestCheckResourceAttr(attachedDataSourceName, "public_ips.#", "3"),
+				acceptance.TestCheckResourceAttr(attachedDataSourceName, "public_ips.#", "4"),
 				acceptance.TestCheckResourceAttr(attachedDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpip%s-0", data.RandomString)),
+				acceptance.TestCheckResourceAttr(attachedDataSourceName, "public_ips.3.name", fmt.Sprintf("acctestpip%s-3", data.RandomString)),
+				acceptance.TestCheckResourceAttr(attachedDataSourceName2, "public_ips.#", "4"),
+				acceptance.TestCheckResourceAttr(attachedDataSourceName2, "public_ips.0.name", fmt.Sprintf("acctestpip%s-0", data.RandomString)),
+				acceptance.TestCheckResourceAttr(attachedDataSourceName2, "public_ips.3.name", fmt.Sprintf("acctestpip%s-3", data.RandomString)),
 				acceptance.TestCheckResourceAttr(unattachedDataSourceName, "public_ips.#", "4"),
-				acceptance.TestCheckResourceAttr(unattachedDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpip%s-3", data.RandomString)),
+				acceptance.TestCheckResourceAttr(unattachedDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpip%s-4", data.RandomString)),
+				acceptance.TestCheckResourceAttr(unattachedDataSourceName2, "public_ips.#", "4"),
+				acceptance.TestCheckResourceAttr(unattachedDataSourceName2, "public_ips.0.name", fmt.Sprintf("acctestpip%s-4", data.RandomString)),
+				acceptance.TestCheckResourceAttr(unattachedAndAttachedDataSourceName, "public_ips.#", "8"),
+				acceptance.TestCheckResourceAttr(unattachedAndAttachedDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpip%s-0", data.RandomString)),
 			),
 		},
 	})
@@ -87,12 +98,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  count                   = 7
+  count                   = 8
   name                    = "acctestpip%s-${count.index}"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Static"
   idle_timeout_in_minutes = 30
+  sku                     = "Standard"
 
   tags = {
     environment = "test"
@@ -104,12 +116,27 @@ resource "azurerm_lb" "test" {
   name                = "acctestlb-${count.index}"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name                 = "frontend"
     public_ip_address_id = element(azurerm_public_ip.test.*.id, count.index)
   }
 }
+
+resource "azurerm_nat_gateway" "test" {
+  name                    = "nat-Gateway"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  sku_name                = "Standard"
+  idle_timeout_in_minutes = 10
+}
+
+resource "azurerm_nat_gateway_public_ip_association" "test" {
+  nat_gateway_id       = azurerm_nat_gateway.test.id
+  public_ip_address_id = element(azurerm_public_ip.test.*.id, 3)
+}
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
@@ -119,10 +146,25 @@ func (r PublicIPsResource) attachedDataSource(data acceptance.TestData) string {
 
 data "azurerm_public_ips" "unattached" {
   resource_group_name = azurerm_resource_group.test.name
+  attachment_status   = "Unattached"
+}
+
+data "azurerm_public_ips" "unattached2" {
+  resource_group_name = azurerm_resource_group.test.name
   attached            = false
 }
 
+data "azurerm_public_ips" "unattached_and_attached" {
+  resource_group_name = azurerm_resource_group.test.name
+  attachment_status   = "All"
+}
+
 data "azurerm_public_ips" "attached" {
+  resource_group_name = azurerm_resource_group.test.name
+  attachment_status   = "Attached"
+}
+
+data "azurerm_public_ips" "attached2" {
   resource_group_name = azurerm_resource_group.test.name
   attached            = true
 }

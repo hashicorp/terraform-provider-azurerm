@@ -2,6 +2,7 @@ package containers_test
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -53,6 +54,40 @@ func TestAccKubernetesCluster_sameSize(t *testing.T) {
 func testAccKubernetesCluster_basicAvailabilitySet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicAvailabilitySetConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
+				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("0"),
+				check.That(data.ResourceName).Key("kube_config.0.client_key").Exists(),
+				check.That(data.ResourceName).Key("kube_config.0.client_certificate").Exists(),
+				check.That(data.ResourceName).Key("kube_config.0.cluster_ca_certificate").Exists(),
+				check.That(data.ResourceName).Key("kube_config.0.host").Exists(),
+				check.That(data.ResourceName).Key("kube_config.0.username").Exists(),
+				check.That(data.ResourceName).Key("kube_config.0.password").Exists(),
+				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
+				check.That(data.ResourceName).Key("kube_admin_config_raw").HasValue(""),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_basicAvailabilitySetSensitive(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_basicAvailabilitySetSensitive(t)
+}
+
+func testAccKubernetesCluster_basicAvailabilitySetSensitive(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	os.Setenv("ARM_AKS_KUBE_CONFIGS_SENSITIVE", "true")
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{

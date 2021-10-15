@@ -424,6 +424,15 @@ func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
 										Optional: true,
 										Default:  true,
 									},
+
+									"destination_port_behavior": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(network.DestinationPortBehaviorNone),
+											string(network.DestinationPortBehaviorListenIfAvailable),
+										}, false),
+									},
 								},
 							},
 						},
@@ -821,10 +830,16 @@ func expandNetworkConnectionMonitorTCPConfiguration(input []interface{}) *networ
 
 	v := input[0].(map[string]interface{})
 
-	return &network.ConnectionMonitorTCPConfiguration{
+	result := &network.ConnectionMonitorTCPConfiguration{
 		Port:              utils.Int32(int32(v["port"].(int))),
 		DisableTraceRoute: utils.Bool(!v["trace_route_enabled"].(bool)),
 	}
+
+	if destinationPortBehavior := v["destination_port_behavior"].(string); destinationPortBehavior != "" {
+		result.DestinationPortBehavior = network.DestinationPortBehavior(destinationPortBehavior)
+	}
+
+	return result
 }
 
 func expandNetworkConnectionMonitorIcmpConfiguration(input []interface{}) *network.ConnectionMonitorIcmpConfiguration {
@@ -1163,10 +1178,16 @@ func flattenNetworkConnectionMonitorTCPConfiguration(input *network.ConnectionMo
 		port = *input.Port
 	}
 
+	var destinationPortBehavior network.DestinationPortBehavior
+	if input.DestinationPortBehavior != "" {
+		destinationPortBehavior = input.DestinationPortBehavior
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"trace_route_enabled": enableTraceRoute,
-			"port":                port,
+			"trace_route_enabled":       enableTraceRoute,
+			"port":                      port,
+			"destination_port_behavior": string(destinationPortBehavior),
 		},
 	}
 }

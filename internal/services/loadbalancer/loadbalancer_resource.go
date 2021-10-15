@@ -62,7 +62,19 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 					string(network.LoadBalancerSkuNameStandard),
 					string(network.LoadBalancerSkuNameGateway),
 				}, true),
+				// TODO - 3.0 remove this property
 				DiffSuppressFunc: suppress.CaseDifference,
+			},
+
+			"sku_tier": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(network.LoadBalancerSkuTierRegional),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.LoadBalancerSkuTierRegional),
+					string(network.LoadBalancerSkuTierGlobal),
+				}, false),
 			},
 
 			"frontend_ip_configuration": {
@@ -261,9 +273,16 @@ func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	if strings.EqualFold(d.Get("sku_tier").(string), string(network.LoadBalancerSkuTierGlobal)) {
+		if !strings.EqualFold(d.Get("sku").(string), string(network.LoadBalancerSkuNameStandard)) {
+			return fmt.Errorf("global load balancing is only supported for standard SKU load balancers")
+		}
+	}
+
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := network.LoadBalancerSku{
 		Name: network.LoadBalancerSkuName(d.Get("sku").(string)),
+		Tier: network.LoadBalancerSkuTier(d.Get("sku_tier").(string)),
 	}
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
@@ -328,6 +347,7 @@ func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
+		d.Set("sku_tier", string(sku.Tier))
 	}
 
 	if props := resp.LoadBalancerPropertiesFormat; props != nil {

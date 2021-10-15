@@ -183,7 +183,6 @@ func resourceMariaDbDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) 
 
 	future, err := client.Delete(ctx, resourceGroup, serverName, name)
 	if err != nil {
-
 		return fmt.Errorf("making delete request on MariaDB database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
 	}
 

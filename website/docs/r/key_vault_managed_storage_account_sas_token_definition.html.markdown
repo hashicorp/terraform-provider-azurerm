@@ -115,7 +115,7 @@ The following arguments are supported:
 
 * `managed_storage_account_id` - (Required) The ID of the Managed Storage Account.
 
-* `sas_template_uri` - (Required) The SAS definition token template signed with an arbitrary key. Tokens created according to the SAS definition will have the same properties as the template, but regenerated with a new validaty period.
+* `sas_template_uri` - (Required) The SAS definition token template signed with an arbitrary key. Tokens created according to the SAS definition will have the same properties as the template, but regenerated with a new validity period.
 
 * `sas_type` - (Required) The type of SAS token the SAS definition will create. Possible values are `account` and `service`.
 
@@ -127,7 +127,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Managed Storage Account SAS Definition.
 

@@ -37,7 +37,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.VirtualMachineID(id)
 			return err
-		}, importVirtualMachine(compute.Linux, "azurerm_linux_virtual_machine")),
+		}, importVirtualMachine(compute.OperatingSystemTypesLinux, "azurerm_linux_virtual_machine")),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(45 * time.Minute),
@@ -162,7 +162,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					// NOTE: whilst Delete is an option here, it's only applicable for VMSS
-					string(compute.Deallocate),
+					string(compute.VirtualMachineEvictionPolicyTypesDeallocate),
 				}, false),
 			},
 
@@ -197,10 +197,10 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(compute.Regular),
+				Default:  string(compute.VirtualMachinePriorityTypesRegular),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Regular),
-					string(compute.Spot),
+					string(compute.VirtualMachinePriorityTypesRegular),
+					string(compute.VirtualMachinePriorityTypesSpot),
 				}, false),
 			},
 
@@ -358,7 +358,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	networkInterfaceIds := expandVirtualMachineNetworkInterfaceIDs(networkInterfaceIdsRaw)
 
 	osDiskRaw := d.Get("os_disk").([]interface{})
-	osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.Linux)
+	osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesLinux)
 
 	secretsRaw := d.Get("secret").([]interface{})
 	secrets := expandLinuxSecrets(secretsRaw)
@@ -447,17 +447,17 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
-		if params.Priority != compute.Spot {
+		if params.Priority != compute.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("An `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 
 		params.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string))
-	} else if priority == compute.Spot {
+	} else if priority == compute.VirtualMachinePriorityTypesSpot {
 		return fmt.Errorf("An `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
-		if priority != compute.Spot {
+		if priority != compute.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
@@ -655,7 +655,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 	// Resources created with azurerm_virtual_machine have priority set to ""
 	// We need to treat "" as equal to "Regular" to allow migration azurerm_virtual_machine -> azurerm_linux_virtual_machine
-	priority := string(compute.Regular)
+	priority := string(compute.VirtualMachinePriorityTypesRegular)
 	if props.Priority != "" {
 		priority = string(props.Priority)
 	}
@@ -749,7 +749,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		if storage := props.StorageProfile; storage != nil {
 			if disk := storage.OsDisk; disk != nil {
 				if settings := disk.DiffDiskSettings; settings != nil {
-					hasEphemeralOSDisk = settings.Option == compute.Local
+					hasEphemeralOSDisk = settings.Option == compute.DiffDiskOptionsLocal
 				}
 			}
 		}
@@ -865,7 +865,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		shouldDeallocate = true
 
 		osDiskRaw := d.Get("os_disk").([]interface{})
-		osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.Linux)
+		osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesLinux)
 		update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{
 			OsDisk: osDisk,
 		}
