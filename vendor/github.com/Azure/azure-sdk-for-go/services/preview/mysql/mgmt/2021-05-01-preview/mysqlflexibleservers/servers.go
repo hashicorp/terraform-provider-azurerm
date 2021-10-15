@@ -73,7 +73,7 @@ func (client ServersClient) Create(ctx context.Context, resourceGroupName string
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "mysqlflexibleservers.ServersClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "mysqlflexibleservers.ServersClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -108,6 +108,7 @@ func (client ServersClient) CreatePreparer(ctx context.Context, resourceGroupNam
 // http.Response Body if it receives an error.
 func (client ServersClient) CreateSender(req *http.Request) (future ServersCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -163,7 +164,7 @@ func (client ServersClient) Delete(ctx context.Context, resourceGroupName string
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "mysqlflexibleservers.ServersClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "mysqlflexibleservers.ServersClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -195,6 +196,7 @@ func (client ServersClient) DeletePreparer(ctx context.Context, resourceGroupNam
 // http.Response Body if it receives an error.
 func (client ServersClient) DeleteSender(req *http.Request) (future ServersDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -249,7 +251,7 @@ func (client ServersClient) Failover(ctx context.Context, resourceGroupName stri
 
 	result, err = client.FailoverSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "mysqlflexibleservers.ServersClient", "Failover", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "mysqlflexibleservers.ServersClient", "Failover", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -281,6 +283,7 @@ func (client ServersClient) FailoverPreparer(ctx context.Context, resourceGroupN
 // http.Response Body if it receives an error.
 func (client ServersClient) FailoverSender(req *http.Request) (future ServersFailoverFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -665,7 +668,7 @@ func (client ServersClient) Restart(ctx context.Context, resourceGroupName strin
 
 	result, err = client.RestartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "mysqlflexibleservers.ServersClient", "Restart", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "mysqlflexibleservers.ServersClient", "Restart", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -699,6 +702,7 @@ func (client ServersClient) RestartPreparer(ctx context.Context, resourceGroupNa
 // http.Response Body if it receives an error.
 func (client ServersClient) RestartSender(req *http.Request) (future ServersRestartFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -753,7 +757,7 @@ func (client ServersClient) Start(ctx context.Context, resourceGroupName string,
 
 	result, err = client.StartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "mysqlflexibleservers.ServersClient", "Start", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "mysqlflexibleservers.ServersClient", "Start", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -785,6 +789,7 @@ func (client ServersClient) StartPreparer(ctx context.Context, resourceGroupName
 // http.Response Body if it receives an error.
 func (client ServersClient) StartSender(req *http.Request) (future ServersStartFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -839,7 +844,7 @@ func (client ServersClient) Stop(ctx context.Context, resourceGroupName string, 
 
 	result, err = client.StopSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "mysqlflexibleservers.ServersClient", "Stop", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "mysqlflexibleservers.ServersClient", "Stop", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -871,6 +876,7 @@ func (client ServersClient) StopPreparer(ctx context.Context, resourceGroupName 
 // http.Response Body if it receives an error.
 func (client ServersClient) StopSender(req *http.Request) (future ServersStopFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -927,7 +933,7 @@ func (client ServersClient) Update(ctx context.Context, resourceGroupName string
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "mysqlflexibleservers.ServersClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "mysqlflexibleservers.ServersClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -961,6 +967,7 @@ func (client ServersClient) UpdatePreparer(ctx context.Context, resourceGroupNam
 // http.Response Body if it receives an error.
 func (client ServersClient) UpdateSender(req *http.Request) (future ServersUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
