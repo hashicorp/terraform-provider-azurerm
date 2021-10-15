@@ -5,6 +5,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * dependencies: upgrading to `v58.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-13613]
+* upgrading `servicebus` to API Version `2021-06-01-preview` [GH-13701]
 * `azurerm_lb_nat_pool` - support for the `floating_ip_enabled`, `tcp_reset_enabled`, and `idle_timeout_in_minutes` properties [GH-13674]
 
 BUG FIXES:
@@ -13,8 +14,8 @@ BUG FIXES:
 
 FEATURES: 
 
-* **New Data Source:** `azurerm_consumption_budget_resource_group`([#12538](https://github.com/hashicorp/terraform-provider-azurerm/issues/12538))
-* **New Data Source:** `azurerm_consumption_budget_subscription`([#12540](https://github.com/hashicorp/terraform-provider-azurerm/issues/12540))
+* **New Data Source:** `azurerm_consumption_budget_resource_group` ([#12538](https://github.com/hashicorp/terraform-provider-azurerm/issues/12538))
+* **New Data Source:** `azurerm_consumption_budget_subscription` ([#12540](https://github.com/hashicorp/terraform-provider-azurerm/issues/12540))
 * **New Resource:** `azurerm_data_factory_linked_service_cosmosdb_mongoapi` ([#13636](https://github.com/hashicorp/terraform-provider-azurerm/issues/13636))
 * **New Resource:** `azurerm_mysql_flexible_server` ([#13678](https://github.com/hashicorp/terraform-provider-azurerm/issues/13678))
 
