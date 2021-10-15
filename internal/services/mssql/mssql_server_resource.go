@@ -102,6 +102,12 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 							Computed:     true,
 							ValidateFunc: validation.IsUUID,
 						},
+
+						"azuread_only_authentication": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -209,6 +215,7 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
 	adminClient := meta.(*clients.Client).MSSQL.ServerAzureADAdministratorsClient
+	aadOnlyAuthentictionsClient := meta.(*clients.Client).MSSQL.ServerAzureADOnlyAuthenticationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -286,6 +293,16 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	d.SetId(id.ID())
 
 	if d.HasChange("azuread_administrator") && !d.IsNewResource() {
+		aadOnlyDeleteFuture, err := aadOnlyAuthentictionsClient.Delete(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			if aadOnlyDeleteFuture.Response().StatusCode != 400 {
+				return fmt.Errorf("deleting AD Only Authentications %s: %+v", id.String(), err)
+			}
+			log.Printf("[INFO] AD Only Authentication is not removed as AD Admin is not set for %s: %+v", id.String(), err)
+		} else if err = aadOnlyDeleteFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
+			return fmt.Errorf("waiting for deletion of AD Only Authentications %s: %+v", id.String(), err)
+		}
+
 		if adminParams := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminParams != nil {
 			adminFuture, err := adminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *adminParams)
 			if err != nil {
@@ -294,6 +311,22 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 			if err = adminFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
 				return fmt.Errorf("waiting for creation of AAD admin %s: %+v", id.String(), err)
+			}
+
+			if aadOnlyAuthentictionsEnabled := expandMsSqlServerAADOnlyAuthentictions(d.Get("azuread_administrator").([]interface{})); aadOnlyAuthentictionsEnabled {
+				aadOnlyAuthentictionsParams := sql.ServerAzureADOnlyAuthentication{
+					AzureADOnlyAuthProperties: &sql.AzureADOnlyAuthProperties{
+						AzureADOnlyAuthentication: utils.Bool(aadOnlyAuthentictionsEnabled),
+					},
+				}
+				aadOnlyEnabledFuture, err := aadOnlyAuthentictionsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, aadOnlyAuthentictionsParams)
+				if err != nil {
+					return fmt.Errorf("setting AAD only authentication for %s: %+v", id.String(), err)
+				}
+
+				if err = aadOnlyEnabledFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
+					return fmt.Errorf("waiting for setting of AAD only authentication for %s: %+v", id.String(), err)
+				}
 			}
 		} else {
 			adminDelFuture, err := adminClient.Delete(ctx, id.ResourceGroup, id.Name)
@@ -490,6 +523,17 @@ func flattenSqlServerIdentity(identity *sql.ResourceIdentity) ([]interface{}, er
 	return []interface{}{result}, nil
 }
 
+func expandMsSqlServerAADOnlyAuthentictions(input []interface{}) bool {
+	if len(input) == 0 || input[0] == nil {
+		return false
+	}
+	admin := input[0].(map[string]interface{})
+	if v, ok := admin["azuread_only_authentication"]; ok && v != nil {
+		return v.(bool)
+	}
+	return false
+}
+
 func expandMsSqlServerAdministrator(input []interface{}) *sql.ServerAzureADAdministrator {
 	if len(input) == 0 || input[0] == nil {
 		return nil
@@ -550,11 +594,17 @@ func flatternMsSqlServerAdministrators(admin sql.ServerExternalAdministrator) []
 		tid = admin.TenantID.String()
 	}
 
+	var aadOnlyAuthentictionsEnabled bool
+	if admin.AzureADOnlyAuthentication != nil {
+		aadOnlyAuthentictionsEnabled = *admin.AzureADOnlyAuthentication
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"login_username": login,
-			"object_id":      sid,
-			"tenant_id":      tid,
+			"login_username":              login,
+			"object_id":                   sid,
+			"tenant_id":                   tid,
+			"azuread_only_authentication": aadOnlyAuthentictionsEnabled,
 		},
 	}
 }
