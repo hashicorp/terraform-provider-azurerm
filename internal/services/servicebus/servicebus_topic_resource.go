@@ -103,6 +103,12 @@ func resourceServiceBusTopic() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"max_message_size_in_kilobytes": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Computed: true,
+			},
+
 			"max_size_in_megabytes": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -135,6 +141,7 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	enableBatchedOps := d.Get("enable_batched_operations").(bool)
 	enableExpress := d.Get("enable_express").(bool)
 	enablePartitioning := d.Get("enable_partitioning").(bool)
+	maxMessageSize := int64(d.Get("max_message_size_in_kilobytes").(int))
 	maxSize := int32(d.Get("max_size_in_megabytes").(int))
 	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
 	supportOrdering := d.Get("support_ordering").(bool)
@@ -161,6 +168,7 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 			EnableBatchedOperations:    utils.Bool(enableBatchedOps),
 			EnableExpress:              utils.Bool(enableExpress),
 			EnablePartitioning:         utils.Bool(enablePartitioning),
+			MaxMessageSizeInKilobytes:  utils.Int64(maxMessageSize),
 			MaxSizeInMegabytes:         utils.Int32(maxSize),
 			RequiresDuplicateDetection: utils.Bool(requiresDuplicateDetection),
 			SupportOrdering:            utils.Bool(supportOrdering),
@@ -222,6 +230,7 @@ func resourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("enable_batched_operations", props.EnableBatchedOperations)
 		d.Set("enable_express", props.EnableExpress)
 		d.Set("enable_partitioning", props.EnablePartitioning)
+		d.Set("max_message_size_in_kilobytes", props.MaxMessageSizeInKilobytes)
 		d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 		d.Set("support_ordering", props.SupportOrdering)
 

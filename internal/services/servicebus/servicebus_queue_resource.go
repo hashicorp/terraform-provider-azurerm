@@ -127,6 +127,12 @@ func resourceServiceBusQueue() *pluginsdk.Resource {
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
+			"max_message_size_in_kilobytes": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Computed: true,
+			},
+
 			"max_size_in_megabytes": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -179,6 +185,7 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	enableExpress := d.Get("enable_express").(bool)
 	enablePartitioning := d.Get("enable_partitioning").(bool)
 	maxDeliveryCount := int32(d.Get("max_delivery_count").(int))
+	maxMessageSizeInKilobytes := int64(d.Get("max_message_size_in_kilobytes").(int))
 	maxSizeInMegabytes := int32(d.Get("max_size_in_megabytes").(int))
 	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
 	requiresSession := d.Get("requires_session").(bool)
@@ -207,6 +214,7 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 			EnablePartitioning:               &enablePartitioning,
 			MaxDeliveryCount:                 &maxDeliveryCount,
 			MaxSizeInMegabytes:               &maxSizeInMegabytes,
+			MaxMessageSizeInKilobytes:        &maxMessageSizeInKilobytes,
 			RequiresDuplicateDetection:       &requiresDuplicateDetection,
 			RequiresSession:                  &requiresSession,
 			Status:                           status,
@@ -294,6 +302,7 @@ func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("forward_to", props.ForwardTo)
 		d.Set("lock_duration", props.LockDuration)
 		d.Set("max_delivery_count", props.MaxDeliveryCount)
+		d.Set("max_message_size_in_kilobytes", props.MaxMessageSizeInKilobytes)
 		d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 		d.Set("requires_session", props.RequiresSession)
 		d.Set("status", props.Status)
