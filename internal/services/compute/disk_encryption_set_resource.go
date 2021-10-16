@@ -253,7 +253,7 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChange("auto_key_rotation_enabled") {
 		if update.DiskEncryptionSetUpdateProperties == nil {
-			update.DiskEncryptionSetUpdateProperties = &compute.DiskEncryptionSetUpdateProperties{)
+			update.DiskEncryptionSetUpdateProperties = &compute.DiskEncryptionSetUpdateProperties{}
 		}
 
 		update.DiskEncryptionSetUpdateProperties.rotationToLatestKeyVersionEnabled = utils.Bool(d.Get("auto_key_rotation_enabled").(bool))
