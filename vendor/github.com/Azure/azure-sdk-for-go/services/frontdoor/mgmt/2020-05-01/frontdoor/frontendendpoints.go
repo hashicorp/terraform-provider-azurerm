@@ -72,7 +72,7 @@ func (client FrontendEndpointsClient) DisableHTTPS(ctx context.Context, resource
 
 	result, err = client.DisableHTTPSSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "frontdoor.FrontendEndpointsClient", "DisableHTTPS", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "frontdoor.FrontendEndpointsClient", "DisableHTTPS", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -105,6 +105,7 @@ func (client FrontendEndpointsClient) DisableHTTPSPreparer(ctx context.Context, 
 // http.Response Body if it receives an error.
 func (client FrontendEndpointsClient) DisableHTTPSSender(req *http.Request) (future FrontendEndpointsDisableHTTPSFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -170,7 +171,7 @@ func (client FrontendEndpointsClient) EnableHTTPS(ctx context.Context, resourceG
 
 	result, err = client.EnableHTTPSSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "frontdoor.FrontendEndpointsClient", "EnableHTTPS", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "frontdoor.FrontendEndpointsClient", "EnableHTTPS", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -205,6 +206,7 @@ func (client FrontendEndpointsClient) EnableHTTPSPreparer(ctx context.Context, r
 // http.Response Body if it receives an error.
 func (client FrontendEndpointsClient) EnableHTTPSSender(req *http.Request) (future FrontendEndpointsEnableHTTPSFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

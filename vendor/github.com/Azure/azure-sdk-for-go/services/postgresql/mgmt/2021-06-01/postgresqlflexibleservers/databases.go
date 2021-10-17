@@ -67,7 +67,7 @@ func (client DatabasesClient) Create(ctx context.Context, resourceGroupName stri
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "postgresqlflexibleservers.DatabasesClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "postgresqlflexibleservers.DatabasesClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -103,6 +103,7 @@ func (client DatabasesClient) CreatePreparer(ctx context.Context, resourceGroupN
 // http.Response Body if it receives an error.
 func (client DatabasesClient) CreateSender(req *http.Request) (future DatabasesCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -159,7 +160,7 @@ func (client DatabasesClient) Delete(ctx context.Context, resourceGroupName stri
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "postgresqlflexibleservers.DatabasesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "postgresqlflexibleservers.DatabasesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -192,6 +193,7 @@ func (client DatabasesClient) DeletePreparer(ctx context.Context, resourceGroupN
 // http.Response Body if it receives an error.
 func (client DatabasesClient) DeleteSender(req *http.Request) (future DatabasesDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

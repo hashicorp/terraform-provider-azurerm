@@ -724,7 +724,7 @@ func (client AlertsClient) Simulate(ctx context.Context, alertSimulatorRequestBo
 
 	result, err = client.SimulateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "Simulate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "Simulate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -757,6 +757,7 @@ func (client AlertsClient) SimulatePreparer(ctx context.Context, alertSimulatorR
 // http.Response Body if it receives an error.
 func (client AlertsClient) SimulateSender(req *http.Request) (future AlertsSimulateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

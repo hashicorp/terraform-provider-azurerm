@@ -56,7 +56,7 @@ func (client IntegrationServiceEnvironmentManagedApisClient) Delete(ctx context.
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -89,6 +89,7 @@ func (client IntegrationServiceEnvironmentManagedApisClient) DeletePreparer(ctx 
 // http.Response Body if it receives an error.
 func (client IntegrationServiceEnvironmentManagedApisClient) DeleteSender(req *http.Request) (future IntegrationServiceEnvironmentManagedApisDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -331,7 +332,7 @@ func (client IntegrationServiceEnvironmentManagedApisClient) Put(ctx context.Con
 
 	result, err = client.PutSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisClient", "Put", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisClient", "Put", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -364,6 +365,7 @@ func (client IntegrationServiceEnvironmentManagedApisClient) PutPreparer(ctx con
 // http.Response Body if it receives an error.
 func (client IntegrationServiceEnvironmentManagedApisClient) PutSender(req *http.Request) (future IntegrationServiceEnvironmentManagedApisPutFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

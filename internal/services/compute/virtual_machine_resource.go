@@ -236,8 +236,8 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							Optional: true,
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.Linux),
-								string(compute.Windows),
+								string(compute.OperatingSystemTypesLinux),
+								string(compute.OperatingSystemTypesWindows),
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
@@ -1703,7 +1703,7 @@ func expandAzureRmVirtualMachineDataDisk(d *pluginsdk.ResourceData) ([]compute.D
 		if vhdURI != "" && managedDiskType != "" {
 			return nil, fmt.Errorf("[ERROR] Conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
 		}
-		if managedDiskID == "" && vhdURI == "" && strings.EqualFold(string(data_disk.CreateOption), string(compute.Attach)) {
+		if managedDiskID == "" && vhdURI == "" && strings.EqualFold(string(data_disk.CreateOption), string(compute.DiskCreateOptionAttach)) {
 			return nil, fmt.Errorf("[ERROR] Must specify `vhd_uri` or `managed_disk_id` to attach")
 		}
 
@@ -1860,7 +1860,7 @@ func expandAzureRmVirtualMachineOsDisk(d *pluginsdk.ResourceData) (*compute.OSDi
 		return nil, fmt.Errorf("[ERROR] Conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
 	}
 	// END: code to be removed after GH-13016 is merged
-	if managedDiskID == "" && vhdURI == "" && strings.EqualFold(string(osDisk.CreateOption), string(compute.Attach)) {
+	if managedDiskID == "" && vhdURI == "" && strings.EqualFold(string(osDisk.CreateOption), string(compute.DiskCreateOptionAttach)) {
 		return nil, fmt.Errorf("[ERROR] Must specify `vhd_uri` or `managed_disk_id` to attach")
 	}
 

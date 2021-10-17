@@ -66,7 +66,7 @@ func (client ComputeClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.ComputeClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.ComputeClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -101,6 +101,7 @@ func (client ComputeClient) CreateOrUpdatePreparer(ctx context.Context, resource
 // http.Response Body if it receives an error.
 func (client ComputeClient) CreateOrUpdateSender(req *http.Request) (future ComputeCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -159,7 +160,7 @@ func (client ComputeClient) Delete(ctx context.Context, resourceGroupName string
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.ComputeClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.ComputeClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -193,6 +194,7 @@ func (client ComputeClient) DeletePreparer(ctx context.Context, resourceGroupNam
 // http.Response Body if it receives an error.
 func (client ComputeClient) DeleteSender(req *http.Request) (future ComputeDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -683,7 +685,7 @@ func (client ComputeClient) Restart(ctx context.Context, resourceGroupName strin
 
 	result, err = client.RestartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.ComputeClient", "Restart", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.ComputeClient", "Restart", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -716,6 +718,7 @@ func (client ComputeClient) RestartPreparer(ctx context.Context, resourceGroupNa
 // http.Response Body if it receives an error.
 func (client ComputeClient) RestartSender(req *http.Request) (future ComputeRestartFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -771,7 +774,7 @@ func (client ComputeClient) Start(ctx context.Context, resourceGroupName string,
 
 	result, err = client.StartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.ComputeClient", "Start", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.ComputeClient", "Start", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -804,6 +807,7 @@ func (client ComputeClient) StartPreparer(ctx context.Context, resourceGroupName
 // http.Response Body if it receives an error.
 func (client ComputeClient) StartSender(req *http.Request) (future ComputeStartFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -859,7 +863,7 @@ func (client ComputeClient) Stop(ctx context.Context, resourceGroupName string, 
 
 	result, err = client.StopSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.ComputeClient", "Stop", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.ComputeClient", "Stop", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -892,6 +896,7 @@ func (client ComputeClient) StopPreparer(ctx context.Context, resourceGroupName 
 // http.Response Body if it receives an error.
 func (client ComputeClient) StopSender(req *http.Request) (future ComputeStopFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -949,7 +954,7 @@ func (client ComputeClient) Update(ctx context.Context, resourceGroupName string
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.ComputeClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.ComputeClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -984,6 +989,7 @@ func (client ComputeClient) UpdatePreparer(ctx context.Context, resourceGroupNam
 // http.Response Body if it receives an error.
 func (client ComputeClient) UpdateSender(req *http.Request) (future ComputeUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

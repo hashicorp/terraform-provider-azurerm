@@ -31,7 +31,7 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.VirtualMachineScaleSetID(id)
 			return err
-		}, importVirtualMachineScaleSet(compute.Linux, "azurerm_linux_virtual_machine_scale_set")),
+		}, importVirtualMachineScaleSet(compute.OperatingSystemTypesLinux, "azurerm_linux_virtual_machine_scale_set")),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(time.Minute * 30),
@@ -136,8 +136,8 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Deallocate),
-					string(compute.Delete),
+					string(compute.VirtualMachineEvictionPolicyTypesDeallocate),
+					string(compute.VirtualMachineEvictionPolicyTypesDelete),
 				}, false),
 			},
 
@@ -184,10 +184,10 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(compute.Regular),
+				Default:  string(compute.VirtualMachinePriorityTypesRegular),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Regular),
-					string(compute.Spot),
+					string(compute.VirtualMachinePriorityTypesRegular),
+					string(compute.VirtualMachinePriorityTypesSpot),
 				}, false),
 			},
 
@@ -235,11 +235,11 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(compute.Manual),
+				Default:  string(compute.UpgradeModeManual),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Automatic),
-					string(compute.Manual),
-					string(compute.Rolling),
+					string(compute.UpgradeModeAutomatic),
+					string(compute.UpgradeModeManual),
+					string(compute.UpgradeModeRolling),
 				}, false),
 			},
 
@@ -253,11 +253,11 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 			"scale_in_policy": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(compute.Default),
+				Default:  string(compute.VirtualMachineScaleSetScaleInRulesDefault),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Default),
-					string(compute.NewestVM),
-					string(compute.OldestVM),
+					string(compute.VirtualMachineScaleSetScaleInRulesDefault),
+					string(compute.VirtualMachineScaleSetScaleInRulesNewestVM),
+					string(compute.VirtualMachineScaleSetScaleInRulesOldestVM),
 				}, false),
 			},
 
@@ -322,7 +322,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	osDiskRaw := d.Get("os_disk").([]interface{})
-	osDisk := ExpandVirtualMachineScaleSetOSDisk(osDiskRaw, compute.Linux)
+	osDisk := ExpandVirtualMachineScaleSetOSDisk(osDiskRaw, compute.OperatingSystemTypesLinux)
 
 	planRaw := d.Get("plan").([]interface{})
 	plan := expandPlan(planRaw)
@@ -344,15 +344,15 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	rollingUpgradePolicyRaw := d.Get("rolling_upgrade_policy").([]interface{})
 	rollingUpgradePolicy := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw)
 
-	if upgradeMode != compute.Automatic && len(automaticOSUpgradePolicyRaw) > 0 {
+	if upgradeMode != compute.UpgradeModeAutomatic && len(automaticOSUpgradePolicyRaw) > 0 {
 		return fmt.Errorf("An `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic`")
 	}
 
-	shouldHaveRollingUpgradePolicy := upgradeMode == compute.Automatic || upgradeMode == compute.Rolling
+	shouldHaveRollingUpgradePolicy := upgradeMode == compute.UpgradeModeAutomatic || upgradeMode == compute.UpgradeModeRolling
 	if !shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) > 0 {
 		return fmt.Errorf("A `rolling_upgrade_policy` block cannot be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
-	shouldHaveRollingUpgradePolicy = upgradeMode == compute.Rolling
+	shouldHaveRollingUpgradePolicy = upgradeMode == compute.UpgradeModeRolling
 	if shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) == 0 {
 		return fmt.Errorf("A `rolling_upgrade_policy` block must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
@@ -431,7 +431,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 
 	// otherwise the service return the error:
 	// Rolling Upgrade mode is not supported for this Virtual Machine Scale Set because a health probe or health extension was not provided.
-	if upgradeMode == compute.Rolling && (healthProbeId == "" && !hasHealthExtension) {
+	if upgradeMode == compute.UpgradeModeRolling && (healthProbeId == "" && !hasHealthExtension) {
 		return fmt.Errorf("`health_probe_id` must be set or a health extension must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
 
@@ -440,7 +440,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
-		if priority != compute.Spot {
+		if priority != compute.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
@@ -465,11 +465,11 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
-		if virtualMachineProfile.Priority != compute.Spot {
+		if virtualMachineProfile.Priority != compute.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("An `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 		virtualMachineProfile.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string))
-	} else if priority == compute.Spot {
+	} else if priority == compute.VirtualMachinePriorityTypesSpot {
 		return fmt.Errorf("An `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
@@ -632,7 +632,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 
 	priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
 	if d.HasChange("max_bid_price") {
-		if priority != compute.Spot {
+		if priority != compute.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
@@ -847,7 +847,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		Client:                       meta.(*clients.Client).Compute,
 		Existing:                     existing,
 		ID:                           id,
-		OSType:                       compute.Linux,
+		OSType:                       compute.OperatingSystemTypesLinux,
 	}
 
 	if err := metaData.performUpdate(ctx, update); err != nil {
@@ -932,7 +932,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 	d.Set("unique_id", props.UniqueID)
 	d.Set("zone_balance", props.ZoneBalance)
 
-	rule := string(compute.Default)
+	rule := string(compute.VirtualMachineScaleSetScaleInRulesDefault)
 	if props.ScaleInPolicy != nil {
 		if rules := props.ScaleInPolicy.Rules; rules != nil && len(*rules) > 0 {
 			rule = string((*rules)[0])
@@ -956,7 +956,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 
 		// the service just return empty when this is not assigned when provisioned
 		// See discussion on https://github.com/Azure/azure-rest-api-specs/issues/10971
-		priority := compute.Regular
+		priority := compute.VirtualMachinePriorityTypesRegular
 		if profile.Priority != "" {
 			priority = profile.Priority
 		}

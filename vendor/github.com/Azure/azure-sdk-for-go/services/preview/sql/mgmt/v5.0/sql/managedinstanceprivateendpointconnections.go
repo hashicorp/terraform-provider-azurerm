@@ -70,7 +70,7 @@ func (client ManagedInstancePrivateEndpointConnectionsClient) CreateOrUpdate(ctx
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstancePrivateEndpointConnectionsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstancePrivateEndpointConnectionsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -105,6 +105,7 @@ func (client ManagedInstancePrivateEndpointConnectionsClient) CreateOrUpdatePrep
 // http.Response Body if it receives an error.
 func (client ManagedInstancePrivateEndpointConnectionsClient) CreateOrUpdateSender(req *http.Request) (future ManagedInstancePrivateEndpointConnectionsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -152,7 +153,7 @@ func (client ManagedInstancePrivateEndpointConnectionsClient) Delete(ctx context
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstancePrivateEndpointConnectionsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstancePrivateEndpointConnectionsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -185,6 +186,7 @@ func (client ManagedInstancePrivateEndpointConnectionsClient) DeletePreparer(ctx
 // http.Response Body if it receives an error.
 func (client ManagedInstancePrivateEndpointConnectionsClient) DeleteSender(req *http.Request) (future ManagedInstancePrivateEndpointConnectionsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

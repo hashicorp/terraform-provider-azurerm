@@ -59,7 +59,7 @@ func (client ManagedInstanceKeysClient) CreateOrUpdate(ctx context.Context, reso
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceKeysClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceKeysClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -95,6 +95,7 @@ func (client ManagedInstanceKeysClient) CreateOrUpdatePreparer(ctx context.Conte
 // http.Response Body if it receives an error.
 func (client ManagedInstanceKeysClient) CreateOrUpdateSender(req *http.Request) (future ManagedInstanceKeysCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -143,7 +144,7 @@ func (client ManagedInstanceKeysClient) Delete(ctx context.Context, resourceGrou
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceKeysClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceKeysClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -176,6 +177,7 @@ func (client ManagedInstanceKeysClient) DeletePreparer(ctx context.Context, reso
 // http.Response Body if it receives an error.
 func (client ManagedInstanceKeysClient) DeleteSender(req *http.Request) (future ManagedInstanceKeysDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

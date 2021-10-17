@@ -57,7 +57,7 @@ func (client OutboundFirewallRulesClient) CreateOrUpdate(ctx context.Context, re
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.OutboundFirewallRulesClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.OutboundFirewallRulesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -92,6 +92,7 @@ func (client OutboundFirewallRulesClient) CreateOrUpdatePreparer(ctx context.Con
 // http.Response Body if it receives an error.
 func (client OutboundFirewallRulesClient) CreateOrUpdateSender(req *http.Request) (future OutboundFirewallRulesCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -139,7 +140,7 @@ func (client OutboundFirewallRulesClient) Delete(ctx context.Context, resourceGr
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.OutboundFirewallRulesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.OutboundFirewallRulesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -172,6 +173,7 @@ func (client OutboundFirewallRulesClient) DeletePreparer(ctx context.Context, re
 // http.Response Body if it receives an error.
 func (client OutboundFirewallRulesClient) DeleteSender(req *http.Request) (future OutboundFirewallRulesDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
