@@ -566,10 +566,8 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("load_balancer_backend_address_pool_id", backendPoolReadId)
 		}
 
-		if storageAccountIdentity := model.Properties.StorageAccountIdentity; storageAccountIdentity != nil {
-			if err := d.Set("storage_account_identity", flattenWorkspaceStorageAccountIdentity(storageAccountIdentity)); err != nil {
-				return fmt.Errorf("setting `storage_account_identity`: %+v", err)
-			}
+		if err := d.Set("storage_account_identity", flattenWorkspaceStorageAccountIdentity(model.Properties.StorageAccountIdentity)); err != nil {
+			return fmt.Errorf("setting `storage_account_identity`: %+v", err)
 		}
 
 		if model.Properties.WorkspaceUrl != nil {
