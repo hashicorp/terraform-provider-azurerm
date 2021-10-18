@@ -70,6 +70,7 @@ func TestAccDiskEncryptionSet_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_auto_key_rotation").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -77,6 +78,7 @@ func TestAccDiskEncryptionSet_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_auto_key_rotation").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -244,6 +246,8 @@ resource "azurerm_disk_encryption_set" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  enable_auto_key_rotation = true
 
   tags = {
     Hello = "woRld"

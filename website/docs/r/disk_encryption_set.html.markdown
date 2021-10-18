@@ -107,6 +107,8 @@ The following arguments are supported:
 
 * `identity` - (Required) A `identity` block defined below.
 
+* `enable_auto_key_rotation` - (Optional) Boolean flag to specify whether Azure automatically rotate to your latest key version of the selected key. Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags to assign to the Disk Encryption Set.
 
 ---
