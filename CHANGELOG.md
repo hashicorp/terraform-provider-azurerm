@@ -12,6 +12,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_cosmosdb_account`: force `MongoEnabled` feature when enabling `MongoDBv3.4`. [GH-13757]
+* `azurerm_app_configuration_feature`: fix default value handling for percentage appconfig feature filters. [GH-13771]
 
 ## 2.81.0 (October 14, 2021)
 
