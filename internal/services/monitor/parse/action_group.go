@@ -33,7 +33,7 @@ func (id ActionGroupId) String() string {
 }
 
 func (id ActionGroupId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/actionGroups/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Insights/actionGroups/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 

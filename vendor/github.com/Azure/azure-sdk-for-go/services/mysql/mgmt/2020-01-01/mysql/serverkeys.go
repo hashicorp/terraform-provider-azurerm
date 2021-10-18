@@ -70,7 +70,7 @@ func (client ServerKeysClient) CreateOrUpdate(ctx context.Context, serverName st
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "mysql.ServerKeysClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "mysql.ServerKeysClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -106,6 +106,7 @@ func (client ServerKeysClient) CreateOrUpdatePreparer(ctx context.Context, serve
 // http.Response Body if it receives an error.
 func (client ServerKeysClient) CreateOrUpdateSender(req *http.Request) (future ServerKeysCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -162,7 +163,7 @@ func (client ServerKeysClient) Delete(ctx context.Context, serverName string, ke
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "mysql.ServerKeysClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "mysql.ServerKeysClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -195,6 +196,7 @@ func (client ServerKeysClient) DeletePreparer(ctx context.Context, serverName st
 // http.Response Body if it receives an error.
 func (client ServerKeysClient) DeleteSender(req *http.Request) (future ServerKeysDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

@@ -143,17 +143,17 @@ func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
 
 func resourceMonitorSmartDetectorAlertRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewSmartDetectorAlertRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name, utils.Bool(true))
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, utils.Bool(true))
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Monitor Smart Detector Alert Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -189,20 +189,11 @@ func resourceMonitorSmartDetectorAlertRuleCreateUpdate(d *pluginsdk.ResourceData
 		}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, actionRule); err != nil {
-		return fmt.Errorf("creating/updating Monitor Smart Detector Alert Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, actionRule); err != nil {
+		return fmt.Errorf("creating/updating Monitor %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name, nil)
-	if err != nil {
-		return fmt.Errorf("retrieving Monitor Smart Detector Alert Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Monitor Smart Detector Alert Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 	return resourceMonitorSmartDetectorAlertRuleRead(d, meta)
 }
 
@@ -223,7 +214,7 @@ func resourceMonitorSmartDetectorAlertRuleRead(d *pluginsdk.ResourceData, meta i
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Monitor Smart Detector Alert Rule %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Monitor %s: %+v", *id, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -264,7 +255,7 @@ func resourceMonitorSmartDetectorAlertRuleDelete(d *pluginsdk.ResourceData, meta
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("deleting Monitor Smart Detector Alert Rule %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Monitor %s: %+v", *id, err)
 	}
 	return nil
 }

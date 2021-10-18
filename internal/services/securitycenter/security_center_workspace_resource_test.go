@@ -16,13 +16,13 @@ import (
 type SecurityCenterWorkspaceResource struct {
 }
 
-func testAccSecurityCenterWorkspace_basic(t *testing.T) {
+func TestAccSecurityCenterWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
 
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.basicCfg(data, scope),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -38,12 +38,12 @@ func testAccSecurityCenterWorkspace_basic(t *testing.T) {
 	})
 }
 
-func testAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
+func TestAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.basicCfg(data, scope),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -62,12 +62,12 @@ func testAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccSecurityCenterWorkspace_update(t *testing.T) {
+func TestAccSecurityCenterWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.basicCfg(data, scope),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -108,7 +108,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_security_center_subscription_pricing" "test" {
-  tier          = "Standard"
+  tier          = "Free"
   resource_type = "VirtualMachines"
 }
 
@@ -149,7 +149,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_security_center_subscription_pricing" "test" {
-  tier = "Standard"
+  tier = "Free"
 }
 
 resource "azurerm_resource_group" "test" {

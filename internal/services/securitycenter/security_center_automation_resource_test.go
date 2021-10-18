@@ -277,7 +277,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestlogs-%d"
   location            = "%s"
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Free"
+  sku                 = "PerGB2018"
 }
 
 data "azurerm_client_config" "current" {

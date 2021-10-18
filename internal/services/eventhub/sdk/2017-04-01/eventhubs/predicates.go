@@ -7,7 +7,6 @@ type EventhubPredicate struct {
 }
 
 func (p EventhubPredicate) Matches(input Eventhub) bool {
-
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false
 	}

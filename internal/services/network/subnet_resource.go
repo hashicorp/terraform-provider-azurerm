@@ -290,6 +290,12 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
+	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+
+	locks.ByName(id.Name, SubnetResourceName)
+	defer locks.UnlockByName(id.Name, SubnetResourceName)
+
 	existing, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)

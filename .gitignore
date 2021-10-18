@@ -25,6 +25,7 @@ website/node_modules
 *.iml
 *.test
 .terraform.tfstate.lock.info
+.terraform.lock.hcl
 
 website/vendor
 

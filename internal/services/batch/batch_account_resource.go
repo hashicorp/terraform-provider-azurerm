@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -62,10 +62,10 @@ func resourceBatchAccount() *pluginsdk.Resource {
 			"pool_allocation_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(batch.BatchService),
+				Default:  string(batch.PoolAllocationModeBatchService),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(batch.BatchService),
-					string(batch.UserSubscription),
+					string(batch.PoolAllocationModeBatchService),
+					string(batch.PoolAllocationModeUserSubscription),
 				}, false),
 			},
 
@@ -158,7 +158,7 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	// if pool allocation mode is UserSubscription, a key vault reference needs to be set
-	if poolAllocationMode == string(batch.UserSubscription) {
+	if poolAllocationMode == string(batch.PoolAllocationModeUserSubscription) {
 		keyVaultReferenceSet := d.Get("key_vault_reference").([]interface{})
 		keyVaultReference, err := expandBatchAccountKeyVaultReference(keyVaultReferenceSet)
 		if err != nil {
@@ -241,7 +241,7 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("pool_allocation_mode", props.PoolAllocationMode)
 	}
 
-	if d.Get("pool_allocation_mode").(string) == string(batch.BatchService) {
+	if d.Get("pool_allocation_mode").(string) == string(batch.PoolAllocationModeBatchService) {
 		keys, err := client.GetKeys(ctx, id.ResourceGroup, id.BatchAccountName)
 		if err != nil {
 			return fmt.Errorf("Cannot read keys for Batch account %q (resource group %q): %v", id.BatchAccountName, id.ResourceGroup, err)

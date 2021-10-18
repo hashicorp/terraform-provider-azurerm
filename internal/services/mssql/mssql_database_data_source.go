@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -106,9 +106,7 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("making Read request on AzureRM Database %s (Resource Group %q, SQL Server %q): %+v", name, serverId.ResourceGroup, serverId.Name, err)
 	}
 
-	if id := resp.ID; id != nil {
-		d.SetId(*resp.ID)
-	}
+	d.SetId(parse.NewDatabaseID(serverId.SubscriptionId, serverId.ResourceGroup, serverId.Name, name).ID())
 	d.Set("name", name)
 	d.Set("server_id", mssqlServerId)
 
@@ -119,14 +117,14 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 		if props.MaxSizeBytes != nil {
 			d.Set("max_size_gb", int32((*props.MaxSizeBytes)/int64(1073741824)))
 		}
-		d.Set("read_replica_count", props.ReadReplicaCount)
+		d.Set("read_replica_count", props.HighAvailabilityReplicaCount)
 		if props.ReadScale == sql.DatabaseReadScaleEnabled {
 			d.Set("read_scale", true)
 		} else if props.ReadScale == sql.DatabaseReadScaleDisabled {
 			d.Set("read_scale", false)
 		}
 		d.Set("sku_name", props.CurrentServiceObjectiveName)
-		d.Set("storage_account_type", props.StorageAccountType)
+		d.Set("storage_account_type", flattenMsSqlBackupStorageRedundancy(props.CurrentBackupStorageRedundancy))
 		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 

@@ -1,7 +1,7 @@
 package helper
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -74,14 +74,14 @@ func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandLongTermRetentionPolicy(input []interface{}) *sql.LongTermRetentionPolicyProperties {
+func ExpandLongTermRetentionPolicy(input []interface{}) *sql.BaseLongTermRetentionPolicyProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	longTermRetentionPolicy := input[0].(map[string]interface{})
 
-	longTermPolicyProperties := sql.LongTermRetentionPolicyProperties{
+	longTermPolicyProperties := sql.BaseLongTermRetentionPolicyProperties{
 		WeeklyRetention:  utils.String("PT0S"),
 		MonthlyRetention: utils.String("PT0S"),
 		YearlyRetention:  utils.String("PT0S"),
@@ -107,7 +107,7 @@ func ExpandLongTermRetentionPolicy(input []interface{}) *sql.LongTermRetentionPo
 	return &longTermPolicyProperties
 }
 
-func FlattenLongTermRetentionPolicy(longTermRetentionPolicy *sql.BackupLongTermRetentionPolicy, d *pluginsdk.ResourceData) []interface{} {
+func FlattenLongTermRetentionPolicy(longTermRetentionPolicy *sql.LongTermRetentionPolicy, d *pluginsdk.ResourceData) []interface{} {
 	if longTermRetentionPolicy == nil {
 		return []interface{}{}
 	}

@@ -320,6 +320,7 @@ resource "azurerm_lb" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
+  sku_tier            = "Global"
 
   tags = {
     Environment = "production"

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -336,10 +336,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 												"elevation_level": {
 													Type:     pluginsdk.TypeString,
 													Optional: true,
-													Default:  string(batch.NonAdmin),
+													Default:  string(batch.ElevationLevelNonAdmin),
 													ValidateFunc: validation.StringInSlice([]string{
-														string(batch.NonAdmin),
-														string(batch.Admin),
+														string(batch.ElevationLevelNonAdmin),
+														string(batch.ElevationLevelAdmin),
 													}, false),
 												},
 												"scope": {
@@ -429,9 +429,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(batch.BatchManaged),
-								string(batch.UserManaged),
-								string(batch.NoPublicIPAddresses),
+								string(batch.IPAddressProvisioningTypeBatchManaged),
+								string(batch.IPAddressProvisioningTypeUserManaged),
+								string(batch.IPAddressProvisioningTypeNoPublicIPAddresses),
 							}, false),
 						},
 						"endpoint_configuration": {
@@ -451,8 +451,8 @@ func resourceBatchPool() *pluginsdk.Resource {
 										Required: true,
 										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(batch.TCP),
-											string(batch.UDP),
+											string(batch.InboundEndpointProtocolTCP),
+											string(batch.InboundEndpointProtocolUDP),
 										}, false),
 									},
 									"backend_port": {
@@ -487,8 +487,8 @@ func resourceBatchPool() *pluginsdk.Resource {
 													Required: true,
 													ForceNew: true,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(batch.Allow),
-														string(batch.Deny),
+														string(batch.NetworkSecurityGroupRuleAccessAllow),
+														string(batch.NetworkSecurityGroupRuleAccessDeny),
 													}, false),
 												},
 												"source_address_prefix": {
@@ -539,9 +539,9 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	parameters := batch.Pool{
 		PoolProperties: &batch.PoolProperties{
-			VMSize:          &vmSize,
-			DisplayName:     &displayName,
-			MaxTasksPerNode: &maxTasksPerNode,
+			VMSize:           &vmSize,
+			DisplayName:      &displayName,
+			TaskSlotsPerNode: &maxTasksPerNode,
 		},
 	}
 
@@ -621,13 +621,9 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("expanding `network_configuration`: %+v", err)
 	}
 
-	future, err := client.Create(ctx, resourceGroup, accountName, poolName, parameters, "", "")
+	_, err = client.Create(ctx, resourceGroup, accountName, poolName, parameters, "", "")
 	if err != nil {
 		return fmt.Errorf("creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, accountName, poolName)
@@ -642,7 +638,7 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.SetId(*read.ID)
 
 	// if the pool is not Steady after the create operation, wait for it to be Steady
-	if props := read.PoolProperties; props != nil && props.AllocationState != batch.Steady {
+	if props := read.PoolProperties; props != nil && props.AllocationState != batch.AllocationStateSteady {
 		if err = waitForBatchPoolPendingResizeOperation(ctx, client, resourceGroup, accountName, poolName); err != nil {
 			return fmt.Errorf("waiting for Batch pool %q (resource group %q) being ready", poolName, resourceGroup)
 		}
@@ -666,7 +662,7 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("retrieving the Batch pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	if resp.PoolProperties.AllocationState != batch.Steady {
+	if resp.PoolProperties.AllocationState != batch.AllocationStateSteady {
 		log.Printf("[INFO] there is a pending resize operation on this pool...")
 		stopPendingResizeOperation := d.Get("stop_pending_resize_operation").(bool)
 		if !stopPendingResizeOperation {
@@ -735,7 +731,7 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	// if the pool is not Steady after the update, wait for it to be Steady
-	if props := result.PoolProperties; props != nil && props.AllocationState != batch.Steady {
+	if props := result.PoolProperties; props != nil && props.AllocationState != batch.AllocationStateSteady {
 		if err := waitForBatchPoolPendingResizeOperation(ctx, client, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
 			return fmt.Errorf("waiting for Batch pool %q (resource group %q) being ready", id.Name, id.ResourceGroup)
 		}
@@ -779,7 +775,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 		}
 
-		d.Set("max_tasks_per_node", props.MaxTasksPerNode)
+		d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
 
 		if props.DeploymentConfiguration != nil &&
 			props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
@@ -895,7 +891,7 @@ func waitForBatchPoolPendingResizeOperation(ctx context.Context, client *batch.P
 			return fmt.Errorf("retrieving the Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
 		}
 
-		isSteady = resp.PoolProperties.AllocationState == batch.Steady
+		isSteady = resp.PoolProperties.AllocationState == batch.AllocationStateSteady
 		time.Sleep(time.Second * 30)
 		log.Printf("[INFO] waiting for the pending resize operation on this pool to be stopped... New try in 30 seconds...")
 	}

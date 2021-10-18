@@ -67,7 +67,7 @@ func (client BigDataPoolsClient) CreateOrUpdate(ctx context.Context, resourceGro
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.BigDataPoolsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.BigDataPoolsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -107,6 +107,7 @@ func (client BigDataPoolsClient) CreateOrUpdatePreparer(ctx context.Context, res
 // http.Response Body if it receives an error.
 func (client BigDataPoolsClient) CreateOrUpdateSender(req *http.Request) (future BigDataPoolsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -164,7 +165,7 @@ func (client BigDataPoolsClient) Delete(ctx context.Context, resourceGroupName s
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.BigDataPoolsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.BigDataPoolsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -197,6 +198,7 @@ func (client BigDataPoolsClient) DeletePreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client BigDataPoolsClient) DeleteSender(req *http.Request) (future BigDataPoolsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -214,7 +216,7 @@ func (client BigDataPoolsClient) DeleteResponder(resp *http.Response) (result Se
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
-		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
