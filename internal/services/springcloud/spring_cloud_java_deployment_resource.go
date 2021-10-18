@@ -95,7 +95,6 @@ func resourceSpringCloudJavaDeployment() *pluginsdk.Resource {
 			"quota": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				//nanxu add below codes
 				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
