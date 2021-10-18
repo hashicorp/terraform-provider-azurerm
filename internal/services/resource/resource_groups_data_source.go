@@ -26,11 +26,11 @@ func dataSourceResourceGroups() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"subscription_ids": {
-				Type: pluginsdk.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MinItems: 1,
 				Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
+					Type: pluginsdk.TypeString,
 				},
 			},
 
