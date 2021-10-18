@@ -3,7 +3,7 @@ subcategory: "Security Center"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iot_security_device_group"
 description: |-
-  Manages a Iot Security Device Group.
+Manages a Iot Security Device Group.
 ---
 
 # azurerm_iot_security_device_group
@@ -70,6 +70,8 @@ The following arguments are supported:
 ---
 
 An `allow_rule` block supports the following:
+
+* `connection_from_ip_not_allowed` - (optional) Specifies which IP is not allowed to be connected to in current device group for inbound connection.
 
 * `connection_to_ip_not_allowed` - (optional) Specifies which Ip is not allowed to be connected to in current device group.
 

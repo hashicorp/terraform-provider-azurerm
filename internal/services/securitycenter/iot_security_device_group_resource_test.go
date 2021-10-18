@@ -137,9 +137,10 @@ resource "azurerm_iot_security_device_group" "test" {
   iothub_id = azurerm_iothub.test.id
 
   allow_rule {
-    connection_to_ip_not_allowed = ["10.0.0.0/24"]
-    local_user_not_allowed       = ["user1"]
-    process_not_allowed          = ["ssh"]
+    connection_from_ip_not_allowed = ["10.1.0.0/24"]
+    connection_to_ip_not_allowed   = ["10.0.0.0/24"]
+    local_user_not_allowed         = ["user1"]
+    process_not_allowed            = ["ssh"]
   }
 
   range_rule {
