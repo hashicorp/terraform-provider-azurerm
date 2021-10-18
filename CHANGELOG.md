@@ -11,6 +11,8 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_cosmosdb_account`: force `MongoEnabled` feature when enabling `MongoDBv3.4`. [GH-13757]
+
 ## 2.81.0 (October 14, 2021)
 
 FEATURES: 
