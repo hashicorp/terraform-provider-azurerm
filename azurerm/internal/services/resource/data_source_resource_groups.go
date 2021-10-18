@@ -7,11 +7,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 
-	resource "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/"
+	resource "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
-	
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -73,82 +73,81 @@ func dataSourceResourceGroupsRead(d *pluginsdk.ResourceData, meta interface{}) e
 	var err error
 	// iterate across each resource groups and append them to slice
 	resourceGroups := make([]map[string]interface{}, 0)
-	for _, subId := range d.Get("subscription_ids").([]string){
+	for _, subId := range d.Get("subscription_ids").([]string) {
 		rgSubGroupsClient := resource.NewGroupsClient(subId)
 		results, err = rgSubGroupsClient.ListComplete(ctx, "", nil)
 		if err != nil {
 			return fmt.Errorf("listing resource groups: %+v", err)
 		}
 
-	for results.NotDone() {
-		val := results.Value()
+		for results.NotDone() {
+			val := results.Value()
 
-		rgId := ""
-		if v := val.ID; v != nil {
-			rgId = *v
-		}
+			rgId := ""
+			if v := val.ID; v != nil {
+				rgId = *v
+			}
 
-		rgSubId := ""
-		rgStruct, err := parse.ResourceGroupID(*val.ID)
-		if err != nil {
-			return fmt.Errorf("parsing Resource Group ID")
-		}
-		rgSubId = rgStruct.SubscriptionId
-		
+			rgSubId := ""
+			rgStruct, err := parse.ResourceGroupID(*val.ID)
+			if err != nil {
+				return fmt.Errorf("parsing Resource Group ID")
+			}
+			rgSubId = rgStruct.SubscriptionId
 
-		rgTenantId := ""
-		resp, err := subClient.Get(ctx, rgSubId)
-		if err != nil {
-			return fmt.Errorf("reading subscription: %+v", err)
-		} else {
-			rgTenantId = *resp.TenantID
-		}
+			rgTenantId := ""
+			resp, err := subClient.Get(ctx, rgSubId)
+			if err != nil {
+				return fmt.Errorf("reading subscription: %+v", err)
+			} else {
+				rgTenantId = *resp.TenantID
+			}
 
-		rgName := ""
-		if v := val.Name; v != nil {
-			rgName = *v
-		}
+			rgName := ""
+			if v := val.Name; v != nil {
+				rgName = *v
+			}
 
-		rgType := ""
-		if v := val.Type; v != nil {
-			rgType = *v
-		}
+			rgType := ""
+			if v := val.Type; v != nil {
+				rgType = *v
+			}
 
-		rgLocation := ""
-		if v := val.Location; v != nil {
-			rgLocation = *v
-		}
+			rgLocation := ""
+			if v := val.Location; v != nil {
+				rgLocation = *v
+			}
 
-		rgTags := make(map[string]interface{})
-		if val.Tags != nil {
-			rgTags = make(map[string]interface{}, len(val.Tags))
-			for key, value := range val.Tags {
-				if value != nil {
-					rgTags[key] = *value
+			rgTags := make(map[string]interface{})
+			if val.Tags != nil {
+				rgTags = make(map[string]interface{}, len(val.Tags))
+				for key, value := range val.Tags {
+					if value != nil {
+						rgTags[key] = *value
+					}
 				}
 			}
-		}
 
-		if err = results.Next(); err != nil {
-			return fmt.Errorf("going to next resource groups value: %+v", err)
-		}
+			if err = results.Next(); err != nil {
+				return fmt.Errorf("going to next resource groups value: %+v", err)
+			}
 
-		resourceGroups = append(resourceGroups, map[string]interface{}{
-			"id": rgId,
-			"name": rgName,
-			"type":     rgType,
-			"location": rgLocation,
-			"subscriptionId": rgSubId,
-			"tenantId": rgTenantId,
-			"tags":     rgTags,
-		})
+			resourceGroups = append(resourceGroups, map[string]interface{}{
+				"id":             rgId,
+				"name":           rgName,
+				"type":           rgType,
+				"location":       rgLocation,
+				"subscriptionId": rgSubId,
+				"tenantId":       rgTenantId,
+				"tags":           rgTags,
+			})
+		}
 	}
-}
 
-d.SetId("resource_groups-" + uuid.New().String())
-if err = d.Set("resource_groups", resourceGroups); err != nil {
-	return fmt.Errorf("setting `resource_groups`: %+v", err)
-}
+	d.SetId("resource_groups-" + uuid.New().String())
+	if err = d.Set("resource_groups", resourceGroups); err != nil {
+		return fmt.Errorf("setting `resource_groups`: %+v", err)
+	}
 
-return nil
+	return nil
 }
