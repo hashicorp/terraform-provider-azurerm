@@ -253,27 +253,12 @@ func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interfac
 
 func resourceArmLoadBalancerNatRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancerInboundNatRulesClient
-	lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.LoadBalancerInboundNatRuleID(d.Id())
 	if err != nil {
 		return err
-	}
-
-	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
-	loadBalancerID := loadBalancerId.ID()
-	locks.ByID(loadBalancerID)
-	defer locks.UnlockByID(loadBalancerID)
-
-	loadBalancer, err := lbClient.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
-	if err != nil {
-		if utils.ResponseWasNotFound(loadBalancer.Response) {
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Nat Rule %q: %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, id.InboundNatRuleName, err)
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.LoadBalancerName, id.InboundNatRuleName)
