@@ -675,14 +675,16 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("setting `access_policy` for KeyVault %q: %+v", *resp.Name, err)
 	}
 
-	contactsResp, err := managementClient.GetCertificateContacts(ctx, *props.VaultURI)
-	if err != nil {
-		if !utils.ResponseWasForbidden(contactsResp.Response) && !utils.ResponseWasNotFound(contactsResp.Response) {
-			return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
+	if v, ok := d.GetOk("contact"); ok {
+		contactsResp, err := managementClient.GetCertificateContacts(ctx, *props.VaultURI)
+		if err != nil {
+			if !utils.ResponseWasForbidden(contactsResp.Response) && !utils.ResponseWasNotFound(contactsResp.Response) {
+				return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
+			}
 		}
-	}
-	if err := d.Set("contact", flattenKeyVaultCertificateContactList(contactsResp)); err != nil {
-		return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
+		if err := d.Set("contact", flattenKeyVaultCertificateContactList(contactsResp)); err != nil {
+			return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
