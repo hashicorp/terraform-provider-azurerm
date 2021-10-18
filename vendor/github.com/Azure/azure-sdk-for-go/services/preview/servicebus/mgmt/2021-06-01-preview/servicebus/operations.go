@@ -14,7 +14,7 @@ import (
 	"net/http"
 )
 
-// OperationsClient is the azure Service Bus client
+// OperationsClient is the client for the Operations methods of the Servicebus service.
 type OperationsClient struct {
 	BaseClient
 }
@@ -71,7 +71,7 @@ func (client OperationsClient) List(ctx context.Context) (result OperationListRe
 
 // ListPreparer prepares the List request.
 func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
