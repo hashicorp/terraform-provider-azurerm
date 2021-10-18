@@ -42,6 +42,68 @@ func TestAccBatchPool_basic(t *testing.T) {
 	})
 }
 
+func TestAccBatchPool_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+	})
+}
+
+func TestAccBatchPool_identityUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
+				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
+				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
+				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
+				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("1"),
+				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+		{
+			Config: r.identity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
+				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
+				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
+				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
+				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("1"),
+				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+	})
+}
+
 func TestAccBatchPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
@@ -606,6 +668,54 @@ resource "azurerm_batch_pool" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) identity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  vm_size             = "Standard_A1"
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04.0-LTS"
+    version   = "latest"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) requiresImport(data acceptance.TestData) string {
