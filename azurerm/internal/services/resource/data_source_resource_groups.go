@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 
-	resource "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
+	resources "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -25,6 +25,15 @@ func dataSourceResourceGroups() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
+			"subscription_ids": {
+				Type: pluginsdk.TypeList,
+				Required: true,
+				MinItems: 1,
+				Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+				},
+			},
+
 			"resource_groups": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -69,12 +78,12 @@ func dataSourceResourceGroupsRead(d *pluginsdk.ResourceData, meta interface{}) e
 	defer cancel()
 
 	// ListComplete returns an iterator struct
-	var results resource.GroupListResultIterator
+	var results resources.GroupListResultIterator
 	var err error
 	// iterate across each resource groups and append them to slice
 	resourceGroups := make([]map[string]interface{}, 0)
 	for _, subId := range d.Get("subscription_ids").([]string) {
-		rgSubGroupsClient := resource.NewGroupsClient(subId)
+		rgSubGroupsClient := resources.NewGroupsClient(subId)
 		results, err = rgSubGroupsClient.ListComplete(ctx, "", nil)
 		if err != nil {
 			return fmt.Errorf("listing resource groups: %+v", err)
