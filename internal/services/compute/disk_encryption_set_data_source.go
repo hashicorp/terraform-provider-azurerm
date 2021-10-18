@@ -31,10 +31,10 @@ func dataSourceDiskEncryptionSet() *pluginsdk.Resource {
 			"location": azure.SchemaLocationForDataSource(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
-			
+
 			"auto_key_rotation_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Computed: true,  
+				Computed: true,
 			},
 
 			"tags": tags.SchemaDataSource(),
