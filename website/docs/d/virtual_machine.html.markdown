@@ -51,6 +51,14 @@ An `identity` block exports the following:
 
 * `type` - The identity type of the Managed Identity assigned to the Virtual Machine.
 
+* `private_ip_address` - The Primary Private IP Address assigned to this Virtual Machine.
+
+* `private_ip_addresses` - A list of Private IP Addresses assigned to this Virtual Machine.
+
+* `public_ip_address` - The Primary Public IP Address assigned to this Virtual Machine.
+
+* `public_ip_addresses` - A list of the Public IP Addresses assigned to this Virtual Machine.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
