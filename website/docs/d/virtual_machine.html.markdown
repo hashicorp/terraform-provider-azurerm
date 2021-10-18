@@ -38,6 +38,16 @@ output "virtual_machine_id" {
 * `id` - The ID of the Virtual Machine.
 
 * `identity` - A `identity` block as defined below.
+* 
+* `private_ip_address` - The Primary Private IP Address assigned to this Virtual Machine.
+
+* `private_ip_addresses` - A list of Private IP Addresses assigned to this Virtual Machine.
+
+* `public_ip_address` - The Primary Public IP Address assigned to this Virtual Machine.
+
+* `public_ip_addresses` - A list of the Public IP Addresses assigned to this Virtual Machine.
+
+~> In this release there's a known issue where the `public_ip_address` and `public_ip_addresses` fields may not be fully populated for Dynamic Public IP's.
 
 ---
 
@@ -50,14 +60,6 @@ An `identity` block exports the following:
 * `tenant_id` - The ID of the Tenant of the System Managed Service Principal assigned to the Virtual Machine.
 
 * `type` - The identity type of the Managed Identity assigned to the Virtual Machine.
-
-* `private_ip_address` - The Primary Private IP Address assigned to this Virtual Machine.
-
-* `private_ip_addresses` - A list of Private IP Addresses assigned to this Virtual Machine.
-
-* `public_ip_address` - The Primary Public IP Address assigned to this Virtual Machine.
-
-* `public_ip_addresses` - A list of the Public IP Addresses assigned to this Virtual Machine.
 
 ## Timeouts
 
