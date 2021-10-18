@@ -6,10 +6,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	resource "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
-	"github.com/terraform-provider-azurerm/internal/services/resource/parse"
-	"github.com/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-provider-azurerm/internal/timeouts"
+
+	resource "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceResourceGroups() *pluginsdk.Resource {
@@ -65,19 +66,17 @@ func dataSourceResourceGroupsRead(d *pluginsdk.ResourceData, meta interface{}) e
 	defer cancel()
 
 	// ListComplete returns an iterator struct
-	results := resource.GroupListResultIterator{
-	}
+	var results resource.GroupListResultIterator
 	var err error
+	// iterate across each resource groups and append them to slice
+	resourceGroups := make([]map[string]interface{}, 0)
 	for _, subId := range d.Get("subscription_ids").([]string){
 		rgSubGroupsClient := resource.NewGroupsClient(subId)
 		results, err = rgSubGroupsClient.ListComplete(ctx, "", nil)
 		if err != nil {
 			return fmt.Errorf("listing resource groups: %+v", err)
 		}
-	}
 
-	// iterate across each resource groups and append them to slice
-	resourceGroups := make([]map[string]interface{}, 0)
 	for results.NotDone() {
 		val := results.Value()
 
@@ -141,11 +140,12 @@ func dataSourceResourceGroupsRead(d *pluginsdk.ResourceData, meta interface{}) e
 			"tags":     rgTags,
 		})
 	}
+}
 
-	d.SetId("resource_groups-" + uuid.New().String())
-	if err = d.Set("resource_groups", resourceGroups); err != nil {
-		return fmt.Errorf("setting `resource_groups`: %+v", err)
-	}
+d.SetId("resource_groups-" + uuid.New().String())
+if err = d.Set("resource_groups", resourceGroups); err != nil {
+	return fmt.Errorf("setting `resource_groups`: %+v", err)
+}
 
-	return nil
+return nil
 }

@@ -246,10 +246,11 @@ A `record_sets` block exports:
 
 ## Example HCL Configurations
 
-* How to connect a `Private Endpoint` to a [Cosmos MongoDB](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/cosmos-db)
-* How to connect a `Private Endpoint` to a [PostgreSQL Server](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/postgresql)
-* How to connect a `Private Endpoint` to a [Private Link Service](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/private-link-service)
-* How to connect a `Private Endpoint` to a [Private DNS Group](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/private-dns-group)
+* How to connect a `Private Endpoint` to a [Cosmos MongoDB](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/private-endpoint/cosmos-db)
+* How to connect a `Private Endpoint` to a [PostgreSQL Server](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/private-endpoint/postgresql)
+* How to connect a `Private Endpoint` to a [Private Link Service](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/private-endpoint/private-link-service)
+* How to connect a `Private Endpoint` to a [Private DNS Group](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/private-endpoint/private-dns-group)
+* How to connect a `Private Endpoint` to a [Databricks Workspace](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/private-endpoint/databricks)
 
 ## Timeouts
 
