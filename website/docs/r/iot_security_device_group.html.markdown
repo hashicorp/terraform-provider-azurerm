@@ -73,7 +73,7 @@ An `allow_rule` block supports the following:
 
 * `connection_from_ip_not_allowed` - (optional) Specifies which IP is not allowed to be connected to in current device group for inbound connection.
 
-* `connection_to_ip_not_allowed` - (optional) Specifies which Ip is not allowed to be connected to in current device group.
+* `connection_to_ip_not_allowed` - (optional) Specifies which IP is not allowed to be connected to in current device group for outbound connection.
 
 * `local_user_not_allowed` - (optional) Specifies which local user is not allowed to Login in current device group.
 
