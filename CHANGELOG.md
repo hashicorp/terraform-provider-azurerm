@@ -7,6 +7,7 @@ IMPROVEMENTS:
 * dependencies: upgrading to `v58.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-13613]
 * upgrading `servicebus` to API Version `2021-06-01-preview` [GH-13701]
 * `azurerm_lb_nat_pool` - support for the `floating_ip_enabled`, `tcp_reset_enabled`, and `idle_timeout_in_minutes` properties [GH-13674]
+* `azurerm_synapse_spark_pool` - support for the `cache_size`, `compute_isolation_enabled`, `dynamic_executor_allocation_enabled`, `session_level_packages_enabled` and `spark_config` properties [GH-13690]
 
 BUG FIXES:
 
