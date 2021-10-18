@@ -147,7 +147,7 @@ An `spark_config` block supports the following:
 
 * `content` - (Required) The contents of a spark configuration.
 
-* `filename` - (Required) The name of the spark configuration file.
+* `filename` - (Required) The name of the file where the spark configuration `content` will be stored.
 
 ## Attributes Reference
 
