@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto"
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
@@ -70,6 +71,7 @@ func resourceKustoDatabaseScript() *pluginsdk.Resource {
 			"force_update_tag": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
@@ -94,10 +96,15 @@ func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
+	forceUpdateTag := d.Get("force_update_tag").(string)
+	if len(forceUpdateTag) == 0 {
+		forceUpdateTag, _ = uuid.GenerateUUID()
+	}
+
 	parameters := kusto.Script{
 		ScriptProperties: &kusto.ScriptProperties{
 			ContinueOnErrors:  utils.Bool(d.Get("continue_on_errors_enabled").(bool)),
-			ForceUpdateTag:    utils.String(d.Get("force_update_tag").(string)),
+			ForceUpdateTag:    utils.String(forceUpdateTag),
 			ScriptURL:         utils.String(d.Get("url").(string)),
 			ScriptURLSasToken: utils.String(d.Get("sas_token").(string)),
 		},
