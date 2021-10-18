@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -13,7 +14,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ContainerRegistryTokenResource struct{}
+type ContainerRegistryTokenResource struct {
+	CreatedAt time.Time
+}
 
 func TestAccContainerRegistryToken_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_token", "test")
@@ -50,7 +53,7 @@ func TestAccContainerRegistryToken_requiresImport(t *testing.T) {
 
 func TestAccContainerRegistryToken_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_token", "test")
-	r := ContainerRegistryTokenResource{}
+	r := ContainerRegistryTokenResource{CreatedAt: time.Now()}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -186,6 +189,17 @@ resource "azurerm_container_registry_token" "test" {
   container_registry_name = azurerm_container_registry.test.name
   scope_map_id            = data.azurerm_container_registry_scope_map.pull_repos.id
   enabled                 = %t
+  password {
+    name = "password1"
+    expiry = "%s"
+  }
+  password {
+    name = "password2"
+    expiry = "%s"
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, status)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, status,
+		r.CreatedAt.Add(time.Hour).Format(time.RFC3339),
+		r.CreatedAt.Add(time.Hour).Format(time.RFC3339),
+	)
 }

@@ -5,6 +5,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/go-autorest/autorest/date"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -58,6 +62,34 @@ func resourceContainerRegistryToken() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"password": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 2,
+				ForceNew: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"password1",
+								"password2",
+							}, false),
+						},
+						"expiry": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsRFC3339Time,
+						},
+						"value": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -122,8 +154,46 @@ func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interf
 
 	d.SetId(*read.ID)
 
+	passwords, err := expandContainerRegistryTokenPassword(d.Get("password").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `password`: %v", err)
+	}
+	if passwords != nil {
+		oldPasswords := *passwords
+		for idx, password := range oldPasswords {
+			param := containerregistry.GenerateCredentialsParameters{
+				TokenID: read.ID,
+				Expiry:  password.Expiry,
+				Name:    password.Name,
+			}
+			regClient := meta.(*clients.Client).Containers.RegistriesClient
+			future, err := regClient.GenerateCredentials(ctx, resourceGroup, containerRegistryName, param)
+			if err != nil {
+				return fmt.Errorf("generating password credential %s: %v", password.Name, err)
+			}
+			if err := future.WaitForCompletionRef(ctx, regClient.Client); err != nil {
+				return fmt.Errorf("waiting for password credential generation for %s: %v", password.Name, err)
+			}
+
+			result, err := future.Result(*regClient)
+			if err != nil {
+				return fmt.Errorf("getting password credential after creation for %s: %v", password.Name, err)
+			}
+
+			if result.Passwords != nil && len(*result.Passwords) > idx {
+				password.Value = (*result.Passwords)[idx].Value
+				(*passwords)[idx] = password
+			}
+		}
+		// The password is only known right after it is generated, therefore setting it to the resource data here.
+		if err := d.Set("password", flattenContainerRegistryTokenPassword(passwords)); err != nil {
+			return fmt.Errorf(`setting "passwords": %v`, err)
+		}
+	}
+
 	return resourceContainerRegistryTokenRead(d, meta)
 }
+
 func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.TokensClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -227,4 +297,57 @@ func resourceContainerRegistryTokenDelete(d *pluginsdk.ResourceData, meta interf
 	}
 
 	return nil
+}
+
+func expandContainerRegistryTokenPassword(input []interface{}) (*[]containerregistry.TokenPassword, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	result := make([]containerregistry.TokenPassword, 0)
+
+	for _, e := range input {
+		e := e.(map[string]interface{})
+
+		var dt date.Time
+		if v := e["expiry"].(string); v != "" {
+			t, err := time.Parse(time.RFC3339, v)
+			if err != nil {
+				return nil, err
+			}
+			dt.Time = t
+		}
+		result = append(result, containerregistry.TokenPassword{
+			Expiry: &dt,
+			Name:   containerregistry.TokenPasswordName(e["name"].(string)),
+		})
+	}
+	return &result, nil
+}
+
+func flattenContainerRegistryTokenPassword(input *[]containerregistry.TokenPassword) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, e := range *input {
+		var expiry string
+		if e.Expiry != nil {
+			expiry = e.Expiry.String()
+		}
+
+		var value string
+		if e.Value != nil {
+			value = *e.Value
+		}
+
+		output = append(output, map[string]interface{}{
+			"name":   string(e.Name),
+			"expiry": expiry,
+			"value":  value,
+		})
+	}
+	return output
 }
