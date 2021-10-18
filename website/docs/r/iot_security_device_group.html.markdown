@@ -3,12 +3,12 @@ subcategory: "Security Center"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iot_security_device_group"
 description: |-
-  Manages an Iot Security Device Group.
+  Manages a Iot Security Device Group.
 ---
 
 # azurerm_iot_security_device_group
 
-Manages an Iot Security Device Group.
+Manages a Iot Security Device Group.
 
 ## Example Usage
 
