@@ -60,10 +60,10 @@ func dataSourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("databricks Workspace %q was not found", id.ID())
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("making Read request on Databricks Workspace %q: %+v", id.ID(), err)
+		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

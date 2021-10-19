@@ -104,7 +104,7 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 
 	workspace, err := workspaceClient.Get(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("retrieving Databricks Workspace %q: %+v", id.ID(), err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	if model := workspace.Model; model != nil {
 		if model.Properties.Parameters.RequireInfrastructureEncryption != nil {
@@ -114,14 +114,14 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 			encryptionEnabled = model.Properties.Parameters.PrepareEncryption.Value
 		}
 	} else {
-		return fmt.Errorf("retrieving Databricks Workspace %q: `WorkspaceCustomParameters` was nil", id)
+		return fmt.Errorf("retrieving %s: `WorkspaceCustomParameters` was nil", *id)
 	}
 
 	if infrastructureEnabled {
-		return fmt.Errorf("databricks Workspace %q: `infrastructure_encryption_enabled` must be set to `false`", id.ID())
+		return fmt.Errorf("%s: `infrastructure_encryption_enabled` must be set to `false`", *id)
 	}
 	if !encryptionEnabled {
-		return fmt.Errorf("databricks Workspace %q: `customer_managed_key_enabled` must be set to `true`", id.ID())
+		return fmt.Errorf("%s: `customer_managed_key_enabled` must be set to `true`", *id)
 	}
 
 	// make sure the key vault exists
@@ -214,7 +214,7 @@ func DatabricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	if strings.EqualFold(keySource, string(workspaces.KeySourceMicrosoftPointKeyvault)) && (keyName == "" || keyVersion == "" || keyVaultURI == "") {
-		return fmt.Errorf("Databricks Workspace %q (Resource Group %q): `Workspace.WorkspaceProperties.Parameters.Encryption.Value(s)` were nil", id.CustomerMangagedKeyName, id.ResourceGroup)
+		return fmt.Errorf("%s: `Workspace.WorkspaceProperties.Parameters.Encryption.Value(s)` were nil", *id)
 	}
 
 	d.SetId(id.ID())

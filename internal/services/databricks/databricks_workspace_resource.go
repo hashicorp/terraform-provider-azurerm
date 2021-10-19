@@ -359,7 +359,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		lb, err := lbClient.Get(ctx, lbId.ResourceGroup, lbId.Name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(lb.Response) {
-				return fmt.Errorf("Load Balancer %q for Backend Address Pool %q was not found", lbId, backendPoolId)
+				return fmt.Errorf("load balancer %q for Backend Address Pool %q was not found", lbId, backendPoolId)
 			}
 			return fmt.Errorf("failed to retrieve Load Balancer %q for Backend Address Pool %q: %+v", lbId, backendPoolId, err)
 		}
