@@ -475,6 +475,8 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	expanded := &web.SiteConfig{}
 	if existing != nil {
 		expanded = existing
+		// need to zero fxversion to re-calculate based on changes below or removing app_stack doesn't apply
+		expanded.LinuxFxVersion = utils.String("")
 	}
 
 	appSettings := make([]web.NameValuePair, 0)
@@ -534,67 +536,75 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.AppCommandLine = utils.String(linuxSiteConfig.AppCommandLine)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
-		linuxAppStack := linuxSiteConfig.ApplicationStack[0]
-		if linuxAppStack.DotNetVersion != "" {
+	if metadata.ResourceData.HasChange("site_config.0.application_stack") && len(linuxSiteConfig.ApplicationStack) > 0 {
+		if len(linuxSiteConfig.ApplicationStack) > 0 {
+			linuxAppStack := linuxSiteConfig.ApplicationStack[0]
+			if linuxAppStack.DotNetVersion != "" {
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+					Value: utils.String("dotnet"),
+				})
+				linuxSiteConfig.LinuxFxVersion = fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion)
+			}
+
+			if linuxAppStack.NodeVersion != "" {
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+					Value: utils.String("node"),
+				})
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("WEBSITE_NODE_DEFAULT_VERSION"),
+					Value: utils.String(linuxAppStack.NodeVersion),
+				})
+				linuxSiteConfig.LinuxFxVersion = fmt.Sprintf("Node|%s", linuxAppStack.NodeVersion)
+			}
+
+			if linuxAppStack.PythonVersion != "" {
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+					Value: utils.String("python"),
+				})
+				linuxSiteConfig.LinuxFxVersion = fmt.Sprintf("Python|%s", linuxAppStack.PythonVersion)
+			}
+
+			if linuxAppStack.JavaVersion != "" {
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+					Value: utils.String("java"),
+				})
+				linuxSiteConfig.LinuxFxVersion = fmt.Sprintf("Java|%s", linuxAppStack.JavaVersion)
+			}
+
+			if linuxAppStack.CustomHandler {
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+					Value: utils.String("custom"),
+				})
+				linuxSiteConfig.LinuxFxVersion = "" // Custom needs an explicit empty string here
+			}
+
+			if linuxAppStack.Docker != nil && len(linuxAppStack.Docker) == 1 {
+				dockerConfig := linuxAppStack.Docker[0]
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("DOCKER_REGISTRY_SERVER_URL"),
+					Value: utils.String(dockerConfig.RegistryURL),
+				})
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("DOCKER_REGISTRY_SERVER_USERNAME"),
+					Value: utils.String(dockerConfig.RegistryUsername),
+				})
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("DOCKER_REGISTRY_SERVER_PASSWORD"),
+					Value: utils.String(dockerConfig.RegistryPassword),
+				})
+				linuxSiteConfig.LinuxFxVersion = fmt.Sprintf("DOCKER|%s/%s:%s", dockerConfig.RegistryURL, dockerConfig.ImageName, dockerConfig.ImageTag)
+			}
+		} else {
 			appSettings = append(appSettings, web.NameValuePair{
 				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-				Value: utils.String("dotnet"),
+				Value: utils.String(""),
 			})
-			linuxSiteConfig.LinuxFxVersion = fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion)
-		}
-
-		if linuxAppStack.NodeVersion != "" {
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-				Value: utils.String("node"),
-			})
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("WEBSITE_NODE_DEFAULT_VERSION"),
-				Value: utils.String(linuxAppStack.NodeVersion),
-			})
-			linuxSiteConfig.LinuxFxVersion = fmt.Sprintf("Node|%s", linuxAppStack.NodeVersion)
-		}
-
-		if linuxAppStack.PythonVersion != "" {
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-				Value: utils.String("python"),
-			})
-			linuxSiteConfig.LinuxFxVersion = fmt.Sprintf("Python|%s", linuxAppStack.PythonVersion)
-		}
-
-		if linuxAppStack.JavaVersion != "" {
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-				Value: utils.String("java"),
-			})
-			linuxSiteConfig.LinuxFxVersion = fmt.Sprintf("Java|%s", linuxAppStack.JavaVersion)
-		}
-
-		if linuxAppStack.CustomHandler {
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-				Value: utils.String("custom"),
-			})
-			linuxSiteConfig.LinuxFxVersion = "" // Custom needs an explicit empty string here
-		}
-
-		if linuxAppStack.Docker != nil && len(linuxAppStack.Docker) == 1 {
-			dockerConfig := linuxAppStack.Docker[0]
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("DOCKER_REGISTRY_SERVER_URL"),
-				Value: utils.String(dockerConfig.RegistryURL),
-			})
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("DOCKER_REGISTRY_SERVER_USERNAME"),
-				Value: utils.String(dockerConfig.RegistryUsername),
-			})
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("DOCKER_REGISTRY_SERVER_PASSWORD"),
-				Value: utils.String(dockerConfig.RegistryPassword),
-			})
-			linuxSiteConfig.LinuxFxVersion = fmt.Sprintf("DOCKER|%s/%s:%s", dockerConfig.RegistryURL, dockerConfig.ImageName, dockerConfig.ImageTag)
+			linuxSiteConfig.LinuxFxVersion = ""
 		}
 	}
 
@@ -676,7 +686,13 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
-		expanded.Cors = ExpandCorsSettings(linuxSiteConfig.Cors)
+		cors := ExpandCorsSettings(linuxSiteConfig.Cors)
+		if cors == nil {
+			cors = &web.CorsSettings{
+				AllowedOrigins: &[]string{},
+			}
+		}
+		expanded.Cors = cors
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.pre_warmed_instance_count") {
@@ -783,19 +799,21 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*
 			cors.SupportCredentials = *corsSettings.SupportCredentials
 		}
 
-		if corsSettings.AllowedOrigins != nil {
+		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
+			result.Cors = []CorsSetting{cors}
 		}
-		result.Cors = []CorsSetting{cors}
 	}
 
+	var appStack []ApplicationStackLinuxFunctionApp
 	if functionAppSiteConfig.LinuxFxVersion != nil {
 		decoded, err := DecodeFunctionAppLinuxFxVersion(*functionAppSiteConfig.LinuxFxVersion)
 		if err != nil {
 			return nil, fmt.Errorf("flattening site config: %s", err)
 		}
-		result.ApplicationStack = decoded
+		appStack = decoded
 	}
+	result.ApplicationStack = appStack
 
 	if functionAppSiteConfig.LocalMySQLEnabled != nil {
 		result.LocalMysql = *functionAppSiteConfig.LocalMySQLEnabled

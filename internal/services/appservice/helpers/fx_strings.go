@@ -54,7 +54,7 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 
 func EncodeFunctionAppLinuxFxVersion(input []ApplicationStackLinuxFunctionApp) *string {
 	if len(input) == 0 {
-		return nil
+		return utils.String("")
 	}
 
 	appStack := input[0]

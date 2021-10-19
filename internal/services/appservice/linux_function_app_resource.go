@@ -439,7 +439,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 
 func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 25 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 			id, err := parse.FunctionAppID(metadata.ResourceData.Id())
@@ -612,7 +612,13 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				existing.Identity = helpers.ExpandIdentity(state.Identity)
+				identity := helpers.ExpandIdentity(state.Identity)
+				if identity == nil {
+					identity = &web.ManagedServiceIdentity{
+						Type: web.ManagedServiceIdentityTypeNone,
+					}
+				}
+				existing.Identity = identity
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -624,7 +630,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
 			}
 
-			// Note: We process this regardless to give us a "clean" view of service-side app_settings so we can reconcile the user-defined entries later
+			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
 			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionApp(state.SiteConfig, existing.SiteConfig, metadata, state.FunctionExtensionsVersion, storageString, state.StorageUsesMSI)
 			if state.BuiltinLogging {
 				if state.AppSettings == nil && !state.StorageUsesMSI {
@@ -652,6 +658,10 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 			if err := updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting to update %s: %+v", id, err)
+			}
+
+			if _, err := client.UpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, web.SiteConfigResource{SiteConfig: siteConfig}); err != nil {
+				return fmt.Errorf("updating Site Config for Linux %s: %+v", id, err)
 			}
 
 			if metadata.ResourceData.HasChange("connection_string") {
@@ -792,7 +802,6 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input web.StringD
 	}
 
 	appSettings := make(map[string]string)
-	var appStack helpers.ApplicationStackLinuxFunctionApp
 	var dockerSettings helpers.ApplicationStackDocker
 	m.BuiltinLogging = false
 
@@ -805,7 +814,9 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input web.StringD
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
 		case "WEBSITE_CONTENTSHARE":
 		case "FUNCTIONS_WORKER_RUNTIME":
-			appStack.CustomHandler = strings.EqualFold(*v, "custom")
+			if m.SiteConfig[0].ApplicationStack != nil {
+				m.SiteConfig[0].ApplicationStack[0].CustomHandler = strings.EqualFold(*v, "custom")
+			}
 
 		case "DOCKER_REGISTRY_SERVER_URL":
 			dockerSettings.RegistryURL = utils.NormalizeNilableString(v)
@@ -834,5 +845,4 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input web.StringD
 		}
 	}
 	m.AppSettings = appSettings
-
 }
