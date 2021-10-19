@@ -705,13 +705,15 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving Blob Auditing Policies for %s: %+v", id, err)
-	}
+	if createMode, ok := d.GetOk("create_mode"); !ok || createMode.(string) != "Secondary" {
+		auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		if err != nil {
+			return fmt.Errorf("retrieving Blob Auditing Policies for %s: %+v", id, err)
+		}
 
-	if err := d.Set("extended_auditing_policy", helper.FlattenMsSqlDBBlobAuditingPolicies(&auditingResp, d)); err != nil {
-		return fmt.Errorf("setting `extended_auditing_policy`: %+v", err)
+		if err := d.Set("extended_auditing_policy", helper.FlattenMsSqlDBBlobAuditingPolicies(&auditingResp, d)); err != nil {
+			return fmt.Errorf("setting `extended_auditing_policy`: %+v", err)
+		}
 	}
 
 	geoBackupPolicy := true
@@ -746,7 +748,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				d.SetId("")
 				return nil
 			}
-			return fmt.Errorf("retrieving Geo Backuip Policies for %s: %+v", id, err)
+			return fmt.Errorf("retrieving Geo Backup Policies for %s: %+v", id, err)
 		}
 
 		// For Datawarehouse SKUs, set the geo-backup policy setting
