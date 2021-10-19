@@ -79,7 +79,7 @@ func resourceKustoDatabaseScript() *pluginsdk.Resource {
 }
 func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ScriptsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	databaseId, _ := parse.DatabaseID(d.Get("database_id").(string))
@@ -135,11 +135,11 @@ func resourceKustoDatabaseScriptRead(d *pluginsdk.ResourceData, meta interface{}
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] kusto %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %q: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	d.Set("name", id.Name)
 	d.Set("database_id", parse.NewDatabaseID(id.SubscriptionId, id.ResourceGroup, id.ClusterName, id.DatabaseName).ID())
