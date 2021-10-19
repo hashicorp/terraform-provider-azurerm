@@ -25,6 +25,9 @@ type WorkspaceProperties struct {
 }
 
 func (o WorkspaceProperties) GetCreatedDateTimeAsTime() (*time.Time, error) {
+	if o.CreatedDateTime == nil {
+		return nil, nil
+	}
 	return formatting.ParseAsDateFormat(o.CreatedDateTime, "2006-01-02T15:04:05Z07:00")
 }
 
