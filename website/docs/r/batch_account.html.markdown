@@ -70,7 +70,7 @@ The following arguments are supported:
 
 ---
 
-An `identity` block exports the following:
+An `identity` block supports the following:
 
 * `type` - The identity type of the Batch Account. Possible values are `SystemAssigned` and `UserAssigned`.
 
