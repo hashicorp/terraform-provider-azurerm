@@ -29,8 +29,10 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 		Read:   resourceExpressRouteCircuitRead,
 		Update: resourceExpressRouteCircuitCreateUpdate,
 		Delete: resourceExpressRouteCircuitDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ExpressRouteCircuitID(id)
+			return err
+		}),
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			// If bandwidth is reduced force a new resource
@@ -276,27 +278,24 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ExpressRouteCircuitID(d.Id())
 	if err != nil {
 		return fmt.Errorf("Parsing Azure Resource ID -: %+v", err)
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["expressRouteCircuits"]
-
-	resp, err := ercClient.Get(ctx, resourceGroup, name)
+	resp, err := ercClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Express Route Circuit %q (Resource Group %q) was not found - removing from state", name, resourceGroup)
+			log.Printf("[INFO] Express Route Circuit %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Express Route Circuit %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Express Route Circuit %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -338,18 +337,15 @@ func resourceExpressRouteCircuitDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ExpressRouteCircuitID(d.Id())
 	if err != nil {
 		return fmt.Errorf("Parsing Azure Resource ID -: %+v", err)
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["expressRouteCircuits"]
+	locks.ByName(id.Name, expressRouteCircuitResourceName)
+	defer locks.UnlockByName(id.Name, expressRouteCircuitResourceName)
 
-	locks.ByName(name, expressRouteCircuitResourceName)
-	defer locks.UnlockByName(name, expressRouteCircuitResourceName)
-
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return err
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -19,8 +20,10 @@ func resourceExpressRouteCircuitAuthorization() *pluginsdk.Resource {
 		Create: resourceExpressRouteCircuitAuthorizationCreate,
 		Read:   resourceExpressRouteCircuitAuthorizationRead,
 		Delete: resourceExpressRouteCircuitAuthorizationDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.AuthorizationID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -111,27 +114,23 @@ func resourceExpressRouteCircuitAuthorizationRead(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AuthorizationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	circuitName := id.Path["expressRouteCircuits"]
-	name := id.Path["authorizations"]
-
-	resp, err := client.Get(ctx, resourceGroup, circuitName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %+v", name, circuitName, resourceGroup, err)
+		return fmt.Errorf("retrieving Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %+v", id.Name, id.ExpressRouteCircuitName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("express_route_circuit_name", circuitName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("express_route_circuit_name", id.ExpressRouteCircuitName)
 
 	if props := resp.AuthorizationPropertiesFormat; props != nil {
 		d.Set("authorization_key", props.AuthorizationKey)
@@ -146,25 +145,21 @@ func resourceExpressRouteCircuitAuthorizationDelete(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AuthorizationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	circuitName := id.Path["expressRouteCircuits"]
-	name := id.Path["authorizations"]
+	locks.ByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
+	defer locks.UnlockByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
 
-	locks.ByName(circuitName, expressRouteCircuitResourceName)
-	defer locks.UnlockByName(circuitName, expressRouteCircuitResourceName)
-
-	future, err := client.Delete(ctx, resourceGroup, circuitName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %+v", name, circuitName, resourceGroup, err)
+		return fmt.Errorf("deleting Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %+v", id.Name, id.ExpressRouteCircuitName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for Express Route Circuit Authorization %q (Circuit %q / Resource Group %q) to be deleted: %+v", name, circuitName, resourceGroup, err)
+		return fmt.Errorf("waiting for Express Route Circuit Authorization %q (Circuit %q / Resource Group %q) to be deleted: %+v", id.Name, id.ExpressRouteCircuitName, id.ResourceGroup, err)
 	}
 
 	return nil
