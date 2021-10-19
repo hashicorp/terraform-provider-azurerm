@@ -139,7 +139,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 		existing, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, id.InboundNatRuleName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Load Balancer Inbound Nat Rule %q: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing %q: %+v", id, err)
 			}
 		}
 
@@ -165,7 +165,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, id.InboundNatRuleName, *newNatRule)
 	if err != nil {
-		return fmt.Errorf("updating Load Balancer %q (Resource Group %q) for Nat Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.InboundNatRuleName, err)
+		return fmt.Errorf("creating/updating %q: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -191,7 +191,7 @@ func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interfac
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
-			log.Printf("[INFO] Load Balancer Inbound Nat Rule %q not found. Removing from state", id)
+			log.Printf("[INFO] %q not found. Removing from state", id)
 			return nil
 		}
 		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Nat Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.InboundNatRuleName, err)
@@ -258,11 +258,11 @@ func resourceArmLoadBalancerNatRuleDelete(d *pluginsdk.ResourceData, meta interf
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.LoadBalancerName, id.InboundNatRuleName)
 	if err != nil {
-		return fmt.Errorf("deleting Load Balancer Nat Rule %q: %+v", id, err)
+		return fmt.Errorf("deleting %q: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the completion of deleting Load Balancer Nat Rule %q: %+v", id, err)
+		return fmt.Errorf("waiting for the completion of deleting %q: %+v", id, err)
 	}
 
 	return nil
