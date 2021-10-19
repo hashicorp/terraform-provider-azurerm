@@ -72,7 +72,7 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - The identity type of the Batch Account. Possible values are `SystemAssigned` and `UserAssigned`.
+* `type` - (Required) The identity type of the Batch Account. Possible values are `SystemAssigned` and `UserAssigned`.
 
 * `identity_ids` - (Optional) Specifies a list of user assigned identity ids. Required if `type` is `UserAssigned`.
 
