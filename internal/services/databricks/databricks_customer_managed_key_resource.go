@@ -107,14 +107,14 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	if model := workspace.Model; model != nil {
-		if model.Properties.Parameters.RequireInfrastructureEncryption != nil {
-			infrastructureEnabled = model.Properties.Parameters.RequireInfrastructureEncryption.Value
+		if parameters := model.Properties.Parameters; parameters != nil {
+			if parameters.RequireInfrastructureEncryption != nil {
+				infrastructureEnabled = model.Properties.Parameters.RequireInfrastructureEncryption.Value
+			}
+			if parameters.PrepareEncryption != nil {
+				encryptionEnabled = model.Properties.Parameters.PrepareEncryption.Value
+			}
 		}
-		if model.Properties.Parameters.PrepareEncryption != nil {
-			encryptionEnabled = model.Properties.Parameters.PrepareEncryption.Value
-		}
-	} else {
-		return fmt.Errorf("retrieving %s: `WorkspaceCustomParameters` was nil", *id)
 	}
 
 	if infrastructureEnabled {
@@ -133,7 +133,7 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 	resourceID := parse.NewCustomerManagedKeyID(subscriptionId, id.ResourceGroup, id.Name)
 
 	if d.IsNewResource() {
-		if workspace.Model != nil && workspace.Model.Properties.Parameters.Encryption != nil {
+		if workspace.Model != nil && workspace.Model.Properties.Parameters != nil && workspace.Model.Properties.Parameters.Encryption != nil {
 			return tf.ImportAsExistsError("azurerm_databricks_workspace_customer_managed_key", resourceID.ID())
 		}
 	}
@@ -157,8 +157,7 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 
 	props := getProps(workspace.Model, params)
 
-	err = workspaceClient.CreateOrUpdateThenPoll(ctx, *id, props)
-	if err != nil {
+	if err = workspaceClient.CreateOrUpdateThenPoll(ctx, *id, props); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", resourceID, err)
 	}
 
@@ -274,8 +273,7 @@ func DatabricksWorkspaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta
 
 	props := getProps(workspace.Model, params)
 
-	err = client.CreateOrUpdateThenPoll(ctx, workspaceID, props)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, workspaceID, props); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", workspaceID, err)
 	}
 

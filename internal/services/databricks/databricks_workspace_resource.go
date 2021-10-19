@@ -456,8 +456,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		workspace.Properties.Encryption = encrypt
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, workspace)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, workspace); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -613,8 +612,7 @@ func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
