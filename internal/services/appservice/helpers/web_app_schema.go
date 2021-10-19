@@ -2839,7 +2839,14 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
-		expanded.Cors = ExpandCorsSettings(winSiteConfig.Cors)
+		cors := ExpandCorsSettings(winSiteConfig.Cors)
+		if cors == nil {
+			cors = &web.CorsSettings{
+				AllowedOrigins: &[]string{},
+			}
+		}
+		expanded.Cors = cors
+
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal") {
@@ -2990,7 +2997,13 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
-		expanded.Cors = ExpandCorsSettings(linuxSiteConfig.Cors)
+		cors := ExpandCorsSettings(linuxSiteConfig.Cors)
+		if cors == nil {
+			cors = &web.CorsSettings{
+				AllowedOrigins: &[]string{},
+			}
+		}
+		expanded.Cors = cors
 	}
 
 	expanded.AutoHealEnabled = utils.Bool(linuxSiteConfig.AutoHeal)
@@ -3475,10 +3488,10 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 			cors.SupportCredentials = *corsSettings.SupportCredentials
 		}
 
-		if corsSettings.AllowedOrigins != nil {
+		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
+			siteConfig.Cors = []CorsSetting{cors}
 		}
-		siteConfig.Cors = []CorsSetting{cors}
 	}
 
 	autoHeal := false
@@ -3607,10 +3620,10 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
 			cors.SupportCredentials = *corsSettings.SupportCredentials
 		}
 
-		if corsSettings.AllowedOrigins != nil {
+		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
+			siteConfig.Cors = []CorsSetting{cors}
 		}
-		siteConfig.Cors = []CorsSetting{cors}
 	}
 
 	if appSiteConfig.AutoHealEnabled != nil {

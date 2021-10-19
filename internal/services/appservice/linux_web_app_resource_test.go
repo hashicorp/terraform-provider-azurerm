@@ -52,6 +52,14 @@ func TestAccLinuxWebApp_completeUpdated(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.basicWithStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -62,6 +70,14 @@ func TestAccLinuxWebApp_completeUpdated(t *testing.T) {
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
@@ -1037,6 +1053,25 @@ resource "azurerm_linux_web_app" "test" {
   site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) basicWithStorage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+}
+`, r.templateWithStorageAccount(data), data.RandomInteger)
 }
 
 func (r LinuxWebAppResource) complete(data acceptance.TestData) string {

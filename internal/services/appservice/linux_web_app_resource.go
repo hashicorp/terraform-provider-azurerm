@@ -577,7 +577,13 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				existing.Identity = helpers.ExpandIdentity(state.Identity)
+				identity := helpers.ExpandIdentity(state.Identity)
+				if identity == nil {
+					identity = &web.ManagedServiceIdentity{
+						Type: web.ManagedServiceIdentityTypeNone,
+					}
+				}
+				existing.Identity = identity
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
