@@ -63,13 +63,13 @@ func TestAccContainerRegistryToken_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("password"),
 	})
 }
 
 func TestAccContainerRegistryToken_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_token", "test")
-	r := ContainerRegistryTokenResource{}
+	r := ContainerRegistryTokenResource{CreatedAt: time.Now()}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -79,7 +79,7 @@ func TestAccContainerRegistryToken_update(t *testing.T) {
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("password"),
 		{
 			Config: r.complete(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -87,7 +87,7 @@ func TestAccContainerRegistryToken_update(t *testing.T) {
 				check.That(data.ResourceName).Key("enabled").HasValue("false"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("password"),
 	})
 }
 
@@ -190,11 +190,11 @@ resource "azurerm_container_registry_token" "test" {
   scope_map_id            = data.azurerm_container_registry_scope_map.pull_repos.id
   enabled                 = %t
   password {
-    name = "password1"
+    name   = "password1"
     expiry = "%s"
   }
   password {
-    name = "password2"
+    name   = "password2"
     expiry = "%s"
   }
 }

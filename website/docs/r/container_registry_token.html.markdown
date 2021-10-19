@@ -59,12 +59,31 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should the Container Registry token be enabled? Defaults to `true`.
 
+* `password` - (Optional) One or two `passowrd` blocks as defined below.
+
+~>**NOTE:** Any change to the `password` block will cause a regeneration of all the passwords.
+
+---
+
+A `password` block supports the following:
+
+* `name` - (Required) The name of this password. Possible values are `password1` and `password2`.
+
+* `expiry` - (Optional) The expiration date of the password in RFC3339 format.
+
 ---
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Container Registry token.
+* `password` - Up to two `password` blocks as defined below.
+
+---
+
+A `password` block exports the following:
+
+- `value` - The value of the password (Sensitive).
 
 ## Timeouts
 
@@ -81,4 +100,18 @@ Container Registries can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_container_registry_token.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1/tokens/token1
+```
+
+Since Terraform has no method to read the password information during import, use the [Terraform resource `lifecycle` configuration block `ignore_changes` argument](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore them unless password recreation is desired. e.g.
+
+```hcl
+resource "azurerm_container_registry_token" "example" {
+  # ... other configuration ...
+
+  lifecycle {
+    ignore_changes = [
+      password,
+    ]
+  }
+}
 ```

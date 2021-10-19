@@ -1,6 +1,7 @@
 package containers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -68,7 +69,6 @@ func resourceContainerRegistryToken() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 2,
-				ForceNew: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -85,8 +85,9 @@ func resourceContainerRegistryToken() *pluginsdk.Resource {
 							ValidateFunc: validation.IsRFC3339Time,
 						},
 						"value": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 					},
 				},
@@ -97,6 +98,7 @@ func resourceContainerRegistryToken() *pluginsdk.Resource {
 
 func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.TokensClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -106,11 +108,13 @@ func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interf
 	containerRegistryName := d.Get("container_registry_name").(string)
 	name := d.Get("name").(string)
 
+	id := parse.NewContainerRegistryTokenID(subscriptionId, resourceGroup, containerRegistryName, name)
+
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, containerRegistryName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.TokenName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing token %q in Container Registry %q (Resource Group %q): %s", name, containerRegistryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing token %q: %s", id, err)
 			}
 		}
 
@@ -134,59 +138,28 @@ func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	future, err := client.Create(ctx, resourceGroup, containerRegistryName, name, parameters)
+	future, err := client.Create(ctx, id.ResourceGroup, id.RegistryName, id.TokenName, parameters)
 	if err != nil {
-		return fmt.Errorf("creating token %q in Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("creating token %q: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of token %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of token %q: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, containerRegistryName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving token %q for Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read token %q for Container Registry %q (resource group %q) ID", name, containerRegistryName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	passwords, err := expandContainerRegistryTokenPassword(d.Get("password").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `password`: %v", err)
 	}
 	if passwords != nil {
-		oldPasswords := *passwords
-		for idx, password := range oldPasswords {
-			param := containerregistry.GenerateCredentialsParameters{
-				TokenID: read.ID,
-				Expiry:  password.Expiry,
-				Name:    password.Name,
-			}
-			regClient := meta.(*clients.Client).Containers.RegistriesClient
-			future, err := regClient.GenerateCredentials(ctx, resourceGroup, containerRegistryName, param)
-			if err != nil {
-				return fmt.Errorf("generating password credential %s: %v", password.Name, err)
-			}
-			if err := future.WaitForCompletionRef(ctx, regClient.Client); err != nil {
-				return fmt.Errorf("waiting for password credential generation for %s: %v", password.Name, err)
-			}
-
-			result, err := future.Result(*regClient)
-			if err != nil {
-				return fmt.Errorf("getting password credential after creation for %s: %v", password.Name, err)
-			}
-
-			if result.Passwords != nil && len(*result.Passwords) > idx {
-				password.Value = (*result.Passwords)[idx].Value
-				(*passwords)[idx] = password
-			}
+		genPasswords, err := generatePassword(ctx, meta.(*clients.Client).Containers.RegistriesClient, id, *passwords)
+		if err != nil {
+			return err
 		}
 		// The password is only known right after it is generated, therefore setting it to the resource data here.
-		if err := d.Set("password", flattenContainerRegistryTokenPassword(passwords)); err != nil {
+		if err := d.Set("password", flattenContainerRegistryTokenPassword(&genPasswords)); err != nil {
 			return fmt.Errorf(`setting "passwords": %v`, err)
 		}
 	}
@@ -199,10 +172,12 @@ func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	id, err := parse.ContainerRegistryTokenID(d.Id())
+	if err != nil {
+		return err
+	}
+
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry token update.")
-	resourceGroup := d.Get("resource_group_name").(string)
-	containerRegistryName := d.Get("container_registry_name").(string)
-	name := d.Get("name").(string)
 	scopeMapID := d.Get("scope_map_id").(string)
 	enabled := d.Get("enabled").(bool)
 	status := containerregistry.TokenStatusEnabled
@@ -218,25 +193,31 @@ func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	future, err := client.Update(ctx, resourceGroup, containerRegistryName, name, parameters)
+	future, err := client.Update(ctx, id.ResourceGroup, id.RegistryName, id.TokenName, parameters)
 	if err != nil {
-		return fmt.Errorf("updating token %q for Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("updating token %q: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of token %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("waiting for update of token %q: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, containerRegistryName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving token %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+	if d.HasChange("password") {
+		passwords, err := expandContainerRegistryTokenPassword(d.Get("password").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `password`: %v", err)
+		}
+		if passwords != nil {
+			genPasswords, err := generatePassword(ctx, meta.(*clients.Client).Containers.RegistriesClient, *id, *passwords)
+			if err != nil {
+				return err
+			}
+			// The password is only known right after it is generated, therefore setting it to the resource data here.
+			if err := d.Set("password", flattenContainerRegistryTokenPassword(&genPasswords)); err != nil {
+				return fmt.Errorf(`setting "passwords": %v`, err)
+			}
+		}
 	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read token %q (Container Registry %q, resource group %q) ID", name, containerRegistryName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
 
 	return resourceContainerRegistryTokenRead(d, meta)
 }
@@ -350,4 +331,36 @@ func flattenContainerRegistryTokenPassword(input *[]containerregistry.TokenPassw
 		})
 	}
 	return output
+}
+
+func generatePassword(ctx context.Context, client *containerregistry.RegistriesClient, id parse.ContainerRegistryTokenId, passwords []containerregistry.TokenPassword) ([]containerregistry.TokenPassword, error) {
+	var genPasswords []containerregistry.TokenPassword
+	for idx, password := range passwords {
+		param := containerregistry.GenerateCredentialsParameters{
+			TokenID: utils.String(id.ID()),
+			Expiry:  password.Expiry,
+			Name:    password.Name,
+		}
+		future, err := client.GenerateCredentials(ctx, id.ResourceGroup, id.RegistryName, param)
+		if err != nil {
+			return nil, fmt.Errorf("generating password credential %s: %v", password.Name, err)
+		}
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return nil, fmt.Errorf("waiting for password credential generation for %s: %v", password.Name, err)
+		}
+
+		result, err := future.Result(*client)
+		if err != nil {
+			return nil, fmt.Errorf("getting password credential after creation for %s: %v", password.Name, err)
+		}
+
+		if result.Passwords != nil && len(*result.Passwords) > idx {
+			genPasswords = append(genPasswords, containerregistry.TokenPassword{
+				Expiry: password.Expiry,
+				Name:   password.Name,
+				Value:  (*result.Passwords)[idx].Value,
+			})
+		}
+	}
+	return genPasswords, nil
 }
