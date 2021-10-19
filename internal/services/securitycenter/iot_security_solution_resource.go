@@ -88,8 +88,9 @@ func resourceIotSecuritySolution() *pluginsdk.Resource {
 						},
 
 						"workspace_id": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: loganalyticsValidate.LogAnalyticsWorkspaceID,
 						},
 					},
 				},
