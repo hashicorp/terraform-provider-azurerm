@@ -3,18 +3,18 @@ subcategory: "Base"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_resource_groups"
 description: |-
-  Get information about the available resource groups.
+  Gets information about existing Resource Groups.
 ---
 
 # Data Source: azurerm_resource_groups
 
-Use this data source to access information about an existing Resource Group.
+Use this data source to access information about existing Resource Groups.
 
 ## Example Usage
 
 ```hcl
 data "azurerm_resource_groups" "example" {
-
+  subscription_ids = [ "example" ]
 }
 
 output "id" {
@@ -22,11 +22,17 @@ output "id" {
 }
 ```
 
+## Arguments Reference
+
+The following arguments are supported:
+
+* `subscription_ids` - (Required) Specifies a list of Subscription IDs.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Resource Group.
+* `id` - The ID of the Resource Groups.
 
 * `resource_groups` - A `resource_groups` block as defined below.
 
@@ -52,4 +58,4 @@ A `resource_groups` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Resource Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Resource Groups.
