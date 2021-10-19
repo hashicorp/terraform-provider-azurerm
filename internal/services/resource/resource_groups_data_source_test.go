@@ -49,6 +49,11 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_resource_groups" "test" {}
+data "azurerm_client_config" "current" {
+}
+
+data "azurerm_resource_groups" "test" {
+  subscription_ids = [data.azurerm_client_config.current.subscription_id]
+}
 `
 }

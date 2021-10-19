@@ -13,8 +13,11 @@ Use this data source to access information about existing Resource Groups.
 ## Example Usage
 
 ```hcl
-data "azurerm_resource_groups" "example" {
-  subscription_ids = [ "example" ]
+data "azurerm_client_config" "current" {
+}
+
+data "azurerm_resource_groups" "test" {
+  subscription_ids = [data.azurerm_client_config.current.subscription_id]
 }
 
 output "id" {
