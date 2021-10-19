@@ -2,7 +2,6 @@ package securitycenter
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"time"
 
@@ -447,7 +446,7 @@ func expandIotSecuritySolutionAdditionalWorkspace(input []interface{}) *[]securi
 		v := item.(map[string]interface{})
 
 		dataTypes := make([]security.AdditionalWorkspaceDataType, 0)
-		for _, item := range *(utils.ExpandStringSlice(v["data_types"].(*schema.Set).List())) {
+		for _, item := range *(utils.ExpandStringSlice(v["data_types"].(*pluginsdk.Set).List())) {
 			dataTypes = append(dataTypes, (security.AdditionalWorkspaceDataType)(item))
 		}
 
