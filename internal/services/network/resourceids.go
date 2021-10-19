@@ -88,6 +88,6 @@ package network
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=Peering -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit1/peerings/AzurePrivatePeering
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=Authorization -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit/authorizations/authorization1
 
-//Network
+// Network
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkProfile -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkProfiles/networkprofile1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkInterfaceIpConfiguration -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkInterfaces/networkInterface1/ipConfigurations/config1
