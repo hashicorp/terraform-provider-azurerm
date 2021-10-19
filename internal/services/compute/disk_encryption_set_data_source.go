@@ -66,8 +66,8 @@ func dataSourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if props := resp.Properties; props != nil {
-		d.Set("auto_key_rotation_enabled", props.rotationToLatestKeyVersionEnabled)
+	if props := resp.EncryptionSetProperties; props != nil {
+		d.Set("auto_key_rotation_enabled", props.RotationToLatestKeyVersionEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

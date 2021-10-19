@@ -32,20 +32,13 @@ func TestAccDataSourceDiskEncryptionSet_update(t *testing.T) {
 	r := DiskEncryptionSetDataSource{}
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.update(data),
+			Config: r.basic(data),
 		},
 		{
-			Config: r.update(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("auto_key_rotation_enabled").HasValue("true"),
-			),
-		},
-		{
-			Config: r.update(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("location").Exists(),
-				check.That(data.ResourceName).Key("auto_key_rotation_enabled").HasValue("false"),
 			),
 		},
 	})
@@ -62,7 +55,7 @@ data "azurerm_disk_encryption_set" "test" {
 `, DiskEncryptionSetResource{}.basic(data))
 }
 
-func (DiskEncryptionSetDataSource) update(data acceptance.TestData) string {
+func (DiskEncryptionSetDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -70,5 +63,5 @@ data "azurerm_disk_encryption_set" "test" {
   name                = azurerm_disk_encryption_set.test.name
   resource_group_name = azurerm_disk_encryption_set.test.resource_group_name
 }
-`, DiskEncryptionSetResource{}.update(data))
+`, DiskEncryptionSetResource{}.complete(data))
 }

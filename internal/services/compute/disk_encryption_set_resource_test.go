@@ -55,15 +55,6 @@ func TestAccDiskEncryptionSet_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("auto_key_rotation_enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("auto_key_rotation_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -86,7 +77,6 @@ func TestAccDiskEncryptionSet_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("auto_key_rotation_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -94,7 +84,6 @@ func TestAccDiskEncryptionSet_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("auto_key_rotation_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -126,7 +115,6 @@ func TestAccDiskEncryptionSet_keyRotate(t *testing.T) {
 			Config: r.keyRotate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("auto_key_rotation_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
