@@ -201,9 +201,8 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 			keyVaultKeyId = *props.ActiveKey.KeyURL
 		}
 		d.Set("key_vault_key_id", keyVaultKeyId)
+		d.Set("auto_key_rotation_enabled", props.rotationToLatestKeyVersionEnabled)
 	}
-
-	d.Set("auto_key_rotation_enabled", props.rotationToLatestKeyVersionEnabled)
 
 	if err := d.Set("identity", flattenDiskEncryptionSetIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
