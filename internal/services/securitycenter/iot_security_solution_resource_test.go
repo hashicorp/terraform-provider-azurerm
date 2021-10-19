@@ -221,11 +221,11 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_iot_security_solution" "test" {
-  name                  = "acctest-Iot-Security-Solution-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_resource_group.test.location
-  display_name          = "Iot Security Solution"
-  iothub_ids            = [azurerm_iothub.test.id]
+  name                = "acctest-Iot-Security-Solution-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  display_name        = "Iot Security Solution"
+  iothub_ids          = [azurerm_iothub.test.id]
 
   additional_workspace {
     data_types   = ["Alerts"]
@@ -254,11 +254,11 @@ resource "azurerm_log_analytics_workspace" "test2" {
 }
 
 resource "azurerm_iot_security_solution" "test" {
-  name                  = "acctest-Iot-Security-Solution-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_resource_group.test.location
-  display_name          = "Iot Security Solution"
-  iothub_ids            = [azurerm_iothub.test.id]
+  name                = "acctest-Iot-Security-Solution-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  display_name        = "Iot Security Solution"
+  iothub_ids          = [azurerm_iothub.test.id]
 
   additional_workspace {
     data_types   = ["Alerts", "RawEvents"]
