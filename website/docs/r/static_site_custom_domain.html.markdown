@@ -38,7 +38,7 @@ resource "azurerm_dns_cname_record" "example" {
 
 resource "azurerm_static_site_custom_domain" "example" {
   static_site_id  = azurerm_static_site.example.id
-  name            = "${azurerm_dns_cname_record.example.name}.${azurerm_dns_cname_record.example.zone_name}"
+  domain_name     = "${azurerm_dns_cname_record.example.name}.${azurerm_dns_cname_record.example.zone_name}"
   validation_type = "cname-delegation"
 }
 ```
@@ -59,7 +59,7 @@ resource "azurerm_static_site" "example" {
 
 resource "azurerm_static_site_custom_domain" "example" {
   static_site_id  = azurerm_static_site.example.id
-  name            = "my-domain.${azurerm_dns_cname_record.example.zone_name}"
+  domain_name     = "my-domain.${azurerm_dns_cname_record.example.zone_name}"
   validation_type = "dns-txt-token"
 }
 
@@ -78,7 +78,7 @@ resource "azurerm_dns_txt_record" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The Domain Name which should be associated with this Static Site. Changing this forces a new Static Site Custom Domain to be created.
+* `domain_name` - (Required) The Domain Name which should be associated with this Static Site. Changing this forces a new Static Site Custom Domain to be created.
 
 * `static_site_id` - (Required) The ID of the Static Site. Changing this forces a new Static Site Custom Domain to be created.
 
