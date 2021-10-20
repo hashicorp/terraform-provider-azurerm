@@ -6,17 +6,18 @@ IMPROVEMENTS:
 
 * dependencies: upgrading to `v58.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-13613]
 * upgrading `servicebus` to API Version `2021-06-01-preview` [GH-13701]
-* `azurerm_lb_nat_pool` - support for the `floating_ip_enabled`, `tcp_reset_enabled`, and `idle_timeout_in_minutes` properties [GH-13674]
-* `azurerm_synapse_spark_pool` - support for the `cache_size`, `compute_isolation_enabled`, `dynamic_executor_allocation_enabled`, `session_level_packages_enabled` and `spark_config` properties [GH-13690]
 * `azurerm_lb` - support for the `gateway_load_balancer_frontend_ip_configuration_id` property [GH-13559]
 * `azurerm_lb_backend_address_pool` - support for the `tunnel_interface` block [GH-13559]
-* `azurerm_lb_rule` - the `backend_address_pool_ids` property has been deprecated in fav our of the `backend_address_pool_ids` property [GH-13559]
+* `azurerm_lb_rule` - the `backend_address_pool_ids` property has been deprecated in favour of the `backend_address_pool_ids` property [GH-13559]
+* `azurerm_lb_nat_pool` - support for the `floating_ip_enabled`, `tcp_reset_enabled`, and `idle_timeout_in_minutes` properties [GH-13674]
 * `azurerm_network_interface` - support for the `gateway_load_balancer_frontend_ip_configuration_id` property [GH-13559]
+* `azurerm_synapse_spark_pool` - support for the `cache_size`, `compute_isolation_enabled`, `dynamic_executor_allocation_enabled`, `session_level_packages_enabled` and `spark_config` properties [GH-13690]
 
 BUG FIXES:
 
-* `azurerm_cosmosdb_account`: force `MongoEnabled` feature when enabling `MongoDBv3.4`. [GH-13757]
-* `azurerm_app_configuration_feature`: fix default value handling for percentage appconfig feature filters. [GH-13771]
+* `azurerm_app_configuration_feature` - fix default value handling for percentage appconfig feature filters. [GH-13771]
+* `azurerm_cosmosdb_account` - force `MongoEnabled` feature when enabling `MongoDBv3.4`. [GH-13757]
+* `azurerm_servicebus_subscription` - the `name` field can now start & end with an underscore [GH-13797]
 
 ## 2.81.0 (October 14, 2021)
 
