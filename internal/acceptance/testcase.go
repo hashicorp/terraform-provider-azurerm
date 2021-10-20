@@ -37,6 +37,8 @@ func (td TestData) DataSourceTestInSequence(t *testing.T, steps []TestStep) {
 }
 
 func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
+	td.testResource = testResource
+
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
 		CheckDestroy: func(s *terraform.State) error {

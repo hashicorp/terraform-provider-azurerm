@@ -3,6 +3,7 @@ package acceptance
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -12,6 +13,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 )
+
+// ApplyStep returns a Test Step which applies a Configuration and then check that the
+// resource exists. This doesn't do any other assertions since it's expected that an
+// ImportStep will be called afterwards to validate that.
+func (td TestData) ApplyStep(config func (data TestData) string) resource.TestStep {
+	return resource.TestStep{
+		Config: config(td),
+			Check: ComposeTestCheckFunc(
+			check.That(td.ResourceName).ExistsInAzure(td.testResource),
+		),
+	}
+}
 
 type DisappearsStepData struct {
 	// Config is a function which returns the Terraform Configuration which should be used for this step
