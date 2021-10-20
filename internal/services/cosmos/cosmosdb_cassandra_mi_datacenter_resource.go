@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
@@ -168,11 +169,14 @@ func resourceCassandraMIDatacenterRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("account_name", id.ClusterName)
+	d.Set("cluster_name", id.ClusterName)
 	d.Set("datacenter_name", id.DatacenterName)
 	if props := resp.Properties; props != nil {
 		if res := props; res != nil {
-			d.Set("name", res.ProvisioningState)
+			d.Set("delegated_management_subnet_id", props.DelegatedSubnetID)
+			d.Set("location", location.NormalizeNilable(props.DataCenterLocation))
+			nodeCountString := fmt.Sprint(props.NodeCount)
+			d.Set("node_count", nodeCountString)
 		}
 	}
 	return nil

@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CassandraMIClusterResource struct {
+type CassandraMIDatacenterResource struct {
 }
 
-func TestAccCassandraMICluster_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_mi_cluster", "test")
-	r := CassandraMIClusterResource{}
+func TestAccCassandraMIDatacenter_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_mi_datacenter", "test")
+	r := CassandraMIDatacenterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -31,21 +31,21 @@ func TestAccCassandraMICluster_basic(t *testing.T) {
 	})
 }
 
-func (t CassandraMIClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CassandraClusterID(state.ID)
+func (t CassandraMIDatacenterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.CassandraDatacenterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Cosmos.CassandraClustersClient.Get(ctx, id.ResourceGroup, id.ClusterName)
+	resp, err := clients.Cosmos.CassandraDatacentersClient.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatacenterName)
 	if err != nil {
-		return nil, fmt.Errorf("reading Cassandra MI Cluster (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("reading Cassandra MI Datacenter (%s): %+v", id.String(), err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (CassandraMIClusterResource) basic(data acceptance.TestData) string {
+func (CassandraMIDatacenterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 provider "azurerm" {
@@ -88,5 +88,14 @@ resource "azurerm_cosmosdb_cassandra_mi_cluster" "test" {
 	delegated_management_subnet_id   = azurerm_subnet.test.id
 	initial_cassandra_admin_password = "Password1234"  
 }
+
+resource "azurerm_cosmosdb_cassandra_mi_datacenter" "test" {
+	cluster_name        			= azurerm_cosmosdb_cassandra_mi_cluster.test.cluster_name
+	datacenter_name        			= "acctca-mi-dc-%[1]d"
+	resource_group_name 			= azurerm_resource_group.test.name
+	location	      				= azurerm_resource_group.test.location
+	delegated_management_subnet_id 	= azurerm_subnet.test.id
+	node_count						= 3
+  }
 `, data.RandomInteger, data.Locations.Secondary)
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
@@ -174,10 +175,13 @@ func resourceCassandraMIClusterRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 	//d.Set("account_name", id.ClusterName)
 	if props := resp.Properties; props != nil {
 		if res := props; res != nil {
 			//d.Set("name", res.ProvisioningState)
+			d.Set("cluster_name", props.ClusterNameOverride)
+			d.Set("delegated_management_subnet_id", props.DelegatedManagementSubnetID)
 		}
 	}
 	return nil
