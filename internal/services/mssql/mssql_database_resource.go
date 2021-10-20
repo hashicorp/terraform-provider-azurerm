@@ -569,12 +569,10 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if features.ThreePointOh() {
-		var statusProperty sql.TransparentDataEncryptionStatus
-		encryptionStatus := d.Get("transparent_data_encryption").(bool)
+		statusProperty := sql.TransparentDataEncryptionStatusDisabled
+		encryptionStatus := d.Get("transparent_data_encryption_enabled").(bool)
 		if encryptionStatus {
 			statusProperty = sql.TransparentDataEncryptionStatusEnabled
-		} else {
-			statusProperty = sql.TransparentDataEncryptionStatusDisabled
 		}
 		_, err := transparentEncryptionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, sql.TransparentDataEncryption{
 			TransparentDataEncryptionProperties: &sql.TransparentDataEncryptionProperties{
