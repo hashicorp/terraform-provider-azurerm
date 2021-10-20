@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -16,6 +16,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -30,8 +32,15 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 		Update: resourceMonitorMetricAlertCreateUpdate,
 		Delete: resourceMonitorMetricAlertDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.MetricAlertID(id)
+			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.MetricAlertUpgradeV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -234,9 +243,9 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(insights.Low),
-								string(insights.Medium),
-								string(insights.High),
+								string(insights.DynamicThresholdSensitivityLow),
+								string(insights.DynamicThresholdSensitivityMedium),
+								string(insights.DynamicThresholdSensitivityHigh),
 							}, false),
 						},
 
@@ -376,17 +385,17 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 
 func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.MetricAlertsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewMetricAlertID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Monitor Metric Alert %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
 			}
 		}
 
@@ -414,12 +423,12 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	// https://github.com/hashicorp/terraform-provider-azurerm/issues/7910
 	var isLegacy bool
 	if !d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("retrieving Monitor Metric Alert %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("retrieving Monitor %s: %+v", id, err)
 		}
 		if existing.MetricAlertProperties == nil || existing.MetricAlertProperties.Criteria == nil {
-			return fmt.Errorf("unexpected nil properties of Monitor Metric Alert %q (Resource Group %q)", name, resourceGroup)
+			return fmt.Errorf("unexpected nil properties of Monitor %s", id)
 		}
 		_, isLegacy = existing.MetricAlertProperties.Criteria.AsMetricAlertSingleResourceMultipleMetricCriteria()
 	}
@@ -447,17 +456,17 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		Tags: expandedTags,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("creating or updating metric alert %q (resource group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating or updating Monitor %s: %+v", id, err)
 	}
 
 	// Monitor Metric Alert API would return 404 while creating multiple Monitor Metric Alerts and get each resource immediately once it's created successfully in parallel.
 	// Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/10973
-	log.Printf("[DEBUG] Waiting for Monitor Metric Alert %q (Resource Group %q) to be created", name, resourceGroup)
+	log.Printf("[DEBUG] Waiting for Monitor Metric Alert %q (Resource Group %q) to be created", id.Name, id.ResourceGroup)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
-		Refresh:                   monitorMetricAlertStateRefreshFunc(ctx, client, resourceGroup, name),
+		Refresh:                   monitorMetricAlertStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
 		MinTimeout:                15 * time.Second,
 		ContinuousTargetOccurence: 10,
 	}
@@ -469,17 +478,10 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Monitor Metric Alert %q (Resource Group %q) to finish provisioning: %s", name, resourceGroup, err)
+		return fmt.Errorf("waiting for Monitor %s to finish provisioning: %s", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Monitor Metric Alert %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Metric alert %q (resource group %q) ID is empty", name, resourceGroup)
-	}
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceMonitorMetricAlertRead(d, meta)
 }
@@ -489,25 +491,23 @@ func resourceMonitorMetricAlertRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.MetricAlertID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["metricAlerts"]
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Metric Alert %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] Metric Alert %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("getting metric alert %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("getting Monitor %s: %+v", *id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if alert := resp.MetricAlertProperties; alert != nil {
 		d.Set("enabled", alert.Enabled)
 		d.Set("auto_mitigate", alert.AutoMitigate)
@@ -561,16 +561,14 @@ func resourceMonitorMetricAlertDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.MetricAlertID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["metricAlerts"]
 
-	if resp, err := client.Delete(ctx, resourceGroup, name); err != nil {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("deleting metric alert %q (resource group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("deleting Monitor %s: %+v", *id, err)
 		}
 	}
 
@@ -603,7 +601,7 @@ func expandMonitorMetricAlertSingleResourceMultiMetricCriteria(input []interface
 			Name:                 utils.String(fmt.Sprintf("Metric%d", i+1)),
 			MetricNamespace:      utils.String(v["metric_namespace"].(string)),
 			MetricName:           utils.String(v["metric_name"].(string)),
-			TimeAggregation:      v["aggregation"].(string),
+			TimeAggregation:      insights.AggregationTypeEnum(v["aggregation"].(string)),
 			Dimensions:           &dimensions,
 			Operator:             insights.Operator(v["operator"].(string)),
 			Threshold:            utils.Float(v["threshold"].(float64)),
@@ -612,7 +610,7 @@ func expandMonitorMetricAlertSingleResourceMultiMetricCriteria(input []interface
 	}
 	return &insights.MetricAlertSingleResourceMultipleMetricCriteria{
 		AllOf:     &criteria,
-		OdataType: insights.OdataTypeMicrosoftAzureMonitorSingleResourceMultipleMetricCriteria,
+		OdataType: insights.OdataTypeBasicMetricAlertCriteriaOdataTypeMicrosoftAzureMonitorSingleResourceMultipleMetricCriteria,
 	}
 }
 
@@ -625,7 +623,7 @@ func expandMonitorMetricAlertMultiResourceMultiMetricForStaticMetricCriteria(inp
 			Name:                 utils.String(fmt.Sprintf("Metric%d", i+1)),
 			MetricNamespace:      utils.String(v["metric_namespace"].(string)),
 			MetricName:           utils.String(v["metric_name"].(string)),
-			TimeAggregation:      v["aggregation"].(string),
+			TimeAggregation:      insights.AggregationTypeEnum(v["aggregation"].(string)),
 			Dimensions:           &dimensions,
 			Operator:             insights.Operator(v["operator"].(string)),
 			Threshold:            utils.Float(v["threshold"].(float64)),
@@ -634,7 +632,7 @@ func expandMonitorMetricAlertMultiResourceMultiMetricForStaticMetricCriteria(inp
 	}
 	return &insights.MetricAlertMultipleResourceMultipleMetricCriteria{
 		AllOf:     &criteria,
-		OdataType: insights.OdataTypeMicrosoftAzureMonitorMultipleResourceMultipleMetricCriteria,
+		OdataType: insights.OdataTypeBasicMetricAlertCriteriaOdataTypeMicrosoftAzureMonitorMultipleResourceMultipleMetricCriteria,
 	}
 }
 
@@ -653,7 +651,7 @@ func expandMonitorMetricAlertMultiResourceMultiMetricForDynamicMetricCriteria(in
 			Name:             utils.String(fmt.Sprintf("Metric%d", i+1)),
 			MetricNamespace:  utils.String(v["metric_namespace"].(string)),
 			MetricName:       utils.String(v["metric_name"].(string)),
-			TimeAggregation:  v["aggregation"].(string),
+			TimeAggregation:  insights.AggregationTypeEnum(v["aggregation"].(string)),
 			Dimensions:       &dimensions,
 			Operator:         insights.DynamicThresholdOperator(v["operator"].(string)),
 			AlertSensitivity: insights.DynamicThresholdSensitivity(v["alert_sensitivity"].(string)),
@@ -667,7 +665,7 @@ func expandMonitorMetricAlertMultiResourceMultiMetricForDynamicMetricCriteria(in
 	}
 	return &insights.MetricAlertMultipleResourceMultipleMetricCriteria{
 		AllOf:     &criteria,
-		OdataType: insights.OdataTypeMicrosoftAzureMonitorMultipleResourceMultipleMetricCriteria,
+		OdataType: insights.OdataTypeBasicMetricAlertCriteriaOdataTypeMicrosoftAzureMonitorMultipleResourceMultipleMetricCriteria,
 	}
 }
 
@@ -680,7 +678,7 @@ func expandMonitorMetricAlertWebtestLocAvailCriteria(input []interface{}) insigh
 		WebTestID:           utils.String(v["web_test_id"].(string)),
 		ComponentID:         utils.String(v["component_id"].(string)),
 		FailedLocationCount: utils.Float(float64(v["failed_location_count"].(int))),
-		OdataType:           insights.OdataTypeMicrosoftAzureMonitorWebtestLocationAvailabilityCriteria,
+		OdataType:           insights.OdataTypeBasicMetricAlertCriteriaOdataTypeMicrosoftAzureMonitorWebtestLocationAvailabilityCriteria,
 	}
 }
 

@@ -194,6 +194,14 @@ The following attributes are exported:
 
 ---
 
+A `network_interface` block exports:
+
+* `id` - The ID of the network interface associated with the `private_endpoint`.
+
+* `name` - The name of the network interface associated with the `private_endpoint`.
+
+---
+
 A `private_dns_zone_group` block exports:
 
 * `id` - The ID of the Private DNS Zone Group.
@@ -246,11 +254,11 @@ A `record_sets` block exports:
 
 ## Example HCL Configurations
 
-* How to connect a `Private Endpoint` to a [Cosmos MongoDB](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/private-endpoint/cosmos-db)
-* How to connect a `Private Endpoint` to a [PostgreSQL Server](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/private-endpoint/postgresql)
-* How to connect a `Private Endpoint` to a [Private Link Service](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/private-endpoint/private-link-service)
-* How to connect a `Private Endpoint` to a [Private DNS Group](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/private-endpoint/private-dns-group)
-* How to connect a `Private Endpoint` to a [Databricks Workspace](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/private-endpoint/databricks)
+* How to connect a `Private Endpoint` to a [Cosmos MongoDB](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/cosmos-db)
+* How to connect a `Private Endpoint` to a [PostgreSQL Server](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/postgresql)
+* How to connect a `Private Endpoint` to a [Private Link Service](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/private-link-service)
+* How to connect a `Private Endpoint` to a [Private DNS Group](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/private-dns-group)
+* How to connect a `Private Endpoint` to a [Databricks Workspace](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/databricks)
 
 ## Timeouts
 

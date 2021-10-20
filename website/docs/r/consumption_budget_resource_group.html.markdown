@@ -54,9 +54,10 @@ resource "azurerm_consumption_budget_resource_group" "example" {
   }
 
   notification {
-    enabled   = true
-    threshold = 90.0
-    operator  = "EqualTo"
+    enabled        = true
+    threshold      = 90.0
+    operator       = "EqualTo"
+    threshold_type = "Forecasted"
 
     contact_emails = [
       "foo@example.com",
@@ -129,6 +130,8 @@ A `notification` block supports the following:
 
 * `threshold` - (Required) Threshold value associated with a notification. Notification is sent when the cost exceeded the threshold. It is always percent and has to be between 0 and 1000.
 
+* `threshold_type` - (Optional) The type of threshold for the notification. This determines whether the notification is triggered by forecasted costs or actual costs. The allowed values are `Actual` and `Forecasted`. Default is `Actual`.
+
 * `contact_emails` - (Optional) Specifies a list of email addresses to send the budget notification to when the threshold is exceeded.
 
 * `contact_groups` - (Optional) Specifies a list of Action Group IDs to send the budget notification to when the threshold is exceeded.
@@ -172,6 +175,8 @@ A `time_period` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Resource Group Consumption Budget.
+
+* `etag` - The ETag of the Resource Group Consumption Budget
 
 ## Timeouts
 

@@ -23,6 +23,7 @@ func schemaStreamAnalyticsOutputSerialization() *pluginsdk.Schema {
 						string(streamanalytics.TypeAvro),
 						string(streamanalytics.TypeCsv),
 						string(streamanalytics.TypeJSON),
+						string(streamanalytics.TypeParquet),
 					}, false),
 				},
 
@@ -119,6 +120,21 @@ func expandStreamAnalyticsOutputSerialization(input []interface{}) (streamanalyt
 				Format:   streamanalytics.JSONOutputSerializationFormat(format),
 			},
 		}, nil
+
+	case streamanalytics.TypeParquet:
+		if encoding != "" {
+			return nil, fmt.Errorf("`encoding` cannot be set when `type` is set to `Parquet`")
+		}
+		if fieldDelimiter != "" {
+			return nil, fmt.Errorf("`field_delimiter` cannot be set when `type` is set to `Parquet`")
+		}
+		if format != "" {
+			return nil, fmt.Errorf("`format` cannot be set when `type` is set to `Parquet`")
+		}
+		return streamanalytics.ParquetSerialization{
+			Type:       streamanalytics.TypeParquet,
+			Properties: map[string]interface{}{},
+		}, nil
 	}
 
 	return nil, fmt.Errorf("Unsupported Output Type %q", outputType)
@@ -153,6 +169,11 @@ func flattenStreamAnalyticsOutputSerialization(input streamanalytics.BasicSerial
 
 		outputType = string(streamanalytics.TypeJSON)
 	}
+
+	if _, ok := input.AsParquetSerialization(); ok {
+		outputType = string(streamanalytics.TypeParquet)
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"encoding":        encoding,

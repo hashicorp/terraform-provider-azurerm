@@ -104,8 +104,8 @@ func resourceDataProtectionBackupPolicyDisk() *schema.Resource {
 										Optional: true,
 										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(dataprotection.FirstOfDay),
-											string(dataprotection.FirstOfWeek),
+											string(dataprotection.AbsoluteMarkerFirstOfDay),
+											string(dataprotection.AbsoluteMarkerFirstOfWeek),
 										}, false),
 									},
 								},
@@ -152,7 +152,7 @@ func resourceDataProtectionBackupPolicyDiskCreate(d *schema.ResourceData, meta i
 		Properties: &dataprotection.BackupPolicy{
 			PolicyRules:     &policyRules,
 			DatasourceTypes: &[]string{"Microsoft.Compute/disks"},
-			ObjectType:      dataprotection.ObjectTypeBackupPolicy,
+			ObjectType:      dataprotection.ObjectTypeBasicBaseBackupPolicyObjectTypeBackupPolicy,
 		},
 	}
 
@@ -227,21 +227,21 @@ func expandBackupPolicyDiskAzureBackupRuleArray(input []interface{}, taggingCrit
 
 	results = append(results, dataprotection.AzureBackupRule{
 		Name:       utils.String("BackupIntervals"),
-		ObjectType: dataprotection.ObjectTypeAzureBackupRule,
+		ObjectType: dataprotection.ObjectTypeBasicBasePolicyRuleObjectTypeAzureBackupRule,
 		DataStore: &dataprotection.DataStoreInfoBase{
-			DataStoreType: dataprotection.OperationalStore,
+			DataStoreType: dataprotection.DataStoreTypesOperationalStore,
 			ObjectType:    utils.String("DataStoreInfoBase"),
 		},
 		BackupParameters: &dataprotection.AzureBackupParams{
 			BackupType: utils.String("Incremental"),
-			ObjectType: dataprotection.ObjectTypeAzureBackupParams,
+			ObjectType: dataprotection.ObjectTypeBasicBackupParametersObjectTypeAzureBackupParams,
 		},
 		Trigger: dataprotection.ScheduleBasedTriggerContext{
 			Schedule: &dataprotection.BackupSchedule{
 				RepeatingTimeIntervals: utils.ExpandStringSlice(input),
 			},
 			TaggingCriteria: taggingCriteria,
-			ObjectType:      dataprotection.ObjectTypeScheduleBasedTriggerContext,
+			ObjectType:      dataprotection.ObjectTypeBasicTriggerContextObjectTypeScheduleBasedTriggerContext,
 		},
 	})
 	return results
@@ -253,13 +253,13 @@ func expandBackupPolicyDiskAzureRetentionRuleArray(input []interface{}) []datapr
 		v := item.(map[string]interface{})
 		results = append(results, dataprotection.AzureRetentionRule{
 			Name:       utils.String(v["name"].(string)),
-			ObjectType: dataprotection.ObjectTypeAzureRetentionRule,
+			ObjectType: dataprotection.ObjectTypeBasicBasePolicyRuleObjectTypeAzureRetentionRule,
 			IsDefault:  utils.Bool(false),
 			Lifecycles: &[]dataprotection.SourceLifeCycle{
 				{
 					DeleteAfter: dataprotection.AbsoluteDeleteOption{
 						Duration:   utils.String(v["duration"].(string)),
-						ObjectType: dataprotection.ObjectTypeAbsoluteDeleteOption,
+						ObjectType: dataprotection.ObjectTypeBasicDeleteOptionObjectTypeAbsoluteDeleteOption,
 					},
 					SourceDataStore: &dataprotection.DataStoreInfoBase{
 						DataStoreType: "OperationalStore",
@@ -276,13 +276,13 @@ func expandBackupPolicyDiskAzureRetentionRuleArray(input []interface{}) []datapr
 func expandBackupPolicyDiskDefaultAzureRetentionRule(input interface{}) dataprotection.BasicBasePolicyRule {
 	return dataprotection.AzureRetentionRule{
 		Name:       utils.String("Default"),
-		ObjectType: dataprotection.ObjectTypeAzureRetentionRule,
+		ObjectType: dataprotection.ObjectTypeBasicBasePolicyRuleObjectTypeAzureRetentionRule,
 		IsDefault:  utils.Bool(true),
 		Lifecycles: &[]dataprotection.SourceLifeCycle{
 			{
 				DeleteAfter: dataprotection.AbsoluteDeleteOption{
 					Duration:   utils.String(input.(string)),
-					ObjectType: dataprotection.ObjectTypeAbsoluteDeleteOption,
+					ObjectType: dataprotection.ObjectTypeBasicDeleteOptionObjectTypeAbsoluteDeleteOption,
 				},
 				SourceDataStore: &dataprotection.DataStoreInfoBase{
 					DataStoreType: "OperationalStore",
@@ -331,7 +331,7 @@ func expandBackupPolicyDiskCriteriaArray(input []interface{}) *[]dataprotection.
 		}
 		results = append(results, dataprotection.ScheduleBasedBackupCriteria{
 			AbsoluteCriteria: &absoluteCriteria,
-			ObjectType:       dataprotection.ObjectTypeScheduleBasedBackupCriteria,
+			ObjectType:       dataprotection.ObjectTypeBasicBackupCriteriaObjectTypeScheduleBasedBackupCriteria,
 		})
 	}
 	return &results

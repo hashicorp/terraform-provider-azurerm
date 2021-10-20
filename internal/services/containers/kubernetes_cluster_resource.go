@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
@@ -30,7 +31,7 @@ import (
 )
 
 func resourceKubernetesCluster() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceKubernetesClusterCreate,
 		Read:   resourceKubernetesClusterRead,
 		Update: resourceKubernetesClusterUpdate,
@@ -589,6 +590,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ConflictsWith: []string{"private_link_enabled"},
 			},
 
+			"private_cluster_public_fqdn_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"private_dns_zone_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -866,6 +873,88 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 		},
 	}
+	if features.KubeConfigsAreSensitive() {
+		resource.Schema["kube_config"] = &pluginsdk.Schema{
+			Type:      pluginsdk.TypeList,
+			Computed:  true,
+			Sensitive: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"host": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+					"username": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+					"password": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+					"client_certificate": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+					"client_key": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+					"cluster_ca_certificate": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+				},
+			},
+		}
+
+		resource.Schema["kube_admin_config"] = &pluginsdk.Schema{
+			Type:      pluginsdk.TypeList,
+			Computed:  true,
+			Sensitive: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"host": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+					"username": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+					"password": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+					"client_certificate": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+					"client_key": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+					"cluster_ca_certificate": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+				},
+			},
+		}
+	}
+	return resource
 }
 
 func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -948,8 +1037,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	apiAccessProfile := containerservice.ManagedClusterAPIServerAccessProfile{
-		EnablePrivateCluster: &enablePrivateCluster,
-		AuthorizedIPRanges:   apiServerAuthorizedIPRanges,
+		EnablePrivateCluster:           &enablePrivateCluster,
+		AuthorizedIPRanges:             apiServerAuthorizedIPRanges,
+		EnablePrivateClusterPublicFQDN: utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool)),
 	}
 
 	nodeResourceGroup := d.Get("node_resource_group").(string)
@@ -989,6 +1079,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	if v := d.Get("automatic_channel_upgrade").(string); v != "" {
 		parameters.ManagedClusterProperties.AutoUpgradeProfile = &containerservice.ManagedClusterAutoUpgradeProfile{
 			UpgradeChannel: containerservice.UpgradeChannel(v),
+		}
+	} else {
+		parameters.ManagedClusterProperties.AutoUpgradeProfile = &containerservice.ManagedClusterAutoUpgradeProfile{
+			UpgradeChannel: containerservice.UpgradeChannelNone,
 		}
 	}
 
@@ -1165,7 +1259,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			props.EnableRBAC = utils.Bool(rbacEnabled)
 
 			// Reset AAD profile is only possible if not managed
-			if props.AadProfile == nil || props.AadProfile.Managed == nil || !*props.AadProfile.Managed {
+			if props.AadProfile != nil && (props.AadProfile.Managed == nil || !*props.AadProfile.Managed) {
 				log.Printf("[DEBUG] Updating the RBAC AAD profile")
 				future, err := clusterClient.ResetAADProfile(ctx, id.ResourceGroup, id.ManagedClusterName, *props.AadProfile)
 				if err != nil {
@@ -1215,6 +1309,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if v, ok := d.GetOk("private_dns_zone_id"); ok {
 			existing.ManagedClusterProperties.APIServerAccessProfile.PrivateDNSZone = utils.String(v.(string))
 		}
+	}
+
+	if d.HasChange("private_cluster_public_fqdn_enabled") {
+		updateCluster = true
+		existing.ManagedClusterProperties.APIServerAccessProfile.EnablePrivateClusterPublicFQDN = utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool))
 	}
 
 	if d.HasChange("auto_scaler_profile") {
@@ -1489,7 +1588,15 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
 			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
-			d.Set("private_dns_zone_id", accessProfile.PrivateDNSZone)
+			d.Set("private_cluster_public_fqdn_enabled", accessProfile.EnablePrivateClusterPublicFQDN)
+			switch {
+			case accessProfile.PrivateDNSZone != nil && strings.EqualFold("System", *accessProfile.PrivateDNSZone):
+				d.Set("private_dns_zone_id", "System")
+			case accessProfile.PrivateDNSZone != nil && strings.EqualFold("None", *accessProfile.PrivateDNSZone):
+				d.Set("private_dns_zone_id", "None")
+			default:
+				d.Set("private_dns_zone_id", accessProfile.PrivateDNSZone)
+			}
 		}
 
 		addonProfiles := flattenKubernetesAddOnProfiles(props.AddonProfiles)

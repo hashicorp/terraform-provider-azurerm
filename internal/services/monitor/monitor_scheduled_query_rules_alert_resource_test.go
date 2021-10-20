@@ -3,13 +3,14 @@ package monitor_test
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -84,6 +85,75 @@ func TestAccMonitorScheduledQueryRules_AlertingActionCrossResource(t *testing.T)
 		},
 		data.ImportStep(),
 	})
+}
+func TestAccMonitorScheduledQueryRules_AutoMitigate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
+	r := MonitorScheduledQueryRulesResource{}
+	ts := time.Now().Format(time.RFC3339)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.AlertingActionAutoMitigate(data, ts, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.AlertingActionConfigComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.AlertingActionAutoMitigate(data, ts, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (MonitorScheduledQueryRulesResource) AlertingActionAutoMitigate(data acceptance.TestData, ts string, autoMitigate bool) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-monitor-%d"
+  location = "%s"
+}
+resource "azurerm_application_insights" "test" {
+  name                = "acctestAppInsights-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag"
+}
+resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
+  name                    = "acctestsqr-%d"
+  resource_group_name     = azurerm_resource_group.test.name
+  location                = azurerm_resource_group.test.location
+  data_source_id          = azurerm_application_insights.test.id
+  query                   = <<-QUERY
+	let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%s', 25.4, '%s', 75.4 ];
+	d | summarize AggregatedValue=avg(usage_percent) by bin(TimeGenerated, 1h)
+QUERY
+  frequency               = 60
+  time_window             = 60
+  auto_mitigation_enabled = %s
+  action {
+    action_group = [azurerm_monitor_action_group.test.id]
+  }
+  trigger {
+    operator  = "GreaterThan"
+    threshold = 5000
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, ts, ts, strconv.FormatBool(autoMitigate))
 }
 
 func (MonitorScheduledQueryRulesResource) AlertingActionConfigBasic(data acceptance.TestData, ts string) string {
@@ -220,6 +290,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
 
   severity   = 3
   throttling = 5
+
   action {
     action_group           = [azurerm_monitor_action_group.test.id]
     email_subject          = "Custom alert email subject"
@@ -279,7 +350,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
   data_source_id          = "${azurerm_application_insights.test.id}"
   query = format(<<-QUERY
 	let a=workspace('%%s').Perf
-		| where Computer='dependency' and TimeGenerated > ago(1h)
+		| where Computer == 'dependency' and TimeGenerated > ago(1h)
 		| where ObjectName == 'Processor' and CounterName == '%%%% Processor Time'
 		| summarize cpu=avg(CounterValue) by bin(TimeGenerated, 1m)
 		| extend ts=tostring(TimeGenerated); let b=requests
@@ -309,16 +380,14 @@ QUERY
 }
 
 func (t MonitorScheduledQueryRulesResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ScheduledQueryRulesID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["scheduledqueryrules"]
 
-	resp, err := clients.Monitor.ScheduledQueryRulesClient.Get(ctx, resourceGroup, name)
+	resp, err := clients.Monitor.ScheduledQueryRulesClient.Get(ctx, id.ResourceGroup, id.ScheduledQueryRuleName)
 	if err != nil {
-		return nil, fmt.Errorf("reading Scheduled Query Rules (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

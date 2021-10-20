@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -160,12 +160,10 @@ func resourceExpressRouteCircuitAuthorizationDelete(d *pluginsdk.ResourceData, m
 
 	future, err := client.Delete(ctx, resourceGroup, circuitName, name)
 	if err != nil {
-
 		return fmt.Errorf("deleting Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %+v", name, circuitName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-
 		return fmt.Errorf("waiting for Express Route Circuit Authorization %q (Circuit %q / Resource Group %q) to be deleted: %+v", name, circuitName, resourceGroup, err)
 	}
 

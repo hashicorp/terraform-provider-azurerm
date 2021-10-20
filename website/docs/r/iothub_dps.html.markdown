@@ -39,7 +39,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group under which the Iot Device Provisioning Service resource has to be created. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource has to be createc. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource has to be created. Changing this forces a new resource to be created.
 
 * `allocation_policy` - (Optional) The allocation policy of the IoT Device Provisioning Service (`Hashed`, `GeoLatency` or `Static`). Defaults to `Hashed`.
 

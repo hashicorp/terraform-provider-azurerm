@@ -28,6 +28,7 @@ func TestAccApplicationInsightsSmartDetectionRule_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -67,6 +68,14 @@ func TestAccApplicationInsightsSmartDetectionRule_multiple(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That("azurerm_application_insights_smart_detection_rule.test2").ExistsInAzure(r),
+				check.That("azurerm_application_insights_smart_detection_rule.test3").ExistsInAzure(r),
+				check.That("azurerm_application_insights_smart_detection_rule.test4").ExistsInAzure(r),
+				check.That("azurerm_application_insights_smart_detection_rule.test5").ExistsInAzure(r),
+				check.That("azurerm_application_insights_smart_detection_rule.test6").ExistsInAzure(r),
+				check.That("azurerm_application_insights_smart_detection_rule.test7").ExistsInAzure(r),
+				check.That("azurerm_application_insights_smart_detection_rule.test8").ExistsInAzure(r),
+				check.That("azurerm_application_insights_smart_detection_rule.test9").ExistsInAzure(r),
+				check.That("azurerm_application_insights_smart_detection_rule.test10").ExistsInAzure(r),
 			),
 		},
 	})
@@ -86,6 +95,10 @@ func TestAccApplicationInsightsSmartDetectionRule_longDependencyDuration(t *test
 	})
 }
 
+// A requires import test isn't possible here due to the behaviour of app insights. When a new app insights instance is
+// created all the smart detection rules are created with it and are set to enabled. They cannot be deleted, only disabled -
+// but this still causes issues when the resource performs a d.IsNewResource() check, where the tf.ImportAsExistsError is thrown.
+
 func (t AppInsightsSmartDetectionRule) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SmartDetectionRuleID(state.Attributes["id"])
 	if err != nil {
@@ -94,7 +107,7 @@ func (t AppInsightsSmartDetectionRule) Exists(ctx context.Context, clients *clie
 
 	resp, err := clients.AppInsights.SmartDetectionRuleClient.Get(ctx, id.ResourceGroup, id.ComponentName, id.SmartDetectionRuleName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Application Insights Smart Detection Rule '%q' does not exist", id.String())
+		return nil, fmt.Errorf("retrieving Application Insights Smart Detection Rule '%s' does not exist", id)
 	}
 
 	return utils.Bool(resp.StatusCode != http.StatusNotFound), nil
@@ -181,6 +194,54 @@ resource "azurerm_application_insights_smart_detection_rule" "test" {
 
 resource "azurerm_application_insights_smart_detection_rule" "test2" {
   name                    = "Slow server response time"
+  application_insights_id = azurerm_application_insights.test.id
+  enabled                 = false
+}
+
+resource "azurerm_application_insights_smart_detection_rule" "test3" {
+  name                    = "Long dependency duration"
+  application_insights_id = azurerm_application_insights.test.id
+  enabled                 = false
+}
+
+resource "azurerm_application_insights_smart_detection_rule" "test4" {
+  name                    = "Degradation in server response time"
+  application_insights_id = azurerm_application_insights.test.id
+  enabled                 = false
+}
+
+resource "azurerm_application_insights_smart_detection_rule" "test5" {
+  name                    = "Degradation in dependency duration"
+  application_insights_id = azurerm_application_insights.test.id
+  enabled                 = false
+}
+
+resource "azurerm_application_insights_smart_detection_rule" "test6" {
+  name                    = "Degradation in trace severity ratio"
+  application_insights_id = azurerm_application_insights.test.id
+  enabled                 = false
+}
+
+resource "azurerm_application_insights_smart_detection_rule" "test7" {
+  name                    = "Abnormal rise in exception volume"
+  application_insights_id = azurerm_application_insights.test.id
+  enabled                 = false
+}
+
+resource "azurerm_application_insights_smart_detection_rule" "test8" {
+  name                    = "Potential memory leak detected"
+  application_insights_id = azurerm_application_insights.test.id
+  enabled                 = false
+}
+
+resource "azurerm_application_insights_smart_detection_rule" "test9" {
+  name                    = "Potential security issue detected"
+  application_insights_id = azurerm_application_insights.test.id
+  enabled                 = false
+}
+
+resource "azurerm_application_insights_smart_detection_rule" "test10" {
+  name                    = "Abnormal rise in daily data volume"
   application_insights_id = azurerm_application_insights.test.id
   enabled                 = false
 }

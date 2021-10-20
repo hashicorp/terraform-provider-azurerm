@@ -2,6 +2,7 @@ package network
 
 import (
 	"fmt"
+	"net"
 	"strings"
 	"time"
 
@@ -36,6 +37,22 @@ func dataSourceNetworkServiceTags() *pluginsdk.Resource {
 			},
 
 			"address_prefixes": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"ipv4_cidrs": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"ipv6_cidrs": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
@@ -82,6 +99,32 @@ func dataSourceNetworkServiceTagsRead(d *pluginsdk.ResourceData, meta interface{
 				err = d.Set("address_prefixes", addressPrefixes)
 				if err != nil {
 					return fmt.Errorf("setting `address_prefixes`: %+v", err)
+				}
+
+				var IPv4 []string
+				var IPv6 []string
+
+				for _, prefix := range addressPrefixes {
+					ip, ipNet, err := net.ParseCIDR(prefix)
+					if err != nil {
+						return err
+					}
+
+					if ip.To4() != nil {
+						IPv4 = append(IPv4, ipNet.String())
+					} else {
+						IPv6 = append(IPv6, ipNet.String())
+					}
+				}
+
+				err = d.Set("ipv4_cidrs", IPv4)
+				if err != nil {
+					return fmt.Errorf("setting `ipv4_cidrs`: %+v", err)
+				}
+
+				err = d.Set("ipv6_cidrs", IPv6)
+				if err != nil {
+					return fmt.Errorf("setting `ipv6_cidrs`: %+v", err)
 				}
 
 				if sti.ID == nil {

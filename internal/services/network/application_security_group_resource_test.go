@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -89,16 +90,14 @@ func TestAccApplicationSecurityGroup_update(t *testing.T) {
 }
 
 func (t ApplicationSecurityGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ApplicationSecurityGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["applicationSecurityGroups"]
 
-	resp, err := clients.Network.ApplicationSecurityGroupsClient.Get(ctx, resGroup, name)
+	resp, err := clients.Network.ApplicationSecurityGroupsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Application Security Group (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

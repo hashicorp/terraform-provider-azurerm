@@ -97,7 +97,7 @@ func (t MonitorSmartDetectorAlertRuleResource) Exists(ctx context.Context, clien
 
 	resp, err := clients.Monitor.SmartDetectorAlertRulesClient.Get(ctx, id.ResourceGroup, id.Name, utils.Bool(true))
 	if err != nil {
-		return nil, fmt.Errorf("reading action rule (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -182,7 +182,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-monitor-%d"
+  name     = "acctestrg-monitor-%d"
   location = "%s"
 }
 

@@ -8,11 +8,10 @@ package dataprotection
 
 import (
 	"context"
-	"net/http"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
+	"net/http"
 )
 
 // BackupPoliciesClient is the open API 2.0 Specs for Azure Data Protection service
@@ -35,6 +34,7 @@ func NewBackupPoliciesClientWithBaseURI(baseURI string, subscriptionID string) B
 // Parameters:
 // vaultName - the name of the backup vault.
 // resourceGroupName - the name of the resource group where the backup vault is present.
+// backupPolicyName - name of the policy
 // parameters - request body for operation
 func (client BackupPoliciesClient) CreateOrUpdate(ctx context.Context, vaultName string, resourceGroupName string, backupPolicyName string, parameters BaseBackupPolicyResource) (result BaseBackupPolicyResource, err error) {
 	if tracing.IsEnabled() {
@@ -78,7 +78,7 @@ func (client BackupPoliciesClient) CreateOrUpdatePreparer(ctx context.Context, v
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -157,7 +157,7 @@ func (client BackupPoliciesClient) DeletePreparer(ctx context.Context, vaultName
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -233,7 +233,7 @@ func (client BackupPoliciesClient) GetPreparer(ctx context.Context, vaultName st
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -314,7 +314,7 @@ func (client BackupPoliciesClient) ListPreparer(ctx context.Context, vaultName s
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -92,13 +93,13 @@ func resourceIotHub() *pluginsdk.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.B1),
-								string(devices.B2),
-								string(devices.B3),
-								string(devices.F1),
-								string(devices.S1),
-								string(devices.S2),
-								string(devices.S3),
+								string(devices.IotHubSkuB1),
+								string(devices.IotHubSkuB2),
+								string(devices.IotHubSkuB3),
+								string(devices.IotHubSkuF1),
+								string(devices.IotHubSkuS1),
+								string(devices.IotHubSkuS2),
+								string(devices.IotHubSkuS3),
 							}, false),
 						},
 
@@ -158,19 +159,10 @@ func resourceIotHub() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"connection_string": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-								secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
-								sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
-
-								// Azure will always mask the Access Keys and will include the port number in the GET response
-								// 5671 is the default port for Azure Service Bus connections
-								maskedNew := sbProtocolRegex.ReplaceAllString(new, "sb://$1:5671/;")
-								maskedNew = secretKeyRegex.ReplaceAllString(maskedNew, "$1=****")
-								return (new == d.Get(k).(string)) && (maskedNew == old)
-							},
-							Sensitive: true,
+							Type:             pluginsdk.TypeString,
+							Required:         true,
+							DiffSuppressFunc: fileUploadConnectionStringDiffSuppress,
+							Sensitive:        true,
 						},
 						"container_name": {
 							Type:     pluginsdk.TypeString,
@@ -278,9 +270,9 @@ func resourceIotHub() *pluginsdk.Resource {
 								suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 								suppress.CaseDifference),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.Avro),
-								string(devices.AvroDeflate),
-								string(devices.JSON),
+								string(devices.EncodingAvro),
+								string(devices.EncodingAvroDeflate),
+								string(devices.EncodingJSON),
 							}, true),
 						},
 
@@ -441,8 +433,8 @@ func resourceIotHub() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.Accept),
-								string(devices.Reject),
+								string(devices.IPFilterActionTypeAccept),
+								string(devices.IPFilterActionTypeReject),
 							}, false),
 						},
 					},
@@ -500,19 +492,18 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewIotHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(name, IothubResourceName)
-	defer locks.UnlockByName(name, IothubResourceName)
+	locks.ByName(id.Name, IothubResourceName)
+	defer locks.UnlockByName(id.Name, IothubResourceName)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing IoTHub %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
 
@@ -522,15 +513,15 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	res, err := client.CheckNameAvailability(ctx, devices.OperationInputs{
-		Name: &name,
+		Name: &id.Name,
 	})
 	if err != nil {
 		return fmt.Errorf("An error occurred checking if the IoTHub name was unique: %+v", err)
 	}
 
 	if !*res.NameAvailable {
-		if _, err = client.Get(ctx, resourceGroup, name); err != nil {
-			return fmt.Errorf("An IoTHub already exists with the name %q - please choose an alternate name: %s", name, string(res.Reason))
+		if _, err = client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
+			return fmt.Errorf("An IoTHub already exists with the name %q - please choose an alternate name: %s", id.Name, string(res.Reason))
 		}
 	}
 
@@ -549,7 +540,7 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if _, ok := d.GetOk("endpoint"); ok {
-		routingProperties.Endpoints = expandIoTHubEndpoints(d, subscriptionID)
+		routingProperties.Endpoints = expandIoTHubEndpoints(d, subscriptionId)
 	}
 
 	storageEndpoints, messagingEndpoints, enableFileUploadNotifications := expandIoTHubFileUpload(d)
@@ -558,7 +549,7 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	props := devices.IotHubDescription{
-		Name:     utils.String(name),
+		Name:     utils.String(id.Name),
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Sku:      expandIoTHubSku(d),
 		Properties: &devices.IotHubProperties{
@@ -573,9 +564,9 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	// nolint staticcheck
 	if v, ok := d.GetOkExists("public_network_access_enabled"); ok {
-		enabled := devices.Disabled
+		enabled := devices.PublicNetworkAccessDisabled
 		if v.(bool) {
-			enabled = devices.Enabled
+			enabled = devices.PublicNetworkAccessEnabled
 		}
 		props.Properties.PublicNetworkAccess = enabled
 	}
@@ -600,8 +591,8 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		props.Properties.MinTLSVersion = utils.String(v.(string))
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, props, ""); err != nil {
-		return fmt.Errorf("creating/updating IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props, ""); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	timeout := pluginsdk.TimeoutUpdate
@@ -611,20 +602,15 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{"Activating", "Transitioning"},
 		Target:  []string{"Succeeded"},
-		Refresh: iothubStateRefreshFunc(ctx, client, resourceGroup, name),
+		Refresh: iothubStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
 		Timeout: d.Timeout(timeout),
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return err
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceIotHubRead(d, meta)
 }
@@ -642,12 +628,12 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	hub, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(hub.Response) {
-			log.Printf("[DEBUG] IoTHub %q (Resource Group %q) was not found!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] %s was not found!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving IotHub Client %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	if keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name); err == nil {
@@ -709,7 +695,7 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		if enabled := properties.PublicNetworkAccess; enabled != "" {
-			d.Set("public_network_access_enabled", enabled == devices.Enabled)
+			d.Set("public_network_access_enabled", enabled == devices.PublicNetworkAccessEnabled)
 		}
 
 		d.Set("min_tls_version", properties.MinTLSVersion)
@@ -752,11 +738,10 @@ func resourceIotHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for ProvisioningState of IotHub %q (Resource Group %q) to become `Succeeded`: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for ProvisioningState of %s to become `Succeeded`: %+v", id, err)
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-
 		return err
 	}
 
@@ -1301,4 +1286,32 @@ func flattenIPFilterRules(in *[]devices.IPFilterRule) []interface{} {
 		rules = append(rules, rawRule)
 	}
 	return rules
+}
+
+func fileUploadConnectionStringDiffSuppress(k, old, new string, d *pluginsdk.ResourceData) bool {
+	// The access keys are always masked by Azure and the ordering of the parameters in the connection string
+	// differs across services, so we will compare the fields individually instead.
+	secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
+
+	if secretKeyRegex.MatchString(new) {
+		maskedNew := secretKeyRegex.ReplaceAllString(new, "$1=****")
+
+		oldSplit := strings.Split(old, ";")
+		newSplit := strings.Split(maskedNew, ";")
+
+		sort.Strings(oldSplit)
+		sort.Strings(newSplit)
+
+		if len(oldSplit) != len(newSplit) {
+			return false
+		}
+
+		for i := range oldSplit {
+			if !strings.EqualFold(oldSplit[i], newSplit[i]) {
+				return false
+			}
+		}
+		return true
+	}
+	return false
 }

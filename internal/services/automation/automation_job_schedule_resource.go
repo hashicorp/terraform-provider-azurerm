@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -24,8 +25,10 @@ func resourceAutomationJobSchedule() *pluginsdk.Resource {
 		Read:   resourceAutomationJobScheduleRead,
 		Delete: resourceAutomationJobScheduleDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.JobScheduleID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -192,29 +195,26 @@ func resourceAutomationJobScheduleRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.JobScheduleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	jobScheduleID := id.Path["jobSchedules"]
-	jobScheduleUUID := uuid.FromStringOrNil(jobScheduleID)
-	resourceGroup := id.ResourceGroup
-	accountName := id.Path["automationAccounts"]
+	jobScheduleUUID := uuid.FromStringOrNil(id.Name)
 
-	resp, err := client.Get(ctx, resourceGroup, accountName, jobScheduleUUID)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, jobScheduleUUID)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on AzureRM Automation Job Schedule '%s': %+v", jobScheduleUUID, err)
+		return fmt.Errorf("making Read request on AzureRM Automation Job Schedule '%s': %+v", id.Name, err)
 	}
 
-	d.Set("job_schedule_id", resp.JobScheduleID)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("automation_account_name", accountName)
+	d.Set("job_schedule_id", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("automation_account_name", id.AutomationAccountName)
 	d.Set("runbook_name", resp.JobScheduleProperties.Runbook.Name)
 	d.Set("schedule_name", resp.JobScheduleProperties.Schedule.Name)
 
@@ -238,20 +238,17 @@ func resourceAutomationJobScheduleDelete(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.JobScheduleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	jobScheduleID := id.Path["jobSchedules"]
-	jobScheduleUUID := uuid.FromStringOrNil(jobScheduleID)
-	resourceGroup := id.ResourceGroup
-	accountName := id.Path["automationAccounts"]
+	jobScheduleUUID := uuid.FromStringOrNil(id.Name)
 
-	resp, err := client.Delete(ctx, resourceGroup, accountName, jobScheduleUUID)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, jobScheduleUUID)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("issuing AzureRM delete request for Automation Job Schedule '%s': %+v", jobScheduleUUID, err)
+			return fmt.Errorf("issuing AzureRM delete request for Automation Job Schedule '%s': %+v", id.Name, err)
 		}
 	}
 

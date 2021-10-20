@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/2020-06-01/configurationstores"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -91,6 +92,21 @@ func TestAccAppConfiguration_identity(t *testing.T) {
 	})
 }
 
+func TestAccAppConfiguration_identityUserAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
+	r := AppConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identityUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAppConfiguration_identityUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 	r := AppConfigurationResource{}
@@ -144,7 +160,7 @@ func TestAccAppConfiguration_update(t *testing.T) {
 }
 
 func (t AppConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := configurationstores.ConfigurationStoreID(state.ID)
+	id, err := configurationstores.ParseConfigurationStoreID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -261,6 +277,43 @@ resource "azurerm_app_configuration" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (AppConfigurationResource) identityUserAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appconfig-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_app_configuration" "test" {
+  name                = "testaccappconf%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+
+  tags = {
+    ENVironment = "DEVelopment"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (AppConfigurationResource) completeUpdated(data acceptance.TestData) string {

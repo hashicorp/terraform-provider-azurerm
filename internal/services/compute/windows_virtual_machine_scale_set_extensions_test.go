@@ -108,7 +108,7 @@ func TestAccWindowsVirtualMachineScaleSet_extensionMultiple(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "extension.0.protected_settings"),
+		data.ImportStep("admin_password", "extension.0.protected_settings", "extension.1.protected_settings"),
 	})
 }
 

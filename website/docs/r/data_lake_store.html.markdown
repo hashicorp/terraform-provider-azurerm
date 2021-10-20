@@ -45,11 +45,20 @@ The following arguments are supported:
 
 -> **NOTE:** Support for User Managed encryption will be supported in the future once a bug in the API is fixed.
 
+* `identity` - (Required) An `identity` block defined below.
+
 * `firewall_allow_azure_ips` - are Azure Service IP's allowed through the firewall? Possible values are `Enabled` and `Disabled`. Defaults to `Enabled.`
 
 * `firewall_state` - the state of the Firewall. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled.`
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) The Type of Identity which should be used for this Data Lake Store Account. At this time the only possible value is `SystemAssigned`.
+
 
 ## Attributes Reference
 

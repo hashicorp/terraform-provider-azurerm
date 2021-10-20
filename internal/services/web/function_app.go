@@ -6,10 +6,12 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -151,6 +153,24 @@ func schemaAppServiceFunctionAppSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 					Default:  false,
 				},
+
+				"dotnet_framework_version": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  "v4.0",
+					ValidateFunc: validation.StringInSlice([]string{
+						"v4.0",
+						"v5.0",
+						"v6.0",
+					}, true),
+					DiffSuppressFunc: suppress.CaseDifference,
+				},
+
+				"vnet_route_all_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
 			},
 		},
 	}
@@ -248,12 +268,22 @@ func schemaFunctionAppDataSourceSiteConfig() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
+
+				"dotnet_framework_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"vnet_route_all_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
 			},
 		},
 	}
 }
 
-func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, endpointSuffix string) ([]web.NameValuePair, error) {
+func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, endpointSuffix string, existingSettings map[string]*string) ([]web.NameValuePair, error) {
 	// TODO: This is a workaround since there are no public Functions API
 	// You may track the API request here: https://github.com/Azure/azure-rest-api-specs/issues/3750
 	dashboardPropName := "AzureWebJobsDashboard"
@@ -292,7 +322,15 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 	}
 
 	functionVersion := d.Get("version").(string)
-	contentShare := strings.ToLower(d.Get("name").(string)) + "-content"
+	var contentShare string
+	contentSharePreviouslySet := false
+	if currentContentShare, ok := existingSettings[contentSharePropName]; ok {
+		contentShare = *currentContentShare
+		contentSharePreviouslySet = true
+	} else {
+		suffix := uuid.New().String()[0:4]
+		contentShare = strings.ToLower(d.Get("name").(string)) + suffix
+	}
 
 	basicSettings := []web.NameValuePair{
 		{Name: &storagePropName, Value: &storageConnection},
@@ -311,10 +349,15 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 		{Name: &contentFileConnStringPropName, Value: &storageConnection},
 	}
 
+	// If there's an existing value for content, we need to send it. This can be the case for PremiumV2/PremiumV3 plans where the value has been previously configured.
+	if contentSharePreviouslySet {
+		return append(basicSettings, consumptionSettings...), nil
+	}
+
 	// On consumption and premium plans include WEBSITE_CONTENT components, unless it's a Linux consumption plan
-	// (see https://github.com/Azure/azure-functions-python-worker/issues/598)
-	if (strings.EqualFold(appServiceTier, "dynamic") || strings.EqualFold(appServiceTier, "elasticpremium") || strings.HasPrefix(strings.ToLower(appServiceTier), "premium")) &&
-		!strings.EqualFold(d.Get("os_type").(string), "linux") {
+	// Note: The docs on this are misleading. Premium here refers explicitly to `ElasticPremium`, and not `PremiumV2` / `PremiumV3` etc.
+	if !(strings.EqualFold(appServiceTier, "dynamic") && strings.EqualFold(d.Get("os_type").(string), "linux")) &&
+		(strings.EqualFold(appServiceTier, "dynamic") || strings.HasPrefix(strings.ToLower(appServiceTier), "elastic")) {
 		return append(basicSettings, consumptionSettings...), nil
 	}
 
@@ -343,18 +386,14 @@ func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, met
 	return "", fmt.Errorf("No `sku` block was returned for App Service Plan ID %q", appServicePlanId)
 }
 
-func expandFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, endpointSuffix string) (map[string]*string, error) {
+func expandFunctionAppAppSettings(d *pluginsdk.ResourceData, basicAppSettings []web.NameValuePair) map[string]*string {
 	output := expandAppServiceAppSettings(d)
 
-	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
-	if err != nil {
-		return nil, err
-	}
 	for _, p := range basicAppSettings {
 		output[*p.Name] = p.Value
 	}
 
-	return output, nil
+	return output
 }
 
 func expandFunctionAppSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig, error) {
@@ -454,6 +493,14 @@ func expandFunctionAppSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig, err
 		siteConfig.FunctionsRuntimeScaleMonitoringEnabled = utils.Bool(v.(bool))
 	}
 
+	if v, ok := config["dotnet_framework_version"]; ok {
+		siteConfig.NetFrameworkVersion = utils.String(v.(string))
+	}
+
+	if v, ok := config["vnet_route_all_enabled"]; ok {
+		siteConfig.VnetRouteAllEnabled = utils.Bool(v.(bool))
+	}
+
 	return siteConfig, nil
 }
 
@@ -527,6 +574,16 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 	if input.FunctionsRuntimeScaleMonitoringEnabled != nil {
 		result["runtime_scale_monitoring_enabled"] = *input.FunctionsRuntimeScaleMonitoringEnabled
 	}
+
+	if input.NetFrameworkVersion != nil {
+		result["dotnet_framework_version"] = *input.NetFrameworkVersion
+	}
+
+	vnetRouteAllEnabled := false
+	if input.VnetRouteAllEnabled != nil {
+		vnetRouteAllEnabled = *input.VnetRouteAllEnabled
+	}
+	result["vnet_route_all_enabled"] = vnetRouteAllEnabled
 
 	results = append(results, result)
 	return results

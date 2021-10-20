@@ -28,9 +28,7 @@ func TestAccMonitorDiagnosticSetting_eventhub(t *testing.T) {
 				check.That(data.ResourceName).Key("eventhub_name").Exists(),
 				check.That(data.ResourceName).Key("eventhub_authorization_rule_id").Exists(),
 				check.That(data.ResourceName).Key("log.#").HasValue("1"),
-				check.That(data.ResourceName).Key("log.782743152.category").HasValue("AuditEvent"),
 				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
-				check.That(data.ResourceName).Key("metric.1439188313.category").HasValue("AllMetrics"),
 			),
 		},
 		data.ImportStep(),
@@ -66,9 +64,7 @@ func TestAccMonitorDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("log_analytics_workspace_id").Exists(),
 				check.That(data.ResourceName).Key("log.#").HasValue("1"),
-				check.That(data.ResourceName).Key("log.782743152.category").HasValue("AuditEvent"),
 				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
-				check.That(data.ResourceName).Key("metric.1439188313.category").HasValue("AllMetrics"),
 			),
 		},
 		data.ImportStep(),
@@ -101,9 +97,7 @@ func TestAccMonitorDiagnosticSetting_storageAccount(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_account_id").Exists(),
 				check.That(data.ResourceName).Key("log.#").HasValue("1"),
-				check.That(data.ResourceName).Key("log.782743152.category").HasValue("AuditEvent"),
 				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
-				check.That(data.ResourceName).Key("metric.1439188313.category").HasValue("AllMetrics"),
 			),
 		},
 		data.ImportStep(),
@@ -337,6 +331,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category = "ActivityRuns"
     retention_policy {
       enabled = false
+      days    = 0
     }
   }
 
@@ -344,12 +339,14 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category = "PipelineRuns"
     retention_policy {
       enabled = false
+      days    = 0
     }
   }
 
   log {
     category = "TriggerRuns"
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -357,6 +354,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   log {
     category = "SSISIntegrationRuntimeLogs"
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -364,6 +362,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   log {
     category = "SSISPackageEventMessageContext"
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -371,6 +370,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   log {
     category = "SSISPackageEventMessages"
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -378,6 +378,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   log {
     category = "SSISPackageExecutableStatistics"
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -385,6 +386,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   log {
     category = "SSISPackageExecutionComponentPhases"
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -392,6 +394,23 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   log {
     category = "SSISPackageExecutionDataStatistics"
     retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  log {
+    category = "SandboxActivityRuns"
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  log {
+    category = "SandboxPipelineRuns"
+    retention_policy {
+      days    = 0
       enabled = false
     }
   }

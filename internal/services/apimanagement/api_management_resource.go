@@ -248,6 +248,21 @@ func resourceApiManagementService() *pluginsdk.Resource {
 								string(apimanagement.Root),
 							}, false),
 						},
+
+						"expiry": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"subject": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"thumbprint": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -864,6 +879,8 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("client_certificate_enabled", props.EnableClientCertificate)
 		d.Set("gateway_disabled", props.DisableGateway)
 
+		d.Set("certificate", flattenAPIManagementCertificates(d, props.Certificates))
+
 		if resp.Sku != nil && resp.Sku.Name != "" {
 			if err := d.Set("security", flattenApiManagementSecurityCustomProperties(props.CustomProperties, resp.Sku.Name == apimanagement.SkuTypeConsumption)); err != nil {
 				return fmt.Errorf("setting `security`: %+v", err)
@@ -962,6 +979,28 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 		if !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("waiting for deletion of API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
+	}
+
+	// Purge the soft deleted Api Management permanently if the feature flag is enabled
+	if meta.(*clients.Client).Features.ApiManagement.PurgeSoftDeleteOnDestroy {
+		log.Printf("[DEBUG] Api Management %q marked for purge - executing purge", id)
+		deletedServicesClient := meta.(*clients.Client).ApiManagement.DeletedServicesClient
+		_, err := deletedServicesClient.GetByName(ctx, id.ServiceName, azure.NormalizeLocation(d.Get("location").(string)))
+		if err != nil {
+			return err
+		}
+		future, err := deletedServicesClient.Purge(ctx, id.ServiceName, azure.NormalizeLocation(d.Get("location").(string)))
+		if err != nil {
+			return err
+		}
+
+		log.Printf("[DEBUG] Waiting for purge of Api Management %q..", id)
+		err = future.WaitForCompletionRef(ctx, deletedServicesClient.Client)
+		if err != nil {
+			return fmt.Errorf("purging %s: %+v", *id, err)
+		}
+		log.Printf("[DEBUG] Purged Api Management %q.", id)
+		return nil
 	}
 
 	return nil
@@ -1075,6 +1114,10 @@ func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}
 		output.NegotiateClientCertificate = utils.Bool(v.(bool))
 	}
 
+	if v, ok := input["ssl_keyvault_identity_client_id"].(string); ok && v != "" {
+		output.IdentityClientID = utils.String(v)
+	}
+
 	return output
 }
 
@@ -1108,6 +1151,24 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 
 		if config.KeyVaultID != nil {
 			output["key_vault_id"] = *config.KeyVaultID
+		}
+
+		if config.IdentityClientID != nil {
+			output["ssl_keyvault_identity_client_id"] = *config.IdentityClientID
+		}
+
+		if config.Certificate != nil {
+			if config.Certificate.Expiry != nil && !config.Certificate.Expiry.IsZero() {
+				output["expiry"] = config.Certificate.Expiry.Format(time.RFC3339)
+			}
+
+			if config.Certificate.Thumbprint != nil {
+				output["thumbprint"] = *config.Certificate.Thumbprint
+			}
+
+			if config.Certificate.Subject != nil {
+				output["subject"] = *config.Certificate.Subject
+			}
 		}
 
 		var configType string
@@ -1749,4 +1810,45 @@ func flattenApiManagementTenantAccessSettings(input apimanagement.AccessInformat
 	}
 
 	return []interface{}{result}
+}
+
+func flattenAPIManagementCertificates(d *pluginsdk.ResourceData, inputs *[]apimanagement.CertificateConfiguration) []interface{} {
+	if inputs == nil || len(*inputs) == 0 {
+		return []interface{}{}
+	}
+
+	outputs := []interface{}{}
+	for i, input := range *inputs {
+		var expiry, subject, thumbprint, pwd, encodedCertificate string
+		if v, ok := d.GetOk(fmt.Sprintf("certificate.%d.certificate_password", i)); ok {
+			pwd = v.(string)
+		}
+
+		if v, ok := d.GetOk(fmt.Sprintf("certificate.%d.encoded_certificate", i)); ok {
+			encodedCertificate = v.(string)
+		}
+
+		if input.Certificate.Expiry != nil && !input.Certificate.Expiry.IsZero() {
+			expiry = input.Certificate.Expiry.Format(time.RFC3339)
+		}
+
+		if input.Certificate.Thumbprint != nil {
+			thumbprint = *input.Certificate.Thumbprint
+		}
+
+		if input.Certificate.Subject != nil {
+			subject = *input.Certificate.Subject
+		}
+
+		output := map[string]interface{}{
+			"certificate_password": pwd,
+			"encoded_certificate":  encodedCertificate,
+			"store_name":           string(input.StoreName),
+			"expiry":               expiry,
+			"subject":              subject,
+			"thumbprint":           thumbprint,
+		}
+		outputs = append(outputs, output)
+	}
+	return outputs
 }

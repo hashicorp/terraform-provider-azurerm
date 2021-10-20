@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -148,17 +148,37 @@ func TestAccLogicAppWorkflow_parameters(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppWorkflow_accessControl(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
+	r := LogicAppWorkflowResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.accessControl(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateAccessControl(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (LogicAppWorkflowResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.WorkflowID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	name := id.Path["workflows"]
-
-	resp, err := clients.Logic.WorkflowClient.Get(ctx, id.ResourceGroup, name)
+	resp, err := clients.Logic.WorkflowClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Logic App Workflow %s (resource group: %s): %v", name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Logic App Workflow %s: %+v", id, err)
 	}
 
 	return utils.Bool(resp.WorkflowProperties != nil), nil
@@ -363,4 +383,79 @@ resource "azurerm_logic_app_workflow" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (LogicAppWorkflowResource) accessControl(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-logic-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_logic_app_workflow" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  access_control {
+    content {
+      allowed_caller_ip_address_range = ["10.0.5.0-10.0.5.10"]
+    }
+
+    action {
+      allowed_caller_ip_address_range = ["10.0.6.0-10.0.6.10"]
+    }
+
+    trigger {
+      allowed_caller_ip_address_range = ["10.0.7.0-10.0.7.10"]
+    }
+
+    workflow_management {
+      allowed_caller_ip_address_range = ["10.0.8.0-10.0.8.10"]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (LogicAppWorkflowResource) updateAccessControl(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-logic-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_logic_app_workflow" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  enabled             = false
+
+  access_control {
+    content {
+      allowed_caller_ip_address_range = ["10.10.3.0/24"]
+    }
+
+    action {
+      allowed_caller_ip_address_range = ["10.10.4.0/24"]
+    }
+
+    trigger {
+      allowed_caller_ip_address_range = ["10.10.5.0/24"]
+    }
+
+    workflow_management {
+      allowed_caller_ip_address_range = ["10.10.6.0/24"]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

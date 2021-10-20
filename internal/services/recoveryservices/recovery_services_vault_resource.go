@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,8 +28,10 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 		Update: resourceRecoveryServicesVaultCreateUpdate,
 		Delete: resourceRecoveryServicesVaultDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.VaultID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -100,21 +103,22 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.VaultsClient
 	cfgsClient := meta.(*clients.Client).RecoveryServices.VaultsConfigsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
+	id := parse.NewVaultID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
 	location := d.Get("location").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	log.Printf("[DEBUG] Creating/updating Recovery Service Vault %q (resource group %q)", name, resourceGroup)
+	log.Printf("[DEBUG] Creating/updating Recovery Service %s", id.String())
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Recovery Service %s: %+v", id.String(), err)
 			}
 		}
 
@@ -133,9 +137,9 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 		Properties: &recoveryservices.VaultProperties{},
 	}
 
-	vault, err := client.CreateOrUpdate(ctx, resourceGroup, name, vault)
+	_, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, vault)
 	if err != nil {
-		return fmt.Errorf("creating/updating Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating Recovery Service %s: %+v", id.String(), err)
 	}
 
 	cfg := backup.ResourceVaultConfigResource{
@@ -155,12 +159,12 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 		Target:     []string{"success"},
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-			resp, err := cfgsClient.Update(ctx, name, resourceGroup, cfg)
+			resp, err := cfgsClient.Update(ctx, id.Name, id.ResourceGroup, cfg)
 			if err != nil {
 				if strings.Contains(err.Error(), "ResourceNotYetSynced") {
 					return resp, "syncing", nil
 				}
-				return resp, "error", fmt.Errorf("updating Recovery Service Vault Cfg %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return resp, "error", fmt.Errorf("updating Recovery Service Vault Cfg %s: %+v", id.String(), err)
 			}
 
 			return resp, "success", nil
@@ -174,19 +178,10 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for on update for Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for on update for Recovery Service  %s: %+v", id.String(), err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("issuing read request for Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Recovery Service Vault %q (Resource Group %q): read returned nil", name, resourceGroup)
-	}
-
-	d.SetId(*vault.ID)
-
+	d.SetId(id.ID())
 	return resourceRecoveryServicesVaultRead(d, meta)
 }
 
@@ -196,28 +191,26 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VaultID(d.Id())
+
 	if err != nil {
 		return err
 	}
 
-	name := id.Path["vaults"]
-	resourceGroup := id.ResourceGroup
+	log.Printf("[DEBUG] Reading Recovery Service %s", id.String())
 
-	log.Printf("[DEBUG] Reading Recovery Service Vault %q (resource group %q)", name, resourceGroup)
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Recovery Service %s: %+v", id.String(), err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -226,9 +219,9 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("sku", string(sku.Name))
 	}
 
-	cfg, err := cfgsClient.Get(ctx, name, resourceGroup)
+	cfg, err := cfgsClient.Get(ctx, id.Name, id.ResourceGroup)
 	if err != nil {
-		return fmt.Errorf("reading Recovery Service Vault Cfg %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading Recovery Service Vault Cfg %s: %+v", id.String(), err)
 	}
 
 	if props := cfg.Properties; props != nil {
@@ -247,20 +240,17 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VaultID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	name := id.Path["vaults"]
-	resourceGroup := id.ResourceGroup
+	log.Printf("[DEBUG] Deleting Recovery Service  %s", id.String())
 
-	log.Printf("[DEBUG] Deleting Recovery Service Vault %q (resource group %q)", name, resourceGroup)
-
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("issuing delete request for Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("issuing delete request for Recovery Service %s: %+v", id.String(), err)
 		}
 	}
 

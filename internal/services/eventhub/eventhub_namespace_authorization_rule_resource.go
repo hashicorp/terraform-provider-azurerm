@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/authorizationrulesnamespaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -90,7 +90,7 @@ func resourceEventHubNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.Resourc
 	parameters := authorizationrulesnamespaces.AuthorizationRule{
 		Name: &id.Name,
 		Properties: &authorizationrulesnamespaces.AuthorizationRuleProperties{
-			Rights: expandEventHubAuthorizationRuleRights(d),
+			Rights: expandEventHubNamespaceAuthorizationRuleRights(d),
 		},
 	}
 
@@ -107,7 +107,7 @@ func resourceEventHubNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := authorizationrulesnamespaces.AuthorizationRuleID(d.Id())
+	id, err := authorizationrulesnamespaces.ParseAuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -127,7 +127,7 @@ func resourceEventHubNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			listen, send, manage := flattenEventHubAuthorizationRuleRights(props.Rights)
+			listen, send, manage := flattenEventHubNamespaceAuthorizationRuleRights(props.Rights)
 			d.Set("manage", manage)
 			d.Set("listen", listen)
 			d.Set("send", send)
@@ -156,7 +156,7 @@ func resourceEventHubNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := authorizationrulesnamespaces.AuthorizationRuleID(d.Id())
+	id, err := authorizationrulesnamespaces.ParseAuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -169,4 +169,41 @@ func resourceEventHubNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceData,
 	}
 
 	return nil
+}
+
+func expandEventHubNamespaceAuthorizationRuleRights(d *pluginsdk.ResourceData) []authorizationrulesnamespaces.AccessRights {
+	rights := make([]authorizationrulesnamespaces.AccessRights, 0)
+
+	if d.Get("listen").(bool) {
+		rights = append(rights, authorizationrulesnamespaces.AccessRightsListen)
+	}
+
+	if d.Get("send").(bool) {
+		rights = append(rights, authorizationrulesnamespaces.AccessRightsSend)
+	}
+
+	if d.Get("manage").(bool) {
+		rights = append(rights, authorizationrulesnamespaces.AccessRightsManage)
+	}
+
+	return rights
+}
+
+func flattenEventHubNamespaceAuthorizationRuleRights(rights []authorizationrulesnamespaces.AccessRights) (listen, send, manage bool) {
+	// zero (initial) value for a bool in go is false
+
+	for _, right := range rights {
+		switch right {
+		case authorizationrulesnamespaces.AccessRightsListen:
+			listen = true
+		case authorizationrulesnamespaces.AccessRightsSend:
+			send = true
+		case authorizationrulesnamespaces.AccessRightsManage:
+			manage = true
+		default:
+			log.Printf("[DEBUG] Unknown Authorization Rule Right '%s'", right)
+		}
+	}
+
+	return listen, send, manage
 }

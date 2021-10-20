@@ -6,11 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,8 +26,11 @@ func resourceIotHubEndpointStorageContainer() *pluginsdk.Resource {
 		Read:   resourceIotHubEndpointStorageContainerRead,
 		Update: resourceIotHubEndpointStorageContainerCreateUpdate,
 		Delete: resourceIotHubEndpointStorageContainerDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.EndpointStorageContainerID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -94,9 +98,9 @@ func resourceIotHubEndpointStorageContainer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(devices.Avro),
-					string(devices.AvroDeflate),
-					string(devices.JSON),
+					string(devices.EncodingAvro),
+					string(devices.EncodingAvroDeflate),
+					string(devices.EncodingJSON),
 				}, true),
 			},
 		},
@@ -105,27 +109,24 @@ func resourceIotHubEndpointStorageContainer() *pluginsdk.Resource {
 
 func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
+	subscriptionId := meta.(*clients.Client).IoTHub.ResourceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 
-	iothubName := d.Get("iothub_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewEndpointStorageContainerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_name").(string), d.Get("name").(string))
 
-	locks.ByName(iothubName, IothubResourceName)
-	defer locks.UnlockByName(iothubName, IothubResourceName)
+	locks.ByName(id.IotHubName, IothubResourceName)
+	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
 
-	iothub, err := client.Get(ctx, resourceGroup, iothubName)
+	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(iothub.Response) {
-			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
+			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
 		}
 
-		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
 	}
-
-	endpointName := d.Get("name").(string)
-	resourceId := fmt.Sprintf("%s/Endpoints/%s", *iothub.ID, endpointName)
 
 	connectionStr := d.Get("connection_string").(string)
 	containerName := d.Get("container_name").(string)
@@ -136,9 +137,9 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 
 	storageContainerEndpoint := devices.RoutingStorageContainerProperties{
 		ConnectionString:        &connectionStr,
-		Name:                    &endpointName,
+		Name:                    &id.EndpointName,
 		SubscriptionID:          &subscriptionID,
-		ResourceGroup:           &resourceGroup,
+		ResourceGroup:           &id.ResourceGroup,
 		ContainerName:           &containerName,
 		FileNameFormat:          &fileNameFormat,
 		BatchFrequencyInSeconds: &batchFrequencyInSeconds,
@@ -166,9 +167,9 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 	alreadyExists := false
 	for _, existingEndpoint := range *routing.Endpoints.StorageContainers {
 		if existingEndpointName := existingEndpoint.Name; existingEndpointName != nil {
-			if strings.EqualFold(*existingEndpointName, endpointName) {
+			if strings.EqualFold(*existingEndpointName, id.EndpointName) {
 				if d.IsNewResource() {
-					return tf.ImportAsExistsError("azurerm_iothub_endpoint_storage_container", resourceId)
+					return tf.ImportAsExistsError("azurerm_iothub_endpoint_storage_container", id.ID())
 				}
 				endpoints = append(endpoints, storageContainerEndpoint)
 				alreadyExists = true
@@ -181,20 +182,20 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 	if d.IsNewResource() {
 		endpoints = append(endpoints, storageContainerEndpoint)
 	} else if !alreadyExists {
-		return fmt.Errorf("Unable to find Storage Container Endpoint %q defined for IotHub %q (Resource Group %q)", endpointName, iothubName, resourceGroup)
+		return fmt.Errorf("unable to find %s", id)
 	}
 	routing.Endpoints.StorageContainers = &endpoints
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, iothub, "")
 	if err != nil {
-		return fmt.Errorf("creating/updating IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId)
+	d.SetId(id.ID())
 
 	return resourceIotHubEndpointStorageContainerRead(d, meta)
 }
@@ -204,23 +205,19 @@ func resourceIotHubEndpointStorageContainerRead(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	parsedIothubEndpointId, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.EndpointStorageContainerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := parsedIothubEndpointId.ResourceGroup
-	iothubName := parsedIothubEndpointId.Path["IotHubs"]
-	endpointName := parsedIothubEndpointId.Path["Endpoints"]
-
-	iothub, err := client.Get(ctx, resourceGroup, iothubName)
+	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", endpointName)
-	d.Set("iothub_name", iothubName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.EndpointName)
+	d.Set("iothub_name", id.IotHubName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.Endpoints == nil {
 		return nil
@@ -229,7 +226,7 @@ func resourceIotHubEndpointStorageContainerRead(d *pluginsdk.ResourceData, meta 
 	if endpoints := iothub.Properties.Routing.Endpoints.StorageContainers; endpoints != nil {
 		for _, endpoint := range *endpoints {
 			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
-				if strings.EqualFold(*existingEndpointName, endpointName) {
+				if strings.EqualFold(*existingEndpointName, id.EndpointName) {
 					d.Set("connection_string", endpoint.ConnectionString)
 					d.Set("container_name", endpoint.ContainerName)
 					d.Set("file_name_format", endpoint.FileNameFormat)
@@ -249,25 +246,21 @@ func resourceIotHubEndpointStorageContainerDelete(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	parsedIothubEndpointId, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.EndpointStorageContainerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := parsedIothubEndpointId.ResourceGroup
-	iothubName := parsedIothubEndpointId.Path["IotHubs"]
-	endpointName := parsedIothubEndpointId.Path["Endpoints"]
+	locks.ByName(id.IotHubName, IothubResourceName)
+	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
 
-	locks.ByName(iothubName, IothubResourceName)
-	defer locks.UnlockByName(iothubName, IothubResourceName)
-
-	iothub, err := client.Get(ctx, resourceGroup, iothubName)
+	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(iothub.Response) {
-			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
+			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
 		}
 
-		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
 	}
 
 	if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.Endpoints == nil {
@@ -282,20 +275,20 @@ func resourceIotHubEndpointStorageContainerDelete(d *pluginsdk.ResourceData, met
 	updatedEndpoints := make([]devices.RoutingStorageContainerProperties, 0)
 	for _, endpoint := range *endpoints {
 		if existingEndpointName := endpoint.Name; existingEndpointName != nil {
-			if !strings.EqualFold(*existingEndpointName, endpointName) {
+			if !strings.EqualFold(*existingEndpointName, id.EndpointName) {
 				updatedEndpoints = append(updatedEndpoints, endpoint)
 			}
 		}
 	}
 	iothub.Properties.Routing.Endpoints.StorageContainers = &updatedEndpoints
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, iothub, "")
 	if err != nil {
-		return fmt.Errorf("updating IotHub %q (Resource Group %q) with Storage Container Endpoint %q: %+v", iothubName, resourceGroup, endpointName, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for IotHub %q (Resource Group %q) to finish updating Storage Container Endpoint %q: %+v", iothubName, resourceGroup, endpointName, err)
+		return fmt.Errorf("waiting for %s to finish updating: %+v", id, err)
 	}
 
 	return nil

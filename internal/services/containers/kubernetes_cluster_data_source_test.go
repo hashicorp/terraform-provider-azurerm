@@ -16,6 +16,7 @@ var kubernetesDataSourceTests = map[string]func(t *testing.T){
 	"basic":                                            testAccDataSourceKubernetesCluster_basic,
 	"roleBasedAccessControl":                           testAccDataSourceKubernetesCluster_roleBasedAccessControl,
 	"roleBasedAccessControlAAD":                        testAccDataSourceKubernetesCluster_roleBasedAccessControlAAD,
+	"localAccountDisabled":                             testAccDataSourceKubernetesCluster_localAccountDisabled,
 	"internalNetwork":                                  testAccDataSourceKubernetesCluster_internalNetwork,
 	"advancedNetworkingAzure":                          testAccDataSourceKubernetesCluster_advancedNetworkingAzure,
 	"advancedNetworkingAzureCalicoPolicy":              testAccDataSourceKubernetesCluster_advancedNetworkingAzureCalicoPolicy,
@@ -140,6 +141,33 @@ func testAccDataSourceKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) 
 				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.tenant_id").Exists(),
 				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("1"),
 				check.That(data.ResourceName).Key("kube_admin_config_raw").Exists(),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceKubernetesCluster_localAccountDisabled(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceKubernetesCluster_localAccountDisabled(t)
+}
+
+func testAccDataSourceKubernetesCluster_localAccountDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+	clientData := data.Client()
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.localAccountDisabled(data, clientData.TenantID),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
+				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("1"),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.managed").HasValue("true"),
+				check.That(data.ResourceName).Key("kube_config.#").HasValue("1"),
+				check.That(data.ResourceName).Key("kube_config_raw").Exists(),
+				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
+				check.That(data.ResourceName).Key("kube_admin_config_raw").HasValue(""),
 			),
 		},
 	})
@@ -636,6 +664,17 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.roleBasedAccessControlConfig(data))
+}
+
+func (KubernetesClusterDataSource) localAccountDisabled(data acceptance.TestData, tenantId string) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.roleBasedAccessControlAADManagedConfigWithLocalAccountDisabled(data, tenantId))
 }
 
 func (KubernetesClusterDataSource) roleBasedAccessControlAADConfig(data acceptance.TestData, clientId, clientSecret, tenantId string) string {

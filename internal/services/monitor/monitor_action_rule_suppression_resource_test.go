@@ -111,7 +111,7 @@ func (t MonitorActionRuleSuppressionResource) Exists(ctx context.Context, client
 
 	resp, err := clients.Monitor.ActionRulesClient.GetByName(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading action rule (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -196,7 +196,7 @@ resource "azurerm_monitor_action_rule_suppression" "test" {
 
     monitor_service {
       operator = "Equals"
-      values   = ["Data Box Edge", "Data Box Gateway", "Resource Health"]
+      values   = ["Data Box Gateway", "Resource Health"]
     }
 
     severity {

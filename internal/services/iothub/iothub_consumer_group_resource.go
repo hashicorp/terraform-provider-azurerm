@@ -5,10 +5,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -20,8 +22,11 @@ func resourceIotHubConsumerGroup() *pluginsdk.Resource {
 		Create: resourceIotHubConsumerGroupCreate,
 		Read:   resourceIotHubConsumerGroupRead,
 		Delete: resourceIotHubConsumerGroupDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ConsumerGroupID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -58,23 +63,21 @@ func resourceIotHubConsumerGroup() *pluginsdk.Resource {
 
 func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
+	subscriptionId := meta.(*clients.Client).IoTHub.DPSResourceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM IoTHub Consumer Group creation.")
 
-	name := d.Get("name").(string)
-	iotHubName := d.Get("iothub_name").(string)
-	endpointName := d.Get("eventhub_endpoint_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewConsumerGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_name").(string), d.Get("eventhub_endpoint_name").(string), d.Get("name").(string))
 
-	locks.ByName(iotHubName, IothubResourceName)
-	defer locks.UnlockByName(iotHubName, IothubResourceName)
+	locks.ByName(id.IotHubName, IothubResourceName)
+	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
 
 	if d.IsNewResource() {
-		existing, err := client.GetEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
+		existing, err := client.GetEventHubConsumerGroup(ctx, id.ResourceGroup, id.IotHubName, id.EventHubEndpointName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %s", name, endpointName, iotHubName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Consumer Group %s: %+v", id, err)
 			}
 		}
 
@@ -83,20 +86,32 @@ func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if _, err := client.CreateEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name); err != nil {
-		return fmt.Errorf("creating Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)
+	consumerGroupBody := devices.EventHubConsumerGroupBodyDescription{
+		// The properties are currently undocumented. See also:
+		// https://docs.microsoft.com/en-us/azure/templates/microsoft.devices/2021-03-31/iothubs/eventhubendpoints/consumergroups?tabs=json#eventhubconsumergroupname
+		//
+		// There is an example where the name is repeated in the properties,
+		// so that seems to be the "proper" way. See also:
+		// https://github.com/Azure/azure-quickstart-templates/blob/master/quickstarts/microsoft.devices/iothub-with-consumergroup-create/azuredeploy.json#L74
+		Properties: &devices.EventHubConsumerGroupName{
+			Name: &id.Name,
+		},
 	}
 
-	read, err := client.GetEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
+	if _, err := client.CreateEventHubConsumerGroup(ctx, id.ResourceGroup, id.IotHubName, id.EventHubEndpointName, id.Name, consumerGroupBody); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	read, err := client.GetEventHubConsumerGroup(ctx, id.ResourceGroup, id.IotHubName, id.EventHubEndpointName, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID for Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)
+		return fmt.Errorf("cannot read %s: %+v", id, err)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceIotHubConsumerGroupRead(d, meta)
 }
@@ -106,29 +121,25 @@ func resourceIotHubConsumerGroupRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ConsumerGroupID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	iotHubName := id.Path["IotHubs"]
-	endpointName := id.Path["eventHubEndpoints"]
-	name := id.Path["ConsumerGroups"]
 
-	resp, err := client.GetEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
+	resp, err := client.GetEventHubConsumerGroup(ctx, id.ResourceGroup, id.IotHubName, id.EventHubEndpointName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making read request for Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)
+		return fmt.Errorf("making read request for %s: %+v", id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("iothub_name", iotHubName)
-	d.Set("eventhub_endpoint_name", endpointName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("iothub_name", id.IotHubName)
+	d.Set("eventhub_endpoint_name", id.EventHubEndpointName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	return nil
 }
@@ -138,22 +149,18 @@ func resourceIotHubConsumerGroupDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ConsumerGroupID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	iotHubName := id.Path["IotHubs"]
-	endpointName := id.Path["eventHubEndpoints"]
-	name := id.Path["ConsumerGroups"]
 
-	locks.ByName(iotHubName, IothubResourceName)
-	defer locks.UnlockByName(iotHubName, IothubResourceName)
+	locks.ByName(id.IotHubName, IothubResourceName)
+	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
 
-	resp, err := client.DeleteEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
+	resp, err := client.DeleteEventHubConsumerGroup(ctx, id.ResourceGroup, id.IotHubName, id.EventHubEndpointName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)
+			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}
 

@@ -119,8 +119,8 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 					DataStoreParametersList: &[]dataprotection.BasicDataStoreParameters{
 						dataprotection.AzureOperationalStoreParameters{
 							ResourceGroupID: utils.String(snapshotResourceGroupId.ID()),
-							DataStoreType:   dataprotection.OperationalStore,
-							ObjectType:      dataprotection.ObjectTypeAzureOperationalStoreParameters,
+							DataStoreType:   dataprotection.DataStoreTypesOperationalStore,
+							ObjectType:      dataprotection.ObjectTypeBasicDataStoreParametersObjectTypeAzureOperationalStoreParameters,
 						},
 					},
 				},
@@ -142,8 +142,8 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 		return fmt.Errorf("context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(dataprotection.ConfiguringProtection), string(dataprotection.UpdatingProtection)},
-		Target:     []string{string(dataprotection.ProtectionConfigured)},
+		Pending:    []string{string(dataprotection.StatusConfiguringProtection)},
+		Target:     []string{string(dataprotection.StatusProtectionConfigured)},
 		Refresh:    policyProtectionStateRefreshFunc(ctx, client, id),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(deadline),
@@ -214,7 +214,6 @@ func resourceDataProtectionBackupInstanceDiskDelete(d *schema.ResourceData, meta
 
 	future, err := client.Delete(ctx, id.BackupVaultName, id.ResourceGroup, id.Name)
 	if err != nil {
-
 		return fmt.Errorf("deleting DataProtection BackupInstance (%q): %+v", id, err)
 	}
 

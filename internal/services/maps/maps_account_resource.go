@@ -5,13 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
-
 	"github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2021-02-01/maps"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/sdk/accounts"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/sdk/2021-02-01/accounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"

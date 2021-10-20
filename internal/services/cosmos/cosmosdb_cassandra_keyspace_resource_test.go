@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-06-15/documentdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -127,7 +127,7 @@ resource "azurerm_cosmosdb_cassandra_keyspace" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
-`, CosmosDBAccountResource{}.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableCassandra"}), data.RandomInteger)
+`, CosmosDBAccountResource{}.capabilities(data, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableCassandra"}), data.RandomInteger)
 }
 
 func (CosmosDbCassandraKeyspaceResource) throughput(data acceptance.TestData, throughput int) string {
@@ -141,7 +141,7 @@ resource "azurerm_cosmosdb_cassandra_keyspace" "test" {
 
   throughput = %[3]d
 }
-`, CosmosDBAccountResource{}.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableCassandra"}), data.RandomInteger, throughput)
+`, CosmosDBAccountResource{}.capabilities(data, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableCassandra"}), data.RandomInteger, throughput)
 }
 
 func (CosmosDbCassandraKeyspaceResource) autoscale(data acceptance.TestData, maxThroughput int) string {
@@ -156,5 +156,5 @@ resource "azurerm_cosmosdb_cassandra_keyspace" "test" {
     max_throughput = %[3]d
   }
 }
-`, CosmosDBAccountResource{}.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableCassandra"}), data.RandomInteger, maxThroughput)
+`, CosmosDBAccountResource{}.capabilities(data, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableCassandra"}), data.RandomInteger, maxThroughput)
 }

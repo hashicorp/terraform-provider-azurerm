@@ -6,10 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -132,6 +133,13 @@ func resourceAppService() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"key_vault_reference_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: msivalidate.UserAssignedIdentityID,
 			},
 
 			"logs": schemaAppServiceLogsConfig(),
@@ -274,6 +282,10 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		},
 	}
 
+	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
+		siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(v.(string))
+	}
+
 	if _, ok := d.GetOk("identity"); ok {
 		appServiceIdentityRaw := d.Get("identity").([]interface{})
 		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
@@ -379,6 +391,14 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("expanding `site_config` for App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 	}
 
+	// WEBSITE_VNET_ROUTE_ALL is superseded by a setting in site_config that defaults to false from 2021-02-01
+	appSettings := expandAppServiceAppSettings(d)
+	if vnetRouteAll, ok := appSettings["WEBSITE_VNET_ROUTE_ALL"]; ok {
+		if !d.HasChange("site_config.0.vnet_route_all_enabled") { // Only update the property if it's not set explicitly
+			siteConfig.VnetRouteAllEnabled = utils.Bool(strings.EqualFold(*vnetRouteAll, "true"))
+		}
+	}
+
 	siteEnvelope := web.Site{
 		Location: &location,
 		Tags:     tags.Expand(t),
@@ -388,6 +408,10 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 			HTTPSOnly:    utils.Bool(httpsOnly),
 			SiteConfig:   siteConfig,
 		},
+	}
+
+	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
+		siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(v.(string))
 	}
 
 	siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(d.Get("client_cert_enabled").(bool))
@@ -471,7 +495,8 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	// app settings updates have a side effect on logging settings. See the note below
 	if d.HasChange("app_settings") {
 		// update the AppSettings
-		appSettings := expandAppServiceAppSettings(d)
+		appSettings = expandAppServiceAppSettings(d)
+
 		settings := web.StringDictionary{
 			Properties: appSettings,
 		}
@@ -675,6 +700,10 @@ func resourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("possible_outbound_ip_address_list", strings.Split(*props.PossibleOutboundIPAddresses, ","))
 		}
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
+
+		if props.KeyVaultReferenceIdentity != nil {
+			d.Set("key_vault_reference_identity_id", props.KeyVaultReferenceIdentity)
+		}
 	}
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)

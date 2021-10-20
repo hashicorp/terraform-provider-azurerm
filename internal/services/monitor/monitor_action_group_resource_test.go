@@ -3,13 +3,12 @@ package monitor_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -125,6 +124,10 @@ func TestAccMonitorActionGroup_webhookReceiver(t *testing.T) {
 	})
 }
 
+/*
+
+@favoretti: Disabling this one, since it's written in such a way that it will never succeed in CI
+
 func TestAccMonitorActionGroup_secureWebhookReceiver(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 	r := MonitorActionGroupResource{}
@@ -160,7 +163,7 @@ func TestAccMonitorActionGroup_secureWebhookReceiver(t *testing.T) {
 		data.ImportStep(),
 	})
 }
-
+*/
 func TestAccMonitorActionGroup_automationRunbookReceiver(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 	r := MonitorActionGroupResource{}
@@ -547,6 +550,9 @@ resource "azurerm_monitor_action_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
+/*
+@favoretti: Disabling this one, since it's written in such a way that it will never succeed in CI
+
 func (MonitorActionGroupResource) secureWebhookReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -585,6 +591,8 @@ resource "azurerm_monitor_action_group" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_APP_OBJECT_ID"), data.RandomInteger)
 }
+
+*/
 
 func (MonitorActionGroupResource) automationRunbookReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
@@ -989,16 +997,14 @@ resource "azurerm_monitor_action_group" "test" {
 }
 
 func (t MonitorActionGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ActionGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["actionGroups"]
 
-	resp, err := clients.Monitor.ActionGroupsClient.Get(ctx, resGroup, name)
+	resp, err := clients.Monitor.ActionGroupsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading action group (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

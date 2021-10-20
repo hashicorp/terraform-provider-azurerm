@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
+	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -97,6 +97,11 @@ func resourceServiceBusTopicAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	d.SetId(resourceId.ID())
+
+	if err := waitForPairedNamespaceReplication(ctx, meta, resourceId.ResourceGroup, resourceId.NamespaceName, d.Timeout(pluginsdk.TimeoutUpdate)); err != nil {
+		return fmt.Errorf("waiting for replication to complete for Service Bus Namespace Disaster Recovery Configs (Namespace %q / Resource Group %q): %s", resourceId.NamespaceName, resourceId.ResourceGroup, err)
+	}
+
 	return resourceServiceBusTopicAuthorizationRuleRead(d, meta)
 }
 
@@ -140,6 +145,8 @@ func resourceServiceBusTopicAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 	d.Set("primary_connection_string", keysResp.PrimaryConnectionString)
 	d.Set("secondary_key", keysResp.SecondaryKey)
 	d.Set("secondary_connection_string", keysResp.SecondaryConnectionString)
+	d.Set("primary_connection_string_alias", keysResp.AliasPrimaryConnectionString)
+	d.Set("secondary_connection_string_alias", keysResp.AliasSecondaryConnectionString)
 
 	return nil
 }
@@ -156,6 +163,10 @@ func resourceServiceBusTopicAuthorizationRuleDelete(d *pluginsdk.ResourceData, m
 
 	if _, err = client.DeleteAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.TopicName, id.AuthorizationRuleName); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
+	}
+
+	if err := waitForPairedNamespaceReplication(ctx, meta, id.ResourceGroup, id.NamespaceName, d.Timeout(pluginsdk.TimeoutUpdate)); err != nil {
+		return fmt.Errorf("waiting for replication to complete for Service Bus Namespace Disaster Recovery Configs (Namespace %q / Resource Group %q): %s", id.NamespaceName, id.ResourceGroup, err)
 	}
 
 	return nil

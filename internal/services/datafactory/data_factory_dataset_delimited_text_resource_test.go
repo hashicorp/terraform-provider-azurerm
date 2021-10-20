@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -25,6 +25,10 @@ func TestAccDataFactoryDatasetDelimitedText_http(t *testing.T) {
 			Config: r.http(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("column_delimiter").HasValue(""),
+				check.That(data.ResourceName).Key("row_delimiter").HasValue(""),
+				check.That(data.ResourceName).Key("quote_character").HasValue(""),
+				check.That(data.ResourceName).Key("escape_character").HasValue(""),
 			),
 		},
 		data.ImportStep(),
@@ -47,6 +51,10 @@ func TestAccDataFactoryDatasetDelimitedText_http_update(t *testing.T) {
 				check.That(data.ResourceName).Key("description").HasValue("test description"),
 				check.That(data.ResourceName).Key("compression_codec").HasValue("gzip"),
 				check.That(data.ResourceName).Key("compression_level").HasValue("Optimal"),
+				check.That(data.ResourceName).Key("column_delimiter").HasValue(","),
+				check.That(data.ResourceName).Key("row_delimiter").HasValue("NEW"),
+				check.That(data.ResourceName).Key("quote_character").HasValue("x"),
+				check.That(data.ResourceName).Key("escape_character").HasValue("f"),
 			),
 		},
 		data.ImportStep(),
@@ -61,6 +69,21 @@ func TestAccDataFactoryDatasetDelimitedText_http_update(t *testing.T) {
 				check.That(data.ResourceName).Key("description").HasValue("test description 2"),
 				check.That(data.ResourceName).Key("compression_codec").HasValue("lz4"),
 				check.That(data.ResourceName).Key("compression_level").HasValue("Fastest"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDataFactoryDatasetDelimitedText_blob_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
+	r := DatasetDelimitedTextResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blob_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -98,17 +121,14 @@ func TestAccDataFactoryDatasetDelimitedText_blobFS(t *testing.T) {
 }
 
 func (t DatasetDelimitedTextResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.DataSetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["datasets"]
 
-	resp, err := clients.DataFactory.DatasetClient.Get(ctx, resourceGroup, dataFactoryName, name, "")
+	resp, err := clients.DataFactory.DatasetClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Data Factory Dataset Delimited Text (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading Data Factory Dataset Delimited Text (%s): %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -151,11 +171,11 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
     filename     = "foo.txt"
   }
 
-  column_delimiter    = ","
-  row_delimiter       = "NEW"
+  column_delimiter    = ""
+  row_delimiter       = ""
   encoding            = "UTF-8"
-  quote_character     = "x"
-  escape_character    = "f"
+  quote_character     = ""
+  escape_character    = ""
   first_row_as_header = true
   null_value          = "NULL"
 
@@ -195,9 +215,11 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
   http_server_location {
-    relative_url = "/fizz/buzz/"
-    path         = "foo/bar/"
-    filename     = "foo.txt"
+    relative_url             = "/fizz/buzz/"
+    path                     = "@concat('foo/bar/',formatDateTime(convertTimeZone(utcnow(),'UTC','W. Europe Standard Time'),'yyyy-MM-dd'))"
+    dynamic_path_enabled     = true
+    filename                 = "@concat('foo', '.txt')"
+    dynamic_filename_enabled = true
   }
 
   column_delimiter    = ","
@@ -315,7 +337,7 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetDelimitedTextResource) blob(data acceptance.TestData) string {
+func (DatasetDelimitedTextResource) blob_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -364,6 +386,62 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
     container = azurerm_storage_container.test.name
     path      = "foo/bar/"
     filename  = "foo.txt"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (DatasetDelimitedTextResource) blob(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestdf%s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "content"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
+  name                = "acctestlsblob%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  connection_string   = azurerm_storage_account.test.primary_connection_string
+}
+
+resource "azurerm_data_factory_dataset_delimited_text" "test" {
+  name                = "acctestds%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
+
+  azure_blob_storage_location {
+    container                = azurerm_storage_container.test.name
+    path                     = "@concat('foo/bar/',formatDateTime(convertTimeZone(utcnow(),'UTC','W. Europe Standard Time'),'yyyy-MM-dd'))"
+    dynamic_path_enabled     = true
+    filename                 = "@concat('foo', '.txt')"
+    dynamic_filename_enabled = true
   }
 
   column_delimiter    = ","

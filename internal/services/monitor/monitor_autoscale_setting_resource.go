@@ -6,13 +6,15 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -27,8 +29,16 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 		Read:   resourceMonitorAutoScaleSettingRead,
 		Update: resourceMonitorAutoScaleSettingCreateUpdate,
 		Delete: resourceMonitorAutoScaleSettingDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.AutoscaleSettingID(id)
+			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.AutoscaleSettingUpgradeV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -157,12 +167,12 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(insights.Equals),
-														string(insights.GreaterThan),
-														string(insights.GreaterThanOrEqual),
-														string(insights.LessThan),
-														string(insights.LessThanOrEqual),
-														string(insights.NotEquals),
+														string(insights.ComparisonOperationTypeEquals),
+														string(insights.ComparisonOperationTypeGreaterThan),
+														string(insights.ComparisonOperationTypeGreaterThanOrEqual),
+														string(insights.ComparisonOperationTypeLessThan),
+														string(insights.ComparisonOperationTypeLessThanOrEqual),
+														string(insights.ComparisonOperationTypeNotEquals),
 													}, true),
 													DiffSuppressFunc: suppress.CaseDifference,
 												},
@@ -175,6 +185,11 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 													Type:         pluginsdk.TypeString,
 													Optional:     true,
 													ValidateFunc: validation.StringIsNotEmpty,
+												},
+
+												"divide_by_instance_count": {
+													Type:     pluginsdk.TypeBool,
+													Optional: true,
 												},
 
 												"dimensions": {
@@ -230,9 +245,9 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(insights.ChangeCount),
-														string(insights.ExactCount),
-														string(insights.PercentChangeCount),
+														string(insights.ScaleTypeChangeCount),
+														string(insights.ScaleTypeExactCount),
+														string(insights.ScaleTypePercentChangeCount),
 													}, true),
 													DiffSuppressFunc: suppress.CaseDifference,
 												},
@@ -396,17 +411,17 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 
 func resourceMonitorAutoScaleSettingCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.AutoscaleSettingsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewAutoscaleSettingID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Monitor AutoScale Setting %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
 			}
 		}
 
@@ -442,19 +457,11 @@ func resourceMonitorAutoScaleSettingCreateUpdate(d *pluginsdk.ResourceData, meta
 		Tags: expandedTags,
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("creating AutoScale Setting %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating Monitor %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving AutoScale Setting %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("AutoScale Setting %q (Resource Group %q) has no ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceMonitorAutoScaleSettingRead(d, meta)
 }
@@ -464,26 +471,24 @@ func resourceMonitorAutoScaleSettingRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AutoscaleSettingID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["autoscalesettings"]
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] AutoScale Setting %q (Resource Group %q) was not found - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] AutoScale Setting %q (Resource Group %q) was not found - removing from state!", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("reading AutoScale Setting %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading Monitor %s: %+v", *id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -493,15 +498,15 @@ func resourceMonitorAutoScaleSettingRead(d *pluginsdk.ResourceData, meta interfa
 
 	profile, err := flattenAzureRmMonitorAutoScaleSettingProfile(resp.Profiles)
 	if err != nil {
-		return fmt.Errorf("flattening `profile` of Autoscale Setting %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("flattening `profile` of %s: %+v", *id, err)
 	}
 	if err = d.Set("profile", profile); err != nil {
-		return fmt.Errorf("setting `profile` of Autoscale Setting %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("setting `profile` of %s: %+v", *id, err)
 	}
 
 	notifications := flattenAzureRmMonitorAutoScaleSettingNotification(resp.Notifications)
 	if err = d.Set("notification", notifications); err != nil {
-		return fmt.Errorf("setting `notification` of Autoscale Setting %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("setting `notification` of %s: %+v", *id, err)
 	}
 
 	// Return a new tag map filtered by the specified tag names.
@@ -514,17 +519,15 @@ func resourceMonitorAutoScaleSettingDelete(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AutoscaleSettingID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["autoscalesettings"]
 
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("deleting AutoScale Setting %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("deleting Monitor %s: %+v", *id, err)
 		}
 	}
 
@@ -592,6 +595,7 @@ func expandAzureRmMonitorAutoScaleSettingRule(input []interface{}) *[]insights.S
 			Operator:          insights.ComparisonOperationType(triggerRaw["operator"].(string)),
 			Threshold:         utils.Float(triggerRaw["threshold"].(float64)),
 			Dimensions:        expandAzureRmMonitorAutoScaleSettingRuleDimensions(triggerRaw["dimensions"].([]interface{})),
+			DividePerInstance: utils.Bool(triggerRaw["divide_by_instance_count"].(bool)),
 		}
 
 		actionsRaw := ruleRaw["scale_action"].([]interface{})
@@ -850,6 +854,7 @@ func flattenAzureRmMonitorAutoScaleSettingRules(input *[]insights.ScaleRule) ([]
 		metricTriggers := make([]interface{}, 0)
 		if trigger := rule.MetricTrigger; trigger != nil {
 			var metricName, metricNamespace, metricId, timeGrain, timeWindow string
+			var dividePerInstance bool
 			var threshold float64
 			if trigger.MetricName != nil {
 				metricName = *trigger.MetricName
@@ -875,17 +880,22 @@ func flattenAzureRmMonitorAutoScaleSettingRules(input *[]insights.ScaleRule) ([]
 				threshold = *trigger.Threshold
 			}
 
+			if trigger.DividePerInstance != nil {
+				dividePerInstance = *trigger.DividePerInstance
+			}
+
 			metricTriggers = append(metricTriggers, map[string]interface{}{
-				"metric_name":        metricName,
-				"metric_namespace":   metricNamespace,
-				"metric_resource_id": metricId,
-				"time_grain":         timeGrain,
-				"statistic":          string(trigger.Statistic),
-				"time_window":        timeWindow,
-				"time_aggregation":   string(trigger.TimeAggregation),
-				"operator":           string(trigger.Operator),
-				"threshold":          threshold,
-				"dimensions":         flattenAzureRmMonitorAutoScaleSettingRulesDimensions(trigger.Dimensions),
+				"metric_name":              metricName,
+				"metric_namespace":         metricNamespace,
+				"metric_resource_id":       metricId,
+				"time_grain":               timeGrain,
+				"statistic":                string(trigger.Statistic),
+				"time_window":              timeWindow,
+				"time_aggregation":         string(trigger.TimeAggregation),
+				"operator":                 string(trigger.Operator),
+				"threshold":                threshold,
+				"dimensions":               flattenAzureRmMonitorAutoScaleSettingRulesDimensions(trigger.Dimensions),
+				"divide_by_instance_count": dividePerInstance,
 			})
 		}
 

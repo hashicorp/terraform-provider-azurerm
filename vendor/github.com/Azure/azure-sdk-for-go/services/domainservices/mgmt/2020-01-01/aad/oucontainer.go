@@ -65,7 +65,7 @@ func (client OuContainerClient) Create(ctx context.Context, resourceGroupName st
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "aad.OuContainerClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "aad.OuContainerClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -100,6 +100,7 @@ func (client OuContainerClient) CreatePreparer(ctx context.Context, resourceGrou
 // http.Response Body if it receives an error.
 func (client OuContainerClient) CreateSender(req *http.Request) (future OuContainerCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -156,7 +157,7 @@ func (client OuContainerClient) Delete(ctx context.Context, resourceGroupName st
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "aad.OuContainerClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "aad.OuContainerClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -189,6 +190,7 @@ func (client OuContainerClient) DeletePreparer(ctx context.Context, resourceGrou
 // http.Response Body if it receives an error.
 func (client OuContainerClient) DeleteSender(req *http.Request) (future OuContainerDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -459,7 +461,7 @@ func (client OuContainerClient) Update(ctx context.Context, resourceGroupName st
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "aad.OuContainerClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "aad.OuContainerClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -494,6 +496,7 @@ func (client OuContainerClient) UpdatePreparer(ctx context.Context, resourceGrou
 // http.Response Body if it receives an error.
 func (client OuContainerClient) UpdateSender(req *http.Request) (future OuContainerUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

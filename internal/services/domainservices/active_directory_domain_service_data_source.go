@@ -86,6 +86,11 @@ func dataSourceActiveDirectoryDomainService() *pluginsdk.Resource {
 				},
 			},
 
+			"resource_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secure_ldap": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -258,6 +263,7 @@ func dataSourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta 
 			d.Set("filtered_sync_enabled", true)
 		}
 
+		d.Set("resource_id", resp.ID)
 		d.Set("sku", props.Sku)
 		d.Set("sync_owner", props.SyncOwner)
 		d.Set("tenant_id", props.TenantID)
