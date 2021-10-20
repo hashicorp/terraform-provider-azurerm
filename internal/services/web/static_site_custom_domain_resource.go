@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -145,8 +145,6 @@ func resourceStaticSiteCustomDomainCreateOrUpdate(d *pluginsdk.ResourceData, met
 					return domain, "Error", fmt.Errorf("retrieving %s: %+v", id, err)
 				}
 
-				status := domain.StaticSiteCustomDomainOverviewARMResourceProperties.Status
-
 				if domain.StaticSiteCustomDomainOverviewARMResourceProperties == nil {
 					return nil, "Failed", fmt.Errorf("`properties` was missing from the response")
 				}
@@ -186,7 +184,7 @@ func resourceStaticSiteCustomDomainRead(d *pluginsdk.ResourceData, meta interfac
 	d.Set("domain_name", id.CustomDomainName)
 	d.Set("static_site_id", parse.NewStaticSiteID(id.SubscriptionId, id.ResourceGroup, id.StaticSiteName).ID())
 
-	if props := domain.StaticSiteCustomDomainOverviewARMResourceProperties; props != nil {
+	if props := resp.StaticSiteCustomDomainOverviewARMResourceProperties; props != nil {
 		d.Set("validation_token", resp.ValidationToken)
 	}
 
