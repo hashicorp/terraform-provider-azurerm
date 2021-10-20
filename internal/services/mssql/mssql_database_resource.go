@@ -325,6 +325,11 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 			}),
 	}
 	if features.ThreePointOh() {
+		// TODO: Update docs with the following text:
+		//
+		//* `transparent_data_encryption_enabled` - If set to true, Transparent Data Encryption will be enabled on the database.
+		//-> **NOTE:** TDE cannot be disabled on servers with SKUs other than ones starting with DW.
+
 		resourceData.Schema["transparent_data_encryption_enabled"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
