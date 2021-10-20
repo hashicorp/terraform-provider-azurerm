@@ -20,6 +20,7 @@ BUG FIXES:
 
 * `azurerm_app_configuration_feature` - fix default value handling for percentage appconfig feature filters. [GH-13771]
 * `azurerm_cosmosdb_account` - force `MongoEnabled` feature when enabling `MongoDBv3.4`. [GH-13757]
+* `azurerm_mssql_server` - will now configure the `azuread_administrator` during resource creation [GH-13753]
 * `azurerm_servicebus_subscription` - the `name` field can now start & end with an underscore [GH-13797]
 
 ## 2.81.0 (October 14, 2021)
