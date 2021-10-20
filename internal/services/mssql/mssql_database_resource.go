@@ -705,16 +705,16 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
+	extendedAuditingPolicy := []interface{}{}
 	if createMode, ok := d.GetOk("create_mode"); !ok || createMode.(string) != "Secondary" {
 		auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
 			return fmt.Errorf("retrieving Blob Auditing Policies for %s: %+v", id, err)
 		}
 
-		if err := d.Set("extended_auditing_policy", helper.FlattenMsSqlDBBlobAuditingPolicies(&auditingResp, d)); err != nil {
-			return fmt.Errorf("setting `extended_auditing_policy`: %+v", err)
-		}
+		extendedAuditingPolicy = helper.FlattenMsSqlDBBlobAuditingPolicies(&auditingResp, d)
 	}
+	d.Set("extended_auditing_policy", extendedAuditingPolicy)
 
 	geoBackupPolicy := true
 

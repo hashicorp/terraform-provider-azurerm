@@ -258,7 +258,17 @@ func TestAccMsSqlDatabase_createSecondaryMode(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.createSecondaryMode(data),
+			Config: r.createSecondaryMode(data, "test1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("collation").HasValue("SQL_AltDiction_CP850_CI_AI"),
+				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+			),
+		},
+		data.ImportStep("sample_name"),
+		{
+			Config: r.createSecondaryMode(data, "test2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("collation").HasValue("SQL_AltDiction_CP850_CI_AI"),
@@ -953,7 +963,7 @@ resource "azurerm_mssql_database" "pitr" {
 `, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(7)*time.Minute).UTC().Format(time.RFC3339))
 }
 
-func (r MsSqlDatabaseResource) createSecondaryMode(data acceptance.TestData) string {
+func (r MsSqlDatabaseResource) createSecondaryMode(data acceptance.TestData, tag string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -977,8 +987,11 @@ resource "azurerm_mssql_database" "secondary" {
   create_mode                 = "Secondary"
   creation_source_database_id = azurerm_mssql_database.test.id
 
+  tags = {
+	  tag = "%[4]s"
+  }
 }
-`, r.complete(data), data.RandomInteger, data.Locations.Secondary)
+`, r.complete(data), data.RandomInteger, data.Locations.Secondary, tag)
 }
 
 func (r MsSqlDatabaseResource) scaleReplicaSet(data acceptance.TestData, sku string) string {
