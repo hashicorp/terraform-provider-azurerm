@@ -24,7 +24,7 @@ func TestAccResourceGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	testResource := ResourceGroupResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.basicConfig),
+		data.ApplyStep(testResource.basicConfig, testResource),
 		data.ImportStep(),
 	})
 }
@@ -33,7 +33,7 @@ func TestAccResourceGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	testResource := ResourceGroupResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.basicConfig),
+		data.ApplyStep(testResource.basicConfig, testResource),
 		{
 			Config: testResource.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(

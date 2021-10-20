@@ -17,11 +17,11 @@ import (
 // ApplyStep returns a Test Step which applies a Configuration and then check that the
 // resource exists. This doesn't do any other assertions since it's expected that an
 // ImportStep will be called afterwards to validate that.
-func (td TestData) ApplyStep(config func (data TestData) string) resource.TestStep {
+func (td TestData) ApplyStep(config func (data TestData) string, testResource types.TestResource) resource.TestStep {
 	return resource.TestStep{
 		Config: config(td),
 			Check: ComposeTestCheckFunc(
-			check.That(td.ResourceName).ExistsInAzure(td.testResource),
+			check.That(td.ResourceName).ExistsInAzure(testResource),
 		),
 	}
 }

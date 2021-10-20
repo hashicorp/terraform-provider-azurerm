@@ -2,7 +2,6 @@ package acceptance
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/types"
 	"math"
 	"math/rand"
 	"os"
@@ -55,9 +54,6 @@ type TestData struct {
 
 	// resourceLabel is the local used for the resource - generally "test""
 	resourceLabel string
-
-	// testResource is a reference to the TestResource type that implements an Exists func
-	testResource  types.TestResource
 }
 
 // BuildTestData generates some test data for the given resource
