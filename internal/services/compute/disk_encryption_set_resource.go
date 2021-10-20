@@ -144,7 +144,7 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 					ID: utils.String(keyVaultDetails.keyVaultId),
 				},
 			},
-			RotationToLatestKeyVersionEnabled: &rotationToLatestKeyVersionEnabled,
+			RotationToLatestKeyVersionEnabled: utils.Bool(rotationToLatestKeyVersionEnabled),
 		},
 		Identity: expandDiskEncryptionSetIdentity(identityRaw),
 		Tags:     tags.Expand(t),
