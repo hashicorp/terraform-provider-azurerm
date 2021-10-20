@@ -281,6 +281,7 @@ func expandIotSecurityDeviceGroupAllowRule(input []interface{}) *[]security.Basi
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
+
 	v := input[0].(map[string]interface{})
 	result := make([]security.BasicAllowlistCustomAlertRule, 0)
 
@@ -305,7 +306,7 @@ func expandIotSecurityDeviceGroupAllowRule(input []interface{}) *[]security.Basi
 		}
 	}
 	if connectionToIPListNotAllowed != nil {
-		result = append(result, connectionToIPListNotAllowed)
+		result = append(result, *connectionToIPListNotAllowed)
 	}
 
 	var localUserListNotAllowed *security.LocalUserNotAllowed
@@ -322,7 +323,7 @@ func expandIotSecurityDeviceGroupAllowRule(input []interface{}) *[]security.Basi
 		}
 	}
 	if localUserListNotAllowed != nil {
-		result = append(result, localUserListNotAllowed)
+		result = append(result, *localUserListNotAllowed)
 	}
 
 	var processListNotAllowed *security.ProcessNotAllowed
@@ -339,7 +340,7 @@ func expandIotSecurityDeviceGroupAllowRule(input []interface{}) *[]security.Basi
 		}
 	}
 	if processListNotAllowed != nil {
-		result = append(result, processListNotAllowed)
+		result = append(result, *processListNotAllowed)
 	}
 
 	return &result
