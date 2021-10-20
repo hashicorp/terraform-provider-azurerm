@@ -3,6 +3,7 @@ package mssql_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
@@ -722,6 +723,22 @@ func TestAccMsSqlDatabase_transitDataEncryption(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_errorOnDisabledEncryption(t *testing.T) {
+	if !features.ThreePointOh() {
+		t.Skipf("This test runs only on 3.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.errorOnDisabledEncryption(data),
+			ExpectError: regexp.MustCompile("transparent data encryption can only be disabled on Data Warehouse SKUs"),
+		},
 	})
 }
 
@@ -1721,4 +1738,17 @@ resource "azurerm_mssql_database" "test" {
 }
 
 `, r.template(data), data.RandomInteger, state)
+}
+
+func (r MsSqlDatabaseResource) errorOnDisabledEncryption(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_database" "test" {
+  name                                = "acctest-db-%d"
+  server_id                           = azurerm_mssql_server.test.id
+  transparent_data_encryption_enabled = false
+}
+
+`, r.template(data), data.RandomInteger)
 }

@@ -7,14 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/Azure/go-autorest/autorest/date"
-
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
@@ -314,7 +313,16 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				// "hyperscale can not change to other sku
 				return strings.HasPrefix(old.(string), "HS") && !strings.HasPrefix(new.(string), "HS")
 			}),
-		),
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				if !features.ThreePointOh() {
+					return nil
+				}
+				sku := d.Get("sku_name").(string)
+				if !strings.HasPrefix(sku, "DW") && !d.Get("transparent_data_encryption_enabled").(bool) {
+					return fmt.Errorf("transparent data encryption can only be disabled on Data Warehouse SKUs")
+				}
+				return nil
+			}),
 	}
 	if features.ThreePointOh() {
 		resourceData.Schema["transparent_data_encryption_enabled"] = &pluginsdk.Schema{
