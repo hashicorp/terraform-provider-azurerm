@@ -125,7 +125,7 @@ The following arguments are supported:
 
 * `queue_properties` - (Optional) A `queue_properties` block as defined below.
 
-~> **NOTE:** `queue_properties` cannot be set when the `access_tier` is set to `BlobStorage`
+~> **NOTE:** `queue_properties` cannot be set when the `account_kind` is set to `BlobStorage`
 
 * `static_website` - (Optional) A `static_website` block as defined below.
 
