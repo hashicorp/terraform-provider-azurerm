@@ -17,11 +17,9 @@ func TestAccDataSourceDiskEncryptionSet_basic(t *testing.T) {
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-		},
-		{
-			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("auto_key_rotation_enabled").HasValue("false"),
 			),
 		},
 	})
