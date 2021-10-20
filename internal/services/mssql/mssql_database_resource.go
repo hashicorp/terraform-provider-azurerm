@@ -317,7 +317,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 		),
 	}
 	if features.ThreePointOh() {
-		resourceData.Schema["transparent_data_encryption"] = &pluginsdk.Schema{
+		resourceData.Schema["transparent_data_encryption_enabled"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
@@ -794,10 +794,10 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("while retrieving Transparent Data Encryption status of %q: %+v", id.String(), err)
 		}
 		tdeStatus := false
-		if tde.Status == sql.TransparentDataEncryptionStatusEnabled {
+		if tde.TransparentDataEncryptionProperties.Status == sql.TransparentDataEncryptionStatusEnabled {
 			tdeStatus = true
 		}
-		if err := d.Set("transparent_data_encryption", tdeStatus); err != nil {
+		if err := d.Set("transparent_data_encryption_enabled", tdeStatus); err != nil {
 			return fmt.Errorf("setting transparent_data_encryption: %+v", err)
 		}
 	}
