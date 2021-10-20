@@ -1714,9 +1714,9 @@ func (r MsSqlDatabaseResource) withTransitDataEncryptionOnDwSku(data acceptance.
 %s
 
 resource "azurerm_mssql_database" "test" {
-  name                        = "acctest-db-%d"
-  server_id                   = azurerm_mssql_server.test.id
-  sku_name                    = "DW100c"
+  name                                = "acctest-db-%d"
+  server_id                           = azurerm_mssql_server.test.id
+  sku_name                            = "DW100c"
   transparent_data_encryption_enabled = %t
 }
 
