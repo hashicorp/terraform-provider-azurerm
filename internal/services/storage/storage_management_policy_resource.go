@@ -131,25 +131,19 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeInt,
 													Optional: true,
 													Default:  nil,
-													// todo: default change to -1 to allow value 0 in 3.0
-													// for issue https://github.com/hashicorp/terraform-provider-azurerm/issues/6158
-													ValidateFunc: validation.IntBetween(0, 99999),
+													ValidateFunc: validation.IntBetween(-1, 99999),
 												},
 												"tier_to_archive_after_days_since_modification_greater_than": {
 													Type:     pluginsdk.TypeInt,
 													Optional: true,
 													Default:  nil,
-													// todo: default change to -1 to allow value 0 in 3.0
-													// for issue https://github.com/hashicorp/terraform-provider-azurerm/issues/6158
-													ValidateFunc: validation.IntBetween(0, 99999),
+													ValidateFunc: validation.IntBetween(-1, 99999),
 												},
 												"delete_after_days_since_modification_greater_than": {
 													Type:     pluginsdk.TypeInt,
 													Optional: true,
 													Default:  nil,
-													// todo: default change to -1 to allow value 0 in 3.0
-													// for issue https://github.com/hashicorp/terraform-provider-azurerm/issues/6158
-													ValidateFunc: validation.IntBetween(0, 99999),
+													ValidateFunc: validation.IntBetween(-1, 99999),
 												},
 											},
 										},
