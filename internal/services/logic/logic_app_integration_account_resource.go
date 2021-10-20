@@ -60,9 +60,9 @@ func resourceLogicAppIntegrationAccount() *pluginsdk.Resource {
 			},
 
 			"integration_service_environment_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				//ForceNew:     true,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: validate.IntegrationServiceEnvironmentID,
 			},
 
