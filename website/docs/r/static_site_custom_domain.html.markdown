@@ -10,7 +10,11 @@ description: |-
 
 Manages a Static Site Custom Domain.
 
-## Example Usage
+!> DNS validation polling is only done for CNAME records, terraform will not validate TXT validation records are complete.
+
+## Example Usage 
+
+### CNAME validation
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -24,7 +28,6 @@ resource "azurerm_static_site" "example" {
   location            = azurerm_resource_group.example.location
 }
 
-// CNAME validation
 resource "azurerm_dns_cname_record" "example" {
   name                = "my-domain"
   zone_name           = "contoso.com"
@@ -38,22 +41,35 @@ resource "azurerm_static_site_custom_domain" "example" {
   name            = "${azurerm_dns_cname_record.example.name}.${azurerm_dns_cname_record.example.zone_name}"
   validation_type = "cname-delegation"
 }
+```
 
-// TXT Validation
+### TXT validation
 
-resource "azurerm_static_site_custom_domain" "example2" {
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_static_site" "example" {
+  name                = "example"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+}
+
+resource "azurerm_static_site_custom_domain" "example" {
   static_site_id  = azurerm_static_site.example.id
-  name            = "my-domain-2.${azurerm_dns_cname_record.example.zone_name}"
+  name            = "my-domain.${azurerm_dns_cname_record.example.zone_name}"
   validation_type = "dns-txt-token"
 }
 
 resource "azurerm_dns_txt_record" "example" {
-  name                = "my-domain-2"
+  name                = "my-domain"
   zone_name           = "contoso.com"
   resource_group_name = azurerm_resource_group.example.name
   ttl                 = 300
   record {
-    value = azurerm_static_site_custom_domain.example2.validation_token
+    value = azurerm_static_site_custom_domain.example.validation_token
   }
 }
 ```
@@ -62,7 +78,7 @@ resource "azurerm_dns_txt_record" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Static Site Custom Domain. Changing this forces a new Static Site Custom Domain to be created.
+* `name` - (Required) The Domain Name which should be associated with this Static Site. Changing this forces a new Static Site Custom Domain to be created.
 
 * `static_site_id` - (Required) The ID of the Static Site. Changing this forces a new Static Site Custom Domain to be created.
 
