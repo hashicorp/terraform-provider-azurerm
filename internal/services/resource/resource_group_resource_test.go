@@ -24,12 +24,7 @@ func TestAccResourceGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	testResource := ResourceGroupResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		{
-			Config: testResource.basicConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(testResource),
-			),
-		},
+		data.ApplyStep(testResource.basicConfig),
 		data.ImportStep(),
 	})
 }
@@ -38,6 +33,7 @@ func TestAccResourceGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	testResource := ResourceGroupResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
+		data.ApplyStep(testResource.basicConfig),
 		{
 			Config: testResource.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
