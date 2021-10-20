@@ -259,6 +259,11 @@ func resourceFrontDoor() *pluginsdk.Resource {
 								},
 							},
 						},
+						"rules_engine_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
 					},
 				},
 			},
@@ -1051,6 +1056,7 @@ func expandFrontDoorRoutingRule(input []interface{}, frontDoorId parse.FrontDoor
 		acceptedProtocols := routingRule["accepted_protocols"].([]interface{})
 		ptm := routingRule["patterns_to_match"].([]interface{})
 		enabled := routingRule["enabled"].(bool)
+		rulesEngine := routingRule["rules_engine_id"].(string)
 
 		patternsToMatch := make([]string, 0)
 		for _, p := range ptm {
@@ -1076,6 +1082,13 @@ func expandFrontDoorRoutingRule(input []interface{}, frontDoorId parse.FrontDoor
 				RouteConfiguration: routingConfiguration,
 			},
 		}
+
+		if rulesEngine != "" {
+			currentRoutingRule.RoutingRuleProperties.RulesEngine = &frontdoor.SubResource{
+				ID: utils.String(rulesEngine),
+			}
+		}
+
 		output = append(output, currentRoutingRule)
 	}
 
@@ -1908,6 +1921,7 @@ func flattenSingleFrontDoorRoutingRule(input frontdoor.RoutingRule, oldBlocks in
 	frontEndEndpoints := make([]string, 0)
 	patternsToMatch := make([]string, 0)
 	redirectConfiguration := make([]interface{}, 0)
+	rulesEngineId := ""
 
 	if props := input.RoutingRuleProperties; props != nil {
 		acceptedProtocols = flattenFrontDoorAcceptedProtocol(props.AcceptedProtocols)
@@ -1929,6 +1943,14 @@ func flattenSingleFrontDoorRoutingRule(input frontdoor.RoutingRule, oldBlocks in
 			patternsToMatch = *props.PatternsToMatch
 		}
 		redirectConfiguration = flattenRoutingRuleRedirectConfiguration(props.RouteConfiguration)
+
+		if rulesEngine := props.RulesEngine; rulesEngine != nil && rulesEngine.ID != nil {
+			parsed, err := parse.RulesEngineIDInsensitively(*rulesEngine.ID)
+			if err != nil {
+				return nil, err
+			}
+			rulesEngineId = parsed.ID()
+		}
 	}
 
 	output := map[string]interface{}{
@@ -1940,6 +1962,7 @@ func flattenSingleFrontDoorRoutingRule(input frontdoor.RoutingRule, oldBlocks in
 		"name":                     name,
 		"patterns_to_match":        patternsToMatch,
 		"redirect_configuration":   redirectConfiguration,
+		"rules_engine_id":          rulesEngineId,
 	}
 
 	return output, nil

@@ -201,6 +201,8 @@ The `routing_rule` block supports the following:
 
 * `redirect_configuration`   - (Optional) A `redirect_configuration` block as defined below.
 
+* `rules_engine_id` - (Optional) Defines the Rules Engine configuration `ID` for the Backend Routing Rule.
+
 ---
 
 The `forwarding_configuration` block supports the following:
