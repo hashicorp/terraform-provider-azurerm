@@ -988,7 +988,7 @@ resource "azurerm_mssql_database" "secondary" {
   creation_source_database_id = azurerm_mssql_database.test.id
 
   tags = {
-	  tag = "%[4]s"
+    tag = "%[4]s"
   }
 }
 `, r.complete(data), data.RandomInteger, data.Locations.Secondary, tag)
