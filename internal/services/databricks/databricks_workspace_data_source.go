@@ -63,7 +63,7 @@ func dataSourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

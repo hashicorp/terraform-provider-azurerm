@@ -536,7 +536,9 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		if publicNetworkAccess != nil {
 			d.Set("public_network_access_enabled", *publicNetworkAccess != workspaces.PublicNetworkAccessDisabled)
 			if *publicNetworkAccess == workspaces.PublicNetworkAccessDisabled {
-				d.Set("network_security_group_rules_required", model.Properties.RequiredNsgRules)
+				if model.Properties.RequiredNsgRules != nil {
+					d.Set("network_security_group_rules_required", string(*model.Properties.RequiredNsgRules))
+				}
 			}
 		}
 
