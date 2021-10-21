@@ -5,6 +5,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * dependencies: upgrading to `v58.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-13613]
+* upgrading `netapp` to API Version `2021-06-01` [GH-13812]
 * upgrading `servicebus` to API Version `2021-06-01-preview` [GH-13701]
 * Data Source: `azurerm_disk_encryption_set` - support for the `auto_key_rotation_enabled` property [GH-13747]
 * Data Source: `azurerm_virtual_machine` - expose IP addresses as data source outputs [GH-13773]
