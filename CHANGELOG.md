@@ -6,6 +6,12 @@ IMPROVEMENTS:
 
 * dependencies: upgrading to `v58.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-13613]
 * upgrading `servicebus` to API Version `2021-06-01-preview` [GH-13701]
+* Data Source: `azurerm_disk_encryption_set` - support for the `auto_key_rotation_enabled` property [GH-13747]
+* Data Source: `azurerm_virtual_machine` - expose IP addresses as data source outputs [GH-13773]
+* `azurerm_batch_account` - supports for the `identity` block [GH-13742]
+* `azurerm_data_factory_integration_runtime_azure` - support `AutoResolve` for the `location` property [GH-13731]
+* `azurerm_disk_encryption_set` - support for the `auto_key_rotation_enabled` property [GH-13747]
+* `azurerm_iot_security_solution` - support for the `additional_workspace` and `disabled_data_sources` properties [GH-13783]
 * `azurerm_lb` - support for the `gateway_load_balancer_frontend_ip_configuration_id` property [GH-13559]
 * `azurerm_lb_backend_address_pool` - support for the `tunnel_interface` block [GH-13559]
 * `azurerm_lb_rule` - the `backend_address_pool_ids` property has been deprecated in favour of the `backend_address_pool_ids` property [GH-13559]
@@ -17,6 +23,7 @@ BUG FIXES:
 
 * `azurerm_app_configuration_feature` - fix default value handling for percentage appconfig feature filters. [GH-13771]
 * `azurerm_cosmosdb_account` - force `MongoEnabled` feature when enabling `MongoDBv3.4`. [GH-13757]
+* `azurerm_mssql_server` - will now configure the `azuread_administrator` during resource creation [GH-13753]
 * `azurerm_servicebus_subscription` - the `name` field can now start & end with an underscore [GH-13797]
 
 ## 2.81.0 (October 14, 2021)

@@ -134,6 +134,21 @@ func TestAccMsSqlServer_azureadAdmin(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.aadAdmin(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
+func TestAccMsSqlServer_azureadAdminUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MsSqlServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),

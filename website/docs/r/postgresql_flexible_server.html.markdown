@@ -64,7 +64,7 @@ resource "azurerm_postgresql_flexible_server" "example" {
   version                = "12"
   delegated_subnet_id    = azurerm_subnet.example.id
   private_dns_zone_id    = azurerm_private_dns_zone.example.id
-  administrator_login    = "psqladminun"
+  administrator_login    = "psqladmin"
   administrator_password = "H@Sh1CoR3!"
 
   storage_mb = 32768
