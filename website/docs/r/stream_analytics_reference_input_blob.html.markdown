@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `path_pattern` - (Required) The blob path pattern. Not a regular expression. It represents a pattern against which blob names will be matched to determine whether or not they should be included as input or output to the job.
 
-* `storage_account_name` - (Required) The name of the Storage Account that has the blob container with reference data.
+* `storage_account_name` - (Required) The name of the Storage Account hat has the blob container with reference data.
 
 * `storage_account_key` - (Required) The Access Key which should be used to connect to this Storage Account.
 

@@ -199,6 +199,7 @@ func resourceStreamAnalyticsReferenceInputMsSqlRead(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	d.SetId(id.ID())
 	d.Set("name", id.InputName)
 	d.Set("stream_analytics_job_name", id.StreamingjobName)
 	d.Set("resource_group_name", id.ResourceGroup)
@@ -206,12 +207,12 @@ func resourceStreamAnalyticsReferenceInputMsSqlRead(d *pluginsdk.ResourceData, m
 	if props := resp.Properties; props != nil {
 		v, ok := props.AsReferenceInputProperties()
 		if !ok {
-			return fmt.Errorf("converting Reference Input MsSql to a Reference Input: %+v", err)
+			return fmt.Errorf("converting Reference Input MS SQL to a Reference Input: %+v", err)
 		}
 
 		inputDataSource, ok := v.Datasource.AsAzureSQLReferenceInputDataSource()
 		if !ok {
-			return fmt.Errorf("converting Reference Input MsSql to a MsSql Stream Input: %+v", err)
+			return fmt.Errorf("converting Reference Input MS SQL to a MS SQL Stream Input: %+v", err)
 		}
 
 		d.Set("server", inputDataSource.Properties.Server)
