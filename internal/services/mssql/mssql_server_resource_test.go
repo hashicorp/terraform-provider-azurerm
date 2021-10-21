@@ -633,8 +633,9 @@ resource "azurerm_mssql_server" "test" {
   administrator_login_password = "thisIsKat11"
 
   azuread_administrator {
-    login_username = "AzureAD Admin2"
-    object_id      = data.azuread_service_principal.test.id
+    login_username              = "AzureAD Admin2"
+    object_id                   = data.azuread_service_principal.test.id
+    azuread_authentication_only = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_CLIENT_ID"))
