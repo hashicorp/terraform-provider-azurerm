@@ -17,6 +17,7 @@ IMPROVEMENTS:
 * `azurerm_lb_backend_address_pool` - support for the `tunnel_interface` block [GH-13559]
 * `azurerm_lb_rule` - the `backend_address_pool_ids` property has been deprecated in favour of the `backend_address_pool_ids` property [GH-13559]
 * `azurerm_lb_nat_pool` - support for the `floating_ip_enabled`, `tcp_reset_enabled`, and `idle_timeout_in_minutes` properties [GH-13674]
+* `azurerm_mssql_server` - support for the `azuread_authentication_only` property [GH-13754]
 * `azurerm_network_interface` - support for the `gateway_load_balancer_frontend_ip_configuration_id` property [GH-13559]
 * `azurerm_synapse_spark_pool` - support for the `cache_size`, `compute_isolation_enabled`, `dynamic_executor_allocation_enabled`, `session_level_packages_enabled` and `spark_config` properties [GH-13690]
 
