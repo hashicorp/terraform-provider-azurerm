@@ -100,6 +100,11 @@ func resourceVirtualHub() *pluginsdk.Resource {
 			},
 
 			"tags": tags.Schema(),
+
+			"default_route_table_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -233,6 +238,9 @@ func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		d.Set("virtual_wan_id", virtualWanId)
 	}
+
+	defaultRouteTable := parse.NewHubRouteTableID(id.SubscriptionId, id.ResourceGroup, id.Name, "defaultRouteTable")
+	d.Set("default_route_table_id", defaultRouteTable.ID())
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
