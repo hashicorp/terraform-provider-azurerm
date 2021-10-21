@@ -25,6 +25,7 @@ BUG FIXES:
 * `azurerm_cosmosdb_account` - force `MongoEnabled` feature when enabling `MongoDBv3.4`. [GH-13757]
 * `azurerm_mssql_server` - will now configure the `azuread_administrator` during resource creation [GH-13753]
 * `azurerm_servicebus_subscription` - the `name` field can now start & end with an underscore [GH-13797]
+* `azurerm_mssql_database` - `extended_auditing_policy` can now be configured and updated for secondaries [GH-13799]
 
 ## 2.81.0 (October 14, 2021)
 
