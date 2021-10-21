@@ -9,6 +9,7 @@ IMPROVEMENTS:
 * Data Source: `azurerm_disk_encryption_set` - support for the `auto_key_rotation_enabled` property [GH-13747]
 * Data Source: `azurerm_virtual_machine` - expose IP addresses as data source outputs [GH-13773]
 * `azurerm_batch_account` - supports for the `identity` block [GH-13742]
+* `azurerm_data_factory_integration_runtime_azure` - support `AutoResolve` for the `location` property [GH-13731]
 * `azurerm_disk_encryption_set` - support for the `auto_key_rotation_enabled` property [GH-13747]
 * `azurerm_iot_security_solution` - support for the `additional_workspace` and `disabled_data_sources` properties [GH-13783]
 * `azurerm_lb` - support for the `gateway_load_balancer_frontend_ip_configuration_id` property [GH-13559]
