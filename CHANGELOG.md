@@ -18,6 +18,7 @@ IMPROVEMENTS:
 * `azurerm_data_factory_integration_runtime_azure` - support `AutoResolve` for the `location` property [GH-13731]
 * `azurerm_disk_encryption_set` - support for the `auto_key_rotation_enabled` property [GH-13747]
 * `azurerm_iot_security_solution` - support for the `additional_workspace` and `disabled_data_sources` properties [GH-13783]
+* `azurerm_kubernetes_cluster` - support for the `open_service_mesh` block [GH-13462]
 * `azurerm_lb` - support for the `gateway_load_balancer_frontend_ip_configuration_id` property [GH-13559]
 * `azurerm_lb_backend_address_pool` - support for the `tunnel_interface` block [GH-13559]
 * `azurerm_lb_rule` - the `backend_address_pool_ids` property has been deprecated in favour of the `backend_address_pool_ids` property [GH-13559]
