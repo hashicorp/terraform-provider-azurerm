@@ -66,7 +66,7 @@ func resourceNatGateway() *pluginsdk.Resource {
 					ValidateFunc: azure.ValidateResourceID,
 				},
 				// TODO: remove in 3.0
-				Deprecated: "Inline Public IP Address ID Associations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_association` pluginsdk. This field will be removed in the next major version of the Azure Provider.",
+				Deprecated: "Inline Public IP Address ID Associations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_association` resource. This field will be removed in the next major version of the Azure Provider.",
 			},
 
 			"public_ip_prefix_ids": {
@@ -78,7 +78,7 @@ func resourceNatGateway() *pluginsdk.Resource {
 					ValidateFunc: azure.ValidateResourceID,
 				},
 				// TODO: remove in 3.0
-				Deprecated: "Inline Public IP Prefix ID Associations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_prefix_association` pluginsdk. This field will be removed in the next major version of the Azure Provider.",
+				Deprecated: "Inline Public IP Prefix ID Associations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_prefix_association` resource. This field will be removed in the next major version of the Azure Provider.",
 			},
 
 			"sku_name": {
