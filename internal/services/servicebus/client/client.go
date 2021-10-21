@@ -9,7 +9,6 @@ type Client struct {
 	QueuesClient                  *servicebus.QueuesClient
 	DisasterRecoveryConfigsClient *servicebus.DisasterRecoveryConfigsClient
 	NamespacesClient              *servicebus.NamespacesClient
-	NamespacesClientPreview       *servicebus.NamespacesClient
 	TopicsClient                  *servicebus.TopicsClient
 	SubscriptionsClient           *servicebus.SubscriptionsClient
 	SubscriptionRulesClient       *servicebus.RulesClient
