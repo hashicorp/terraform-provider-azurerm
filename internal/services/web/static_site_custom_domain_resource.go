@@ -137,7 +137,7 @@ func resourceStaticSiteCustomDomainCreateOrUpdate(d *pluginsdk.ResourceData, met
 			Target: []string{
 				string(web.CustomDomainStatusValidating),
 			},
-			MinTimeout: 5 * time.Minute,
+			MinTimeout: 20 * time.Second,
 			Timeout:    time.Until(deadline),
 			Refresh: func() (interface{}, string, error) {
 				domain, err := client.GetStaticSiteCustomDomain(ctx, staticSiteId.ResourceGroup, id.StaticSiteName, id.CustomDomainName)
