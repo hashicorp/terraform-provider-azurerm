@@ -64,7 +64,7 @@ resource "azurerm_static_site_custom_domain" "example" {
 }
 
 resource "azurerm_dns_txt_record" "example" {
-  name                = "my-domain"
+  name                = "_dnsauth.my-domain"
   zone_name           = "contoso.com"
   resource_group_name = azurerm_resource_group.example.name
   ttl                 = 300
