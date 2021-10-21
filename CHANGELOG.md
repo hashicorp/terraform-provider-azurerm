@@ -2,6 +2,8 @@
 
 FEATURES: 
 
+* **New Resource:** `azurerm_virtual_hub_route_table_route` [GH-13743]
+
 IMPROVEMENTS:
 
 * dependencies: upgrading to `v58.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-13613]
