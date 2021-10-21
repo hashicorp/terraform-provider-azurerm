@@ -40,5 +40,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_bot_connection":                 resourceArmBotConnection(),
 		"azurerm_healthbot":                      resourceHealthbotService(),
 		"azurerm_bot_web_app":                    resourceBotWebApp(),
+		"azurerm_bot":                            resourceBot(),
 	}
 }
