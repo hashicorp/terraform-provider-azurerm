@@ -106,7 +106,7 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.Resource
 		existing, err := client.GetNetworkRuleSet(ctx, resourceId.ResourceGroup, resourceId.NamespaceName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for the presnece of existing %s: %+v", resourceId, err)
+				return fmt.Errorf("checking for the presence of existing %s: %+v", resourceId, err)
 			}
 		}
 
@@ -186,7 +186,7 @@ func resourceServiceBusNamespaceNetworkRuleSetDelete(d *pluginsdk.ResourceData, 
 
 	parameters := servicebus.NetworkRuleSet{
 		NetworkRuleSetProperties: &servicebus.NetworkRuleSetProperties{
-			DefaultAction: servicebus.DefaultActionDeny,
+			DefaultAction: servicebus.DefaultActionAllow,
 		},
 	}
 
@@ -288,7 +288,7 @@ func CheckNetworkRuleNullified(resp servicebus.NetworkRuleSet) bool {
 	if resp.NetworkRuleSetProperties == nil {
 		return true
 	}
-	if resp.DefaultAction != servicebus.DefaultActionDeny {
+	if resp.DefaultAction != servicebus.DefaultActionAllow {
 		return false
 	}
 	if resp.VirtualNetworkRules != nil && len(*resp.VirtualNetworkRules) > 0 {
