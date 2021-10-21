@@ -1,41 +1,41 @@
-## 2.82.0 (Unreleased)
+## 2.82.0 (October 21, 2021)
 
 FEATURES: 
 
-* **New Resource:** `azurerm_mysql_flexible_server_configuration` [GH-13831]
-* **New Resource:** `azurerm_synapse_sql_pool_vulnerability_assessment_baseline` [GH-13744]
-* **New Resource:** `azurerm_virtual_hub_route_table_route` [GH-13743]
+* **New Resource:** `azurerm_mysql_flexible_server_configuration` ([#13831](https://github.com/hashicorp/terraform-provider-azurerm/issues/13831))
+* **New Resource:** `azurerm_synapse_sql_pool_vulnerability_assessment_baseline` ([#13744](https://github.com/hashicorp/terraform-provider-azurerm/issues/13744))
+* **New Resource:** `azurerm_virtual_hub_route_table_route` ([#13743](https://github.com/hashicorp/terraform-provider-azurerm/issues/13743))
 
 IMPROVEMENTS:
 
-* dependencies: upgrading to `v58.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-13613]
-* upgrading `netapp` to API Version `2021-06-01` [GH-13812]
-* upgrading `servicebus` to API Version `2021-06-01-preview` [GH-13701]
-* Data Source: `azurerm_disk_encryption_set` - support for the `auto_key_rotation_enabled` property [GH-13747]
-* Data Source: `azurerm_virtual_machine` - expose IP addresses as data source outputs [GH-13773]
-* `azurerm_batch_account` - support for the `identity` block [GH-13742]
-* `azurerm_batch_pool` - support for the `identity` block [GH-13779]
-* `azurerm_container_registry` - supports for the `regiononal_endpoint_enabled` property [GH-13767]
-* `azurerm_data_factory_integration_runtime_azure` - support `AutoResolve` for the `location` property [GH-13731]
-* `azurerm_disk_encryption_set` - support for the `auto_key_rotation_enabled` property [GH-13747]
-* `azurerm_iot_security_solution` - support for the `additional_workspace` and `disabled_data_sources` properties [GH-13783]
-* `azurerm_kubernetes_cluster` - support for the `open_service_mesh` block [GH-13462]
-* `azurerm_lb` - support for the `gateway_load_balancer_frontend_ip_configuration_id` property [GH-13559]
-* `azurerm_lb_backend_address_pool` - support for the `tunnel_interface` block [GH-13559]
-* `azurerm_lb_rule` - the `backend_address_pool_ids` property has been deprecated in favour of the `backend_address_pool_ids` property [GH-13559]
-* `azurerm_lb_nat_pool` - support for the `floating_ip_enabled`, `tcp_reset_enabled`, and `idle_timeout_in_minutes` properties [GH-13674]
-* `azurerm_mssql_server` - support for the `azuread_authentication_only` property [GH-13754]
-* `azurerm_network_interface` - support for the `gateway_load_balancer_frontend_ip_configuration_id` property [GH-13559]
-* `azurerm_synapse_spark_pool` - support for the `cache_size`, `compute_isolation_enabled`, `dynamic_executor_allocation_enabled`, `session_level_packages_enabled` and `spark_config` properties [GH-13690]
+* dependencies: upgrading to `v58.0.0` of `github.com/Azure/azure-sdk-for-go` ([#13613](https://github.com/hashicorp/terraform-provider-azurerm/issues/13613))
+* upgrading `netapp` to API Version `2021-06-01` ([#13812](https://github.com/hashicorp/terraform-provider-azurerm/issues/13812))
+* upgrading `servicebus` to API Version `2021-06-01-preview` ([#13701](https://github.com/hashicorp/terraform-provider-azurerm/issues/13701))
+* Data Source: `azurerm_disk_encryption_set` - support for the `auto_key_rotation_enabled` property ([#13747](https://github.com/hashicorp/terraform-provider-azurerm/issues/13747))
+* Data Source: `azurerm_virtual_machine` - expose IP addresses as data source outputs ([#13773](https://github.com/hashicorp/terraform-provider-azurerm/issues/13773))
+* `azurerm_batch_account` - support for the `identity` block ([#13742](https://github.com/hashicorp/terraform-provider-azurerm/issues/13742))
+* `azurerm_batch_pool` - support for the `identity` block ([#13779](https://github.com/hashicorp/terraform-provider-azurerm/issues/13779))
+* `azurerm_container_registry` - supports for the `regiononal_endpoint_enabled` property ([#13767](https://github.com/hashicorp/terraform-provider-azurerm/issues/13767))
+* `azurerm_data_factory_integration_runtime_azure` - support `AutoResolve` for the `location` property ([#13731](https://github.com/hashicorp/terraform-provider-azurerm/issues/13731))
+* `azurerm_disk_encryption_set` - support for the `auto_key_rotation_enabled` property ([#13747](https://github.com/hashicorp/terraform-provider-azurerm/issues/13747))
+* `azurerm_iot_security_solution` - support for the `additional_workspace` and `disabled_data_sources` properties ([#13783](https://github.com/hashicorp/terraform-provider-azurerm/issues/13783))
+* `azurerm_kubernetes_cluster` - support for the `open_service_mesh` block ([#13462](https://github.com/hashicorp/terraform-provider-azurerm/issues/13462))
+* `azurerm_lb` - support for the `gateway_load_balancer_frontend_ip_configuration_id` property ([#13559](https://github.com/hashicorp/terraform-provider-azurerm/issues/13559))
+* `azurerm_lb_backend_address_pool` - support for the `tunnel_interface` block ([#13559](https://github.com/hashicorp/terraform-provider-azurerm/issues/13559))
+* `azurerm_lb_rule` - the `backend_address_pool_ids` property has been deprecated in favour of the `backend_address_pool_ids` property ([#13559](https://github.com/hashicorp/terraform-provider-azurerm/issues/13559))
+* `azurerm_lb_nat_pool` - support for the `floating_ip_enabled`, `tcp_reset_enabled`, and `idle_timeout_in_minutes` properties ([#13674](https://github.com/hashicorp/terraform-provider-azurerm/issues/13674))
+* `azurerm_mssql_server` - support for the `azuread_authentication_only` property ([#13754](https://github.com/hashicorp/terraform-provider-azurerm/issues/13754))
+* `azurerm_network_interface` - support for the `gateway_load_balancer_frontend_ip_configuration_id` property ([#13559](https://github.com/hashicorp/terraform-provider-azurerm/issues/13559))
+* `azurerm_synapse_spark_pool` - support for the `cache_size`, `compute_isolation_enabled`, `dynamic_executor_allocation_enabled`, `session_level_packages_enabled` and `spark_config` properties ([#13690](https://github.com/hashicorp/terraform-provider-azurerm/issues/13690))
 
 BUG FIXES:
 
-* `azurerm_app_configuration_feature` - fix default value handling for percentage appconfig feature filters. [GH-13771]
-* `azurerm_cosmosdb_account` - force `MongoEnabled` feature when enabling `MongoDBv3.4`. [GH-13757]
-* `azurerm_mssql_server` - will now configure the `azuread_administrator` during resource creation [GH-13753]
-* `azurerm_mssql_database` - `extended_auditing_policy` can now be configured and updated for secondaries [GH-13799]
-* `azurerm_postgresql_flexible_server` - changing the `standby_availability_zone` no longer forces a new resource [GH-13507]
-* `azurerm_servicebus_subscription` - the `name` field can now start & end with an underscore [GH-13797]
+* `azurerm_app_configuration_feature` - fix default value handling for percentage appconfig feature filters. ([#13771](https://github.com/hashicorp/terraform-provider-azurerm/issues/13771))
+* `azurerm_cosmosdb_account` - force `MongoEnabled` feature when enabling `MongoDBv3.4`. ([#13757](https://github.com/hashicorp/terraform-provider-azurerm/issues/13757))
+* `azurerm_mssql_server` - will now configure the `azuread_administrator` during resource creation ([#13753](https://github.com/hashicorp/terraform-provider-azurerm/issues/13753))
+* `azurerm_mssql_database` - `extended_auditing_policy` can now be configured and updated for secondaries ([#13799](https://github.com/hashicorp/terraform-provider-azurerm/issues/13799))
+* `azurerm_postgresql_flexible_server` - changing the `standby_availability_zone` no longer forces a new resource ([#13507](https://github.com/hashicorp/terraform-provider-azurerm/issues/13507))
+* `azurerm_servicebus_subscription` - the `name` field can now start & end with an underscore ([#13797](https://github.com/hashicorp/terraform-provider-azurerm/issues/13797))
 
 ## 2.81.0 (October 14, 2021)
 
