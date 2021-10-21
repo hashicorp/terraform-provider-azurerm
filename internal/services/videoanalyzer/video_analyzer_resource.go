@@ -203,8 +203,7 @@ func resourceVideoAnalyzerDelete(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	_, err = client.VideoAnalyzersDelete(ctx, *id)
-	if err != nil {
+	if _, err = client.VideoAnalyzersDelete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

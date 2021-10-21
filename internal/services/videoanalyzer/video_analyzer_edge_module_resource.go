@@ -122,8 +122,7 @@ func resourceVideoAnalyzerEdgeModuleDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	_, err = client.EdgeModulesDelete(ctx, *id)
-	if err != nil {
+	if _, err = client.EdgeModulesDelete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
