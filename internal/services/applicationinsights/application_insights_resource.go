@@ -60,7 +60,7 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 					"store",
 					"ios",
 					"Node.JS",
-				}, false),
+				}, true),
 			},
 
 			"workspace_id": {

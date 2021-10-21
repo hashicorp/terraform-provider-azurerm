@@ -32,6 +32,22 @@ func TestAccApplicationInsights_basicWeb(t *testing.T) {
 	})
 }
 
+func TestAccApplicationInsights_basicWebCaseInsensitive(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
+	r := AppInsightsResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, "Web"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("application_type").HasValue("Web"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApplicationInsights_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 	r := AppInsightsResource{}
@@ -61,6 +77,22 @@ func TestAccApplicationInsights_basicJava(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("application_type").HasValue("java"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApplicationInsights_basicJavaCaseInsensitive(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
+	r := AppInsightsResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, "JAVA"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("application_type").HasValue("JAVA"),
 			),
 		},
 		data.ImportStep(),
