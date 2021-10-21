@@ -162,29 +162,46 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 
 	if features.ThreePointOh() {
 		f := featuresMap["key_vault"].Elem.(*pluginsdk.Resource)
+		// TODO: Add this to 3.0 Upgrade guide
+		// `recover_soft_deleted_keys` - (Default: true) when enabled soft-deleted `azurerm_key_vault_key` resources will be restored, instead of creating new ones.
 		f.Schema["recover_soft_deleted_keys"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
 		}
+
+		// TODO: Add this to 3.0 Upgrade guide
+		// `purge_soft_deleted_keys_on_destroy` - (Default: true) when enabled soft-deleted `azurerm_key_vault_key` resources will be permanently deleted (e.g purged), when destroyed.
 		f.Schema["purge_soft_deleted_keys_on_destroy"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		}
+
+		// TODO: Add this to 3.0 Upgrade guide
+		// `recover_soft_deleted_certificates` - (Default: true) when enabled soft-deleted `azurerm_key_vault_certificate` resources will be restored, instead of creating new ones.
 		f.Schema["recover_soft_deleted_certificates"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
 		}
+
+		// TODO: Add this to 3.0 Upgrade guide
+		// `purge_soft_deleted_certificates_on_destroy` - (Default: true) when enabled soft-deleted `azurerm_key_vault_certificate` resources will be permanently deleted (e.g purged), when destroyed.
 		f.Schema["purge_soft_deleted_certificates_on_destroy"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		}
+
+		// TODO: Add this to 3.0 Upgrade guide
+		// `recover_soft_deleted_secrets` - (Default: true) when enabled soft-deleted `azurerm_key_vault_secret` resources will be restored, instead of creating new ones.
 		f.Schema["recover_soft_deleted_secrets"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
 		}
+
+		// TODO: Add this to 3.0 Upgrade guide
+		// `purge_soft_deleted_secrets_on_destroy` - (Default: true) when enabled soft-deleted `azurerm_key_vault_secret` resources will be permanently deleted (e.g purged), when destroyed.
 		f.Schema["purge_soft_deleted_secrets_on_destroy"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
