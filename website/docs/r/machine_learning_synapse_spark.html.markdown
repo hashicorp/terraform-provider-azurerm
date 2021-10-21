@@ -111,6 +111,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) A `identity` block as defined below. Changing this forces a new Machine Learning Synapse Spark to be created.
 
+* `local_auth_enabled` - (Optional) Whether local authentication methods is enabled. Defaults to `true`. Changing this forces a new Machine Learning Synapse Spark to be created.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Machine Learning Synapse Spark. Changing this forces a new Machine Learning Synapse Spark to be created.
 
 ---
