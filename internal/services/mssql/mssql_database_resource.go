@@ -805,7 +805,9 @@ func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy sql
 	if disabledAlerts := properties.DisabledAlerts; disabledAlerts != nil {
 		flattenedAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
 		for _, a := range *disabledAlerts {
-			flattenedAlerts.Add(a)
+			if a != "" {
+				flattenedAlerts.Add(a)
+			}
 		}
 		securityAlertPolicy["disabled_alerts"] = flattenedAlerts
 	}
