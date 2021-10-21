@@ -180,8 +180,10 @@ func dataSourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, me
 	if !ok {
 		return fmt.Errorf("wrong action type in %s: %T", id, resp.Action)
 	}
-	if err = d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
-		return fmt.Errorf("setting `action`: %+v", err)
+	if action.AznsAction != nil {
+		if err = d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
+			return fmt.Errorf("setting `action`: %+v", err)
+		}
 	}
 	severity, err := strconv.Atoi(string(action.Severity))
 	if err != nil {
