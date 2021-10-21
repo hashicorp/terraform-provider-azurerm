@@ -10,7 +10,7 @@ description: |-
 
 Manages a Virtual Hub Route.
 
-~> **Note:** The Route can be created, as well as with the [virtual_hub_route_table resource](virtual_hub_route_table.html) resource. You can only use one or the other and using both will cause a conflict.
+~> **Note:** Route table routes can managed with this resource, or in-line with the [virtual_hub_route_table](virtual_hub_route_table.html) resource. Using both is not supported.
 
 ## Example Usage
 

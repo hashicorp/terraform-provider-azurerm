@@ -10,8 +10,6 @@ description: |-
 
 Manages a Virtual Hub Route Table.
 
-~> **Note:** The Routes can be set inline here, as well as with the [virtual_hub_route resource](virtual_hub_route.html) resource. You can only use one or the other and using both will cause a conflict.
-
 ## Example Usage
 
 ```hcl
@@ -105,6 +103,8 @@ An `route` block exports the following:
 * `next_hop` - (Required) The next hop's resource ID.
 
 * `next_hop_type` - (Optional) The type of next hop. Currently the only possible value is `ResourceId`. Defaults to `ResourceId`.
+
+~> **Note:** The Routes can alternatively be created using the [virtual_hub_route_table_route](virtual_hub_route_table_route.html) resource. Using both inline and external routes is not supported and may result in unexpected configuration.
 
 ## Attributes Reference
 
