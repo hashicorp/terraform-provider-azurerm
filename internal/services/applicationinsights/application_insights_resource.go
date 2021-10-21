@@ -272,7 +272,7 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if props := resp.ApplicationInsightsComponentProperties; props != nil {
-		// Accomodate application_type that only differs by case and so shouldn't cause a recreation
+		// Accommodate application_type that only differs by case and so shouldn't cause a recreation
 		vals := map[string]string{
 			"web":   "web",
 			"other": "other",
