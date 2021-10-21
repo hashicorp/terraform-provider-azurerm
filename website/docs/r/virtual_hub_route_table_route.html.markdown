@@ -1,14 +1,14 @@
 ---
 subcategory: "Network"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_virtual_hub_route"
+page_title: "Azure Resource Manager: azurerm_virtual_hub_route_table_route"
 description: |-
-  Manages a Virtual Hub Route.
+  Manages a Route in a Virtual Hub Route Table.
 ---
 
-# azurerm_virtual_hub_route
+# azurerm_virtual_hub_route_table_route
 
-Manages a Virtual Hub Route.
+Manages a Route in a Virtual Hub Route Table.
 
 ~> **Note:** Route table routes can managed with this resource, or in-line with the [virtual_hub_route_table](virtual_hub_route_table.html) resource. Using both is not supported.
 
@@ -75,7 +75,7 @@ resource "azurerm_virtual_hub_route_table" "example" {
   labels         = ["label1"]
 }
 
-resource "azurerm_virtual_hub_route" "example" {
+resource "azurerm_virtual_hub_route_table_route" "example" {
   route_table_id = azurerm_virtual_hub_route_table.example.id
 
   name              = "example-route"
@@ -119,8 +119,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Virtual Hub Route Tables can be imported using `<Route Table Resource Id>/<Route Name>`, e.g.
+Virtual Hub Route Table Routes can be imported using `<Route Table Resource Id>/routes/<Route Name>`, e.g.
 
 ```shell
-terraform import azurerm_virtual_hub_route_table.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/virtualHubs/virtualHub1/hubRouteTables/routeTable1/routeName
+terraform import azurerm_virtual_hub_route_table.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/virtualHubs/virtualHub1/hubRouteTables/routeTable1/routes/routeName
 ```

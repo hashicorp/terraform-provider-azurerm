@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualHubRouteResource struct {
+type VirtualHubRouteTableRouteResource struct {
 }
 
-func TestAccVirtualHubRoute_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_route", "test")
-	r := VirtualHubRouteResource{}
+func TestAccVirtualHubRouteTableRoute_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_route_table_route", "test")
+	r := VirtualHubRouteTableRouteResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -30,9 +30,9 @@ func TestAccVirtualHubRoute_basic(t *testing.T) {
 	})
 }
 
-func TestAccVirtualHubRoute_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_route", "test")
-	r := VirtualHubRouteResource{}
+func TestAccVirtualHubRouteTableRoute_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_route_table_route", "test")
+	r := VirtualHubRouteTableRouteResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -44,24 +44,24 @@ func TestAccVirtualHubRoute_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccVirtualHubRoute_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_route", "test")
-	r := VirtualHubRouteResource{}
+func TestAccVirtualHubRouteTableRoute_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_route_table_route", "test")
+	r := VirtualHubRouteTableRouteResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That("azurerm_virtual_hub_route.test_2").ExistsInAzure(r),
+				check.That("azurerm_virtual_hub_route_table_route.test_2").ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccVirtualHubRoute_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_route", "test")
-	r := VirtualHubRouteResource{}
+func TestAccVirtualHubRouteTableRoute_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_route_table_route", "test")
+	r := VirtualHubRouteTableRouteResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -74,7 +74,7 @@ func TestAccVirtualHubRoute_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That("azurerm_virtual_hub_route.test_2").ExistsInAzure(r),
+				check.That("azurerm_virtual_hub_route_table_route.test_2").ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -88,7 +88,7 @@ func TestAccVirtualHubRoute_update(t *testing.T) {
 	})
 }
 
-func (t VirtualHubRouteResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t VirtualHubRouteTableRouteResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	route, err := parse.HubRouteTableRouteID(state.ID)
 	if err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func (t VirtualHubRouteResource) Exists(ctx context.Context, clients *clients.Cl
 	return utils.Bool(false), nil
 }
 
-func (VirtualHubRouteResource) template(data acceptance.TestData) string {
+func (VirtualHubRouteTableRouteResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -176,11 +176,11 @@ resource "azurerm_virtual_hub_route_table" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r VirtualHubRouteResource) basic(data acceptance.TestData) string {
+func (r VirtualHubRouteTableRouteResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_hub_route" "test" {
+resource "azurerm_virtual_hub_route_table_route" "test" {
   route_table_id = azurerm_virtual_hub_route_table.test.id
 
   name = "acctest-Route-%d"
@@ -193,26 +193,26 @@ resource "azurerm_virtual_hub_route" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r VirtualHubRouteResource) requiresImport(data acceptance.TestData) string {
+func (r VirtualHubRouteTableRouteResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_virtual_hub_route" "import" {
-  route_table_id = azurerm_virtual_hub_route.test.route_table_id
+resource "azurerm_virtual_hub_route_table_route" "import" {
+  route_table_id = azurerm_virtual_hub_route_table_route.test.route_table_id
 
-  name              = azurerm_virtual_hub_route.test.name
-  destinations_type = azurerm_virtual_hub_route.test.destinations_type
-  destinations      = azurerm_virtual_hub_route.test.destinations
-  next_hop_type     = azurerm_virtual_hub_route.test.next_hop_type
-  next_hop          = azurerm_virtual_hub_route.test.next_hop
+  name              = azurerm_virtual_hub_route_table_route.test.name
+  destinations_type = azurerm_virtual_hub_route_table_route.test.destinations_type
+  destinations      = azurerm_virtual_hub_route_table_route.test.destinations
+  next_hop_type     = azurerm_virtual_hub_route_table_route.test.next_hop_type
+  next_hop          = azurerm_virtual_hub_route_table_route.test.next_hop
 }
 `, r.basic(data))
 }
 
-func (r VirtualHubRouteResource) complete(data acceptance.TestData) string {
+func (r VirtualHubRouteTableRouteResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_hub_route" "test" {
+resource "azurerm_virtual_hub_route_table_route" "test" {
   route_table_id = azurerm_virtual_hub_route_table.test.id
 
   name = "acctest-Route-%d-renamed"
@@ -223,7 +223,7 @@ resource "azurerm_virtual_hub_route" "test" {
   next_hop          = azurerm_virtual_hub_connection.test.id
 }
 
-resource "azurerm_virtual_hub_route" "test_2" {
+resource "azurerm_virtual_hub_route_table_route" "test_2" {
   route_table_id = azurerm_virtual_hub_route_table.test.id
 
   name = "acctest-Route-%d"

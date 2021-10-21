@@ -18,12 +18,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceVirtualHubRoute() *pluginsdk.Resource {
+func resourceVirtualHubRouteTableRoute() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualHubRouteCreateUpdate,
-		Read:   resourceVirtualHubRouteRead,
-		Update: resourceVirtualHubRouteCreateUpdate,
-		Delete: resourceVirtualHubRouteDelete,
+		Create: resourceVirtualHubRouteTableRouteCreateUpdate,
+		Read:   resourceVirtualHubRouteTableRouteRead,
+		Update: resourceVirtualHubRouteTableRouteCreateUpdate,
+		Delete: resourceVirtualHubRouteTableRouteDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -89,7 +89,7 @@ func resourceVirtualHubRoute() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.HubRouteTableClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -117,7 +117,7 @@ func resourceVirtualHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	if d.IsNewResource() {
 		for _, r := range *routeTable.Routes {
 			if *r.Name == name {
-				return tf.ImportAsExistsError("azurerm_virtual_hub_route", id.ID())
+				return tf.ImportAsExistsError("azurerm_virtual_hub_route_table_route", id.ID())
 			}
 		}
 
@@ -155,10 +155,10 @@ func resourceVirtualHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	d.SetId(id.ID())
 
-	return resourceVirtualHubRouteRead(d, meta)
+	return resourceVirtualHubRouteTableRouteRead(d, meta)
 }
 
-func resourceVirtualHubRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.HubRouteTableClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -208,7 +208,7 @@ func resourceVirtualHubRouteRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceVirtualHubRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.HubRouteTableClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
