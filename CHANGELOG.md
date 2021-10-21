@@ -2,6 +2,7 @@
 
 FEATURES: 
 
+* **New Resource:** `azurerm_synapse_sql_pool_vulnerability_assessment_baseline` [GH-13744]
 * **New Resource:** `azurerm_virtual_hub_route_table_route` [GH-13743]
 
 IMPROVEMENTS:
