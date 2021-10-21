@@ -15,7 +15,7 @@ import (
 	"net/http"
 )
 
-// SnapshotPoliciesClient is the microsoft NetApp Azure Resource Provider specification
+// SnapshotPoliciesClient is the microsoft NetApp Files Azure Resource Provider specification
 type SnapshotPoliciesClient struct {
 	BaseClient
 }
@@ -37,7 +37,7 @@ func NewSnapshotPoliciesClientWithBaseURI(baseURI string, subscriptionID string)
 // body - snapshot policy object supplied in the body of the operation.
 // resourceGroupName - the name of the resource group.
 // accountName - the name of the NetApp account
-// snapshotPolicyName - the name of the snapshot policy target
+// snapshotPolicyName - the name of the snapshot policy
 func (client SnapshotPoliciesClient) Create(ctx context.Context, body SnapshotPolicy, resourceGroupName string, accountName string, snapshotPolicyName string) (result SnapshotPolicy, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SnapshotPoliciesClient.Create")
@@ -91,13 +91,14 @@ func (client SnapshotPoliciesClient) CreatePreparer(ctx context.Context, body Sn
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
 	body.ID = nil
 	body.Name = nil
+	body.Etag = nil
 	body.Type = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
@@ -131,7 +132,7 @@ func (client SnapshotPoliciesClient) CreateResponder(resp *http.Response) (resul
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // accountName - the name of the NetApp account
-// snapshotPolicyName - the name of the snapshot policy target
+// snapshotPolicyName - the name of the snapshot policy
 func (client SnapshotPoliciesClient) Delete(ctx context.Context, resourceGroupName string, accountName string, snapshotPolicyName string) (result SnapshotPoliciesDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SnapshotPoliciesClient.Delete")
@@ -175,7 +176,7 @@ func (client SnapshotPoliciesClient) DeletePreparer(ctx context.Context, resourc
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -219,7 +220,7 @@ func (client SnapshotPoliciesClient) DeleteResponder(resp *http.Response) (resul
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // accountName - the name of the NetApp account
-// snapshotPolicyName - the name of the snapshot policy target
+// snapshotPolicyName - the name of the snapshot policy
 func (client SnapshotPoliciesClient) Get(ctx context.Context, resourceGroupName string, accountName string, snapshotPolicyName string) (result SnapshotPolicy, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SnapshotPoliciesClient.Get")
@@ -270,7 +271,7 @@ func (client SnapshotPoliciesClient) GetPreparer(ctx context.Context, resourceGr
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -354,7 +355,7 @@ func (client SnapshotPoliciesClient) ListPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -389,7 +390,7 @@ func (client SnapshotPoliciesClient) ListResponder(resp *http.Response) (result 
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // accountName - the name of the NetApp account
-// snapshotPolicyName - the name of the snapshot policy target
+// snapshotPolicyName - the name of the snapshot policy
 func (client SnapshotPoliciesClient) ListVolumes(ctx context.Context, resourceGroupName string, accountName string, snapshotPolicyName string) (result SnapshotPolicyVolumeList, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SnapshotPoliciesClient.ListVolumes")
@@ -440,7 +441,7 @@ func (client SnapshotPoliciesClient) ListVolumesPreparer(ctx context.Context, re
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -448,7 +449,7 @@ func (client SnapshotPoliciesClient) ListVolumesPreparer(ctx context.Context, re
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.NetApp/netAppAccounts/{accountName}/snapshotPolicies/{snapshotPolicyName}/listVolumes", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.NetApp/netAppAccounts/{accountName}/snapshotPolicies/{snapshotPolicyName}/volumes", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -476,14 +477,14 @@ func (client SnapshotPoliciesClient) ListVolumesResponder(resp *http.Response) (
 // body - snapshot policy object supplied in the body of the operation.
 // resourceGroupName - the name of the resource group.
 // accountName - the name of the NetApp account
-// snapshotPolicyName - the name of the snapshot policy target
-func (client SnapshotPoliciesClient) Update(ctx context.Context, body SnapshotPolicyPatch, resourceGroupName string, accountName string, snapshotPolicyName string) (result SnapshotPolicy, err error) {
+// snapshotPolicyName - the name of the snapshot policy
+func (client SnapshotPoliciesClient) Update(ctx context.Context, body SnapshotPolicyPatch, resourceGroupName string, accountName string, snapshotPolicyName string) (result SnapshotPoliciesUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SnapshotPoliciesClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -502,16 +503,9 @@ func (client SnapshotPoliciesClient) Update(ctx context.Context, body SnapshotPo
 		return
 	}
 
-	resp, err := client.UpdateSender(req)
+	result, err = client.UpdateSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "netapp.SnapshotPoliciesClient", "Update", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.UpdateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.SnapshotPoliciesClient", "Update", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "netapp.SnapshotPoliciesClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -527,7 +521,7 @@ func (client SnapshotPoliciesClient) UpdatePreparer(ctx context.Context, body Sn
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -547,8 +541,18 @@ func (client SnapshotPoliciesClient) UpdatePreparer(ctx context.Context, body Sn
 
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
-func (client SnapshotPoliciesClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client SnapshotPoliciesClient) UpdateSender(req *http.Request) (future SnapshotPoliciesUpdateFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -556,7 +560,7 @@ func (client SnapshotPoliciesClient) UpdateSender(req *http.Request) (*http.Resp
 func (client SnapshotPoliciesClient) UpdateResponder(resp *http.Response) (result SnapshotPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}

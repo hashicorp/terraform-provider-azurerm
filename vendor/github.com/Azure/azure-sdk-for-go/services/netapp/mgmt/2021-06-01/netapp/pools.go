@@ -15,7 +15,7 @@ import (
 	"net/http"
 )
 
-// PoolsClient is the microsoft NetApp Azure Resource Provider specification
+// PoolsClient is the microsoft NetApp Files Azure Resource Provider specification
 type PoolsClient struct {
 	BaseClient
 }
@@ -97,13 +97,14 @@ func (client PoolsClient) CreateOrUpdatePreparer(ctx context.Context, body Capac
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
 	body.ID = nil
 	body.Name = nil
+	body.Etag = nil
 	body.Type = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
@@ -136,7 +137,7 @@ func (client PoolsClient) CreateOrUpdateSender(req *http.Request) (future PoolsC
 func (client PoolsClient) CreateOrUpdateResponder(resp *http.Response) (result CapacityPool, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -195,7 +196,7 @@ func (client PoolsClient) DeletePreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -294,7 +295,7 @@ func (client PoolsClient) GetPreparer(ctx context.Context, resourceGroupName str
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -329,13 +330,13 @@ func (client PoolsClient) GetResponder(resp *http.Response) (result CapacityPool
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // accountName - the name of the NetApp account
-func (client PoolsClient) List(ctx context.Context, resourceGroupName string, accountName string) (result CapacityPoolList, err error) {
+func (client PoolsClient) List(ctx context.Context, resourceGroupName string, accountName string) (result CapacityPoolListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PoolsClient.List")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.cpl.Response.Response != nil {
+				sc = result.cpl.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -348,6 +349,7 @@ func (client PoolsClient) List(ctx context.Context, resourceGroupName string, ac
 		return result, validation.NewError("netapp.PoolsClient", "List", err.Error())
 	}
 
+	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, resourceGroupName, accountName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.PoolsClient", "List", nil, "Failure preparing request")
@@ -356,14 +358,18 @@ func (client PoolsClient) List(ctx context.Context, resourceGroupName string, ac
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.cpl.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "netapp.PoolsClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListResponder(resp)
+	result.cpl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.PoolsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.cpl.hasNextLink() && result.cpl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 		return
 	}
 
@@ -378,7 +384,7 @@ func (client PoolsClient) ListPreparer(ctx context.Context, resourceGroupName st
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -406,6 +412,43 @@ func (client PoolsClient) ListResponder(resp *http.Response) (result CapacityPoo
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listNextResults retrieves the next set of results, if any.
+func (client PoolsClient) listNextResults(ctx context.Context, lastResults CapacityPoolList) (result CapacityPoolList, err error) {
+	req, err := lastResults.capacityPoolListPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "netapp.PoolsClient", "listNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "netapp.PoolsClient", "listNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "netapp.PoolsClient", "listNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListComplete enumerates all values, automatically crossing page boundaries as required.
+func (client PoolsClient) ListComplete(ctx context.Context, resourceGroupName string, accountName string) (result CapacityPoolListIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PoolsClient.List")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.List(ctx, resourceGroupName, accountName)
 	return
 }
 
@@ -462,7 +505,7 @@ func (client PoolsClient) UpdatePreparer(ctx context.Context, body CapacityPoolP
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

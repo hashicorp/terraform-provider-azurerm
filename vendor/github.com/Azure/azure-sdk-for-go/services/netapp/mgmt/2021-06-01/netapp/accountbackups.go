@@ -15,7 +15,7 @@ import (
 	"net/http"
 )
 
-// AccountBackupsClient is the microsoft NetApp Azure Resource Provider specification
+// AccountBackupsClient is the microsoft NetApp Files Azure Resource Provider specification
 type AccountBackupsClient struct {
 	BaseClient
 }
@@ -31,7 +31,7 @@ func NewAccountBackupsClientWithBaseURI(baseURI string, subscriptionID string) A
 	return AccountBackupsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Delete delete Backup for a Netapp Account
+// Delete delete the specified Backup for a Netapp Account
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // accountName - the name of the NetApp account
@@ -79,7 +79,7 @@ func (client AccountBackupsClient) DeletePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -119,7 +119,7 @@ func (client AccountBackupsClient) DeleteResponder(resp *http.Response) (result 
 	return
 }
 
-// Get get Backup for a Netapp Account
+// Get gets the specified backup for a Netapp Account
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // accountName - the name of the NetApp account
@@ -174,7 +174,7 @@ func (client AccountBackupsClient) GetPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -258,7 +258,7 @@ func (client AccountBackupsClient) ListPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

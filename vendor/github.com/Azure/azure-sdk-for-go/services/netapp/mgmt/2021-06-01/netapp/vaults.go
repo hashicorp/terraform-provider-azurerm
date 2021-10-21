@@ -15,7 +15,7 @@ import (
 	"net/http"
 )
 
-// VaultsClient is the microsoft NetApp Azure Resource Provider specification
+// VaultsClient is the microsoft NetApp Files Azure Resource Provider specification
 type VaultsClient struct {
 	BaseClient
 }
@@ -84,7 +84,7 @@ func (client VaultsClient) ListPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

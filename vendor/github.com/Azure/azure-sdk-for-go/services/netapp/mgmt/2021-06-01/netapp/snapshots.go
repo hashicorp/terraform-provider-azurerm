@@ -15,7 +15,7 @@ import (
 	"net/http"
 )
 
-// SnapshotsClient is the microsoft NetApp Azure Resource Provider specification
+// SnapshotsClient is the microsoft NetApp Files Azure Resource Provider specification
 type SnapshotsClient struct {
 	BaseClient
 }
@@ -38,7 +38,7 @@ func NewSnapshotsClientWithBaseURI(baseURI string, subscriptionID string) Snapsh
 // accountName - the name of the NetApp account
 // poolName - the name of the capacity pool
 // volumeName - the name of the volume
-// snapshotName - the name of the mount target
+// snapshotName - the name of the snapshot
 func (client SnapshotsClient) Create(ctx context.Context, body Snapshot, resourceGroupName string, accountName string, poolName string, volumeName string, snapshotName string) (result SnapshotsCreateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SnapshotsClient.Create")
@@ -101,7 +101,7 @@ func (client SnapshotsClient) CreatePreparer(ctx context.Context, body Snapshot,
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -153,7 +153,7 @@ func (client SnapshotsClient) CreateResponder(resp *http.Response) (result Snaps
 // accountName - the name of the NetApp account
 // poolName - the name of the capacity pool
 // volumeName - the name of the volume
-// snapshotName - the name of the mount target
+// snapshotName - the name of the snapshot
 func (client SnapshotsClient) Delete(ctx context.Context, resourceGroupName string, accountName string, poolName string, volumeName string, snapshotName string) (result SnapshotsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SnapshotsClient.Delete")
@@ -207,7 +207,7 @@ func (client SnapshotsClient) DeletePreparer(ctx context.Context, resourceGroupN
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -253,7 +253,7 @@ func (client SnapshotsClient) DeleteResponder(resp *http.Response) (result autor
 // accountName - the name of the NetApp account
 // poolName - the name of the capacity pool
 // volumeName - the name of the volume
-// snapshotName - the name of the mount target
+// snapshotName - the name of the snapshot
 func (client SnapshotsClient) Get(ctx context.Context, resourceGroupName string, accountName string, poolName string, volumeName string, snapshotName string) (result Snapshot, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SnapshotsClient.Get")
@@ -314,7 +314,7 @@ func (client SnapshotsClient) GetPreparer(ctx context.Context, resourceGroupName
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -410,7 +410,7 @@ func (client SnapshotsClient) ListPreparer(ctx context.Context, resourceGroupNam
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -448,7 +448,7 @@ func (client SnapshotsClient) ListResponder(resp *http.Response) (result Snapsho
 // accountName - the name of the NetApp account
 // poolName - the name of the capacity pool
 // volumeName - the name of the volume
-// snapshotName - the name of the mount target
+// snapshotName - the name of the snapshot
 func (client SnapshotsClient) Update(ctx context.Context, body interface{}, resourceGroupName string, accountName string, poolName string, volumeName string, snapshotName string) (result SnapshotsUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SnapshotsClient.Update")
@@ -502,7 +502,7 @@ func (client SnapshotsClient) UpdatePreparer(ctx context.Context, body interface
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -15,7 +15,7 @@ import (
 	"net/http"
 )
 
-// VolumesClient is the microsoft NetApp Azure Resource Provider specification
+// VolumesClient is the microsoft NetApp Files Azure Resource Provider specification
 type VolumesClient struct {
 	BaseClient
 }
@@ -90,7 +90,7 @@ func (client VolumesClient) AuthorizeReplicationPreparer(ctx context.Context, re
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -191,7 +191,7 @@ func (client VolumesClient) BreakReplicationPreparer(ctx context.Context, resour
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -283,14 +283,26 @@ func (client VolumesClient) CreateOrUpdate(ctx context.Context, body Volume, res
 								{Target: "body.VolumeProperties.BackupID", Name: validation.Pattern, Rule: `^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}|(\\?([^\/]*[\/])*)([^\/]+)$`, Chain: nil},
 							}},
 						{Target: "body.VolumeProperties.SubnetID", Name: validation.Null, Rule: true, Chain: nil},
+						{Target: "body.VolumeProperties.NetworkSiblingSetID", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "body.VolumeProperties.NetworkSiblingSetID", Name: validation.MaxLength, Rule: 36, Chain: nil},
+								{Target: "body.VolumeProperties.NetworkSiblingSetID", Name: validation.MinLength, Rule: 36, Chain: nil},
+								{Target: "body.VolumeProperties.NetworkSiblingSetID", Name: validation.Pattern, Rule: `^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$`, Chain: nil},
+							}},
 						{Target: "body.VolumeProperties.DataProtection", Name: validation.Null, Rule: false,
 							Chain: []validation.Constraint{{Target: "body.VolumeProperties.DataProtection.Replication", Name: validation.Null, Rule: false,
 								Chain: []validation.Constraint{{Target: "body.VolumeProperties.DataProtection.Replication.RemoteVolumeResourceID", Name: validation.Null, Rule: true, Chain: nil}}},
 							}},
 						{Target: "body.VolumeProperties.ThroughputMibps", Name: validation.Null, Rule: false,
 							Chain: []validation.Constraint{{Target: "body.VolumeProperties.ThroughputMibps", Name: validation.InclusiveMaximum, Rule: float64(4500), Chain: nil},
-								{Target: "body.VolumeProperties.ThroughputMibps", Name: validation.InclusiveMinimum, Rule: float64(1), Chain: nil},
-								{Target: "body.VolumeProperties.ThroughputMibps", Name: validation.MultipleOf, Rule: 0.001, Chain: nil},
+								{Target: "body.VolumeProperties.ThroughputMibps", Name: validation.InclusiveMinimum, Rule: float64(0), Chain: nil},
+							}},
+						{Target: "body.VolumeProperties.CoolnessPeriod", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "body.VolumeProperties.CoolnessPeriod", Name: validation.InclusiveMaximum, Rule: int64(63), Chain: nil},
+								{Target: "body.VolumeProperties.CoolnessPeriod", Name: validation.InclusiveMinimum, Rule: int64(7), Chain: nil},
+							}},
+						{Target: "body.VolumeProperties.UnixPermissions", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "body.VolumeProperties.UnixPermissions", Name: validation.MaxLength, Rule: 4, Chain: nil},
+								{Target: "body.VolumeProperties.UnixPermissions", Name: validation.MinLength, Rule: 4, Chain: nil},
 							}},
 					}}}},
 		{TargetValue: resourceGroupName,
@@ -333,13 +345,14 @@ func (client VolumesClient) CreateOrUpdatePreparer(ctx context.Context, body Vol
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
 	body.ID = nil
 	body.Name = nil
+	body.Etag = nil
 	body.Type = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
@@ -437,7 +450,7 @@ func (client VolumesClient) DeletePreparer(ctx context.Context, resourceGroupNam
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -536,7 +549,7 @@ func (client VolumesClient) DeleteReplicationPreparer(ctx context.Context, resou
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -641,7 +654,7 @@ func (client VolumesClient) GetPreparer(ctx context.Context, resourceGroupName s
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -736,7 +749,7 @@ func (client VolumesClient) ListPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -865,7 +878,7 @@ func (client VolumesClient) PoolChangePreparer(ctx context.Context, resourceGrou
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -965,7 +978,7 @@ func (client VolumesClient) ReInitializeReplicationPreparer(ctx context.Context,
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1070,7 +1083,7 @@ func (client VolumesClient) ReplicationStatusMethodPreparer(ctx context.Context,
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1160,7 +1173,7 @@ func (client VolumesClient) ResyncReplicationPreparer(ctx context.Context, resou
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1259,7 +1272,7 @@ func (client VolumesClient) RevertPreparer(ctx context.Context, resourceGroupNam
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1360,7 +1373,7 @@ func (client VolumesClient) UpdatePreparer(ctx context.Context, body VolumePatch
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2020-09-01/netapp"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-06-01/netapp"
 
 // Account netApp account resource
 type Account struct {
@@ -29,12 +29,16 @@ type Account struct {
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
+	// Etag - READ-ONLY; A unique read-only string that changes whenever the resource is updated.
+	Etag *string `json:"etag,omitempty"`
 	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 	// Tags - Resource tags
 	Tags map[string]*string `json:"tags"`
 	// AccountProperties - NetApp Account properties
 	*AccountProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; The system meta data relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Account.
@@ -88,6 +92,15 @@ func (a *Account) UnmarshalJSON(body []byte) error {
 				}
 				a.Name = &name
 			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				a.Etag = &etag
+			}
 		case "type":
 			if v != nil {
 				var typeVar string
@@ -114,6 +127,15 @@ func (a *Account) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				a.AccountProperties = &accountProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				a.SystemData = &systemData
 			}
 		}
 	}
@@ -158,11 +180,169 @@ func (future *AccountBackupsDeleteFuture) result(client AccountBackupsClient) (a
 	return
 }
 
+// AccountEncryption encryption settings
+type AccountEncryption struct {
+	// KeySource - Encryption Key Source. Possible values are: 'Microsoft.NetApp'.
+	KeySource *string `json:"keySource,omitempty"`
+}
+
 // AccountList list of NetApp account resources
 type AccountList struct {
 	autorest.Response `json:"-"`
 	// Value - Multiple NetApp accounts
 	Value *[]Account `json:"value,omitempty"`
+	// NextLink - URL to get the next set of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// AccountListIterator provides access to a complete listing of Account values.
+type AccountListIterator struct {
+	i    int
+	page AccountListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *AccountListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AccountListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *AccountListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter AccountListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter AccountListIterator) Response() AccountList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter AccountListIterator) Value() Account {
+	if !iter.page.NotDone() {
+		return Account{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the AccountListIterator type.
+func NewAccountListIterator(page AccountListPage) AccountListIterator {
+	return AccountListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (al AccountList) IsEmpty() bool {
+	return al.Value == nil || len(*al.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (al AccountList) hasNextLink() bool {
+	return al.NextLink != nil && len(*al.NextLink) != 0
+}
+
+// accountListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (al AccountList) accountListPreparer(ctx context.Context) (*http.Request, error) {
+	if !al.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(al.NextLink)))
+}
+
+// AccountListPage contains a page of Account values.
+type AccountListPage struct {
+	fn func(context.Context, AccountList) (AccountList, error)
+	al AccountList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *AccountListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AccountListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.al)
+		if err != nil {
+			return err
+		}
+		page.al = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *AccountListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page AccountListPage) NotDone() bool {
+	return !page.al.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page AccountListPage) Response() AccountList {
+	return page.al
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page AccountListPage) Values() []Account {
+	if page.al.IsEmpty() {
+		return nil
+	}
+	return *page.al.Value
+}
+
+// Creates a new instance of the AccountListPage type.
+func NewAccountListPage(cur AccountList, getNextPage func(context.Context, AccountList) (AccountList, error)) AccountListPage {
+	return AccountListPage{
+		fn: getNextPage,
+		al: cur,
+	}
 }
 
 // AccountPatch netApp account patch resource
@@ -271,6 +451,8 @@ type AccountProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// ActiveDirectories - Active Directories
 	ActiveDirectories *[]ActiveDirectory `json:"activeDirectories,omitempty"`
+	// Encryption - Encryption settings
+	Encryption *AccountEncryption `json:"encryption,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AccountProperties.
@@ -278,6 +460,9 @@ func (ap AccountProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ap.ActiveDirectories != nil {
 		objectMap["activeDirectories"] = ap.ActiveDirectories
+	}
+	if ap.Encryption != nil {
+		objectMap["encryption"] = ap.Encryption
 	}
 	return json.Marshal(objectMap)
 }
@@ -417,7 +602,7 @@ type ActiveDirectory struct {
 	Domain *string `json:"domain,omitempty"`
 	// DNS - Comma separated list of DNS server IP addresses (IPv4 only) for the Active Directory domain
 	DNS *string `json:"dns,omitempty"`
-	// Status - READ-ONLY; Status of the Active Directory. Possible values include: 'Created', 'InUse', 'Deleted', 'Error', 'Updating'
+	// Status - READ-ONLY; Status of the Active Directory. Possible values include: 'ActiveDirectoryStatusCreated', 'ActiveDirectoryStatusInUse', 'ActiveDirectoryStatusDeleted', 'ActiveDirectoryStatusError', 'ActiveDirectoryStatusUpdating'
 	Status ActiveDirectoryStatus `json:"status,omitempty"`
 	// StatusDetails - READ-ONLY; Any details in regards to the Status of the Active Directory
 	StatusDetails *string `json:"statusDetails,omitempty"`
@@ -429,6 +614,8 @@ type ActiveDirectory struct {
 	Site *string `json:"site,omitempty"`
 	// BackupOperators - Users to be added to the Built-in Backup Operator active directory group. A list of unique usernames without domain specifier
 	BackupOperators *[]string `json:"backupOperators,omitempty"`
+	// Administrators - Users to be added to the Built-in Administrators active directory group. A list of unique usernames without domain specifier
+	Administrators *[]string `json:"administrators,omitempty"`
 	// KdcIP - kdc server IP addresses for the active directory machine. This optional parameter is used only while creating kerberos volume.
 	KdcIP *string `json:"kdcIP,omitempty"`
 	// AdName - Name of the active directory machine. This optional parameter is used only while creating kerberos volume
@@ -441,6 +628,10 @@ type ActiveDirectory struct {
 	LdapSigning *bool `json:"ldapSigning,omitempty"`
 	// SecurityOperators - Domain Users in the Active directory to be given SeSecurityPrivilege privilege (Needed for SMB Continuously available shares for SQL). A list of unique usernames without domain specifier
 	SecurityOperators *[]string `json:"securityOperators,omitempty"`
+	// LdapOverTLS - Specifies whether or not the LDAP traffic needs to be secured via TLS.
+	LdapOverTLS *bool `json:"ldapOverTLS,omitempty"`
+	// AllowLocalNfsUsersWithLdap -  If enabled, NFS client local users can also (in addition to LDAP users) access the NFS volumes.
+	AllowLocalNfsUsersWithLdap *bool `json:"allowLocalNfsUsersWithLdap,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ActiveDirectory.
@@ -473,6 +664,9 @@ func (ad ActiveDirectory) MarshalJSON() ([]byte, error) {
 	if ad.BackupOperators != nil {
 		objectMap["backupOperators"] = ad.BackupOperators
 	}
+	if ad.Administrators != nil {
+		objectMap["administrators"] = ad.Administrators
+	}
 	if ad.KdcIP != nil {
 		objectMap["kdcIP"] = ad.KdcIP
 	}
@@ -491,6 +685,12 @@ func (ad ActiveDirectory) MarshalJSON() ([]byte, error) {
 	if ad.SecurityOperators != nil {
 		objectMap["securityOperators"] = ad.SecurityOperators
 	}
+	if ad.LdapOverTLS != nil {
+		objectMap["ldapOverTLS"] = ad.LdapOverTLS
+	}
+	if ad.AllowLocalNfsUsersWithLdap != nil {
+		objectMap["allowLocalNfsUsersWithLdap"] = ad.AllowLocalNfsUsersWithLdap
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -498,6 +698,24 @@ func (ad ActiveDirectory) MarshalJSON() ([]byte, error) {
 type AuthorizeRequest struct {
 	// RemoteVolumeResourceID - Resource id of the remote volume
 	RemoteVolumeResourceID *string `json:"remoteVolumeResourceId,omitempty"`
+}
+
+// AzureEntityResource the resource model definition for an Azure Resource Manager resource with an etag.
+type AzureEntityResource struct {
+	// Etag - READ-ONLY; Resource Etag.
+	Etag *string `json:"etag,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AzureEntityResource.
+func (aer AzureEntityResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Backup backup of a Volume
@@ -727,6 +945,49 @@ type BackupPoliciesList struct {
 	Value *[]BackupPolicy `json:"value,omitempty"`
 }
 
+// BackupPoliciesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type BackupPoliciesUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(BackupPoliciesClient) (BackupPolicy, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *BackupPoliciesUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for BackupPoliciesUpdateFuture.Result.
+func (future *BackupPoliciesUpdateFuture) result(client BackupPoliciesClient) (bp BackupPolicy, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "netapp.BackupPoliciesUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		bp.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("netapp.BackupPoliciesUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if bp.Response.Response, err = future.GetResult(sender); err == nil && bp.Response.Response.StatusCode != http.StatusNoContent {
+		bp, err = client.UpdateResponder(bp.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "netapp.BackupPoliciesUpdateFuture", "Result", bp.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // BackupPolicy backup policy information
 type BackupPolicy struct {
 	autorest.Response `json:"-"`
@@ -736,6 +997,8 @@ type BackupPolicy struct {
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
+	// Etag - READ-ONLY; A unique read-only string that changes whenever the resource is updated.
+	Etag *string `json:"etag,omitempty"`
 	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 	// Tags - Resource tags
@@ -794,6 +1057,15 @@ func (bp *BackupPolicy) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				bp.Name = &name
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				bp.Etag = &etag
 			}
 		case "type":
 			if v != nil {
@@ -1032,6 +1304,8 @@ func (bpp *BackupPolicyPatch) UnmarshalJSON(body []byte) error {
 type BackupPolicyProperties struct {
 	// Name - READ-ONLY; Name of backup policy
 	Name *string `json:"name,omitempty"`
+	// BackupPolicyID - READ-ONLY; Backup Policy Resource ID
+	BackupPolicyID *string `json:"backupPolicyId,omitempty"`
 	// ProvisioningState - READ-ONLY; Azure lifecycle management
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// DailyBackupsToKeep - Daily backups count to keep
@@ -1040,13 +1314,11 @@ type BackupPolicyProperties struct {
 	WeeklyBackupsToKeep *int32 `json:"weeklyBackupsToKeep,omitempty"`
 	// MonthlyBackupsToKeep - Monthly backups count to keep
 	MonthlyBackupsToKeep *int32 `json:"monthlyBackupsToKeep,omitempty"`
-	// YearlyBackupsToKeep - Yearly backups count to keep
-	YearlyBackupsToKeep *int32 `json:"yearlyBackupsToKeep,omitempty"`
-	// VolumesAssigned - Volumes using current backup policy
+	// VolumesAssigned - READ-ONLY; Volumes using current backup policy
 	VolumesAssigned *int32 `json:"volumesAssigned,omitempty"`
 	// Enabled - The property to decide policy is enabled or not
 	Enabled *bool `json:"enabled,omitempty"`
-	// VolumeBackups - A list of volumes assigned to this policy
+	// VolumeBackups - READ-ONLY; A list of volumes assigned to this policy
 	VolumeBackups *[]VolumeBackups `json:"volumeBackups,omitempty"`
 }
 
@@ -1062,17 +1334,8 @@ func (bpp BackupPolicyProperties) MarshalJSON() ([]byte, error) {
 	if bpp.MonthlyBackupsToKeep != nil {
 		objectMap["monthlyBackupsToKeep"] = bpp.MonthlyBackupsToKeep
 	}
-	if bpp.YearlyBackupsToKeep != nil {
-		objectMap["yearlyBackupsToKeep"] = bpp.YearlyBackupsToKeep
-	}
-	if bpp.VolumesAssigned != nil {
-		objectMap["volumesAssigned"] = bpp.VolumesAssigned
-	}
 	if bpp.Enabled != nil {
 		objectMap["enabled"] = bpp.Enabled
-	}
-	if bpp.VolumeBackups != nil {
-		objectMap["volumeBackups"] = bpp.VolumeBackups
 	}
 	return json.Marshal(objectMap)
 }
@@ -1089,8 +1352,14 @@ type BackupProperties struct {
 	Size *int64 `json:"size,omitempty"`
 	// Label - Label for backup
 	Label *string `json:"label,omitempty"`
-	// BackupType - READ-ONLY; Type of backup adhoc or scheduled
-	BackupType *string `json:"backupType,omitempty"`
+	// BackupType - READ-ONLY; Type of backup Manual or Scheduled. Possible values include: 'BackupTypeManual', 'BackupTypeScheduled'
+	BackupType BackupType `json:"backupType,omitempty"`
+	// FailureReason - READ-ONLY; Failure reason
+	FailureReason *string `json:"failureReason,omitempty"`
+	// VolumeName - READ-ONLY; Volume name
+	VolumeName *string `json:"volumeName,omitempty"`
+	// UseExistingSnapshot - Manual backup an already existing snapshot. This will always be false for scheduled backups and true/false for manual backups
+	UseExistingSnapshot *bool `json:"useExistingSnapshot,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for BackupProperties.
@@ -1098,6 +1367,9 @@ func (bp BackupProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if bp.Label != nil {
 		objectMap["label"] = bp.Label
+	}
+	if bp.UseExistingSnapshot != nil {
+		objectMap["useExistingSnapshot"] = bp.UseExistingSnapshot
 	}
 	return json.Marshal(objectMap)
 }
@@ -1189,6 +1461,76 @@ type BackupsList struct {
 	Value *[]Backup `json:"value,omitempty"`
 }
 
+// BackupStatus backup status
+type BackupStatus struct {
+	autorest.Response `json:"-"`
+	// Healthy - READ-ONLY; Backup health status
+	Healthy *bool `json:"healthy,omitempty"`
+	// RelationshipStatus - READ-ONLY; Status of the backup mirror relationship. Possible values include: 'RelationshipStatusIdle', 'RelationshipStatusTransferring'
+	RelationshipStatus RelationshipStatus `json:"relationshipStatus,omitempty"`
+	// MirrorState - READ-ONLY; The status of the backup. Possible values include: 'MirrorStateUninitialized', 'MirrorStateMirrored', 'MirrorStateBroken'
+	MirrorState MirrorState `json:"mirrorState,omitempty"`
+	// UnhealthyReason - READ-ONLY; Reason for the unhealthy backup relationship
+	UnhealthyReason *string `json:"unhealthyReason,omitempty"`
+	// ErrorMessage - READ-ONLY; Displays error message if the backup is in an error state
+	ErrorMessage *string `json:"errorMessage,omitempty"`
+	// LastTransferSize - READ-ONLY; Displays the last transfer size
+	LastTransferSize *int64 `json:"lastTransferSize,omitempty"`
+	// LastTransferType - READ-ONLY; Displays the last transfer type
+	LastTransferType *string `json:"lastTransferType,omitempty"`
+	// TotalTransferBytes - READ-ONLY; Displays the total bytes transferred
+	TotalTransferBytes *int64 `json:"totalTransferBytes,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for BackupStatus.
+func (bs BackupStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// BackupsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type BackupsUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(BackupsClient) (Backup, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *BackupsUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for BackupsUpdateFuture.Result.
+func (future *BackupsUpdateFuture) result(client BackupsClient) (b Backup, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "netapp.BackupsUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		b.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("netapp.BackupsUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if b.Response.Response, err = future.GetResult(sender); err == nil && b.Response.Response.StatusCode != http.StatusNoContent {
+		b, err = client.UpdateResponder(b.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "netapp.BackupsUpdateFuture", "Result", b.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // BreakReplicationRequest break replication request
 type BreakReplicationRequest struct {
 	// ForceBreakReplication - If replication is in status transferring and you want to force break the replication, set to true
@@ -1204,6 +1546,8 @@ type CapacityPool struct {
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
+	// Etag - READ-ONLY; A unique read-only string that changes whenever the resource is updated.
+	Etag *string `json:"etag,omitempty"`
 	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 	// Tags - Resource tags
@@ -1263,6 +1607,15 @@ func (cp *CapacityPool) UnmarshalJSON(body []byte) error {
 				}
 				cp.Name = &name
 			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				cp.Etag = &etag
+			}
 		case "type":
 			if v != nil {
 				var typeVar string
@@ -1301,6 +1654,158 @@ type CapacityPoolList struct {
 	autorest.Response `json:"-"`
 	// Value - List of Capacity pools
 	Value *[]CapacityPool `json:"value,omitempty"`
+	// NextLink - URL to get the next set of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// CapacityPoolListIterator provides access to a complete listing of CapacityPool values.
+type CapacityPoolListIterator struct {
+	i    int
+	page CapacityPoolListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *CapacityPoolListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/CapacityPoolListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *CapacityPoolListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter CapacityPoolListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter CapacityPoolListIterator) Response() CapacityPoolList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter CapacityPoolListIterator) Value() CapacityPool {
+	if !iter.page.NotDone() {
+		return CapacityPool{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the CapacityPoolListIterator type.
+func NewCapacityPoolListIterator(page CapacityPoolListPage) CapacityPoolListIterator {
+	return CapacityPoolListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (cpl CapacityPoolList) IsEmpty() bool {
+	return cpl.Value == nil || len(*cpl.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (cpl CapacityPoolList) hasNextLink() bool {
+	return cpl.NextLink != nil && len(*cpl.NextLink) != 0
+}
+
+// capacityPoolListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (cpl CapacityPoolList) capacityPoolListPreparer(ctx context.Context) (*http.Request, error) {
+	if !cpl.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(cpl.NextLink)))
+}
+
+// CapacityPoolListPage contains a page of CapacityPool values.
+type CapacityPoolListPage struct {
+	fn  func(context.Context, CapacityPoolList) (CapacityPoolList, error)
+	cpl CapacityPoolList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *CapacityPoolListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/CapacityPoolListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.cpl)
+		if err != nil {
+			return err
+		}
+		page.cpl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *CapacityPoolListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page CapacityPoolListPage) NotDone() bool {
+	return !page.cpl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page CapacityPoolListPage) Response() CapacityPoolList {
+	return page.cpl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page CapacityPoolListPage) Values() []CapacityPool {
+	if page.cpl.IsEmpty() {
+		return nil
+	}
+	return *page.cpl.Value
+}
+
+// Creates a new instance of the CapacityPoolListPage type.
+func NewCapacityPoolListPage(cur CapacityPoolList, getNextPage func(context.Context, CapacityPoolList) (CapacityPoolList, error)) CapacityPoolListPage {
+	return CapacityPoolListPage{
+		fn:  getNextPage,
+		cpl: cur,
+	}
 }
 
 // CapacityPoolPatch capacity pool patch resource
@@ -1408,9 +1913,23 @@ type CheckAvailabilityResponse struct {
 	autorest.Response `json:"-"`
 	// IsAvailable - <code>true</code> indicates name is valid and available. <code>false</code> indicates the name is invalid, unavailable, or both.
 	IsAvailable *bool `json:"isAvailable,omitempty"`
-	// Reason - <code>Invalid</code> indicates the name provided does not match Azure App Service naming requirements. <code>AlreadyExists</code> indicates that the name is already in use and is therefore unavailable. Possible values include: 'Invalid', 'AlreadyExists'
+	// Reason - <code>Invalid</code> indicates the name provided does not match Azure App Service naming requirements. <code>AlreadyExists</code> indicates that the name is already in use and is therefore unavailable. Possible values include: 'InAvailabilityReasonTypeInvalid', 'InAvailabilityReasonTypeAlreadyExists'
 	Reason InAvailabilityReasonType `json:"reason,omitempty"`
 	// Message - If reason == invalid, provide the user with the reason why the given name is invalid, and provide the resource naming requirements so that the user can select a valid name. If reason == AlreadyExists, explain that resource name is already in use, and direct them to select a different name.
+	Message *string `json:"message,omitempty"`
+}
+
+// CloudError an error response from the service.
+type CloudError struct {
+	// Error - Cloud error body.
+	Error *CloudErrorBody `json:"error,omitempty"`
+}
+
+// CloudErrorBody an error response from the service.
+type CloudErrorBody struct {
+	// Code - An identifier for the error. Codes are invariant and are intended to be consumed programmatically.
+	Code *string `json:"code,omitempty"`
+	// Message - A message describing the error, intended to be suitable for display in a user interface.
 	Message *string `json:"message,omitempty"`
 }
 
@@ -1464,6 +1983,17 @@ type ExportPolicyRule struct {
 	AllowedClients *string `json:"allowedClients,omitempty"`
 	// HasRootAccess - Has root access to volume
 	HasRootAccess *bool `json:"hasRootAccess,omitempty"`
+	// ChownMode - This parameter specifies who is authorized to change the ownership of a file. restricted - Only root user can change the ownership of the file. unrestricted - Non-root users can change ownership of files that they own. Possible values include: 'ChownModeRestricted', 'ChownModeUnrestricted'
+	ChownMode ChownMode `json:"chownMode,omitempty"`
+}
+
+// FilePathAvailabilityRequest file path availability request content - availability is based on the name
+// and the subnetId.
+type FilePathAvailabilityRequest struct {
+	// Name - File path to verify.
+	Name *string `json:"name,omitempty"`
+	// SubnetID - The Azure Resource URI for a delegated subnet. Must have the delegation Microsoft.NetApp/volumes
+	SubnetID *string `json:"subnetId,omitempty"`
 }
 
 // HourlySchedule hourly Schedule properties
@@ -1476,6 +2006,12 @@ type HourlySchedule struct {
 	UsedBytes *int64 `json:"usedBytes,omitempty"`
 }
 
+// LogSpecification log Definition of a single resource metric.
+type LogSpecification struct {
+	Name        *string `json:"name,omitempty"`
+	DisplayName *string `json:"displayName,omitempty"`
+}
+
 // MetricSpecification metric specification of operation.
 type MetricSpecification struct {
 	// Name - Name of metric specification.
@@ -1486,6 +2022,18 @@ type MetricSpecification struct {
 	DisplayDescription *string `json:"displayDescription,omitempty"`
 	// Unit - Unit could be Bytes or Count.
 	Unit *string `json:"unit,omitempty"`
+	// SupportedAggregationTypes - Support metric aggregation type.
+	SupportedAggregationTypes *[]MetricAggregationType `json:"supportedAggregationTypes,omitempty"`
+	// SupportedTimeGrainTypes - The supported time grain types for the metrics.
+	SupportedTimeGrainTypes *[]string `json:"supportedTimeGrainTypes,omitempty"`
+	// InternalMetricName - The internal metric name.
+	InternalMetricName *string `json:"internalMetricName,omitempty"`
+	// EnableRegionalMdmAccount - Whether or not the service is using regional MDM accounts.
+	EnableRegionalMdmAccount *bool `json:"enableRegionalMdmAccount,omitempty"`
+	// SourceMdmAccount - The source MDM account.
+	SourceMdmAccount *string `json:"sourceMdmAccount,omitempty"`
+	// SourceMdmNamespace - The source MDM namespace.
+	SourceMdmNamespace *string `json:"sourceMdmNamespace,omitempty"`
 	// Dimensions - Dimensions of blobs, including blob type and access tier.
 	Dimensions *[]Dimension `json:"dimensions,omitempty"`
 	// AggregationType - Aggregation type could be Average.
@@ -1496,6 +2044,8 @@ type MetricSpecification struct {
 	Category *string `json:"category,omitempty"`
 	// ResourceIDDimensionNameOverride - Account Resource Id.
 	ResourceIDDimensionNameOverride *string `json:"resourceIdDimensionNameOverride,omitempty"`
+	// IsInternal - Whether the metric is internal.
+	IsInternal *bool `json:"isInternal,omitempty"`
 }
 
 // MonthlySchedule monthly Schedule properties
@@ -1753,7 +2303,7 @@ type PoolChangeRequest struct {
 type PoolPatchProperties struct {
 	// Size - Provisioned size of the pool (in bytes). Allowed values are in 4TiB chunks (value must be multiply of 4398046511104).
 	Size *int64 `json:"size,omitempty"`
-	// QosType - The qos type of the pool. Possible values include: 'Auto', 'Manual'
+	// QosType - The qos type of the pool. Possible values include: 'QosTypeAuto', 'QosTypeManual'
 	QosType QosType `json:"qosType,omitempty"`
 }
 
@@ -1763,7 +2313,7 @@ type PoolProperties struct {
 	PoolID *string `json:"poolId,omitempty"`
 	// Size - Provisioned size of the pool (in bytes). Allowed values are in 4TiB chunks (value must be multiply of 4398046511104).
 	Size *int64 `json:"size,omitempty"`
-	// ServiceLevel - The service level of the file system. Possible values include: 'Standard', 'Premium', 'Ultra'
+	// ServiceLevel - Possible values include: 'ServiceLevelStandard', 'ServiceLevelPremium', 'ServiceLevelUltra', 'ServiceLevelStandardZRS'
 	ServiceLevel ServiceLevel `json:"serviceLevel,omitempty"`
 	// ProvisioningState - READ-ONLY; Azure lifecycle management
 	ProvisioningState *string `json:"provisioningState,omitempty"`
@@ -1771,8 +2321,12 @@ type PoolProperties struct {
 	TotalThroughputMibps *float64 `json:"totalThroughputMibps,omitempty"`
 	// UtilizedThroughputMibps - READ-ONLY; Utilized throughput of pool in Mibps
 	UtilizedThroughputMibps *float64 `json:"utilizedThroughputMibps,omitempty"`
-	// QosType - The qos type of the pool. Possible values include: 'Auto', 'Manual'
+	// QosType - The qos type of the pool. Possible values include: 'QosTypeAuto', 'QosTypeManual'
 	QosType QosType `json:"qosType,omitempty"`
+	// CoolAccess - If enabled (true) the pool can contain cool Access enabled volumes.
+	CoolAccess *bool `json:"coolAccess,omitempty"`
+	// EncryptionType - Encryption type of the capacity pool, set encryption type for data at rest for this pool and all volumes in it. This value can only be set when creating new pool. Possible values include: 'EncryptionTypeSingle', 'EncryptionTypeDouble'
+	EncryptionType EncryptionType `json:"encryptionType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for PoolProperties.
@@ -1786,6 +2340,12 @@ func (pp PoolProperties) MarshalJSON() ([]byte, error) {
 	}
 	if pp.QosType != "" {
 		objectMap["qosType"] = pp.QosType
+	}
+	if pp.CoolAccess != nil {
+		objectMap["coolAccess"] = pp.CoolAccess
+	}
+	if pp.EncryptionType != "" {
+		objectMap["encryptionType"] = pp.EncryptionType
 	}
 	return json.Marshal(objectMap)
 }
@@ -1911,6 +2471,23 @@ func (future *PoolsUpdateFuture) result(client PoolsClient) (cp CapacityPool, er
 	return
 }
 
+// ProxyResource the resource model definition for a Azure Resource Manager proxy resource. It will not
+// have tags and a location
+type ProxyResource struct {
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // QuotaAvailabilityRequest quota availability request content.
 type QuotaAvailabilityRequest struct {
 	// Name - Name of the resource to verify.
@@ -1925,9 +2502,9 @@ type QuotaAvailabilityRequest struct {
 type ReplicationObject struct {
 	// ReplicationID - Id
 	ReplicationID *string `json:"replicationId,omitempty"`
-	// EndpointType - Indicates whether the local volume is the source or destination for the Volume Replication. Possible values include: 'Src', 'Dst'
+	// EndpointType - Indicates whether the local volume is the source or destination for the Volume Replication. Possible values include: 'EndpointTypeSrc', 'EndpointTypeDst'
 	EndpointType EndpointType `json:"endpointType,omitempty"`
-	// ReplicationSchedule - Schedule. Possible values include: '10minutely', 'Hourly', 'Daily'
+	// ReplicationSchedule - Schedule. Possible values include: 'ReplicationSchedule10minutely', 'ReplicationScheduleHourly', 'ReplicationScheduleDaily'
 	ReplicationSchedule ReplicationSchedule `json:"replicationSchedule,omitempty"`
 	// RemoteVolumeResourceID - The resource ID of the remote volume.
 	RemoteVolumeResourceID *string `json:"remoteVolumeResourceId,omitempty"`
@@ -1940,9 +2517,9 @@ type ReplicationStatus struct {
 	autorest.Response `json:"-"`
 	// Healthy - Replication health check
 	Healthy *bool `json:"healthy,omitempty"`
-	// RelationshipStatus - Status of the mirror relationship. Possible values include: 'Idle', 'Transferring'
+	// RelationshipStatus - Status of the mirror relationship. Possible values include: 'RelationshipStatusIdle', 'RelationshipStatusTransferring'
 	RelationshipStatus RelationshipStatus `json:"relationshipStatus,omitempty"`
-	// MirrorState - The status of the replication. Possible values include: 'Uninitialized', 'Mirrored', 'Broken'
+	// MirrorState - The status of the replication. Possible values include: 'MirrorStateUninitialized', 'MirrorStateMirrored', 'MirrorStateBroken'
 	MirrorState MirrorState `json:"mirrorState,omitempty"`
 	// TotalProgress - The progress of the replication
 	TotalProgress *string `json:"totalProgress,omitempty"`
@@ -1950,20 +2527,79 @@ type ReplicationStatus struct {
 	ErrorMessage *string `json:"errorMessage,omitempty"`
 }
 
+// Resource common fields that are returned in the response for all Azure Resource Manager resources
+type Resource struct {
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// ResourceIdentity identity for the resource.
+type ResourceIdentity struct {
+	// PrincipalID - READ-ONLY; Object id of the identity resource
+	PrincipalID *string `json:"principalId,omitempty"`
+	// TenantID - READ-ONLY; The tenant id of the resource
+	TenantID *string `json:"tenantId,omitempty"`
+	// Type - Type of Identity. Supported values are: 'None', 'SystemAssigned'
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceIdentity.
+func (ri ResourceIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ri.Type != nil {
+		objectMap["type"] = ri.Type
+	}
+	return json.Marshal(objectMap)
+}
+
 // ResourceNameAvailabilityRequest resource name availability request content.
 type ResourceNameAvailabilityRequest struct {
 	// Name - Resource name to verify.
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type used for verification. Possible values include: 'MicrosoftNetAppnetAppAccounts', 'MicrosoftNetAppnetAppAccountscapacityPools', 'MicrosoftNetAppnetAppAccountscapacityPoolsvolumes', 'MicrosoftNetAppnetAppAccountscapacityPoolsvolumessnapshots'
+	// Type - Resource type used for verification. Possible values include: 'CheckNameResourceTypesMicrosoftNetAppnetAppAccounts', 'CheckNameResourceTypesMicrosoftNetAppnetAppAccountscapacityPools', 'CheckNameResourceTypesMicrosoftNetAppnetAppAccountscapacityPoolsvolumes', 'CheckNameResourceTypesMicrosoftNetAppnetAppAccountscapacityPoolsvolumessnapshots'
 	Type CheckNameResourceTypes `json:"type,omitempty"`
 	// ResourceGroup - Resource group name.
 	ResourceGroup *string `json:"resourceGroup,omitempty"`
+}
+
+// RestoreStatus restore status
+type RestoreStatus struct {
+	autorest.Response `json:"-"`
+	// Healthy - READ-ONLY; Restore health status
+	Healthy *bool `json:"healthy,omitempty"`
+	// RelationshipStatus - READ-ONLY; Status of the restore SnapMirror relationship. Possible values include: 'RelationshipStatusIdle', 'RelationshipStatusTransferring'
+	RelationshipStatus RelationshipStatus `json:"relationshipStatus,omitempty"`
+	// MirrorState - READ-ONLY; The status of the restore. Possible values include: 'MirrorStateUninitialized', 'MirrorStateMirrored', 'MirrorStateBroken'
+	MirrorState MirrorState `json:"mirrorState,omitempty"`
+	// UnhealthyReason - READ-ONLY; Reason for the unhealthy restore relationship
+	UnhealthyReason *string `json:"unhealthyReason,omitempty"`
+	// ErrorMessage - READ-ONLY; Displays error message if the restore is in an error state
+	ErrorMessage *string `json:"errorMessage,omitempty"`
+	// TotalTransferBytes - READ-ONLY; Displays the total bytes transferred
+	TotalTransferBytes *int64 `json:"totalTransferBytes,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RestoreStatus.
+func (rs RestoreStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ServiceSpecification one property of operation, include metric specifications.
 type ServiceSpecification struct {
 	// MetricSpecifications - Metric specifications of operation.
 	MetricSpecifications *[]MetricSpecification `json:"metricSpecifications,omitempty"`
+	LogSpecifications    *[]LogSpecification    `json:"logSpecifications,omitempty"`
 }
 
 // Snapshot snapshot of a Volume
@@ -2097,6 +2733,49 @@ type SnapshotPoliciesList struct {
 	Value *[]SnapshotPolicy `json:"value,omitempty"`
 }
 
+// SnapshotPoliciesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type SnapshotPoliciesUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(SnapshotPoliciesClient) (SnapshotPolicy, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *SnapshotPoliciesUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for SnapshotPoliciesUpdateFuture.Result.
+func (future *SnapshotPoliciesUpdateFuture) result(client SnapshotPoliciesClient) (sp SnapshotPolicy, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "netapp.SnapshotPoliciesUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		sp.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("netapp.SnapshotPoliciesUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if sp.Response.Response, err = future.GetResult(sender); err == nil && sp.Response.Response.StatusCode != http.StatusNoContent {
+		sp, err = client.UpdateResponder(sp.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "netapp.SnapshotPoliciesUpdateFuture", "Result", sp.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // SnapshotPolicy snapshot policy information
 type SnapshotPolicy struct {
 	autorest.Response `json:"-"`
@@ -2106,6 +2785,8 @@ type SnapshotPolicy struct {
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
+	// Etag - READ-ONLY; A unique read-only string that changes whenever the resource is updated.
+	Etag *string `json:"etag,omitempty"`
 	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 	// Tags - Resource tags
@@ -2164,6 +2845,15 @@ func (sp *SnapshotPolicy) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				sp.Name = &name
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				sp.Etag = &etag
 			}
 		case "type":
 			if v != nil {
@@ -2400,8 +3090,6 @@ func (spp *SnapshotPolicyPatch) UnmarshalJSON(body []byte) error {
 
 // SnapshotPolicyProperties snapshot policy properties
 type SnapshotPolicyProperties struct {
-	// Name - READ-ONLY; Snapshot policy name
-	Name *string `json:"name,omitempty"`
 	// HourlySchedule - Schedule for hourly snapshots
 	HourlySchedule *HourlySchedule `json:"hourlySchedule,omitempty"`
 	// DailySchedule - Schedule for daily snapshots
@@ -2590,6 +3278,156 @@ func (future *SnapshotsUpdateFuture) result(client SnapshotsClient) (s Snapshot,
 	return
 }
 
+// SubscriptionQuotaItem information regarding Subscription Quota Item.
+type SubscriptionQuotaItem struct {
+	autorest.Response `json:"-"`
+	// SubscriptionQuotaItemProperties - SubscriptionQuotaItem properties
+	*SubscriptionQuotaItemProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; The system meta data relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SubscriptionQuotaItem.
+func (sqi SubscriptionQuotaItem) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sqi.SubscriptionQuotaItemProperties != nil {
+		objectMap["properties"] = sqi.SubscriptionQuotaItemProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for SubscriptionQuotaItem struct.
+func (sqi *SubscriptionQuotaItem) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var subscriptionQuotaItemProperties SubscriptionQuotaItemProperties
+				err = json.Unmarshal(*v, &subscriptionQuotaItemProperties)
+				if err != nil {
+					return err
+				}
+				sqi.SubscriptionQuotaItemProperties = &subscriptionQuotaItemProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				sqi.SystemData = &systemData
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				sqi.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sqi.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sqi.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// SubscriptionQuotaItemList list of Subscription Quota Items
+type SubscriptionQuotaItemList struct {
+	autorest.Response `json:"-"`
+	// Value - A list of SubscriptionQuotaItems
+	Value *[]SubscriptionQuotaItem `json:"value,omitempty"`
+}
+
+// SubscriptionQuotaItemProperties subscriptionQuotaItem Properties
+type SubscriptionQuotaItemProperties struct {
+	// Name - READ-ONLY; Quota Item name
+	Name *string `json:"name,omitempty"`
+	// Current - READ-ONLY; The current quota value.
+	Current *int32 `json:"current,omitempty"`
+	// Default - READ-ONLY; The default quota value.
+	Default *int32 `json:"default,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SubscriptionQuotaItemProperties.
+func (sqip SubscriptionQuotaItemProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// SystemData metadata pertaining to creation and last modification of the resource.
+type SystemData struct {
+	// CreatedBy - The identity that created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	CreatedByType CreatedByType `json:"createdByType,omitempty"`
+	// CreatedAt - The timestamp of resource creation (UTC).
+	CreatedAt *date.Time `json:"createdAt,omitempty"`
+	// LastModifiedBy - The identity that last modified the resource.
+	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
+	// LastModifiedAt - The timestamp of resource last modification (UTC)
+	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
+}
+
+// TrackedResource the resource model definition for an Azure Resource Manager tracked top level resource
+// which has 'tags' and a 'location'
+type TrackedResource struct {
+	// Tags - Resource tags.
+	Tags map[string]*string `json:"tags"`
+	// Location - The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TrackedResource.
+func (tr TrackedResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tr.Tags != nil {
+		objectMap["tags"] = tr.Tags
+	}
+	if tr.Location != nil {
+		objectMap["location"] = tr.Location
+	}
+	return json.Marshal(objectMap)
+}
+
 // Vault vault information
 type Vault struct {
 	// Location - Resource location
@@ -2698,6 +3536,8 @@ type Volume struct {
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
+	// Etag - READ-ONLY; A unique read-only string that changes whenever the resource is updated.
+	Etag *string `json:"etag,omitempty"`
 	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 	// Tags - Resource tags
@@ -2756,6 +3596,15 @@ func (vVar *Volume) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				vVar.Name = &name
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				vVar.Etag = &etag
 			}
 		case "type":
 			if v != nil {
@@ -3073,7 +3922,7 @@ func (vp *VolumePatch) UnmarshalJSON(body []byte) error {
 
 // VolumePatchProperties patchable volume properties
 type VolumePatchProperties struct {
-	// ServiceLevel - The service level of the file system. Possible values include: 'Standard', 'Premium', 'Ultra'
+	// ServiceLevel - Possible values include: 'ServiceLevelStandard', 'ServiceLevelPremium', 'ServiceLevelUltra', 'ServiceLevelStandardZRS'
 	ServiceLevel ServiceLevel `json:"serviceLevel,omitempty"`
 	// UsageThreshold - Maximum storage quota allowed for a file system in bytes. This is a soft quota used for alerting only. Minimum size is 100 GiB. Upper limit is 100TiB. Specified in bytes.
 	UsageThreshold *int64 `json:"usageThreshold,omitempty"`
@@ -3082,6 +3931,12 @@ type VolumePatchProperties struct {
 	ThroughputMibps *float64                           `json:"throughputMibps,omitempty"`
 	// DataProtection - DataProtection type volumes include an object containing details of the replication
 	DataProtection *VolumePatchPropertiesDataProtection `json:"dataProtection,omitempty"`
+	// IsDefaultQuotaEnabled - Specifies if default quota is enabled for the volume.
+	IsDefaultQuotaEnabled *bool `json:"isDefaultQuotaEnabled,omitempty"`
+	// DefaultUserQuotaInKiBs - Default user quota for volume in KiBs. If isDefaultQuotaEnabled is set, the minimum value of 4 KiBs applies .
+	DefaultUserQuotaInKiBs *int64 `json:"defaultUserQuotaInKiBs,omitempty"`
+	// DefaultGroupQuotaInKiBs - Default group quota for volume in KiBs. If isDefaultQuotaEnabled is set, the minimum value of 4 KiBs applies.
+	DefaultGroupQuotaInKiBs *int64 `json:"defaultGroupQuotaInKiBs,omitempty"`
 }
 
 // VolumePatchPropertiesDataProtection dataProtection type volumes include an object containing details of
@@ -3089,6 +3944,8 @@ type VolumePatchProperties struct {
 type VolumePatchPropertiesDataProtection struct {
 	// Backup - Backup Properties
 	Backup *VolumeBackupProperties `json:"backup,omitempty"`
+	// Snapshot - Snapshot properties.
+	Snapshot *VolumeSnapshotProperties `json:"snapshot,omitempty"`
 }
 
 // VolumePatchPropertiesExportPolicy set of export policy rules
@@ -3103,13 +3960,13 @@ type VolumeProperties struct {
 	FileSystemID *string `json:"fileSystemId,omitempty"`
 	// CreationToken - A unique file path for the volume. Used when creating mount targets
 	CreationToken *string `json:"creationToken,omitempty"`
-	// ServiceLevel - The service level of the file system. Possible values include: 'Standard', 'Premium', 'Ultra'
+	// ServiceLevel - Possible values include: 'ServiceLevelStandard', 'ServiceLevelPremium', 'ServiceLevelUltra', 'ServiceLevelStandardZRS'
 	ServiceLevel ServiceLevel `json:"serviceLevel,omitempty"`
 	// UsageThreshold - Maximum storage quota allowed for a file system in bytes. This is a soft quota used for alerting only. Minimum size is 100 GiB. Upper limit is 100TiB. Specified in bytes.
 	UsageThreshold *int64 `json:"usageThreshold,omitempty"`
 	// ExportPolicy - Set of export policy rules
 	ExportPolicy *VolumePropertiesExportPolicy `json:"exportPolicy,omitempty"`
-	// ProtocolTypes - Set of protocol types
+	// ProtocolTypes - Set of protocol types, default NFSv3, CIFS for SMB protocol
 	ProtocolTypes *[]string `json:"protocolTypes,omitempty"`
 	// ProvisioningState - READ-ONLY; Azure lifecycle management
 	ProvisioningState *string `json:"provisioningState,omitempty"`
@@ -3121,25 +3978,51 @@ type VolumeProperties struct {
 	BaremetalTenantID *string `json:"baremetalTenantId,omitempty"`
 	// SubnetID - The Azure Resource URI for a delegated subnet. Must have the delegation Microsoft.NetApp/volumes
 	SubnetID *string `json:"subnetId,omitempty"`
-	// MountTargets - List of mount targets
+	// NetworkFeatures - Basic network, or Standard features available to the volume. Possible values include: 'NetworkFeaturesBasic', 'NetworkFeaturesStandard'
+	NetworkFeatures NetworkFeatures `json:"networkFeatures,omitempty"`
+	// NetworkSiblingSetID - READ-ONLY; Network Sibling Set ID for the the group of volumes sharing networking resources.
+	NetworkSiblingSetID *string `json:"networkSiblingSetId,omitempty"`
+	// StorageToNetworkProximity - READ-ONLY; Provides storage to network proximity information for the volume. Possible values include: 'VolumeStorageToNetworkProximityDefault', 'VolumeStorageToNetworkProximityT1', 'VolumeStorageToNetworkProximityT2'
+	StorageToNetworkProximity VolumeStorageToNetworkProximity `json:"storageToNetworkProximity,omitempty"`
+	// MountTargets - READ-ONLY; List of mount targets
 	MountTargets *[]MountTargetProperties `json:"mountTargets,omitempty"`
-	// VolumeType - What type of volume is this
+	// VolumeType - What type of volume is this. For destination volumes in Cross Region Replication, set type to DataProtection
 	VolumeType *string `json:"volumeType,omitempty"`
 	// DataProtection - DataProtection type volumes include an object containing details of the replication
 	DataProtection *VolumePropertiesDataProtection `json:"dataProtection,omitempty"`
 	// IsRestoring - Restoring
 	IsRestoring *bool `json:"isRestoring,omitempty"`
-	// SnapshotDirectoryVisible - If enabled (true) the volume will contain a read-only .snapshot directory which provides access to each of the volume's snapshots (default to true).
+	// SnapshotDirectoryVisible - If enabled (true) the volume will contain a read-only snapshot directory which provides access to each of the volume's snapshots (default to true).
 	SnapshotDirectoryVisible *bool `json:"snapshotDirectoryVisible,omitempty"`
 	// KerberosEnabled - Describe if a volume is KerberosEnabled. To be use with swagger version 2020-05-01 or later
 	KerberosEnabled *bool `json:"kerberosEnabled,omitempty"`
-	// SecurityStyle - The security style of volume. Possible values include: 'Ntfs', 'Unix'
+	// SecurityStyle - The security style of volume, default unix, defaults to ntfs for dual protocol or CIFS protocol. Possible values include: 'SecurityStyleNtfs', 'SecurityStyleUnix'
 	SecurityStyle SecurityStyle `json:"securityStyle,omitempty"`
 	// SmbEncryption - Enables encryption for in-flight smb3 data. Only applicable for SMB/DualProtocol volume. To be used with swagger version 2020-08-01 or later
 	SmbEncryption *bool `json:"smbEncryption,omitempty"`
 	// SmbContinuouslyAvailable - Enables continuously available share property for smb volume. Only applicable for SMB volume
 	SmbContinuouslyAvailable *bool    `json:"smbContinuouslyAvailable,omitempty"`
 	ThroughputMibps          *float64 `json:"throughputMibps,omitempty"`
+	// EncryptionKeySource - Encryption Key Source. Possible values are: 'Microsoft.NetApp'
+	EncryptionKeySource *string `json:"encryptionKeySource,omitempty"`
+	// LdapEnabled - Specifies whether LDAP is enabled or not for a given NFS volume.
+	LdapEnabled *bool `json:"ldapEnabled,omitempty"`
+	// CoolAccess - Specifies whether Cool Access(tiering) is enabled for the volume.
+	CoolAccess *bool `json:"coolAccess,omitempty"`
+	// CoolnessPeriod - Specifies the number of days after which data that is not accessed by clients will be tiered.
+	CoolnessPeriod *int32 `json:"coolnessPeriod,omitempty"`
+	// UnixPermissions - UNIX permissions for NFS volume accepted in octal 4 digit format. First digit selects the set user ID(4), set group ID (2) and sticky (1) attributes. Second digit selects permission for the owner of the file: read (4), write (2) and execute (1). Third selects permissions for other users in the same group. the fourth for other users not in the group. 0755 - gives read/write/execute permissions to owner and read/execute to group and other users.
+	UnixPermissions *string `json:"unixPermissions,omitempty"`
+	// CloneProgress - READ-ONLY; When a volume is being restored from another volume's snapshot, will show the percentage completion of this cloning process. When this value is empty/null there is no cloning process currently happening on this volume. This value will update every 5 minutes during cloning.
+	CloneProgress *int32 `json:"cloneProgress,omitempty"`
+	// AvsDataStore - Specifies whether the volume is enabled for Azure VMware Solution (AVS) datastore purpose. Possible values include: 'AvsDataStoreEnabled', 'AvsDataStoreDisabled'
+	AvsDataStore AvsDataStore `json:"avsDataStore,omitempty"`
+	// IsDefaultQuotaEnabled - Specifies if default quota is enabled for the volume.
+	IsDefaultQuotaEnabled *bool `json:"isDefaultQuotaEnabled,omitempty"`
+	// DefaultUserQuotaInKiBs - Default user quota for volume in KiBs. If isDefaultQuotaEnabled is set, the minimum value of 4 KiBs applies .
+	DefaultUserQuotaInKiBs *int64 `json:"defaultUserQuotaInKiBs,omitempty"`
+	// DefaultGroupQuotaInKiBs - Default group quota for volume in KiBs. If isDefaultQuotaEnabled is set, the minimum value of 4 KiBs applies.
+	DefaultGroupQuotaInKiBs *int64 `json:"defaultGroupQuotaInKiBs,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for VolumeProperties.
@@ -3169,8 +4052,8 @@ func (vp VolumeProperties) MarshalJSON() ([]byte, error) {
 	if vp.SubnetID != nil {
 		objectMap["subnetId"] = vp.SubnetID
 	}
-	if vp.MountTargets != nil {
-		objectMap["mountTargets"] = vp.MountTargets
+	if vp.NetworkFeatures != "" {
+		objectMap["networkFeatures"] = vp.NetworkFeatures
 	}
 	if vp.VolumeType != nil {
 		objectMap["volumeType"] = vp.VolumeType
@@ -3198,6 +4081,33 @@ func (vp VolumeProperties) MarshalJSON() ([]byte, error) {
 	}
 	if vp.ThroughputMibps != nil {
 		objectMap["throughputMibps"] = vp.ThroughputMibps
+	}
+	if vp.EncryptionKeySource != nil {
+		objectMap["encryptionKeySource"] = vp.EncryptionKeySource
+	}
+	if vp.LdapEnabled != nil {
+		objectMap["ldapEnabled"] = vp.LdapEnabled
+	}
+	if vp.CoolAccess != nil {
+		objectMap["coolAccess"] = vp.CoolAccess
+	}
+	if vp.CoolnessPeriod != nil {
+		objectMap["coolnessPeriod"] = vp.CoolnessPeriod
+	}
+	if vp.UnixPermissions != nil {
+		objectMap["unixPermissions"] = vp.UnixPermissions
+	}
+	if vp.AvsDataStore != "" {
+		objectMap["avsDataStore"] = vp.AvsDataStore
+	}
+	if vp.IsDefaultQuotaEnabled != nil {
+		objectMap["isDefaultQuotaEnabled"] = vp.IsDefaultQuotaEnabled
+	}
+	if vp.DefaultUserQuotaInKiBs != nil {
+		objectMap["defaultUserQuotaInKiBs"] = vp.DefaultUserQuotaInKiBs
+	}
+	if vp.DefaultGroupQuotaInKiBs != nil {
+		objectMap["defaultGroupQuotaInKiBs"] = vp.DefaultGroupQuotaInKiBs
 	}
 	return json.Marshal(objectMap)
 }

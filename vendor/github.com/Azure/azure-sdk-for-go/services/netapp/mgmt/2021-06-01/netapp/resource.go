@@ -15,7 +15,7 @@ import (
 	"net/http"
 )
 
-// ResourceClient is the microsoft NetApp Azure Resource Provider specification
+// ResourceClient is the microsoft NetApp Files Azure Resource Provider specification
 type ResourceClient struct {
 	BaseClient
 }
@@ -35,7 +35,7 @@ func NewResourceClientWithBaseURI(baseURI string, subscriptionID string) Resourc
 // Parameters:
 // body - file path availability request.
 // location - the location
-func (client ResourceClient) CheckFilePathAvailability(ctx context.Context, body ResourceNameAvailabilityRequest, location string) (result CheckAvailabilityResponse, err error) {
+func (client ResourceClient) CheckFilePathAvailability(ctx context.Context, body FilePathAvailabilityRequest, location string) (result CheckAvailabilityResponse, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ResourceClient.CheckFilePathAvailability")
 		defer func() {
@@ -49,7 +49,7 @@ func (client ResourceClient) CheckFilePathAvailability(ctx context.Context, body
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: body,
 			Constraints: []validation.Constraint{{Target: "body.Name", Name: validation.Null, Rule: true, Chain: nil},
-				{Target: "body.ResourceGroup", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+				{Target: "body.SubnetID", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("netapp.ResourceClient", "CheckFilePathAvailability", err.Error())
 	}
 
@@ -76,13 +76,13 @@ func (client ResourceClient) CheckFilePathAvailability(ctx context.Context, body
 }
 
 // CheckFilePathAvailabilityPreparer prepares the CheckFilePathAvailability request.
-func (client ResourceClient) CheckFilePathAvailabilityPreparer(ctx context.Context, body ResourceNameAvailabilityRequest, location string) (*http.Request, error) {
+func (client ResourceClient) CheckFilePathAvailabilityPreparer(ctx context.Context, body FilePathAvailabilityRequest, location string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"location":       autorest.Encode("path", location),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -166,7 +166,7 @@ func (client ResourceClient) CheckNameAvailabilityPreparer(ctx context.Context, 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -250,7 +250,7 @@ func (client ResourceClient) CheckQuotaAvailabilityPreparer(ctx context.Context,
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
