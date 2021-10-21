@@ -84,7 +84,7 @@ resource "azurerm_static_site" "test" {
 
 resource "azurerm_static_site_custom_domain" "test" {
   static_site_id  = azurerm_static_site.test.id
-  name            = "acctestSS-%d.contoso.com"
+  domain_name     = "acctestSS-%d.contoso.com"
   validation_type = "dns-txt-token"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -97,7 +97,7 @@ func (r StaticSiteCustomDomainResource) requiresImport(data acceptance.TestData)
 
 resource "azurerm_static_site_custom_domain" "import" {
   static_site_id  = azurerm_static_site.test.id
-  name            = "acctestSS-%d.contoso.com"
+  domain_name     = "acctestSS-%d.contoso.com"
   validation_type = "dns-txt-token"
 }
 `, template, data.RandomInteger)
