@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -89,21 +89,20 @@ func TestAccVirtualHubRoute_update(t *testing.T) {
 }
 
 func (t VirtualHubRouteResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	routeTableId, name, err := network.ParseHubRouteId(state.ID)
-
+	route, err := parse.HubRouteTableRouteID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.HubRouteTableClient.Get(ctx, routeTableId.ResourceGroup, routeTableId.VirtualHubName, routeTableId.Name)
+	resp, err := clients.Network.HubRouteTableClient.Get(ctx, route.ResourceGroup, route.VirtualHubName, route.HubRouteTableName)
 	if err != nil {
-		return nil, fmt.Errorf("reading Virtual Hub Route Table (%s): %+v", routeTableId, err)
+		return nil, fmt.Errorf("reading Virtual Hub Route Table (%s): %+v", route, err)
 	}
 
 	if props := resp.HubRouteTableProperties; props != nil {
 		if routes := props.Routes; routes != nil {
 			for _, r := range *routes {
-				if *r.Name == name {
+				if *r.Name == route.RouteName {
 					return utils.Bool(true), nil
 				}
 			}

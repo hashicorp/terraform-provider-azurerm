@@ -3,7 +3,6 @@ package network
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
@@ -34,17 +33,8 @@ func resourceVirtualHubRoute() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, name, err := ParseHubRouteId(id)
-
-			if err != nil {
-				return err
-			}
-
-			if len(name) == 0 {
-				return fmt.Errorf("route name is empty")
-			}
-
-			return nil
+			_, err := parse.HubRouteTableRouteID(id)
+			return err
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -105,7 +95,6 @@ func resourceVirtualHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 
 	routeTableId, err := parse.HubRouteTableID(d.Get("route_table_id").(string))
-
 	if err != nil {
 		return err
 	}
@@ -116,17 +105,19 @@ func resourceVirtualHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	routeTable, err := client.Get(ctx, routeTableId.ResourceGroup, routeTableId.VirtualHubName, routeTableId.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(routeTable.Response) {
-			return fmt.Errorf("checking for present of existing HubRouteTable %q (Resource Group %q / Virtual Hub %q): %+v", routeTableId.Name, routeTableId.ResourceGroup, routeTableId.VirtualHubName, err)
+			return fmt.Errorf("checking for existing %s: %+v", routeTableId, err)
 		}
+
+		return fmt.Errorf("retrieving %s: %+v", routeTableId, err)
 	}
 
 	name := d.Get("name").(string)
-	id := HubRouteID(routeTable, name)
+	id := parse.NewHubRouteTableRouteID(routeTableId.SubscriptionId, routeTableId.ResourceGroup, routeTableId.VirtualHubName, routeTableId.Name, name)
 
 	if d.IsNewResource() {
 		for _, r := range *routeTable.Routes {
 			if *r.Name == name {
-				return tf.ImportAsExistsError("azurerm_virtual_hub_route", id)
+				return tf.ImportAsExistsError("azurerm_virtual_hub_route", id.ID())
 			}
 		}
 
@@ -155,23 +146,14 @@ func resourceVirtualHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	future, err := client.CreateOrUpdate(ctx, routeTableId.ResourceGroup, routeTableId.VirtualHubName, routeTableId.Name, routeTable)
 	if err != nil {
-		return fmt.Errorf("creating/updating Route %q in HubRouteTable %q (Resource Group %q / Virtual Hub %q): %+v", name, routeTableId.Name, routeTableId.ResourceGroup, routeTableId.Name, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating/updating future for Route %q in HubRouteTable %q (Resource Group %q / Virtual Hub %q): %+v", name, routeTableId.Name, routeTableId.ResourceGroup, routeTableId.Name, err)
+		return fmt.Errorf("waiting to create/update %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, routeTableId.ResourceGroup, routeTableId.VirtualHubName, routeTableId.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving HubRouteTable %q (Resource Group %q / Virtual Hub %q): %+v", name, routeTableId.ResourceGroup, routeTableId.Name, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for HubRouteTable %q (Resource Group %q / Virtual Hub %q) ID", name, routeTableId.ResourceGroup, routeTableId.Name)
-	}
-
-	d.SetId(id)
+	d.SetId(id.ID())
 
 	return resourceVirtualHubRouteRead(d, meta)
 }
@@ -181,27 +163,26 @@ func resourceVirtualHubRouteRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	routeTableId, name, err := ParseHubRouteId(d.Id())
-
+	route, err := parse.HubRouteTableRouteID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, routeTableId.ResourceGroup, routeTableId.VirtualHubName, routeTableId.Name)
+	resp, err := client.Get(ctx, route.ResourceGroup, route.VirtualHubName, route.HubRouteTableName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Virtual Hub Route Table %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] Virtual Hub Route Table %q does not exist - removing route %s from state", route.HubRouteTableName, route.RouteName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving HubRouteTable %q (Resource Group %q / Virtual Hub %q): %+v", routeTableId.Name, routeTableId.ResourceGroup, routeTableId.VirtualHubName, err)
+		return fmt.Errorf("retrieving %s: %+v", route, err)
 	}
 
 	if props := resp.HubRouteTableProperties; props != nil {
 		found := false
 		for _, r := range *props.Routes {
-			if *r.Name == name {
+			if *r.Name == route.RouteName {
 				found = true
 
 				d.Set("destinations_type", r.DestinationType)
@@ -220,8 +201,9 @@ func resourceVirtualHubRouteRead(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
-	d.Set("name", name)
-	d.Set("route_table_id", routeTableId.ID())
+	d.Set("name", route.RouteName)
+	routeTableID := parse.NewHubRouteTableID(route.SubscriptionId, route.ResourceGroup, route.VirtualHubName, route.HubRouteTableName)
+	d.Set("route_table_id", routeTableID.ID())
 
 	return nil
 }
@@ -231,82 +213,49 @@ func resourceVirtualHubRouteDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	routeTableId, name, err := ParseHubRouteId(d.Id())
-
+	route, err := parse.HubRouteTableRouteID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(routeTableId.VirtualHubName, virtualHubResourceName)
-	defer locks.UnlockByName(routeTableId.VirtualHubName, virtualHubResourceName)
+	locks.ByName(route.VirtualHubName, virtualHubResourceName)
+	defer locks.UnlockByName(route.VirtualHubName, virtualHubResourceName)
 
 	// get latest list of routes
-	routeTable, err := client.Get(ctx, routeTableId.ResourceGroup, routeTableId.VirtualHubName, routeTableId.Name)
+	routeTable, err := client.Get(ctx, route.ResourceGroup, route.VirtualHubName, route.HubRouteTableName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(routeTable.Response) {
-			return fmt.Errorf("checking for present of existing HubRouteTable %q (Resource Group %q / Virtual Hub %q): %+v", routeTableId.Name, routeTableId.ResourceGroup, routeTableId.VirtualHubName, err)
+			// route table does not exist, therefore route does not exist
+			return nil
 		}
+
+		return fmt.Errorf("retrieving %s: %+v", route, err)
 	}
 
 	if props := routeTable.HubRouteTableProperties; props != nil {
 		if props.Routes != nil {
 			routes := *props.Routes
-			removeIndex := -1
 
-			for i, r := range routes {
-				if *r.Name == name {
-					removeIndex = i
-					break
+			newRoutes := make([]network.HubRoute, 0)
+
+			for _, r := range routes {
+				if *r.Name != route.RouteName {
+					newRoutes = append(newRoutes, r)
 				}
 			}
 
-			if removeIndex > -1 {
-				if len(routes) == 1 && removeIndex == 0 {
-					routes = nil
-				} else {
-					routes[removeIndex] = routes[len(routes)-1]
-					routes = routes[:len(routes)-1]
-				}
-			}
-
-			props.Routes = &routes
+			props.Routes = &newRoutes
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, routeTableId.ResourceGroup, routeTableId.VirtualHubName, routeTableId.Name, routeTable)
+	future, err := client.CreateOrUpdate(ctx, route.ResourceGroup, route.VirtualHubName, route.HubRouteTableName, routeTable)
 	if err != nil {
-		return fmt.Errorf("removing Route %q from HubRouteTable %q (Resource Group %q / Virtual Hub %q): %+v", name, routeTableId.Name, routeTableId.ResourceGroup, routeTableId.Name, err)
+		return fmt.Errorf("removing %s: %+v", route, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on removing Route %q from future for HubRouteTable %q (Resource Group %q / Virtual Hub %q): %+v", name, routeTableId.Name, routeTableId.ResourceGroup, routeTableId.Name, err)
+		return fmt.Errorf("waiting to remove %s: %+v", route, err)
 	}
 
 	return nil
-}
-
-// As we are making a "virtual" sub-resource, the id stored in state needs to contain the name
-// This ensures that terraform import works
-// Note: This resource id DOES NOT exist in Azure.
-// ID format: <route table id>/<route name>
-// For example:
-// Route Table ID: /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/virtualHubs/virtualHub1/hubRouteTables/routeTable1
-// Route Name: route1
-// Resulting ID: /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/virtualHubs/virtualHub1/hubRouteTables/routeTable1/route1
-
-func HubRouteID(hub network.HubRouteTable, routeName string) string {
-	return fmt.Sprintf("%s/%s", *hub.ID, routeName)
-}
-
-func ParseHubRouteId(input string) (*parse.HubRouteTableId, string, error) {
-	i := strings.LastIndex(input, "/")
-	routeTableID := input[:i]
-	name := input[i+1:]
-
-	routeTable, err := parse.HubRouteTableID(routeTableID)
-	if err != nil {
-		return nil, "", err
-	}
-
-	return routeTable, name, nil
 }
