@@ -90,7 +90,7 @@ func (client FirewallRulesClient) CreateOrUpdatePreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-05-01-preview"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -183,7 +183,7 @@ func (client FirewallRulesClient) DeletePreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-05-01-preview"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -279,7 +279,7 @@ func (client FirewallRulesClient) GetPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-05-01-preview"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -369,7 +369,7 @@ func (client FirewallRulesClient) ListByServerPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-05-01-preview"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

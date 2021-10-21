@@ -1,4 +1,4 @@
-// Package mysqlflexibleservers implements the Azure ARM Mysqlflexibleservers service API version 2021-05-01-preview.
+// Package mysqlflexibleservers implements the Azure ARM Mysqlflexibleservers service API version 2021-05-01.
 //
 // The Microsoft Azure management API provides create, read, update, and delete functionality for Azure MySQL resources
 // including servers, databases, firewall rules, VNET rules, log files and configurations with new business model.

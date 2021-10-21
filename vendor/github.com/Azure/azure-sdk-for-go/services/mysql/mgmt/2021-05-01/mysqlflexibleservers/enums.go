@@ -80,8 +80,6 @@ type HighAvailabilityMode string
 const (
 	// HighAvailabilityModeDisabled ...
 	HighAvailabilityModeDisabled HighAvailabilityMode = "Disabled"
-	// HighAvailabilityModeEnabled ...
-	HighAvailabilityModeEnabled HighAvailabilityMode = "Enabled"
 	// HighAvailabilityModeSameZone ...
 	HighAvailabilityModeSameZone HighAvailabilityMode = "SameZone"
 	// HighAvailabilityModeZoneRedundant ...
@@ -90,7 +88,7 @@ const (
 
 // PossibleHighAvailabilityModeValues returns an array of possible values for the HighAvailabilityMode const type.
 func PossibleHighAvailabilityModeValues() []HighAvailabilityMode {
-	return []HighAvailabilityMode{HighAvailabilityModeDisabled, HighAvailabilityModeEnabled, HighAvailabilityModeSameZone, HighAvailabilityModeZoneRedundant}
+	return []HighAvailabilityMode{HighAvailabilityModeDisabled, HighAvailabilityModeSameZone, HighAvailabilityModeZoneRedundant}
 }
 
 // HighAvailabilityState enumerates the values for high availability state.
@@ -174,19 +172,6 @@ const (
 // PossibleReplicationRoleValues returns an array of possible values for the ReplicationRole const type.
 func PossibleReplicationRoleValues() []ReplicationRole {
 	return []ReplicationRole{ReplicationRoleNone, ReplicationRoleReplica, ReplicationRoleSource}
-}
-
-// ResourceIdentityType enumerates the values for resource identity type.
-type ResourceIdentityType string
-
-const (
-	// ResourceIdentityTypeSystemAssigned ...
-	ResourceIdentityTypeSystemAssigned ResourceIdentityType = "SystemAssigned"
-)
-
-// PossibleResourceIdentityTypeValues returns an array of possible values for the ResourceIdentityType const type.
-func PossibleResourceIdentityTypeValues() []ResourceIdentityType {
-	return []ResourceIdentityType{ResourceIdentityTypeSystemAssigned}
 }
 
 // ServerState enumerates the values for server state.

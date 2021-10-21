@@ -69,7 +69,7 @@ func (client GetPrivateDNSZoneSuffixClient) Execute(ctx context.Context) (result
 
 // ExecutePreparer prepares the Execute request.
 func (client GetPrivateDNSZoneSuffixClient) ExecutePreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2021-05-01-preview"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

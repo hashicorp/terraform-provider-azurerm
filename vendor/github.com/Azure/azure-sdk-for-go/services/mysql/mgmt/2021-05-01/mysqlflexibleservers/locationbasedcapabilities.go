@@ -88,7 +88,7 @@ func (client LocationBasedCapabilitiesClient) ListPreparer(ctx context.Context, 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-05-01-preview"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -89,7 +89,7 @@ func (client BackupsClient) GetPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-05-01-preview"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -179,7 +179,7 @@ func (client BackupsClient) ListByServerPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-05-01-preview"
+	const APIVersion = "2021-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
