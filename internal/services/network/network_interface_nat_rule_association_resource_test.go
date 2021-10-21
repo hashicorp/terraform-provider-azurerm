@@ -106,7 +106,7 @@ func (t NetworkInterfaceNATRuleAssociationResource) Exists(ctx context.Context, 
 
 	read, err := clients.Network.InterfacesClient.Get(ctx, nicID.ResourceGroup, nicID.NetworkInterfaceName, "")
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Network Interface %q: %+v", nicID, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *nicID, err)
 	}
 
 	c := network2.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, nicID.IpConfigurationName)

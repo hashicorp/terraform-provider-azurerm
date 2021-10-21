@@ -21,7 +21,7 @@ func resourceExpressRouteCircuitAuthorization() *pluginsdk.Resource {
 		Read:   resourceExpressRouteCircuitAuthorizationRead,
 		Delete: resourceExpressRouteCircuitAuthorizationDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AuthorizationID(id)
+			_, err := parse.ExpressRouteCircuitAuthorizationID(id)
 			return err
 		}),
 
@@ -64,20 +64,19 @@ func resourceExpressRouteCircuitAuthorization() *pluginsdk.Resource {
 func resourceExpressRouteCircuitAuthorizationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteAuthsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	circuitName := d.Get("express_route_circuit_name").(string)
+	id := parse.NewExpressRouteCircuitAuthorizationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("express_route_circuit_name").(string), d.Get("name").(string))
 
-	locks.ByName(circuitName, expressRouteCircuitResourceName)
-	defer locks.UnlockByName(circuitName, expressRouteCircuitResourceName)
+	locks.ByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
+	defer locks.UnlockByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, circuitName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.AuthorizationName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %s", name, circuitName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -90,21 +89,16 @@ func resourceExpressRouteCircuitAuthorizationCreate(d *pluginsdk.ResourceData, m
 		AuthorizationPropertiesFormat: &network.AuthorizationPropertiesFormat{},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, circuitName, name, properties)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.AuthorizationName, properties)
 	if err != nil {
-		return fmt.Errorf("Creating/Updating Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %+v", name, circuitName, resourceGroup, err)
+		return fmt.Errorf("Creating/Updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for Express Route Circuit Authorization %q (Circuit %q / Resource Group %q) to finish creating/updating: %+v", name, circuitName, resourceGroup, err)
+		return fmt.Errorf("waiting for  %s to finish creating/updating: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, circuitName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %+v", name, circuitName, resourceGroup, err)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceExpressRouteCircuitAuthorizationRead(d, meta)
 }
@@ -114,21 +108,21 @@ func resourceExpressRouteCircuitAuthorizationRead(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AuthorizationID(d.Id())
+	id, err := parse.ExpressRouteCircuitAuthorizationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.AuthorizationName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %+v", id.Name, id.ExpressRouteCircuitName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.AuthorizationName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("express_route_circuit_name", id.ExpressRouteCircuitName)
 
@@ -145,7 +139,7 @@ func resourceExpressRouteCircuitAuthorizationDelete(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AuthorizationID(d.Id())
+	id, err := parse.ExpressRouteCircuitAuthorizationID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -153,13 +147,13 @@ func resourceExpressRouteCircuitAuthorizationDelete(d *pluginsdk.ResourceData, m
 	locks.ByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
 	defer locks.UnlockByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.AuthorizationName)
 	if err != nil {
-		return fmt.Errorf("deleting Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %+v", id.Name, id.ExpressRouteCircuitName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for Express Route Circuit Authorization %q (Circuit %q / Resource Group %q) to be deleted: %+v", id.Name, id.ExpressRouteCircuitName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for %s to be deleted: %+v", *id, err)
 	}
 
 	return nil

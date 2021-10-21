@@ -24,8 +24,13 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *pluginsdk.Re
 		Delete: resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			splitId := strings.Split(id, "|")
-			_, err := parse.NetworkInterfaceID(splitId[0])
-			return err
+			if _, err := parse.NetworkInterfaceID(splitId[0]); err != nil {
+				return err
+			}
+			if _, err := parse.ApplicationSecurityGroupID(splitId[1]); err != nil {
+				return err
+			}
+			return nil
 		}),
 
 		SchemaVersion: 1,
@@ -84,15 +89,15 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *plugin
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Network Interface %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	props := read.InterfacePropertiesFormat
 	if props == nil {
-		return fmt.Errorf("Error: `properties` was nil for Network Interface %s", id)
+		return fmt.Errorf("Error: `properties` was nil for %s", *id)
 	}
 	if props.IPConfigurations == nil {
-		return fmt.Errorf("Error: `properties.ipConfigurations` was nil for Network Interface %s", id)
+		return fmt.Errorf("Error: `properties.ipConfigurations` was nil for %s", *id)
 	}
 
 	info := parseFieldsFromNetworkInterface(*props)
@@ -107,11 +112,11 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *plugin
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, read)
 	if err != nil {
-		return fmt.Errorf("updating Application Security Group Association for Network Interface %s: %+v", id, err)
+		return fmt.Errorf("updating Application Security Group Association for %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Application Security Group Association for NIC %s: %+v", id, err)
+		return fmt.Errorf("waiting for completion of Application Security Group Association for %s: %+v", *id, err)
 	}
 
 	d.SetId(resourceId)
@@ -139,17 +144,17 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d *pluginsd
 	read, err := client.Get(ctx, nicID.ResourceGroup, nicID.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			log.Printf("[DEBUG] Network Interface %s was not found - removing from state!", nicID)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *nicID)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Network Interface %s: %+v", nicID, err)
+		return fmt.Errorf("retrieving %s: %+v", *nicID, err)
 	}
 
 	nicProps := read.InterfacePropertiesFormat
 	if nicProps == nil {
-		return fmt.Errorf("Error: `properties` was nil for Network Interface %s", nicID)
+		return fmt.Errorf("Error: `properties` was nil for %s", *nicID)
 	}
 
 	info := parseFieldsFromNetworkInterface(*nicProps)
@@ -161,7 +166,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d *pluginsd
 	}
 
 	if !exists {
-		log.Printf("[DEBUG] Association between Network Interface %s and Application Security Group %q was not found - removing from state!", nicID, applicationSecurityGroupId)
+		log.Printf("[DEBUG] Association between %s and Application Security Group %q was not found - removing from state!", *nicID, applicationSecurityGroupId)
 		d.SetId("")
 		return nil
 	}
@@ -195,19 +200,19 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *plugin
 	read, err := client.Get(ctx, nicID.ResourceGroup, nicID.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			return fmt.Errorf("Network Interface %s was not found!", nicID)
+			return fmt.Errorf("%s was not found!", *nicID)
 		}
 
-		return fmt.Errorf("retrieving Network Interface %s: %+v", nicID, err)
+		return fmt.Errorf("retrieving  %s: %+v", *nicID, err)
 	}
 
 	props := read.InterfacePropertiesFormat
 	if props == nil {
-		return fmt.Errorf("Error: `properties` was nil for Network Interface %s", nicID)
+		return fmt.Errorf("Error: `properties` was nil for %s", *nicID)
 	}
 
 	if props.IPConfigurations == nil {
-		return fmt.Errorf("Error: `properties.ipConfigurations` was nil for Network Interface %s)", nicID)
+		return fmt.Errorf("Error: `properties.ipConfigurations` was nil for %s)", *nicID)
 	}
 
 	info := parseFieldsFromNetworkInterface(*props)
@@ -223,11 +228,11 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *plugin
 
 	future, err := client.CreateOrUpdate(ctx, nicID.ResourceGroup, nicID.Name, read)
 	if err != nil {
-		return fmt.Errorf("removing Application Security Group for Network Interface %s: %+v", nicID, err)
+		return fmt.Errorf("removing Application Security Group for %s: %+v", *nicID, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for removal of Application Security Group for NIC %s: %+v", nicID, err)
+		return fmt.Errorf("waiting for removal of Application Security Group for %s: %+v", *nicID, err)
 	}
 
 	return nil

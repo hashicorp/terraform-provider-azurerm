@@ -85,9 +85,11 @@ package network
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=ExpressRouteGateway -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteGateways/ergw1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=ExpressRouteCircuitConnection -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/circuit1/peerings/peering1/connections/connection1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=ExpressRouteConnection -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteGateways/ergw1/expressRouteConnections/erConnection1
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=Peering -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit1/peerings/AzurePrivatePeering
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=Authorization -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit/authorizations/authorization1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=ExpressRouteCircuitAuthorization -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit1/authorizations/authorization1
 
 // Network
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkProfile -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkProfiles/networkprofile1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkInterfaceIpConfiguration -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkInterfaces/networkInterface1/ipConfigurations/config1
+
+// Load balancer
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=InboundNatRule -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/loadBalancer1/inboundNatRules/natrule1

@@ -99,18 +99,18 @@ func resourceNetworkProfile() *pluginsdk.Resource {
 func resourceNetworkProfileCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ProfileClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Network Profile creation")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewNetworkProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Network Profile %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -127,8 +127,8 @@ func resourceNetworkProfileCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("extracting names of Subnet and Virtual Network: %+v", err)
 	}
 
-	locks.ByName(name, azureNetworkProfileResourceName)
-	defer locks.UnlockByName(name, azureNetworkProfileResourceName)
+	locks.ByName(id.Name, azureNetworkProfileResourceName)
+	defer locks.UnlockByName(id.Name, azureNetworkProfileResourceName)
 
 	locks.MultipleByName(vnetsToLock, VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(vnetsToLock, VirtualNetworkResourceName)
@@ -144,20 +144,11 @@ func resourceNetworkProfileCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("creating/updating Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	profile, err := client.Get(ctx, resourceGroup, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if profile.ID == nil {
-		return fmt.Errorf("Cannot read Network Profile %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*profile.ID)
+	d.SetId(id.ID())
 
 	return resourceNetworkProfileRead(d, meta)
 }
@@ -175,12 +166,12 @@ func resourceNetworkProfileRead(d *pluginsdk.ResourceData, meta interface{}) err
 	profile, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(profile.Response) {
-			log.Printf("[DEBUG] Network Profile %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Network Profile %s: %+v", id, err)
+		return fmt.Errorf("requesting %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -218,11 +209,11 @@ func resourceNetworkProfileDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
 			// deleted outside of TF
-			log.Printf("[DEBUG] Network Profile %q was not found in Resource Group %q - assuming removed!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] %s was not found - assuming removed!", *id)
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Network Profile %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(d)
@@ -240,7 +231,7 @@ func resourceNetworkProfileDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	defer locks.UnlockMultipleByName(subnetsToLock, SubnetResourceName)
 
 	if _, err = client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("deleting Network Profile %s: %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return err

@@ -111,17 +111,17 @@ func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) E
 
 	nicProps := read.InterfacePropertiesFormat
 	if nicProps == nil {
-		return nil, fmt.Errorf("`properties` was nil for Network Interface (%s): %+v", id, err)
+		return nil, fmt.Errorf("`properties` was nil for (%s): %+v", id, err)
 	}
 
 	ipConfigs := nicProps.IPConfigurations
 	if ipConfigs == nil {
-		return nil, fmt.Errorf("`properties.IPConfigurations` was nil for Network Interface (%s): %+v", id, err)
+		return nil, fmt.Errorf("`properties.IPConfigurations` was nil for  (%s): %+v", id, err)
 	}
 
 	c := network2.FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, id.IpConfigurationName)
 	if c == nil {
-		return nil, fmt.Errorf("IP configuration was nil for Network Interface (%s): %+v", id, err)
+		return nil, fmt.Errorf("IP configuration was nil for (%s): %+v", id, err)
 	}
 	config := *c
 
@@ -155,12 +155,12 @@ func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) d
 
 	read, err := client.Network.InterfacesClient.Get(ctx, nicID.ResourceGroup, nicID.Name, "")
 	if err != nil {
-		return fmt.Errorf("retrieving Network Interface %s: %+v", nicID, err)
+		return fmt.Errorf("retrieving %s: %+v", nicID, err)
 	}
 
 	c := network2.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
 	if c == nil {
-		return fmt.Errorf("IP Configuration %q wasn't found for Network Interface %s", ipConfigurationName, nicID)
+		return fmt.Errorf("IP Configuration %q wasn't found for %s", ipConfigurationName, nicID)
 	}
 	config := *c
 
@@ -176,11 +176,11 @@ func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) d
 
 	future, err := client.Network.InterfacesClient.CreateOrUpdate(ctx, nicID.ResourceGroup, nicID.Name, read)
 	if err != nil {
-		return fmt.Errorf("removing Application Gateway Backend Address Pool Association for Network Interface %s: %+v", nicID, err)
+		return fmt.Errorf("removing Application Gateway Backend Address Pool Association for %s: %+v", nicID, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Network.InterfacesClient.Client); err != nil {
-		return fmt.Errorf("waiting for removal of Application Gateway Backend Address Pool Association for NIC %s: %+v", nicID, err)
+		return fmt.Errorf("waiting for removal of Application Gateway Backend Address Pool Association for %s: %+v", nicID, err)
 	}
 
 	return nil

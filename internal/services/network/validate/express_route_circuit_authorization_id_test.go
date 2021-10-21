@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestAuthorizationID(t *testing.T) {
+func TestExpressRouteCircuitAuthorizationID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -48,37 +48,37 @@ func TestAuthorizationID(t *testing.T) {
 
 		{
 			// missing value for ExpressRouteCircuitName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/",
 			Valid: false,
 		},
 
 		{
-			// missing Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit/",
+			// missing AuthorizationName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit1/",
 			Valid: false,
 		},
 
 		{
-			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit/authorizations/",
+			// missing value for AuthorizationName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit1/authorizations/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit/authorizations/authorization1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit1/authorizations/authorization1",
 			Valid: true,
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/EXPRESSROUTECIRCUITS/EXPRESSROUTECIRCUIT/AUTHORIZATIONS/AUTHORIZATION1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/EXPRESSROUTECIRCUITS/EXPRESSROUTECIRCUIT1/AUTHORIZATIONS/AUTHORIZATION1",
 			Valid: false,
 		},
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := AuthorizationID(tc.Input, "test")
+		_, errors := ExpressRouteCircuitAuthorizationID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

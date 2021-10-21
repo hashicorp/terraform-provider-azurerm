@@ -25,8 +25,13 @@ func resourceNetworkInterfaceBackendAddressPoolAssociation() *pluginsdk.Resource
 		Delete: resourceNetworkInterfaceBackendAddressPoolAssociationDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			splitId := strings.Split(id, "|")
-			_, err := parse.NetworkInterfaceIpConfigurationID(splitId[0])
-			return err
+			if _, err := parse.NetworkInterfaceIpConfigurationID(splitId[0]); err != nil {
+				return err
+			}
+			if _, err := parse.BackendAddressPoolID(splitId[1]); err != nil {
+				return err
+			}
+			return nil
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -83,31 +88,31 @@ func resourceNetworkInterfaceBackendAddressPoolAssociationCreate(d *pluginsdk.Re
 	read, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			return fmt.Errorf("Network Interface %s was not found!", id)
+			return fmt.Errorf("%s was not found!", *id)
 		}
 
-		return fmt.Errorf("retrieving Network Interface %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	props := read.InterfacePropertiesFormat
 	if props == nil {
-		return fmt.Errorf("Error: `properties` was nil for Network Interface %s", id)
+		return fmt.Errorf("Error: `properties` was nil for %s", *id)
 	}
 
 	ipConfigs := props.IPConfigurations
 	if ipConfigs == nil {
-		return fmt.Errorf("Error: `properties.IPConfigurations` was nil for Network Interface %s", id)
+		return fmt.Errorf("Error: `properties.IPConfigurations` was nil for %s", *id)
 	}
 
 	c := FindNetworkInterfaceIPConfiguration(props.IPConfigurations, ipConfigurationName)
 	if c == nil {
-		return fmt.Errorf("Error: IP Configuration %q was not found on Network Interface %s", ipConfigurationName, id)
+		return fmt.Errorf("Error: IP Configuration %q was not found on %s", ipConfigurationName, *id)
 	}
 
 	config := *c
 	p := config.InterfaceIPConfigurationPropertiesFormat
 	if p == nil {
-		return fmt.Errorf("Error: `IPConfiguration.properties` was nil for Network Interface %s", id)
+		return fmt.Errorf("Error: `IPConfiguration.properties` was nil for %s", *id)
 	}
 
 	pools := make([]network.BackendAddressPool, 0)
@@ -136,11 +141,11 @@ func resourceNetworkInterfaceBackendAddressPoolAssociationCreate(d *pluginsdk.Re
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, read)
 	if err != nil {
-		return fmt.Errorf("updating Backend Address Pool Association for Network Interface %s: %+v", id, err)
+		return fmt.Errorf("updating Backend Address Pool Association for %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Backend Address Pool Association for NIC %s: %+v", id, err)
+		return fmt.Errorf("waiting for completion of Backend Address Pool Association for %s: %+v", *id, err)
 	}
 
 	d.SetId(resourceId)

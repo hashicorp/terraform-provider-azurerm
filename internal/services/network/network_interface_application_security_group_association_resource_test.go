@@ -114,7 +114,7 @@ func (t NetworkInterfaceApplicationSecurityGroupAssociationResource) Exists(ctx 
 
 	read, err := clients.Network.InterfacesClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Network Interface (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
 	}
 
 	found := false
@@ -142,7 +142,7 @@ func (NetworkInterfaceApplicationSecurityGroupAssociationResource) destroy(ctx c
 
 	read, err := client.Network.InterfacesClient.Get(ctx, nicID.ResourceGroup, nicID.Name, "")
 	if err != nil {
-		return fmt.Errorf("retrieving Network Interface %s: %+v", nicID, err)
+		return fmt.Errorf("retrieving %s: %+v", *nicID, err)
 	}
 
 	configs := *read.InterfacePropertiesFormat.IPConfigurations
@@ -162,11 +162,11 @@ func (NetworkInterfaceApplicationSecurityGroupAssociationResource) destroy(ctx c
 
 	future, err := client.Network.InterfacesClient.CreateOrUpdate(ctx, nicID.ResourceGroup, nicID.Name, read)
 	if err != nil {
-		return fmt.Errorf("removing Application Security Group Association for Network Interface %s: %+v", nicID, err)
+		return fmt.Errorf("removing Application Security Group Association for %s: %+v", *nicID, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Network.InterfacesClient.Client); err != nil {
-		return fmt.Errorf("waiting for removal of Application Security Group Association for NIC %s: %+v", nicID, err)
+		return fmt.Errorf("waiting for removal of Application Security Group Association for %s: %+v", *nicID, err)
 	}
 
 	return nil

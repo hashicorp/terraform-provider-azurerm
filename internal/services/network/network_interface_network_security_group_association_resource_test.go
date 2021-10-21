@@ -103,7 +103,7 @@ func (t NetworkInterfaceNetworkSecurityGroupAssociationResource) Exists(ctx cont
 
 	read, err := clients.Network.InterfacesClient.Get(ctx, nicID.ResourceGroup, nicID.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Network Interface %q: %+v", nicID, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *nicID, err)
 	}
 
 	found := false

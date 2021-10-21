@@ -26,7 +26,7 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 		Delete: resourceExpressRouteCircuitPeeringDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.PeeringID(id)
+			_, err := parse.ExpressRouteCircuitPeeringID(id)
 			return err
 		}),
 
@@ -195,22 +195,21 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 func resourceExpressRouteCircuitPeeringCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRoutePeeringsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Express Route Peering create/update.")
 
-	peeringType := d.Get("peering_type").(string)
-	circuitName := d.Get("express_route_circuit_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewExpressRouteCircuitPeeringID(subscriptionId, d.Get("resource_group_name").(string), d.Get("express_route_circuit_name").(string), d.Get("peering_type").(string))
 
-	locks.ByName(circuitName, expressRouteCircuitResourceName)
-	defer locks.UnlockByName(circuitName, expressRouteCircuitResourceName)
+	locks.ByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
+	defer locks.UnlockByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, circuitName, peeringType)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.PeeringName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Peering %q (ExpressRoute Circuit %q / Resource Group %q): %s", peeringType, circuitName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -229,7 +228,7 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *pluginsdk.ResourceData, m
 
 	parameters := network.ExpressRouteCircuitPeering{
 		ExpressRouteCircuitPeeringPropertiesFormat: &network.ExpressRouteCircuitPeeringPropertiesFormat{
-			PeeringType:                network.ExpressRoutePeeringType(peeringType),
+			PeeringType:                network.ExpressRoutePeeringType(id.PeeringName),
 			SharedKey:                  utils.String(sharedKey),
 			PrimaryPeerAddressPrefix:   utils.String(primaryPeerAddressPrefix),
 			SecondaryPeerAddressPrefix: utils.String(secondaryPeerAddressPrefix),
@@ -239,7 +238,7 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *pluginsdk.ResourceData, m
 		},
 	}
 
-	if strings.EqualFold(peeringType, string(network.ExpressRoutePeeringTypeMicrosoftPeering)) {
+	if strings.EqualFold(id.PeeringName, string(network.ExpressRoutePeeringTypeMicrosoftPeering)) {
 		peerings := d.Get("microsoft_peering_config").([]interface{})
 		if len(peerings) == 0 {
 			return fmt.Errorf("`microsoft_peering_config` must be specified when `peering_type` is set to `MicrosoftPeering`")
@@ -271,7 +270,7 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, circuitName, peeringType, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.PeeringName, parameters)
 	if err != nil {
 		return err
 	}
@@ -280,12 +279,7 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	read, err := client.Get(ctx, resourceGroup, circuitName, peeringType)
-	if err != nil {
-		return err
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceExpressRouteCircuitPeeringRead(d, meta)
 }
@@ -295,21 +289,21 @@ func resourceExpressRouteCircuitPeeringRead(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PeeringID(d.Id())
+	id, err := parse.ExpressRouteCircuitPeeringID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.PeeringName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Express Route Circuit Peering %q (Circuit %q / Resource Group %q): %+v", id.Name, id.ExpressRouteCircuitName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("peering_type", id.Name)
+	d.Set("peering_type", id.PeeringName)
 	d.Set("express_route_circuit_name", id.ExpressRouteCircuitName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
@@ -345,7 +339,7 @@ func resourceExpressRouteCircuitPeeringDelete(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PeeringID(d.Id())
+	id, err := parse.ExpressRouteCircuitPeeringID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -353,13 +347,13 @@ func resourceExpressRouteCircuitPeeringDelete(d *pluginsdk.ResourceData, meta in
 	locks.ByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
 	defer locks.UnlockByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.PeeringName)
 	if err != nil {
-		return fmt.Errorf("deleting Peering %q (Express Route Circuit %q / Resource Group %q): %+v", id.Name, id.ExpressRouteCircuitName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of Peering %q (Express Route Circuit %q / Resource Group %q): %+v", id.Name, id.ExpressRouteCircuitName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return err

@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = PeeringId{}
+var _ resourceid.Formatter = InboundNatRuleId{}
 
-func TestPeeringIDFormatter(t *testing.T) {
-	actual := NewPeeringID("12345678-1234-9876-4563-123456789012", "resGroup1", "expressRouteCircuit1", "AzurePrivatePeering").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit1/peerings/AzurePrivatePeering"
+func TestInboundNatRuleIDFormatter(t *testing.T) {
+	actual := NewInboundNatRuleID("12345678-1234-9876-4563-123456789012", "resGroup1", "loadBalancer1", "natrule1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/loadBalancer1/inboundNatRules/natrule1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestPeeringID(t *testing.T) {
+func TestInboundNatRuleID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *PeeringId
+		Expected *InboundNatRuleId
 	}{
 
 		{
@@ -56,43 +56,43 @@ func TestPeeringID(t *testing.T) {
 		},
 
 		{
-			// missing ExpressRouteCircuitName
+			// missing LoadBalancerName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/",
 			Error: true,
 		},
 
 		{
-			// missing value for ExpressRouteCircuitName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/",
+			// missing value for LoadBalancerName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/",
 			Error: true,
 		},
 
 		{
 			// missing Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/loadBalancer1/",
 			Error: true,
 		},
 
 		{
 			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit1/peerings/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/loadBalancer1/inboundNatRules/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit1/peerings/AzurePrivatePeering",
-			Expected: &PeeringId{
-				SubscriptionId:          "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:           "resGroup1",
-				ExpressRouteCircuitName: "expressRouteCircuit1",
-				Name:                    "AzurePrivatePeering",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/loadBalancer1/inboundNatRules/natrule1",
+			Expected: &InboundNatRuleId{
+				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:    "resGroup1",
+				LoadBalancerName: "loadBalancer1",
+				Name:             "natrule1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/EXPRESSROUTECIRCUITS/EXPRESSROUTECIRCUIT1/PEERINGS/AZUREPRIVATEPEERING",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/LOADBALANCERS/LOADBALANCER1/INBOUNDNATRULES/NATRULE1",
 			Error: true,
 		},
 	}
@@ -100,7 +100,7 @@ func TestPeeringID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := PeeringID(v.Input)
+		actual, err := InboundNatRuleID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -118,8 +118,8 @@ func TestPeeringID(t *testing.T) {
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-		if actual.ExpressRouteCircuitName != v.Expected.ExpressRouteCircuitName {
-			t.Fatalf("Expected %q but got %q for ExpressRouteCircuitName", v.Expected.ExpressRouteCircuitName, actual.ExpressRouteCircuitName)
+		if actual.LoadBalancerName != v.Expected.LoadBalancerName {
+			t.Fatalf("Expected %q but got %q for LoadBalancerName", v.Expected.LoadBalancerName, actual.LoadBalancerName)
 		}
 		if actual.Name != v.Expected.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)

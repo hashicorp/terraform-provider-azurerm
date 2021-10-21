@@ -9,45 +9,45 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
-type PeeringId struct {
+type ExpressRouteCircuitAuthorizationId struct {
 	SubscriptionId          string
 	ResourceGroup           string
 	ExpressRouteCircuitName string
-	Name                    string
+	AuthorizationName       string
 }
 
-func NewPeeringID(subscriptionId, resourceGroup, expressRouteCircuitName, name string) PeeringId {
-	return PeeringId{
+func NewExpressRouteCircuitAuthorizationID(subscriptionId, resourceGroup, expressRouteCircuitName, authorizationName string) ExpressRouteCircuitAuthorizationId {
+	return ExpressRouteCircuitAuthorizationId{
 		SubscriptionId:          subscriptionId,
 		ResourceGroup:           resourceGroup,
 		ExpressRouteCircuitName: expressRouteCircuitName,
-		Name:                    name,
+		AuthorizationName:       authorizationName,
 	}
 }
 
-func (id PeeringId) String() string {
+func (id ExpressRouteCircuitAuthorizationId) String() string {
 	segments := []string{
-		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Authorization Name %q", id.AuthorizationName),
 		fmt.Sprintf("Express Route Circuit Name %q", id.ExpressRouteCircuitName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Peering", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Express Route Circuit Authorization", segmentsStr)
 }
 
-func (id PeeringId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/expressRouteCircuits/%s/peerings/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ExpressRouteCircuitName, id.Name)
+func (id ExpressRouteCircuitAuthorizationId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/expressRouteCircuits/%s/authorizations/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ExpressRouteCircuitName, id.AuthorizationName)
 }
 
-// PeeringID parses a Peering ID into an PeeringId struct
-func PeeringID(input string) (*PeeringId, error) {
+// ExpressRouteCircuitAuthorizationID parses a ExpressRouteCircuitAuthorization ID into an ExpressRouteCircuitAuthorizationId struct
+func ExpressRouteCircuitAuthorizationID(input string) (*ExpressRouteCircuitAuthorizationId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := PeeringId{
+	resourceId := ExpressRouteCircuitAuthorizationId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -63,7 +63,7 @@ func PeeringID(input string) (*PeeringId, error) {
 	if resourceId.ExpressRouteCircuitName, err = id.PopSegment("expressRouteCircuits"); err != nil {
 		return nil, err
 	}
-	if resourceId.Name, err = id.PopSegment("peerings"); err != nil {
+	if resourceId.AuthorizationName, err = id.PopSegment("authorizations"); err != nil {
 		return nil, err
 	}
 

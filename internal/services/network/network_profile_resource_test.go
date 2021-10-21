@@ -96,7 +96,7 @@ func (t NetworkProfileResource) Exists(ctx context.Context, clients *clients.Cli
 
 	resp, err := clients.Network.ProfileClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Network Profile (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -109,7 +109,7 @@ func (NetworkProfileResource) Destroy(ctx context.Context, client *clients.Clien
 	}
 
 	if _, err = client.Network.ProfileClient.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return nil, fmt.Errorf("deleting on Network Profile %q: %+v", id, err)
+		return nil, fmt.Errorf("deleting on %s: %+v", *id, err)
 	}
 
 	return utils.Bool(true), nil

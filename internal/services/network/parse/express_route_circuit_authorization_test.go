@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = AuthorizationId{}
+var _ resourceid.Formatter = ExpressRouteCircuitAuthorizationId{}
 
-func TestAuthorizationIDFormatter(t *testing.T) {
-	actual := NewAuthorizationID("12345678-1234-9876-4563-123456789012", "resGroup1", "expressRouteCircuit", "authorization1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit/authorizations/authorization1"
+func TestExpressRouteCircuitAuthorizationIDFormatter(t *testing.T) {
+	actual := NewExpressRouteCircuitAuthorizationID("12345678-1234-9876-4563-123456789012", "resGroup1", "expressRouteCircuit1", "authorization1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit1/authorizations/authorization1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestAuthorizationID(t *testing.T) {
+func TestExpressRouteCircuitAuthorizationID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *AuthorizationId
+		Expected *ExpressRouteCircuitAuthorizationId
 	}{
 
 		{
@@ -63,36 +63,36 @@ func TestAuthorizationID(t *testing.T) {
 
 		{
 			// missing value for ExpressRouteCircuitName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/",
 			Error: true,
 		},
 
 		{
-			// missing Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit/",
+			// missing AuthorizationName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit1/",
 			Error: true,
 		},
 
 		{
-			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit/authorizations/",
+			// missing value for AuthorizationName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit1/authorizations/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit/authorizations/authorization1",
-			Expected: &AuthorizationId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/expressRouteCircuit1/authorizations/authorization1",
+			Expected: &ExpressRouteCircuitAuthorizationId{
 				SubscriptionId:          "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:           "resGroup1",
-				ExpressRouteCircuitName: "expressRouteCircuit",
-				Name:                    "authorization1",
+				ExpressRouteCircuitName: "expressRouteCircuit1",
+				AuthorizationName:       "authorization1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/EXPRESSROUTECIRCUITS/EXPRESSROUTECIRCUIT/AUTHORIZATIONS/AUTHORIZATION1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/EXPRESSROUTECIRCUITS/EXPRESSROUTECIRCUIT1/AUTHORIZATIONS/AUTHORIZATION1",
 			Error: true,
 		},
 	}
@@ -100,7 +100,7 @@ func TestAuthorizationID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := AuthorizationID(v.Input)
+		actual, err := ExpressRouteCircuitAuthorizationID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -121,8 +121,8 @@ func TestAuthorizationID(t *testing.T) {
 		if actual.ExpressRouteCircuitName != v.Expected.ExpressRouteCircuitName {
 			t.Fatalf("Expected %q but got %q for ExpressRouteCircuitName", v.Expected.ExpressRouteCircuitName, actual.ExpressRouteCircuitName)
 		}
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.AuthorizationName != v.Expected.AuthorizationName {
+			t.Fatalf("Expected %q but got %q for AuthorizationName", v.Expected.AuthorizationName, actual.AuthorizationName)
 		}
 	}
 }
