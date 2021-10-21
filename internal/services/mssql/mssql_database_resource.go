@@ -797,6 +797,8 @@ func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy sql
 	securityAlertPolicy := make(map[string]interface{})
 
 	securityAlertPolicy["state"] = string(properties.State)
+	securityAlertPolicy["use_server_default"] = "Disabled"
+
 	securityAlertPolicy["email_account_admins"] = "Disabled"
 	if properties.EmailAccountAdmins != nil && *properties.EmailAccountAdmins {
 		securityAlertPolicy["email_account_admins"] = "Enabled"
@@ -805,14 +807,18 @@ func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy sql
 	if disabledAlerts := properties.DisabledAlerts; disabledAlerts != nil {
 		flattenedAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
 		for _, a := range *disabledAlerts {
-			flattenedAlerts.Add(a)
+			if a != "" {
+				flattenedAlerts.Add(a)
+			}
 		}
 		securityAlertPolicy["disabled_alerts"] = flattenedAlerts
 	}
 	if emailAddresses := properties.EmailAddresses; emailAddresses != nil {
 		flattenedEmails := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
 		for _, e := range *emailAddresses {
-			flattenedEmails.Add(e)
+			if e != "" {
+				flattenedEmails.Add(e)
+			}
 		}
 		securityAlertPolicy["email_addresses"] = flattenedEmails
 	}
