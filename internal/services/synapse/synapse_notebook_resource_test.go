@@ -196,7 +196,7 @@ resource "azurerm_synapse_notebook" "test" {
           ]
 BODY
 
-  //description     = "test"
+  description     = "test"
   display_name    = "notebook test"
   language        = "python"
   major_version   = 4
