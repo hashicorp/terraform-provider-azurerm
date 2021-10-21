@@ -1182,8 +1182,8 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   georeplications {
-    location                = "%s"
-    region_endpoint_enabled = true
+    location                  = "%s"
+    regional_endpoint_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)

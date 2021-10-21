@@ -120,7 +120,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 							Default:  false,
 						},
 
-						"region_endpoint_enabled": {
+						"regional_endpoint_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
@@ -818,7 +818,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 				replication["location"] = valueLocation
 				replication["tags"] = tags.Flatten(value.Tags)
 				replication["zone_redundancy_enabled"] = value.ZoneRedundancy == containerregistry.ZoneRedundancyEnabled
-				replication["region_endpoint_enabled"] = value.RegionEndpointEnabled != nil && *value.RegionEndpointEnabled
+				replication["regional_endpoint_enabled"] = value.RegionEndpointEnabled != nil && *value.RegionEndpointEnabled
 				geoReplications = append(geoReplications, replication)
 			}
 		}
@@ -966,7 +966,7 @@ func expandReplications(p []interface{}) []containerregistry.Replication {
 			Tags:     tags,
 			ReplicationProperties: &containerregistry.ReplicationProperties{
 				ZoneRedundancy:        zoneRedundancy,
-				RegionEndpointEnabled: utils.Bool(value["region_endpoint_enabled"].(bool)),
+				RegionEndpointEnabled: utils.Bool(value["regional_endpoint_enabled"].(bool)),
 			},
 		})
 	}
