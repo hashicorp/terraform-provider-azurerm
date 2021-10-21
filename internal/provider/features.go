@@ -167,15 +167,27 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Optional: true,
 			Default:  true,
 		}
+		f.Schema["purge_soft_deleted_keys_on_destroy"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		}
 		f.Schema["recover_soft_deleted_certificates"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
 		}
+		f.Schema["purge_soft_deleted_certificates_on_destroy"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		}
 		f.Schema["recover_soft_deleted_secrets"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
+		}
+		f.Schema["purge_soft_deleted_secrets_on_destroy"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
 		}
 	}
 
@@ -244,20 +256,34 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			// Inherit Key Vault recovery setting by default. If we're on 3.0 then the code below will overwrite
 			// these values as needed.
+			// TODO: Remove in 3.0
 			featuresMap.KeyVault.RecoverSoftDeletedCerts = featuresMap.KeyVault.RecoverSoftDeletedKeyVaults
 			featuresMap.KeyVault.RecoverSoftDeletedSecrets = featuresMap.KeyVault.RecoverSoftDeletedKeyVaults
 			featuresMap.KeyVault.RecoverSoftDeletedKeys = featuresMap.KeyVault.RecoverSoftDeletedKeyVaults
+			featuresMap.KeyVault.PurgeSoftDeletedKeysOnDestroy = featuresMap.KeyVault.PurgeSoftDeleteOnDestroy
+			featuresMap.KeyVault.PurgeSoftDeletedCertsOnDestroy = featuresMap.KeyVault.PurgeSoftDeleteOnDestroy
+			featuresMap.KeyVault.PurgeSoftDeletedSecretsOnDestroy = featuresMap.KeyVault.PurgeSoftDeleteOnDestroy
 
 			if features.ThreePointOh() {
 				if v, ok := keyVaultRaw["recover_soft_deleted_certificates"]; ok {
 					featuresMap.KeyVault.RecoverSoftDeletedCerts = v.(bool)
 				}
+				if v, ok := keyVaultRaw["purge_soft_deleted_certificates_on_destroy"]; ok {
+					featuresMap.KeyVault.PurgeSoftDeletedCertsOnDestroy = v.(bool)
+				}
 				if v, ok := keyVaultRaw["recover_soft_deleted_secrets"]; ok {
 					featuresMap.KeyVault.RecoverSoftDeletedSecrets = v.(bool)
+				}
+				if v, ok := keyVaultRaw["purge_soft_deleted_secrets_on_destroy"]; ok {
+					featuresMap.KeyVault.PurgeSoftDeletedSecretsOnDestroy = v.(bool)
 				}
 				if v, ok := keyVaultRaw["recover_soft_deleted_keys"]; ok {
 					featuresMap.KeyVault.RecoverSoftDeletedKeys = v.(bool)
 				}
+				if v, ok := keyVaultRaw["purge_soft_deleted_keys_on_destroy"]; ok {
+					featuresMap.KeyVault.PurgeSoftDeletedKeysOnDestroy = v.(bool)
+				}
+
 			}
 		}
 	}
