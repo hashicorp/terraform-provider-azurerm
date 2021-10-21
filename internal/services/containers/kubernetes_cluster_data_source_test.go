@@ -33,6 +33,7 @@ var kubernetesDataSourceTests = map[string]func(t *testing.T){
 	"addOnProfileIngressApplicationGateewayAppGateway": testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewayAppGateway,
 	"addOnProfileIngressApplicationGateewaySubnetCIDR": testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetCIDR,
 	"addOnProfileIngressApplicationGateewaySubnetId":   testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetId,
+	"addOnProfileOpenServiceMesh":                      testAccDataSourceKubernetesCluster_addOnProfileOpenServiceMesh,
 	"autoscalingNoAvailabilityZones":                   testAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones,
 	"autoscalingWithAvailabilityZones":                 testAccDataSourceKubernetesCluster_autoscalingWithAvailabilityZones,
 	"nodeLabels":                                       testAccDataSourceKubernetesCluster_nodeLabels,
@@ -556,6 +557,26 @@ func testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySub
 	})
 }
 
+func TestAccDataSourceKubernetesCluster_addOnProfileOpenServiceMesh(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceKubernetesCluster_addOnProfileOpenServiceMesh(t)
+}
+
+func testAccDataSourceKubernetesCluster_addOnProfileOpenServiceMesh(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.addOnProfileOpenServiceMeshConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("addon_profile.0.open_service_mesh.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.open_service_mesh.0.enabled").HasValue("true"),
+			),
+		},
+	})
+}
+
 func TestAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones(t)
@@ -862,6 +883,17 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.addonProfileIngressApplicationGatewaySubnetIdConfig(data))
+}
+
+func (KubernetesClusterDataSource) addOnProfileOpenServiceMeshConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.addonProfileOpenServiceMeshConfig(data, true))
 }
 
 func (KubernetesClusterDataSource) autoScalingNoAvailabilityZonesConfig(data acceptance.TestData) string {
