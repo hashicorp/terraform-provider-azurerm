@@ -70,13 +70,11 @@ func NewClient(o *common.ClientOptions) *Client {
 	sqlPoolVulnerabilityAssessmentsClient := synapse.NewSQLPoolVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
 
-
 	sqlPoolWorkloadGroupClient := synapse.NewSQLPoolWorkloadGroupClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolWorkloadGroupClient.Client, o.ResourceManagerAuthorizer)
 
 	sqlPoolVulnerabilityAssessmentRuleBaselinesClient := synapse.NewSQLPoolVulnerabilityAssessmentRuleBaselinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolVulnerabilityAssessmentRuleBaselinesClient.Client, o.ResourceManagerAuthorizer)
-
 
 	workspaceAadAdminsClient := synapse.NewWorkspaceAadAdminsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceAadAdminsClient.Client, o.ResourceManagerAuthorizer)
