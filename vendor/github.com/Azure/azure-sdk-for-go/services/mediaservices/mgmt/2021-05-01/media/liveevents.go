@@ -63,7 +63,7 @@ func (client LiveEventsClient) Allocate(ctx context.Context, resourceGroupName s
 
 	result, err = client.AllocateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "Allocate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "Allocate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -96,6 +96,7 @@ func (client LiveEventsClient) AllocatePreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client LiveEventsClient) AllocateSender(req *http.Request) (future LiveEventsAllocateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -155,7 +156,7 @@ func (client LiveEventsClient) Create(ctx context.Context, resourceGroupName str
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -194,6 +195,7 @@ func (client LiveEventsClient) CreatePreparer(ctx context.Context, resourceGroup
 // http.Response Body if it receives an error.
 func (client LiveEventsClient) CreateSender(req *http.Request) (future LiveEventsCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -249,7 +251,7 @@ func (client LiveEventsClient) Delete(ctx context.Context, resourceGroupName str
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -282,6 +284,7 @@ func (client LiveEventsClient) DeletePreparer(ctx context.Context, resourceGroup
 // http.Response Body if it receives an error.
 func (client LiveEventsClient) DeleteSender(req *http.Request) (future LiveEventsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -542,7 +545,7 @@ func (client LiveEventsClient) Reset(ctx context.Context, resourceGroupName stri
 
 	result, err = client.ResetSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "Reset", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "Reset", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -575,6 +578,7 @@ func (client LiveEventsClient) ResetPreparer(ctx context.Context, resourceGroupN
 // http.Response Body if it receives an error.
 func (client LiveEventsClient) ResetSender(req *http.Request) (future LiveEventsResetFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -629,7 +633,7 @@ func (client LiveEventsClient) Start(ctx context.Context, resourceGroupName stri
 
 	result, err = client.StartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "Start", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "Start", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -662,6 +666,7 @@ func (client LiveEventsClient) StartPreparer(ctx context.Context, resourceGroupN
 // http.Response Body if it receives an error.
 func (client LiveEventsClient) StartSender(req *http.Request) (future LiveEventsStartFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -717,7 +722,7 @@ func (client LiveEventsClient) Stop(ctx context.Context, resourceGroupName strin
 
 	result, err = client.StopSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "Stop", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "Stop", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -752,6 +757,7 @@ func (client LiveEventsClient) StopPreparer(ctx context.Context, resourceGroupNa
 // http.Response Body if it receives an error.
 func (client LiveEventsClient) StopSender(req *http.Request) (future LiveEventsStopFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -807,7 +813,7 @@ func (client LiveEventsClient) Update(ctx context.Context, resourceGroupName str
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -843,6 +849,7 @@ func (client LiveEventsClient) UpdatePreparer(ctx context.Context, resourceGroup
 // http.Response Body if it receives an error.
 func (client LiveEventsClient) UpdateSender(req *http.Request) (future LiveEventsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

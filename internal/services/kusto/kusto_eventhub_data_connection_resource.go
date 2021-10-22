@@ -12,6 +12,7 @@ import (
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
+	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -105,6 +106,15 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.EntityName,
+			},
+
+			"identity_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.Any(
+					validate.ClusterID,
+					msiValidate.UserAssignedIdentityID,
+				),
 			},
 
 			"mapping_rule_name": {
@@ -235,6 +245,7 @@ func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta int
 			d.Set("data_format", props.DataFormat)
 			d.Set("compression", props.Compression)
 			d.Set("event_system_properties", props.EventSystemProperties)
+			d.Set("identity_id", props.ManagedIdentityResourceID)
 		}
 	}
 
@@ -296,6 +307,10 @@ func expandKustoEventHubDataConnectionProperties(d *pluginsdk.ResourceData) *kus
 			props = append(props, prop.(string))
 		}
 		eventHubConnectionProperties.EventSystemProperties = &props
+	}
+
+	if identityId, ok := d.GetOk("identity_id"); ok {
+		eventHubConnectionProperties.ManagedIdentityResourceID = utils.String(identityId.(string))
 	}
 
 	return eventHubConnectionProperties

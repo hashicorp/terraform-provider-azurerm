@@ -435,7 +435,12 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 func (LinuxVirtualMachineScaleSetResource) disksDataDisk_diskEncryptionSetDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      recover_soft_deleted_key_vaults = false
+      purge_soft_delete_on_destroy    = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}

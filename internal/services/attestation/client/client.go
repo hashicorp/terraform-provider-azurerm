@@ -1,16 +1,16 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/attestation/mgmt/2018-09-01/attestation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/sdk/2020-10-01/attestationproviders"
 )
 
 type Client struct {
-	ProviderClient *attestation.ProvidersClient
+	ProviderClient *attestationproviders.AttestationProvidersClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	providerClient := attestation.NewProvidersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	providerClient := attestationproviders.NewAttestationProvidersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&providerClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{

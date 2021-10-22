@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -26,8 +28,16 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 		Read:   resourceMonitorScheduledQueryRulesAlertRead,
 		Update: resourceMonitorScheduledQueryRulesAlertCreateUpdate,
 		Delete: resourceMonitorScheduledQueryRulesAlertDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ScheduledQueryRulesID(id)
+			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ScheduledQueryRulesAlertUpgradeV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -215,16 +225,16 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 	action := expandMonitorScheduledQueryRulesAlertingAction(d)
 	schedule := expandMonitorScheduledQueryRulesAlertSchedule(d)
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewScheduledQueryRulesID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	frequency := d.Get("frequency").(int)
 	timeWindow := d.Get("time_window").(int)
 	if timeWindow < frequency {
-		return fmt.Errorf("in parameter values for Scheduled Query Rules %q (Resource Group %q): time_window must be greater than or equal to frequency", name, resourceGroup)
+		return fmt.Errorf("in parameter values for %s: time_window must be greater than or equal to frequency", id)
 	}
 
 	query := d.Get("query").(string)
@@ -233,15 +243,15 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 		if !(strings.Contains(query, "summarize") &&
 			strings.Contains(query, "AggregatedValue") &&
 			strings.Contains(query, "bin")) {
-			return fmt.Errorf("in parameter values for Scheduled Query Rules %q (Resource Group %q): query must contain summarize, AggregatedValue, and bin when metric_trigger is specified", name, resourceGroup)
+			return fmt.Errorf("in parameter values for %s: query must contain summarize, AggregatedValue, and bin when metric_trigger is specified", id)
 		}
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ScheduledQueryRuleName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Monitor Scheduled Query Rules %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
 			}
 		}
 
@@ -279,18 +289,11 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 		Tags: expandedTags,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("creating or updating Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ScheduledQueryRuleName, parameters); err != nil {
+		return fmt.Errorf("creating or updating Monitor %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Scheduled query rule %q (resource group %q) ID is empty", name, resourceGroup)
-	}
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceMonitorScheduledQueryRulesAlertRead(d, meta)
 }
@@ -300,25 +303,23 @@ func resourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ScheduledQueryRulesID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["scheduledqueryrules"]
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ScheduledQueryRuleName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Scheduled Query Rule %q was not found in Resource Group %q", name, resourceGroup)
+			log.Printf("[DEBUG] Scheduled Query Rule %q was not found in Resource Group %q", id.ScheduledQueryRuleName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("getting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("getting Monitor %s: %+v", *id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.ScheduledQueryRuleName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -333,14 +334,14 @@ func resourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, meta
 
 	action, ok := resp.Action.(insights.AlertingAction)
 	if !ok {
-		return fmt.Errorf("Wrong action type in Scheduled Query Rule %q (resource group %q): %T", name, resourceGroup, resp.Action)
+		return fmt.Errorf("wrong action type in %s: %T", *id, resp.Action)
 	}
 	if err = d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
 		return fmt.Errorf("setting `action`: %+v", err)
 	}
 	severity, err := strconv.Atoi(string(action.Severity))
 	if err != nil {
-		return fmt.Errorf("converting action.Severity %q in query rule %q to int (resource group %q): %+v", action.Severity, name, resourceGroup, err)
+		return fmt.Errorf("converting action.Severity %q to int in %s: %+v", action.Severity, *id, err)
 	}
 	d.Set("severity", severity)
 	d.Set("throttling", action.ThrottlingInMin)
@@ -378,16 +379,14 @@ func resourceMonitorScheduledQueryRulesAlertDelete(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ScheduledQueryRulesID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["scheduledqueryrules"]
 
-	if resp, err := client.Delete(ctx, resourceGroup, name); err != nil {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ScheduledQueryRuleName); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("deleting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("deleting Monitor %s: %+v", *id, err)
 		}
 	}
 

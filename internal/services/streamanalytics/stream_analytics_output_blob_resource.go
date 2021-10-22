@@ -244,7 +244,6 @@ func resourceStreamAnalyticsOutputBlobRead(d *pluginsdk.ResourceData, meta inter
 		}
 		d.Set("batch_max_wait_time", props.TimeWindow)
 		d.Set("batch_min_rows", props.SizeWindow)
-
 	}
 
 	return nil

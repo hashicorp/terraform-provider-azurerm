@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -158,19 +159,10 @@ func resourceIotHub() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"connection_string": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-								secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
-								sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
-
-								// Azure will always mask the Access Keys and will include the port number in the GET response
-								// 5671 is the default port for Azure Service Bus connections
-								maskedNew := sbProtocolRegex.ReplaceAllString(new, "sb://$1:5671/;")
-								maskedNew = secretKeyRegex.ReplaceAllString(maskedNew, "$1=****")
-								return (new == d.Get(k).(string)) && (maskedNew == old)
-							},
-							Sensitive: true,
+							Type:             pluginsdk.TypeString,
+							Required:         true,
+							DiffSuppressFunc: fileUploadConnectionStringDiffSuppress,
+							Sensitive:        true,
 						},
 						"container_name": {
 							Type:     pluginsdk.TypeString,
@@ -750,7 +742,6 @@ func resourceIotHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-
 		return err
 	}
 
@@ -1295,4 +1286,32 @@ func flattenIPFilterRules(in *[]devices.IPFilterRule) []interface{} {
 		rules = append(rules, rawRule)
 	}
 	return rules
+}
+
+func fileUploadConnectionStringDiffSuppress(k, old, new string, d *pluginsdk.ResourceData) bool {
+	// The access keys are always masked by Azure and the ordering of the parameters in the connection string
+	// differs across services, so we will compare the fields individually instead.
+	secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
+
+	if secretKeyRegex.MatchString(new) {
+		maskedNew := secretKeyRegex.ReplaceAllString(new, "$1=****")
+
+		oldSplit := strings.Split(old, ";")
+		newSplit := strings.Split(maskedNew, ";")
+
+		sort.Strings(oldSplit)
+		sort.Strings(newSplit)
+
+		if len(oldSplit) != len(newSplit) {
+			return false
+		}
+
+		for i := range oldSplit {
+			if !strings.EqualFold(oldSplit[i], newSplit[i]) {
+				return false
+			}
+		}
+		return true
+	}
+	return false
 }

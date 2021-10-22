@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
+	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -58,10 +58,10 @@ func resourceServiceBusTopic() *pluginsdk.Resource {
 			"status": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(servicebus.Active),
+				Default:  string(servicebus.EntityStatusActive),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(servicebus.Active),
-					string(servicebus.Disabled),
+					string(servicebus.EntityStatusActive),
+					string(servicebus.EntityStatusDisabled),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -237,7 +237,7 @@ func resourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) er
 					return err
 				}
 
-				if namespace.Sku.Name != servicebus.Premium {
+				if namespace.Sku.Name != servicebus.SkuNamePremium {
 					const partitionCount = 16
 					maxSize = int(*props.MaxSizeInMegabytes / partitionCount)
 				}

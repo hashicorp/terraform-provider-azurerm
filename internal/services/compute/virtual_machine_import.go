@@ -48,7 +48,7 @@ func importVirtualMachine(osType compute.OperatingSystemTypes, resourceType stri
 		}
 
 		hasSshKeys := false
-		if osType == compute.Linux {
+		if osType == compute.OperatingSystemTypesLinux {
 			if linux := vm.VirtualMachineProperties.OsProfile.LinuxConfiguration; linux != nil {
 				if linux.SSH != nil && linux.SSH.PublicKeys != nil {
 					hasSshKeys = len(*linux.SSH.PublicKeys) > 0

@@ -7,17 +7,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/attestation/mgmt/2018-09-01/attestation"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/sdk/2020-10-01/attestationproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAttestationProvider() *pluginsdk.Resource {
@@ -82,23 +82,23 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	resourceId := parse.NewProviderID(subscriptionId, resourceGroup, name).ID()
-	existing, err := client.Get(ctx, resourceGroup, name)
+	id := attestationproviders.NewAttestationProvidersID(subscriptionId, resourceGroup, name)
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Attestation Provider %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of exisiting %s: %+v", id, err)
 		}
 	}
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_attestation_provider", resourceId)
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_attestation_provider", id.ID())
 	}
 
-	props := attestation.ServiceCreationParams{
-		Location:   utils.String(location.Normalize(d.Get("location").(string))),
-		Properties: &attestation.ServiceCreationSpecificParams{
+	props := attestationproviders.AttestationServiceCreationParams{
+		Location:   location.Normalize(d.Get("location").(string)),
+		Properties: attestationproviders.AttestationServiceCreationSpecificParams{
 			// AttestationPolicy was deprecated in October of 2019
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
 	// NOTE: This maybe an slice in a future release or even a slice of slices
@@ -116,11 +116,11 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 		props.Properties.PolicySigningCertificates = expandArmAttestationProviderJSONWebKeySet(v)
 	}
 
-	if _, err := client.Create(ctx, resourceGroup, name, props); err != nil {
-		return fmt.Errorf("creating Attestation Provider %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.Create(ctx, id, props); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId)
+	d.SetId(id.ID())
 	return resourceAttestationProviderRead(d, meta)
 }
 
@@ -129,31 +129,35 @@ func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ProviderID(d.Id())
+	id, err := attestationproviders.ParseAttestationProvidersID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AttestationProviderName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Attestation Provider %q does not exist - removing from state", d.Id())
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Attestation Provider %q (Resource Group %q): %+v", id.AttestationProviderName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.AttestationProviderName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if props := resp.StatusResult; props != nil {
-		d.Set("attestation_uri", props.AttestURI)
-		d.Set("trust_model", props.TrustModel)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(resp.Model.Location))
+
+		if props := resp.Model.Properties; props != nil {
+			d.Set("attestation_uri", props.AttestUri)
+			d.Set("trust_model", props.TrustModel)
+		}
+		return tags.FlattenAndSet(d, flattenTags(model.Tags))
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceAttestationProviderUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -161,18 +165,18 @@ func resourceAttestationProviderUpdate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ProviderID(d.Id())
+	id, err := attestationproviders.ParseAttestationProvidersID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	updateParams := attestation.ServicePatchParams{}
+	updateParams := attestationproviders.AttestationServicePatchParams{}
 	if d.HasChange("tags") {
-		updateParams.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		updateParams.Tags = expandTags(d.Get("tags").(map[string]interface{}))
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.AttestationProviderName, updateParams); err != nil {
-		return fmt.Errorf("updating Attestation Provider %q (Resource Group %q): %+v", id.AttestationProviderName, id.ResourceGroup, err)
+	if _, err := client.Update(ctx, *id, updateParams); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 	return resourceAttestationProviderRead(d, meta)
 }
@@ -182,35 +186,35 @@ func resourceAttestationProviderDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ProviderID(d.Id())
+	id, err := attestationproviders.ParseAttestationProvidersID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.AttestationProviderName); err != nil {
-		return fmt.Errorf("deleting Attestation Provider %q (Resource Group %q): %+v", id.AttestationProviderName, id.ResourceGroup, err)
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 	return nil
 }
 
-func expandArmAttestationProviderJSONWebKeySet(pem string) *attestation.JSONWebKeySet {
+func expandArmAttestationProviderJSONWebKeySet(pem string) *attestationproviders.JsonWebKeySet {
 	if len(pem) == 0 {
 		return nil
 	}
 
-	result := attestation.JSONWebKeySet{
+	result := attestationproviders.JsonWebKeySet{
 		Keys: expandArmAttestationProviderJSONWebKeyArray(pem),
 	}
 
 	return &result
 }
 
-func expandArmAttestationProviderJSONWebKeyArray(pem string) *[]attestation.JSONWebKey {
-	results := make([]attestation.JSONWebKey, 0)
+func expandArmAttestationProviderJSONWebKeyArray(pem string) *[]attestationproviders.JsonWebKey {
+	results := make([]attestationproviders.JsonWebKey, 0)
 	certs := []string{pem}
 
-	result := attestation.JSONWebKey{
-		Kty: utils.String("RSA"),
+	result := attestationproviders.JsonWebKey{
+		Kty: "RSA",
 		X5c: &certs,
 	}
 

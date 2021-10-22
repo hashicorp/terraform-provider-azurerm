@@ -28,5 +28,15 @@ func DeprecatedInThreePointOh(deprecationMessage string) string {
 // infrastructure as required - but in time we'll flip this through
 // a Beta and then GA at 3.0 release.
 func ThreePointOh() bool {
-	return strings.EqualFold(os.Getenv("ARM_PROVIDER_THREEPOINTZERO_RESOURCES"), "true")
+	return false
+}
+
+// ThreePointOhBetaResources returns whether this provider is opted into
+// the Beta Resources coming in v3.0 - or explicitly opted into v3.0.
+func ThreePointOhBetaResources() bool {
+	if ThreePointOh() {
+		return true
+	}
+
+	return strings.EqualFold(os.Getenv("ARM_THREEPOINTZERO_BETA_RESOURCES"), "true")
 }

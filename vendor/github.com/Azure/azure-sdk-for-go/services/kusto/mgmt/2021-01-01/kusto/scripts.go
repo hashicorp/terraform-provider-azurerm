@@ -156,7 +156,7 @@ func (client ScriptsClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ScriptsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.ScriptsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -193,6 +193,7 @@ func (client ScriptsClient) CreateOrUpdatePreparer(ctx context.Context, resource
 // http.Response Body if it receives an error.
 func (client ScriptsClient) CreateOrUpdateSender(req *http.Request) (future ScriptsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -241,7 +242,7 @@ func (client ScriptsClient) Delete(ctx context.Context, resourceGroupName string
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ScriptsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.ScriptsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -275,6 +276,7 @@ func (client ScriptsClient) DeletePreparer(ctx context.Context, resourceGroupNam
 // http.Response Body if it receives an error.
 func (client ScriptsClient) DeleteSender(req *http.Request) (future ScriptsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -481,7 +483,7 @@ func (client ScriptsClient) Update(ctx context.Context, resourceGroupName string
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ScriptsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.ScriptsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -518,6 +520,7 @@ func (client ScriptsClient) UpdatePreparer(ctx context.Context, resourceGroupNam
 // http.Response Body if it receives an error.
 func (client ScriptsClient) UpdateSender(req *http.Request) (future ScriptsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

@@ -56,7 +56,6 @@ func SchemaMultipleZones() *pluginsdk.Schema {
 func SchemaZonesComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
 		Computed: true,
 		Elem: &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,

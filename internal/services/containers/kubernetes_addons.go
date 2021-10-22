@@ -24,6 +24,7 @@ const (
 	httpApplicationRoutingKey    = "httpApplicationRouting"
 	omsAgentKey                  = "omsagent"
 	ingressApplicationGatewayKey = "ingressApplicationGateway"
+	openServiceMeshKey           = "openServiceMesh"
 )
 
 // The AKS API hard-codes which add-ons are supported in which environment
@@ -36,11 +37,13 @@ var unsupportedAddonsForEnvironment = map[string][]string{
 		aciConnectorKey,           // https://github.com/hashicorp/terraform-provider-azurerm/issues/5510
 		httpApplicationRoutingKey, // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
 		kubernetesDashboardKey,    // https://github.com/hashicorp/terraform-provider-azurerm/issues/7487
+		openServiceMeshKey,        // Preview features are not supported in Azure China
 	},
 	azure.USGovernmentCloud.Name: {
 		azurePolicyKey,            // https://github.com/hashicorp/terraform-provider-azurerm/issues/6702
 		httpApplicationRoutingKey, // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
 		kubernetesDashboardKey,    // https://github.com/hashicorp/terraform-provider-azurerm/issues/7136
+		openServiceMeshKey,        // Preview features are not supported in Azure Government
 	},
 }
 
@@ -218,6 +221,20 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 						},
 					},
 				},
+
+				"open_service_mesh": {
+					Type:     pluginsdk.TypeList,
+					MaxItems: 1,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"enabled": {
+								Type:     pluginsdk.TypeBool,
+								Required: true,
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -235,6 +252,7 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 		httpApplicationRoutingKey:    &disabled,
 		omsAgentKey:                  &disabled,
 		ingressApplicationGatewayKey: &disabled,
+		openServiceMeshKey:           &disabled,
 	}
 
 	if len(input) == 0 || input[0] == nil {
@@ -339,6 +357,18 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 			Enabled: utils.Bool(enabled),
 			Config:  config,
 		}
+	}
+
+	openServiceMesh := profile["open_service_mesh"].([]interface{})
+	if len(openServiceMesh) > 0 && openServiceMesh[0] != nil {
+		value := openServiceMesh[0].(map[string]interface{})
+		enabled := value["enabled"].(bool)
+
+		addonProfiles[openServiceMeshKey] = &containerservice.ManagedClusterAddonProfile{
+			Enabled: utils.Bool(enabled),
+			Config:  nil,
+		}
+
 	}
 
 	return filterUnsupportedKubernetesAddOns(addonProfiles, env)
@@ -502,8 +532,20 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 		})
 	}
 
+	openServiceMeshes := make([]interface{}, 0)
+	if openServiceMesh := kubernetesAddonProfileLocate(profile, openServiceMeshKey); openServiceMesh != nil {
+		enabled := false
+		if enabledVal := openServiceMesh.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		openServiceMeshes = append(openServiceMeshes, map[string]interface{}{
+			"enabled": enabled,
+		})
+	}
+
 	// this is a UX hack, since if the top level block isn't defined everything should be turned off
-	if len(aciConnectors) == 0 && len(azurePolicies) == 0 && len(httpApplicationRoutes) == 0 && len(kubeDashboards) == 0 && len(omsAgents) == 0 && len(ingressApplicationGateways) == 0 {
+	if len(aciConnectors) == 0 && len(azurePolicies) == 0 && len(httpApplicationRoutes) == 0 && len(kubeDashboards) == 0 && len(omsAgents) == 0 && len(ingressApplicationGateways) == 0 && len(openServiceMeshes) == 0 {
 		return []interface{}{}
 	}
 
@@ -515,6 +557,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			"kube_dashboard":              kubeDashboards,
 			"oms_agent":                   omsAgents,
 			"ingress_application_gateway": ingressApplicationGateways,
+			"open_service_mesh":           openServiceMeshes,
 		},
 	}
 }
