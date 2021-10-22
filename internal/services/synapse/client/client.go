@@ -29,9 +29,8 @@ type Client struct {
 	WorkspaceExtendedBlobAuditingPoliciesClient       *synapse.WorkspaceManagedSQLServerExtendedBlobAuditingPoliciesClient
 	WorkspaceManagedIdentitySQLControlSettingsClient  *synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	WorkspaceSecurityAlertPolicyClient                *synapse.WorkspaceManagedSQLServerSecurityAlertPolicyClient
-  WorkspaceSQLAadAdminsClient                       *synapse.WorkspaceSQLAadAdminsClient
+	WorkspaceSQLAadAdminsClient                       *synapse.WorkspaceSQLAadAdminsClient
 	WorkspaceVulnerabilityAssessmentsClient           *synapse.WorkspaceManagedSQLServerVulnerabilityAssessmentsClient
-
 
 	synapseAuthorizer autorest.Authorizer
 }
