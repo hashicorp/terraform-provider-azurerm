@@ -87,6 +87,8 @@ The following arguments are supported:
 
 * `delivery_identity` - (Optional) A `delivery_identity` block as defined below.
 
+* `delivery_property` - (Optional) A `delivery_property` block as defined below.
+
 * `dead_letter_identity` - (Optional) A `dead_letter_identity` block as defined below.
 
 -> **Note:** `storage_blob_dead_letter_destination` must be specified when a `dead_letter_identity` is specified
@@ -196,6 +198,21 @@ Each nested block consists of a key and a value(s) element.
 A `delivery_identity` supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that is used for event delivery. Allowed value is `SystemAssigned`.
+
+
+---
+
+A `delivery_property` supports the following:
+
+* `header_name` - (Required) The name of the header to send on to the destination
+
+* `type` - (Required) Either `Static` or `Dynamic`
+
+* `value` - (Optional) If the `type` is `Static`, then provide the value to use
+
+* `source_field` - (Optional) If the `type` is `Dynamic`, then provide the payload field to be used as the value. Valid source fields differ by subscription type.
+
+* `secret` - (Optional) True if the `value` is a secret and should be protected, otherwise false. If True, then this value won't be returned from Azure API calls 
 
 ---
 

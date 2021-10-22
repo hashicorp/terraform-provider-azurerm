@@ -52,6 +52,8 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `pool_allocation_mode` - (Optional) Specifies the mode to use for pool allocation. Possible values are `BatchService` or `UserSubscription`. Defaults to `BatchService`.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for this server. Defaults to `true`.
@@ -68,6 +70,14 @@ The following arguments are supported:
 
 ---
 
+An `identity` block supports the following:
+
+* `type` - (Required) The identity type of the Batch Account. Possible values are `SystemAssigned` and `UserAssigned`.
+
+* `identity_ids` - (Optional) Specifies a list of user assigned identity ids. Required if `type` is `UserAssigned`.
+
+---
+
 A `key_vault_reference` block supports the following:
 
 * `id` - (Required) The Azure identifier of the Azure KeyVault to use.
@@ -80,6 +90,8 @@ The following attributes are exported:
 
 * `id` - The ID of the Batch Account.
 
+* `identity` - An `identity` block as defined below.
+
 * `primary_access_key` - The Batch account primary access key.
 
 * `secondary_access_key` - The Batch account secondary access key.
@@ -87,6 +99,14 @@ The following attributes are exported:
 * `account_endpoint` - The account endpoint used to interact with the Batch service.
 
 ~> **NOTE:** Primary and secondary access keys are only available when `pool_allocation_mode` is set to `BatchService`. See [documentation](https://docs.microsoft.com/en-us/azure/batch/batch-api-basics) for more information.
+
+---
+
+A `identity` block exports the following:
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the system assigned identity of this Batch Account.
+
+* `principal_id` - The Principal ID for the Service Principal associated with the system assigned identity of this Batch Account.
 
 ## Timeouts
 

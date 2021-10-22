@@ -96,7 +96,7 @@ func (t ServiceBusNamespaceNetworkRuleSetResource) Exists(ctx context.Context, c
 		return nil, err
 	}
 
-	resp, err := clients.ServiceBus.NamespacesClientPreview.GetNetworkRuleSet(ctx, id.ResourceGroup, id.NamespaceName)
+	resp, err := clients.ServiceBus.NamespacesClient.GetNetworkRuleSet(ctx, id.ResourceGroup, id.NamespaceName)
 	if err != nil {
 		return nil, fmt.Errorf("reading Service Bus NameSpace Network Rule Set (%s): %+v", id.String(), err)
 	}

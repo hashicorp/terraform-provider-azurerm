@@ -78,7 +78,7 @@ func (client NamedValueClient) CreateOrUpdate(ctx context.Context, resourceGroup
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -117,6 +117,7 @@ func (client NamedValueClient) CreateOrUpdatePreparer(ctx context.Context, resou
 // http.Response Body if it receives an error.
 func (client NamedValueClient) CreateOrUpdateSender(req *http.Request) (future NamedValueCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -684,7 +685,7 @@ func (client NamedValueClient) RefreshSecret(ctx context.Context, resourceGroupN
 
 	result, err = client.RefreshSecretSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "RefreshSecret", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "RefreshSecret", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -717,6 +718,7 @@ func (client NamedValueClient) RefreshSecretPreparer(ctx context.Context, resour
 // http.Response Body if it receives an error.
 func (client NamedValueClient) RefreshSecretSender(req *http.Request) (future NamedValueRefreshSecretFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -778,7 +780,7 @@ func (client NamedValueClient) Update(ctx context.Context, resourceGroupName str
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -814,6 +816,7 @@ func (client NamedValueClient) UpdatePreparer(ctx context.Context, resourceGroup
 // http.Response Body if it receives an error.
 func (client NamedValueClient) UpdateSender(req *http.Request) (future NamedValueUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

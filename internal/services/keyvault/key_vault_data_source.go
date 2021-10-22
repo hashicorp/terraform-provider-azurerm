@@ -115,6 +115,11 @@ func dataSourceKeyVault() *pluginsdk.Resource {
 					Computed: true,
 				},
 
+				"enable_rbac_authorization": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
 				"network_acls": {
 					Type:     pluginsdk.TypeList,
 					Computed: true,
@@ -192,6 +197,7 @@ func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_deployment", props.EnabledForDeployment)
 		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
+		d.Set("enable_rbac_authorization", props.EnableRbacAuthorization)
 		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
 		d.Set("vault_uri", props.VaultURI)
 

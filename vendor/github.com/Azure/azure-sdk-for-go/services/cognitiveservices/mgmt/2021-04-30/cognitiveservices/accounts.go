@@ -93,7 +93,7 @@ func (client AccountsClient) Create(ctx context.Context, resourceGroupName strin
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cognitiveservices.AccountsClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cognitiveservices.AccountsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -128,6 +128,7 @@ func (client AccountsClient) CreatePreparer(ctx context.Context, resourceGroupNa
 // http.Response Body if it receives an error.
 func (client AccountsClient) CreateSender(req *http.Request) (future AccountsCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -188,7 +189,7 @@ func (client AccountsClient) Delete(ctx context.Context, resourceGroupName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cognitiveservices.AccountsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cognitiveservices.AccountsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -220,6 +221,7 @@ func (client AccountsClient) DeletePreparer(ctx context.Context, resourceGroupNa
 // http.Response Body if it receives an error.
 func (client AccountsClient) DeleteSender(req *http.Request) (future AccountsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -983,7 +985,7 @@ func (client AccountsClient) Update(ctx context.Context, resourceGroupName strin
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cognitiveservices.AccountsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cognitiveservices.AccountsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1018,6 +1020,7 @@ func (client AccountsClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 // http.Response Body if it receives an error.
 func (client AccountsClient) UpdateSender(req *http.Request) (future AccountsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

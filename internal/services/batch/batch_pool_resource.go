@@ -8,19 +8,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
+	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+type batchPoolIdentity = identity.UserAssigned
 
 func resourceBatchPool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -282,6 +286,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"identity": batchPoolIdentity{}.Schema(),
+
 			"start_task": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -336,10 +343,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 												"elevation_level": {
 													Type:     pluginsdk.TypeString,
 													Optional: true,
-													Default:  string(batch.NonAdmin),
+													Default:  string(batch.ElevationLevelNonAdmin),
 													ValidateFunc: validation.StringInSlice([]string{
-														string(batch.NonAdmin),
-														string(batch.Admin),
+														string(batch.ElevationLevelNonAdmin),
+														string(batch.ElevationLevelAdmin),
 													}, false),
 												},
 												"scope": {
@@ -429,9 +436,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(batch.BatchManaged),
-								string(batch.UserManaged),
-								string(batch.NoPublicIPAddresses),
+								string(batch.IPAddressProvisioningTypeBatchManaged),
+								string(batch.IPAddressProvisioningTypeUserManaged),
+								string(batch.IPAddressProvisioningTypeNoPublicIPAddresses),
 							}, false),
 						},
 						"endpoint_configuration": {
@@ -451,8 +458,8 @@ func resourceBatchPool() *pluginsdk.Resource {
 										Required: true,
 										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(batch.TCP),
-											string(batch.UDP),
+											string(batch.InboundEndpointProtocolTCP),
+											string(batch.InboundEndpointProtocolUDP),
 										}, false),
 									},
 									"backend_port": {
@@ -487,8 +494,8 @@ func resourceBatchPool() *pluginsdk.Resource {
 													Required: true,
 													ForceNew: true,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(batch.Allow),
-														string(batch.Deny),
+														string(batch.NetworkSecurityGroupRuleAccessAllow),
+														string(batch.NetworkSecurityGroupRuleAccessDeny),
 													}, false),
 												},
 												"source_address_prefix": {
@@ -539,11 +546,17 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	parameters := batch.Pool{
 		PoolProperties: &batch.PoolProperties{
-			VMSize:          &vmSize,
-			DisplayName:     &displayName,
-			MaxTasksPerNode: &maxTasksPerNode,
+			VMSize:           &vmSize,
+			DisplayName:      &displayName,
+			TaskSlotsPerNode: &maxTasksPerNode,
 		},
 	}
+
+	identity, err := expandBatchPoolIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf(`expanding "identity": %v`, err)
+	}
+	parameters.Identity = identity
 
 	scaleSettings, err := expandBatchPoolScaleSettings(d)
 	if err != nil {
@@ -621,13 +634,9 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("expanding `network_configuration`: %+v", err)
 	}
 
-	future, err := client.Create(ctx, resourceGroup, accountName, poolName, parameters, "", "")
+	_, err = client.Create(ctx, resourceGroup, accountName, poolName, parameters, "", "")
 	if err != nil {
 		return fmt.Errorf("creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, accountName, poolName)
@@ -642,7 +651,7 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.SetId(*read.ID)
 
 	// if the pool is not Steady after the create operation, wait for it to be Steady
-	if props := read.PoolProperties; props != nil && props.AllocationState != batch.Steady {
+	if props := read.PoolProperties; props != nil && props.AllocationState != batch.AllocationStateSteady {
 		if err = waitForBatchPoolPendingResizeOperation(ctx, client, resourceGroup, accountName, poolName); err != nil {
 			return fmt.Errorf("waiting for Batch pool %q (resource group %q) being ready", poolName, resourceGroup)
 		}
@@ -666,7 +675,7 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("retrieving the Batch pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	if resp.PoolProperties.AllocationState != batch.Steady {
+	if resp.PoolProperties.AllocationState != batch.AllocationStateSteady {
 		log.Printf("[INFO] there is a pending resize operation on this pool...")
 		stopPendingResizeOperation := d.Get("stop_pending_resize_operation").(bool)
 		if !stopPendingResizeOperation {
@@ -687,6 +696,12 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	parameters := batch.Pool{
 		PoolProperties: &batch.PoolProperties{},
 	}
+
+	identity, err := expandBatchPoolIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf(`expanding "identity": %v`, err)
+	}
+	parameters.Identity = identity
 
 	scaleSettings, err := expandBatchPoolScaleSettings(d)
 	if err != nil {
@@ -735,7 +750,7 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	// if the pool is not Steady after the update, wait for it to be Steady
-	if props := result.PoolProperties; props != nil && props.AllocationState != batch.Steady {
+	if props := result.PoolProperties; props != nil && props.AllocationState != batch.AllocationStateSteady {
 		if err := waitForBatchPoolPendingResizeOperation(ctx, client, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
 			return fmt.Errorf("waiting for Batch pool %q (resource group %q) being ready", id.Name, id.ResourceGroup)
 		}
@@ -766,6 +781,14 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("account_name", id.BatchAccountName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
+	identity, err := flattenBatchPoolIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
 	if props := resp.PoolProperties; props != nil {
 		d.Set("display_name", props.DisplayName)
 		d.Set("vm_size", props.VMSize)
@@ -779,7 +802,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 		}
 
-		d.Set("max_tasks_per_node", props.MaxTasksPerNode)
+		d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
 
 		if props.DeploymentConfiguration != nil &&
 			props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
@@ -895,7 +918,7 @@ func waitForBatchPoolPendingResizeOperation(ctx context.Context, client *batch.P
 			return fmt.Errorf("retrieving the Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
 		}
 
-		isSteady = resp.PoolProperties.AllocationState == batch.Steady
+		isSteady = resp.PoolProperties.AllocationState == batch.AllocationStateSteady
 		time.Sleep(time.Second * 30)
 		log.Printf("[INFO] waiting for the pending resize operation on this pool to be stopped... New try in 30 seconds...")
 	}
@@ -959,4 +982,47 @@ func validateBatchPoolCrossFieldRules(pool *batch.Pool) error {
 	}
 
 	return nil
+}
+
+func expandBatchPoolIdentity(input []interface{}) (*batch.PoolIdentity, error) {
+	config, err := batchPoolIdentity{}.Expand(input)
+	if err != nil {
+		return nil, err
+	}
+
+	var identityMaps map[string]*batch.UserAssignedIdentities
+	if len(config.UserAssignedIdentityIds) != 0 {
+		identityMaps = make(map[string]*batch.UserAssignedIdentities, len(config.UserAssignedIdentityIds))
+		for _, id := range config.UserAssignedIdentityIds {
+			identityMaps[id] = &batch.UserAssignedIdentities{}
+		}
+	}
+
+	return &batch.PoolIdentity{
+		Type:                   batch.PoolIdentityType(config.Type),
+		UserAssignedIdentities: identityMaps,
+	}, nil
+}
+
+func flattenBatchPoolIdentity(input *batch.PoolIdentity) ([]interface{}, error) {
+	var config *identity.ExpandedConfig
+
+	if input == nil {
+		return []interface{}{}, nil
+	}
+
+	var identityIds []string
+	for id := range input.UserAssignedIdentities {
+		parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(id)
+		if err != nil {
+			return nil, err
+		}
+		identityIds = append(identityIds, parsedId.ID())
+	}
+
+	config = &identity.ExpandedConfig{
+		Type:                    identity.Type(string(input.Type)),
+		UserAssignedIdentityIds: identityIds,
+	}
+	return batchPoolIdentity{}.Flatten(config), nil
 }

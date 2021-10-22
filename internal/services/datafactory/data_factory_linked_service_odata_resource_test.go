@@ -76,7 +76,7 @@ func (t LinkedServiceODataResource) Exists(ctx context.Context, clients *clients
 
 	resp, err := clients.DataFactory.LinkedServiceClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Data Factory Linked Service OData (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading Data Factory OData (%s): %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

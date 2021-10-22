@@ -6,7 +6,6 @@ import (
 	"log"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/ssh"
@@ -182,14 +181,12 @@ func TestAccImage_customImageFromVMSSWithUnmanagedDisks(t *testing.T) {
 }
 
 func (ImageResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ImageID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["images"]
 
-	resp, err := clients.Compute.ImagesClient.Get(ctx, resGroup, name, "")
+	resp, err := clients.Compute.ImagesClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Image %q", id)
 	}

@@ -662,7 +662,6 @@ func expandIdentityControlSQLSettings(enabled bool) *synapse.ManagedIdentitySQLC
 }
 
 func expandEncryptionDetails(d *pluginsdk.ResourceData) *synapse.EncryptionDetails {
-
 	if cmkList, ok := d.GetOk("customer_managed_key"); ok {
 		cmk := cmkList.([]interface{})[0].(map[string]interface{})
 		return &synapse.EncryptionDetails{
@@ -783,7 +782,6 @@ func flattenIdentityControlSQLSettings(settings synapse.ManagedIdentitySQLContro
 }
 
 func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) []interface{} {
-
 	if encryption != nil {
 		if cmk := encryption.Cmk; cmk != nil {
 			if cmk.Key != nil {
@@ -799,7 +797,6 @@ func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) []interface
 		// 		return key.Name, key.KeyVaultURL
 		// 	}
 		// }
-
 	}
 
 	return make([]interface{}, 0)

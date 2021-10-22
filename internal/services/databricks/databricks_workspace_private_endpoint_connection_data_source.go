@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/databricks/mgmt/2021-04-01-preview/databricks"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/sdk/2021-04-01-preview/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceDatabricksWorkspacePrivateEndpointConnection() *pluginsdk.Resource {
@@ -77,18 +76,18 @@ func dataSourceDatabricksWorkspacePrivateEndpointConnectionRead(d *pluginsdk.Res
 	workspace := d.Get("workspace_id").(string)
 	endpointId := d.Get("private_endpoint_id").(string)
 
-	id, err := parse.WorkspaceID(workspace)
+	id, err := workspaces.ParseWorkspaceID(workspace)
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("%s was not found", id)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", *id)
 		}
 
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.SetId(id.ID())
@@ -96,8 +95,8 @@ func dataSourceDatabricksWorkspacePrivateEndpointConnectionRead(d *pluginsdk.Res
 	d.Set("workspace_id", workspace)
 	d.Set("private_endpoint_id", endpointId)
 
-	if props := resp.WorkspaceProperties; props != nil {
-		if err := d.Set("connections", flattenPrivateEndpointConnections(props.PrivateEndpointConnections)); err != nil {
+	if model := resp.Model; model != nil {
+		if err := d.Set("connections", flattenPrivateEndpointConnections(model.Properties.PrivateEndpointConnections)); err != nil {
 			return fmt.Errorf("setting `connections`: %+v", err)
 		}
 	}
@@ -105,7 +104,7 @@ func dataSourceDatabricksWorkspacePrivateEndpointConnectionRead(d *pluginsdk.Res
 	return nil
 }
 
-func flattenPrivateEndpointConnections(input *[]databricks.PrivateEndpointConnection) []interface{} {
+func flattenPrivateEndpointConnections(input *[]workspaces.PrivateEndpointConnection) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -118,22 +117,19 @@ func flattenPrivateEndpointConnections(input *[]databricks.PrivateEndpointConnec
 			result["name"] = *name
 		}
 
-		if id := v.ID; id != nil {
+		if id := v.Id; id != nil {
 			result["workspace_private_endpoint_id"] = *id
 		}
 
-		if props := v.Properties; props != nil {
-			if connState := props.PrivateLinkServiceConnectionState; connState != nil {
-				if description := connState.Description; description != nil {
-					result["description"] = *description
-				}
-				if status := connState.Status; status != "" {
-					result["status"] = status
-				}
-				if actionReq := connState.ActionRequired; actionReq != nil {
-					result["action_required"] = *actionReq
-				}
-			}
+		connState := v.Properties.PrivateLinkServiceConnectionState
+		if description := connState.Description; description != nil {
+			result["description"] = *description
+		}
+		if status := connState.Status; status != "" {
+			result["status"] = status
+		}
+		if actionReq := connState.ActionRequired; actionReq != nil {
+			result["action_required"] = *actionReq
 		}
 
 		results = append(results, result)

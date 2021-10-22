@@ -44,7 +44,7 @@ func (r AppServiceSourceControlResource) Exists(ctx context.Context, client *cli
 		return nil, fmt.Errorf("retrieving %s: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.SourceControlProperties != nil), nil
+	return utils.Bool(resp.SourceControlProperties != nil && resp.SourceControlProperties.Token != nil && *resp.SourceControlProperties.Token != ""), nil
 }
 
 func testAccAppServiceSourceControlToken(token, tokenSecret string) string {

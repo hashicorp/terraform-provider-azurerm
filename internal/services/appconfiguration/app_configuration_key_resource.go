@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -33,6 +34,7 @@ type KeyResourceModel struct {
 	ConfigurationStoreId string                 `tfschema:"configuration_store_id"`
 	Key                  string                 `tfschema:"key"`
 	ContentType          string                 `tfschema:"content_type"`
+	Etag                 string                 `tfschema:"etag"`
 	Label                string                 `tfschema:"label"`
 	Value                string                 `tfschema:"value"`
 	Locked               bool                   `tfschema:"locked"`
@@ -130,12 +132,16 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 				Label:                model.Label,
 			}
 
-			kv, err := client.GetKeyValues(ctx, model.Key, model.Label, "", "", []string{})
+			kv, err := client.GetKeyValue(ctx, model.Key, model.Label, "", "", "", []string{})
 			if err != nil {
-				return fmt.Errorf("while checking for key's %q existence: %+v", model.Key, err)
-			}
-			keysFound := kv.Values()
-			if len(keysFound) > 0 {
+				if v, ok := err.(autorest.DetailedError); ok {
+					if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
+						return fmt.Errorf("got http status code %d while checking for key's %q existence: %+v", v.Response.StatusCode, model.Key, v.Error())
+					}
+				} else {
+					return fmt.Errorf("while checking for key's %q existence: %+v", model.Key, err)
+				}
+			} else if kv.Response.StatusCode == 200 {
 				return tf.ImportAsExistsError(k.ResourceType(), appCfgKeyResourceID.ID())
 			}
 
@@ -184,7 +190,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 func (k KeyResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			resourceID, err := parse.AppConfigurationKeyID(metadata.ResourceData.Id())
+			resourceID, err := parse.KeyId(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
@@ -200,28 +206,23 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			res, err := client.GetKeyValues(ctx, resourceID.Key, resourceID.Label, "", "", []string{})
+			kv, err := client.GetKeyValue(ctx, resourceID.Key, resourceID.Label, "", "", "", []string{})
 			if err != nil {
-				if !utils.ResponseWasNotFound(res.Response().Response) {
-					return metadata.MarkAsGone(resourceID)
+				if v, ok := err.(autorest.DetailedError); ok {
+					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
+						return metadata.MarkAsGone(resourceID)
+					}
+				} else {
+					return fmt.Errorf("while checking for key's %q existence: %+v", resourceID.Key, err)
 				}
 				return fmt.Errorf("while checking for key's %q existence: %+v", resourceID.Key, err)
 			}
-
-			if len(res.Values()) > 1 {
-				return fmt.Errorf("unexpected API response. More than one value returned for Key/Label pair %s/%s", resourceID.Key, resourceID.Label)
-			}
-
-			if len(res.Values()) < 1 {
-				return metadata.MarkAsGone(resourceID)
-			}
-
-			kv := res.Values()[0]
 
 			model := KeyResourceModel{
 				ConfigurationStoreId: resourceID.ConfigurationStoreId,
 				Key:                  utils.NormalizeNilableString(kv.Key),
 				ContentType:          utils.NormalizeNilableString(kv.ContentType),
+				Etag:                 utils.NormalizeNilableString(kv.Etag),
 				Label:                utils.NormalizeNilableString(kv.Label),
 				Tags:                 tags.Flatten(kv.Tags),
 			}
@@ -255,8 +256,7 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 func (k KeyResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
-			resourceID, err := parse.AppConfigurationKeyID(metadata.ResourceData.Id())
+			resourceID, err := parse.KeyId(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
@@ -272,7 +272,6 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("value") || metadata.ResourceData.HasChange("content_type") || metadata.ResourceData.HasChange("tags") || metadata.ResourceData.HasChange("type") || metadata.ResourceData.HasChange("vault_key_reference") {
-
 				entity := appconfiguration.KeyValue{
 					Key:   utils.String(model.Key),
 					Label: utils.String(model.Label),
@@ -316,7 +315,7 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 func (k KeyResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			resourceID, err := parse.AppConfigurationKeyID(metadata.ResourceData.Id())
+			resourceID, err := parse.KeyId(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}

@@ -86,15 +86,19 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for this server. Defaults to `true`.
 
+* `primary_user_assigned_identity_id` - (Optional) Specifies the primary user managed identity id. Required if `type` is `UserAssigned` and should be combined with `user_assigned_identity_ids`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Microsoft SQL Server. At this time the only allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the identity type of the Microsoft SQL Server. Possible values are `SystemAssigned` (where Azure will generate a Service Principal for you) and `UserAssigned` where you can specify the Service Principal IDs in the `user_assigned_identity_ids` field.
 
-~> **NOTE:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the Microsoft SQL Server has been created. More details are available below.
+~> **NOTE:** When `type` is set to `SystemAssigned`, the assigned `principal_id` and `tenant_id` can be retrieved after the Microsoft SQL Server has been created. More details are available below.
+
+* `user_assigned_identity_ids` - (Optional) Specifies a list of User Assigned Identity IDs to be assigned. Required if `type` is `UserAssigned` and should be combined with `primary_user_assigned_identity_id`.
 
 ## Attributes Reference
 
@@ -125,6 +129,8 @@ An `azuread_administrator` block supports the following:
 * `object_id` - (Required) The object id of the Azure AD Administrator of this SQL Server.
 
 * `tenant_id` - (Optional) The tenant id of the Azure AD Administrator of this SQL Server.
+
+* `azuread_authentication_only` - (Optional) Specifies whether only AD Users and administrators (like `azuread_administrator.0.login_username`) can be used to login or also local database users (like `administrator_login`).
 
 ---
 

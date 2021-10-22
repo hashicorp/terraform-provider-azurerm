@@ -323,12 +323,10 @@ func resourceEventGridTopicDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-
 		return fmt.Errorf("deleting EventGrid Topic %q: %+v", id.Name, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-
 		return fmt.Errorf("deleting EventGrid Topic %q: %+v", id.Name, err)
 	}
 

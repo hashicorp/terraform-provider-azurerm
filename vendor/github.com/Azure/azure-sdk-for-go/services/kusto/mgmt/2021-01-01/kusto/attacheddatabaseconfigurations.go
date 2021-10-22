@@ -68,7 +68,7 @@ func (client AttachedDatabaseConfigurationsClient) CreateOrUpdate(ctx context.Co
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.AttachedDatabaseConfigurationsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.AttachedDatabaseConfigurationsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -103,6 +103,7 @@ func (client AttachedDatabaseConfigurationsClient) CreateOrUpdatePreparer(ctx co
 // http.Response Body if it receives an error.
 func (client AttachedDatabaseConfigurationsClient) CreateOrUpdateSender(req *http.Request) (future AttachedDatabaseConfigurationsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -150,7 +151,7 @@ func (client AttachedDatabaseConfigurationsClient) Delete(ctx context.Context, r
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.AttachedDatabaseConfigurationsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.AttachedDatabaseConfigurationsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -183,6 +184,7 @@ func (client AttachedDatabaseConfigurationsClient) DeletePreparer(ctx context.Co
 // http.Response Body if it receives an error.
 func (client AttachedDatabaseConfigurationsClient) DeleteSender(req *http.Request) (future AttachedDatabaseConfigurationsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

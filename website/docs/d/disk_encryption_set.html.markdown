@@ -26,6 +26,8 @@ The following attributes are exported:
 
 * `location` - The location where the Disk Encryption Set exists.
 
+* `auto_key_rotation_enabled` - Is the Azure Disk Encryption Set Key automatically rotated to latest version?
+
 * `tags` - A mapping of tags assigned to the Disk Encryption Set.
 
 ## Timeouts

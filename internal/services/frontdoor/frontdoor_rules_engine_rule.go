@@ -431,7 +431,6 @@ func resourceFrontDoorRulesEngineDelete(d *pluginsdk.ResourceData, meta interfac
 
 	future, err := client.Delete(ctx, resourceGroup, frontDoorName, rulesEngineName)
 	if err != nil {
-
 		return fmt.Errorf("deleting Front Door Rules Engine %q (Resource Group %q): %+v", rulesEngineName, resourceGroup, err)
 	}
 
