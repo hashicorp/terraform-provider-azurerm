@@ -255,7 +255,7 @@ func TestAccStorageAccount_allowBlobPublicAccess(t *testing.T) {
 
 func TestAccStorageAccount_allowNestedItemsToBePublic(t *testing.T) {
 	if !features.ThreePointOh() {
-		return
+		t.Skip("Skipping since 3.0 mode is disabled")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
