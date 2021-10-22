@@ -70,6 +70,12 @@ func resourceServiceBusNamespaceNetworkRuleSet() *pluginsdk.Resource {
 				},
 			},
 
+			"allow_trusted_services": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"network_rules": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -119,9 +125,10 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.Resource
 
 	parameters := servicebus.NetworkRuleSet{
 		NetworkRuleSetProperties: &servicebus.NetworkRuleSetProperties{
-			DefaultAction:       servicebus.DefaultAction(d.Get("default_action").(string)),
-			VirtualNetworkRules: expandServiceBusNamespaceVirtualNetworkRules(d.Get("network_rules").(*pluginsdk.Set).List()),
-			IPRules:             expandServiceBusNamespaceIPRules(d.Get("ip_rules").(*pluginsdk.Set).List()),
+			DefaultAction:               servicebus.DefaultAction(d.Get("default_action").(string)),
+			VirtualNetworkRules:         expandServiceBusNamespaceVirtualNetworkRules(d.Get("network_rules").(*pluginsdk.Set).List()),
+			IPRules:                     expandServiceBusNamespaceIPRules(d.Get("ip_rules").(*pluginsdk.Set).List()),
+			TrustedServiceAccessEnabled: d.Get("allow_trusted_services").(bool),
 		},
 	}
 
@@ -158,6 +165,7 @@ func resourceServiceBusNamespaceNetworkRuleSetRead(d *pluginsdk.ResourceData, me
 
 	if props := resp.NetworkRuleSetProperties; props != nil {
 		d.Set("default_action", string(props.DefaultAction))
+		d.Set("allow_trusted_services", props.TrustedServiceAccessEnabled)
 
 		if err := d.Set("network_rules", pluginsdk.NewSet(networkRuleHash, flattenServiceBusNamespaceVirtualNetworkRules(props.VirtualNetworkRules))); err != nil {
 			return fmt.Errorf("failed to set `network_rules`: %+v", err)

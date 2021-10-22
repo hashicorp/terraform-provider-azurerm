@@ -40,6 +40,7 @@ func TestAccServiceBusNamespaceNetworkRule_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allow_trusted_services").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -131,6 +132,7 @@ resource "azurerm_servicebus_namespace_network_rule_set" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   default_action = "Deny"
+  allow_trusted_services = true
 
   network_rules {
     subnet_id                            = azurerm_subnet.test.id
