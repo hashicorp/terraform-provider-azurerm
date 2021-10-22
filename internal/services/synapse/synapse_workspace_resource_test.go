@@ -257,7 +257,7 @@ resource "azurerm_synapse_workspace" "test" {
   managed_resource_group_name          = "acctest-ManagedSynapse-%d"
   sql_identity_control_enabled         = true
   public_network_access_enabled        = false
-  allowed_linking_tenant_ids           = [data.azurerm_client_config.current.tenant_id]
+  linking_allowed_for_aad_tenant_ids   = [data.azurerm_client_config.current.tenant_id]
   purview_id                           = azurerm_purview_account.test.id
   compute_subnet_id                    = azurerm_subnet.test.id
 

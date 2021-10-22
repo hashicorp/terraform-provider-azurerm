@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `sql_administrator_login_password` - (Required) The Password associated with the `sql_administrator_login` for the SQL administrator.
 
-* `allowed_linking_tenant_ids` - (Optional) Allowed Aad Tenant Ids For Linking. 
+* `linking_allowed_for_aad_tenant_ids` - (Optional) Allowed Aad Tenant Ids For Linking. 
 
 * `compute_subnet_id` - (Optional) Subnet ID used for computes in workspace
 

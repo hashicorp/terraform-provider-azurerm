@@ -81,7 +81,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"allowed_linking_tenant_ids": {
+			"linking_allowed_for_aad_tenant_ids": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
@@ -369,7 +369,7 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	if allowedLinkingTenantIds, ok := d.GetOk("allowed_linking_tenant_ids"); ok {
+	if allowedLinkingTenantIds, ok := d.GetOk("linking_allowed_for_aad_tenant_ids"); ok {
 		if workspaceInfo.ManagedVirtualNetworkSettings == nil {
 			workspaceInfo.ManagedVirtualNetworkSettings = &synapse.ManagedVirtualNetworkSettings{}
 		}
@@ -455,7 +455,7 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 			managedVirtualNetworkEnabled = true
 			if props.ManagedVirtualNetworkSettings != nil {
 				d.Set("data_exfiltration_protection_enabled", props.ManagedVirtualNetworkSettings.PreventDataExfiltration)
-				d.Set("allowed_linking_tenant_ids", utils.FlattenStringSlice(props.ManagedVirtualNetworkSettings.AllowedAadTenantIdsForLinking))
+				d.Set("linking_allowed_for_aad_tenant_ids", utils.FlattenStringSlice(props.ManagedVirtualNetworkSettings.AllowedAadTenantIdsForLinking))
 			}
 		}
 		d.Set("managed_virtual_network_enabled", managedVirtualNetworkEnabled)
@@ -524,7 +524,7 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 			},
 		}
 
-		if allowedLinkingTenantIds, ok := d.GetOk("allowed_linking_tenant_ids"); ok {
+		if allowedLinkingTenantIds, ok := d.GetOk("linking_allowed_for_aad_tenant_ids"); ok {
 			if workspacePatchInfo.ManagedVirtualNetworkSettings == nil {
 				workspacePatchInfo.ManagedVirtualNetworkSettings = &synapse.ManagedVirtualNetworkSettings{}
 			}
