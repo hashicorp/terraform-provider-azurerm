@@ -1,6 +1,7 @@
 package cosmos
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -166,7 +167,6 @@ func resourceCassandraMIDatacenterUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("updating Cassandra MI Cluster %q (Datacenter: %q) - %+v", id.ClusterName, id.DatacenterName, err)
 	}
 	body := documentdb.DataCenterResource{
-		//Location: &location,
 		Properties: &documentdb.DataCenterResourceProperties{
 			DelegatedSubnetID:  &delegatedSubnetId,
 			NodeCount:          utils.Int32(int32(d.Get("node_count").(int))),
@@ -189,6 +189,27 @@ func resourceCassandraMIDatacenterUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("making get request for Cassandra MI  %q (Datacenter: %q): %+v", id.ClusterName, id.DatacenterName, err)
 	}
 
+	nodeCount := fmt.Sprint(d.Get("node_count").(int))
+	currentNodeCount := "0"
+
+	if properties := resp.Properties; properties != nil {
+		if properties.NodeCount != nil {
+			currentNodeCount = fmt.Sprint(resp.Properties.NodeCount)
+		}
+	}
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{"-1", currentNodeCount},
+		Target:     []string{string(nodeCount)},
+		Refresh:    cassandraDatacenterStateRefreshFunc(ctx, client, *id),
+		MinTimeout: 30 * time.Second,
+		Timeout:    d.Timeout(pluginsdk.TimeoutUpdate),
+	}
+
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for node count in Cluster %q (Datacenter %q) to change: %+v", id.ClusterName, id.DatacenterName, err)
+	}
+
 	if resp.ID == nil {
 		return fmt.Errorf("getting ID from Cassandra MI  %q (Datacenter: %q)", id.ClusterName, id.DatacenterName)
 	}
@@ -196,6 +217,24 @@ func resourceCassandraMIDatacenterUpdate(d *pluginsdk.ResourceData, meta interfa
 	d.SetId(*resp.ID)
 
 	return resourceCassandraMIDatacenterRead(d, meta)
+}
+
+func cassandraDatacenterStateRefreshFunc(ctx context.Context, client *documentdb.CassandraDataCentersClient, id parse.CassandraDatacenterId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		nodeCount := "-1"
+		resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatacenterName)
+		if err != nil {
+			return resp, nodeCount, fmt.Errorf("retrieving %q while waiting for node count to update: %+v", id.ClusterName, err)
+		}
+
+		if properties := resp.Properties; properties != nil {
+			if properties.NodeCount != nil {
+				nodeCount = fmt.Sprint(resp.Properties.NodeCount)
+			}
+		}
+
+		return resp, nodeCount, nil
+	}
 }
 
 func resourceCassandraMIDatacenterRead(d *pluginsdk.ResourceData, meta interface{}) error {
