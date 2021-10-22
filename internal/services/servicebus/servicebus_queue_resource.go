@@ -186,7 +186,6 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	enableExpress := d.Get("enable_express").(bool)
 	enablePartitioning := d.Get("enable_partitioning").(bool)
 	maxDeliveryCount := int32(d.Get("max_delivery_count").(int))
-	maxMessageSizeInKilobytes := int64(d.Get("max_message_size_in_kilobytes").(int))
 	maxSizeInMegabytes := int32(d.Get("max_size_in_megabytes").(int))
 	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
 	requiresSession := d.Get("requires_session").(bool)
@@ -215,7 +214,6 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 			EnablePartitioning:               &enablePartitioning,
 			MaxDeliveryCount:                 &maxDeliveryCount,
 			MaxSizeInMegabytes:               &maxSizeInMegabytes,
-			MaxMessageSizeInKilobytes:        &maxMessageSizeInKilobytes,
 			RequiresDuplicateDetection:       &requiresDuplicateDetection,
 			RequiresSession:                  &requiresSession,
 			Status:                           status,
@@ -258,6 +256,14 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	// Premium SKU.
 	if namespace.Sku.Name == servicebus.SkuNamePremium && d.Get("enable_express").(bool) {
 		return fmt.Errorf("ServiceBus Queue %q does not support Express Entities in Premium SKU and must be disabled", resourceId.Name)
+	}
+
+	// output of `max_message_size_in_kilobytes` is also set in non-Premium namespaces, with a value of 256
+	if v, ok := d.GetOk("max_message_size_in_kilobytes"); ok && v.(int) != 256 {
+		if namespace.Sku.Name != servicebus.SkuNamePremium {
+			return fmt.Errorf("ServiceBus Queue %q does not support input on `max_message_size_in_kilobytes` in %s SKU and should be removed", resourceId.Name, namespace.Sku.Name)
+		}
+		parameters.SBQueueProperties.MaxMessageSizeInKilobytes = utils.Int64(int64(v.(int)))
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.Name, parameters); err != nil {

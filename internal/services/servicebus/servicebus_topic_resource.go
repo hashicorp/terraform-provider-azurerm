@@ -142,7 +142,6 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	enableBatchedOps := d.Get("enable_batched_operations").(bool)
 	enableExpress := d.Get("enable_express").(bool)
 	enablePartitioning := d.Get("enable_partitioning").(bool)
-	maxMessageSize := int64(d.Get("max_message_size_in_kilobytes").(int))
 	maxSize := int32(d.Get("max_size_in_megabytes").(int))
 	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
 	supportOrdering := d.Get("support_ordering").(bool)
@@ -169,7 +168,6 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 			EnableBatchedOperations:    utils.Bool(enableBatchedOps),
 			EnableExpress:              utils.Bool(enableExpress),
 			EnablePartitioning:         utils.Bool(enablePartitioning),
-			MaxMessageSizeInKilobytes:  utils.Int64(maxMessageSize),
 			MaxSizeInMegabytes:         utils.Int32(maxSize),
 			RequiresDuplicateDetection: utils.Bool(requiresDuplicateDetection),
 			SupportOrdering:            utils.Bool(supportOrdering),
@@ -186,6 +184,21 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	if duplicateWindow := d.Get("duplicate_detection_history_time_window").(string); duplicateWindow != "" {
 		parameters.SBTopicProperties.DuplicateDetectionHistoryTimeWindow = utils.String(duplicateWindow)
+	}
+
+	// We need to retrieve the namespace because Premium namespace works differently from Basic and Standard
+	namespacesClient := meta.(*clients.Client).ServiceBus.NamespacesClient
+	namespace, err := namespacesClient.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName)
+	if err != nil {
+		return fmt.Errorf("retrieving ServiceBus Namespace %q (Resource Group %q): %+v", resourceId.NamespaceName, resourceId.ResourceGroup, err)
+	}
+
+	// output of `max_message_size_in_kilobytes` is also set in non-Premium namespaces, with a value of 256
+	if v, ok := d.GetOk("max_message_size_in_kilobytes"); ok && v.(int) != 256 {
+		if namespace.Sku.Name != servicebus.SkuNamePremium {
+			return fmt.Errorf("ServiceBus Topic %q does not support input on `max_message_size_in_kilobytes` in %s SKU and should be removed", resourceId.Name, namespace.Sku.Name)
+		}
+		parameters.SBTopicProperties.MaxMessageSizeInKilobytes = utils.Int64(int64(v.(int)))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.Name, parameters); err != nil {
