@@ -221,6 +221,12 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 
 			"secret": linuxSecretSchema(),
 
+			"secure_boot_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"source_image_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -242,6 +248,12 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 					"availability_set_id",
 				},
 				ValidateFunc: computeValidate.VirtualMachineScaleSetID,
+			},
+
+			"vtpm_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"platform_fault_domain": {
@@ -424,6 +436,28 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
 			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
 		}
+	}
+
+	if secureBootEnabled, ok := d.GetOk("secure_boot_enabled"); ok && secureBootEnabled.(bool) {
+		if params.VirtualMachineProperties.SecurityProfile == nil {
+			params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{}
+		}
+		if params.VirtualMachineProperties.SecurityProfile.UefiSettings == nil {
+			params.VirtualMachineProperties.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		}
+		params.VirtualMachineProperties.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+		params.VirtualMachineProperties.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(secureBootEnabled.(bool))
+	}
+
+	if vtpmEnabled, ok := d.GetOk("vtpm_enabled"); ok && vtpmEnabled.(bool) {
+		if params.VirtualMachineProperties.SecurityProfile == nil {
+			params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{}
+		}
+		if params.VirtualMachineProperties.SecurityProfile.UefiSettings == nil {
+			params.VirtualMachineProperties.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		}
+		params.VirtualMachineProperties.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+		params.VirtualMachineProperties.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled.(bool))
 	}
 
 	if !provisionVMAgent && allowExtensionOperations {
@@ -688,10 +722,26 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	encryptionAtHostEnabled := false
-	if props.SecurityProfile != nil && props.SecurityProfile.EncryptionAtHost != nil {
-		encryptionAtHostEnabled = *props.SecurityProfile.EncryptionAtHost
+	vtpmEnabled := false
+	secureBootEnabled := false
+
+	if secprofile := props.SecurityProfile; secprofile != nil {
+		if secprofile.EncryptionAtHost != nil {
+			encryptionAtHostEnabled = *secprofile.EncryptionAtHost
+		}
+		if uefi := props.SecurityProfile.UefiSettings; uefi != nil {
+			if uefi.VTpmEnabled != nil {
+				vtpmEnabled = *uefi.VTpmEnabled
+			}
+			if uefi.SecureBootEnabled != nil {
+				secureBootEnabled = *uefi.SecureBootEnabled
+			}
+		}
 	}
+
 	d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
+	d.Set("vtpm_enabled", vtpmEnabled)
+	d.Set("secure_boot_enabled", secureBootEnabled)
 
 	d.Set("virtual_machine_id", props.VMID)
 
