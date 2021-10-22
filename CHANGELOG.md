@@ -1,3 +1,13 @@
+## 2.82.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_stream_analytics_reference_input_mssql` [GH-13822]
+
+IMPROVEMENTS:
+
+BUG FIXES:
+
 ## 2.82.0 (October 21, 2021)
 
 FEATURES: 
