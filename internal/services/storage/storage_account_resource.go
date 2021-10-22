@@ -22,6 +22,7 @@ import (
 	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	vnetParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -380,7 +381,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"cors_rule": schemaStorageAccountCorsRule(true),
+						"cors_rule": helpers.SchemaStorageAccountCorsRule(true),
 						"delete_retention_policy": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -448,7 +449,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"cors_rule": schemaStorageAccountCorsRule(false),
+						"cors_rule": helpers.SchemaStorageAccountCorsRule(false),
 						"logging": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -577,7 +578,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"cors_rule": schemaStorageAccountCorsRule(true),
+						"cors_rule": helpers.SchemaStorageAccountCorsRule(true),
 
 						"retention_policy": {
 							Type:     pluginsdk.TypeList,
