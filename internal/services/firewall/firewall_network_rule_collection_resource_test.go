@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -333,21 +332,18 @@ func TestAccFirewallNetworkRuleCollection_noDestination(t *testing.T) {
 }
 
 func (FirewallNetworkRuleCollectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	var id, err = azure.ParseAzureResourceID(state.ID)
+	var id, err = parse.FirewallNetworkRuleCollectionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	firewallName := id.Path["azureFirewalls"]
-	name := id.Path["networkRuleCollections"]
-
-	resp, err := clients.Firewall.AzureFirewallsClient.Get(ctx, id.ResourceGroup, firewallName)
+	resp, err := clients.Firewall.AzureFirewallsClient.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Firewall  Network Rule Collection %q (Firewall %q / Resource Group %q): %v", name, firewallName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Firewall  Network Rule Collection %q (Firewall %q / Resource Group %q): %v", id.NetworkRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
 
 	if resp.AzureFirewallPropertiesFormat == nil || resp.AzureFirewallPropertiesFormat.NetworkRuleCollections == nil {
-		return nil, fmt.Errorf("retrieving Firewall  Network Rule Collection %q (Firewall %q / Resource Group %q): properties or collections was nil", name, firewallName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving Firewall  Network Rule Collection %q (Firewall %q / Resource Group %q): properties or collections was nil", id.NetworkRuleCollectionName, id.AzureFirewallName, id.ResourceGroup)
 	}
 
 	for _, rule := range *resp.AzureFirewallPropertiesFormat.NetworkRuleCollections {
@@ -355,7 +351,7 @@ func (FirewallNetworkRuleCollectionResource) Exists(ctx context.Context, clients
 			continue
 		}
 
-		if *rule.Name == name {
+		if *rule.Name == id.NetworkRuleCollectionName {
 			return utils.Bool(true), nil
 		}
 	}

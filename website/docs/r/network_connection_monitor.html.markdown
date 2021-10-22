@@ -279,6 +279,8 @@ A `tcp_configuration` block supports the following:
 
 * `trace_route_enabled` - (Optional) Should path evaluation with trace route be enabled? Defaults to `true`.
 
+* `destination_port_behavior` - (Optional) The destination port behavior for the Tcp connection. Possible values are `None` and `ListenIfAvailable`.
+
 ---
 
 A `test_group` block supports the following:

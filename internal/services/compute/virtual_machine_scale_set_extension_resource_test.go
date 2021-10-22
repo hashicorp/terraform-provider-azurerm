@@ -341,7 +341,7 @@ resource "azurerm_virtual_machine_scale_set_extension" "import" {
   type_handler_version         = azurerm_virtual_machine_scale_set_extension.test.type_handler_version
   settings                     = azurerm_virtual_machine_scale_set_extension.test.settings
 }
-`, r.templateLinux(data))
+`, r.basicLinux(data))
 }
 
 func (VirtualMachineScaleSetExtensionResource) templateLinux(data acceptance.TestData) string {

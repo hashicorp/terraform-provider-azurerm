@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -69,17 +69,14 @@ func testAccExpressRouteCircuitAuthorization_multiple(t *testing.T) {
 }
 
 func (t ExpressRouteCircuitAuthorizationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ExpressRouteCircuitAuthorizationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	circuitName := id.Path["expressRouteCircuits"]
-	name := id.Path["authorizations"]
 
-	resp, err := clients.Network.ExpressRouteAuthsClient.Get(ctx, resGroup, circuitName, name)
+	resp, err := clients.Network.ExpressRouteAuthsClient.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.AuthorizationName)
 	if err != nil {
-		return nil, fmt.Errorf("reading Express Route Circuit Authorization (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

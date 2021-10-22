@@ -45,5 +45,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_logic_app_trigger_recurrence":                      resourceLogicAppTriggerRecurrence(),
 		"azurerm_logic_app_workflow":                                resourceLogicAppWorkflow(),
 		"azurerm_integration_service_environment":                   resourceIntegrationServiceEnvironment(),
+		"azurerm_logic_app_standard":                                resourceLogicAppStandard(),
 	}
 }

@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/sdk/2020-10-01/attestationproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceAttestationProvider() *pluginsdk.Resource {
@@ -55,25 +56,30 @@ func dataSourceArmAttestationProviderRead(d *pluginsdk.ResourceData, meta interf
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	id := attestationproviders.NewAttestationProvidersID(subscriptionId, resourceGroup, name)
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Attestation Provider %q (Resource Group %q) was not found", name, resourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("retrieving Attestation Provider %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(parse.NewProviderID(subscriptionId, resourceGroup, name).ID())
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if props := resp.StatusResult; props != nil {
-		d.Set("attestation_uri", props.AttestURI)
-		d.Set("trust_model", props.TrustModel)
+	if resp.Model != nil {
+		d.Set("location", location.Normalize(resp.Model.Location))
+
+		if props := resp.Model.Properties; props != nil {
+			d.Set("attestation_uri", props.AttestUri)
+			d.Set("trust_model", props.TrustModel)
+		}
+		return tags.FlattenAndSet(d, flattenTags(resp.Model.Tags))
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

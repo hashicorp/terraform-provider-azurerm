@@ -146,6 +146,8 @@ A `site_config` block exports the following:
 
 * `use_32_bit_worker_process` - Does the App Service run in 32 bit mode, rather than 64 bit mode?
 
+* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied?
+
 * `websockets_enabled` - Are WebSockets enabled for this App Service?
 
 ---

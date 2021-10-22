@@ -60,6 +60,11 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 				ValidateFunc: keyVaultValidate.NestedItemId,
 			},
 
+			"auto_key_rotation_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"identity": {
 				Type: pluginsdk.TypeList,
 				// whilst the API Documentation shows optional - attempting to send nothing returns:
@@ -126,6 +131,7 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
+	rotationToLatestKeyVersionEnabled := d.Get("auto_key_rotation_enabled").(bool)
 	identityRaw := d.Get("identity").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
 
@@ -138,6 +144,7 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 					ID: utils.String(keyVaultDetails.keyVaultId),
 				},
 			},
+			RotationToLatestKeyVersionEnabled: utils.Bool(rotationToLatestKeyVersionEnabled),
 		},
 		Identity: expandDiskEncryptionSetIdentity(identityRaw),
 		Tags:     tags.Expand(t),
@@ -195,6 +202,7 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 			keyVaultKeyId = *props.ActiveKey.KeyURL
 		}
 		d.Set("key_vault_key_id", keyVaultKeyId)
+		d.Set("auto_key_rotation_enabled", props.RotationToLatestKeyVersionEnabled)
 	}
 
 	if err := d.Set("identity", flattenDiskEncryptionSetIdentity(resp.Identity)); err != nil {
@@ -241,6 +249,14 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 				},
 			},
 		}
+	}
+
+	if d.HasChange("auto_key_rotation_enabled") {
+		if update.DiskEncryptionSetUpdateProperties == nil {
+			update.DiskEncryptionSetUpdateProperties = &compute.DiskEncryptionSetUpdateProperties{}
+		}
+
+		update.DiskEncryptionSetUpdateProperties.RotationToLatestKeyVersionEnabled = utils.Bool(d.Get("auto_key_rotation_enabled").(bool))
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, update)

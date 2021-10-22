@@ -1,5 +1,5 @@
 output "app_service_name" {
-  value = "${azurerm_app_service.test.name}"
+  value = azurerm_app_service.test.name
 }
 
 output "app_service_default_hostname" {

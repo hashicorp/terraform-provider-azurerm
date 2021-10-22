@@ -98,13 +98,28 @@ func TestAccMsSqlServer_update(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlServer_identity(t *testing.T) {
+func TestAccMsSqlServer_systemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
 	r := MsSqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.identity(data),
+			Config: r.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
+	})
+}
+
+func TestAccMsSqlServer_userAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MsSqlServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.userAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -114,6 +129,21 @@ func TestAccMsSqlServer_identity(t *testing.T) {
 }
 
 func TestAccMsSqlServer_azureadAdmin(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MsSqlServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.aadAdmin(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
+func TestAccMsSqlServer_azureadAdminUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
 	r := MsSqlServerResource{}
 
@@ -200,7 +230,7 @@ func (MsSqlServerResource) Exists(ctx context.Context, client *clients.Client, s
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.ServersClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.MSSQL.ServersClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil, fmt.Errorf("SQL Server %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
@@ -254,6 +284,10 @@ resource "azurerm_mssql_server" "test" {
   administrator_login_password = "thisIsKat11"
   minimum_tls_version          = "1.2"
   extended_auditing_policy     = []
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -317,6 +351,12 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "test_identity"
+}
+
 resource "azurerm_mssql_server" "test" {
   name                         = "acctestsqlserver%[1]d"
   resource_group_name          = azurerm_resource_group.test.name
@@ -326,13 +366,19 @@ resource "azurerm_mssql_server" "test" {
   administrator_login_password = "thisIsKat11"
   minimum_tls_version          = "1.2"
 
-  public_network_access_enabled = true
+  public_network_access_enabled     = true
+  primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
 
   extended_auditing_policy {
     storage_account_access_key              = azurerm_storage_account.test.primary_access_key
     storage_endpoint                        = azurerm_storage_account.test.primary_blob_endpoint
     storage_account_access_key_is_secondary = true
     retention_in_days                       = 6
+  }
+
+  identity {
+    type                       = "UserAssigned"
+    user_assigned_identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
   tags = {
@@ -406,6 +452,12 @@ resource "azurerm_storage_account" "testb" {
   account_replication_type = "LRS"
 }
 
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "test_identity"
+}
+
 resource "azurerm_mssql_server" "test" {
   name                         = "acctestsqlserver%[1]d"
   resource_group_name          = azurerm_resource_group.test.name
@@ -415,13 +467,19 @@ resource "azurerm_mssql_server" "test" {
   administrator_login_password = "thisIsKat11"
   minimum_tls_version          = "1.0"
 
-  public_network_access_enabled = false
+  public_network_access_enabled     = false
+  primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
 
   extended_auditing_policy {
     storage_account_access_key              = azurerm_storage_account.testb.primary_access_key
     storage_endpoint                        = azurerm_storage_account.testb.primary_blob_endpoint
     storage_account_access_key_is_secondary = false
     retention_in_days                       = 11
+  }
+
+  identity {
+    type                       = "UserAssigned"
+    user_assigned_identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
   tags = {
@@ -450,7 +508,7 @@ resource "azurerm_private_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(15))
 }
 
-func (MsSqlServerResource) identity(data acceptance.TestData) string {
+func (MsSqlServerResource) systemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -471,6 +529,46 @@ resource "azurerm_mssql_server" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (MsSqlServerResource) userAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test1" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "test_identity_1"
+}
+
+resource "azurerm_user_assigned_identity" "test2" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "test_identity_2"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                              = "acctestsqlserver%[1]d"
+  resource_group_name               = azurerm_resource_group.test.name
+  location                          = azurerm_resource_group.test.location
+  version                           = "12.0"
+  administrator_login               = "missadministrator"
+  administrator_login_password      = "thisIsKat11"
+  primary_user_assigned_identity_id = azurerm_user_assigned_identity.test1.id
+
+  identity {
+    type                       = "UserAssigned"
+    user_assigned_identity_ids = [azurerm_user_assigned_identity.test1.id, azurerm_user_assigned_identity.test2.id]
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -535,8 +633,9 @@ resource "azurerm_mssql_server" "test" {
   administrator_login_password = "thisIsKat11"
 
   azuread_administrator {
-    login_username = "AzureAD Admin2"
-    object_id      = data.azuread_service_principal.test.id
+    login_username              = "AzureAD Admin2"
+    object_id                   = data.azuread_service_principal.test.id
+    azuread_authentication_only = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_CLIENT_ID"))

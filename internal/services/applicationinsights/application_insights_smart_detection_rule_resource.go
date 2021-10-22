@@ -23,6 +23,11 @@ func resourceApplicationInsightsSmartDetectionRule() *pluginsdk.Resource {
 		Update: resourceApplicationInsightsSmartDetectionRuleUpdate,
 		Delete: resourceApplicationInsightsSmartDetectionRuleDelete,
 
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.SmartDetectionRuleID(id)
+			return err
+		}),
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -81,21 +86,21 @@ func resourceApplicationInsightsSmartDetectionRule() *pluginsdk.Resource {
 
 func resourceApplicationInsightsSmartDetectionRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.SmartDetectionRuleClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Application Insights Samrt Detection Rule update.")
+	log.Printf("[INFO] preparing arguments for AzureRM Application Insights Smart Detection Rule update.")
 
 	// The Smart Detection Rule name from the UI doesn't match what the API accepts.
 	// We'll have the user submit what the name looks like in the UI and convert it behind the scenes to match what the API accepts
 	name := convertUiNameToApiName(d.Get("name"))
 
-	appInsightsID := d.Get("application_insights_id").(string)
-
-	id, err := parse.ComponentID(appInsightsID)
+	appInsightsId, err := parse.ComponentID(d.Get("application_insights_id").(string))
 	if err != nil {
 		return err
 	}
+
+	id := parse.NewSmartDetectionRuleID(appInsightsId.SubscriptionId, appInsightsId.ResourceGroup, appInsightsId.Name, name)
 
 	smartDetectionRuleProperties := insights.ApplicationInsightsComponentProactiveDetectionConfiguration{
 		Name:                           &name,
@@ -104,12 +109,12 @@ func resourceApplicationInsightsSmartDetectionRuleUpdate(d *pluginsdk.ResourceDa
 		CustomEmails:                   utils.ExpandStringSlice(d.Get("additional_email_recipients").(*pluginsdk.Set).List()),
 	}
 
-	_, err = client.Update(ctx, id.ResourceGroup, id.Name, name, smartDetectionRuleProperties)
+	_, err = client.Update(ctx, id.ResourceGroup, id.ComponentName, name, smartDetectionRuleProperties)
 	if err != nil {
-		return fmt.Errorf("updating Application Insights Smart Detection Rule %q (Application Insights %q): %+v", name, id.String(), err)
+		return fmt.Errorf("updating Application Insights Smart Detection Rule %s: %+v", id, err)
 	}
 
-	d.SetId(fmt.Sprintf("%s/SmartDetectionRule/%s", id.ID(), name))
+	d.SetId(id.ID())
 
 	return resourceApplicationInsightsSmartDetectionRuleRead(d, meta)
 }
@@ -124,16 +129,16 @@ func resourceApplicationInsightsSmartDetectionRuleRead(d *pluginsdk.ResourceData
 		return err
 	}
 
-	log.Printf("[DEBUG] Reading AzureRM Application Insights Smart Detection Rule %q", id.String())
+	log.Printf("[DEBUG] Reading AzureRM Application Insights Smart Detection Rule %s", id)
 
 	result, err := client.Get(ctx, id.ResourceGroup, id.ComponentName, id.SmartDetectionRuleName)
 	if err != nil {
 		if utils.ResponseWasNotFound(result.Response) {
-			log.Printf("[WARN] AzureRM Application Insights Smart Detection Rule  %q not found, removing from state", id.String())
+			log.Printf("[WARN] AzureRM Application Insights Smart Detection Rule %s not found, removing from state", id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on AzureRM Application Insights Smart Detection Rule %q: %+v", id.String(), err)
+		return fmt.Errorf("making Read request on AzureRM Application Insights Smart Detection Rule %s: %+v", id, err)
 	}
 
 	d.Set("name", result.Name)
@@ -154,16 +159,16 @@ func resourceApplicationInsightsSmartDetectionRuleDelete(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	log.Printf("[DEBUG] reseting AzureRM Application Insights Smart Detection Rule %q", id.String())
+	log.Printf("[DEBUG] reseting AzureRM Application Insights Smart Detection Rule %s", id)
 
 	result, err := client.Get(ctx, id.ResourceGroup, id.ComponentName, id.SmartDetectionRuleName)
 	if err != nil {
 		if utils.ResponseWasNotFound(result.Response) {
-			log.Printf("[WARN] AzureRM Application Insights Smart Detection Rule %q not found, removing from state", id.String())
+			log.Printf("[WARN] AzureRM Application Insights Smart Detection Rule %s not found, removing from state", id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on AzureRM Application Insights Smart Detection Rule %q: %+v", id.String(), err)
+		return fmt.Errorf("making Read request on AzureRM Application Insights Smart Detection Rule %s: %+v", id, err)
 	}
 
 	smartDetectionRuleProperties := insights.ApplicationInsightsComponentProactiveDetectionConfiguration{

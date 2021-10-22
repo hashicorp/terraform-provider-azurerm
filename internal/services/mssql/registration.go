@@ -1,10 +1,14 @@
 package mssql
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var _ sdk.TypedServiceRegistration = Registration{}
+var _ sdk.UntypedServiceRegistration = Registration{}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -44,5 +48,17 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_mssql_virtual_machine":                                 resourceMsSqlVirtualMachine(),
 		"azurerm_mssql_virtual_network_rule":                            resourceMsSqlVirtualNetworkRule(),
 		"azurerm_mssql_server_transparent_data_encryption":              resourceMsSqlTransparentDataEncryption(),
+	}
+}
+
+// DataSources returns the typed DataSources supported by this service
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+// Resources returns the typed Resources supported by this service
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		MsSqlFailoverGroupResource{},
 	}
 }

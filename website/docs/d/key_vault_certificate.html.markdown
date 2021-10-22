@@ -64,6 +64,10 @@ The following attributes are exported:
 
 * `certificate_policy` - A `certificate_policy` block as defined below.
 
+* `expires` - Expiry date of certificate in RFC3339 format.
+
+* `not_before` - Not Before date of certificate in RFC3339 format.
+
 * `tags` - A mapping of tags to assign to the resource.
 
 ---

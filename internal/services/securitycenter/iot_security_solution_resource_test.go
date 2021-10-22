@@ -90,6 +90,28 @@ func TestAccIotSecuritySolution_update(t *testing.T) {
 	})
 }
 
+func TestAccIotSecuritySolution_additionalWorkspace(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iot_security_solution", "test")
+	r := IotSecuritySolutionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.additionalWorkspace(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateAdditionalWorkspace(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (IotSecuritySolutionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.IotSecuritySolutionID(state.ID)
 	if err != nil {
@@ -156,6 +178,7 @@ resource "azurerm_iot_security_solution" "test" {
   log_unmasked_ips_enabled   = true
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   events_to_export           = ["RawEvents"]
+  disabled_data_sources      = ["TwinData"]
 
   recommendations_enabled {
     acr_authentication               = false
@@ -184,6 +207,65 @@ resource "azurerm_iot_security_solution" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r IotSecuritySolutionResource) additionalWorkspace(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-law-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_iot_security_solution" "test" {
+  name                = "acctest-Iot-Security-Solution-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  display_name        = "Iot Security Solution"
+  iothub_ids          = [azurerm_iothub.test.id]
+
+  additional_workspace {
+    data_types   = ["Alerts"]
+    workspace_id = azurerm_log_analytics_workspace.test.id
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r IotSecuritySolutionResource) updateAdditionalWorkspace(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-law-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_log_analytics_workspace" "test2" {
+  name                = "acctest-law2-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_iot_security_solution" "test" {
+  name                = "acctest-Iot-Security-Solution-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  display_name        = "Iot Security Solution"
+  iothub_ids          = [azurerm_iothub.test.id]
+
+  additional_workspace {
+    data_types   = ["Alerts", "RawEvents"]
+    workspace_id = azurerm_log_analytics_workspace.test2.id
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r IotSecuritySolutionResource) template(data acceptance.TestData) string {
