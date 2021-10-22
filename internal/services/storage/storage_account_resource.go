@@ -46,6 +46,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 	}
 	schemaVersion := 2
 
+	// TODO: (v3.0) The migration is not backwards compatible so we need to make sure it's always
+	// behind a flag that is *not* user configurable.
+
+	// TODO: (v3.0) Add the following to the migration guide:
+	// *Breaking Change* In this version the field `allow_blob_public_access` is renamed to `allow_nested_items_to_be_public`
+	// in order to make its use clearer. Please update your configuration before running terraform.
 	if features.ThreePointOh() {
 		upgraders[2] = migration.AccountV2ToV3{}
 		schemaVersion = 3
