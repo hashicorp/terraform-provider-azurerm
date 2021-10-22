@@ -31,6 +31,9 @@ func TestAccCassandraMICluster_basic(t *testing.T) {
 	})
 }
 
+//Update test case in not included because the API does not allow for Update.
+//Basic test case also covers the Complete test case because all fields are required by the resource
+
 func (t CassandraMIClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CassandraClusterID(state.ID)
 	if err != nil {

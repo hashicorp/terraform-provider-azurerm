@@ -3,7 +3,6 @@ package cosmos
 import (
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-06-15/documentdb"
@@ -15,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -25,6 +25,7 @@ func resourceCassandraMIDatacenter() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceCassandraMIDatacenterCreate,
 		Read:   resourceCassandraMIDatacenterRead,
+		Update: resourceCassandraMIDatacenterUpdate,
 		Delete: resourceCassandraMIDatacenterDelete,
 
 		// TODO: replace this with an importer which validates the ID during import
@@ -58,25 +59,28 @@ func resourceCassandraMIDatacenter() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.CosmosAccountName,
-			},
+			// "location": {
+			// 	Type:         pluginsdk.TypeString,
+			// 	Required:     true,
+			// 	ForceNew:     true,
+			// 	ValidateFunc: validate.CosmosAccountName,
+			// },
+			"location": azure.SchemaLocation(),
 
 			"delegated_management_subnet_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.CosmosEntityName,
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				// ValidateFunc: validate.CosmosEntityName,
+				ValidateFunc: networkValidate.SubnetID,
 			},
 
 			"node_count": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.CosmosEntityName,
+				// Type:         pluginsdk.TypeString,
+				Type:     pluginsdk.TypeInt,
+				Required: true,
+				ForceNew: false,
+				// ValidateFunc: validate.CosmosEntityName,
 			},
 		},
 	}
@@ -92,16 +96,16 @@ func resourceCassandraMIDatacenterCreate(d *pluginsdk.ResourceData, meta interfa
 	resourceGroup := d.Get("resource_group_name").(string)
 	clusterName := d.Get("cluster_name").(string)
 	datacenterName := d.Get("datacenter_name").(string)
-	nodeCount := d.Get("node_count").(string)
-	nodeCountInt, err2 := strconv.ParseInt(nodeCount, 10, 32)
-	nodeCountInt32 := int32(nodeCountInt)
+	// nodeCount := d.Get("node_count").(string)
+	// nodeCountInt, err2 := strconv.ParseInt(nodeCount, 10, 32)
+	// nodeCountInt32 := int32(nodeCountInt)
 	location := d.Get("location").(string)
 	delegatedSubnetId := d.Get("delegated_management_subnet_id").(string)
 
 	existing, err := client.Get(ctx, resourceGroup, clusterName, datacenterName)
 
-	if err2 != nil {
-	}
+	// if err2 != nil {
+	// }
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("checking for presence of creating Cassandra MI  %q (Datacenter: %q): %+v", clusterName, location, err)
@@ -118,7 +122,7 @@ func resourceCassandraMIDatacenterCreate(d *pluginsdk.ResourceData, meta interfa
 		//Location: &location,
 		Properties: &documentdb.DataCenterResourceProperties{
 			DelegatedSubnetID:  &delegatedSubnetId,
-			NodeCount:          &nodeCountInt32,
+			NodeCount:          utils.Int32(int32(d.Get("node_count").(int))),
 			DataCenterLocation: &location,
 		},
 	}
@@ -147,13 +151,60 @@ func resourceCassandraMIDatacenterCreate(d *pluginsdk.ResourceData, meta interfa
 	return resourceCassandraMIDatacenterRead(d, meta)
 }
 
+func resourceCassandraMIDatacenterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	log.Println("in  *** resourceCassandraMIDatacenterUpdate **********")
+	client := meta.(*clients.Client).Cosmos.CassandraDatacentersClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	location := d.Get("location").(string)
+	delegatedSubnetId := d.Get("delegated_management_subnet_id").(string)
+
+	id, err := parse.CassandraDatacenterID(d.Id())
+
+	if err != nil {
+		return fmt.Errorf("updating Cassandra MI Cluster %q (Datacenter: %q) - %+v", id.ClusterName, id.DatacenterName, err)
+	}
+	body := documentdb.DataCenterResource{
+		//Location: &location,
+		Properties: &documentdb.DataCenterResourceProperties{
+			DelegatedSubnetID:  &delegatedSubnetId,
+			NodeCount:          utils.Int32(int32(d.Get("node_count").(int))),
+			DataCenterLocation: &location,
+		},
+	}
+
+	future, err := client.CreateUpdate(ctx, id.ResourceGroup, id.ClusterName, id.DatacenterName, body)
+	if err != nil {
+		return fmt.Errorf("issuing create request for Cassandra MI  %q (Datacenter: %q): %+v", id.ClusterName, id.DatacenterName, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting on create/update future for Cassandra MI  %q (Datacenter: %q): %+v", id.ClusterName, id.DatacenterName, err)
+	}
+
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatacenterName)
+
+	if err != nil {
+		return fmt.Errorf("making get request for Cassandra MI  %q (Datacenter: %q): %+v", id.ClusterName, id.DatacenterName, err)
+	}
+
+	if resp.ID == nil {
+		return fmt.Errorf("getting ID from Cassandra MI  %q (Datacenter: %q)", id.ClusterName, id.DatacenterName)
+	}
+
+	d.SetId(*resp.ID)
+
+	return resourceCassandraMIDatacenterRead(d, meta)
+}
+
 func resourceCassandraMIDatacenterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CassandraDatacentersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	datacenterName := d.Get("datacenter_name").(string)
-	id, err := parse.CassandraDatacenterID(d.Id() + "/dataCenters/" + datacenterName)
-	//id, err := parse.CassandraDatacenterID(d.Id())
+	//datacenterName := d.Get("datacenter_name").(string)
+	//id, err := parse.CassandraDatacenterID(d.Id() + "/dataCenters/" + datacenterName)
+	id, err := parse.CassandraDatacenterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -175,8 +226,8 @@ func resourceCassandraMIDatacenterRead(d *pluginsdk.ResourceData, meta interface
 		if res := props; res != nil {
 			d.Set("delegated_management_subnet_id", props.DelegatedSubnetID)
 			d.Set("location", location.NormalizeNilable(props.DataCenterLocation))
-			nodeCountString := fmt.Sprint(props.NodeCount)
-			d.Set("node_count", nodeCountString)
+			// nodeCountString := fmt.Sprint(*props.NodeCount)
+			d.Set("node_count", int(*props.NodeCount))
 		}
 	}
 	return nil
