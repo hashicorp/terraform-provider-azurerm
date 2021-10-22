@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"time"
@@ -164,7 +165,39 @@ func (r OutputTableResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.StreamAnalytics.OutputsClient
+			id, err := parse.OutputID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
 
+			resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+			if err != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("reading %s: %+v", *id, err)
+			}
+
+			if props := resp.OutputProperties; props != nil {
+				v, ok := props.Datasource.AsAzureTableOutputDataSource()
+				if !ok {
+					return fmt.Errorf("converting output data source to a blob output: %+v", err)
+				}
+
+				state := OutputTableResourceModel{
+					Name: id.Name,
+					ResourceGroup: id.ResourceGroup,
+					StreamAnalyticsJob: id.StreamingjobName,
+					StorageAccount: *v.AccountName,
+					StorageAccountKey: *v.AccountKey,
+					Table: *v.Table,
+					PartitionKey: *v.PartitionKey,
+					RowKey: *v.RowKey,
+					BatchSize: *v.BatchSize,
+				}
+				return metadata.Encode(&state)
+			}
 			return nil
 		},
 	}
@@ -182,9 +215,21 @@ func (r OutputTableResource) Read() sdk.ResourceFunc {
 
 func (r OutputTableResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.StreamAnalytics.OutputsClient
+			id, err := parse.OutputID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
 
+			metadata.Logger.Infof("deleting %s", *id)
+
+			if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.Name); err != nil {
+				if !response.WasNotFound(resp.Response) {
+					return fmt.Errorf("deleting %s: %+v", *id, err)
+				}
+			}
 			return nil
 		},
 	}
