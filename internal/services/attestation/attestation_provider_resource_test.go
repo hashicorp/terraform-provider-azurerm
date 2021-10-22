@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/sdk/2020-10-01/attestationproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -127,17 +127,17 @@ func TestAccAttestationProvider_update(t *testing.T) {
 }
 
 func (t AttestationProviderResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ProviderID(state.ID)
+	id, err := attestationproviders.ParseAttestationProvidersID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Attestation.ProviderClient.Get(ctx, id.ResourceGroup, id.AttestationProviderName)
+	resp, err := clients.Attestation.ProviderClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Attestation Provider %q (resource group: %q): %+v", id.AttestationProviderName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.StatusResult != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func testGenerateTestCertificate(organization string) (string, error) {

@@ -157,12 +157,10 @@ func resourcePostgreSQLConfigurationDelete(d *pluginsdk.ResourceData, meta inter
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, properties)
 	if err != nil {
-
 		return err
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-
 		return err
 	}
 

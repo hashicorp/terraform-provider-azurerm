@@ -62,6 +62,26 @@ func resourceArmCommunicationService() *pluginsdk.Resource {
 			},
 
 			"tags": tags.Schema(),
+
+			"primary_connection_string": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_connection_string": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_key": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_key": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -140,6 +160,23 @@ func resourceArmCommunicationServiceRead(d *pluginsdk.ResourceData, meta interfa
 	if props := resp.ServiceProperties; props != nil {
 		d.Set("data_location", props.DataLocation)
 	}
+
+	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
+
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] %s was not found - removing from state", *id)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	d.Set("primary_connection_string", keysResp.PrimaryConnectionString)
+	d.Set("secondary_connection_string", keysResp.SecondaryConnectionString)
+	d.Set("primary_key", keysResp.PrimaryKey)
+	d.Set("secondary_key", keysResp.SecondaryKey)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

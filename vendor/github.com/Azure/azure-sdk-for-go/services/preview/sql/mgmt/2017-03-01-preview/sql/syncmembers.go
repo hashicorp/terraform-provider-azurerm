@@ -60,7 +60,7 @@ func (client SyncMembersClient) CreateOrUpdate(ctx context.Context, resourceGrou
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.SyncMembersClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.SyncMembersClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -97,6 +97,7 @@ func (client SyncMembersClient) CreateOrUpdatePreparer(ctx context.Context, reso
 // http.Response Body if it receives an error.
 func (client SyncMembersClient) CreateOrUpdateSender(req *http.Request) (future SyncMembersCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -147,7 +148,7 @@ func (client SyncMembersClient) Delete(ctx context.Context, resourceGroupName st
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.SyncMembersClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.SyncMembersClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -182,6 +183,7 @@ func (client SyncMembersClient) DeletePreparer(ctx context.Context, resourceGrou
 // http.Response Body if it receives an error.
 func (client SyncMembersClient) DeleteSender(req *http.Request) (future SyncMembersDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -562,7 +564,7 @@ func (client SyncMembersClient) RefreshMemberSchema(ctx context.Context, resourc
 
 	result, err = client.RefreshMemberSchemaSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.SyncMembersClient", "RefreshMemberSchema", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.SyncMembersClient", "RefreshMemberSchema", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -597,6 +599,7 @@ func (client SyncMembersClient) RefreshMemberSchemaPreparer(ctx context.Context,
 // http.Response Body if it receives an error.
 func (client SyncMembersClient) RefreshMemberSchemaSender(req *http.Request) (future SyncMembersRefreshMemberSchemaFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -647,7 +650,7 @@ func (client SyncMembersClient) Update(ctx context.Context, resourceGroupName st
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.SyncMembersClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.SyncMembersClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -684,6 +687,7 @@ func (client SyncMembersClient) UpdatePreparer(ctx context.Context, resourceGrou
 // http.Response Body if it receives an error.
 func (client SyncMembersClient) UpdateSender(req *http.Request) (future SyncMembersUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

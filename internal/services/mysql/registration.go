@@ -31,6 +31,8 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_mysql_configuration":                  resourceMySQLConfiguration(),
 		"azurerm_mysql_database":                       resourceMySqlDatabase(),
 		"azurerm_mysql_firewall_rule":                  resourceMySqlFirewallRule(),
+		"azurerm_mysql_flexible_server":                resourceMysqlFlexibleServer(),
+		"azurerm_mysql_flexible_server_configuration":  resourceMySQLFlexibleServerConfiguration(),
 		"azurerm_mysql_server":                         resourceMySqlServer(),
 		"azurerm_mysql_server_key":                     resourceMySQLServerKey(),
 		"azurerm_mysql_virtual_network_rule":           resourceMySQLVirtualNetworkRule(),

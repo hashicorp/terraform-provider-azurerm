@@ -267,12 +267,10 @@ func resourcePacketCaptureDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	future, err := client.Delete(ctx, resourceGroup, watcherName, name)
 	if err != nil {
-
 		return fmt.Errorf("deleting Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-
 		return fmt.Errorf("waiting for the deletion of Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
 	}
 

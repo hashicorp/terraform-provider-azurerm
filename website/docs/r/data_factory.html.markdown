@@ -81,9 +81,9 @@ A `global_parameter` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Data Factory. Possible values are `SystemAssigned` and `UserAssigned`.
+* `type` - (Required) Specifies the identity type of the Data Factory. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned,UserAssigned`.
 
-* `identity_ids` - (Optional) Specifies the IDs of user assigned identities. Requiered if `UserAssigned` type is used.
+* `identity_ids` - (Optional) Specifies the IDs of user assigned identities. Required if `UserAssigned` or `SystemAssigned,UserAssigned` type is used.
 
 ---
 

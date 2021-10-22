@@ -210,22 +210,23 @@ resource "azurerm_container_registry" "test" {
 }
 
 resource "azurerm_machine_learning_workspace" "test" {
-  name                    = "acctest-MLW-%[2]d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  friendly_name           = "test-workspace"
-  description             = "Test machine learning workspace"
-  application_insights_id = azurerm_application_insights.test.id
-  key_vault_id            = azurerm_key_vault.test.id
-  storage_account_id      = azurerm_storage_account.test.id
-  container_registry_id   = azurerm_container_registry.test.id
-  sku_name                = "Basic"
-  high_business_impact    = true
+  name                          = "acctest-MLW-%[2]d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  friendly_name                 = "test-workspace"
+  description                   = "Test machine learning workspace"
+  application_insights_id       = azurerm_application_insights.test.id
+  key_vault_id                  = azurerm_key_vault.test.id
+  storage_account_id            = azurerm_storage_account.test.id
+  container_registry_id         = azurerm_container_registry.test.id
+  sku_name                      = "Basic"
+  high_business_impact          = true
+  public_network_access_enabled = true
+  image_build_compute_name      = "terraformCompute"
 
   identity {
     type = "SystemAssigned"
   }
-
 
   tags = {
     ENV = "Test"
@@ -248,17 +249,19 @@ resource "azurerm_container_registry" "test" {
 }
 
 resource "azurerm_machine_learning_workspace" "test" {
-  name                    = "acctest-MLW-%[2]d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  friendly_name           = "test-workspace-updated"
-  description             = "Test machine learning workspace update"
-  application_insights_id = azurerm_application_insights.test.id
-  key_vault_id            = azurerm_key_vault.test.id
-  storage_account_id      = azurerm_storage_account.test.id
-  container_registry_id   = azurerm_container_registry.test.id
-  sku_name                = "Basic"
-  high_business_impact    = true
+  name                          = "acctest-MLW-%[2]d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  friendly_name                 = "test-workspace-updated"
+  description                   = "Test machine learning workspace update"
+  application_insights_id       = azurerm_application_insights.test.id
+  key_vault_id                  = azurerm_key_vault.test.id
+  storage_account_id            = azurerm_storage_account.test.id
+  container_registry_id         = azurerm_container_registry.test.id
+  sku_name                      = "Basic"
+  high_business_impact          = true
+  public_network_access_enabled = true
+  image_build_compute_name      = "terraformCompute"
 
   identity {
     type = "SystemAssigned"

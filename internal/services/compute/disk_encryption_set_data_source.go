@@ -32,6 +32,11 @@ func dataSourceDiskEncryptionSet() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
+			"auto_key_rotation_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -59,6 +64,10 @@ func dataSourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if props := resp.EncryptionSetProperties; props != nil {
+		d.Set("auto_key_rotation_enabled", props.RotationToLatestKeyVersionEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

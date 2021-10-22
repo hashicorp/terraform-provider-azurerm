@@ -25,8 +25,10 @@ func resourceDataFactoryLinkedServiceKeyVault() *pluginsdk.Resource {
 		Update: resourceDataFactoryLinkedServiceKeyVaultCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceKeyVaultDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.LinkedServiceID(id)
+			return err
+		}, importDataFactoryLinkedService(datafactory.TypeBasicLinkedServiceTypeAzureKeyVault)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -101,13 +103,13 @@ func resourceDataFactoryLinkedServiceKeyVault() *pluginsdk.Resource {
 
 func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
+	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	dataFactoryName := d.Get("data_factory_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewLinkedServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("data_factory_name").(string), d.Get("name").(string))
+
 	keyVaultId, err := keyVaultParse.VaultID(d.Get("key_vault_id").(string))
 	if err != nil {
 		return err
@@ -119,10 +121,10 @@ func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Linked Service Key Vault %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Data Factory Key Vault %s: %+v", id, err)
 			}
 		}
 
@@ -162,20 +164,11 @@ func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *pluginsdk.ResourceD
 		Properties: azureKeyVaultLinkedService,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, linkedService, ""); err != nil {
-		return fmt.Errorf("creating/updating Data Factory Linked Service Key Vault %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, linkedService, ""); err != nil {
+		return fmt.Errorf("creating/updating Data Factory Key Vault %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Data Factory Linked Service Key Vault %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory Linked Service Key Vault %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceDataFactoryLinkedServiceKeyVaultRead(d, meta)
 }
@@ -199,7 +192,7 @@ func resourceDataFactoryLinkedServiceKeyVaultRead(d *pluginsdk.ResourceData, met
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Data Factory Linked Service Key Vault %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Data Factory Key Vault %s: %+v", *id, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -208,7 +201,7 @@ func resourceDataFactoryLinkedServiceKeyVaultRead(d *pluginsdk.ResourceData, met
 
 	keyVault, ok := resp.Properties.AsAzureKeyVaultLinkedService()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Linked Service Key Vault %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureKeyVault, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Key Vault %s: Expected: %q Received: %q", *id, datafactory.TypeBasicLinkedServiceTypeAzureKeyVault, *resp.Type)
 	}
 
 	d.Set("additional_properties", keyVault.AdditionalProperties)
@@ -267,7 +260,7 @@ func resourceDataFactoryLinkedServiceKeyVaultDelete(d *pluginsdk.ResourceData, m
 	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting Data Factory Linked Service Key Vault %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Data Factory Key Vault %s: %+v", *id, err)
 		}
 	}
 

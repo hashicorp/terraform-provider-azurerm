@@ -683,7 +683,7 @@ func (client TriggersClient) Start(ctx context.Context, resourceGroupName string
 
 	result, err = client.StartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datafactory.TriggersClient", "Start", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datafactory.TriggersClient", "Start", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -716,6 +716,7 @@ func (client TriggersClient) StartPreparer(ctx context.Context, resourceGroupNam
 // http.Response Body if it receives an error.
 func (client TriggersClient) StartSender(req *http.Request) (future TriggersStartFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -778,7 +779,7 @@ func (client TriggersClient) Stop(ctx context.Context, resourceGroupName string,
 
 	result, err = client.StopSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datafactory.TriggersClient", "Stop", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datafactory.TriggersClient", "Stop", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -811,6 +812,7 @@ func (client TriggersClient) StopPreparer(ctx context.Context, resourceGroupName
 // http.Response Body if it receives an error.
 func (client TriggersClient) StopSender(req *http.Request) (future TriggersStopFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -873,7 +875,7 @@ func (client TriggersClient) SubscribeToEvents(ctx context.Context, resourceGrou
 
 	result, err = client.SubscribeToEventsSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datafactory.TriggersClient", "SubscribeToEvents", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datafactory.TriggersClient", "SubscribeToEvents", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -906,6 +908,7 @@ func (client TriggersClient) SubscribeToEventsPreparer(ctx context.Context, reso
 // http.Response Body if it receives an error.
 func (client TriggersClient) SubscribeToEventsSender(req *http.Request) (future TriggersSubscribeToEventsFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -969,7 +972,7 @@ func (client TriggersClient) UnsubscribeFromEvents(ctx context.Context, resource
 
 	result, err = client.UnsubscribeFromEventsSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datafactory.TriggersClient", "UnsubscribeFromEvents", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datafactory.TriggersClient", "UnsubscribeFromEvents", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1002,6 +1005,7 @@ func (client TriggersClient) UnsubscribeFromEventsPreparer(ctx context.Context, 
 // http.Response Body if it receives an error.
 func (client TriggersClient) UnsubscribeFromEventsSender(req *http.Request) (future TriggersUnsubscribeFromEventsFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

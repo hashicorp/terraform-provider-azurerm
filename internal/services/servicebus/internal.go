@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
+	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -17,15 +17,15 @@ func expandAuthorizationRuleRights(d *pluginsdk.ResourceData) *[]servicebus.Acce
 	rights := make([]servicebus.AccessRights, 0)
 
 	if d.Get("listen").(bool) {
-		rights = append(rights, servicebus.Listen)
+		rights = append(rights, servicebus.AccessRightsListen)
 	}
 
 	if d.Get("send").(bool) {
-		rights = append(rights, servicebus.SendEnumValue)
+		rights = append(rights, servicebus.AccessRightsSend)
 	}
 
 	if d.Get("manage").(bool) {
-		rights = append(rights, servicebus.Manage)
+		rights = append(rights, servicebus.AccessRightsManage)
 	}
 
 	return &rights
@@ -37,11 +37,11 @@ func flattenAuthorizationRuleRights(rights *[]servicebus.AccessRights) (listen, 
 	if rights != nil {
 		for _, right := range *rights {
 			switch right {
-			case servicebus.Listen:
+			case servicebus.AccessRightsListen:
 				listen = true
-			case servicebus.SendEnumValue:
+			case servicebus.AccessRightsSend:
 				send = true
-			case servicebus.Manage:
+			case servicebus.AccessRightsManage:
 				manage = true
 			default:
 				log.Printf("[DEBUG] Unknown Authorization Rule Right '%s'", right)
@@ -148,8 +148,8 @@ func waitForPairedNamespaceReplication(ctx context.Context, meta interface{}, re
 	aliasName := *disasterRecoveryResponse.Values()[0].Name
 
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(servicebus.Accepted)},
-		Target:     []string{string(servicebus.Succeeded)},
+		Pending:    []string{string(servicebus.ProvisioningStateDRAccepted)},
+		Target:     []string{string(servicebus.ProvisioningStateDRSucceeded)},
 		MinTimeout: 30 * time.Second,
 		Timeout:    timeout,
 		Refresh: func() (interface{}, string, error) {
@@ -159,7 +159,7 @@ func waitForPairedNamespaceReplication(ctx context.Context, meta interface{}, re
 			}
 
 			if props := read.ArmDisasterRecoveryProperties; props != nil {
-				if props.ProvisioningState == servicebus.Failed {
+				if props.ProvisioningState == servicebus.ProvisioningStateDRFailed {
 					return read, "failed", fmt.Errorf("replication for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q) failed", aliasName, namespaceName, resourceGroup)
 				}
 				return read, string(props.ProvisioningState), nil

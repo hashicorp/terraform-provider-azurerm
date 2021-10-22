@@ -7,7 +7,6 @@ type ArmDisasterRecoveryPredicate struct {
 }
 
 func (p ArmDisasterRecoveryPredicate) Matches(input ArmDisasterRecovery) bool {
-
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false
 	}

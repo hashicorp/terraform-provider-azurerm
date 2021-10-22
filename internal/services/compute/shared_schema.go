@@ -33,8 +33,8 @@ func additionalUnattendContentSchema() *pluginsdk.Schema {
 					Required: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.AutoLogon),
-						string(compute.FirstLogonCommands),
+						string(compute.SettingNamesAutoLogon),
+						string(compute.SettingNamesFirstLogonCommands),
 					}, false),
 				},
 			},
@@ -53,8 +53,8 @@ func expandAdditionalUnattendContent(input []interface{}) *[]compute.AdditionalU
 			Content:     utils.String(raw["content"].(string)),
 
 			// no other possible values
-			PassName:      compute.OobeSystem,
-			ComponentName: compute.MicrosoftWindowsShellSetup,
+			PassName:      compute.PassNamesOobeSystem,
+			ComponentName: compute.ComponentNamesMicrosoftWindowsShellSetup,
 		})
 	}
 
@@ -444,8 +444,8 @@ func winRmListenerSchema() *pluginsdk.Schema {
 					Required: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.HTTP),
-						string(compute.HTTPS),
+						string(compute.ProtocolTypesHTTP),
+						string(compute.ProtocolTypesHTTPS),
 					}, false),
 				},
 

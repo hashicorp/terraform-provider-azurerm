@@ -52,6 +52,20 @@ The following arguments are supported:
   
 * `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the Backend Address Pool.
 
+* `tunnel_interface` - (Optional) One or more `tunnel_interface` blocks as defined below.
+
+---
+
+The `tunnel_interface` block supports the following:
+
+* `identifier` - (Required) The unique identifier of this Gateway Lodbalancer Tunnel Interface.
+
+* `type` - (Required) The traffic type of this Gateway Lodbalancer Tunnel Interface. Possible values are `Internal` and `External`.
+
+* `protocol` - (Required) The protocol used for this Gateway Lodbalancer Tunnel Interface. Possible values are `Native` and `VXLAN`.
+
+* `port` - (Required) The port number that this Gateway Lodbalancer Tunnel Interface listens to.
+
 ## Attributes Reference
 
 The following attributes are exported:

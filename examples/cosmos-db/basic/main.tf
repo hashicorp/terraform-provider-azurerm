@@ -4,13 +4,13 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
-  location = "${var.location}"
+  location = var.location
 }
 
 resource "azurerm_cosmosdb_account" "example" {
   name                = "${var.prefix}-cosmosdb"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   offer_type          = "Standard"
   kind                = "GlobalDocumentDB"
 
@@ -22,7 +22,7 @@ resource "azurerm_cosmosdb_account" "example" {
 
   geo_location {
     prefix            = "${var.prefix}-customid"
-    location          = "${azurerm_resource_group.example.location}"
+    location          = azurerm_resource_group.example.location
     failover_priority = 0
   }
 }

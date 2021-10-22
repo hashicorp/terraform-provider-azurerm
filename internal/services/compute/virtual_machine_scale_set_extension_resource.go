@@ -340,7 +340,6 @@ func resourceVirtualMachineScaleSetExtensionDelete(d *pluginsdk.ResourceData, me
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName)
 	if err != nil {
-
 		return fmt.Errorf("deleting Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
 	}
 

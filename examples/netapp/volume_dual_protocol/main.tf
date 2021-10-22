@@ -13,11 +13,11 @@ resource "azurerm_netapp_account" "example" {
   resource_group_name = azurerm_resource_group.example.name
 
   active_directory {
-    username            = "pmcadmin"
-    password            = var.password
-    smb_server_name     = "SMBSERVER"
-    dns_servers         = ["10.2.0.4"]
-    domain              = "anf.local"
+    username        = "pmcadmin"
+    password        = var.password
+    smb_server_name = "SMBSERVER"
+    dns_servers     = ["10.2.0.4"]
+    domain          = "anf.local"
   }
 }
 
@@ -42,16 +42,16 @@ resource "azurerm_netapp_volume" "example" {
   pool_name           = azurerm_netapp_pool.example.name
   volume_path         = "${var.prefix}-netappvolume"
   service_level       = "Standard"
-  protocols           = ["CIFS","NFSv3"]
+  protocols           = ["CIFS", "NFSv3"]
   subnet_id           = var.subnet_id
   storage_quota_in_gb = 100
 
   export_policy_rule {
-    rule_index = 1
+    rule_index      = 1
     allowed_clients = ["0.0.0.0/0"]
-    cifs_enabled = true
-    nfsv3_enabled = true
-    nfsv4_enabled = false
+    cifs_enabled    = true
+    nfsv3_enabled   = true
+    nfsv4_enabled   = false
     unix_read_write = true
   }
 }

@@ -75,7 +75,7 @@ func (client ExportPipelinesClient) Create(ctx context.Context, resourceGroupNam
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ExportPipelinesClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ExportPipelinesClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -110,6 +110,7 @@ func (client ExportPipelinesClient) CreatePreparer(ctx context.Context, resource
 // http.Response Body if it receives an error.
 func (client ExportPipelinesClient) CreateSender(req *http.Request) (future ExportPipelinesCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -171,7 +172,7 @@ func (client ExportPipelinesClient) Delete(ctx context.Context, resourceGroupNam
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ExportPipelinesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ExportPipelinesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -204,6 +205,7 @@ func (client ExportPipelinesClient) DeletePreparer(ctx context.Context, resource
 // http.Response Body if it receives an error.
 func (client ExportPipelinesClient) DeleteSender(req *http.Request) (future ExportPipelinesDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

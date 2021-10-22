@@ -80,6 +80,8 @@ func ExpandConsumptionBudgetNotifications(input []interface{}) map[string]*consu
 			thresholdDecimal := decimal.NewFromInt(int64(notificationRaw["threshold"].(int)))
 			notification.Threshold = &thresholdDecimal
 
+			notification.ThresholdType = consumption.ThresholdType(notificationRaw["threshold_type"].(string))
+
 			notification.ContactEmails = utils.ExpandStringSlice(notificationRaw["contact_emails"].([]interface{}))
 			notification.ContactRoles = utils.ExpandStringSlice(notificationRaw["contact_roles"].([]interface{}))
 			notification.ContactGroups = utils.ExpandStringSlice(notificationRaw["contact_groups"].([]interface{}))
@@ -107,6 +109,7 @@ func FlattenConsumptionBudgetNotifications(input map[string]*consumption.Notific
 			notificationBlock["operator"] = string(v.Operator)
 			threshold, _ := v.Threshold.Float64()
 			notificationBlock["threshold"] = int(threshold)
+			notificationBlock["threshold_type"] = string(v.ThresholdType)
 			notificationBlock["contact_emails"] = utils.FlattenStringSlice(v.ContactEmails)
 			notificationBlock["contact_roles"] = utils.FlattenStringSlice(v.ContactRoles)
 			notificationBlock["contact_groups"] = utils.FlattenStringSlice(v.ContactGroups)

@@ -225,6 +225,16 @@ func dataSourceKeyVaultCertificate() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"expires": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"not_before": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -302,6 +312,30 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface
 		thumbprint = strings.ToUpper(hex.EncodeToString(x509Thumbprint))
 	}
 	d.Set("thumbprint", thumbprint)
+
+	expireString, err := cert.Attributes.Expires.MarshalText()
+	if err != nil {
+		return fmt.Errorf("parsing expiry time of certificate: %+v", err)
+	}
+
+	e, err := time.Parse(time.RFC3339, string(expireString))
+	if err != nil {
+		return fmt.Errorf("converting text to Time struct: %+v", err)
+	}
+
+	d.Set("expires", e.Format(time.RFC3339))
+
+	notBeforeString, err := cert.Attributes.NotBefore.MarshalText()
+	if err != nil {
+		return fmt.Errorf("parsing not-before time of certificate: %+v", err)
+	}
+
+	n, err := time.Parse(time.RFC3339, string(notBeforeString))
+	if err != nil {
+		return fmt.Errorf("converting text to Time struct: %+v", err)
+	}
+
+	d.Set("not_before", n.Format(time.RFC3339))
 
 	return tags.FlattenAndSet(d, cert.Tags)
 }

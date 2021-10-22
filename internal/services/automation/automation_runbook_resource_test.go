@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -131,17 +131,14 @@ func TestAccAutomationRunbook_withJobSchedule(t *testing.T) {
 }
 
 func (t AutomationRunbookResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.RunbookID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	accName := id.Path["automationAccounts"]
-	name := id.Path["runbooks"]
 
-	resp, err := clients.Automation.RunbookClient.Get(ctx, resGroup, accName, name)
+	resp, err := clients.Automation.RunbookClient.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Automation Runbook '%s' (resource group: '%s') does not exist", name, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving Automation Runbook '%s' (resource group: '%s') does not exist", id.Name, id.ResourceGroup)
 	}
 
 	return utils.Bool(resp.RunbookProperties != nil), nil
