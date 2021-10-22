@@ -129,6 +129,10 @@ The following arguments are supported:
 
 -> **Note**: Premium SSD maxShares limit: `P15` and `P20` disks: 2. `P30`,`P40`,`P50` disks: 5. `P60`,`P70`,`P80` disks: 10. For ultra disks the `max_shares` minimum value is 1 and the maximum is 5.
 
+* `security_type` (Optional) The security type of the disk security profile. Applicable for OS disks only. Possible values are `TrustedLaunch`.
+
+-> **Note:** TrustedLaunch can only be used when create_option is `FromImage` or `Import`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `zones` - (Optional) A collection containing the availability zone to allocate the Managed Disk in.

@@ -187,6 +187,16 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(2, 10),
 			},
 
+			"security_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.SecurityTypesTrustedLaunch),
+				}, false),
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -333,6 +343,22 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
 		}
 		props.Tier = &tier
+	}
+
+	if v, ok := d.GetOk("security_type"); ok {
+		securityType := v.(string)
+		props.SecurityProfile = &compute.DiskSecurityProfile{
+			SecurityType: compute.DiskSecurityTypes(securityType),
+		}
+
+		if securityType == string(compute.SecurityTypesTrustedLaunch) {
+			switch createOption {
+			case compute.DiskCreateOptionFromImage:
+			case compute.DiskCreateOptionImport:
+			default:
+				return fmt.Errorf("security_type %q cannot be used with create_option %q. Supported create options are FromImage, Import", securityType, createOption)
+			}
+		}
 	}
 
 	createDisk := compute.Disk{
@@ -683,6 +709,10 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
 			return fmt.Errorf("setting `encryption_settings`: %+v", err)
+		}
+
+		if securityProfile := props.SecurityProfile; securityProfile != nil {
+			d.Set("security_type", string(securityProfile.SecurityType))
 		}
 	}
 
