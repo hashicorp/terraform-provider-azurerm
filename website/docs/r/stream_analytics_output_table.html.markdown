@@ -36,15 +36,15 @@ resource "azurerm_storage_table" "example" {
 }
 
 resource "azurerm_stream_analytics_output_table" "example" {
-  name = "output-to-storage-table"
+  name                      = "output-to-storage-table"
   stream_analytics_job_name = azurerm_stream_analytics_job.example.name
-  resource_group_name = azurerm_stream_analytics_job.example.resource_group_name
-  storage_account_name = azurerm_storage_account.example.name
-  storage_account_key = azurerm_storage_account.example.primary_access_key
-  table = azurerm_storage_table.example.name
-  partition_key = "foo"
-  row_key = "bar"
-  batch_size = 100
+  resource_group_name       = azurerm_stream_analytics_job.example.resource_group_name
+  storage_account_name      = azurerm_storage_account.example.name
+  storage_account_key       = azurerm_storage_account.example.primary_access_key
+  table                     = azurerm_storage_table.example.name
+  partition_key             = "foo"
+  row_key                   = "bar"
+  batch_size                = 100
 }
 ```
 
