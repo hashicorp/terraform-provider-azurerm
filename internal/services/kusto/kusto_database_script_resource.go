@@ -68,7 +68,7 @@ func resourceKustoDatabaseScript() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"force_update_tag": {
+			"force_an_update_when_value_changed": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
@@ -96,7 +96,7 @@ func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	forceUpdateTag := d.Get("force_update_tag").(string)
+	forceUpdateTag := d.Get("force_an_update_when_value_changed").(string)
 	if len(forceUpdateTag) == 0 {
 		forceUpdateTag, _ = uuid.GenerateUUID()
 	}
@@ -145,7 +145,7 @@ func resourceKustoDatabaseScriptRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("database_id", parse.NewDatabaseID(id.SubscriptionId, id.ResourceGroup, id.ClusterName, id.DatabaseName).ID())
 	if props := resp.ScriptProperties; props != nil {
 		d.Set("continue_on_errors_enabled", props.ContinueOnErrors)
-		d.Set("force_update_tag", props.ForceUpdateTag)
+		d.Set("force_an_update_when_value_changed", props.ForceUpdateTag)
 		d.Set("url", props.ScriptURL)
 	}
 	return nil

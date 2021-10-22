@@ -205,12 +205,12 @@ func (r KustoScriptResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_kusto_script" "test" {
-  name                       = "acctest-ks-%d"
-  database_id                = azurerm_kusto_database.test.id
-  url                        = azurerm_storage_blob.test.id
-  sas_token                  = data.azurerm_storage_account_blob_container_sas.test.sas
-  continue_on_errors_enabled = true
-  force_update_tag           = "first"
+  name                               = "acctest-ks-%d"
+  database_id                        = azurerm_kusto_database.test.id
+  url                                = azurerm_storage_blob.test.id
+  sas_token                          = data.azurerm_storage_account_blob_container_sas.test.sas
+  continue_on_errors_enabled         = true
+  force_an_update_when_value_changed = "first"
 }
 `, template, data.RandomInteger)
 }

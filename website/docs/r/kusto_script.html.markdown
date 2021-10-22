@@ -81,12 +81,12 @@ data "azurerm_storage_account_blob_container_sas" "example" {
 }
 
 resource "azurerm_kusto_script" "example" {
-  name                       = "example"
-  database_id                = azurerm_kusto_database.example.id
-  url                        = azurerm_storage_blob.example.id
-  sas_token                  = data.azurerm_storage_account_blob_container_sas.example.sas
-  continue_on_errors_enabled = true
-  force_update_tag           = "first"
+  name                               = "example"
+  database_id                        = azurerm_kusto_database.example.id
+  url                                = azurerm_storage_blob.example.id
+  sas_token                          = data.azurerm_storage_account_blob_container_sas.example.sas
+  continue_on_errors_enabled         = true
+  force_an_update_when_value_changed = "first"
 }
 ```
 
@@ -106,7 +106,7 @@ The following arguments are supported:
 
 * `continue_on_errors_enabled` - (Optional) Flag that indicates whether to continue if one of the command fails.
 
-* `force_update_tag` - (Optional) A unique string. If changed the script will be applied again.
+* `force_an_update_when_value_changed` - (Optional) A unique string. If changed the script will be applied again.
 
 ## Attributes Reference
 
