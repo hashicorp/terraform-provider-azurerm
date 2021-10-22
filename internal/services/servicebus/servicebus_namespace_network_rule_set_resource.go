@@ -128,7 +128,7 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.Resource
 			DefaultAction:               servicebus.DefaultAction(d.Get("default_action").(string)),
 			VirtualNetworkRules:         expandServiceBusNamespaceVirtualNetworkRules(d.Get("network_rules").(*pluginsdk.Set).List()),
 			IPRules:                     expandServiceBusNamespaceIPRules(d.Get("ip_rules").(*pluginsdk.Set).List()),
-			TrustedServiceAccessEnabled: d.Get("allow_trusted_services").(bool),
+			TrustedServiceAccessEnabled: utils.Bool(d.Get("allow_trusted_services").(bool)),
 		},
 	}
 
