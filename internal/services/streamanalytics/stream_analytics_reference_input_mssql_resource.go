@@ -88,7 +88,7 @@ func resourceStreamAnalyticsReferenceMsSql() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"refresh_rate": {
+			"refresh_interval_duration": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.BatchMaxWaitTime,
@@ -132,8 +132,8 @@ func resourceStreamAnalyticsReferenceInputMsSqlCreateUpdate(d *pluginsdk.Resourc
 
 	refreshType := d.Get("refresh_type").(string)
 
-	if _, ok := d.GetOk("refresh_rate"); refreshType != "Static" && !ok {
-		return fmt.Errorf("refresh_rate must be set if refresh_type is RefreshPeriodicallyWithFull or RefreshPeriodicallyWithDelta")
+	if _, ok := d.GetOk("refresh_interval_duration"); refreshType != "Static" && !ok {
+		return fmt.Errorf("refresh_interval_duration must be set if refresh_type is RefreshPeriodicallyWithFull or RefreshPeriodicallyWithDelta")
 	} else if _, ok = d.GetOk("delta_snapshot_query"); refreshType == "Static" && ok {
 		return fmt.Errorf("delta_snapshot_query cannot be set if refresh_type is Static")
 	}
@@ -146,7 +146,7 @@ func resourceStreamAnalyticsReferenceInputMsSqlCreateUpdate(d *pluginsdk.Resourc
 		RefreshType: utils.String(refreshType),
 	}
 
-	if v, ok := d.GetOk("refresh_rate"); ok {
+	if v, ok := d.GetOk("refresh_interval_duration"); ok {
 		properties.RefreshRate = utils.String(v.(string))
 	}
 
@@ -218,7 +218,7 @@ func resourceStreamAnalyticsReferenceInputMsSqlRead(d *pluginsdk.ResourceData, m
 		d.Set("database", inputDataSource.Properties.Database)
 		d.Set("username", inputDataSource.Properties.User)
 		d.Set("refresh_type", inputDataSource.Properties.RefreshType)
-		d.Set("refresh_rate", inputDataSource.Properties.RefreshRate)
+		d.Set("refresh_interval_duration", inputDataSource.Properties.RefreshRate)
 		d.Set("full_snapshot_query", inputDataSource.Properties.FullSnapshotQuery)
 		d.Set("delta_snapshot_query", inputDataSource.Properties.DeltaSnapshotQuery)
 	}

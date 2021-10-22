@@ -45,7 +45,7 @@ resource "azurerm_stream_analytics_reference_input_mssql" "example" {
   username                  = "exampleuser"
   password                  = "examplepassword"
   refresh_type              = "RefreshPeriodicallyWithFull"
-  refresh_rate              = "00:20:00"
+  refresh_interval_duration = "00:20:00"
   full_snapshot_query       = <<QUERY
     SELECT *
     INTO [YourOutputAlias]
@@ -75,11 +75,11 @@ The following arguments are supported:
 
 * `refresh_type` - (Required) Defines whether and how the reference data should be refreshed. Accepted values are `Static`, `RefreshPeriodicallyWithFull` and `RefreshPeriodicallyWithDelta`.
 
+* `refresh_interval_duration` - (Optional) The frequency in `hh:mm:ss` with which the reference data should be retrieved from the MS SQL database e.g. `00:20:00` for every 20 minutes. Must be set when `refresh_type` is `RefreshPeriodicallyWithFull` or `RefreshPeriodicallyWithDelta`.
+
 * `full_snapshot_query` - (Required) The query used to retrieve the reference data from the MS SQL database.
 
 * `delta_snapshot_query` - (Optional) The query used to retrieve incremental changes in the reference data from the MS SQL database. Cannot be set when `refresh_type` is `Static`.
-
-* `refresh_rate` - (Optional) The frequency in `hh:mm:ss` with which the reference data should be retrieved from the MS SQL database e.g. `00:20:00` for every 20 minutes. Must be set when `refresh_type` is `RefreshPeriodicallyWithFull` or `RefreshPeriodicallyWithDelta`.
 
 ## Attributes Reference
 

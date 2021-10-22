@@ -96,7 +96,7 @@ resource "azurerm_stream_analytics_reference_input_mssql" "test" {
   username                  = "maurice"
   password                  = "ludicrousdisplay"
   refresh_type              = "RefreshPeriodicallyWithFull"
-  refresh_rate              = "00:10:00"
+  refresh_interval_duration = "00:10:00"
   full_snapshot_query       = <<QUERY
     SELECT *
     INTO [YourOutputAlias]
@@ -121,7 +121,7 @@ resource "azurerm_stream_analytics_reference_input_mssql" "test" {
   username                  = "maurice"
   password                  = "ludicrousdisplay"
   refresh_type              = "RefreshPeriodicallyWithDelta"
-  refresh_rate              = "00:20:00"
+  refresh_interval_duration = "00:20:00"
   full_snapshot_query       = <<QUERY
     SELECT *
     INTO [YourOutputAlias]
