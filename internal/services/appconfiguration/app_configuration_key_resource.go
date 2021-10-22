@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -128,7 +129,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 
 			appCfgKeyResourceID := parse.AppConfigurationKeyId{
 				ConfigurationStoreId: model.ConfigurationStoreId,
-				Key:                  model.Key,
+				Key:                  url.QueryEscape(model.Key),
 				Label:                model.Label,
 			}
 
@@ -206,16 +207,21 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			kv, err := client.GetKeyValue(ctx, resourceID.Key, resourceID.Label, "", "", "", []string{})
+			decodedKey, err := url.QueryUnescape(resourceID.Key)
+			if err != nil {
+				return fmt.Errorf("while decoding key of resource ID: %+v", err)
+			}
+
+			kv, err := client.GetKeyValue(ctx, decodedKey, resourceID.Label, "", "", "", []string{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
 					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
 						return metadata.MarkAsGone(resourceID)
 					}
 				} else {
-					return fmt.Errorf("while checking for key's %q existence: %+v", resourceID.Key, err)
+					return fmt.Errorf("while checking for key's %q existence: %+v", decodedKey, err)
 				}
-				return fmt.Errorf("while checking for key's %q existence: %+v", resourceID.Key, err)
+				return fmt.Errorf("while checking for key's %q existence: %+v", decodedKey, err)
 			}
 
 			model := KeyResourceModel{
@@ -325,13 +331,18 @@ func (k KeyResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err = client.DeleteLock(ctx, resourceID.Key, resourceID.Label, "", ""); err != nil {
-				return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", resourceID.Key, resourceID.Label, err)
+			decodedKey, err := url.QueryUnescape(resourceID.Key)
+			if err != nil {
+				return fmt.Errorf("while decoding key of resource ID: %+v", err)
 			}
 
-			_, err = client.DeleteKeyValue(ctx, resourceID.Key, resourceID.Label, "")
+			if _, err = client.DeleteLock(ctx, decodedKey, resourceID.Label, "", ""); err != nil {
+				return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", decodedKey, resourceID.Label, err)
+			}
+
+			_, err = client.DeleteKeyValue(ctx, decodedKey, resourceID.Label, "")
 			if err != nil {
-				return fmt.Errorf("while removing key %q from App Configuration Store %q: %+v", resourceID.Key, resourceID.ConfigurationStoreId, err)
+				return fmt.Errorf("while removing key %q from App Configuration Store %q: %+v", decodedKey, resourceID.ConfigurationStoreId, err)
 			}
 
 			return nil
