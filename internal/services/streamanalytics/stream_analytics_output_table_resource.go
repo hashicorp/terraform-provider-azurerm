@@ -20,8 +20,6 @@ import (
 type OutputTableResource struct {
 }
 
-//var _ sdk.ResourceWithUpdate = OutputTableResource{}
-
 var _ sdk.ResourceWithCustomImporter = OutputTableResource{}
 
 type OutputTableResourceModel struct {
@@ -63,6 +61,7 @@ func (r OutputTableResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_account_key": {
 			Type:         pluginsdk.TypeString,
 			Required: 	  true,
+			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -87,7 +86,7 @@ func (r OutputTableResource) Arguments() map[string]*pluginsdk.Schema {
 		"batch_size": {
 			Type:         pluginsdk.TypeInt,
 			Required: 	  true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.IntBetween(1, 100),
 		},
 	}
 }
@@ -131,21 +130,22 @@ func (r OutputTableResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			tableOutputProps := &streamanalytics.AzureTableOutputDataSourceProperties{
+				AccountName: utils.String(model.StorageAccount),
+				AccountKey: utils.String(model.StorageAccountKey),
+				Table: utils.String(model.Table),
+				PartitionKey: utils.String(model.PartitionKey),
+				RowKey: utils.String(model.RowKey),
+				BatchSize: utils.Int32(model.BatchSize),
+			}
+
 			props := streamanalytics.Output{
 				Name: utils.String(model.Name),
 				OutputProperties: &streamanalytics.OutputProperties{
 					Datasource: &streamanalytics.AzureTableOutputDataSource{
 						Type: streamanalytics.TypeMicrosoftStorageTable,
-						AzureTableOutputDataSourceProperties: &streamanalytics.AzureTableOutputDataSourceProperties{
-							AccountName: utils.String(model.StorageAccount),
-							AccountKey: utils.String(model.StorageAccountKey),
-							Table: utils.String(model.Table),
-							PartitionKey: utils.String(model.PartitionKey),
-							RowKey: utils.String(model.RowKey),
-							BatchSize: utils.Int32(model.BatchSize),
-						},
+						AzureTableOutputDataSourceProperties: tableOutputProps,
 					},
-					//Serialization: serialization,
 				},
 			}
 
@@ -190,7 +190,7 @@ func (r OutputTableResource) Read() sdk.ResourceFunc {
 					ResourceGroup: id.ResourceGroup,
 					StreamAnalyticsJob: id.StreamingjobName,
 					StorageAccount: *v.AccountName,
-					StorageAccountKey: *v.AccountKey,
+					StorageAccountKey: metadata.ResourceData.Get("storage_account_key").(string),
 					Table: *v.Table,
 					PartitionKey: *v.PartitionKey,
 					RowKey: *v.RowKey,
@@ -203,15 +203,51 @@ func (r OutputTableResource) Read() sdk.ResourceFunc {
 	}
 }
 
-//func (r OutputTableResource) Update() sdk.ResourceFunc {
-//	return sdk.ResourceFunc{
-//		Timeout: 5 * time.Minute,
-//		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-//
-//			return nil
-//		},
-//	}
-//}
+func (r OutputTableResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.StreamAnalytics.OutputsClient
+			id, err := parse.OutputID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var state OutputTableResourceModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			props := streamanalytics.Output{
+				Name: utils.String(state.Name),
+				OutputProperties: &streamanalytics.OutputProperties{
+					Datasource: &streamanalytics.AzureTableOutputDataSource{
+						Type: streamanalytics.TypeMicrosoftStorageTable,
+						AzureTableOutputDataSourceProperties: &streamanalytics.AzureTableOutputDataSourceProperties{
+							AccountName: utils.String(state.StorageAccount),
+							AccountKey: utils.String(state.StorageAccountKey),
+							Table: utils.String(state.Table),
+							PartitionKey: utils.String(state.PartitionKey),
+							RowKey: utils.String(state.RowKey),
+							BatchSize: utils.Int32(state.BatchSize),
+						},
+					},
+				},
+			}
+
+
+
+
+
+
+			_, err = client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "")
+			if err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+			return nil
+		},
+	}
+}
 
 func (r OutputTableResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
@@ -237,6 +273,21 @@ func (r OutputTableResource) Delete() sdk.ResourceFunc {
 
 func (r OutputTableResource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+		id, err := parse.OutputID(metadata.ResourceData.Id())
+		if err != nil {
+			return err
+		}
+
+		client := metadata.Client.StreamAnalytics.OutputsClient
+		resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+		if err != nil || resp.OutputProperties == nil {
+			return fmt.Errorf("reading %s: %+v", *id, err)
+		}
+
+		props := resp.OutputProperties
+		if _, ok := props.Datasource.AsAzureTableOutputDataSource(); !ok {
+			return fmt.Errorf("specified output is not of type %s", streamanalytics.TypeMicrosoftStorageTable)
+		}
 		return nil
 	}
 }

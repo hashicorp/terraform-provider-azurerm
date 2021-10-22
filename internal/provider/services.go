@@ -112,6 +112,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		loadbalancer.Registration{},
 		mssql.Registration{},
 		policy.Registration{},
+		streamanalytics.Registration{},
 		resource.Registration{},
 		web.Registration{},
 	}

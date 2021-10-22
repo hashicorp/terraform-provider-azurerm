@@ -3,12 +3,12 @@ package streamanalytics_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -24,95 +24,9 @@ func TestAccStreamAnalyticsOutputTable_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("serialization.0.type").HasValue("Avro"),
 			),
 		},
-		data.ImportStep("shared_access_policy_key"),
-	})
-}
-
-func TestAccStreamAnalyticsOutputTable_csv(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_table", "test")
-	r := StreamAnalyticsOutputTableResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.csv(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("serialization.0.type").HasValue("Csv"),
-				check.That(data.ResourceName).Key("serialization.0.field_delimiter").HasValue(","),
-				check.That(data.ResourceName).Key("serialization.0.encoding").HasValue("UTF8"),
-			),
-		},
-		data.ImportStep("shared_access_policy_key"),
-	})
-}
-
-func TestAccStreamAnalyticsOutputTable_json(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_table", "test")
-	r := StreamAnalyticsOutputTableResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.json(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("serialization.0.format").HasValue("LineSeparated"),
-			),
-		},
-		data.ImportStep("shared_access_policy_key"),
-	})
-}
-
-func TestAccStreamAnalyticsOutputTable_jsonArrayFormat(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_table", "test")
-	r := StreamAnalyticsOutputTableResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.jsonArrayFormat(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("serialization.0.format").HasValue("Array"),
-				check.That(data.ResourceName).Key("serialization.0.type").HasValue("Json"),
-				check.That(data.ResourceName).Key("serialization.0.encoding").HasValue("UTF8"),
-			),
-		},
-		data.ImportStep("shared_access_policy_key"),
-	})
-}
-
-func TestAccStreamAnalyticsOutputTable_propertyColumns(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_table", "test")
-	r := StreamAnalyticsOutputTableResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.propertyColumns(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("property_columns.0").HasValue("col1"),
-				check.That(data.ResourceName).Key("property_columns.1").HasValue("col2"),
-			),
-		},
-		data.ImportStep("shared_access_policy_key"),
-	})
-}
-
-func TestAccStreamAnalyticsOutputTable_partitionKey(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_table", "test")
-	r := StreamAnalyticsOutputTableResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.partitionKey(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("partition_key").HasValue("partitionKey"),
-			),
-		},
-		data.ImportStep("shared_access_policy_key"),
+		data.ImportStep("storage_account_key"),
 	})
 }
 
@@ -122,7 +36,7 @@ func TestAccStreamAnalyticsOutputTable_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.json(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -131,10 +45,9 @@ func TestAccStreamAnalyticsOutputTable_update(t *testing.T) {
 			Config: r.updated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("serialization.0.type").HasValue("Avro"),
 			),
 		},
-		data.ImportStep("shared_access_policy_key"),
+		data.ImportStep("storage_account_key"),
 	})
 }
 
@@ -144,7 +57,7 @@ func TestAccStreamAnalyticsOutputTable_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.json(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -175,132 +88,14 @@ func (r StreamAnalyticsOutputTableResource) basic(data acceptance.TestData) stri
 %s
 
 resource "azurerm_stream_analytics_output_table" "test" {
-  name                      = "acctestinput-%d"
+  name                      = "acctestoutput-%d"
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
   storage_account_name      = azurerm_storage_account.test.name
   storage_account_key		= azurerm_storage_account.test.primary_access_key
   table						= "foobar"
   partition_key				= "foo"
-  row_key					= "bar"		
-  batch_size				= 100
-}
-`, template, data.RandomInteger)
-}
-
-func (r StreamAnalyticsOutputTableResource) csv(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_stream_analytics_output_table" "test" {
-  name                      = "acctestinput-%d"
-  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
-  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  eventhub_name             = azurerm_eventhub.test.name
-  servicebus_namespace      = azurerm_eventhub_namespace.test.name
-  shared_access_policy_key  = azurerm_eventhub_namespace.test.default_primary_key
-  shared_access_policy_name = "RootManageSharedAccessKey"
-
-  serialization {
-    type            = "Csv"
-    encoding        = "UTF8"
-    field_delimiter = ","
-  }
-}
-`, template, data.RandomInteger)
-}
-
-func (r StreamAnalyticsOutputTableResource) propertyColumns(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_stream_analytics_output_table" "test" {
-  name                      = "acctestinput-%d"
-  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
-  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  eventhub_name             = azurerm_eventhub.test.name
-  servicebus_namespace      = azurerm_eventhub_namespace.test.name
-  shared_access_policy_key  = azurerm_eventhub_namespace.test.default_primary_key
-  shared_access_policy_name = "RootManageSharedAccessKey"
-  property_columns          = ["col1", "col2"]
-
-  serialization {
-    type            = "Csv"
-    encoding        = "UTF8"
-    field_delimiter = ","
-  }
-}
-`, template, data.RandomInteger)
-}
-
-func (r StreamAnalyticsOutputTableResource) partitionKey(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_stream_analytics_output_table" "test" {
-  name                      = "acctestinput-%d"
-  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
-  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  eventhub_name             = azurerm_eventhub.test.name
-  servicebus_namespace      = azurerm_eventhub_namespace.test.name
-  shared_access_policy_key  = azurerm_eventhub_namespace.test.default_primary_key
-  shared_access_policy_name = "RootManageSharedAccessKey"
-  partition_key             = "partitionKey"
-
-  serialization {
-    type            = "Csv"
-    encoding        = "UTF8"
-    field_delimiter = ","
-  }
-}
-`, template, data.RandomInteger)
-}
-
-func (r StreamAnalyticsOutputTableResource) json(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_stream_analytics_output_table" "test" {
-  name                      = "acctestinput-%d"
-  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
-  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  eventhub_name             = azurerm_eventhub.test.name
-  servicebus_namespace      = azurerm_eventhub_namespace.test.name
-  shared_access_policy_key  = azurerm_eventhub_namespace.test.default_primary_key
-  shared_access_policy_name = "RootManageSharedAccessKey"
-
-  serialization {
-    type     = "Json"
-    encoding = "UTF8"
-    format   = "LineSeparated"
-  }
-}
-`, template, data.RandomInteger)
-}
-
-func (r StreamAnalyticsOutputTableResource) jsonArrayFormat(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_stream_analytics_output_table" "test" {
-  name                      = "acctestinput-%d"
-  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
-  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  eventhub_name             = azurerm_eventhub.test.name
-  servicebus_namespace      = azurerm_eventhub_namespace.test.name
-  shared_access_policy_key  = azurerm_eventhub_namespace.test.default_primary_key
-  shared_access_policy_name = "RootManageSharedAccessKey"
-
-  serialization {
-    type     = "Json"
-    encoding = "UTF8"
-    format   = "Array"
-  }
+  row_key					= "bar"
 }
 `, template, data.RandomInteger)
 }
@@ -310,40 +105,36 @@ func (r StreamAnalyticsOutputTableResource) updated(data acceptance.TestData) st
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_eventhub_namespace" "updated" {
-  name                = "acctestehn2-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-  capacity            = 1
+resource "azurerm_storage_account" "updated" {
+  name                     = "acctestaccu%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
-resource "azurerm_eventhub" "updated" {
-  name                = "acctesteh2-%d"
-  namespace_name      = azurerm_eventhub_namespace.updated.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+resource "azurerm_storage_table" "updated" {
+  name                 = "accteststu%[3]d"
+  storage_account_name = azurerm_storage_account.test.name
 }
 
 resource "azurerm_stream_analytics_output_table" "test" {
-  name                      = "acctestinput-%d"
+  name                      = "acctestoutput-%[3]d"
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  eventhub_name             = azurerm_eventhub.updated.name
-  servicebus_namespace      = azurerm_eventhub_namespace.updated.name
-  shared_access_policy_key  = azurerm_eventhub_namespace.updated.default_primary_key
-  shared_access_policy_name = "RootManageSharedAccessKey"
-
-  serialization {
-    type = "Avro"
-  }
+  storage_account_name      = azurerm_storage_account.updated.name
+  storage_account_key		= azurerm_storage_account.updated.primary_access_key
+  table						= "updated"
+  partition_key				= "partitionkeyupdated"
+  row_key					= "rowkeyupdated"		
+  batch_size				= 50
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+
+`, template, data.RandomString, data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputTableResource) requiresImport(data acceptance.TestData) string {
-	template := r.json(data)
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -351,16 +142,12 @@ resource "azurerm_stream_analytics_output_table" "import" {
   name                      = azurerm_stream_analytics_output_table.test.name
   stream_analytics_job_name = azurerm_stream_analytics_output_table.test.stream_analytics_job_name
   resource_group_name       = azurerm_stream_analytics_output_table.test.resource_group_name
-  eventhub_name             = azurerm_stream_analytics_output_table.test.eventhub_name
-  servicebus_namespace      = azurerm_stream_analytics_output_table.test.servicebus_namespace
-  shared_access_policy_key  = azurerm_stream_analytics_output_table.test.shared_access_policy_key
-  shared_access_policy_name = azurerm_stream_analytics_output_table.test.shared_access_policy_name
-
-  serialization {
-    type     = azurerm_stream_analytics_output_table.test.serialization.0.type
-    encoding = azurerm_stream_analytics_output_table.test.serialization.0.encoding
-    format   = azurerm_stream_analytics_output_table.test.serialization.0.format
-  }
+  storage_account_name      = azurerm_stream_analytics_output_table.test.storage_account_name
+  storage_account_key		= azurerm_stream_analytics_output_table.test.storage_account_key
+  table						= azurerm_stream_analytics_output_table.test.table
+  partition_key				= azurerm_stream_analytics_output_table.test.partition_key
+  row_key					= azurerm_stream_analytics_output_table.test.row_key	
+  batch_size				= azurerm_stream_analytics_output_table.test.batch_size
 }
 `, template)
 }
