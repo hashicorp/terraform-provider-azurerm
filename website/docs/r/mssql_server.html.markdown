@@ -130,6 +130,8 @@ An `azuread_administrator` block supports the following:
 
 * `tenant_id` - (Optional) The tenant id of the Azure AD Administrator of this SQL Server.
 
+* `azuread_authentication_only` - (Optional) Specifies whether only AD Users and administrators (like `azuread_administrator.0.login_username`) can be used to login or also local database users (like `administrator_login`).
+
 ---
 
 An `extended_auditing_policy` block supports the following:

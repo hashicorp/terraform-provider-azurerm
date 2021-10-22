@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -98,24 +97,21 @@ func (t NetworkInterfaceNATRuleAssociationResource) Exists(ctx context.Context, 
 		return nil, fmt.Errorf("expected ID to be in the format {networkInterfaceId}|{networkSecurityGroupId} but got %q", state.ID)
 	}
 
-	nicID, err := azure.ParseAzureResourceID(splitId[0])
+	nicID, err := parse.NetworkInterfaceIpConfigurationID(splitId[0])
 	if err != nil {
 		return nil, err
 	}
 
-	ipConfigurationName := nicID.Path["ipConfigurations"]
-	networkInterfaceName := nicID.Path["networkInterfaces"]
-	resourceGroup := nicID.ResourceGroup
 	natRuleId := splitId[1]
 
-	read, err := clients.Network.InterfacesClient.Get(ctx, resourceGroup, networkInterfaceName, "")
+	read, err := clients.Network.InterfacesClient.Get(ctx, nicID.ResourceGroup, nicID.NetworkInterfaceName, "")
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Network Interface %q: %+v", nicID, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *nicID, err)
 	}
 
-	c := network2.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
+	c := network2.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, nicID.IpConfigurationName)
 	if c == nil {
-		return nil, fmt.Errorf("IP Configuration %q wasn't found for Network Interface %q (Resource Group %q)", ipConfigurationName, networkInterfaceName, resourceGroup)
+		return nil, fmt.Errorf("IP Configuration %q wasn't found for Network Interface %q (Resource Group %q)", nicID.IpConfigurationName, nicID.NetworkInterfaceName, nicID.ResourceGroup)
 	}
 	config := *c
 
