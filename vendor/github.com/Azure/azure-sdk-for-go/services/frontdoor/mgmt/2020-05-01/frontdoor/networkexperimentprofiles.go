@@ -66,7 +66,7 @@ func (client NetworkExperimentProfilesClient) CreateOrUpdate(ctx context.Context
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -100,6 +100,7 @@ func (client NetworkExperimentProfilesClient) CreateOrUpdatePreparer(ctx context
 // http.Response Body if it receives an error.
 func (client NetworkExperimentProfilesClient) CreateOrUpdateSender(req *http.Request) (future NetworkExperimentProfilesCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -156,7 +157,7 @@ func (client NetworkExperimentProfilesClient) Delete(ctx context.Context, resour
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -188,6 +189,7 @@ func (client NetworkExperimentProfilesClient) DeletePreparer(ctx context.Context
 // http.Response Body if it receives an error.
 func (client NetworkExperimentProfilesClient) DeleteSender(req *http.Request) (future NetworkExperimentProfilesDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -567,7 +569,7 @@ func (client NetworkExperimentProfilesClient) Update(ctx context.Context, resour
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -601,6 +603,7 @@ func (client NetworkExperimentProfilesClient) UpdatePreparer(ctx context.Context
 // http.Response Body if it receives an error.
 func (client NetworkExperimentProfilesClient) UpdateSender(req *http.Request) (future NetworkExperimentProfilesUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

@@ -57,7 +57,7 @@ func (client BindingsClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -93,6 +93,7 @@ func (client BindingsClient) CreateOrUpdatePreparer(ctx context.Context, resourc
 // http.Response Body if it receives an error.
 func (client BindingsClient) CreateOrUpdateSender(req *http.Request) (future BindingsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -142,7 +143,7 @@ func (client BindingsClient) Delete(ctx context.Context, resourceGroupName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -176,6 +177,7 @@ func (client BindingsClient) DeletePreparer(ctx context.Context, resourceGroupNa
 // http.Response Body if it receives an error.
 func (client BindingsClient) DeleteSender(req *http.Request) (future BindingsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -427,7 +429,7 @@ func (client BindingsClient) Update(ctx context.Context, resourceGroupName strin
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -463,6 +465,7 @@ func (client BindingsClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 // http.Response Body if it receives an error.
 func (client BindingsClient) UpdateSender(req *http.Request) (future BindingsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

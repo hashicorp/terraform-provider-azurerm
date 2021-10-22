@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -200,18 +200,14 @@ func TestAccAutomationSchedule_monthly_advanced_by_week_day(t *testing.T) {
 }
 
 func (t AutomationScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ScheduleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	name := id.Path["schedules"]
-	resGroup := id.ResourceGroup
-	accountName := id.Path["automationAccounts"]
-
-	resp, err := clients.Automation.ScheduleClient.Get(ctx, resGroup, accountName, name)
+	resp, err := clients.Automation.ScheduleClient.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Automation Schedule '%s' (resource group: '%s') does not exist", name, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving Automation Schedule '%s' (resource group: '%s') does not exist", id.Name, id.ResourceGroup)
 	}
 
 	return utils.Bool(resp.ScheduleProperties != nil), nil

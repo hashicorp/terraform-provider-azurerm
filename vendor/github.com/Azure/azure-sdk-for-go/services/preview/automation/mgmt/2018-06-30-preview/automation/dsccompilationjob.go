@@ -69,7 +69,7 @@ func (client DscCompilationJobClient) Create(ctx context.Context, resourceGroupN
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "automation.DscCompilationJobClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "automation.DscCompilationJobClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -104,6 +104,7 @@ func (client DscCompilationJobClient) CreatePreparer(ctx context.Context, resour
 // http.Response Body if it receives an error.
 func (client DscCompilationJobClient) CreateSender(req *http.Request) (future DscCompilationJobCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

@@ -20,7 +20,7 @@ resource "azurerm_kubernetes_cluster" "example" {
   }
 
   network_profile {
-    network_plugin = "azure"
+    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 
@@ -41,10 +41,6 @@ resource "azurerm_kubernetes_cluster" "example" {
 
     http_application_routing {
       enabled = false
-    }
-
-    kube_dashboard {
-      enabled = true
     }
 
     oms_agent {

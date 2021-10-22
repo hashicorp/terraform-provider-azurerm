@@ -64,7 +64,7 @@ func (client SecretsClient) Create(ctx context.Context, resourceGroupName string
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.SecretsClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.SecretsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -99,6 +99,7 @@ func (client SecretsClient) CreatePreparer(ctx context.Context, resourceGroupNam
 // http.Response Body if it receives an error.
 func (client SecretsClient) CreateSender(req *http.Request) (future SecretsCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -154,7 +155,7 @@ func (client SecretsClient) Delete(ctx context.Context, resourceGroupName string
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.SecretsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.SecretsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -187,6 +188,7 @@ func (client SecretsClient) DeletePreparer(ctx context.Context, resourceGroupNam
 // http.Response Body if it receives an error.
 func (client SecretsClient) DeleteSender(req *http.Request) (future SecretsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -454,7 +456,7 @@ func (client SecretsClient) Update(ctx context.Context, resourceGroupName string
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.SecretsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.SecretsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -489,6 +491,7 @@ func (client SecretsClient) UpdatePreparer(ctx context.Context, resourceGroupNam
 // http.Response Body if it receives an error.
 func (client SecretsClient) UpdateSender(req *http.Request) (future SecretsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

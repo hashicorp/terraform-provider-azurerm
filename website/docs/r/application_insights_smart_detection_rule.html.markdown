@@ -64,3 +64,11 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `update` - (Defaults to 30 minutes) Used when updating the Application Insights Smart Detection Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Insights Smart Detection Rule.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Application Insights Smart Detection Rule.
+
+## Import
+
+Application Insights Smart Detection Rules can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_application_insights_smart_detection_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.insights/components/mycomponent1/SmartDetectionRule/myrule1
+```

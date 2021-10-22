@@ -155,7 +155,7 @@ func (client DatabasePrincipalAssignmentsClient) CreateOrUpdate(ctx context.Cont
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -191,6 +191,7 @@ func (client DatabasePrincipalAssignmentsClient) CreateOrUpdatePreparer(ctx cont
 // http.Response Body if it receives an error.
 func (client DatabasePrincipalAssignmentsClient) CreateOrUpdateSender(req *http.Request) (future DatabasePrincipalAssignmentsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -239,7 +240,7 @@ func (client DatabasePrincipalAssignmentsClient) Delete(ctx context.Context, res
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -273,6 +274,7 @@ func (client DatabasePrincipalAssignmentsClient) DeletePreparer(ctx context.Cont
 // http.Response Body if it receives an error.
 func (client DatabasePrincipalAssignmentsClient) DeleteSender(req *http.Request) (future DatabasePrincipalAssignmentsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
