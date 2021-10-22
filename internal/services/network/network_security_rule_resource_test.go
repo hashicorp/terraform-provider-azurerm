@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -111,35 +111,29 @@ func TestAccNetworkSecurityRule_applicationSecurityGroups(t *testing.T) {
 }
 
 func (t NetworkSecurityRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.SecurityRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	networkSGName := id.Path["networkSecurityGroups"]
-	sgRuleName := id.Path["securityRules"]
 
-	resp, err := clients.Network.SecurityRuleClient.Get(ctx, resGroup, networkSGName, sgRuleName)
+	resp, err := clients.Network.SecurityRuleClient.Get(ctx, id.ResourceGroup, id.NetworkSecurityGroupName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Security Rule (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
 }
 
 func (NetworkSecurityRuleResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.SecurityRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	networkSGName := id.Path["networkSecurityGroups"]
-	sgRuleName := id.Path["securityRules"]
 
-	future, err := client.Network.SecurityRuleClient.Delete(ctx, resGroup, networkSGName, sgRuleName)
+	future, err := client.Network.SecurityRuleClient.Delete(ctx, id.ResourceGroup, id.NetworkSecurityGroupName, id.Name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return nil, fmt.Errorf("deleting Network Security Rule %q: %+v", id, err)
+			return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

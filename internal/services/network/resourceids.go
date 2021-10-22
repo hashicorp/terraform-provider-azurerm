@@ -16,6 +16,8 @@ package network
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=Subnet -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualNetworks/network1/subnets/subnet1 -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VirtualNetwork -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualNetworks/network1 -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VirtualNetworkDnsServers -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualNetworks/network1/dnsServers/default -rewrite=true
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=DdosProtectionPlan -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/ddosProtectionPlans/ddosProtectionPlan1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=SecurityRule -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkSecurityGroups/acceptanceTestSecurityGroup1/securityRules/securityRules1
 
 // Application Gateway
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontendPort -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/frontendPorts/feport1
@@ -95,5 +97,3 @@ package network
 // Load balancer
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=InboundNatRule -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/loadBalancer1/inboundNatRules/natrule1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=LoadBalancerBackendAddressPool -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/loadBalancer1/backendAddressPools/backendAddressPool1
-
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=DdosProtectionPlan -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/ddosProtectionPlans/ddosProtectionPlan1
