@@ -65,6 +65,49 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 					ValidateFunc: validate.LoadBalancerID,
 				},
 
+				"tunnel_interface": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MinItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"identifier": {
+								Type:     pluginsdk.TypeInt,
+								Required: true,
+							},
+
+							"type": {
+								Type:     pluginsdk.TypeString,
+								Required: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(network.GatewayLoadBalancerTunnelInterfaceTypeNone),
+									string(network.GatewayLoadBalancerTunnelInterfaceTypeInternal),
+									string(network.GatewayLoadBalancerTunnelInterfaceTypeExternal),
+								},
+									false,
+								),
+							},
+
+							"protocol": {
+								Type:     pluginsdk.TypeString,
+								Required: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(network.GatewayLoadBalancerTunnelProtocolNone),
+									string(network.GatewayLoadBalancerTunnelProtocolNative),
+									string(network.GatewayLoadBalancerTunnelProtocolVXLAN),
+								},
+									false,
+								),
+							},
+
+							"port": {
+								Type:     pluginsdk.TypeInt,
+								Required: true,
+							},
+						},
+					},
+				},
+
 				"backend_ip_configurations": {
 					Type:     pluginsdk.TypeList,
 					Computed: true,
@@ -181,14 +224,23 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 		return fmt.Errorf("nil or empty `sku` for Load Balancer %q for Backend Address Pool %q was not found", loadBalancerId, id)
 	}
 
-	if sku.Name == network.LoadBalancerSkuNameBasic {
-		// Load balancer backend pool can be configured by either NIC or IP (belongs to a vnet).
-		// In case of IP, it can only work for Standard sku LB.
-		if len(d.Get("backend_address").(*pluginsdk.Set).List()) != 0 {
-			return fmt.Errorf("only for Standard (sku) Load Balancer allows IP based Backend Address Pool configuration,"+
-				"whilst %q for Backend Address Pool %q is of sku %s", loadBalancerId, id, sku.Name)
-		}
+	// Sanity checks
+	if len(d.Get("backend_address").(*pluginsdk.Set).List()) != 0 && sku.Name != network.LoadBalancerSkuNameStandard {
+		return fmt.Errorf("only the Standard (sku) Load Balancer allows IP based Backend Address Pool configuration,"+
+			"whilst %q is of sku %s", id, sku.Name)
+	}
 
+	if len(d.Get("tunnel_interface").([]interface{})) != 0 && sku.Name != network.LoadBalancerSkuNameGateway {
+		return fmt.Errorf("only the Gateway (sku) Load Balancer allows IP based Backend Address Pool configuration,"+
+			"whilst %q is of sku %s", id, sku.Name)
+	}
+	if len(d.Get("tunnel_interface").([]interface{})) == 0 && sku.Name == network.LoadBalancerSkuNameGateway {
+		return fmt.Errorf("`tunnel_interface` is required for %q when sku is set to %s", id, sku.Name)
+	}
+
+	switch sku.Name {
+	case network.LoadBalancerSkuNameBasic:
+		// Insert this BAP and update the LB since the dedicated BAP endpoint doesn't work for the Basic sku.
 		backendAddressPools := append(*lb.LoadBalancerPropertiesFormat.BackendAddressPools, param)
 		_, existingPoolIndex, exists := FindLoadBalancerBackEndAddressPoolByName(&lb, id.BackendAddressPoolName)
 		if exists {
@@ -206,7 +258,7 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 		if err = future.WaitForCompletionRef(ctx, lbClient.Client); err != nil {
 			return fmt.Errorf("waiting for update of Load Balancer %q for Backend Address Pool %q: %+v", loadBalancerId, id, err)
 		}
-	} else {
+	case network.LoadBalancerSkuNameStandard:
 		param.BackendAddressPoolPropertiesFormat = &network.BackendAddressPoolPropertiesFormat{
 			// NOTE: Backend Addresses are managed using `azurerm_lb_backend_pool_address`
 		}
@@ -218,6 +270,18 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("waiting for Creating/Updating of Load Balancer Backend Address Pool %q: %+v", id, err)
+		}
+	case network.LoadBalancerSkuNameGateway:
+		param.BackendAddressPoolPropertiesFormat = &network.BackendAddressPoolPropertiesFormat{
+			TunnelInterfaces: expandGatewayLoadBalancerTunnelInterfaces(d.Get("tunnel_interface").([]interface{})),
+		}
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName, param)
+		if err != nil {
+			return fmt.Errorf("creating/updating %q: %+v", id, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for Creating/Updating of %q: %+v", id, err)
 		}
 	}
 
@@ -259,6 +323,10 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, me
 			if err := d.Set("backend_address", []interface{}{}); err != nil {
 				return fmt.Errorf("setting `backend_address`: %v", err)
 			}
+		}
+
+		if err := d.Set("tunnel_interface", flattenGatewayLoadBalancerTunnelInterfaces(props.TunnelInterfaces)); err != nil {
+			return fmt.Errorf("setting `tunnel_interface`: %v", err)
 		}
 
 		var backendIPConfigurations []string
@@ -367,4 +435,57 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *pluginsdk.ResourceData, 
 	}
 
 	return nil
+}
+
+func expandGatewayLoadBalancerTunnelInterfaces(input []interface{}) *[]network.GatewayLoadBalancerTunnelInterface {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]network.GatewayLoadBalancerTunnelInterface, 0)
+
+	for _, e := range input {
+		e := e.(map[string]interface{})
+		result = append(result, network.GatewayLoadBalancerTunnelInterface{
+			Identifier: utils.Int32(int32(e["identifier"].(int))),
+			Type:       network.GatewayLoadBalancerTunnelInterfaceType(e["type"].(string)),
+			Protocol:   network.GatewayLoadBalancerTunnelProtocol(e["protocol"].(string)),
+			Port:       utils.Int32(int32(e["port"].(int))),
+		})
+	}
+
+	return &result
+}
+
+func flattenGatewayLoadBalancerTunnelInterfaces(input *[]network.GatewayLoadBalancerTunnelInterface) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, e := range *input {
+		var identifier int
+		if e.Identifier != nil {
+			identifier = int(*e.Identifier)
+		}
+
+		t := string(e.Type)
+
+		protocol := string(e.Protocol)
+
+		var port int
+		if e.Port != nil {
+			port = int(*e.Port)
+		}
+
+		output = append(output, map[string]interface{}{
+			"identifier": identifier,
+			"type":       t,
+			"protocol":   protocol,
+			"port":       port,
+		})
+	}
+
+	return output
 }

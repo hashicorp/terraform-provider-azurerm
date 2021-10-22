@@ -142,7 +142,7 @@ func (client JobExecutionsClient) Create(ctx context.Context, resourceGroupName 
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.JobExecutionsClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.JobExecutionsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -176,6 +176,7 @@ func (client JobExecutionsClient) CreatePreparer(ctx context.Context, resourceGr
 // http.Response Body if it receives an error.
 func (client JobExecutionsClient) CreateSender(req *http.Request) (future JobExecutionsCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -226,7 +227,7 @@ func (client JobExecutionsClient) CreateOrUpdate(ctx context.Context, resourceGr
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.JobExecutionsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.JobExecutionsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -261,6 +262,7 @@ func (client JobExecutionsClient) CreateOrUpdatePreparer(ctx context.Context, re
 // http.Response Body if it receives an error.
 func (client JobExecutionsClient) CreateOrUpdateSender(req *http.Request) (future JobExecutionsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

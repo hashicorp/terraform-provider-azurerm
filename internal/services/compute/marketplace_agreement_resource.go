@@ -5,9 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -19,8 +19,10 @@ func resourceMarketplaceAgreement() *pluginsdk.Resource {
 		Create: resourceMarketplaceAgreementCreateUpdate,
 		Read:   resourceMarketplaceAgreementRead,
 		Delete: resourceMarketplaceAgreementDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.PlanID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -130,29 +132,25 @@ func resourceMarketplaceAgreementRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.PlanID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	publisher := id.Path["agreements"]
-	offer := id.Path["offers"]
-	plan := id.Path["plans"]
-
-	term, err := client.Get(ctx, publisher, offer, plan)
+	term, err := client.Get(ctx, id.AgreementName, id.OfferName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(term.Response) {
-			log.Printf("[DEBUG] The Marketplace Terms was not found for Publisher %q / Offer %q / Plan %q", publisher, offer, plan)
+			log.Printf("[DEBUG] The Marketplace Terms was not found for Publisher %q / Offer %q / Plan %q", id.AgreementName, id.OfferName, id.Name)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving the Marketplace Terms for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
+		return fmt.Errorf("retrieving the Marketplace Terms for Publisher %q / Offer %q / Plan %q: %s", id.AgreementName, id.OfferName, id.Name, err)
 	}
 
-	d.Set("publisher", publisher)
-	d.Set("offer", offer)
-	d.Set("plan", plan)
+	d.Set("publisher", id.AgreementName)
+	d.Set("offer", id.OfferName)
+	d.Set("plan", id.Name)
 
 	if props := term.AgreementProperties; props != nil {
 		if accepted := props.Accepted != nil && *props.Accepted; !accepted {
@@ -171,17 +169,13 @@ func resourceMarketplaceAgreementDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.PlanID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	publisher := id.Path["agreements"]
-	offer := id.Path["offers"]
-	plan := id.Path["plans"]
-
-	if _, err := client.Cancel(ctx, publisher, offer, plan); err != nil {
-		return fmt.Errorf("cancelling agreement for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
+	if _, err := client.Cancel(ctx, id.AgreementName, id.OfferName, id.Name); err != nil {
+		return fmt.Errorf("cancelling agreement for Publisher %q / Offer %q / Plan %q: %s", id.AgreementName, id.OfferName, id.Name, err)
 	}
 
 	return nil

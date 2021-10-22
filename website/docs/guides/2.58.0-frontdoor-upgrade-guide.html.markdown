@@ -20,7 +20,7 @@ With the release of the v2.58.0 provider, if you run the `apply` command against
 
 # How to Migrate Your Current Front Door Configuration to Azure Resource Manager: v2.58.0
 
-For this upgrade guide we are going to assume that your configuration file looks something like the below example before you upgraded to `v2.58.0` of the Azure provider. For this upgrade guide we are also assuming that the Front Door resource already exists in Azure and that it is curretnly being managed by Terraform.
+For this upgrade guide we are going to assume that your configuration file looks something like the below example before you upgraded to `v2.58.0` of the Azure provider. For this upgrade guide we are also assuming that the Front Door resource already exists in Azure and that it is currently being managed by Terraform.
 
 **Example Configuration:**
 
@@ -358,7 +358,7 @@ azurerm_frontdoor.example: Modifications complete after 3s [id=/subscriptions/XX
 Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
 ```
 
-!> **NOTE:** You can only do this step **ONCE** after the upgrade of the `provider`. If the `explicit_resource_order` table exists in the state file and you run the `apply` command again it will apply all of the detected configurataion file changes to the `azurerm_frontdoor` resource in Azure. If you feel you have done this step in error you will need to remove the `explicit_resource_order` table from your state file, however modifying the state file is not advised and is intended for advanced users, administrators, and IT Professionals only.
+!> **NOTE:** You can only do this step **ONCE** after the upgrade of the `provider`. If the `explicit_resource_order` table exists in the state file and you run the `apply` command again it will apply all of the detected configuration file changes to the `azurerm_frontdoor` resource in Azure. If you feel you have done this step in error you will need to remove the `explicit_resource_order` table from your state file, however modifying the state file is not advised and is intended for advanced users, administrators, and IT Professionals only.
 
 ## Import Your azurerm_frontdoor_custom_https_configuration Settings Into Your State File
 
@@ -372,7 +372,7 @@ resource "azurerm_frontdoor_custom_https_configuration" "custom" {
 }
 ```
 
-Once you have added these definitons to your configuration file you will run the following commands to import the new resources into your state file:
+Once you have added these definitions to your configuration file you will run the following commands to import the new resources into your state file:
 
 ```
 terraform import azurerm_frontdoor_custom_https_configuration.default /subscriptions/{subscription}/resourceGroups/{resorceGroup}/providers/Microsoft.Network/frontDoors/{frontDoor}/customHttpsConfiguration/default

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -100,14 +99,12 @@ func TestAccVirtualMachine_withPPG(t *testing.T) {
 }
 
 func (VirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.VirtualMachineID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["virtualMachines"]
 
-	resp, err := clients.Compute.VMClient.Get(ctx, resGroup, name, "")
+	resp, err := clients.Compute.VMClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Virtual Machine %q", id)
 	}

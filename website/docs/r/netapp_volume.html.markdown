@@ -138,12 +138,6 @@ An `export_policy_rule` block supports the following:
 
 * `protocols_enabled` - (Optional) A list of allowed protocols. Valid values include `CIFS`, `NFSv3`, or `NFSv4.1`. Only one value is supported at this time. This replaces the previous arguments: `cifs_enabled`, `nfsv3_enabled` and `nfsv4_enabled`.
 
-* `cifs_enabled` - (Optional / **Deprecated in favour of `protocols_enabled`**) Is the CIFS protocol allowed?
-
-* `nfsv3_enabled` - (Optional / **Deprecated in favour of `protocols_enabled`**) Is the NFSv3 protocol allowed?
-
-* `nfsv4_enabled` - (Optional / **Deprecated in favour of `protocols_enabled`**)  Is the NFSv4 protocol allowed?
-
 * `unix_read_only` - (Optional) Is the file system on unix read only?
 
 * `unix_read_write` - (Optional) Is the file system on unix read and write?
@@ -163,8 +157,6 @@ A `data_protection_replication` block is used when enabling the Cross-Region Rep
 * `replication_frequency` - (Required) Replication frequency, supported values are '10minutes', 'hourly', 'daily', values are case sensitive.
 
 A full example of the `data_protection_replication` attribute can be found in [the `./examples/netapp/volume_crr` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/netapp/volume_crr)
-
--> **NOTE:** `data_protection_replication` Is currently in Preview on an opt-in basis. To use it, please refer to [Cross-region replication of Azure NetApp Files volumes](https://docs.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-introduction).
 
 ~> **NOTE:** `data_protection_replication` can be defined only once per secondary volume, adding a second instance of it is not supported.
 

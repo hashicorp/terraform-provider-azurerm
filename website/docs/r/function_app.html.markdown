@@ -124,8 +124,11 @@ resource "azurerm_function_app" "example" {
   storage_account_name       = azurerm_storage_account.example.name
   storage_account_access_key = azurerm_storage_account.example.primary_access_key
   os_type                    = "linux"
+  version                    = "~3"
 }
 ```
+~> **Note:** Version `~3` is required for Linux Function Apps.
+
 ## Argument Reference
 
 The following arguments are supported:

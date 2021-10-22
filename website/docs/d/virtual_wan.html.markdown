@@ -27,31 +27,31 @@ output "allow_branch_to_branch_traffic" {
 }
 
 output "disable_vpn_encryption" {
-  value = data.azurerm_virtual_wan.exemple.disable_vpn_encryption
+  value = data.azurerm_virtual_wan.example.disable_vpn_encryption
 }
 
 output "location" {
-  value = data.azurerm_virtual_wan.exemple.location
+  value = data.azurerm_virtual_wan.example.location
 }
 
 output "office365_local_breakout_category" {
-  value = data.azurerm_virtual_wan.exemple.office365_local_breakout_category
+  value = data.azurerm_virtual_wan.example.office365_local_breakout_category
 }
 
 output "sku" {
-  value = data.azurerm_virtual_wan.exemple.sku
+  value = data.azurerm_virtual_wan.example.sku
 }
 
 output "tags" {
-  value = data.azurerm_virtual_wan.exemple.tags
+  value = data.azurerm_virtual_wan.example.tags
 }
 
 output "virtual_hubs" {
-  value = data.azurerm_virtual_wan.exemple.virtual_hubs
+  value = data.azurerm_virtual_wan.example.virtual_hubs
 }
 
 output "vpn_sites" {
-  value = data.azurerm_virtual_wan.exemple.vpn_sites
+  value = data.azurerm_virtual_wan.example.vpn_sites
 }
 
 ```

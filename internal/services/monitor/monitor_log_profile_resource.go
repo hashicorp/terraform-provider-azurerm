@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,8 +27,16 @@ func resourceMonitorLogProfile() *pluginsdk.Resource {
 		Read:   resourceLogProfileRead,
 		Update: resourceLogProfileCreateUpdate,
 		Delete: resourceLogProfileDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.LogProfileID(id)
+			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.LogProfileUpgradeV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -97,15 +107,17 @@ func resourceMonitorLogProfile() *pluginsdk.Resource {
 
 func resourceLogProfileCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.LogProfilesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
+	id := parse.NewLogProfileID(subscriptionId, d.Get("name").(string))
+
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, name)
+		existing, err := client.Get(ctx, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Monitor Log Profile %q: %s", name, err)
+				return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
 			}
 		}
 
@@ -135,19 +147,19 @@ func resourceLogProfileCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	parameters := insights.LogProfileResource{
-		Name:                 utils.String(name),
+		Name:                 utils.String(id.Name),
 		LogProfileProperties: logProfileProperties,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, name, parameters); err != nil {
-		return fmt.Errorf("Creating/Updating Log Profile %q: %+v", name, err)
+	if _, err := client.CreateOrUpdate(ctx, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating/updating Monitor %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for Log Profile %q to be provisioned", name)
+	log.Printf("[DEBUG] Waiting for Log Profile %q to be provisioned", id.Name)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"NotFound"},
 		Target:                    []string{"Available"},
-		Refresh:                   logProfilesCreateRefreshFunc(ctx, client, name),
+		Refresh:                   logProfilesCreateRefreshFunc(ctx, client, id.Name),
 		MinTimeout:                15 * time.Second,
 		ContinuousTargetOccurence: 5,
 	}
@@ -158,15 +170,10 @@ func resourceLogProfileCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Log Profile %q to become available: %s", name, err)
+		return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Log Profile %q: %+v", name, err)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceLogProfileRead(d, meta)
 }
@@ -176,22 +183,22 @@ func resourceLogProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name, err := ParseLogProfileNameFromID(d.Id())
+	id, err := parse.LogProfileID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing log profile name from ID %s: %s", d.Id(), err)
+		return err
 	}
 
-	resp, err := client.Get(ctx, name)
+	resp, err := client.Get(ctx, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Log Profile %q was not found - removing from state!", name)
+			log.Printf("[DEBUG] Log Profile %q was not found - removing from state!", id.Name)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Azure Log Profile %q: %+v", name, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	if props := resp.LogProfileProperties; props != nil {
 		d.Set("storage_account_id", props.StorageAccountID)
 		d.Set("servicebus_rule_id", props.ServiceBusRuleID)
@@ -214,13 +221,13 @@ func resourceLogProfileDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name, err := ParseLogProfileNameFromID(d.Id())
+	id, err := parse.LogProfileID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing log profile name from ID %s: %s", d.Id(), err)
+		return err
 	}
 
-	if _, err = client.Delete(ctx, name); err != nil {
-		return fmt.Errorf("deleting Log Profile %q: %+v", name, err)
+	if _, err = client.Delete(ctx, id.Name); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

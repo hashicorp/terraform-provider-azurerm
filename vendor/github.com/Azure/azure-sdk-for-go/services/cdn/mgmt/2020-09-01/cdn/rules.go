@@ -70,7 +70,7 @@ func (client RulesClient) Create(ctx context.Context, resourceGroupName string, 
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.RulesClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.RulesClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -106,6 +106,7 @@ func (client RulesClient) CreatePreparer(ctx context.Context, resourceGroupName 
 // http.Response Body if it receives an error.
 func (client RulesClient) CreateSender(req *http.Request) (future RulesCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -162,7 +163,7 @@ func (client RulesClient) Delete(ctx context.Context, resourceGroupName string, 
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.RulesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.RulesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -196,6 +197,7 @@ func (client RulesClient) DeletePreparer(ctx context.Context, resourceGroupName 
 // http.Response Body if it receives an error.
 func (client RulesClient) DeleteSender(req *http.Request) (future RulesDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -468,7 +470,7 @@ func (client RulesClient) Update(ctx context.Context, resourceGroupName string, 
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.RulesClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.RulesClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -504,6 +506,7 @@ func (client RulesClient) UpdatePreparer(ctx context.Context, resourceGroupName 
 // http.Response Body if it receives an error.
 func (client RulesClient) UpdateSender(req *http.Request) (future RulesUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

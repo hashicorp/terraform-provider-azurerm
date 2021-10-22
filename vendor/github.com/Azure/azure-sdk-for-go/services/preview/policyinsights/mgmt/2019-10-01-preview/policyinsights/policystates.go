@@ -2184,7 +2184,7 @@ func (client PolicyStatesClient) TriggerResourceGroupEvaluation(ctx context.Cont
 
 	result, err = client.TriggerResourceGroupEvaluationSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "policyinsights.PolicyStatesClient", "TriggerResourceGroupEvaluation", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "policyinsights.PolicyStatesClient", "TriggerResourceGroupEvaluation", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -2215,6 +2215,7 @@ func (client PolicyStatesClient) TriggerResourceGroupEvaluationPreparer(ctx cont
 // http.Response Body if it receives an error.
 func (client PolicyStatesClient) TriggerResourceGroupEvaluationSender(req *http.Request) (future PolicyStatesTriggerResourceGroupEvaluationFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -2259,7 +2260,7 @@ func (client PolicyStatesClient) TriggerSubscriptionEvaluation(ctx context.Conte
 
 	result, err = client.TriggerSubscriptionEvaluationSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "policyinsights.PolicyStatesClient", "TriggerSubscriptionEvaluation", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "policyinsights.PolicyStatesClient", "TriggerSubscriptionEvaluation", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -2289,6 +2290,7 @@ func (client PolicyStatesClient) TriggerSubscriptionEvaluationPreparer(ctx conte
 // http.Response Body if it receives an error.
 func (client PolicyStatesClient) TriggerSubscriptionEvaluationSender(req *http.Request) (future PolicyStatesTriggerSubscriptionEvaluationFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

@@ -67,7 +67,7 @@ func (client CloudEndpointsClient) Create(ctx context.Context, resourceGroupName
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -103,6 +103,7 @@ func (client CloudEndpointsClient) CreatePreparer(ctx context.Context, resourceG
 // http.Response Body if it receives an error.
 func (client CloudEndpointsClient) CreateSender(req *http.Request) (future CloudEndpointsCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -161,7 +162,7 @@ func (client CloudEndpointsClient) Delete(ctx context.Context, resourceGroupName
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -195,6 +196,7 @@ func (client CloudEndpointsClient) DeletePreparer(ctx context.Context, resourceG
 // http.Response Body if it receives an error.
 func (client CloudEndpointsClient) DeleteSender(req *http.Request) (future CloudEndpointsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -431,7 +433,7 @@ func (client CloudEndpointsClient) PostBackup(ctx context.Context, resourceGroup
 
 	result, err = client.PostBackupSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "PostBackup", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "PostBackup", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -467,6 +469,7 @@ func (client CloudEndpointsClient) PostBackupPreparer(ctx context.Context, resou
 // http.Response Body if it receives an error.
 func (client CloudEndpointsClient) PostBackupSender(req *http.Request) (future CloudEndpointsPostBackupFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -526,7 +529,7 @@ func (client CloudEndpointsClient) PostRestore(ctx context.Context, resourceGrou
 
 	result, err = client.PostRestoreSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "PostRestore", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "PostRestore", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -562,6 +565,7 @@ func (client CloudEndpointsClient) PostRestorePreparer(ctx context.Context, reso
 // http.Response Body if it receives an error.
 func (client CloudEndpointsClient) PostRestoreSender(req *http.Request) (future CloudEndpointsPostRestoreFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -620,7 +624,7 @@ func (client CloudEndpointsClient) PreBackup(ctx context.Context, resourceGroupN
 
 	result, err = client.PreBackupSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "PreBackup", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "PreBackup", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -656,6 +660,7 @@ func (client CloudEndpointsClient) PreBackupPreparer(ctx context.Context, resour
 // http.Response Body if it receives an error.
 func (client CloudEndpointsClient) PreBackupSender(req *http.Request) (future CloudEndpointsPreBackupFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -714,7 +719,7 @@ func (client CloudEndpointsClient) PreRestore(ctx context.Context, resourceGroup
 
 	result, err = client.PreRestoreSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "PreRestore", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "PreRestore", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -750,6 +755,7 @@ func (client CloudEndpointsClient) PreRestorePreparer(ctx context.Context, resou
 // http.Response Body if it receives an error.
 func (client CloudEndpointsClient) PreRestoreSender(req *http.Request) (future CloudEndpointsPreRestoreFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -898,7 +904,7 @@ func (client CloudEndpointsClient) TriggerChangeDetection(ctx context.Context, r
 
 	result, err = client.TriggerChangeDetectionSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "TriggerChangeDetection", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "TriggerChangeDetection", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -934,6 +940,7 @@ func (client CloudEndpointsClient) TriggerChangeDetectionPreparer(ctx context.Co
 // http.Response Body if it receives an error.
 func (client CloudEndpointsClient) TriggerChangeDetectionSender(req *http.Request) (future CloudEndpointsTriggerChangeDetectionFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

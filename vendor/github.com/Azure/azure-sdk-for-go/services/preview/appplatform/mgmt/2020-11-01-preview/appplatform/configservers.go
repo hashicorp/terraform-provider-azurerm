@@ -133,7 +133,7 @@ func (client ConfigServersClient) UpdatePatch(ctx context.Context, resourceGroup
 
 	result, err = client.UpdatePatchSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.ConfigServersClient", "UpdatePatch", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.ConfigServersClient", "UpdatePatch", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -167,6 +167,7 @@ func (client ConfigServersClient) UpdatePatchPreparer(ctx context.Context, resou
 // http.Response Body if it receives an error.
 func (client ConfigServersClient) UpdatePatchSender(req *http.Request) (future ConfigServersUpdatePatchFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -226,7 +227,7 @@ func (client ConfigServersClient) UpdatePut(ctx context.Context, resourceGroupNa
 
 	result, err = client.UpdatePutSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.ConfigServersClient", "UpdatePut", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.ConfigServersClient", "UpdatePut", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -260,6 +261,7 @@ func (client ConfigServersClient) UpdatePutPreparer(ctx context.Context, resourc
 // http.Response Body if it receives an error.
 func (client ConfigServersClient) UpdatePutSender(req *http.Request) (future ConfigServersUpdatePutFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -315,7 +317,7 @@ func (client ConfigServersClient) Validate(ctx context.Context, resourceGroupNam
 
 	result, err = client.ValidateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.ConfigServersClient", "Validate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.ConfigServersClient", "Validate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -349,6 +351,7 @@ func (client ConfigServersClient) ValidatePreparer(ctx context.Context, resource
 // http.Response Body if it receives an error.
 func (client ConfigServersClient) ValidateSender(req *http.Request) (future ConfigServersValidateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

@@ -41,7 +41,7 @@ resource "azurerm_iot_security_device_group" "example" {
   iothub_id = azurerm_iothub.example.id
 
   allow_rule {
-    connection_to_ip_not_allowed = ["10.0.0.0/24"]
+    connection_to_ips_not_allowed = ["10.0.0.0/24"]
   }
 
   range_rule {
@@ -71,11 +71,13 @@ The following arguments are supported:
 
 An `allow_rule` block supports the following:
 
-* `connection_to_ip_not_allowed` - (optional) Specifies which Ip is not allowed to be connected to in current device group.
+* `connection_from_ips_not_allowed` - (optional) Specifies which IP is not allowed to be connected to in current device group for inbound connection.
 
-* `local_user_not_allowed` - (optional) Specifies which local user is not allowed to Login in current device group.
+* `connection_to_ips_not_allowed` - (optional) Specifies which IP is not allowed to be connected to in current device group for outbound connection.
 
-* `process_not_allowed` - (optional) Specifies which process is not allowed to be executed in current device group.
+* `local_users_not_allowed` - (optional) Specifies which local user is not allowed to Login in current device group.
+
+* `processes_not_allowed` - (optional) Specifies which process is not allowed to be executed in current device group.
 
 ---
 

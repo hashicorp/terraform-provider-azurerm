@@ -59,7 +59,7 @@ func (client LongTermRetentionManagedInstanceBackupsClient) Delete(ctx context.C
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionManagedInstanceBackupsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionManagedInstanceBackupsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -93,6 +93,7 @@ func (client LongTermRetentionManagedInstanceBackupsClient) DeletePreparer(ctx c
 // http.Response Body if it receives an error.
 func (client LongTermRetentionManagedInstanceBackupsClient) DeleteSender(req *http.Request) (future LongTermRetentionManagedInstanceBackupsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -142,7 +143,7 @@ func (client LongTermRetentionManagedInstanceBackupsClient) DeleteByResourceGrou
 
 	result, err = client.DeleteByResourceGroupSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionManagedInstanceBackupsClient", "DeleteByResourceGroup", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionManagedInstanceBackupsClient", "DeleteByResourceGroup", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -177,6 +178,7 @@ func (client LongTermRetentionManagedInstanceBackupsClient) DeleteByResourceGrou
 // http.Response Body if it receives an error.
 func (client LongTermRetentionManagedInstanceBackupsClient) DeleteByResourceGroupSender(req *http.Request) (future LongTermRetentionManagedInstanceBackupsDeleteByResourceGroupFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

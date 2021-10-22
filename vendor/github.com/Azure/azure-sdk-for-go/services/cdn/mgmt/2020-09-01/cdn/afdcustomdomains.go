@@ -68,7 +68,7 @@ func (client AFDCustomDomainsClient) Create(ctx context.Context, resourceGroupNa
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.AFDCustomDomainsClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.AFDCustomDomainsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -103,6 +103,7 @@ func (client AFDCustomDomainsClient) CreatePreparer(ctx context.Context, resourc
 // http.Response Body if it receives an error.
 func (client AFDCustomDomainsClient) CreateSender(req *http.Request) (future AFDCustomDomainsCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -159,7 +160,7 @@ func (client AFDCustomDomainsClient) Delete(ctx context.Context, resourceGroupNa
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.AFDCustomDomainsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.AFDCustomDomainsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -192,6 +193,7 @@ func (client AFDCustomDomainsClient) DeletePreparer(ctx context.Context, resourc
 // http.Response Body if it receives an error.
 func (client AFDCustomDomainsClient) DeleteSender(req *http.Request) (future AFDCustomDomainsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -459,7 +461,7 @@ func (client AFDCustomDomainsClient) RefreshValidationToken(ctx context.Context,
 
 	result, err = client.RefreshValidationTokenSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.AFDCustomDomainsClient", "RefreshValidationToken", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.AFDCustomDomainsClient", "RefreshValidationToken", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -492,6 +494,7 @@ func (client AFDCustomDomainsClient) RefreshValidationTokenPreparer(ctx context.
 // http.Response Body if it receives an error.
 func (client AFDCustomDomainsClient) RefreshValidationTokenSender(req *http.Request) (future AFDCustomDomainsRefreshValidationTokenFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -548,7 +551,7 @@ func (client AFDCustomDomainsClient) Update(ctx context.Context, resourceGroupNa
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.AFDCustomDomainsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.AFDCustomDomainsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -583,6 +586,7 @@ func (client AFDCustomDomainsClient) UpdatePreparer(ctx context.Context, resourc
 // http.Response Body if it receives an error.
 func (client AFDCustomDomainsClient) UpdateSender(req *http.Request) (future AFDCustomDomainsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

@@ -201,9 +201,10 @@ resource "azurerm_consumption_budget_resource_group" "test" {
 
   // Changed threshold and operator
   notification {
-    enabled   = true
-    threshold = 95.0
-    operator  = "GreaterThan"
+    enabled        = true
+    threshold      = 95.0
+    operator       = "GreaterThan"
+    threshold_type = "Forecasted"
 
     contact_emails = [
       "foo@example.com",
@@ -310,9 +311,10 @@ resource "azurerm_consumption_budget_resource_group" "test" {
   }
 
   notification {
-    enabled   = true
-    threshold = 90.0
-    operator  = "EqualTo"
+    enabled        = true
+    threshold      = 90.0
+    operator       = "EqualTo"
+    threshold_type = "Forecasted"
 
     contact_emails = [
       "foo@example.com",
@@ -406,6 +408,9 @@ resource "azurerm_consumption_budget_resource_group" "test" {
     enabled   = true
     threshold = 90.0
     operator  = "EqualTo"
+    // We don't update the value of threshold_type because toggling between the two seems to be broken
+    // See the comment on threshold_type in the schema for more details
+    threshold_type = "Forecasted"
 
     contact_emails = [
       // Added baz@example.com

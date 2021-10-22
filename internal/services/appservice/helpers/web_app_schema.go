@@ -3275,7 +3275,6 @@ func FlattenLogsConfig(logsConfig web.SiteLogsConfig) []LogsConfig {
 			}
 			logs.ApplicationLogs = []ApplicationLog{applicationLog}
 		}
-
 	}
 
 	if props.HTTPLogs != nil {

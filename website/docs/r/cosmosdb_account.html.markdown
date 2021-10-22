@@ -44,6 +44,10 @@ resource "azurerm_cosmosdb_account" "db" {
     name = "MongoDBv3.4"
   }
 
+  capabilities {
+    name = "EnableMongo"
+  }
+
   consistency_policy {
     consistency_level       = "BoundedStaleness"
     max_interval_in_seconds = 10
@@ -108,7 +112,7 @@ The following arguments are supported:
 
 * `access_key_metadata_writes_enabled` - (Optional) Is write operations on metadata resources (databases, containers, throughput) via account keys enabled? Defaults to `true`.
 
-* `mongo_server_version` - (Optional) The Server Version of a MongoDB account. Possible values are `4.0`, `3.6`, and `3.2`. Changing this forces a new resource to be created.
+* `mongo_server_version` - (Optional) The Server Version of a MongoDB account. Possible values are `4.0`, `3.6`, and `3.2`.
 
 * `network_acl_bypass_for_azure_services` - (Optional) If azure services can bypass ACLs. Defaults to `false`.
 
@@ -145,7 +149,9 @@ The following arguments are supported:
 
 `capabilities` Configures the capabilities to enable for this Cosmos DB account:
 
-* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`, `EnableMongo`, `EnableTable`, `EnableServerless`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`.
+* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`, `EnableMongo`, `EnableTable`, `EnableServerless`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`. 
+
+**NOTE:**  Setting `MongoDBv3.4` also requires setting `EnableMongo`.
 
 **NOTE:** The `prefix` and `failover_priority` fields of a location cannot be changed for the location with a failover priority of `0`.
 

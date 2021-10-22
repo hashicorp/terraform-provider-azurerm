@@ -58,7 +58,7 @@ func (client ServerBlobAuditingPoliciesClient) CreateOrUpdate(ctx context.Contex
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerBlobAuditingPoliciesClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServerBlobAuditingPoliciesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -93,6 +93,7 @@ func (client ServerBlobAuditingPoliciesClient) CreateOrUpdatePreparer(ctx contex
 // http.Response Body if it receives an error.
 func (client ServerBlobAuditingPoliciesClient) CreateOrUpdateSender(req *http.Request) (future ServerBlobAuditingPoliciesCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
