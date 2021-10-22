@@ -69,7 +69,7 @@ func (client ManagedInstanceAdministratorsClient) CreateOrUpdate(ctx context.Con
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAdministratorsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAdministratorsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -104,6 +104,7 @@ func (client ManagedInstanceAdministratorsClient) CreateOrUpdatePreparer(ctx con
 // http.Response Body if it receives an error.
 func (client ManagedInstanceAdministratorsClient) CreateOrUpdateSender(req *http.Request) (future ManagedInstanceAdministratorsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -151,7 +152,7 @@ func (client ManagedInstanceAdministratorsClient) Delete(ctx context.Context, re
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAdministratorsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAdministratorsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -184,6 +185,7 @@ func (client ManagedInstanceAdministratorsClient) DeletePreparer(ctx context.Con
 // http.Response Body if it receives an error.
 func (client ManagedInstanceAdministratorsClient) DeleteSender(req *http.Request) (future ManagedInstanceAdministratorsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

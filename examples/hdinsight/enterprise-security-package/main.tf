@@ -96,7 +96,7 @@ resource "azurerm_network_security_group" "example" {
   }
 }
 
-resource azurerm_subnet_network_security_group_association "example" {
+resource "azurerm_subnet_network_security_group_association" "example" {
   subnet_id                 = azurerm_subnet.example.id
   network_security_group_id = azurerm_network_security_group.example.id
 }
@@ -104,6 +104,7 @@ resource azurerm_subnet_network_security_group_association "example" {
 resource "azuread_group" "example" {
   display_name = "${var.prefix} AAD DC Administrators"
   description  = "Test for delegating group to administer Azure AD Domain Services"
+  mail_enabled = true
 }
 
 data "azuread_domains" "example" {

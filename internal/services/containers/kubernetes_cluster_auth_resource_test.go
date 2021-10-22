@@ -2,6 +2,7 @@ package containers_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -232,6 +233,57 @@ func testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged(t *testin
 	r := KubernetesClusterResource{}
 	clientData := data.Client()
 	auth := clientData.Default
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.roleBasedAccessControlAADConfig(data, auth.ClientID, auth.ClientSecret, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
+				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("1"),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.client_app_id").Exists(),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.server_app_id").Exists(),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.server_app_secret").Exists(),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("1"),
+				check.That(data.ResourceName).Key("kube_admin_config_raw").Exists(),
+			),
+		},
+		data.ImportStep(
+			"role_based_access_control.0.azure_active_directory.0.server_app_secret",
+		),
+		{
+			Config: r.roleBasedAccessControlAADManagedConfig(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
+				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("1"),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.managed").HasValue("true"),
+				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("1"),
+				check.That(data.ResourceName).Key("kube_admin_config_raw").Exists(),
+			),
+		},
+		data.ImportStep(
+			"role_based_access_control.0.azure_active_directory.0.server_app_secret",
+		),
+	})
+}
+
+func TestAccKubernetesCluster_roleBasedAccessControlAADUpdateToManagedSensitive(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManagedSensitive(t)
+}
+
+func testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManagedSensitive(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	clientData := data.Client()
+	auth := clientData.Default
+
+	os.Setenv("ARM_AKS_KUBE_CONFIGS_SENSITIVE", "true")
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{

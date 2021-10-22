@@ -17,8 +17,7 @@ func (k AppConfigurationKeyId) ID() string {
 	return fmt.Sprintf("%s/AppConfigurationKey/%s/Label/%s", k.ConfigurationStoreId, k.Key, k.Label)
 }
 
-func AppConfigurationKeyID(input string) (*AppConfigurationKeyId, error) {
-
+func KeyId(input string) (*AppConfigurationKeyId, error) {
 	resourceID, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("while parsing resource ID: %+v", err)

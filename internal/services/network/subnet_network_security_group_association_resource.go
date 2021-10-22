@@ -21,8 +21,6 @@ func resourceSubnetNetworkSecurityGroupAssociation() *pluginsdk.Resource {
 		Create: resourceSubnetNetworkSecurityGroupAssociationCreate,
 		Read:   resourceSubnetNetworkSecurityGroupAssociationRead,
 		Delete: resourceSubnetNetworkSecurityGroupAssociationDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -30,6 +28,11 @@ func resourceSubnetNetworkSecurityGroupAssociation() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.SubnetID(id)
+			return err
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"subnet_id": {
@@ -51,6 +54,7 @@ func resourceSubnetNetworkSecurityGroupAssociation() *pluginsdk.Resource {
 
 func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
+	vnetClient := meta.(*clients.Client).Network.VnetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -59,7 +63,7 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceDa
 	subnetId := d.Get("subnet_id").(string)
 	networkSecurityGroupId := d.Get("network_security_group_id").(string)
 
-	parsedSubnetId, err := azure.ParseAzureResourceID(subnetId)
+	parsedSubnetId, err := parse.SubnetID(subnetId)
 	if err != nil {
 		return err
 	}
@@ -72,8 +76,8 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceDa
 	locks.ByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
 	defer locks.UnlockByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
 
-	subnetName := parsedSubnetId.Path["subnets"]
-	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
+	subnetName := parsedSubnetId.Name
+	virtualNetworkName := parsedSubnetId.VirtualNetworkName
 	resourceGroup := parsedSubnetId.ResourceGroup
 
 	locks.ByName(virtualNetworkName, VirtualNetworkResourceName)
@@ -110,7 +114,32 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceDa
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Network Security Group  Association for Subnet %q (VN %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of Network Security Group Association for Subnet %q (VN %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+	}
+
+	timeout, _ := ctx.Deadline()
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{string(network.ProvisioningStateUpdating)},
+		Target:     []string{string(network.ProvisioningStateSucceeded)},
+		Refresh:    SubnetProvisioningStateRefreshFunc(ctx, client, *parsedSubnetId),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    time.Until(timeout),
+	}
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for provisioning state of subnet for Network Security Group Association for Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+	}
+
+	vnetId := parse.NewVirtualNetworkID(parsedSubnetId.SubscriptionId, parsedSubnetId.ResourceGroup, parsedSubnetId.VirtualNetworkName)
+	vnetStateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{string(network.ProvisioningStateUpdating)},
+		Target:     []string{string(network.ProvisioningStateSucceeded)},
+		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, vnetClient, vnetId),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    time.Until(timeout),
+	}
+	if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for provisioning state of virtual network for Network Security Group Association for Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")

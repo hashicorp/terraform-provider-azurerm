@@ -31,15 +31,15 @@ func resourceArmConsumptionBudgetSubscription() *pluginsdk.Resource {
 }
 
 func resourceArmConsumptionBudgetSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	name := d.Get("name").(string)
 	subscriptionId := subscriptionParse.NewSubscriptionId(d.Get("subscription_id").(string))
+	id := parse.NewConsumptionBudgetSubscriptionID(subscriptionId.SubscriptionID, d.Get("name").(string))
 
 	err := resourceArmConsumptionBudgetCreateUpdate(d, meta, consumptionBudgetSubscriptionName, subscriptionId.ID())
 	if err != nil {
 		return err
 	}
 
-	d.SetId(parse.NewConsumptionBudgetSubscriptionID(subscriptionId.SubscriptionID, name).ID())
+	d.SetId(id.ID())
 
 	return resourceArmConsumptionBudgetSubscriptionRead(d, meta)
 }

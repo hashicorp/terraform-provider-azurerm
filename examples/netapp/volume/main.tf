@@ -4,20 +4,20 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
-  location = "${var.location}"
+  location = var.location
 }
 
 resource "azurerm_virtual_network" "example" {
   name                = "${var.prefix}-virtualnetwork"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "example" {
   name                 = "${var.prefix}-subnet"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.2.0/24"]
 
   delegation {
@@ -32,15 +32,15 @@ resource "azurerm_subnet" "example" {
 
 resource "azurerm_netapp_account" "example" {
   name                = "${var.prefix}-netappaccount"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_netapp_pool" "example" {
   name                = "${var.prefix}-netapppool"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  account_name        = "${azurerm_netapp_account.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  account_name        = azurerm_netapp_account.example.name
   service_level       = "Premium"
   size_in_tb          = 4
 }
@@ -49,23 +49,23 @@ resource "azurerm_netapp_volume" "example" {
   lifecycle {
     prevent_destroy = true
   }
-  
+
   name                = "${var.prefix}-netappvolume"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  account_name        = "${azurerm_netapp_account.example.name}"
-  pool_name           = "${azurerm_netapp_pool.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  account_name        = azurerm_netapp_account.example.name
+  pool_name           = azurerm_netapp_pool.example.name
   volume_path         = "my-unique-file-path"
   service_level       = "Premium"
-  subnet_id           = "${azurerm_subnet.example.id}"
+  subnet_id           = azurerm_subnet.example.id
   protocols           = ["NFSv4.1"]
   storage_quota_in_gb = 100
 
-  export_policy_rule  {
-   rule_index        = 1
-   allowed_clients   = ["0.0.0.0/0"]
-   protocols_enabled = ["NFSv4.1"]
-   unix_read_only    = false
-   unix_read_write   = true
+  export_policy_rule {
+    rule_index        = 1
+    allowed_clients   = ["0.0.0.0/0"]
+    protocols_enabled = ["NFSv4.1"]
+    unix_read_only    = false
+    unix_read_write   = true
   }
 }

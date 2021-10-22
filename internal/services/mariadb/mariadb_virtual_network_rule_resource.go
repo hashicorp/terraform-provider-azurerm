@@ -175,7 +175,6 @@ func resourceMariaDbVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta int
 
 	future, err := client.Delete(ctx, resourceGroup, serverName, name)
 	if err != nil {
-
 		return fmt.Errorf("deleting MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
 

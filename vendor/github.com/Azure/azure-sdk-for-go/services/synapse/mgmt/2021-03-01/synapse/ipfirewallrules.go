@@ -66,7 +66,7 @@ func (client IPFirewallRulesClient) CreateOrUpdate(ctx context.Context, resource
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -101,6 +101,7 @@ func (client IPFirewallRulesClient) CreateOrUpdatePreparer(ctx context.Context, 
 // http.Response Body if it receives an error.
 func (client IPFirewallRulesClient) CreateOrUpdateSender(req *http.Request) (future IPFirewallRulesCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -158,7 +159,7 @@ func (client IPFirewallRulesClient) Delete(ctx context.Context, resourceGroupNam
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -191,6 +192,7 @@ func (client IPFirewallRulesClient) DeletePreparer(ctx context.Context, resource
 // http.Response Body if it receives an error.
 func (client IPFirewallRulesClient) DeleteSender(req *http.Request) (future IPFirewallRulesDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -208,7 +210,7 @@ func (client IPFirewallRulesClient) DeleteResponder(resp *http.Response) (result
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
-		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
@@ -464,7 +466,7 @@ func (client IPFirewallRulesClient) ReplaceAll(ctx context.Context, resourceGrou
 
 	result, err = client.ReplaceAllSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesClient", "ReplaceAll", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesClient", "ReplaceAll", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -498,6 +500,7 @@ func (client IPFirewallRulesClient) ReplaceAllPreparer(ctx context.Context, reso
 // http.Response Body if it receives an error.
 func (client IPFirewallRulesClient) ReplaceAllSender(req *http.Request) (future IPFirewallRulesReplaceAllFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

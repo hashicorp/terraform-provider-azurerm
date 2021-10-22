@@ -114,7 +114,6 @@ func TestAccResourceGroup_withNestedItemsAndFeatureFlag(t *testing.T) {
 			Destroy: true,
 		},
 	})
-
 }
 
 func (t ResourceGroupResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

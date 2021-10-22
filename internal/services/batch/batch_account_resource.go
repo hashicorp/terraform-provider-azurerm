@@ -5,19 +5,23 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
+	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+type batchAccountIdentity = identity.SystemAssignedUserAssigned
 
 func resourceBatchAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -62,10 +66,10 @@ func resourceBatchAccount() *pluginsdk.Resource {
 			"pool_allocation_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(batch.BatchService),
+				Default:  string(batch.PoolAllocationModeBatchService),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(batch.BatchService),
-					string(batch.UserSubscription),
+					string(batch.PoolAllocationModeBatchService),
+					string(batch.PoolAllocationModeUserSubscription),
 				}, false),
 			},
 
@@ -95,6 +99,8 @@ func resourceBatchAccount() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"identity": batchAccountIdentity{}.Schema(),
 
 			"primary_access_key": {
 				Type:      pluginsdk.TypeString,
@@ -144,13 +150,19 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
+	identity, err := expandBatchAccountIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf(`expanding "identity": %v`, err)
+	}
+
 	parameters := batch.AccountCreateParameters{
 		Location: &location,
 		AccountCreateProperties: &batch.AccountCreateProperties{
 			PoolAllocationMode:  batch.PoolAllocationMode(poolAllocationMode),
 			PublicNetworkAccess: batch.PublicNetworkAccessTypeEnabled,
 		},
-		Tags: tags.Expand(t),
+		Identity: identity,
+		Tags:     tags.Expand(t),
 	}
 
 	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
@@ -158,7 +170,7 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	// if pool allocation mode is UserSubscription, a key vault reference needs to be set
-	if poolAllocationMode == string(batch.UserSubscription) {
+	if poolAllocationMode == string(batch.PoolAllocationModeUserSubscription) {
 		keyVaultReferenceSet := d.Get("key_vault_reference").([]interface{})
 		keyVaultReference, err := expandBatchAccountKeyVaultReference(keyVaultReferenceSet)
 		if err != nil {
@@ -239,9 +251,17 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 
 		d.Set("pool_allocation_mode", props.PoolAllocationMode)
+
+		identity, err := flattenBatchAccountIdentity(resp.Identity)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("identity", identity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
 	}
 
-	if d.Get("pool_allocation_mode").(string) == string(batch.BatchService) {
+	if d.Get("pool_allocation_mode").(string) == string(batch.PoolAllocationModeBatchService) {
 		keys, err := client.GetKeys(ctx, id.ResourceGroup, id.BatchAccountName)
 		if err != nil {
 			return fmt.Errorf("Cannot read keys for Batch account %q (resource group %q): %v", id.BatchAccountName, id.ResourceGroup, err)
@@ -269,13 +289,19 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	storageAccountId := d.Get("storage_account_id").(string)
 	t := d.Get("tags").(map[string]interface{})
 
+	identity, err := expandBatchAccountIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf(`expanding "identity": %v`, err)
+	}
+
 	parameters := batch.AccountUpdateParameters{
 		AccountUpdateProperties: &batch.AccountUpdateProperties{
 			AutoStorage: &batch.AutoStorageBaseProperties{
 				StorageAccountID: &storageAccountId,
 			},
 		},
-		Tags: tags.Expand(t),
+		Identity: identity,
+		Tags:     tags.Expand(t),
 	}
 
 	if _, err = client.Update(ctx, id.ResourceGroup, id.BatchAccountName, parameters); err != nil {
@@ -318,4 +344,61 @@ func resourceBatchAccountDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	return nil
+}
+
+func expandBatchAccountIdentity(input []interface{}) (*batch.AccountIdentity, error) {
+	config, err := batchAccountIdentity{}.Expand(input)
+	if err != nil {
+		return nil, err
+	}
+
+	var identityMaps map[string]*batch.UserAssignedIdentities
+	if len(config.UserAssignedIdentityIds) != 0 {
+		identityMaps = make(map[string]*batch.UserAssignedIdentities, len(config.UserAssignedIdentityIds))
+		for _, id := range config.UserAssignedIdentityIds {
+			identityMaps[id] = &batch.UserAssignedIdentities{}
+		}
+	}
+
+	return &batch.AccountIdentity{
+		Type:                   batch.ResourceIdentityType(config.Type),
+		TenantID:               &config.TenantId,
+		PrincipalID:            &config.PrincipalId,
+		UserAssignedIdentities: identityMaps,
+	}, nil
+}
+
+func flattenBatchAccountIdentity(input *batch.AccountIdentity) ([]interface{}, error) {
+	var config *identity.ExpandedConfig
+
+	if input == nil {
+		return []interface{}{}, nil
+	}
+
+	var identityIds []string
+	for id := range input.UserAssignedIdentities {
+		parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(id)
+		if err != nil {
+			return nil, err
+		}
+		identityIds = append(identityIds, parsedId.ID())
+	}
+
+	principalId := ""
+	if input.PrincipalID != nil {
+		principalId = *input.PrincipalID
+	}
+
+	tenantId := ""
+	if input.TenantID != nil {
+		tenantId = *input.TenantID
+	}
+
+	config = &identity.ExpandedConfig{
+		Type:                    identity.Type(string(input.Type)),
+		PrincipalId:             principalId,
+		TenantId:                tenantId,
+		UserAssignedIdentityIds: identityIds,
+	}
+	return batchAccountIdentity{}.Flatten(config), nil
 }

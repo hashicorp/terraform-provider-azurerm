@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2020-09-01/netapp"
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-06-01/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -60,11 +60,12 @@ func resourceNetAppPool() *pluginsdk.Resource {
 			"service_level": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(netapp.Premium),
-					string(netapp.Standard),
-					string(netapp.Ultra),
-				}, true),
+					string(netapp.ServiceLevelPremium),
+					string(netapp.ServiceLevelStandard),
+					string(netapp.ServiceLevelUltra),
+				}, false),
 			},
 
 			"size_in_tb": {

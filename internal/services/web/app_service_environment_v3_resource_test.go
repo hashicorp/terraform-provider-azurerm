@@ -272,7 +272,6 @@ resource "azurerm_app_service_environment_v3" "test" {
   subnet_id           = azurerm_subnet.test2.id
 }
 `, template, data.RandomInteger)
-
 }
 
 func (r AppServiceEnvironmentV3Resource) requiresImport(data acceptance.TestData) string {
