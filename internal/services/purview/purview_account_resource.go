@@ -51,15 +51,6 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Standard_4",
-					"Standard_16",
-				}, false),
-			},
-
 			"public_network_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -85,6 +76,11 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"sku_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"catalog_endpoint": {
@@ -148,7 +144,6 @@ func resourcePurviewAccountCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			Type: purview.SystemAssigned,
 		},
 		Location: &location,
-		Sku:      expandPurviewSkuName(d),
 		Tags:     tags.Expand(t),
 	}
 
@@ -240,23 +235,6 @@ func resourcePurviewAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	return nil
-}
-
-func expandPurviewSkuName(d *pluginsdk.ResourceData) *purview.AccountSku {
-	sku := d.Get("sku_name").(string)
-
-	if len(sku) == 0 {
-		return nil
-	}
-
-	name, capacity, err := azure.SplitSku(sku)
-	if err != nil {
-		return nil
-	}
-	return &purview.AccountSku{
-		Name:     purview.Name(name),
-		Capacity: utils.Int32(capacity),
-	}
 }
 
 func flattenPurviewSkuName(input *purview.AccountSku) string {
