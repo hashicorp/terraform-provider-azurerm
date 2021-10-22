@@ -3,19 +3,18 @@ package streamanalytics
 import (
 	"context"
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
-	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
 
 type OutputTableResource struct {
 }
@@ -23,23 +22,23 @@ type OutputTableResource struct {
 var _ sdk.ResourceWithCustomImporter = OutputTableResource{}
 
 type OutputTableResourceModel struct {
-	Name					string		`tfschema:"name"`
-	StreamAnalyticsJob		string		`tfschema:"stream_analytics_job_name"`
-	ResourceGroup			string		`tfschema:"resource_group_name"`
-	StorageAccount			string		`tfschema:"storage_account_name"`
-	StorageAccountKey		string		`tfschema:"storage_account_key"`
-	Table					string		`tfschema:"table"`
-	PartitionKey			string		`tfschema:"partition_key"`
-	RowKey					string		`tfschema:"row_key"`
-	BatchSize				int32		`tfschema:"batch_size"`
+	Name               string `tfschema:"name"`
+	StreamAnalyticsJob string `tfschema:"stream_analytics_job_name"`
+	ResourceGroup      string `tfschema:"resource_group_name"`
+	StorageAccount     string `tfschema:"storage_account_name"`
+	StorageAccountKey  string `tfschema:"storage_account_key"`
+	Table              string `tfschema:"table"`
+	PartitionKey       string `tfschema:"partition_key"`
+	RowKey             string `tfschema:"row_key"`
+	BatchSize          int32  `tfschema:"batch_size"`
 }
 
 func (r OutputTableResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type: pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -54,38 +53,38 @@ func (r OutputTableResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"storage_account_name": {
 			Type:         pluginsdk.TypeString,
-			Required: 	  true,
+			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"storage_account_key": {
 			Type:         pluginsdk.TypeString,
-			Required: 	  true,
+			Required:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"table": {
 			Type:         pluginsdk.TypeString,
-			Required: 	  true,
+			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"partition_key": {
 			Type:         pluginsdk.TypeString,
-			Required: 	  true,
+			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"row_key": {
 			Type:         pluginsdk.TypeString,
-			Required: 	  true,
+			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"batch_size": {
 			Type:         pluginsdk.TypeInt,
-			Required: 	  true,
+			Required:     true,
 			ValidateFunc: validation.IntBetween(1, 100),
 		},
 	}
@@ -99,11 +98,11 @@ func (r OutputTableResource) ModelObject() interface{} {
 	return &OutputTableResourceModel{}
 }
 
-func (r OutputTableResource) ResourceType() string{
+func (r OutputTableResource) ResourceType() string {
 	return "azurerm_stream_analytics_output_table"
 }
 
-func (r OutputTableResource) IDValidationFunc() pluginsdk.SchemaValidateFunc{
+func (r OutputTableResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.OutputID
 }
 
@@ -131,19 +130,19 @@ func (r OutputTableResource) Create() sdk.ResourceFunc {
 			}
 
 			tableOutputProps := &streamanalytics.AzureTableOutputDataSourceProperties{
-				AccountName: utils.String(model.StorageAccount),
-				AccountKey: utils.String(model.StorageAccountKey),
-				Table: utils.String(model.Table),
+				AccountName:  utils.String(model.StorageAccount),
+				AccountKey:   utils.String(model.StorageAccountKey),
+				Table:        utils.String(model.Table),
 				PartitionKey: utils.String(model.PartitionKey),
-				RowKey: utils.String(model.RowKey),
-				BatchSize: utils.Int32(model.BatchSize),
+				RowKey:       utils.String(model.RowKey),
+				BatchSize:    utils.Int32(model.BatchSize),
 			}
 
 			props := streamanalytics.Output{
 				Name: utils.String(model.Name),
 				OutputProperties: &streamanalytics.OutputProperties{
 					Datasource: &streamanalytics.AzureTableOutputDataSource{
-						Type: streamanalytics.TypeMicrosoftStorageTable,
+						Type:                                 streamanalytics.TypeMicrosoftStorageTable,
 						AzureTableOutputDataSourceProperties: tableOutputProps,
 					},
 				},
@@ -186,15 +185,15 @@ func (r OutputTableResource) Read() sdk.ResourceFunc {
 				}
 
 				state := OutputTableResourceModel{
-					Name: id.Name,
-					ResourceGroup: id.ResourceGroup,
+					Name:               id.Name,
+					ResourceGroup:      id.ResourceGroup,
 					StreamAnalyticsJob: id.StreamingjobName,
-					StorageAccount: *v.AccountName,
-					StorageAccountKey: metadata.ResourceData.Get("storage_account_key").(string),
-					Table: *v.Table,
-					PartitionKey: *v.PartitionKey,
-					RowKey: *v.RowKey,
-					BatchSize: *v.BatchSize,
+					StorageAccount:     *v.AccountName,
+					StorageAccountKey:  metadata.ResourceData.Get("storage_account_key").(string),
+					Table:              *v.Table,
+					PartitionKey:       *v.PartitionKey,
+					RowKey:             *v.RowKey,
+					BatchSize:          *v.BatchSize,
 				}
 				return metadata.Encode(&state)
 			}
@@ -224,21 +223,16 @@ func (r OutputTableResource) Update() sdk.ResourceFunc {
 					Datasource: &streamanalytics.AzureTableOutputDataSource{
 						Type: streamanalytics.TypeMicrosoftStorageTable,
 						AzureTableOutputDataSourceProperties: &streamanalytics.AzureTableOutputDataSourceProperties{
-							AccountName: utils.String(state.StorageAccount),
-							AccountKey: utils.String(state.StorageAccountKey),
-							Table: utils.String(state.Table),
+							AccountName:  utils.String(state.StorageAccount),
+							AccountKey:   utils.String(state.StorageAccountKey),
+							Table:        utils.String(state.Table),
 							PartitionKey: utils.String(state.PartitionKey),
-							RowKey: utils.String(state.RowKey),
-							BatchSize: utils.Int32(state.BatchSize),
+							RowKey:       utils.String(state.RowKey),
+							BatchSize:    utils.Int32(state.BatchSize),
 						},
 					},
 				},
 			}
-
-
-
-
-
 
 			_, err = client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "")
 			if err != nil {

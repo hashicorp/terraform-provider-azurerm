@@ -92,10 +92,10 @@ resource "azurerm_stream_analytics_output_table" "test" {
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
   storage_account_name      = azurerm_storage_account.test.name
-  storage_account_key		= azurerm_storage_account.test.primary_access_key
-  table						= "foobar"
-  partition_key				= "foo"
-  row_key					= "bar"
+  storage_account_key       = azurerm_storage_account.test.primary_access_key
+  table                     = "foobar"
+  partition_key             = "foo"
+  row_key                   = "bar"
 }
 `, template, data.RandomInteger)
 }
@@ -123,11 +123,11 @@ resource "azurerm_stream_analytics_output_table" "test" {
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
   storage_account_name      = azurerm_storage_account.updated.name
-  storage_account_key		= azurerm_storage_account.updated.primary_access_key
-  table						= "updated"
-  partition_key				= "partitionkeyupdated"
-  row_key					= "rowkeyupdated"		
-  batch_size				= 50
+  storage_account_key       = azurerm_storage_account.updated.primary_access_key
+  table                     = "updated"
+  partition_key             = "partitionkeyupdated"
+  row_key                   = "rowkeyupdated"
+  batch_size                = 50
 }
 
 `, template, data.RandomString, data.RandomInteger)
@@ -143,11 +143,11 @@ resource "azurerm_stream_analytics_output_table" "import" {
   stream_analytics_job_name = azurerm_stream_analytics_output_table.test.stream_analytics_job_name
   resource_group_name       = azurerm_stream_analytics_output_table.test.resource_group_name
   storage_account_name      = azurerm_stream_analytics_output_table.test.storage_account_name
-  storage_account_key		= azurerm_stream_analytics_output_table.test.storage_account_key
-  table						= azurerm_stream_analytics_output_table.test.table
-  partition_key				= azurerm_stream_analytics_output_table.test.partition_key
-  row_key					= azurerm_stream_analytics_output_table.test.row_key	
-  batch_size				= azurerm_stream_analytics_output_table.test.batch_size
+  storage_account_key       = azurerm_stream_analytics_output_table.test.storage_account_key
+  table                     = azurerm_stream_analytics_output_table.test.table
+  partition_key             = azurerm_stream_analytics_output_table.test.partition_key
+  row_key                   = azurerm_stream_analytics_output_table.test.row_key
+  batch_size                = azurerm_stream_analytics_output_table.test.batch_size
 }
 `, template)
 }
