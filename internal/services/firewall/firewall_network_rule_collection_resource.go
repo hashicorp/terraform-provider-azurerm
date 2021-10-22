@@ -25,8 +25,10 @@ func resourceFirewallNetworkRuleCollection() *pluginsdk.Resource {
 		Read:   resourceFirewallNetworkRuleCollectionRead,
 		Update: resourceFirewallNetworkRuleCollectionCreateUpdate,
 		Delete: resourceFirewallNetworkRuleCollectionDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.FirewallNetworkRuleCollectionID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -262,27 +264,23 @@ func resourceFirewallNetworkRuleCollectionRead(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	firewallName := id.AzureFirewallName
-	name := id.NetworkRuleCollectionName
-
-	read, err := client.Get(ctx, resourceGroup, firewallName)
+	read, err := client.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			log.Printf("[DEBUG] Azure Firewall %q (Resource Group %q) was not found - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] Azure Firewall %s  was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Azure Firewall %s : %+v", *id, err)
 	}
 
 	if read.AzureFirewallPropertiesFormat == nil {
-		return fmt.Errorf("retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props` was nil", name, firewallName, resourceGroup)
+		return fmt.Errorf("retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props` was nil", id.NetworkRuleCollectionName, id.AzureFirewallName, id.ResourceGroup)
 	}
 	props := *read.AzureFirewallPropertiesFormat
 
 	if props.NetworkRuleCollections == nil {
-		return fmt.Errorf("retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props.NetworkRuleCollections` was nil", name, firewallName, resourceGroup)
+		return fmt.Errorf("retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props.NetworkRuleCollections` was nil", id.NetworkRuleCollectionName, id.AzureFirewallName, id.ResourceGroup)
 	}
 
 	var rule *network.AzureFirewallNetworkRuleCollection
@@ -291,21 +289,21 @@ func resourceFirewallNetworkRuleCollectionRead(d *pluginsdk.ResourceData, meta i
 			continue
 		}
 
-		if *r.Name == name {
+		if *r.Name == id.NetworkRuleCollectionName {
 			rule = &r
 			break
 		}
 	}
 
 	if rule == nil {
-		log.Printf("[DEBUG] Network Rule Collection %q was not found on Firewall %q (Resource Group %q) - removing from state!", name, firewallName, resourceGroup)
+		log.Printf("[DEBUG] Network Rule Collection %q was not found on Firewall %q (Resource Group %q) - removing from state!", id.NetworkRuleCollectionName, id.AzureFirewallName, id.ResourceGroup)
 		d.SetId("")
 		return nil
 	}
 
-	d.Set("name", rule.Name)
-	d.Set("azure_firewall_name", firewallName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.NetworkRuleCollectionName)
+	d.Set("azure_firewall_name", id.AzureFirewallName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := rule.AzureFirewallNetworkRuleCollectionPropertiesFormat; props != nil {
 		if action := props.Action; action != nil {
@@ -330,34 +328,30 @@ func resourceFirewallNetworkRuleCollectionDelete(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.FirewallNetworkRuleCollectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	firewallName := id.Path["azureFirewalls"]
-	name := id.Path["networkRuleCollections"]
+	locks.ByName(id.AzureFirewallName, azureFirewallResourceName)
+	defer locks.UnlockByName(id.AzureFirewallName, azureFirewallResourceName)
 
-	locks.ByName(firewallName, azureFirewallResourceName)
-	defer locks.UnlockByName(firewallName, azureFirewallResourceName)
-
-	firewall, err := client.Get(ctx, resourceGroup, firewallName)
+	firewall, err := client.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {
 		if utils.ResponseWasNotFound(firewall.Response) {
 			// assume deleted
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Firewall %q (Resource Group %q): %+v", id.AzureFirewallName, id.ResourceGroup, err)
 	}
 
 	props := firewall.AzureFirewallPropertiesFormat
 	if props == nil {
-		return fmt.Errorf("retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props` was nil", name, firewallName, resourceGroup)
+		return fmt.Errorf("retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props` was nil", id.NetworkRuleCollectionName, id.AzureFirewallName, id.ResourceGroup)
 	}
 	if props.NetworkRuleCollections == nil {
-		return fmt.Errorf("retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props.NetworkRuleCollections` was nil", name, firewallName, resourceGroup)
+		return fmt.Errorf("retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props.NetworkRuleCollections` was nil", id.NetworkRuleCollectionName, id.AzureFirewallName, id.ResourceGroup)
 	}
 
 	networkRules := make([]network.AzureFirewallNetworkRuleCollection, 0)
@@ -366,19 +360,19 @@ func resourceFirewallNetworkRuleCollectionDelete(d *pluginsdk.ResourceData, meta
 			continue
 		}
 
-		if *rule.Name != name {
+		if *rule.Name != id.NetworkRuleCollectionName {
 			networkRules = append(networkRules, rule)
 		}
 	}
 	props.NetworkRuleCollections = &networkRules
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, firewallName, firewall)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AzureFirewallName, firewall)
 	if err != nil {
-		return fmt.Errorf("deleting Network Rule Collection %q from Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
+		return fmt.Errorf("deleting Network Rule Collection %q from Firewall %q (Resource Group %q): %+v", id.NetworkRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Network Rule Collection %q from Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Network Rule Collection %q from Firewall %q (Resource Group %q): %+v", id.NetworkRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
 
 	return nil

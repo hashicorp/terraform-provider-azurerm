@@ -70,7 +70,7 @@ func (client StreamingJobsClient) CreateOrReplace(ctx context.Context, streaming
 
 	result, err = client.CreateOrReplaceSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "CreateOrReplace", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "CreateOrReplace", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -112,6 +112,7 @@ func (client StreamingJobsClient) CreateOrReplacePreparer(ctx context.Context, s
 // http.Response Body if it receives an error.
 func (client StreamingJobsClient) CreateOrReplaceSender(req *http.Request) (future StreamingJobsCreateOrReplaceFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -168,7 +169,7 @@ func (client StreamingJobsClient) Delete(ctx context.Context, resourceGroupName 
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -200,6 +201,7 @@ func (client StreamingJobsClient) DeletePreparer(ctx context.Context, resourceGr
 // http.Response Body if it receives an error.
 func (client StreamingJobsClient) DeleteSender(req *http.Request) (future StreamingJobsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -609,7 +611,7 @@ func (client StreamingJobsClient) Start(ctx context.Context, resourceGroupName s
 
 	result, err = client.StartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "Start", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "Start", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -646,6 +648,7 @@ func (client StreamingJobsClient) StartPreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client StreamingJobsClient) StartSender(req *http.Request) (future StreamingJobsStartFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -702,7 +705,7 @@ func (client StreamingJobsClient) Stop(ctx context.Context, resourceGroupName st
 
 	result, err = client.StopSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "Stop", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "Stop", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -734,6 +737,7 @@ func (client StreamingJobsClient) StopPreparer(ctx context.Context, resourceGrou
 // http.Response Body if it receives an error.
 func (client StreamingJobsClient) StopSender(req *http.Request) (future StreamingJobsStopFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

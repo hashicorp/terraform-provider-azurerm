@@ -215,7 +215,7 @@ func (client VirtualMachinesClient) RestartHosts(ctx context.Context, resourceGr
 
 	result, err = client.RestartHostsSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.VirtualMachinesClient", "RestartHosts", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.VirtualMachinesClient", "RestartHosts", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -249,6 +249,7 @@ func (client VirtualMachinesClient) RestartHostsPreparer(ctx context.Context, re
 // http.Response Body if it receives an error.
 func (client VirtualMachinesClient) RestartHostsSender(req *http.Request) (future VirtualMachinesRestartHostsFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

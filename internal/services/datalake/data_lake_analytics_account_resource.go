@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,8 +26,10 @@ func resourceDataLakeAnalyticsAccount() *pluginsdk.Resource {
 		Update: resourceArmDateLakeAnalyticsAccountUpdate,
 		Delete: resourceArmDateLakeAnalyticsAccountDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.AnalyticsAccountID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -79,16 +82,16 @@ func resourceDataLakeAnalyticsAccount() *pluginsdk.Resource {
 
 func resourceArmDateLakeAnalyticsAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.AnalyticsAccountsClient
+	subscriptionId := meta.(*clients.Client).Datalake.AnalyticsAccountsClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewAnalyticsAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.AccountName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Data Lake Analytics Account %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing Data Lake Analytics Account %s: %+v", id, err)
 		}
 	}
 
@@ -101,7 +104,7 @@ func resourceArmDateLakeAnalyticsAccountCreate(d *pluginsdk.ResourceData, meta i
 	tier := d.Get("tier").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Date Lake Store creation %q (Resource Group %q)", name, resourceGroup)
+	log.Printf("[INFO] preparing arguments for Azure ARM Date Lake Store creation %s", id)
 
 	dateLakeAnalyticsAccount := account.CreateDataLakeAnalyticsAccountParameters{
 		Location: &location,
@@ -117,24 +120,16 @@ func resourceArmDateLakeAnalyticsAccountCreate(d *pluginsdk.ResourceData, meta i
 		},
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, dateLakeAnalyticsAccount)
+	future, err := client.Create(ctx, id.ResourceGroup, id.AccountName, dateLakeAnalyticsAccount)
 	if err != nil {
-		return fmt.Errorf("issuing create request for Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("issuing create request for Data Lake Analytics Account %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("creating Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Data Lake Analytics Account %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Data Lake Analytics Account %s (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceArmDateLakeAnalyticsAccountRead(d, meta)
 }
@@ -144,8 +139,11 @@ func resourceArmDateLakeAnalyticsAccountUpdate(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id, err := parse.AnalyticsAccountID(d.Id())
+	if err != nil {
+		return err
+	}
+
 	storeAccountName := d.Get("default_store_account_name").(string)
 	newTier := d.Get("tier").(string)
 	newTags := d.Get("tags").(map[string]interface{})
@@ -162,13 +160,13 @@ func resourceArmDateLakeAnalyticsAccountUpdate(d *pluginsdk.ResourceData, meta i
 		},
 	}
 
-	future, err := client.Update(ctx, resourceGroup, name, props)
+	future, err := client.Update(ctx, id.ResourceGroup, id.AccountName, props)
 	if err != nil {
-		return fmt.Errorf("issuing update request for Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("issuing update request for Data Lake Analytics Account %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the update of Data Lake Analytics Account %q (Resource Group %q) to commplete: %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the update of Data Lake Analytics Account %s to complete: %+v", id, err)
 	}
 
 	return resourceArmDateLakeAnalyticsAccountRead(d, meta)
@@ -179,26 +177,23 @@ func resourceArmDateLakeAnalyticsAccountRead(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AnalyticsAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["accounts"]
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] DataLakeAnalyticsAccountAccount '%s' was not found (resource group '%s')", name, resourceGroup)
+			log.Printf("[WARN] DataLakeAnalyticsAccountAccount '%s'", id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Azure Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Data Lake Analytics Account %s: %+v", id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.AccountName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -216,20 +211,18 @@ func resourceArmDateLakeAnalyticsAccountDelete(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AnalyticsAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["accounts"]
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("deleting Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Data Lake Analytics Account %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of Data Lake Analytics Account %s: %+v", id, err)
 	}
 
 	return nil

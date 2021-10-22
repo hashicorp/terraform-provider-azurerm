@@ -7,17 +7,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/databricks/mgmt/2021-04-01-preview/databricks"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/sdk/2021-04-01-preview/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDatabricksWorkspaceCustomerManagedKey() *pluginsdk.Resource {
@@ -47,10 +47,10 @@ func resourceDatabricksWorkspaceCustomerManagedKey() *pluginsdk.Resource {
 			}
 
 			// convert the passed custom Managed Key ID to a valid workspace ID
-			workspace := parse.NewWorkspaceID(customManagedKey.SubscriptionId, customManagedKey.ResourceGroup, customManagedKey.CustomerMangagedKeyName)
+			workspace := workspaces.NewWorkspaceID(customManagedKey.SubscriptionId, customManagedKey.ResourceGroup, customManagedKey.CustomerMangagedKeyName)
 
 			// validate that the workspace exists
-			if _, err = client.Get(ctx, workspace.ResourceGroup, workspace.Name); err != nil {
+			if _, err = client.Get(ctx, workspace); err != nil {
 				return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving the Databricks workspace customer managed key configuration(ID: %q) for workspace (ID: %q): %s", customManagedKey.ID(), workspace.ID(), err)
 			}
 
@@ -85,8 +85,7 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	workspaceIDRaw := d.Get("workspace_id").(string)
-	workspaceID, err := parse.WorkspaceID(workspaceIDRaw)
+	id, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
 		return err
 	}
@@ -99,30 +98,30 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 
 	// Not sure if I should also lock the key vault here too
 	// or at the very least the key?
-	locks.ByName(workspaceID.Name, "azurerm_databricks_workspace")
-	defer locks.UnlockByName(workspaceID.Name, "azurerm_databricks_workspace")
+	locks.ByName(id.Name, "azurerm_databricks_workspace")
+	defer locks.UnlockByName(id.Name, "azurerm_databricks_workspace")
 	var encryptionEnabled, infrastructureEnabled bool
 
-	workspace, err := workspaceClient.Get(ctx, workspaceID.ResourceGroup, workspaceID.Name)
+	workspace, err := workspaceClient.Get(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("retrieving Databricks Workspace %q (Resource Group %q): %+v", workspaceID.Name, workspaceID.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	if workspace.Parameters != nil {
-		if workspace.Parameters.RequireInfrastructureEncryption != nil {
-			infrastructureEnabled = *workspace.Parameters.RequireInfrastructureEncryption.Value
+	if model := workspace.Model; model != nil {
+		if parameters := model.Properties.Parameters; parameters != nil {
+			if parameters.RequireInfrastructureEncryption != nil {
+				infrastructureEnabled = model.Properties.Parameters.RequireInfrastructureEncryption.Value
+			}
+			if parameters.PrepareEncryption != nil {
+				encryptionEnabled = model.Properties.Parameters.PrepareEncryption.Value
+			}
 		}
-		if workspace.Parameters.PrepareEncryption != nil {
-			encryptionEnabled = *workspace.Parameters.PrepareEncryption.Value
-		}
-	} else {
-		return fmt.Errorf("retrieving Databricks Workspace %q (Resource Group %q): `WorkspaceCustomParameters` was nil", workspaceID.Name, workspaceID.ResourceGroup)
 	}
 
 	if infrastructureEnabled {
-		return fmt.Errorf("Databricks Workspace %q (Resource Group %q): `infrastructure_encryption_enabled` must be set to `false`", workspaceID.Name, workspaceID.ResourceGroup)
+		return fmt.Errorf("%s: `infrastructure_encryption_enabled` must be set to `false`", *id)
 	}
 	if !encryptionEnabled {
-		return fmt.Errorf("Databricks Workspace %q (Resource Group %q): `customer_managed_key_enabled` must be set to `true`", workspaceID.Name, workspaceID.ResourceGroup)
+		return fmt.Errorf("%s: `customer_managed_key_enabled` must be set to `true`", *id)
 	}
 
 	// make sure the key vault exists
@@ -131,10 +130,10 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
 	}
 
-	resourceID := parse.NewCustomerManagedKeyID(subscriptionId, workspaceID.ResourceGroup, workspaceID.Name)
+	resourceID := parse.NewCustomerManagedKeyID(subscriptionId, id.ResourceGroup, id.Name)
 
 	if d.IsNewResource() {
-		if workspace.Parameters.Encryption != nil {
+		if workspace.Model != nil && workspace.Model.Properties.Parameters != nil && workspace.Model.Properties.Parameters.Encryption != nil {
 			return tf.ImportAsExistsError("azurerm_databricks_workspace_customer_managed_key", resourceID.ID())
 		}
 	}
@@ -145,25 +144,21 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 	// resource will be lost and overwritten as nil. ¯\_(ツ)_/¯
 	// NOTE: 'workspace.Parameters' will never be nil as 'customer_managed_key_enabled' and 'infrastructure_encryption_enabled'
 	// fields have a default value in the parent workspace resource.
-	params := workspace.Parameters
-	params.Encryption = &databricks.WorkspaceEncryptionParameter{
-		Value: &databricks.Encryption{
-			KeySource:   databricks.KeySourceMicrosoftKeyvault,
+	keySource := workspaces.KeySourceMicrosoftPointKeyvault
+	params := workspace.Model.Properties.Parameters
+	params.Encryption = &workspaces.WorkspaceEncryptionParameter{
+		Value: &workspaces.Encryption{
+			KeySource:   &keySource,
 			KeyName:     &key.Name,
-			KeyVersion:  &key.Version,
-			KeyVaultURI: &key.KeyVaultBaseUrl,
+			Keyversion:  &key.Version,
+			Keyvaulturi: &key.KeyVaultBaseUrl,
 		},
 	}
 
-	props := getProps(workspace, params)
+	props := getProps(workspace.Model, params)
 
-	future, err := workspaceClient.CreateOrUpdate(ctx, props, resourceID.ResourceGroup, resourceID.CustomerMangagedKeyName)
-	if err != nil {
+	if err = workspaceClient.CreateOrUpdateThenPoll(ctx, *id, props); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", resourceID, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, workspaceClient.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of %s: %+v", resourceID, err)
 	}
 
 	d.SetId(resourceID.ID())
@@ -180,11 +175,11 @@ func DatabricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.CustomerMangagedKeyName)
+	workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.CustomerMangagedKeyName)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.CustomerMangagedKeyName)
+	resp, err := client.Get(ctx, workspaceId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -198,25 +193,27 @@ func DatabricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta i
 	keyVersion := ""
 	keyVaultURI := ""
 
-	if resp.WorkspaceProperties.Parameters != nil {
-		if props := resp.WorkspaceProperties.Parameters.Encryption; props != nil {
-			if props.Value.KeySource != "" {
-				keySource = string(props.Value.KeySource)
-			}
-			if props.Value.KeyName != nil {
-				keyName = *props.Value.KeyName
-			}
-			if props.Value.KeyVersion != nil {
-				keyVersion = *props.Value.KeyVersion
-			}
-			if props.Value.KeyVaultURI != nil {
-				keyVaultURI = *props.Value.KeyVaultURI
+	if model := resp.Model; model != nil {
+		if model.Properties.Parameters != nil {
+			if props := model.Properties.Parameters.Encryption; props != nil {
+				if props.Value.KeySource != nil {
+					keySource = string(*props.Value.KeySource)
+				}
+				if props.Value.KeyName != nil {
+					keyName = *props.Value.KeyName
+				}
+				if props.Value.Keyversion != nil {
+					keyVersion = *props.Value.Keyversion
+				}
+				if props.Value.Keyvaulturi != nil {
+					keyVaultURI = *props.Value.Keyvaulturi
+				}
 			}
 		}
 	}
 
-	if strings.EqualFold(keySource, string(databricks.KeySourceMicrosoftKeyvault)) && (keyName == "" || keyVersion == "" || keyVaultURI == "") {
-		return fmt.Errorf("Databricks Workspace %q (Resource Group %q): `Workspace.WorkspaceProperties.Parameters.Encryption.Value(s)` were nil", id.CustomerMangagedKeyName, id.ResourceGroup)
+	if strings.EqualFold(keySource, string(workspaces.KeySourceMicrosoftPointKeyvault)) && (keyName == "" || keyVersion == "" || keyVaultURI == "") {
+		return fmt.Errorf("%s: `Workspace.WorkspaceProperties.Parameters.Encryption.Value(s)` were nil", *id)
 	}
 
 	d.SetId(id.ID())
@@ -242,15 +239,15 @@ func DatabricksWorkspaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
-	workspaceID := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.CustomerMangagedKeyName)
+	workspaceID := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.CustomerMangagedKeyName)
 
 	// Not sure if I should also lock the key vault here too
 	locks.ByName(workspaceID.Name, "azurerm_databricks_workspace")
 	defer locks.UnlockByName(workspaceID.Name, "azurerm_databricks_workspace")
 
-	workspace, err := client.Get(ctx, id.ResourceGroup, id.CustomerMangagedKeyName)
+	workspace, err := client.Get(ctx, workspaceID)
 	if err != nil {
-		if utils.ResponseWasNotFound(workspace.Response) {
+		if response.WasNotFound(workspace.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -266,47 +263,43 @@ func DatabricksWorkspaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta
 	// workspace resource and then add our new encryption values into the
 	// structure, else the other values set in the parent workspace
 	// resource will be lost and overwritten as nil. ¯\_(ツ)_/¯
-	params := workspace.Parameters
-	params.Encryption = &databricks.WorkspaceEncryptionParameter{
-		Value: &databricks.Encryption{
-			KeySource: databricks.KeySourceDefault,
+	keySource := workspaces.KeySourceDefault
+	params := workspace.Model.Properties.Parameters
+	params.Encryption = &workspaces.WorkspaceEncryptionParameter{
+		Value: &workspaces.Encryption{
+			KeySource: &keySource,
 		},
 	}
 
-	props := getProps(workspace, params)
+	props := getProps(workspace.Model, params)
 
-	future, err := client.CreateOrUpdate(ctx, props, workspaceID.ResourceGroup, workspaceID.Name)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, workspaceID, props); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", workspaceID, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of %s: %+v", workspaceID, err)
 	}
 
 	return nil
 }
 
-func getProps(workspace databricks.Workspace, params *databricks.WorkspaceCustomParameters) databricks.Workspace {
-	props := databricks.Workspace{
+func getProps(workspace *workspaces.Workspace, params *workspaces.WorkspaceCustomParameters) workspaces.Workspace {
+	props := workspaces.Workspace{
 		Location: workspace.Location,
 		Sku:      workspace.Sku,
-		WorkspaceProperties: &databricks.WorkspaceProperties{
-			PublicNetworkAccess:    workspace.PublicNetworkAccess,
-			ManagedResourceGroupID: workspace.WorkspaceProperties.ManagedResourceGroupID,
+		Properties: workspaces.WorkspaceProperties{
+			PublicNetworkAccess:    workspace.Properties.PublicNetworkAccess,
+			ManagedResourceGroupId: workspace.Properties.ManagedResourceGroupId,
 			Parameters:             params,
 		},
 		Tags: workspace.Tags,
 	}
 
 	// If notebook encryption exists add it to the properties
-	if workspace.WorkspaceProperties.Encryption != nil {
-		props.WorkspaceProperties.Encryption = workspace.WorkspaceProperties.Encryption
+	if workspace.Properties.Encryption != nil {
+		props.Properties.Encryption = workspace.Properties.Encryption
 	}
 
 	// This is only valid if Private Link only is set
-	if workspace.PublicNetworkAccess == databricks.PublicNetworkAccessDisabled {
-		props.WorkspaceProperties.RequiredNsgRules = workspace.WorkspaceProperties.RequiredNsgRules
+	if workspace.Properties.PublicNetworkAccess != nil && *workspace.Properties.PublicNetworkAccess == workspaces.PublicNetworkAccessDisabled {
+		props.Properties.RequiredNsgRules = workspace.Properties.RequiredNsgRules
 	}
 
 	return props

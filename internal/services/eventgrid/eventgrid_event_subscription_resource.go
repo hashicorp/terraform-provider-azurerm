@@ -151,6 +151,8 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			"labels": eventSubscriptionSchemaLabels(),
 
 			"advanced_filtering_on_arrays_enabled": eventSubscriptionSchemaEnableAdvancedFilteringOnArrays(),
+
+			"delivery_property": eventSubscriptionSchemaDeliveryProperty(),
 		},
 	}
 }
@@ -299,6 +301,12 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 			if err := d.Set("azure_function_endpoint", flattenEventGridEventSubscriptionAzureFunctionEndpoint(azureFunctionEndpoint)); err != nil {
 				return fmt.Errorf("setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "azure_function_endpoint", id.Name, id.Scope, err)
 			}
+
+			if azureFunctionEndpoint.DeliveryAttributeMappings != nil {
+				if err := d.Set("delivery_property", flattenDeliveryProperties(d, azureFunctionEndpoint.DeliveryAttributeMappings)); err != nil {
+					return fmt.Errorf("setting `%q` for EventGrid delivery properties %q (Scope %q): %s", "azure_function_endpoint", id.Name, id.Scope, err)
+				}
+			}
 		}
 		if v, ok := destination.AsEventHubEventSubscriptionDestination(); ok {
 			if err := d.Set("eventhub_endpoint_id", v.ResourceID); err != nil {
@@ -307,6 +315,12 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 
 			if err := d.Set("eventhub_endpoint", flattenEventGridEventSubscriptionEventhubEndpoint(v)); err != nil {
 				return fmt.Errorf("setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "eventhub_endpoint", id.Name, id.Scope, err)
+			}
+
+			if v.DeliveryAttributeMappings != nil {
+				if err := d.Set("delivery_property", flattenDeliveryProperties(d, v.DeliveryAttributeMappings)); err != nil {
+					return fmt.Errorf("setting `%q` for EventGrid delivery properties %q (Scope %q): %s", "eventhub_endpoint", id.Name, id.Scope, err)
+				}
 			}
 		}
 		if v, ok := destination.AsHybridConnectionEventSubscriptionDestination(); ok {
@@ -317,6 +331,12 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 			if err := d.Set("hybrid_connection_endpoint", flattenEventGridEventSubscriptionHybridConnectionEndpoint(v)); err != nil {
 				return fmt.Errorf("setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "hybrid_connection_endpoint", id.Name, id.Scope, err)
 			}
+
+			if v.DeliveryAttributeMappings != nil {
+				if err := d.Set("delivery_property", flattenDeliveryProperties(d, v.DeliveryAttributeMappings)); err != nil {
+					return fmt.Errorf("setting `%q` for EventGrid delivery properties %q (Scope %q): %s", "hybrid_connection_endpoint", id.Name, id.Scope, err)
+				}
+			}
 		}
 		if serviceBusQueueEndpoint, ok := destination.AsServiceBusQueueEventSubscriptionDestination(); ok {
 			if err := d.Set("service_bus_queue_endpoint_id", serviceBusQueueEndpoint.ResourceID); err != nil {
@@ -326,6 +346,11 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 		if serviceBusTopicEndpoint, ok := destination.AsServiceBusTopicEventSubscriptionDestination(); ok {
 			if err := d.Set("service_bus_topic_endpoint_id", serviceBusTopicEndpoint.ResourceID); err != nil {
 				return fmt.Errorf("setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "service_bus_topic_endpoint_id", id.Name, id.Scope, err)
+			}
+			if serviceBusTopicEndpoint.DeliveryAttributeMappings != nil {
+				if err := d.Set("delivery_property", flattenDeliveryProperties(d, serviceBusTopicEndpoint.DeliveryAttributeMappings)); err != nil {
+					return fmt.Errorf("setting `%q` for EventGrid delivery properties %q (Scope %q): %s", "service_bus_topic_endpoint_id", id.Name, id.Scope, err)
+				}
 			}
 		}
 		if v, ok := destination.AsStorageQueueEventSubscriptionDestination(); ok {
@@ -340,6 +365,12 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 			}
 			if err := d.Set("webhook_endpoint", flattenEventGridEventSubscriptionWebhookEndpoint(v, &fullURL)); err != nil {
 				return fmt.Errorf("setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "webhook_endpoint", id.Name, id.Scope, err)
+			}
+
+			if v.DeliveryAttributeMappings != nil {
+				if err := d.Set("delivery_property", flattenDeliveryProperties(d, v.DeliveryAttributeMappings)); err != nil {
+					return fmt.Errorf("setting `%q` for EventGrid delivery properties %q (Scope %q): %s", "webhook_endpoint", id.Name, id.Scope, err)
+				}
 			}
 		}
 

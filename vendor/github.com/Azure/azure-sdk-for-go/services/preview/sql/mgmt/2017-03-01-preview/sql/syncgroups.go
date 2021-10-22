@@ -139,7 +139,7 @@ func (client SyncGroupsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -175,6 +175,7 @@ func (client SyncGroupsClient) CreateOrUpdatePreparer(ctx context.Context, resou
 // http.Response Body if it receives an error.
 func (client SyncGroupsClient) CreateOrUpdateSender(req *http.Request) (future SyncGroupsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -224,7 +225,7 @@ func (client SyncGroupsClient) Delete(ctx context.Context, resourceGroupName str
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -258,6 +259,7 @@ func (client SyncGroupsClient) DeletePreparer(ctx context.Context, resourceGroup
 // http.Response Body if it receives an error.
 func (client SyncGroupsClient) DeleteSender(req *http.Request) (future SyncGroupsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -880,7 +882,7 @@ func (client SyncGroupsClient) RefreshHubSchema(ctx context.Context, resourceGro
 
 	result, err = client.RefreshHubSchemaSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "RefreshHubSchema", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "RefreshHubSchema", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -914,6 +916,7 @@ func (client SyncGroupsClient) RefreshHubSchemaPreparer(ctx context.Context, res
 // http.Response Body if it receives an error.
 func (client SyncGroupsClient) RefreshHubSchemaSender(req *http.Request) (future SyncGroupsRefreshHubSchemaFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1043,7 +1046,7 @@ func (client SyncGroupsClient) Update(ctx context.Context, resourceGroupName str
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1079,6 +1082,7 @@ func (client SyncGroupsClient) UpdatePreparer(ctx context.Context, resourceGroup
 // http.Response Body if it receives an error.
 func (client SyncGroupsClient) UpdateSender(req *http.Request) (future SyncGroupsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

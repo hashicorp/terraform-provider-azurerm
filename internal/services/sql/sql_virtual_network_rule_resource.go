@@ -175,12 +175,10 @@ func resourceSqlVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta interfa
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
-
 		return fmt.Errorf("deleting SQL Virtual Network Rule %q (Server %q / Resource Group: %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-
 		return fmt.Errorf("waiting for deletion of SQL Virtual Network Rule %q (Server %q / Resource Group: %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 	}
 

@@ -23,7 +23,50 @@ func TestAccAzureRMLoadBalancerNatPool_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, "Basic"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancerNatPool_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_nat_pool", "test")
+	r := LoadBalancerNatPool{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "Standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancerNatPool_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_nat_pool", "test")
+	r := LoadBalancerNatPool{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, "Standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data, "Standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.basic(data, "Standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -38,7 +81,7 @@ func TestAccAzureRMLoadBalancerNatPool_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, "Basic"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -53,13 +96,15 @@ func TestAccAzureRMLoadBalancerNatPool_disappears(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
-			Config:       r.basic,
+			Config: func(data acceptance.TestData) string {
+				return r.basic(data, "Basic")
+			},
 			TestResource: r,
 		}),
 	})
 }
 
-func TestAccAzureRMLoadBalancerNatPool_update(t *testing.T) {
+func TestAccAzureRMLoadBalancerNatPool_updateMultiplePools(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_pool", "test")
 	data2 := acceptance.BuildTestData(t, "azurerm_lb_nat_pool", "test2")
 
@@ -157,31 +202,33 @@ func (r LoadBalancerNatPool) Destroy(ctx context.Context, client *clients.Client
 	return utils.Bool(true), nil
 }
 
-func (r LoadBalancerNatPool) basic(data acceptance.TestData) string {
+func (r LoadBalancerNatPool) basic(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "test-ip-%d"
+  name                = "test-ip-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
+  sku                 = "%[3]s"
 }
 
 resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%d"
+  name                = "arm-test-loadbalancer-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku                 = "%[3]s"
 
   frontend_ip_configuration {
-    name                 = "one-%d"
+    name                 = "one-%[1]d"
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }
@@ -189,18 +236,61 @@ resource "azurerm_lb" "test" {
 resource "azurerm_lb_nat_pool" "test" {
   resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
-  name                           = "NatPool-%d"
+  name                           = "NatPool-%[1]d"
   protocol                       = "Tcp"
   frontend_port_start            = 80
   frontend_port_end              = 81
   backend_port                   = 3389
-  frontend_ip_configuration_name = "one-%d"
+  frontend_ip_configuration_name = "one-%[1]d"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, sku)
+}
+
+func (r LoadBalancerNatPool) complete(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+resource "azurerm_public_ip" "test" {
+  name                = "test-ip-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "%[3]s"
+}
+resource "azurerm_lb" "test" {
+  name                = "arm-test-loadbalancer-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "%[3]s"
+
+  frontend_ip_configuration {
+    name                 = "one-%[1]d"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+resource "azurerm_lb_nat_pool" "test" {
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  name                           = "NatPool-%[1]d"
+  protocol                       = "Tcp"
+  frontend_port_start            = 80
+  frontend_port_end              = 81
+  backend_port                   = 3389
+  frontend_ip_configuration_name = "one-%[1]d"
+  floating_ip_enabled            = true
+  tcp_reset_enabled              = true
+  idle_timeout_in_minutes        = 10
+}
+`, data.RandomInteger, data.Locations.Primary, sku)
 }
 
 func (r LoadBalancerNatPool) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
+	template := r.basic(data, "Basic")
 	return fmt.Sprintf(`
 %s
 

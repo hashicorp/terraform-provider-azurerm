@@ -64,6 +64,7 @@ resource "azurerm_api_management_logger" "example" {
 }
 
 resource "azurerm_api_management_api_diagnostic" "example" {
+  identifier               = "applicationinsights"
   resource_group_name      = azurerm_resource_group.example.name
   api_management_name      = azurerm_api_management.example.name
   api_name                 = azurerm_api_management_api.example.name
@@ -72,7 +73,7 @@ resource "azurerm_api_management_api_diagnostic" "example" {
   sampling_percentage       = 5.0
   always_log_errors         = true
   log_client_ip             = true
-  verbosity                 = "Verbose"
+  verbosity                 = "verbose"
   http_correlation_protocol = "W3C"
 
   frontend_request {
@@ -173,7 +174,7 @@ The `query_params` and `headers` blocks support the following:
 
 * `mode` - (Required) The data masking mode. Possible values are `Mask` and `Hide` for `query_params`. The only possible value is `Mask` for `headers`.
 
-* `value` - (Required) The name of the header or the uery parameter to mask.
+* `value` - (Required) The name of the header or the query parameter to mask.
 
 ## Attributes Reference
 

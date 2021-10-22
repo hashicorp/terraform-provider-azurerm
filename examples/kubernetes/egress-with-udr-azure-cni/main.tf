@@ -28,9 +28,9 @@ resource "azurerm_route_table" "example" {
   disable_bgp_route_propagation = false
 
   route {
-    name           = "${var.prefix}fwrn"
-    address_prefix = "0.0.0.0/0"
-    next_hop_type  = "VirtualAppliance"
+    name                   = "${var.prefix}fwrn"
+    address_prefix         = "0.0.0.0/0"
+    next_hop_type          = "VirtualAppliance"
     next_hop_in_ip_address = var.fwprivate_ip
   }
 }
@@ -55,9 +55,9 @@ resource "azurerm_kubernetes_cluster" "example" {
   }
 
   network_profile {
-    network_plugin = "azure"
+    network_plugin    = "azure"
     load_balancer_sku = "standard"
-    outbound_type = "userDefinedRouting"
+    outbound_type     = "userDefinedRouting"
   }
 
   identity {

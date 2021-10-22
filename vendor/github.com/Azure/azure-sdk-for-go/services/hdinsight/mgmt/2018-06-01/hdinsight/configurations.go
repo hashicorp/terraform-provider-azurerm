@@ -218,7 +218,7 @@ func (client ConfigurationsClient) Update(ctx context.Context, resourceGroupName
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ConfigurationsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ConfigurationsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -253,6 +253,7 @@ func (client ConfigurationsClient) UpdatePreparer(ctx context.Context, resourceG
 // http.Response Body if it receives an error.
 func (client ConfigurationsClient) UpdateSender(req *http.Request) (future ConfigurationsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

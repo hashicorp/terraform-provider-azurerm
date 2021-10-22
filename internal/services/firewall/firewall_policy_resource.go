@@ -587,7 +587,6 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *network.Firewa
 			BypassTrafficSettings: &trafficBypass,
 		},
 	}
-
 }
 
 func expandFirewallPolicyTransportSecurity(input []interface{}) *network.FirewallPolicyTransportSecurity {
