@@ -26,15 +26,20 @@ func importStreamAnalyticsReferenceInput(expectType streamanalytics.TypeBasicRef
 		if props := resp.Properties; props != nil {
 			v, ok := props.AsReferenceInputProperties()
 			if !ok {
-				return nil, fmt.Errorf("converting Reference Input MsSql to a Reference Input: %+v", err)
+				return nil, fmt.Errorf("converting properties to a Reference Input: %+v", err)
 			}
 
-			inputDataSource, ok := v.Datasource.AsAzureSQLReferenceInputDataSource()
-			if !ok {
-				return nil, fmt.Errorf("converting Reference Input MsSql to a MsSql Stream Input: %+v", err)
+			var actualType streamanalytics.TypeBasicReferenceInputDataSource
+
+			if inputMsSql, ok := v.Datasource.AsAzureSQLReferenceInputDataSource(); ok {
+				actualType = inputMsSql.Type
+			} else if inputBlob, ok := v.Datasource.AsBlobReferenceInputDataSource(); ok {
+				actualType = inputBlob.Type
+			} else {
+				return nil, fmt.Errorf("unable to convert input data source: %+v", v)
 			}
 
-			if actualType := inputDataSource.Type; actualType != expectType {
+			if actualType != expectType {
 				return nil, fmt.Errorf("stream analytics reference input has mismatched type, expected: %q, got %q", expectType, actualType)
 			}
 		}
