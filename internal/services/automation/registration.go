@@ -49,5 +49,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_automation_variable_datetime":              resourceAutomationVariableDateTime(),
 		"azurerm_automation_variable_int":                   resourceAutomationVariableInt(),
 		"azurerm_automation_variable_string":                resourceAutomationVariableString(),
+		"azurerm_automation_webhook":                        resourceAutomationWebhook(),
 	}
 }

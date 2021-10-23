@@ -1,0 +1,234 @@
+package automation
+
+import (
+	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
+	"log"
+	"time"
+
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
+	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
+)
+
+func resourceAutomationWebhook() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceAutomationWebhookCreateUpdate,
+		Read:   resourceAutomationWebhookRead,
+		Update: resourceAutomationWebhookCreateUpdate,
+		Delete: resourceAutomationWebhookDelete,
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.WebhookID(id)
+			return err
+		}),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		},
+
+		Schema: resourceAutomationWebhookCommonSchema(),
+	}
+}
+
+func resourceAutomationWebhookCommonSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"automation_account_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.AutomationAccount(),
+		},
+
+		"expiry_time": {
+			Type:             pluginsdk.TypeString,
+			Required:         true,
+			ForceNew:         true,
+			DiffSuppressFunc: suppress.RFC3339Time,
+			ValidateFunc:     validation.IsRFC3339Time,
+		},
+
+		"enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"runbook_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.RunbookName(),
+		},
+		"run_on": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
+		"parameters": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+		"uri": {
+			Type:       pluginsdk.TypeString,
+			ConfigMode: schema.SchemaConfigModeAttr,
+			Optional:   true,
+			Computed:   true,
+			Sensitive:  true,
+		},
+	}
+}
+
+func resourceAutomationWebhookCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Automation.WebhookClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	name := d.Get("name").(string)
+	accountName := d.Get("automation_account_name").(string)
+	expiryTime := d.Get("expiry_time").(string)
+	enabled := d.Get("enabled").(bool)
+	runbookName := d.Get("runbook_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	runOn := d.Get("run_on").(string)
+	webhookParameters := utils.ExpandMapStringPtrString(d.Get("parameters").(map[string]interface{}))
+
+	if d.IsNewResource() {
+		resp, err := client.Get(ctx, resourceGroup, accountName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("checking for present of existing Automation Webhook %q (Automation Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+			}
+		}
+
+		if resp.ID != nil && *resp.ID != "" {
+			return tf.ImportAsExistsError("azurerm_automation_webhook", *resp.ID)
+		}
+	}
+
+	t, _ := time.Parse(time.RFC3339, expiryTime) // should be validated by the schema
+	parameters := automation.WebhookCreateOrUpdateParameters{
+		Name: utils.String(name),
+		WebhookCreateOrUpdateProperties: &automation.WebhookCreateOrUpdateProperties{
+			IsEnabled:  utils.Bool(enabled),
+			ExpiryTime: &date.Time{Time: t},
+			Parameters: webhookParameters,
+			Runbook: &automation.RunbookAssociationProperty{
+				Name: utils.String(runbookName),
+			},
+			RunOn: utils.String(runOn),
+		},
+	}
+
+	stringURI := ""
+	if d.IsNewResource() {
+		uri, err := client.GenerateURI(ctx, resourceGroup, accountName)
+		if err != nil {
+			return fmt.Errorf("unable to generate URI for Automation Webhook %q (Automattion Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+		}
+		parameters.WebhookCreateOrUpdateProperties.URI = uri.Value
+		stringURI = *uri.Value
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, name, parameters); err != nil {
+		return fmt.Errorf("creating Automation Webhook %q (Automation Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+	}
+
+	resp, err := client.Get(ctx, resourceGroup, accountName, name)
+	if err != nil {
+		return fmt.Errorf("retrieving Automation Webook %q (Automation Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+	}
+	if resp.ID == nil {
+		return fmt.Errorf("cannot read Automation Webhook %q (Automation Account Name %q / Resource Group %q) ID", name, accountName, resourceGroup)
+	}
+	d.SetId(*resp.ID)
+	// set at the end, so won't have to worry about error scenarios
+	if stringURI != "" {
+		d.Set("uri", stringURI)
+	}
+	return resourceAutomationWebhookRead(d, meta)
+}
+
+func resourceAutomationWebhookRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Automation.WebhookClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.WebhookID(d.Id())
+	if err != nil {
+		return err
+	}
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] Automation Webhook %q does not exist - removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("reading Automation Webhook %q (Automation Account Name %q / Resource Group %q): %+v", id.Name, id.AutomationAccountName, id.ResourceGroup, err)
+	}
+
+	d.Set("name", resp.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("automation_account_name", id.AutomationAccountName)
+	d.Set("expiry_time", resp.ExpiryTime.String())
+	d.Set("enabled", resp.IsEnabled)
+	if resp.Runbook != nil {
+		d.Set("runbook_name", resp.Runbook.Name)
+	}
+	d.Set("run_on", resp.RunOn)
+	if err = d.Set("parameters", flattenMap(resp.Parameters)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func flattenMap(input map[string]*string) map[string]string {
+	output := make(map[string]string)
+	for k, v := range input {
+		output[k] = *v
+	}
+
+	return output
+}
+
+func resourceAutomationWebhookDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Automation.WebhookClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.WebhookID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name); err != nil {
+		return fmt.Errorf("deleting Automation Webhook %q (Automation Account Name %q / Resource Group %q): %+v", id.Name, id.AutomationAccountName, id.ResourceGroup, err)
+	}
+
+	return nil
+}
