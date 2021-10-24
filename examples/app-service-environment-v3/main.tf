@@ -13,39 +13,23 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "rg" {
-  name     = var.ase_resource_group_name
-  location = var.location
+resource "azurerm_resource_group" "example" {
+  name     = "exampleRG1"
+  location = "West Europe"
 }
 
-data "azurerm_subnet" "snet-exist" {
-  count                = var.use_existing_vnet_and_subnet ? 1 : 0
-  name                 = var.subnet_name
-  virtual_network_name = var.virtual_network_name
-  resource_group_name  = var.vnet_resource_group_name
+resource "azurerm_virtual_network" "example" {
+  name                = "example-vnet"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  address_space       = ["10.0.0.0/16"]
 }
 
-resource "azurerm_network_security_group" "nsg" {
-  count               = var.use_existing_vnet_and_subnet ? 0 : 1
-  name                = var.network_security_group_name
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-}
-
-resource "azurerm_virtual_network" "vnet" {
-  count               = var.use_existing_vnet_and_subnet ? 0 : 1
-  name                = var.virtual_network_name
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  address_space       = var.vnet_address_prefixes
-}
-
-resource "azurerm_subnet" "snet" {
-  count                = var.use_existing_vnet_and_subnet ? 0 : 1
-  name                 = var.subnet_name
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet[0].name
-  address_prefixes     = var.subnet_address_prefixes
+resource "azurerm_subnet" "example" {
+  name                 = "example-subnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.2.0/24"]
 
   delegation {
     name = "Microsoft.Web.hostingEnvironments"
@@ -56,67 +40,30 @@ resource "azurerm_subnet" "snet" {
   }
 }
 
-resource "azurerm_subnet" "snet-delegation" {
-  count                = var.use_existing_vnet_and_subnet ? 1 : 0
-  name                 = var.subnet_name
-  virtual_network_name = var.virtual_network_name
-  resource_group_name  = var.vnet_resource_group_name
-  address_prefixes     = data.azurerm_subnet.snet-exist[0].address_prefixes
+resource "azurerm_app_service_environment_v3" "example" {
+  name                = "example-asev3"
+  resource_group_name = azurerm_resource_group.example.name
+  subnet_id           = azurerm_subnet.example.id
 
-  delegation {
-    name = "Microsoft.Web.hostingEnvironments"
-    service_delegation {
-      name    = "Microsoft.Web/hostingEnvironments"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
+  internal_load_balancing_mode = "Web, Publishing"
+
+  cluster_setting {
+    name  = "DisableTls1.0"
+    value = "1"
   }
-}
 
-resource "azurerm_subnet_network_security_group_association" "nsg-association" {
-  count                     = var.use_existing_vnet_and_subnet ? 0 : 1
-  subnet_id                 = azurerm_subnet.snet[0].id
-  network_security_group_id = azurerm_network_security_group.nsg[0].id
-}
+  cluster_setting {
+    name  = "InternalEncryption"
+    value = "true"
+  }
 
-resource "azurerm_app_service_environment_v3" "asev3" {
-  name                = var.ase_name
-  resource_group_name = azurerm_resource_group.rg.name
-  subnet_id           = var.use_existing_vnet_and_subnet ? azurerm_subnet.snet-delegation[0].id : azurerm_subnet.snet[0].id
+  cluster_setting {
+    name  = "FrontEndSSLCipherSuiteOrder"
+    value = "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
+  }
 
-  dedicated_host_count         = var.dedicated_host_count >= 2 ? var.dedicated_host_count : null
-  zone_redundant               = var.zone_redundant ? var.zone_redundant : null
-  internal_load_balancing_mode = var.internal_load_balancing_mode
-}
-
-resource "azurerm_private_dns_zone" "zone" {
-  count               = (var.create_private_dns && var.internal_load_balancing_mode == "Web, Publishing") ? 1 : 0
-  name                = azurerm_app_service_environment_v3.asev3.dns_suffix
-  resource_group_name = azurerm_resource_group.rg.name
-}
-
-resource "azurerm_private_dns_a_record" "a-wildcard" {
-  count               = (var.create_private_dns && var.internal_load_balancing_mode == "Web, Publishing") ? 1 : 0
-  name                = "*"
-  zone_name           = azurerm_private_dns_zone.zone[0].name
-  resource_group_name = azurerm_resource_group.rg.name
-  ttl                 = 3600
-  records             = azurerm_app_service_environment_v3.asev3.internal_inbound_ip_addresses
-}
-
-resource "azurerm_private_dns_a_record" "a-scm" {
-  count               = (var.create_private_dns && var.internal_load_balancing_mode == "Web, Publishing") ? 1 : 0
-  name                = "*.scm"
-  zone_name           = azurerm_private_dns_zone.zone[0].name
-  resource_group_name = azurerm_resource_group.rg.name
-  ttl                 = 3600
-  records             = azurerm_app_service_environment_v3.asev3.internal_inbound_ip_addresses
-}
-
-resource "azurerm_private_dns_a_record" "a-at" {
-  count               = (var.create_private_dns && var.internal_load_balancing_mode == "Web, Publishing") ? 1 : 0
-  name                = "@"
-  zone_name           = azurerm_private_dns_zone.zone[0].name
-  resource_group_name = azurerm_resource_group.rg.name
-  ttl                 = 3600
-  records             = azurerm_app_service_environment_v3.asev3.internal_inbound_ip_addresses
+  tags = {
+    env         = "production"
+    terraformed = "true"
+  }
 }
