@@ -156,10 +156,17 @@ func ParseAzureResourceIDWithoutSubscription(id string) (*ResourceID, error) {
 func (id *ResourceID) PopSegment(name string) (string, error) {
 	val, ok := id.Path[name]
 	if !ok {
-		return "", fmt.Errorf("ID was missing the `%s` element", name)
+		// Some Azure APIs are weird and provide things in lower case...
+		// However it's not clear whether the casing of other elements in the URI
+		// matter, so we explicitly look for that case here.
+		val, ok = id.Path[strings.ToLower(name)]
+		if !ok {
+			return "", fmt.Errorf("ID was missing the `%s` element in `%v`", name, id)
+		}
 	}
 
 	delete(id.Path, name)
+	delete(id.Path, strings.ToLower(name))
 	return val, nil
 }
 
