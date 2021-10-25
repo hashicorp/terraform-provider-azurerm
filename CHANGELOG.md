@@ -11,6 +11,8 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_data_factory` - can now read global parameter values [GH-13519]
+
 ## 2.82.0 (October 21, 2021)
 
 FEATURES: 
