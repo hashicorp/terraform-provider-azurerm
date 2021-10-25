@@ -134,7 +134,7 @@ func resourceSubnet() *pluginsdk.Resource {
 											"Microsoft.ServiceFabricMesh/networks",
 											"Microsoft.Sql/managedInstances",
 											"Microsoft.Sql/servers",
-											"Microsoft.StoragePool/diskpools",
+											"Microsoft.StoragePool/diskPools",
 											"Microsoft.StreamAnalytics/streamingJobs",
 											"Microsoft.Synapse/workspaces",
 											"Microsoft.Web/hostingEnvironments",
@@ -150,6 +150,7 @@ func resourceSubnet() *pluginsdk.Resource {
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
 												"Microsoft.Network/networkinterfaces/*",
+												"Microsoft.Network/virtualNetworks/read",
 												"Microsoft.Network/virtualNetworks/subnets/action",
 												"Microsoft.Network/virtualNetworks/subnets/join/action",
 												"Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
