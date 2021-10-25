@@ -6,12 +6,13 @@ FEATURES:
 
 IMPROVEMENTS:
 
-* `azurerm_firewall_application_rule_collection` - `port` property is now required instead of optional [GH-13869]
-* `azurem_virtual_hub` - support for `default_route_table_id` property [GH-13840]
+* `azurerm_firewall_application_rule_collection` - the `port` property is now required instead of optional [GH-13869]
+* `azurem_virtual_hub` - support for the `default_route_table_id` property [GH-13840]
 
 BUG FIXES:
 
 * `azurerm_data_factory` - can now read global parameter values [GH-13519]
+* `azurerm_firewall_policy` - will now correctly import [GH-13862]
 
 ## 2.82.0 (October 21, 2021)
 
