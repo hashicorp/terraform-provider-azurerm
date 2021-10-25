@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storagepool/mgmt/2021-08-01/storagepool"
 	"github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync"
 	"github.com/Azure/go-autorest/autorest"
 	az "github.com/Azure/go-autorest/autorest/azure"
@@ -37,6 +38,7 @@ type Client struct {
 	ObjectReplicationClient     *storage.ObjectReplicationPoliciesClient
 	SyncServiceClient           *storagesync.ServicesClient
 	SyncGroupsClient            *storagesync.SyncGroupsClient
+	DiskPoolsClient             *storagepool.DiskPoolsClient
 	SubscriptionId              string
 
 	resourceManagerAuthorizer autorest.Authorizer
@@ -80,6 +82,7 @@ func NewClient(options *common.ClientOptions) *Client {
 	syncGroupsClient := storagesync.NewSyncGroupsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&syncGroupsClient.Client, options.ResourceManagerAuthorizer)
 
+	diskPoolsClient := storagepool.NewDiskPoolsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	client := Client{
@@ -97,6 +100,7 @@ func NewClient(options *common.ClientOptions) *Client {
 		SubscriptionId:              options.SubscriptionId,
 		SyncServiceClient:           &syncServiceClient,
 		SyncGroupsClient:            &syncGroupsClient,
+		DiskPoolsClient:             &diskPoolsClient,
 
 		resourceManagerAuthorizer: options.ResourceManagerAuthorizer,
 	}
