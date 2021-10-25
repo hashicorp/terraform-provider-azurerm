@@ -412,7 +412,7 @@ func resourceOpenShiftClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("setting `cluster_profile`: %+v", err)
 		}
 
-		servicePrincipalProfile := flattenOpenShiftServicePrincipalProfile(props.ServicePrincipalProfile)
+		servicePrincipalProfile := flattenOpenShiftServicePrincipalProfile(props.ServicePrincipalProfile, d)
 		if err := d.Set("service_principal", servicePrincipalProfile); err != nil {
 			return fmt.Errorf("setting `service_principal`: %+v", err)
 		}
@@ -425,11 +425,6 @@ func resourceOpenShiftClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 		masterProfile := flattenOpenShiftMasterProfile(props.MasterProfile)
 		if err := d.Set("master_profile", masterProfile); err != nil {
 			return fmt.Errorf("setting `master_profile`: %+v", err)
-		}
-
-		workerProfiles := flattenOpenShiftWorkerProfiles(props.WorkerProfiles)
-		if err := d.Set("worker_profile", workerProfiles); err != nil {
-			return fmt.Errorf("setting `worker_profile`: %+v", err)
 		}
 
 		apiServerProfile := flattenOpenShiftAPIServerProfile(props.ApiserverProfile)
@@ -500,7 +495,7 @@ func flattenOpenShiftClusterProfile(profile *redhatopenshift.ClusterProfile) []i
 	}
 }
 
-func flattenOpenShiftServicePrincipalProfile(profile *redhatopenshift.ServicePrincipalProfile) []interface{} {
+func flattenOpenShiftServicePrincipalProfile(profile *redhatopenshift.ServicePrincipalProfile, d *pluginsdk.ResourceData) []interface{} {
 	if profile == nil {
 		return []interface{}{}
 	}
@@ -510,9 +505,22 @@ func flattenOpenShiftServicePrincipalProfile(profile *redhatopenshift.ServicePri
 		clientID = *profile.ClientID
 	}
 
+	// client secret isn't returned by the API so pass the existing value along
 	clientSecret := ""
-	if profile.ClientSecret != nil {
-		clientSecret = *profile.ClientSecret
+	if sp, ok := d.GetOk("service_principal"); ok {
+		var val []interface{}
+
+		// prior to 1.34 this was a *pluginsdk.Set, now it's a List - try both
+		if v, ok := sp.([]interface{}); ok {
+			val = v
+		} else if v, ok := sp.(*pluginsdk.Set); ok {
+			val = v.List()
+		}
+
+		if len(val) > 0 && val[0] != nil {
+			raw := val[0].(map[string]interface{})
+			clientSecret = raw["client_secret"].(string)
+		}
 	}
 
 	return []interface{}{
@@ -562,35 +570,6 @@ func flattenOpenShiftMasterProfile(profile *redhatopenshift.MasterProfile) []int
 			"subnet_id": subnetId,
 		},
 	}
-}
-
-func flattenOpenShiftWorkerProfiles(profiles *[]redhatopenshift.WorkerProfile) []interface{} {
-	if profiles == nil {
-		return []interface{}{}
-	}
-
-	results := make([]interface{}, 0)
-	for _, profile := range *profiles {
-		result := make(map[string]interface{})
-
-		result["vm_size"] = string(profile.VMSize)
-
-		if profile.DiskSizeGB != nil {
-			result["disk_size_gb"] = *profile.DiskSizeGB
-		}
-
-		if profile.Count != nil {
-			result["node_count"] = *profile.Count
-		}
-
-		if profile.SubnetID != nil {
-			result["subnet_id"] = *profile.SubnetID
-		}
-
-		results = append(results, result)
-	}
-
-	return results
 }
 
 func flattenOpenShiftAPIServerProfile(profile *redhatopenshift.APIServerProfile) []interface{} {
