@@ -15,6 +15,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_app_configuration_key` - now supports forward slashes in the `key` [GH-13859]
 * `azurerm_data_factory` - can now read global parameter values [GH-13519]
 * `azurerm_firewall_policy` - will now correctly import [GH-13862]
 
