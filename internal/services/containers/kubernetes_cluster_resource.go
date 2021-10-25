@@ -568,7 +568,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"private_fqdn": {
+			"private_fqdn": { // privateFqdn
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"portal_fqdn": { // azurePortalFqdn
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -780,7 +785,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}, false),
 			},
 
-			// Computed
 			"fqdn": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -1567,6 +1571,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("dns_prefix_private_cluster", props.FqdnSubdomain)
 		d.Set("fqdn", props.Fqdn)
 		d.Set("private_fqdn", props.PrivateFQDN)
+		d.Set("portal_fqdn", props.AzurePortalFQDN)
 		d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
 		d.Set("kubernetes_version", props.KubernetesVersion)
 		d.Set("node_resource_group", props.NodeResourceGroup)

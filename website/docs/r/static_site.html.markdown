@@ -34,7 +34,7 @@ The following arguments are supported:
 
 * `sku_tier` - (Optional) Specifies the sku tier of the Static Web App. Possible values are "Free" or "Standard". Defaults to "Free".
 
-* `sku_size` - (Optional) Specifies the sku tier of the Static Web App. Possible values are "Free" or "Standard". Defaults to "Free".
+* `sku_size` - (Optional) Specifies the sku size of the Static Web App. Possible values are "Free" or "Standard". Defaults to "Free".
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

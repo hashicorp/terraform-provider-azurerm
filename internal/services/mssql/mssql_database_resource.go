@@ -705,14 +705,16 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving Blob Auditing Policies for %s: %+v", id, err)
-	}
+	extendedAuditingPolicy := []interface{}{}
+	if createMode, ok := d.GetOk("create_mode"); !ok || createMode.(string) != "Secondary" {
+		auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		if err != nil {
+			return fmt.Errorf("retrieving Blob Auditing Policies for %s: %+v", id, err)
+		}
 
-	if err := d.Set("extended_auditing_policy", helper.FlattenMsSqlDBBlobAuditingPolicies(&auditingResp, d)); err != nil {
-		return fmt.Errorf("setting `extended_auditing_policy`: %+v", err)
+		extendedAuditingPolicy = helper.FlattenMsSqlDBBlobAuditingPolicies(&auditingResp, d)
 	}
+	d.Set("extended_auditing_policy", extendedAuditingPolicy)
 
 	geoBackupPolicy := true
 
@@ -746,7 +748,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				d.SetId("")
 				return nil
 			}
-			return fmt.Errorf("retrieving Geo Backuip Policies for %s: %+v", id, err)
+			return fmt.Errorf("retrieving Geo Backup Policies for %s: %+v", id, err)
 		}
 
 		// For Datawarehouse SKUs, set the geo-backup policy setting
@@ -795,6 +797,8 @@ func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy sql
 	securityAlertPolicy := make(map[string]interface{})
 
 	securityAlertPolicy["state"] = string(properties.State)
+	securityAlertPolicy["use_server_default"] = "Disabled"
+
 	securityAlertPolicy["email_account_admins"] = "Disabled"
 	if properties.EmailAccountAdmins != nil && *properties.EmailAccountAdmins {
 		securityAlertPolicy["email_account_admins"] = "Enabled"
@@ -803,14 +807,18 @@ func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy sql
 	if disabledAlerts := properties.DisabledAlerts; disabledAlerts != nil {
 		flattenedAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
 		for _, a := range *disabledAlerts {
-			flattenedAlerts.Add(a)
+			if a != "" {
+				flattenedAlerts.Add(a)
+			}
 		}
 		securityAlertPolicy["disabled_alerts"] = flattenedAlerts
 	}
 	if emailAddresses := properties.EmailAddresses; emailAddresses != nil {
 		flattenedEmails := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
 		for _, e := range *emailAddresses {
-			flattenedEmails.Add(e)
+			if e != "" {
+				flattenedEmails.Add(e)
+			}
 		}
 		securityAlertPolicy["email_addresses"] = flattenedEmails
 	}
