@@ -2,6 +2,7 @@ package applicationinsights
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"log"
 	"time"
 
@@ -25,6 +26,11 @@ func resourceApplicationInsightsAPIKey() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ApiKeyID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ApiKeyUpgradeV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
