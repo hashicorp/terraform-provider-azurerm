@@ -3,12 +3,12 @@ package network_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -103,7 +103,7 @@ func (t VirtualNetworkPeeringResource) Exists(ctx context.Context, clients *clie
 	}
 	resp, err := clients.Network.VnetPeeringsClient.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Virtual Network Peering (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -121,7 +121,7 @@ func (r VirtualNetworkPeeringResource) Destroy(ctx context.Context, client *clie
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Network.VnetPeeringsClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for deletion of Peering %q: %+v", id, err)
+		return nil, fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return utils.Bool(true), nil
