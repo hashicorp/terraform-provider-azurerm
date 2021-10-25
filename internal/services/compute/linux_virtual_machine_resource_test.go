@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-03-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
@@ -20,7 +21,7 @@ func (t LinuxVirtualMachineResource) Exists(ctx context.Context, clients *client
 		return nil, err
 	}
 
-	resp, err := clients.Compute.VMClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := clients.Compute.VMClient.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Linux Virtual Machine %q", id)
 	}
