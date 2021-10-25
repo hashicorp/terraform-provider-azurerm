@@ -8,6 +8,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* upgrading `mysql` to API Version `2021-05-01` [GH-13818]
 * `azurerm_firewall_application_rule_collection` - the `port` property is now required instead of optional [GH-13869]
 * `azurerm_kubernetes_cluster` - expose the `portal_fqdn` attribute [GH-13887]
 * `azurerm_virtual_hub` - support for the `default_route_table_id` property [GH-13840]
