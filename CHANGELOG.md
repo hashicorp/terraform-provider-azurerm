@@ -1,10 +1,12 @@
-## 2.82.0 (Unreleased)
+## 2.83.0 (Unreleased)
 
 FEATURES:
 
 * **New Resource:** `azurerm_stream_analytics_reference_input_mssql` [GH-13822]
 
 IMPROVEMENTS:
+
+* `azurerm_firewall_application_rule_collection` - `port` property is now required instead of optional [GH-13869]
 
 BUG FIXES:
 
