@@ -293,9 +293,6 @@ func (r InferenceClusterResource) templateDevTest(data acceptance.TestData) stri
 	return r.template(data, "Standard_DS2_v2", 1)
 }
 
-func (r InferenceClusterResource) templatePrivateFastProd(data acceptance.TestData) string {
-	return r.privateTemplate(data, "Standard_D3_v2", 3)
-}
 func (r InferenceClusterResource) templatePrivateDevTest(data acceptance.TestData) string {
 	return r.privateTemplate(data, "Standard_DS2_v2", 1)
 }
