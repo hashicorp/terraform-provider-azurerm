@@ -97,8 +97,6 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.ServicePlanID,
-			// TODO - CustomizeDiff for ForceNew when Consumption Plan
-			// Probably needs locking on the plan while this completes or core will see it as orphaned?
 		},
 
 		"storage_account_name": {
@@ -742,6 +740,10 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if rd.HasChange("service_plan_id") {
 				currentPlanIdRaw, newPlanIdRaw := rd.GetChange("service_plan_id")
+				if newPlanIdRaw.(string) == "" {
+					// Plans creating a new service_plan inline will be empty as `Computed` known after apply
+					return nil
+				}
 				newPlanId, err := parse.ServicePlanID(newPlanIdRaw.(string))
 				if err != nil {
 					return fmt.Errorf("reading new plan id %+v", err)
