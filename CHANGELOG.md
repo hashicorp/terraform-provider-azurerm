@@ -7,6 +7,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * `azurerm_firewall_application_rule_collection` - `port` property is now required instead of optional [GH-13869]
+* `azurem_virtual_hub` - support for `default_route_table_id` property [GH-13840]
 
 BUG FIXES:
 
