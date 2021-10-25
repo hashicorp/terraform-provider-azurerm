@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-06-15/documentdb"
@@ -160,6 +161,7 @@ func resourceCassandraMIDatacenterUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	location := d.Get("location").(string)
 	delegatedSubnetId := d.Get("delegated_management_subnet_id").(string)
+	nodeCount := d.Get("node_count").(int)
 
 	id, err := parse.CassandraDatacenterID(d.Id())
 
@@ -169,7 +171,7 @@ func resourceCassandraMIDatacenterUpdate(d *pluginsdk.ResourceData, meta interfa
 	body := documentdb.DataCenterResource{
 		Properties: &documentdb.DataCenterResourceProperties{
 			DelegatedSubnetID:  &delegatedSubnetId,
-			NodeCount:          utils.Int32(int32(d.Get("node_count").(int))),
+			NodeCount:          utils.Int32(int32(nodeCount)),
 			DataCenterLocation: &location,
 		},
 	}
@@ -189,18 +191,17 @@ func resourceCassandraMIDatacenterUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("making get request for Cassandra MI  %q (Datacenter: %q): %+v", id.ClusterName, id.DatacenterName, err)
 	}
 
-	nodeCount := fmt.Sprint(d.Get("node_count").(int))
-	currentNodeCount := "0"
+	currentNodeCount := "-1"
 
-	if properties := resp.Properties; properties != nil {
-		if properties.NodeCount != nil {
-			currentNodeCount = fmt.Sprint(resp.Properties.NodeCount)
+	if props := resp.Properties; props != nil {
+		if props.NodeCount != nil {
+			currentNodeCount = strconv.Itoa(int(*props.NodeCount))
 		}
 	}
 
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"-1", currentNodeCount},
-		Target:     []string{string(nodeCount)},
+		Target:     []string{strconv.Itoa(nodeCount)},
 		Refresh:    cassandraDatacenterStateRefreshFunc(ctx, client, *id),
 		MinTimeout: 30 * time.Second,
 		Timeout:    d.Timeout(pluginsdk.TimeoutUpdate),
@@ -227,9 +228,9 @@ func cassandraDatacenterStateRefreshFunc(ctx context.Context, client *documentdb
 			return resp, nodeCount, fmt.Errorf("retrieving %q while waiting for node count to update: %+v", id.ClusterName, err)
 		}
 
-		if properties := resp.Properties; properties != nil {
-			if properties.NodeCount != nil {
-				nodeCount = fmt.Sprint(resp.Properties.NodeCount)
+		if props := resp.Properties; props != nil {
+			if props.NodeCount != nil {
+				nodeCount = strconv.Itoa(int(*props.NodeCount))
 			}
 		}
 
