@@ -273,9 +273,15 @@ func resourceAksInferenceClusterDelete(d *pluginsdk.ResourceData, meta interface
 }
 
 func expandAksComputeProperties(aks *containerservice.ManagedCluster, d *pluginsdk.ResourceData) machinelearningservices.AKS {
+
+	fqdn := aks.PrivateFQDN
+	if fqdn == nil {
+		fqdn = aks.Fqdn
+	}
+
 	return machinelearningservices.AKS{
 		Properties: &machinelearningservices.AKSProperties{
-			ClusterFqdn:      utils.String(*aks.Fqdn),
+			ClusterFqdn:      utils.String(*fqdn),
 			SslConfiguration: expandSSLConfig(d.Get("ssl").([]interface{})),
 			ClusterPurpose:   machinelearningservices.ClusterPurpose(d.Get("cluster_purpose").(string)),
 		},

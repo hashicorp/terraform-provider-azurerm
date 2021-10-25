@@ -53,6 +53,7 @@ func TestAccVirtualHubRouteTableRoute_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That("azurerm_virtual_hub_route_table_route.test_2").ExistsInAzure(r),
+				check.That("azurerm_virtual_hub_route_table_route.test_3").ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -75,6 +76,7 @@ func TestAccVirtualHubRouteTableRoute_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That("azurerm_virtual_hub_route_table_route.test_2").ExistsInAzure(r),
+				check.That("azurerm_virtual_hub_route_table_route.test_3").ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -233,5 +235,17 @@ resource "azurerm_virtual_hub_route_table_route" "test_2" {
   next_hop_type     = "ResourceId"
   next_hop          = azurerm_virtual_hub_connection.test.id
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+
+// test a route on the default route table
+resource "azurerm_virtual_hub_route_table_route" "test_3" {
+  route_table_id = azurerm_virtual_hub.test.default_route_table_id
+
+  name = "acctest-Route-%d"
+
+  destinations_type = "CIDR"
+  destinations      = ["10.3.0.0/16"]
+  next_hop_type     = "ResourceId"
+  next_hop          = azurerm_virtual_hub_connection.test.id
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
