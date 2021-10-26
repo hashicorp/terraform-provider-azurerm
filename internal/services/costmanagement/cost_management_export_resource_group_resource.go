@@ -37,6 +37,8 @@ func resourceCostManagementExportResourceGroup() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
+		DeprecationMessage: ("The resource 'azurerm_cost_management_export_resource_group' has been superseded by the 'azurerm_cost_management_export'."),
+
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:         pluginsdk.TypeString,
@@ -125,6 +127,8 @@ func resourceCostManagementExportResourceGroup() *pluginsdk.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(costmanagement.Custom),
+								string(costmanagement.BillingMonthToDate),
+								string(costmanagement.TheLastBillingMonth),
 								string(costmanagement.MonthToDate),
 								string(costmanagement.TheLastMonth),
 								string(costmanagement.WeekToDate),

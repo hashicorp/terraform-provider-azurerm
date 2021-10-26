@@ -137,13 +137,13 @@ resource "azurerm_cost_management_export" "test" {
   recurrence_period_start = "%sT00:00:00Z"
   recurrence_period_end   = "%sT00:00:00Z"
 
-  delivery_info {
+  export_data_storage_location {
     storage_account_id = azurerm_storage_account.test.id
     container_name     = "acctestcontainer"
     root_folder_path   = "/root"
   }
 
-  query {
+  export_data_definition {
     type       = "Usage"
     time_frame = "TheLastMonth"
   }
@@ -162,13 +162,13 @@ resource "azurerm_cost_management_export" "import" {
   recurrence_period_start = azurerm_cost_management_export.test.recurrence_period_start
   recurrence_period_end   = azurerm_cost_management_export.test.recurrence_period_end
 
-  delivery_info {
+  export_data_storage_location {
     storage_account_id = azurerm_storage_account.test.id
     container_name     = "acctestcontainer"
     root_folder_path   = "/root"
   }
 
-  query {
+  export_data_definition {
     type       = "Usage"
     time_frame = "TheLastMonth"
   }
@@ -193,13 +193,13 @@ resource "azurerm_cost_management_export" "test" {
   recurrence_period_start = "%sT00:00:00Z"
   recurrence_period_end   = "%sT00:00:00Z"
 
-  delivery_info {
+  export_data_storage_location {
     storage_account_id = azurerm_storage_account.test.id
     container_name     = "acctestcontainer"
     root_folder_path   = "/root"
   }
 
-  query {
+  export_data_definition {
     type       = "Usage"
     time_frame = "TheLastMonth"
   }
@@ -226,13 +226,13 @@ resource "azurerm_cost_management_export" "test" {
   recurrence_period_start = "%sT00:00:00Z"
   recurrence_period_end   = "%sT00:00:00Z"
 
-  delivery_info {
+  export_data_storage_location {
     storage_account_id = azurerm_storage_account.test.id
     container_name     = "acctestcontainer"
     root_folder_path   = "/root"
   }
 
-  query {
+  export_data_definition {
     type       = "Usage"
     time_frame = "TheLastMonth"
   }
@@ -254,13 +254,13 @@ resource "azurerm_cost_management_export" "test" {
   recurrence_period_start = "%sT00:00:00Z"
   recurrence_period_end   = "%sT00:00:00Z"
 
-  delivery_info {
+  export_data_storage_location {
     storage_account_id = azurerm_storage_account.test.id
     container_name     = "acctestcontainer"
     root_folder_path   = "/root/updated"
   }
 
-  query {
+  export_data_definition {
     type       = "Usage"
     time_frame = "WeekToDate"
   }

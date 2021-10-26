@@ -95,7 +95,7 @@ func resourceCostManagementExport() *pluginsdk.Resource {
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 
-			"delivery_info": {
+			"export_data_storage_location": {
 				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Required: true,
@@ -123,16 +123,20 @@ func resourceCostManagementExport() *pluginsdk.Resource {
 				},
 			},
 
-			"query": {
+			"export_data_definition": {
 				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Required: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(costmanagement.ExportTypeActualCost),
+								string(costmanagement.ExportTypeAmortizedCost),
+								string(costmanagement.ExportTypeUsage),
+							}, false),
 						},
 
 						"time_frame": {
@@ -141,6 +145,7 @@ func resourceCostManagementExport() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(costmanagement.Custom),
 								string(costmanagement.BillingMonthToDate),
+								string(costmanagement.TheLastBillingMonth),
 								string(costmanagement.MonthToDate),
 								string(costmanagement.TheLastMonth),
 								string(costmanagement.WeekToDate),
@@ -193,9 +198,9 @@ func resourceCostManagementExportCreateUpdate(d *pluginsdk.ResourceData, meta in
 				},
 				Status: status,
 			},
-			DeliveryInfo: expandExportDeliveryInfo(d.Get("delivery_info").([]interface{})),
+			DeliveryInfo: expandExportDeliveryInfo(d.Get("export_data_storage_location").([]interface{})),
 			Format:       costmanagement.Csv,
-			Definition:   expandExportDefinition(d.Get("query").([]interface{})),
+			Definition:   expandExportDefinition(d.Get("export_data_definition").([]interface{})),
 		},
 	}
 
@@ -258,12 +263,12 @@ func resourceCostManagementExportRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("active", status)
 		d.Set("recurrence_type", schedule.Recurrence)
 	}
-	if err := d.Set("delivery_info", flattenExportDeliveryInfo(resp.DeliveryInfo)); err != nil {
-		return fmt.Errorf("setting `delivery_info`: %+v", err)
+	if err := d.Set("export_data_storage_location", flattenExportDeliveryInfo(resp.DeliveryInfo)); err != nil {
+		return fmt.Errorf("setting `export_data_storage_location`: %+v", err)
 	}
 
-	if err := d.Set("query", flattenExportDefinition(resp.Definition)); err != nil {
-		return fmt.Errorf("setting `query`: %+v", err)
+	if err := d.Set("export_data_definition", flattenExportDefinition(resp.Definition)); err != nil {
+		return fmt.Errorf("setting `export_data_definition`: %+v", err)
 	}
 
 	return nil
