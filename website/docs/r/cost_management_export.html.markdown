@@ -37,13 +37,13 @@ resource "azurerm_cost_management_export" "example" {
   recurrence_period_start = "2020-08-18T00:00:00Z"
   recurrence_period_end   = "2020-09-18T00:00:00Z"
 
-  delivery_info {
+  export_data_storage_location {
     storage_account_id = azurerm_storage_account.example.id
     container_name     = "examplecontainer"
     root_folder_path   = "/root/updated"
   }
 
-  query {
+  export_data_definition {
     type       = "Usage"
     time_frame = "WeekToDate"
   }
