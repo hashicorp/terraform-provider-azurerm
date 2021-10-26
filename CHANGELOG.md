@@ -5,6 +5,7 @@ FEATURES:
 * **New Data Source:** `azurerm_eventgrid_system_topic` [GH-13851]
 * **New Resource:** `azurerm_stream_analytics_reference_input_mssql` [GH-13822]
 * **New Resource:** `sentinel_automation_rule` [GH-11502]
+* **New Resource:** `azurerm_stream_analytics_output_table` [GH-13854]
 
 IMPROVEMENTS:
 
