@@ -102,7 +102,6 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_account_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true, // TODO - Check this?
 			ValidateFunc: storageValidate.StorageAccountName,
 		},
 

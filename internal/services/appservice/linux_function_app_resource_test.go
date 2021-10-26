@@ -636,6 +636,30 @@ func TestAccLinuxFunctionApp_updateServicePlan(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionApp_updateStorageAccount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateStorageAccount(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // CustomDiff tests
 func TestAccLinuxFunctionApp_consumptionPlanBackupShouldError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
@@ -1453,6 +1477,28 @@ resource "azurerm_linux_function_app" "test" {
 `, r.templateServicePlanUpdate(data, planSku), data.RandomInteger)
 }
 
+func (r LinuxFunctionAppResource) updateStorageAccount(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-FA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.update.name
+  storage_account_access_key = azurerm_storage_account.update.primary_access_key
+
+  site_config {}
+}
+`, r.templateExtraStorageAccount(data, planSku), data.RandomInteger)
+}
+
 func (LinuxFunctionAppResource) template(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -1476,6 +1522,39 @@ resource "azurerm_service_plan" "test" {
   sku_name            = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, planSku)
+}
+
+func (LinuxFunctionAppResource) templateExtraStorageAccount(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "update" {
+  name                     = "acctestsa2%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Linux"
+  sku_name            = "%[4]s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, planSku)
 }
 
 func (r LinuxFunctionAppResource) templateServicePlanUpdate(data acceptance.TestData, planSku string) string {
