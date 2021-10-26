@@ -127,6 +127,13 @@ func resourceServiceBusQueue() *pluginsdk.Resource {
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
+			"max_message_size_in_kilobytes": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: azValidate.ServiceBusMaxMessageSizeInKilobytes(),
+			},
+
 			"max_size_in_megabytes": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -251,6 +258,14 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("ServiceBus Queue %q does not support Express Entities in Premium SKU and must be disabled", resourceId.Name)
 	}
 
+	// output of `max_message_size_in_kilobytes` is also set in non-Premium namespaces, with a value of 256
+	if v, ok := d.GetOk("max_message_size_in_kilobytes"); ok && v.(int) != 256 {
+		if namespace.Sku.Name != servicebus.SkuNamePremium {
+			return fmt.Errorf("ServiceBus Queue %q does not support input on `max_message_size_in_kilobytes` in %s SKU and should be removed", resourceId.Name, namespace.Sku.Name)
+		}
+		parameters.SBQueueProperties.MaxMessageSizeInKilobytes = utils.Int64(int64(v.(int)))
+	}
+
 	if _, err = client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.Name, parameters); err != nil {
 		return err
 	}
@@ -294,6 +309,7 @@ func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("forward_to", props.ForwardTo)
 		d.Set("lock_duration", props.LockDuration)
 		d.Set("max_delivery_count", props.MaxDeliveryCount)
+		d.Set("max_message_size_in_kilobytes", props.MaxMessageSizeInKilobytes)
 		d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 		d.Set("requires_session", props.RequiresSession)
 		d.Set("status", props.Status)

@@ -108,9 +108,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `linux_profile` - (Optional) A `linux_profile` block as defined below.
 
-* `local_account_disabled` - (Optional) Is local account disabled for AAD integrated kubernetes cluster?
-
--> NOTE: This requires that the Preview Feature `Microsoft.ContainerService/DisableLocalAccountsPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/managed-aad#disable-local-accounts-preview) for more information.
+* `local_account_disabled` - (Optional) - If `true` local accounts will be disabled. Defaults to `false`. See [the documentation](https://docs.microsoft.com/en-us/azure/aks/managed-aad#disable-local-accounts) for more information.
 
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
@@ -687,6 +685,8 @@ The following attributes are exported:
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
 
 * `private_fqdn` - The FQDN for the Kubernetes Cluster when private link has been enabled, which is only resolvable inside the Virtual Network used by the Kubernetes Cluster.
+
+* `portal_fqdn` - The FQDN for the Azure Portal resources when private link has been enabled, which is only resolvable inside the Virtual Network used by the Kubernetes Cluster.
 
 * `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled.
 

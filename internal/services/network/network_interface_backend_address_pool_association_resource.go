@@ -28,7 +28,7 @@ func resourceNetworkInterfaceBackendAddressPoolAssociation() *pluginsdk.Resource
 			if _, err := parse.NetworkInterfaceIpConfigurationID(splitId[0]); err != nil {
 				return err
 			}
-			if _, err := parse.BackendAddressPoolID(splitId[1]); err != nil {
+			if _, err := parse.LoadBalancerBackendAddressPoolID(splitId[1]); err != nil {
 				return err
 			}
 			return nil
