@@ -269,6 +269,7 @@ github.com/hashicorp/go-checkpoint
 # github.com/hashicorp/go-cleanhttp v0.5.2
 github.com/hashicorp/go-cleanhttp
 # github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
+## explicit
 github.com/hashicorp/go-cty/cty
 github.com/hashicorp/go-cty/cty/convert
 github.com/hashicorp/go-cty/cty/gocty
@@ -365,6 +366,7 @@ github.com/mattn/go-colorable
 ## explicit
 github.com/mattn/go-isatty
 # github.com/mitchellh/copystructure v1.2.0
+## explicit
 github.com/mitchellh/copystructure
 # github.com/mitchellh/go-homedir v1.1.0
 github.com/mitchellh/go-homedir

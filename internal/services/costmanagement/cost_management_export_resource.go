@@ -5,25 +5,25 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/validate"
 	"github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2020-06-01/costmanagement"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	billValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/validate"
 	mgmGrpValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	rgValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	subValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceCostManagementExport() *schema.Resource {
-	return &schema.Resource{
+func resourceCostManagementExport() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceCostManagementExportCreateUpdate,
 		Read:   resourceCostManagementExportRead,
 		Update: resourceCostManagementExportCreateUpdate,
@@ -33,23 +33,23 @@ func resourceCostManagementExport() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ExportName,
 			},
 
 			"scope": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.Any(
@@ -67,13 +67,13 @@ func resourceCostManagementExport() *schema.Resource {
 			},
 
 			"active": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"recurrence_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(costmanagement.RecurrenceTypeDaily),
@@ -84,37 +84,37 @@ func resourceCostManagementExport() *schema.Resource {
 			},
 
 			"recurrence_period_start": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			"recurrence_period_end": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			"delivery_info": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"storage_account_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 						"container_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: validate.ExportContainerName,
 						},
 						"root_folder_path": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -124,19 +124,19 @@ func resourceCostManagementExport() *schema.Resource {
 			},
 
 			"query": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"time_frame": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(costmanagement.Custom),
@@ -154,7 +154,7 @@ func resourceCostManagementExport() *schema.Resource {
 	}
 }
 
-func resourceCostManagementExportCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCostManagementExportCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).CostManagement.ExportClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -223,7 +223,7 @@ func resourceCostManagementExportCreateUpdate(d *schema.ResourceData, meta inter
 	return resourceCostManagementExportRead(d, meta)
 }
 
-func resourceCostManagementExportRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCostManagementExportRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).CostManagement.ExportClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -269,7 +269,7 @@ func resourceCostManagementExportRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceCostManagementExportDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCostManagementExportDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).CostManagement.ExportClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

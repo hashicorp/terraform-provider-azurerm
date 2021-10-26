@@ -26,7 +26,7 @@ func resourceCostManagementExportResourceGroup() *pluginsdk.Resource {
 		Update: resourceCostManagementExportResourceGroupCreateUpdate,
 		Delete: resourceCostManagementExportResourceGroupDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.CostManagementExportResourceGroupID(id)
+			_, err := parse.CostManagementExportID(id)
 			return err
 		}),
 
@@ -127,8 +127,6 @@ func resourceCostManagementExportResourceGroup() *pluginsdk.Resource {
 								string(costmanagement.Custom),
 								string(costmanagement.MonthToDate),
 								string(costmanagement.TheLastMonth),
-								string(costmanagement.TheLastWeek),
-								string(costmanagement.TheLastYear),
 								string(costmanagement.WeekToDate),
 								string(costmanagement.MonthToDate),
 							}, false),
@@ -149,7 +147,7 @@ func resourceCostManagementExportResourceGroupCreateUpdate(d *pluginsdk.Resource
 	resourceGroup := d.Get("resource_group_id").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing Cost Management Export Resource Group %q (Resource Group %q): %s", name, resourceGroup, err)
@@ -191,7 +189,7 @@ func resourceCostManagementExportResourceGroupCreateUpdate(d *pluginsdk.Resource
 		return fmt.Errorf("creating/updating Cost Management Export Resource Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		return fmt.Errorf("retrieving Cost Management Export Resource Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -216,12 +214,12 @@ func resourceCostManagementExportResourceGroupRead(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CostManagementExportResourceGroupID(d.Id())
+	id, err := parse.CostManagementExportID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceId, id.Name)
+	resp, err := client.Get(ctx, id.ResourceId, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -262,7 +260,7 @@ func resourceCostManagementExportResourceGroupDelete(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CostManagementExportResourceGroupID(d.Id())
+	id, err := parse.CostManagementExportID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -314,28 +312,28 @@ func flattenExportDeliveryInfo(input *costmanagement.ExportDeliveryInfo) []inter
 	return []interface{}{attrs}
 }
 
-func expandExportQuery(input []interface{}) *costmanagement.QueryDefinition {
+func expandExportQuery(input []interface{}) *costmanagement.ExportDefinition {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	attrs := input[0].(map[string]interface{})
-	definitionInfo := &costmanagement.QueryDefinition{
-		Type:      utils.String(attrs["type"].(string)),
+	definitionInfo := &costmanagement.ExportDefinition{
+		Type:      costmanagement.ExportType(attrs["type"].(string)),
 		Timeframe: costmanagement.TimeframeType(attrs["time_frame"].(string)),
 	}
 
 	return definitionInfo
 }
 
-func flattenExportQuery(input *costmanagement.QueryDefinition) []interface{} {
+func flattenExportQuery(input *costmanagement.ExportDefinition) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
 	attrs := make(map[string]interface{})
-	if queryType := input.Type; queryType != nil {
-		attrs["type"] = *queryType
+	if queryType := input.Type; queryType != "" {
+		attrs["type"] = queryType
 	}
 	attrs["time_frame"] = string(input.Timeframe)
 

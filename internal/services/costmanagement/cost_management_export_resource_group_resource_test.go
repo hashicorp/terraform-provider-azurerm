@@ -62,12 +62,12 @@ func TestAccCostManagementExportResourceGroup_update(t *testing.T) {
 }
 
 func (t CostManagementExportResourceGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CostManagementExportResourceGroupID(state.ID)
+	id, err := parse.CostManagementExportID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.CostManagement.ExportClient.Get(ctx, id.ResourceId, id.Name)
+	resp, err := clients.CostManagement.ExportClient.Get(ctx, id.ResourceId, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Cost Management Export ResourceGroup %q (resource group: %q) does not exist", id.Name, id.ResourceId)
 	}
