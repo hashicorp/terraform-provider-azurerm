@@ -146,7 +146,7 @@ A `application_insights_web_test_location_availability_criteria` block supports 
 A `dimension` block supports the following:
 
 * `name` - (Required) One of the dimension names.
-* `operator` - (Required) The dimension operator. Possible values are `Include` and `Exclude`.
+* `operator` - (Required) The dimension operator. Possible values are `Include`, `Exclude` and `StartsWith`.
 * `values` - (Required) The list of dimension values.
 
 ## Attributes Reference
@@ -169,5 +169,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Metric Alerts can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_monitor_metric_alert.main /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/microsoft.insights/metricAlerts/example-metricalert
+terraform import azurerm_monitor_metric_alert.main /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.Insights/metricAlerts/example-metricalert
 ```

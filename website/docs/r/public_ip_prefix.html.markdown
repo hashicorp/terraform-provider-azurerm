@@ -45,13 +45,15 @@ The following arguments are supported:
 
 -> **Note**: Public IP Prefix can only be created with Standard SKUs at this time.
 
+* `availability_zone` - (Optional) The availability zone to allocate the Public IP in. Possible values are `Zone-Redundant`, `1`, `2`, `3`, and `No-Zone`. Defaults to `Zone-Redundant`. 
+
+-> **Note**: Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-ip-addresses-overview-arm#standard) and [in select regions](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) at this time. 
+
 * `prefix_length` - (Optional) Specifies the number of bits of the prefix. The value can be set between 0 (4,294,967,296 addresses) and 31 (2 addresses). Defaults to `28`(16 addresses). Changing this forces a new resource to be created.
 
 -> **Please Note**: There may be Public IP address limits on the subscription . [More information available here](https://docs.microsoft.com/en-us/azure/azure-subscription-service-limits?toc=%2fazure%2fvirtual-network%2ftoc.json#publicip-address)
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
-* `zones` - (Optional) A collection containing the availability zone to allocate the Public IP Prefix in.
 
 -> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
 

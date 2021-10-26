@@ -85,11 +85,21 @@ The following arguments are supported:
 
 * `advanced_filter` - (Optional) A `advanced_filter` block as defined below.
 
+* `delivery_identity` - (Optional) A `delivery_identity` block as defined below.
+
+* `delivery_property` - (Optional) A `delivery_property` block as defined below.
+
+* `dead_letter_identity` - (Optional) A `dead_letter_identity` block as defined below.
+
+-> **Note:** `storage_blob_dead_letter_destination` must be specified when a `dead_letter_identity` is specified
+
 * `storage_blob_dead_letter_destination` - (Optional) A `storage_blob_dead_letter_destination` block as defined below.
 
 * `retry_policy` - (Optional) A `retry_policy` block as defined below.
 
 * `labels` - (Optional) A list of labels to assign to the event subscription.
+
+* `advanced_filtering_on_arrays_enabled` - (Optional) Specifies whether advanced filters should be evaluated against an array of values instead of expecting a singular value. Defaults to `false`.
 
 ---
 
@@ -158,23 +168,57 @@ A `advanced_filter` supports the following nested blocks:
 * `number_less_than_or_equals` - Compares a value of an event using a single floating point number.
 * `number_in` - Compares a value of an event using multiple floating point numbers.
 * `number_not_in` - Compares a value of an event using multiple floating point numbers.
+* `number_in_range` - Compares a value of an event using multiple floating point number ranges.
+* `number_not_in_range` - Compares a value of an event using multiple floating point number ranges.
 * `string_begins_with` - Compares a value of an event using multiple string values.
+* `string_not_begins_with` - Compares a value of an event using multiple string values.
 * `string_ends_with` - Compares a value of an event using multiple string values.
+* `string_not_ends_with` - Compares a value of an event using multiple string values.
 * `string_contains` - Compares a value of an event using multiple string values.
+* `string_not_contains` - Compares a value of an event using multiple string values.
 * `string_in` - Compares a value of an event using multiple string values.
 * `string_not_in` - Compares a value of an event using multiple string values.
+* `is_not_null` - Evaluates if a value of an event isn't NULL or undefined.
+* `is_null_or_undefined` - Evaluates if a value of an event is NULL or undefined.
 
 Each nested block consists of a key and a value(s) element.
 
 * `key` - (Required) Specifies the field within the event data that you want to use for filtering. Type of the field can be a number, boolean, or string.
 
-* `value` - (Required) Specifies a single value to compare to when using a single value operator. 
+* `value` - (Required) Specifies a single value to compare to when using a single value operator.
 
-**OR** 
+**OR**
 
 * `values` - (Required) Specifies an array of values to compare to when using a multiple values operator.
 
 ~> **NOTE:** A maximum of total number of advanced filter values allowed on event subscription is 25.
+
+---
+
+A `delivery_identity` supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that is used for event delivery. Allowed value is `SystemAssigned`.
+
+
+---
+
+A `delivery_property` supports the following:
+
+* `header_name` - (Required) The name of the header to send on to the destination
+
+* `type` - (Required) Either `Static` or `Dynamic`
+
+* `value` - (Optional) If the `type` is `Static`, then provide the value to use
+
+* `source_field` - (Optional) If the `type` is `Dynamic`, then provide the payload field to be used as the value. Valid source fields differ by subscription type.
+
+* `secret` - (Optional) True if the `value` is a secret and should be protected, otherwise false. If True, then this value won't be returned from Azure API calls 
+
+---
+
+A `dead_letter_identity` supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that is used for dead lettering. Allowed value is `SystemAssigned`.
 
 ---
 

@@ -119,7 +119,7 @@ A `rule` block supports the following:
 
 A `protocol` block supports the following:
 
-* `port` - (Optional) Specify a port for the connection.
+* `port` - (Required) Specify a port for the connection.
 
 * `type` - (Required) Specifies the type of connection. Possible values are `Http`, `Https` and `Mssql`.
 

@@ -65,11 +65,15 @@ The following supported arguments are specific to SFTP Linked Service:
 
 * `host` - (Required) The SFTP server hostname.
 
-* `port` - (Required) The TCP port number that the SFTP server uses to lsiten for client connection. Default value is 22.
+* `port` - (Required) The TCP port number that the SFTP server uses to listen for client connection. Default value is 22.
 
 * `username` - (Required) The username used to log on to the SFTP server.
 
 * `password` - (Required) Password to logon to the SFTP Server for Basic Authentication.
+
+* `host_key_fingerprint` - (Optional) The host key fingerprint of the SFTP server.
+
+* `skip_host_key_validation` - (Optional) Whether to validate host key fingerprint while connecting. If set to `false`, `host_key_fingerprint` must also be set.
 
 ## Attributes Reference
 

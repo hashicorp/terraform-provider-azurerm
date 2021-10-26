@@ -69,6 +69,8 @@ The following arguments are supported:
 
 * `sql_administrator_login_password` - (Required) The Password associated with the `sql_administrator_login` for the SQL administrator.
 
+* `data_exfiltration_protection_enabled` - (Optional) Is data exfiltration protection enabled in this workspace? If set to `true`, `managed_virtual_network_enabled` must also be set to `true`. Changing this forces a new resource to be created.
+
 * `managed_virtual_network_enabled` - (Optional) Is Virtual Network enabled for all computes in this workspace? Defaults to `false`. Changing this forces a new resource to be created.
 
 * `sql_identity_control_enabled` - (Optional) Are pipelines (running as workspace's system assigned identity) allowed to access SQL pools?
@@ -81,7 +83,7 @@ The following arguments are supported:
 
 * `github_repo` - (Optional) A `github_repo` block as defined below.
 
-* `customer_managed_key_versionless_id` - (Optional) The Azure Key Vault Key Versionless ID to be used as the Customer Managed Key (CMK) for double encryption (e.g. `https://example-keyvault.vault.azure.net/type/cmk/`).
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Workspace.
 
@@ -109,6 +111,8 @@ An `azure_devops_repo` block supports the following:
 
 * `root_folder` - (Required) Specifies the root folder within the repository. Set to `/` for the top level.
 
+* `tenant_id` - (Optional) the ID of the tenant for the Azure DevOps account.
+
 ---
 
 A `github_repo` block supports the following:
@@ -124,6 +128,14 @@ A `github_repo` block supports the following:
 * `git_url` - (Optional) Specifies the GitHub Enterprise host name. For example: https://github.mydomain.com.
 
 -> **Note:** You must log in to the Synapse UI to complete the authentication to the GitHub repository.
+
+---
+
+A `customer_managed_key` block supports the following:
+
+* `key_versionless_id` - (Required) The Azure Key Vault Key Versionless ID to be used as the Customer Managed Key (CMK) for double encryption (e.g. `https://example-keyvault.vault.azure.net/type/cmk/`).
+
+* `key_name` - (Optional) An identifier for the key. Name needs to match the name of the key used with the `azurerm_synapse_workspace_key` resource. Defaults to "cmk" if not specified.
 
 ## Attributes Reference
 

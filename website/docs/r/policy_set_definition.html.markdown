@@ -96,7 +96,7 @@ An `policy_definition_group` block supports the following:
 
 * `description` - (Optional) The description of this policy definition group.
 
-* `additional_metadata_id` - (Optional) The ID of a resource that contains additional metadata about this policy definition group.
+* `additional_metadata_resource_id` - (Optional) The ID of a resource that contains additional metadata about this policy definition group.
 
 ## Attributes Reference
 

@@ -64,6 +64,7 @@ resource "azurerm_api_management_logger" "example" {
 }
 
 resource "azurerm_api_management_api_diagnostic" "example" {
+  identifier               = "applicationinsights"
   resource_group_name      = azurerm_resource_group.example.name
   api_management_name      = azurerm_api_management.example.name
   api_name                 = azurerm_api_management_api.example.name
@@ -72,7 +73,7 @@ resource "azurerm_api_management_api_diagnostic" "example" {
   sampling_percentage       = 5.0
   always_log_errors         = true
   log_client_ip             = true
-  verbosity                 = "Verbose"
+  verbosity                 = "verbose"
   http_correlation_protocol = "W3C"
 
   frontend_request {
@@ -147,6 +148,8 @@ The following arguments are supported:
 
 * `verbosity` - (Optional) Logging verbosity. Possible values are `verbose`, `information` or `error`.
 
+* `operation_name_format` - (Optional) The format of the Operation Name for Application Insights telemetries. Possible values are `Name`, and `Url`. Defaults to `Name`.
+
 ---
 
 A `backend_request`, `backend_response`, `frontend_request` or `frontend_response` block supports the following:
@@ -154,6 +157,24 @@ A `backend_request`, `backend_response`, `frontend_request` or `frontend_respons
 * `body_bytes` - (Optional) Number of payload bytes to log (up to 8192).
 
 * `headers_to_log` - (Optional) Specifies a list of headers to log.
+
+* `data_masking` - (Optional) A `data_masking` block as defined below.
+
+---
+
+A `data_masking` block supports the following:
+
+* `query_params` - (Optional) A `query_params` block as defined below.
+
+* `headers` - (Optional) A `headers` block as defined below.
+
+---
+
+The `query_params` and `headers` blocks support the following:
+
+* `mode` - (Required) The data masking mode. Possible values are `Mask` and `Hide` for `query_params`. The only possible value is `Mask` for `headers`.
+
+* `value` - (Required) The name of the header or the query parameter to mask.
 
 ## Attributes Reference
 

@@ -54,7 +54,7 @@ func (client ReplicationPoliciesClient) Create(ctx context.Context, policyName s
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationPoliciesClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationPoliciesClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -89,6 +89,7 @@ func (client ReplicationPoliciesClient) CreatePreparer(ctx context.Context, poli
 // http.Response Body if it receives an error.
 func (client ReplicationPoliciesClient) CreateSender(req *http.Request) (future ReplicationPoliciesCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -134,7 +135,7 @@ func (client ReplicationPoliciesClient) Delete(ctx context.Context, policyName s
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationPoliciesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationPoliciesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -167,6 +168,7 @@ func (client ReplicationPoliciesClient) DeletePreparer(ctx context.Context, poli
 // http.Response Body if it receives an error.
 func (client ReplicationPoliciesClient) DeleteSender(req *http.Request) (future ReplicationPoliciesDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -403,7 +405,7 @@ func (client ReplicationPoliciesClient) Update(ctx context.Context, policyName s
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationPoliciesClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationPoliciesClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -438,6 +440,7 @@ func (client ReplicationPoliciesClient) UpdatePreparer(ctx context.Context, poli
 // http.Response Body if it receives an error.
 func (client ReplicationPoliciesClient) UpdateSender(req *http.Request) (future ReplicationPoliciesUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

@@ -122,12 +122,10 @@ func (client DeploymentsClient) Cancel(ctx context.Context, resourceGroupName st
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\p{L}\._\(\)\w]+$`, Chain: nil}}},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "Cancel", err.Error())
 	}
 
@@ -214,8 +212,7 @@ func (client DeploymentsClient) CancelAtManagementGroupScope(ctx context.Context
 				{Target: "groupID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "CancelAtManagementGroupScope", err.Error())
 	}
 
@@ -298,8 +295,7 @@ func (client DeploymentsClient) CancelAtScope(ctx context.Context, scope string,
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "CancelAtScope", err.Error())
 	}
 
@@ -381,8 +377,7 @@ func (client DeploymentsClient) CancelAtSubscriptionScope(ctx context.Context, d
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "CancelAtSubscriptionScope", err.Error())
 	}
 
@@ -464,8 +459,7 @@ func (client DeploymentsClient) CancelAtTenantScope(ctx context.Context, deploym
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "CancelAtTenantScope", err.Error())
 	}
 
@@ -546,12 +540,10 @@ func (client DeploymentsClient) CheckExistence(ctx context.Context, resourceGrou
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\p{L}\._\(\)\w]+$`, Chain: nil}}},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "CheckExistence", err.Error())
 	}
 
@@ -636,8 +628,7 @@ func (client DeploymentsClient) CheckExistenceAtManagementGroupScope(ctx context
 				{Target: "groupID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "CheckExistenceAtManagementGroupScope", err.Error())
 	}
 
@@ -718,8 +709,7 @@ func (client DeploymentsClient) CheckExistenceAtScope(ctx context.Context, scope
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "CheckExistenceAtScope", err.Error())
 	}
 
@@ -799,8 +789,7 @@ func (client DeploymentsClient) CheckExistenceAtSubscriptionScope(ctx context.Co
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "CheckExistenceAtSubscriptionScope", err.Error())
 	}
 
@@ -880,8 +869,7 @@ func (client DeploymentsClient) CheckExistenceAtTenantScope(ctx context.Context,
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "CheckExistenceAtTenantScope", err.Error())
 	}
 
@@ -963,12 +951,10 @@ func (client DeploymentsClient) CreateOrUpdate(ctx context.Context, resourceGrou
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\p{L}\._\(\)\w]+$`, Chain: nil}}},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Properties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "parameters.Properties.ParametersLink", Name: validation.Null, Rule: false,
@@ -985,7 +971,7 @@ func (client DeploymentsClient) CreateOrUpdate(ctx context.Context, resourceGrou
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1019,6 +1005,7 @@ func (client DeploymentsClient) CreateOrUpdatePreparer(ctx context.Context, reso
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) CreateOrUpdateSender(req *http.Request) (future DeploymentsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1065,8 +1052,7 @@ func (client DeploymentsClient) CreateOrUpdateAtManagementGroupScope(ctx context
 				{Target: "groupID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Location", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "parameters.Properties", Name: validation.Null, Rule: true,
@@ -1084,7 +1070,7 @@ func (client DeploymentsClient) CreateOrUpdateAtManagementGroupScope(ctx context
 
 	result, err = client.CreateOrUpdateAtManagementGroupScopeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "CreateOrUpdateAtManagementGroupScope", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "CreateOrUpdateAtManagementGroupScope", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1117,6 +1103,7 @@ func (client DeploymentsClient) CreateOrUpdateAtManagementGroupScopePreparer(ctx
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) CreateOrUpdateAtManagementGroupScopeSender(req *http.Request) (future DeploymentsCreateOrUpdateAtManagementGroupScopeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return
@@ -1159,8 +1146,7 @@ func (client DeploymentsClient) CreateOrUpdateAtScope(ctx context.Context, scope
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Properties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "parameters.Properties.ParametersLink", Name: validation.Null, Rule: false,
@@ -1177,7 +1163,7 @@ func (client DeploymentsClient) CreateOrUpdateAtScope(ctx context.Context, scope
 
 	result, err = client.CreateOrUpdateAtScopeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "CreateOrUpdateAtScope", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "CreateOrUpdateAtScope", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1210,6 +1196,7 @@ func (client DeploymentsClient) CreateOrUpdateAtScopePreparer(ctx context.Contex
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) CreateOrUpdateAtScopeSender(req *http.Request) (future DeploymentsCreateOrUpdateAtScopeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return
@@ -1252,8 +1239,7 @@ func (client DeploymentsClient) CreateOrUpdateAtSubscriptionScope(ctx context.Co
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Properties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "parameters.Properties.ParametersLink", Name: validation.Null, Rule: false,
@@ -1270,7 +1256,7 @@ func (client DeploymentsClient) CreateOrUpdateAtSubscriptionScope(ctx context.Co
 
 	result, err = client.CreateOrUpdateAtSubscriptionScopeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "CreateOrUpdateAtSubscriptionScope", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "CreateOrUpdateAtSubscriptionScope", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1303,6 +1289,7 @@ func (client DeploymentsClient) CreateOrUpdateAtSubscriptionScopePreparer(ctx co
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) CreateOrUpdateAtSubscriptionScopeSender(req *http.Request) (future DeploymentsCreateOrUpdateAtSubscriptionScopeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1345,8 +1332,7 @@ func (client DeploymentsClient) CreateOrUpdateAtTenantScope(ctx context.Context,
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Location", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "parameters.Properties", Name: validation.Null, Rule: true,
@@ -1364,7 +1350,7 @@ func (client DeploymentsClient) CreateOrUpdateAtTenantScope(ctx context.Context,
 
 	result, err = client.CreateOrUpdateAtTenantScopeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "CreateOrUpdateAtTenantScope", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "CreateOrUpdateAtTenantScope", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1396,6 +1382,7 @@ func (client DeploymentsClient) CreateOrUpdateAtTenantScopePreparer(ctx context.
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) CreateOrUpdateAtTenantScopeSender(req *http.Request) (future DeploymentsCreateOrUpdateAtTenantScopeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return
@@ -1444,12 +1431,10 @@ func (client DeploymentsClient) Delete(ctx context.Context, resourceGroupName st
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\p{L}\._\(\)\w]+$`, Chain: nil}}},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "Delete", err.Error())
 	}
 
@@ -1461,7 +1446,7 @@ func (client DeploymentsClient) Delete(ctx context.Context, resourceGroupName st
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1493,6 +1478,7 @@ func (client DeploymentsClient) DeletePreparer(ctx context.Context, resourceGrou
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) DeleteSender(req *http.Request) (future DeploymentsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1541,8 +1527,7 @@ func (client DeploymentsClient) DeleteAtManagementGroupScope(ctx context.Context
 				{Target: "groupID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "DeleteAtManagementGroupScope", err.Error())
 	}
 
@@ -1554,7 +1539,7 @@ func (client DeploymentsClient) DeleteAtManagementGroupScope(ctx context.Context
 
 	result, err = client.DeleteAtManagementGroupScopeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "DeleteAtManagementGroupScope", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "DeleteAtManagementGroupScope", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1585,6 +1570,7 @@ func (client DeploymentsClient) DeleteAtManagementGroupScopePreparer(ctx context
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) DeleteAtManagementGroupScopeSender(req *http.Request) (future DeploymentsDeleteAtManagementGroupScopeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return
@@ -1630,8 +1616,7 @@ func (client DeploymentsClient) DeleteAtScope(ctx context.Context, scope string,
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "DeleteAtScope", err.Error())
 	}
 
@@ -1643,7 +1628,7 @@ func (client DeploymentsClient) DeleteAtScope(ctx context.Context, scope string,
 
 	result, err = client.DeleteAtScopeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "DeleteAtScope", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "DeleteAtScope", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1674,6 +1659,7 @@ func (client DeploymentsClient) DeleteAtScopePreparer(ctx context.Context, scope
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) DeleteAtScopeSender(req *http.Request) (future DeploymentsDeleteAtScopeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return
@@ -1718,8 +1704,7 @@ func (client DeploymentsClient) DeleteAtSubscriptionScope(ctx context.Context, d
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "DeleteAtSubscriptionScope", err.Error())
 	}
 
@@ -1731,7 +1716,7 @@ func (client DeploymentsClient) DeleteAtSubscriptionScope(ctx context.Context, d
 
 	result, err = client.DeleteAtSubscriptionScopeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "DeleteAtSubscriptionScope", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "DeleteAtSubscriptionScope", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1762,6 +1747,7 @@ func (client DeploymentsClient) DeleteAtSubscriptionScopePreparer(ctx context.Co
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) DeleteAtSubscriptionScopeSender(req *http.Request) (future DeploymentsDeleteAtSubscriptionScopeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1806,8 +1792,7 @@ func (client DeploymentsClient) DeleteAtTenantScope(ctx context.Context, deploym
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "DeleteAtTenantScope", err.Error())
 	}
 
@@ -1819,7 +1804,7 @@ func (client DeploymentsClient) DeleteAtTenantScope(ctx context.Context, deploym
 
 	result, err = client.DeleteAtTenantScopeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "DeleteAtTenantScope", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "DeleteAtTenantScope", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1849,6 +1834,7 @@ func (client DeploymentsClient) DeleteAtTenantScopePreparer(ctx context.Context,
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) DeleteAtTenantScopeSender(req *http.Request) (future DeploymentsDeleteAtTenantScopeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return
@@ -1889,12 +1875,10 @@ func (client DeploymentsClient) ExportTemplate(ctx context.Context, resourceGrou
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\p{L}\._\(\)\w]+$`, Chain: nil}}},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "ExportTemplate", err.Error())
 	}
 
@@ -1980,8 +1964,7 @@ func (client DeploymentsClient) ExportTemplateAtManagementGroupScope(ctx context
 				{Target: "groupID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "ExportTemplateAtManagementGroupScope", err.Error())
 	}
 
@@ -2063,8 +2046,7 @@ func (client DeploymentsClient) ExportTemplateAtScope(ctx context.Context, scope
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "ExportTemplateAtScope", err.Error())
 	}
 
@@ -2145,8 +2127,7 @@ func (client DeploymentsClient) ExportTemplateAtSubscriptionScope(ctx context.Co
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "ExportTemplateAtSubscriptionScope", err.Error())
 	}
 
@@ -2227,8 +2208,7 @@ func (client DeploymentsClient) ExportTemplateAtTenantScope(ctx context.Context,
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "ExportTemplateAtTenantScope", err.Error())
 	}
 
@@ -2309,12 +2289,10 @@ func (client DeploymentsClient) Get(ctx context.Context, resourceGroupName strin
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\p{L}\._\(\)\w]+$`, Chain: nil}}},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "Get", err.Error())
 	}
 
@@ -2400,8 +2378,7 @@ func (client DeploymentsClient) GetAtManagementGroupScope(ctx context.Context, g
 				{Target: "groupID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "GetAtManagementGroupScope", err.Error())
 	}
 
@@ -2483,8 +2460,7 @@ func (client DeploymentsClient) GetAtScope(ctx context.Context, scope string, de
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "GetAtScope", err.Error())
 	}
 
@@ -2565,8 +2541,7 @@ func (client DeploymentsClient) GetAtSubscriptionScope(ctx context.Context, depl
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "GetAtSubscriptionScope", err.Error())
 	}
 
@@ -2647,8 +2622,7 @@ func (client DeploymentsClient) GetAtTenantScope(ctx context.Context, deployment
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "GetAtTenantScope", err.Error())
 	}
 
@@ -3229,8 +3203,7 @@ func (client DeploymentsClient) ListByResourceGroup(ctx context.Context, resourc
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\p{L}\._\(\)\w]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "ListByResourceGroup", err.Error())
 	}
 
@@ -3363,12 +3336,10 @@ func (client DeploymentsClient) Validate(ctx context.Context, resourceGroupName 
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\p{L}\._\(\)\w]+$`, Chain: nil}}},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Properties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "parameters.Properties.ParametersLink", Name: validation.Null, Rule: false,
@@ -3385,7 +3356,7 @@ func (client DeploymentsClient) Validate(ctx context.Context, resourceGroupName 
 
 	result, err = client.ValidateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "Validate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "Validate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -3419,6 +3390,7 @@ func (client DeploymentsClient) ValidatePreparer(ctx context.Context, resourceGr
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) ValidateSender(req *http.Request) (future DeploymentsValidateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -3465,8 +3437,7 @@ func (client DeploymentsClient) ValidateAtManagementGroupScope(ctx context.Conte
 				{Target: "groupID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Location", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "parameters.Properties", Name: validation.Null, Rule: true,
@@ -3484,7 +3455,7 @@ func (client DeploymentsClient) ValidateAtManagementGroupScope(ctx context.Conte
 
 	result, err = client.ValidateAtManagementGroupScopeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "ValidateAtManagementGroupScope", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "ValidateAtManagementGroupScope", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -3517,6 +3488,7 @@ func (client DeploymentsClient) ValidateAtManagementGroupScopePreparer(ctx conte
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) ValidateAtManagementGroupScopeSender(req *http.Request) (future DeploymentsValidateAtManagementGroupScopeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return
@@ -3560,8 +3532,7 @@ func (client DeploymentsClient) ValidateAtScope(ctx context.Context, scope strin
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Properties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "parameters.Properties.ParametersLink", Name: validation.Null, Rule: false,
@@ -3578,7 +3549,7 @@ func (client DeploymentsClient) ValidateAtScope(ctx context.Context, scope strin
 
 	result, err = client.ValidateAtScopeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "ValidateAtScope", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "ValidateAtScope", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -3611,6 +3582,7 @@ func (client DeploymentsClient) ValidateAtScopePreparer(ctx context.Context, sco
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) ValidateAtScopeSender(req *http.Request) (future DeploymentsValidateAtScopeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return
@@ -3653,8 +3625,7 @@ func (client DeploymentsClient) ValidateAtSubscriptionScope(ctx context.Context,
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Properties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "parameters.Properties.ParametersLink", Name: validation.Null, Rule: false,
@@ -3671,7 +3642,7 @@ func (client DeploymentsClient) ValidateAtSubscriptionScope(ctx context.Context,
 
 	result, err = client.ValidateAtSubscriptionScopeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "ValidateAtSubscriptionScope", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "ValidateAtSubscriptionScope", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -3704,6 +3675,7 @@ func (client DeploymentsClient) ValidateAtSubscriptionScopePreparer(ctx context.
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) ValidateAtSubscriptionScopeSender(req *http.Request) (future DeploymentsValidateAtSubscriptionScopeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -3746,8 +3718,7 @@ func (client DeploymentsClient) ValidateAtTenantScope(ctx context.Context, deplo
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Location", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "parameters.Properties", Name: validation.Null, Rule: true,
@@ -3765,7 +3736,7 @@ func (client DeploymentsClient) ValidateAtTenantScope(ctx context.Context, deplo
 
 	result, err = client.ValidateAtTenantScopeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "ValidateAtTenantScope", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "ValidateAtTenantScope", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -3797,6 +3768,7 @@ func (client DeploymentsClient) ValidateAtTenantScopePreparer(ctx context.Contex
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) ValidateAtTenantScopeSender(req *http.Request) (future DeploymentsValidateAtTenantScopeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return
@@ -3840,12 +3812,10 @@ func (client DeploymentsClient) WhatIf(ctx context.Context, resourceGroupName st
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\p{L}\._\(\)\w]+$`, Chain: nil}}},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Properties", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "WhatIf", err.Error())
@@ -3859,7 +3829,7 @@ func (client DeploymentsClient) WhatIf(ctx context.Context, resourceGroupName st
 
 	result, err = client.WhatIfSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "WhatIf", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "WhatIf", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -3893,6 +3863,7 @@ func (client DeploymentsClient) WhatIfPreparer(ctx context.Context, resourceGrou
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) WhatIfSender(req *http.Request) (future DeploymentsWhatIfFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -3939,8 +3910,7 @@ func (client DeploymentsClient) WhatIfAtManagementGroupScope(ctx context.Context
 				{Target: "groupID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Location", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "parameters.Properties", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
@@ -3955,7 +3925,7 @@ func (client DeploymentsClient) WhatIfAtManagementGroupScope(ctx context.Context
 
 	result, err = client.WhatIfAtManagementGroupScopeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "WhatIfAtManagementGroupScope", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "WhatIfAtManagementGroupScope", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -3988,6 +3958,7 @@ func (client DeploymentsClient) WhatIfAtManagementGroupScopePreparer(ctx context
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) WhatIfAtManagementGroupScopeSender(req *http.Request) (future DeploymentsWhatIfAtManagementGroupScopeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return
@@ -4030,8 +4001,7 @@ func (client DeploymentsClient) WhatIfAtSubscriptionScope(ctx context.Context, d
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Properties", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentsClient", "WhatIfAtSubscriptionScope", err.Error())
@@ -4045,7 +4015,7 @@ func (client DeploymentsClient) WhatIfAtSubscriptionScope(ctx context.Context, d
 
 	result, err = client.WhatIfAtSubscriptionScopeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "WhatIfAtSubscriptionScope", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "WhatIfAtSubscriptionScope", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -4078,6 +4048,7 @@ func (client DeploymentsClient) WhatIfAtSubscriptionScopePreparer(ctx context.Co
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) WhatIfAtSubscriptionScopeSender(req *http.Request) (future DeploymentsWhatIfAtSubscriptionScopeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -4120,8 +4091,7 @@ func (client DeploymentsClient) WhatIfAtTenantScope(ctx context.Context, deploym
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: deploymentName,
 			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Location", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "parameters.Properties", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
@@ -4136,7 +4106,7 @@ func (client DeploymentsClient) WhatIfAtTenantScope(ctx context.Context, deploym
 
 	result, err = client.WhatIfAtTenantScopeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "WhatIfAtTenantScope", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsClient", "WhatIfAtTenantScope", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -4168,6 +4138,7 @@ func (client DeploymentsClient) WhatIfAtTenantScopePreparer(ctx context.Context,
 // http.Response Body if it receives an error.
 func (client DeploymentsClient) WhatIfAtTenantScopeSender(req *http.Request) (future DeploymentsWhatIfAtTenantScopeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return

@@ -47,6 +47,8 @@ The following attributes are exported:
 
 * `outbound_public_ip_addresses` - A list of the outbound Public IP Addresses used by this Spring Cloud Service.
 
+* `required_network_traffic_rules` - A list of `required_network_traffic_rules` blocks as defined below.
+
 * `tags` - A mapping of tags assigned to Spring Cloud Service.
 
 ---
@@ -102,6 +104,20 @@ The `ssh_auth` block supports the following:
 * `host_key_algorithm` - The host key algorithm.
 
 * `strict_host_key_checking_enabled` - Indicates whether the Config Server instance will fail to start if the host_key does not match.
+
+---
+
+The `required_network_traffic_rules` supports the following:
+
+* `direction` - The direction of required traffic. Possible values are `Inbound`, `Outbound`.
+
+* `fqdns` - The FQDN list of required traffic.
+
+* `ips` - The ip list of required traffic.
+
+* `port` - The port of required traffic.
+
+* `protocol` - The protocol of required traffic.
 
 ## Timeouts
 

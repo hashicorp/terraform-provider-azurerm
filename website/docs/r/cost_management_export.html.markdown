@@ -56,23 +56,35 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Cost Management Export. Changing this forces a new resource to be created.
 
-* `scope` - (Required) The ID of the scope in which to export information from. This includes `'/subscriptions/{subscriptionId}/'` for subscription scope, '`/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}`' for resourceGroup scope, `'/providers/Microsoft.Billing/billingAccounts/{billingAccountId}'` for Billing Account scope and `'/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/departments/{departmentId}'` for Department scope, `'/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/enrollmentAccounts/{enrollmentAccountId}'` for EnrollmentAccount scope, `'/providers/Microsoft.Management/managementGroups/{managementGroupId}` for Management Group scope, `'/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}'` for billingProfile scope, `'/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/invoiceSections/{invoiceSectionId}'` for invoiceSection scope, and `'/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/customers/{customerId}'` specific for partners.
+* `scope` - (Required) The ID of the scope in which to export information from, such as for `Subscription`, `Resource group`, `Billing Account`, `Department` ... Changing this forces a new resource to be created.
 
-* `recurrence_type` - (Required) How often the requested information will be exported. Valid values include `Annually`, `Daily`, `Monthly`, `Weekly`.
+~> **NOTE:** The ID format differs depending on the type of `scope`:
+- for scope `Subscription`, the id format is `/subscriptions/{subscriptionId}/`
+- for scope `Resource Group`, the id format is `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}`
+- for scope `Billing Accounts`, the id format is `/providers/Microsoft.Billing/billingAccounts/{billingAccountId}`
+- for scope `Department`, the id format is `/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/departments/{departmentId}`
+- for scope `Enrollment Account`, the id format is `/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}`
+- for scope `Management Group`, the id format is `/providers/Microsoft.Management/managementGroups/{managementGroupId}`
+- for scope `Billing Profile`, the id format is `/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}`
+- for scope `Invoice Section`, the id format is `/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/invoiceSections/{invoiceSectionId}`
+- for scope `Partner Customer`, the id format is `/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/customers/{customerId}`
+...
+
+* `recurrence_type` - (Required) How often the requested information will be exported. Accepted values are `Annually`, `Daily`, `Monthly`, or `Weekly`.
 
 * `recurrence_period_start` - (Required) The date the export will start capturing information.
 
 * `recurrence_period_end` - (Required) The date the export will stop capturing information. 
 
-* `delivery_info` - (Required) A `delivery_info` block as defined below.
+* `export_data_storage_location` - (Required) A `export_data_storage_location` block as defined below.
 
-* `query` - (Required) A `query` block as defined below.
+* `export_data_definition` - (Required) A `export_data_definition` block as defined below.
 
 * `active` - (Optional) Is the cost management export active? Default is `true`.
 
 ---
 
-A `delivery_info` block supports the following:
+A `export_data_storage_location` block supports the following:
 
 * `storage_account_id` - (Required) The storage account id where exports will be delivered.
 
@@ -82,11 +94,11 @@ A `delivery_info` block supports the following:
 
 ---
 
-A `query` block supports the following:
+A `export_data_definition` block supports the following:
 
-* `type` - (Required) The type of the query.
+* `type` - (Required) The type of the query. Accepted values are `Usage`, `ActualCost`, or `AmortizedCost`.
 
-* `time_frame` - (Required) The time frame for pulling data for the query. If custom, then a specific time period must be provided. Possible values include: `WeekToDate`, `MonthToDate`, `YearToDate`, `TheLastWeek`, `TheLastMonth`, `TheLastYear`, `Custom`.
+* `time_frame` - (Required) The time frame for pulling data for the query. If custom, then a specific time period must be provided. Accepted values are `WeekToDate`, `MonthToDate`, `TheLastBillingMonth`, `BillingMonthToDate`, `TheLastMonth`, `MonthToDate` or `Custom`.
 
 ## Attributes Reference
 

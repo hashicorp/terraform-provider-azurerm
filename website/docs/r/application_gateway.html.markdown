@@ -143,6 +143,10 @@ The following arguments are supported:
 
 * `zones` - (Optional) A collection of availability zones to spread the Application Gateway over.
 
+* `trusted_client_certificate` - (Optional) One or more `trusted_client_certificate` blocks as defined below.
+
+* `ssl_profile` - (Optional) One or more `ssl_profile` blocks as defined below.
+
 -> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).  They are also only supported for [v2 SKUs](https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
 
 ---
@@ -151,7 +155,7 @@ The following arguments are supported:
 
 * `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
 
-* `ssl_policy` (Optional) a `ssl policy` block as defined below.
+* `ssl_policy` - (Optional) a `ssl policy` block as defined below.
 
 * `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
 
@@ -256,9 +260,7 @@ A `frontend_ip_configuration` block supports the following:
 
 * `private_ip_address` - (Optional) The Private IP Address to use for the Application Gateway.
 
-* `public_ip_address_id` - (Optional) The ID of a Public IP Address which the Application Gateway should use.
-
--> **NOTE:** The Allocation Method for this Public IP Address should be set to `Dynamic`.
+* `public_ip_address_id` - (Optional) The ID of a Public IP Address which the Application Gateway should use. The allocation method for the Public IP Address depends on the `sku` of this Application Gateway. Please refer to the [Azure documentation for public IP addresses](https://docs.microsoft.com/en-us/azure/virtual-network/public-ip-addresses#application-gateways) for details.
 
 * `private_ip_address_allocation` - (Optional) The Allocation Method for the Private IP Address. Possible values are `Dynamic` and `Static`.
 
@@ -302,7 +304,9 @@ A `http_listener` block supports the following:
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
 
-* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used as a HTTP Listener.
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used for this HTTP Listener.
+
+* `ssl_profile_name` - (Optional) The name of the associated SSL Profile which should be used for this HTTP Listener.
 
 ---
 
@@ -429,6 +433,25 @@ A `url_path_map` block supports the following:
 * `path_rule` - (Required) One or more `path_rule` blocks as defined above.
 
 ---
+A `trusted_client_certificate` block supports the following:
+
+* `name` - (Required) The name of the Trusted Client Certificate that is unique within this Application Gateway.
+
+* `data` - (Required) The base-64 encoded certificate.
+
+---
+
+A `ssl_profile` block supports the following:
+
+* `name` - (Required) The name of the SSL Profile that is unique within this Application Gateway.
+
+* `trusted_client_certificate_names` - (Optional) The name of the Trusted Client Certificate that will be used to authenticate requests from clients.
+
+* `verify_client_cert_issuer_dn` - (Optional) Should client certificate issuer DN be verified?  Defaults to `false`.
+
+* `ssl_policy` - (Optional) a `ssl policy` block as defined below.
+
+---
 
 A `ssl_policy` block supports the following:
 
@@ -548,6 +571,7 @@ A `rewrite_rule` block supports the following:
 * `response_header_configuration` - (Optional) One or more `response_header_configuration` blocks as defined above.
 
 * `url` - (Optional) One `url` block as defined above
+
 ---
 
 A `condition` block supports the following:
@@ -677,6 +701,8 @@ A `http_listener` block exports the following:
 * `frontend_port_id` - The ID of the associated Frontend Port.
 
 * `ssl_certificate_id` - The ID of the associated SSL Certificate.
+
+* `ssl_profile_id` - The ID of the associated SSL Certificate.
 
 ---
 

@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) A list of a one or more Availability Zones, where the Redis Cache should be allocated. Possible values are: `1`, `2` and `3`. Changing this forces a new Redis Enterprise Cluster to be created.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Redis Enterprise Cluster. Changing this forces a new Redis Enterprise Cluster to be created.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Redis Enterprise Cluster.
 
 ## Attributes Reference
 
@@ -63,6 +63,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the Redis Enterprise Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Redis Enterprise Cluster.
+* `update` - (Defaults to 30 minutes) Used when updating the Redis Enterprise Cluster.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Redis Enterprise Cluster.
 
 ## Import

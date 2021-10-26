@@ -30,6 +30,158 @@ func NewLocationsClientWithBaseURI(baseURI string, subscriptionID string) Locati
 	return LocationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// CheckNameAvailability check the cluster name is available or not.
+// Parameters:
+// location - the Azure location (region) for which to make the request.
+func (client LocationsClient) CheckNameAvailability(ctx context.Context, location string, parameters NameAvailabilityCheckRequestParameters) (result NameAvailabilityCheckResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/LocationsClient.CheckNameAvailability")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.CheckNameAvailabilityPreparer(ctx, location, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.LocationsClient", "CheckNameAvailability", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.CheckNameAvailabilitySender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "hdinsight.LocationsClient", "CheckNameAvailability", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.CheckNameAvailabilityResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.LocationsClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// CheckNameAvailabilityPreparer prepares the CheckNameAvailability request.
+func (client LocationsClient) CheckNameAvailabilityPreparer(ctx context.Context, location string, parameters NameAvailabilityCheckRequestParameters) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"location":       autorest.Encode("path", location),
+		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.HDInsight/locations/{location}/checkNameAvailability", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// CheckNameAvailabilitySender sends the CheckNameAvailability request. The method will close the
+// http.Response Body if it receives an error.
+func (client LocationsClient) CheckNameAvailabilitySender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// CheckNameAvailabilityResponder handles the response to the CheckNameAvailability request. The method always
+// closes the http.Response Body.
+func (client LocationsClient) CheckNameAvailabilityResponder(resp *http.Response) (result NameAvailabilityCheckResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetAzureAsyncOperationStatus get the async operation status.
+// Parameters:
+// location - the Azure location (region) for which to make the request.
+// operationID - the long running operation id.
+func (client LocationsClient) GetAzureAsyncOperationStatus(ctx context.Context, location string, operationID string) (result AsyncOperationResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/LocationsClient.GetAzureAsyncOperationStatus")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetAzureAsyncOperationStatusPreparer(ctx, location, operationID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.LocationsClient", "GetAzureAsyncOperationStatus", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetAzureAsyncOperationStatusSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "hdinsight.LocationsClient", "GetAzureAsyncOperationStatus", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetAzureAsyncOperationStatusResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.LocationsClient", "GetAzureAsyncOperationStatus", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetAzureAsyncOperationStatusPreparer prepares the GetAzureAsyncOperationStatus request.
+func (client LocationsClient) GetAzureAsyncOperationStatusPreparer(ctx context.Context, location string, operationID string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"location":       autorest.Encode("path", location),
+		"operationId":    autorest.Encode("path", operationID),
+		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.HDInsight/locations/{location}/azureasyncoperations/{operationId}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetAzureAsyncOperationStatusSender sends the GetAzureAsyncOperationStatus request. The method will close the
+// http.Response Body if it receives an error.
+func (client LocationsClient) GetAzureAsyncOperationStatusSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetAzureAsyncOperationStatusResponder handles the response to the GetAzureAsyncOperationStatus request. The method always
+// closes the http.Response Body.
+func (client LocationsClient) GetAzureAsyncOperationStatusResponder(resp *http.Response) (result AsyncOperationResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // GetCapabilities gets the capabilities for the specified location.
 // Parameters:
 // location - the Azure location (region) for which to make the request.
@@ -243,6 +395,82 @@ func (client LocationsClient) ListUsagesSender(req *http.Request) (*http.Respons
 // ListUsagesResponder handles the response to the ListUsages request. The method always
 // closes the http.Response Body.
 func (client LocationsClient) ListUsagesResponder(resp *http.Response) (result UsagesListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// ValidateClusterCreateRequest validate the cluster create request spec is valid or not.
+// Parameters:
+// location - the Azure location (region) for which to make the request.
+func (client LocationsClient) ValidateClusterCreateRequest(ctx context.Context, location string, parameters ClusterCreateRequestValidationParameters) (result ClusterCreateValidationResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/LocationsClient.ValidateClusterCreateRequest")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.ValidateClusterCreateRequestPreparer(ctx, location, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.LocationsClient", "ValidateClusterCreateRequest", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ValidateClusterCreateRequestSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "hdinsight.LocationsClient", "ValidateClusterCreateRequest", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ValidateClusterCreateRequestResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.LocationsClient", "ValidateClusterCreateRequest", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// ValidateClusterCreateRequestPreparer prepares the ValidateClusterCreateRequest request.
+func (client LocationsClient) ValidateClusterCreateRequestPreparer(ctx context.Context, location string, parameters ClusterCreateRequestValidationParameters) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"location":       autorest.Encode("path", location),
+		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.HDInsight/locations/{location}/validateCreateRequest", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ValidateClusterCreateRequestSender sends the ValidateClusterCreateRequest request. The method will close the
+// http.Response Body if it receives an error.
+func (client LocationsClient) ValidateClusterCreateRequestSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ValidateClusterCreateRequestResponder handles the response to the ValidateClusterCreateRequest request. The method always
+// closes the http.Response Body.
+func (client LocationsClient) ValidateClusterCreateRequestResponder(resp *http.Response) (result ClusterCreateValidationResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

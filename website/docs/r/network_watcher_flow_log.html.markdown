@@ -87,10 +87,14 @@ The following arguments are supported:
 * `enabled` - (Required) Should Network Flow Logging be Enabled?
 
 * `retention_policy` - (Required) A `retention_policy` block as documented below.
+ 
+* `location` - (Optional) The location where the Network Watcher Flow Log resides. Changing this forces a new resource to be created. Defaults to the `location` of the Network Watcher.
 
 * `traffic_analytics` - (Optional) A `traffic_analytics` block as documented below.
 
 * `version` - (Optional) The version (revision) of the flow log. Possible values are `1` and `2`.
+
+* `tags` - (Optional) A mapping of tags which should be assigned to the Network Watcher Flow Log.
 
 ---
 
@@ -129,5 +133,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Network Watcher Flow Logs can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_network_watcher_flow_log.watcher1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkWatchers/watcher1
+terraform import azurerm_network_watcher_flow_log.watcher1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkWatchers/watcher1/networkSecurityGroupId/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkSecurityGroups/group1
 ```

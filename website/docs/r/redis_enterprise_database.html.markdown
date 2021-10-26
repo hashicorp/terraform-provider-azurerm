@@ -27,7 +27,7 @@ resource "azurerm_redis_enterprise_cluster" "example" {
 }
 
 resource "azurerm_redis_enterprise_database" "example" {
-  name                = "example-database"
+  name                = "default"
   resource_group_name = azurerm_resource_group.example.name
 
   cluster_id = azurerm_redis_enterprise_cluster.example.id
@@ -69,6 +69,10 @@ An `module` block exports the following:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Redis Enterprise Database.
+
+* `primary_access_key` - The Primary Access Key for the Redis Enterprise Database Instance.
+
+* `secondary_access_key` - The Secondary Access Key for the Redis Enterprise Database Instance.
 
 ## Timeouts
 

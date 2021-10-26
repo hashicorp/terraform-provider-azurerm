@@ -37,9 +37,13 @@ The following arguments are supported:
 
 * `github_configuration` - (Optional) A `github_configuration` block as defined below.
 
+* `global_parameter` - (Optional)  A list of `global_parameter` blocks as defined above.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `vsts_configuration` - (Optional) A `vsts_configuration` block as defined below.
+
+* `managed_virtual_network_enabled` - (Optional) Is Managed Virtual Network enabled?
 
 * `public_network_enabled` - (Optional) Is the Data Factory visible to the public network? Defaults to `true`.
 
@@ -65,11 +69,23 @@ A `github_configuration` block supports the following:
 
 ---
 
+A `global_parameter` block supports the following:
+
+* `name` - (Required) Specifies the global parameter name.
+
+* `type` - (Required) Specifies the global parameter type. Possible Values are `Array`, `Bool`, `Float`, `Int`, `Object` or `String`.
+
+* `value` - (Required) Specifies the global parameter value.
+
+-> **Note:** For type `Array` and `Object` it is recommended to use `jsonencode()` for the value
+
+---
+
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Data Factory. Possible values are `SystemAssigned` and `UserAssigned`.
+* `type` - (Required) Specifies the identity type of the Data Factory. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned,UserAssigned`.
 
-* `identity_ids` - (Optional) Specifies the IDs of user assigned identities. Requiered if `UserAssigned` type is used.
+* `identity_ids` - (Optional) Specifies the IDs of user assigned identities. Required if `UserAssigned` or `SystemAssigned,UserAssigned` type is used.
 
 ---
 

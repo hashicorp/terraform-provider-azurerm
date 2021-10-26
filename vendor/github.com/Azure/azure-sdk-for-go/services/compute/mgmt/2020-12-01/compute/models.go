@@ -27,6 +27,12 @@ type AccessURI struct {
 	AccessSAS *string `json:"accessSAS,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AccessURI.
+func (au AccessURI) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AdditionalCapabilities enables or disables a capability on the virtual machine or virtual machine scale
 // set.
 type AdditionalCapabilities struct {
@@ -38,11 +44,11 @@ type AdditionalCapabilities struct {
 // Unattend.xml file, which is used by Windows Setup. Contents are defined by setting name, component name,
 // and the pass in which the content is applied.
 type AdditionalUnattendContent struct {
-	// PassName - The pass name. Currently, the only allowable value is OobeSystem. Possible values include: 'OobeSystem'
+	// PassName - The pass name. Currently, the only allowable value is OobeSystem. Possible values include: 'PassNamesOobeSystem'
 	PassName PassNames `json:"passName,omitempty"`
-	// ComponentName - The component name. Currently, the only allowable value is Microsoft-Windows-Shell-Setup. Possible values include: 'MicrosoftWindowsShellSetup'
+	// ComponentName - The component name. Currently, the only allowable value is Microsoft-Windows-Shell-Setup. Possible values include: 'ComponentNamesMicrosoftWindowsShellSetup'
 	ComponentName ComponentNames `json:"componentName,omitempty"`
-	// SettingName - Specifies the name of the setting to which the content applies. Possible values are: FirstLogonCommands and AutoLogon. Possible values include: 'AutoLogon', 'FirstLogonCommands'
+	// SettingName - Specifies the name of the setting to which the content applies. Possible values are: FirstLogonCommands and AutoLogon. Possible values include: 'SettingNamesAutoLogon', 'SettingNamesFirstLogonCommands'
 	SettingName SettingNames `json:"settingName,omitempty"`
 	// Content - Specifies the XML formatted content that is added to the unattend.xml file for the specified path and component. The XML must be less than 4KB and must include the root element for the setting or feature that is being inserted.
 	Content *string `json:"content,omitempty"`
@@ -503,6 +509,12 @@ type AvailablePatchSummary struct {
 	Error *APIError `json:"error,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AvailablePatchSummary.
+func (aps AvailablePatchSummary) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // BillingProfile specifies the billing related details of a Azure Spot VM or VMSS. <br><br>Minimum
 // api-version: 2019-03-01.
 type BillingProfile struct {
@@ -530,6 +542,12 @@ type BootDiagnosticsInstanceView struct {
 	Status *InstanceViewStatus `json:"status,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for BootDiagnosticsInstanceView.
+func (bdiv BootDiagnosticsInstanceView) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // CloudError an error response from the Compute service.
 type CloudError struct {
 	Error *APIError `json:"error,omitempty"`
@@ -537,7 +555,7 @@ type CloudError struct {
 
 // CreationData data used when creating a disk.
 type CreationData struct {
-	// CreateOption - This enumerates the possible sources of a disk's creation. Possible values include: 'Empty', 'Attach', 'FromImage', 'Import', 'Copy', 'Restore', 'Upload'
+	// CreateOption - This enumerates the possible sources of a disk's creation. Possible values include: 'DiskCreateOptionEmpty', 'DiskCreateOptionAttach', 'DiskCreateOptionFromImage', 'DiskCreateOptionImport', 'DiskCreateOptionCopy', 'DiskCreateOptionRestore', 'DiskCreateOptionUpload'
 	CreateOption DiskCreateOption `json:"createOption,omitempty"`
 	// StorageAccountID - Required if createOption is Import. The Azure Resource Manager identifier of the storage account containing the blob to import as a disk.
 	StorageAccountID *string `json:"storageAccountId,omitempty"`
@@ -613,7 +631,7 @@ type DataDisk struct {
 	DiskIOPSReadWrite *int64 `json:"diskIOPSReadWrite,omitempty"`
 	// DiskMBpsReadWrite - READ-ONLY; Specifies the bandwidth in MB per second for the managed disk when StorageAccountType is UltraSSD_LRS. Returned only for VirtualMachine ScaleSet VM disks. Can be updated only via updates to the VirtualMachine Scale Set.
 	DiskMBpsReadWrite *int64 `json:"diskMBpsReadWrite,omitempty"`
-	// DetachOption - Specifies the detach behavior to be used while detaching a disk or which is already in the process of detachment from the virtual machine. Supported values: **ForceDetach**. <br><br> detachOption: **ForceDetach** is applicable only for managed data disks. If a previous detachment attempt of the data disk did not complete due to an unexpected failure from the virtual machine and the disk is still not released then use force-detach as a last resort option to detach the disk forcibly from the VM. All writes might not have been flushed when using this detach behavior. <br><br> This feature is still in preview mode and is not supported for VirtualMachineScaleSet. To force-detach a data disk update toBeDetached to 'true' along with setting detachOption: 'ForceDetach'. Possible values include: 'ForceDetach'
+	// DetachOption - Specifies the detach behavior to be used while detaching a disk or which is already in the process of detachment from the virtual machine. Supported values: **ForceDetach**. <br><br> detachOption: **ForceDetach** is applicable only for managed data disks. If a previous detachment attempt of the data disk did not complete due to an unexpected failure from the virtual machine and the disk is still not released then use force-detach as a last resort option to detach the disk forcibly from the VM. All writes might not have been flushed when using this detach behavior. <br><br> This feature is still in preview mode and is not supported for VirtualMachineScaleSet. To force-detach a data disk update toBeDetached to 'true' along with setting detachOption: 'ForceDetach'. Possible values include: 'DiskDetachOptionTypesForceDetach'
 	DetachOption DiskDetachOptionTypes `json:"detachOption,omitempty"`
 }
 
@@ -660,6 +678,12 @@ func (dd DataDisk) MarshalJSON() ([]byte, error) {
 type DataDiskImage struct {
 	// Lun - READ-ONLY; Specifies the logical unit number of the data disk. This value is used to identify data disks within the VM and therefore must be unique for each data disk attached to a VM.
 	Lun *int32 `json:"lun,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DataDiskImage.
+func (ddi DataDiskImage) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // DataDiskImageEncryption contains encryption settings for a data disk image.
@@ -1598,9 +1622,9 @@ type DiagnosticsProfile struct {
 // DiffDiskSettings describes the parameters of ephemeral disk settings that can be specified for operating
 // system disk. <br><br> NOTE: The ephemeral disk settings can only be specified for managed disk.
 type DiffDiskSettings struct {
-	// Option - Specifies the ephemeral disk settings for operating system disk. Possible values include: 'Local'
+	// Option - Specifies the ephemeral disk settings for operating system disk. Possible values include: 'DiffDiskOptionsLocal'
 	Option DiffDiskOptions `json:"option,omitempty"`
-	// Placement - Specifies the ephemeral disk placement for operating system disk.<br><br> Possible values are: <br><br> **CacheDisk** <br><br> **ResourceDisk** <br><br> Default: **CacheDisk** if one is configured for the VM size otherwise **ResourceDisk** is used.<br><br> Refer to VM size documentation for Windows VM at https://docs.microsoft.com/en-us/azure/virtual-machines/windows/sizes and Linux VM at https://docs.microsoft.com/en-us/azure/virtual-machines/linux/sizes to check which VM sizes exposes a cache disk. Possible values include: 'CacheDisk', 'ResourceDisk'
+	// Placement - Specifies the ephemeral disk placement for operating system disk.<br><br> Possible values are: <br><br> **CacheDisk** <br><br> **ResourceDisk** <br><br> Default: **CacheDisk** if one is configured for the VM size otherwise **ResourceDisk** is used.<br><br> Refer to VM size documentation for Windows VM at https://docs.microsoft.com/en-us/azure/virtual-machines/windows/sizes and Linux VM at https://docs.microsoft.com/en-us/azure/virtual-machines/linux/sizes to check which VM sizes exposes a cache disk. Possible values include: 'DiffDiskPlacementCacheDisk', 'DiffDiskPlacementResourceDisk'
 	Placement DiffDiskPlacement `json:"placement,omitempty"`
 }
 
@@ -2251,6 +2275,12 @@ type DiskAccessProperties struct {
 	TimeCreated *date.Time `json:"timeCreated,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DiskAccessProperties.
+func (dap DiskAccessProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // DiskAccessUpdate used for updating a disk access resource.
 type DiskAccessUpdate struct {
 	// Tags - Resource tags
@@ -2746,7 +2776,7 @@ func (desu *DiskEncryptionSetUpdate) UnmarshalJSON(body []byte) error {
 
 // DiskEncryptionSetUpdateProperties disk encryption set resource update properties.
 type DiskEncryptionSetUpdateProperties struct {
-	// EncryptionType - Possible values include: 'EncryptionAtRestWithCustomerKey', 'EncryptionAtRestWithPlatformAndCustomerKeys'
+	// EncryptionType - Possible values include: 'DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey', 'DiskEncryptionSetTypeEncryptionAtRestWithPlatformAndCustomerKeys'
 	EncryptionType DiskEncryptionSetType    `json:"encryptionType,omitempty"`
 	ActiveKey      *KeyForDiskEncryptionSet `json:"activeKey,omitempty"`
 	// RotationToLatestKeyVersionEnabled - Set this flag to true to enable auto-updating of this disk encryption set to the latest key version.
@@ -2932,9 +2962,9 @@ func NewDiskListPage(cur DiskList, getNextPage func(context.Context, DiskList) (
 type DiskProperties struct {
 	// TimeCreated - READ-ONLY; The time when the disk was created.
 	TimeCreated *date.Time `json:"timeCreated,omitempty"`
-	// OsType - The Operating System type. Possible values include: 'Windows', 'Linux'
+	// OsType - The Operating System type. Possible values include: 'OperatingSystemTypesWindows', 'OperatingSystemTypesLinux'
 	OsType OperatingSystemTypes `json:"osType,omitempty"`
-	// HyperVGeneration - The hypervisor generation of the Virtual Machine. Applicable to OS disks only. Possible values include: 'V1', 'V2'
+	// HyperVGeneration - The hypervisor generation of the Virtual Machine. Applicable to OS disks only. Possible values include: 'HyperVGenerationV1', 'HyperVGenerationV2'
 	HyperVGeneration HyperVGeneration `json:"hyperVGeneration,omitempty"`
 	// PurchasePlan - Purchase plan information for the the image from which the OS disk was created. E.g. - {name: 2019-Datacenter, publisher: MicrosoftWindowsServer, product: WindowsServer}
 	PurchasePlan *PurchasePlan `json:"purchasePlan,omitempty"`
@@ -2958,7 +2988,7 @@ type DiskProperties struct {
 	DiskIOPSReadOnly *int64 `json:"diskIOPSReadOnly,omitempty"`
 	// DiskMBpsReadOnly - The total throughput (MBps) that will be allowed across all VMs mounting the shared disk as ReadOnly. MBps means millions of bytes per second - MB here uses the ISO notation, of powers of 10.
 	DiskMBpsReadOnly *int64 `json:"diskMBpsReadOnly,omitempty"`
-	// DiskState - The state of the disk. Possible values include: 'Unattached', 'Attached', 'Reserved', 'ActiveSAS', 'ReadyToUpload', 'ActiveUpload'
+	// DiskState - The state of the disk. Possible values include: 'DiskStateUnattached', 'DiskStateAttached', 'DiskStateReserved', 'DiskStateActiveSAS', 'DiskStateReadyToUpload', 'DiskStateActiveUpload'
 	DiskState DiskState `json:"diskState,omitempty"`
 	// Encryption - Encryption property can be used to encrypt data at rest with customer managed keys or platform managed keys.
 	Encryption *Encryption `json:"encryption,omitempty"`
@@ -2966,7 +2996,7 @@ type DiskProperties struct {
 	MaxShares *int32 `json:"maxShares,omitempty"`
 	// ShareInfo - READ-ONLY; Details of the list of all VMs that have the disk attached. maxShares should be set to a value greater than one for disks to allow attaching them to multiple VMs.
 	ShareInfo *[]ShareInfoElement `json:"shareInfo,omitempty"`
-	// NetworkAccessPolicy - Possible values include: 'AllowAll', 'AllowPrivate', 'DenyAll'
+	// NetworkAccessPolicy - Possible values include: 'NetworkAccessPolicyAllowAll', 'NetworkAccessPolicyAllowPrivate', 'NetworkAccessPolicyDenyAll'
 	NetworkAccessPolicy NetworkAccessPolicy `json:"networkAccessPolicy,omitempty"`
 	// DiskAccessID - ARM id of the DiskAccess resource for using private endpoints on disks.
 	DiskAccessID *string `json:"diskAccessId,omitempty"`
@@ -3115,6 +3145,49 @@ func (drp *DiskRestorePoint) UnmarshalJSON(body []byte) error {
 	}
 
 	return nil
+}
+
+// DiskRestorePointGrantAccessFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type DiskRestorePointGrantAccessFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DiskRestorePointClient) (AccessURI, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *DiskRestorePointGrantAccessFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for DiskRestorePointGrantAccessFuture.Result.
+func (future *DiskRestorePointGrantAccessFuture) result(client DiskRestorePointClient) (au AccessURI, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.DiskRestorePointGrantAccessFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		au.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("compute.DiskRestorePointGrantAccessFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if au.Response.Response, err = future.GetResult(sender); err == nil && au.Response.Response.StatusCode != http.StatusNoContent {
+		au, err = client.GrantAccessResponder(au.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "compute.DiskRestorePointGrantAccessFuture", "Result", au.Response.Response, "Failure responding to request")
+		}
+	}
+	return
 }
 
 // DiskRestorePointList the List Disk Restore Points operation response.
@@ -3282,9 +3355,9 @@ type DiskRestorePointProperties struct {
 	TimeCreated *date.Time `json:"timeCreated,omitempty"`
 	// SourceResourceID - READ-ONLY; arm id of source disk
 	SourceResourceID *string `json:"sourceResourceId,omitempty"`
-	// OsType - READ-ONLY; The Operating System type. Possible values include: 'Windows', 'Linux'
+	// OsType - READ-ONLY; The Operating System type. Possible values include: 'OperatingSystemTypesWindows', 'OperatingSystemTypesLinux'
 	OsType OperatingSystemTypes `json:"osType,omitempty"`
-	// HyperVGeneration - The hypervisor generation of the Virtual Machine. Applicable to OS disks only. Possible values include: 'V1', 'V2'
+	// HyperVGeneration - The hypervisor generation of the Virtual Machine. Applicable to OS disks only. Possible values include: 'HyperVGenerationV1', 'HyperVGenerationV2'
 	HyperVGeneration HyperVGeneration `json:"hyperVGeneration,omitempty"`
 	// PurchasePlan - Purchase plan information for the the image from which the OS disk was created.
 	PurchasePlan *PurchasePlan `json:"purchasePlan,omitempty"`
@@ -3311,6 +3384,43 @@ func (drpp DiskRestorePointProperties) MarshalJSON() ([]byte, error) {
 		objectMap["supportsHibernation"] = drpp.SupportsHibernation
 	}
 	return json.Marshal(objectMap)
+}
+
+// DiskRestorePointRevokeAccessFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type DiskRestorePointRevokeAccessFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DiskRestorePointClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *DiskRestorePointRevokeAccessFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for DiskRestorePointRevokeAccessFuture.Result.
+func (future *DiskRestorePointRevokeAccessFuture) result(client DiskRestorePointClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.DiskRestorePointRevokeAccessFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("compute.DiskRestorePointRevokeAccessFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
 }
 
 // DisksCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -3394,7 +3504,7 @@ func (future *DisksDeleteFuture) result(client DisksClient) (ar autorest.Respons
 
 // DiskSecurityProfile contains the security related information for the resource.
 type DiskSecurityProfile struct {
-	// SecurityType - Possible values include: 'TrustedLaunch'
+	// SecurityType - Possible values include: 'DiskSecurityTypesTrustedLaunch'
 	SecurityType DiskSecurityTypes `json:"securityType,omitempty"`
 }
 
@@ -3444,7 +3554,7 @@ func (future *DisksGrantAccessFuture) result(client DisksClient) (au AccessURI, 
 // DiskSku the disks sku name. Can be Standard_LRS, Premium_LRS, StandardSSD_LRS, UltraSSD_LRS,
 // Premium_ZRS, or StandardSSD_ZRS.
 type DiskSku struct {
-	// Name - The sku name. Possible values include: 'StandardLRS', 'PremiumLRS', 'StandardSSDLRS', 'UltraSSDLRS', 'PremiumZRS', 'StandardSSDZRS'
+	// Name - The sku name. Possible values include: 'DiskStorageAccountTypesStandardLRS', 'DiskStorageAccountTypesPremiumLRS', 'DiskStorageAccountTypesStandardSSDLRS', 'DiskStorageAccountTypesUltraSSDLRS', 'DiskStorageAccountTypesPremiumZRS', 'DiskStorageAccountTypesStandardSSDZRS'
 	Name DiskStorageAccountTypes `json:"name,omitempty"`
 	// Tier - READ-ONLY; The sku tier.
 	Tier *string `json:"tier,omitempty"`
@@ -3605,7 +3715,7 @@ func (du *DiskUpdate) UnmarshalJSON(body []byte) error {
 
 // DiskUpdateProperties disk resource update properties.
 type DiskUpdateProperties struct {
-	// OsType - the Operating System type. Possible values include: 'Windows', 'Linux'
+	// OsType - the Operating System type. Possible values include: 'OperatingSystemTypesWindows', 'OperatingSystemTypesLinux'
 	OsType OperatingSystemTypes `json:"osType,omitempty"`
 	// DiskSizeGB - If creationData.createOption is Empty, this field is mandatory and it indicates the size of the disk to create. If this field is present for updates or creation with other options, it indicates a resize. Resizes are only allowed if the disk is not attached to a running VM, and can only increase the disk's size.
 	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
@@ -3623,7 +3733,7 @@ type DiskUpdateProperties struct {
 	MaxShares *int32 `json:"maxShares,omitempty"`
 	// Encryption - Encryption property can be used to encrypt data at rest with customer managed keys or platform managed keys.
 	Encryption *Encryption `json:"encryption,omitempty"`
-	// NetworkAccessPolicy - Possible values include: 'AllowAll', 'AllowPrivate', 'DenyAll'
+	// NetworkAccessPolicy - Possible values include: 'NetworkAccessPolicyAllowAll', 'NetworkAccessPolicyAllowPrivate', 'NetworkAccessPolicyDenyAll'
 	NetworkAccessPolicy NetworkAccessPolicy `json:"networkAccessPolicy,omitempty"`
 	// DiskAccessID - ARM id of the DiskAccess resource for using private endpoints on disks.
 	DiskAccessID *string `json:"diskAccessId,omitempty"`
@@ -3728,7 +3838,7 @@ func (esi EncryptionSetIdentity) MarshalJSON() ([]byte, error) {
 
 // EncryptionSetProperties ...
 type EncryptionSetProperties struct {
-	// EncryptionType - Possible values include: 'EncryptionAtRestWithCustomerKey', 'EncryptionAtRestWithPlatformAndCustomerKeys'
+	// EncryptionType - Possible values include: 'DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey', 'DiskEncryptionSetTypeEncryptionAtRestWithPlatformAndCustomerKeys'
 	EncryptionType DiskEncryptionSetType `json:"encryptionType,omitempty"`
 	// ActiveKey - The key vault key which is currently used by this disk encryption set.
 	ActiveKey *KeyForDiskEncryptionSet `json:"activeKey,omitempty"`
@@ -3779,7 +3889,7 @@ type EncryptionSettingsElement struct {
 type ExtendedLocation struct {
 	// Name - The name of the extended location.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the extended location. Possible values include: 'EdgeZone'
+	// Type - The type of the extended location. Possible values include: 'ExtendedLocationTypesEdgeZone'
 	Type ExtendedLocationTypes `json:"type,omitempty"`
 }
 
@@ -4278,7 +4388,7 @@ type GalleryApplicationProperties struct {
 	ReleaseNoteURI *string `json:"releaseNoteUri,omitempty"`
 	// EndOfLifeDate - The end of life date of the gallery Application Definition. This property can be used for decommissioning purposes. This property is updatable.
 	EndOfLifeDate *date.Time `json:"endOfLifeDate,omitempty"`
-	// SupportedOSType - This property allows you to specify the supported type of the OS that application is built for. <br><br> Possible values are: <br><br> **Windows** <br><br> **Linux**. Possible values include: 'Windows', 'Linux'
+	// SupportedOSType - This property allows you to specify the supported type of the OS that application is built for. <br><br> Possible values are: <br><br> **Windows** <br><br> **Linux**. Possible values include: 'OperatingSystemTypesWindows', 'OperatingSystemTypesLinux'
 	SupportedOSType OperatingSystemTypes `json:"supportedOSType,omitempty"`
 }
 
@@ -5130,6 +5240,12 @@ type GalleryIdentifier struct {
 	UniqueName *string `json:"uniqueName,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for GalleryIdentifier.
+func (gi GalleryIdentifier) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // GalleryImage specifies information about the gallery Image Definition that you want to create or update.
 type GalleryImage struct {
 	autorest.Response       `json:"-"`
@@ -5409,11 +5525,11 @@ type GalleryImageProperties struct {
 	PrivacyStatementURI *string `json:"privacyStatementUri,omitempty"`
 	// ReleaseNoteURI - The release note uri.
 	ReleaseNoteURI *string `json:"releaseNoteUri,omitempty"`
-	// OsType - This property allows you to specify the type of the OS that is included in the disk when creating a VM from a managed image. <br><br> Possible values are: <br><br> **Windows** <br><br> **Linux**. Possible values include: 'Windows', 'Linux'
+	// OsType - This property allows you to specify the type of the OS that is included in the disk when creating a VM from a managed image. <br><br> Possible values are: <br><br> **Windows** <br><br> **Linux**. Possible values include: 'OperatingSystemTypesWindows', 'OperatingSystemTypesLinux'
 	OsType OperatingSystemTypes `json:"osType,omitempty"`
-	// OsState - This property allows the user to specify whether the virtual machines created under this image are 'Generalized' or 'Specialized'. Possible values include: 'Generalized', 'Specialized'
+	// OsState - This property allows the user to specify whether the virtual machines created under this image are 'Generalized' or 'Specialized'. Possible values include: 'OperatingSystemStateTypesGeneralized', 'OperatingSystemStateTypesSpecialized'
 	OsState OperatingSystemStateTypes `json:"osState,omitempty"`
-	// HyperVGeneration - The hypervisor generation of the Virtual Machine. Applicable to OS disks only. Possible values include: 'V1', 'V2'
+	// HyperVGeneration - The hypervisor generation of the Virtual Machine. Applicable to OS disks only. Possible values include: 'HyperVGenerationV1', 'HyperVGenerationV2'
 	HyperVGeneration HyperVGeneration `json:"hyperVGeneration,omitempty"`
 	// EndOfLifeDate - The end of life date of the gallery Image Definition. This property can be used for decommissioning purposes. This property is updatable.
 	EndOfLifeDate *date.Time                       `json:"endOfLifeDate,omitempty"`
@@ -6498,7 +6614,7 @@ func (gu *GalleryUpdate) UnmarshalJSON(body []byte) error {
 
 // GrantAccessData data used for requesting a SAS.
 type GrantAccessData struct {
-	// Access - Possible values include: 'None', 'Read', 'Write'
+	// Access - Possible values include: 'AccessLevelNone', 'AccessLevelRead', 'AccessLevelWrite'
 	Access AccessLevel `json:"access,omitempty"`
 	// DurationInSeconds - Time duration in seconds until the SAS access expires.
 	DurationInSeconds *int32 `json:"durationInSeconds,omitempty"`
@@ -6506,7 +6622,7 @@ type GrantAccessData struct {
 
 // HardwareProfile specifies the hardware settings for the virtual machine.
 type HardwareProfile struct {
-	// VMSize - Specifies the size of the virtual machine. <br><br> The enum data type is currently deprecated and will be removed by December 23rd 2023. <br><br> Recommended way to get the list of available sizes is using these APIs: <br><br> [List all available virtual machine sizes in an availability set](https://docs.microsoft.com/rest/api/compute/availabilitysets/listavailablesizes) <br><br> [List all available virtual machine sizes in a region]( https://docs.microsoft.com/en-us/rest/api/compute/resourceskus/list) <br><br> [List all available virtual machine sizes for resizing](https://docs.microsoft.com/rest/api/compute/virtualmachines/listavailablesizes). For more information about virtual machine sizes, see [Sizes for virtual machines](https://docs.microsoft.com/en-us/azure/virtual-machines/sizes). <br><br> The available VM sizes depend on region and availability set. Possible values include: 'BasicA0', 'BasicA1', 'BasicA2', 'BasicA3', 'BasicA4', 'StandardA0', 'StandardA1', 'StandardA2', 'StandardA3', 'StandardA4', 'StandardA5', 'StandardA6', 'StandardA7', 'StandardA8', 'StandardA9', 'StandardA10', 'StandardA11', 'StandardA1V2', 'StandardA2V2', 'StandardA4V2', 'StandardA8V2', 'StandardA2mV2', 'StandardA4mV2', 'StandardA8mV2', 'StandardB1s', 'StandardB1ms', 'StandardB2s', 'StandardB2ms', 'StandardB4ms', 'StandardB8ms', 'StandardD1', 'StandardD2', 'StandardD3', 'StandardD4', 'StandardD11', 'StandardD12', 'StandardD13', 'StandardD14', 'StandardD1V2', 'StandardD2V2', 'StandardD3V2', 'StandardD4V2', 'StandardD5V2', 'StandardD2V3', 'StandardD4V3', 'StandardD8V3', 'StandardD16V3', 'StandardD32V3', 'StandardD64V3', 'StandardD2sV3', 'StandardD4sV3', 'StandardD8sV3', 'StandardD16sV3', 'StandardD32sV3', 'StandardD64sV3', 'StandardD11V2', 'StandardD12V2', 'StandardD13V2', 'StandardD14V2', 'StandardD15V2', 'StandardDS1', 'StandardDS2', 'StandardDS3', 'StandardDS4', 'StandardDS11', 'StandardDS12', 'StandardDS13', 'StandardDS14', 'StandardDS1V2', 'StandardDS2V2', 'StandardDS3V2', 'StandardDS4V2', 'StandardDS5V2', 'StandardDS11V2', 'StandardDS12V2', 'StandardDS13V2', 'StandardDS14V2', 'StandardDS15V2', 'StandardDS134V2', 'StandardDS132V2', 'StandardDS148V2', 'StandardDS144V2', 'StandardE2V3', 'StandardE4V3', 'StandardE8V3', 'StandardE16V3', 'StandardE32V3', 'StandardE64V3', 'StandardE2sV3', 'StandardE4sV3', 'StandardE8sV3', 'StandardE16sV3', 'StandardE32sV3', 'StandardE64sV3', 'StandardE3216V3', 'StandardE328sV3', 'StandardE6432sV3', 'StandardE6416sV3', 'StandardF1', 'StandardF2', 'StandardF4', 'StandardF8', 'StandardF16', 'StandardF1s', 'StandardF2s', 'StandardF4s', 'StandardF8s', 'StandardF16s', 'StandardF2sV2', 'StandardF4sV2', 'StandardF8sV2', 'StandardF16sV2', 'StandardF32sV2', 'StandardF64sV2', 'StandardF72sV2', 'StandardG1', 'StandardG2', 'StandardG3', 'StandardG4', 'StandardG5', 'StandardGS1', 'StandardGS2', 'StandardGS3', 'StandardGS4', 'StandardGS5', 'StandardGS48', 'StandardGS44', 'StandardGS516', 'StandardGS58', 'StandardH8', 'StandardH16', 'StandardH8m', 'StandardH16m', 'StandardH16r', 'StandardH16mr', 'StandardL4s', 'StandardL8s', 'StandardL16s', 'StandardL32s', 'StandardM64s', 'StandardM64ms', 'StandardM128s', 'StandardM128ms', 'StandardM6432ms', 'StandardM6416ms', 'StandardM12864ms', 'StandardM12832ms', 'StandardNC6', 'StandardNC12', 'StandardNC24', 'StandardNC24r', 'StandardNC6sV2', 'StandardNC12sV2', 'StandardNC24sV2', 'StandardNC24rsV2', 'StandardNC6sV3', 'StandardNC12sV3', 'StandardNC24sV3', 'StandardNC24rsV3', 'StandardND6s', 'StandardND12s', 'StandardND24s', 'StandardND24rs', 'StandardNV6', 'StandardNV12', 'StandardNV24'
+	// VMSize - Specifies the size of the virtual machine. <br><br> The enum data type is currently deprecated and will be removed by December 23rd 2023. <br><br> Recommended way to get the list of available sizes is using these APIs: <br><br> [List all available virtual machine sizes in an availability set](https://docs.microsoft.com/rest/api/compute/availabilitysets/listavailablesizes) <br><br> [List all available virtual machine sizes in a region]( https://docs.microsoft.com/en-us/rest/api/compute/resourceskus/list) <br><br> [List all available virtual machine sizes for resizing](https://docs.microsoft.com/rest/api/compute/virtualmachines/listavailablesizes). For more information about virtual machine sizes, see [Sizes for virtual machines](https://docs.microsoft.com/en-us/azure/virtual-machines/sizes). <br><br> The available VM sizes depend on region and availability set. Possible values include: 'VirtualMachineSizeTypesBasicA0', 'VirtualMachineSizeTypesBasicA1', 'VirtualMachineSizeTypesBasicA2', 'VirtualMachineSizeTypesBasicA3', 'VirtualMachineSizeTypesBasicA4', 'VirtualMachineSizeTypesStandardA0', 'VirtualMachineSizeTypesStandardA1', 'VirtualMachineSizeTypesStandardA2', 'VirtualMachineSizeTypesStandardA3', 'VirtualMachineSizeTypesStandardA4', 'VirtualMachineSizeTypesStandardA5', 'VirtualMachineSizeTypesStandardA6', 'VirtualMachineSizeTypesStandardA7', 'VirtualMachineSizeTypesStandardA8', 'VirtualMachineSizeTypesStandardA9', 'VirtualMachineSizeTypesStandardA10', 'VirtualMachineSizeTypesStandardA11', 'VirtualMachineSizeTypesStandardA1V2', 'VirtualMachineSizeTypesStandardA2V2', 'VirtualMachineSizeTypesStandardA4V2', 'VirtualMachineSizeTypesStandardA8V2', 'VirtualMachineSizeTypesStandardA2mV2', 'VirtualMachineSizeTypesStandardA4mV2', 'VirtualMachineSizeTypesStandardA8mV2', 'VirtualMachineSizeTypesStandardB1s', 'VirtualMachineSizeTypesStandardB1ms', 'VirtualMachineSizeTypesStandardB2s', 'VirtualMachineSizeTypesStandardB2ms', 'VirtualMachineSizeTypesStandardB4ms', 'VirtualMachineSizeTypesStandardB8ms', 'VirtualMachineSizeTypesStandardD1', 'VirtualMachineSizeTypesStandardD2', 'VirtualMachineSizeTypesStandardD3', 'VirtualMachineSizeTypesStandardD4', 'VirtualMachineSizeTypesStandardD11', 'VirtualMachineSizeTypesStandardD12', 'VirtualMachineSizeTypesStandardD13', 'VirtualMachineSizeTypesStandardD14', 'VirtualMachineSizeTypesStandardD1V2', 'VirtualMachineSizeTypesStandardD2V2', 'VirtualMachineSizeTypesStandardD3V2', 'VirtualMachineSizeTypesStandardD4V2', 'VirtualMachineSizeTypesStandardD5V2', 'VirtualMachineSizeTypesStandardD2V3', 'VirtualMachineSizeTypesStandardD4V3', 'VirtualMachineSizeTypesStandardD8V3', 'VirtualMachineSizeTypesStandardD16V3', 'VirtualMachineSizeTypesStandardD32V3', 'VirtualMachineSizeTypesStandardD64V3', 'VirtualMachineSizeTypesStandardD2sV3', 'VirtualMachineSizeTypesStandardD4sV3', 'VirtualMachineSizeTypesStandardD8sV3', 'VirtualMachineSizeTypesStandardD16sV3', 'VirtualMachineSizeTypesStandardD32sV3', 'VirtualMachineSizeTypesStandardD64sV3', 'VirtualMachineSizeTypesStandardD11V2', 'VirtualMachineSizeTypesStandardD12V2', 'VirtualMachineSizeTypesStandardD13V2', 'VirtualMachineSizeTypesStandardD14V2', 'VirtualMachineSizeTypesStandardD15V2', 'VirtualMachineSizeTypesStandardDS1', 'VirtualMachineSizeTypesStandardDS2', 'VirtualMachineSizeTypesStandardDS3', 'VirtualMachineSizeTypesStandardDS4', 'VirtualMachineSizeTypesStandardDS11', 'VirtualMachineSizeTypesStandardDS12', 'VirtualMachineSizeTypesStandardDS13', 'VirtualMachineSizeTypesStandardDS14', 'VirtualMachineSizeTypesStandardDS1V2', 'VirtualMachineSizeTypesStandardDS2V2', 'VirtualMachineSizeTypesStandardDS3V2', 'VirtualMachineSizeTypesStandardDS4V2', 'VirtualMachineSizeTypesStandardDS5V2', 'VirtualMachineSizeTypesStandardDS11V2', 'VirtualMachineSizeTypesStandardDS12V2', 'VirtualMachineSizeTypesStandardDS13V2', 'VirtualMachineSizeTypesStandardDS14V2', 'VirtualMachineSizeTypesStandardDS15V2', 'VirtualMachineSizeTypesStandardDS134V2', 'VirtualMachineSizeTypesStandardDS132V2', 'VirtualMachineSizeTypesStandardDS148V2', 'VirtualMachineSizeTypesStandardDS144V2', 'VirtualMachineSizeTypesStandardE2V3', 'VirtualMachineSizeTypesStandardE4V3', 'VirtualMachineSizeTypesStandardE8V3', 'VirtualMachineSizeTypesStandardE16V3', 'VirtualMachineSizeTypesStandardE32V3', 'VirtualMachineSizeTypesStandardE64V3', 'VirtualMachineSizeTypesStandardE2sV3', 'VirtualMachineSizeTypesStandardE4sV3', 'VirtualMachineSizeTypesStandardE8sV3', 'VirtualMachineSizeTypesStandardE16sV3', 'VirtualMachineSizeTypesStandardE32sV3', 'VirtualMachineSizeTypesStandardE64sV3', 'VirtualMachineSizeTypesStandardE3216V3', 'VirtualMachineSizeTypesStandardE328sV3', 'VirtualMachineSizeTypesStandardE6432sV3', 'VirtualMachineSizeTypesStandardE6416sV3', 'VirtualMachineSizeTypesStandardF1', 'VirtualMachineSizeTypesStandardF2', 'VirtualMachineSizeTypesStandardF4', 'VirtualMachineSizeTypesStandardF8', 'VirtualMachineSizeTypesStandardF16', 'VirtualMachineSizeTypesStandardF1s', 'VirtualMachineSizeTypesStandardF2s', 'VirtualMachineSizeTypesStandardF4s', 'VirtualMachineSizeTypesStandardF8s', 'VirtualMachineSizeTypesStandardF16s', 'VirtualMachineSizeTypesStandardF2sV2', 'VirtualMachineSizeTypesStandardF4sV2', 'VirtualMachineSizeTypesStandardF8sV2', 'VirtualMachineSizeTypesStandardF16sV2', 'VirtualMachineSizeTypesStandardF32sV2', 'VirtualMachineSizeTypesStandardF64sV2', 'VirtualMachineSizeTypesStandardF72sV2', 'VirtualMachineSizeTypesStandardG1', 'VirtualMachineSizeTypesStandardG2', 'VirtualMachineSizeTypesStandardG3', 'VirtualMachineSizeTypesStandardG4', 'VirtualMachineSizeTypesStandardG5', 'VirtualMachineSizeTypesStandardGS1', 'VirtualMachineSizeTypesStandardGS2', 'VirtualMachineSizeTypesStandardGS3', 'VirtualMachineSizeTypesStandardGS4', 'VirtualMachineSizeTypesStandardGS5', 'VirtualMachineSizeTypesStandardGS48', 'VirtualMachineSizeTypesStandardGS44', 'VirtualMachineSizeTypesStandardGS516', 'VirtualMachineSizeTypesStandardGS58', 'VirtualMachineSizeTypesStandardH8', 'VirtualMachineSizeTypesStandardH16', 'VirtualMachineSizeTypesStandardH8m', 'VirtualMachineSizeTypesStandardH16m', 'VirtualMachineSizeTypesStandardH16r', 'VirtualMachineSizeTypesStandardH16mr', 'VirtualMachineSizeTypesStandardL4s', 'VirtualMachineSizeTypesStandardL8s', 'VirtualMachineSizeTypesStandardL16s', 'VirtualMachineSizeTypesStandardL32s', 'VirtualMachineSizeTypesStandardM64s', 'VirtualMachineSizeTypesStandardM64ms', 'VirtualMachineSizeTypesStandardM128s', 'VirtualMachineSizeTypesStandardM128ms', 'VirtualMachineSizeTypesStandardM6432ms', 'VirtualMachineSizeTypesStandardM6416ms', 'VirtualMachineSizeTypesStandardM12864ms', 'VirtualMachineSizeTypesStandardM12832ms', 'VirtualMachineSizeTypesStandardNC6', 'VirtualMachineSizeTypesStandardNC12', 'VirtualMachineSizeTypesStandardNC24', 'VirtualMachineSizeTypesStandardNC24r', 'VirtualMachineSizeTypesStandardNC6sV2', 'VirtualMachineSizeTypesStandardNC12sV2', 'VirtualMachineSizeTypesStandardNC24sV2', 'VirtualMachineSizeTypesStandardNC24rsV2', 'VirtualMachineSizeTypesStandardNC6sV3', 'VirtualMachineSizeTypesStandardNC12sV3', 'VirtualMachineSizeTypesStandardNC24sV3', 'VirtualMachineSizeTypesStandardNC24rsV3', 'VirtualMachineSizeTypesStandardND6s', 'VirtualMachineSizeTypesStandardND12s', 'VirtualMachineSizeTypesStandardND24s', 'VirtualMachineSizeTypesStandardND24rs', 'VirtualMachineSizeTypesStandardNV6', 'VirtualMachineSizeTypesStandardNV12', 'VirtualMachineSizeTypesStandardNV24'
 	VMSize VirtualMachineSizeTypes `json:"vmSize,omitempty"`
 }
 
@@ -6833,9 +6949,9 @@ func NewImageListResultPage(cur ImageListResult, getNextPage func(context.Contex
 
 // ImageOSDisk describes an Operating System disk.
 type ImageOSDisk struct {
-	// OsType - This property allows you to specify the type of the OS that is included in the disk if creating a VM from a custom image. <br><br> Possible values are: <br><br> **Windows** <br><br> **Linux**. Possible values include: 'Windows', 'Linux'
+	// OsType - This property allows you to specify the type of the OS that is included in the disk if creating a VM from a custom image. <br><br> Possible values are: <br><br> **Windows** <br><br> **Linux**. Possible values include: 'OperatingSystemTypesWindows', 'OperatingSystemTypesLinux'
 	OsType OperatingSystemTypes `json:"osType,omitempty"`
-	// OsState - The OS State. Possible values include: 'Generalized', 'Specialized'
+	// OsState - The OS State. Possible values include: 'OperatingSystemStateTypesGeneralized', 'OperatingSystemStateTypesSpecialized'
 	OsState OperatingSystemStateTypes `json:"osState,omitempty"`
 	// Snapshot - The snapshot.
 	Snapshot *SubResource `json:"snapshot,omitempty"`
@@ -7126,7 +7242,7 @@ type InnerError struct {
 type InstanceViewStatus struct {
 	// Code - The status code.
 	Code *string `json:"code,omitempty"`
-	// Level - The level code. Possible values include: 'Info', 'Warning', 'Error'
+	// Level - The level code. Possible values include: 'StatusLevelTypesInfo', 'StatusLevelTypesWarning', 'StatusLevelTypesError'
 	Level StatusLevelTypes `json:"level,omitempty"`
 	// DisplayStatus - The short localizable label for the status.
 	DisplayStatus *string `json:"displayStatus,omitempty"`
@@ -7204,6 +7320,12 @@ type LastPatchInstallationSummary struct {
 	Error *APIError `json:"error,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for LastPatchInstallationSummary.
+func (lpis LastPatchInstallationSummary) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // LinuxConfiguration specifies the Linux operating system settings on the virtual machine. <br><br>For a
 // list of supported Linux distributions, see [Linux on Azure-Endorsed
 // Distributions](https://docs.microsoft.com/azure/virtual-machines/virtual-machines-linux-endorsed-distros?toc=%2fazure%2fvirtual-machines%2flinux%2ftoc.json)
@@ -7234,7 +7356,7 @@ type LinuxParameters struct {
 
 // LinuxPatchSettings specifies settings related to VM Guest Patching on Linux.
 type LinuxPatchSettings struct {
-	// PatchMode - Specifies the mode of VM Guest Patching to IaaS virtual machine.<br /><br /> Possible values are:<br /><br /> **ImageDefault** - The virtual machine's default patching configuration is used. <br /><br /> **AutomaticByPlatform** - The virtual machine will be automatically updated by the platform. The property provisionVMAgent must be true. Possible values include: 'ImageDefault', 'AutomaticByPlatform'
+	// PatchMode - Specifies the mode of VM Guest Patching to IaaS virtual machine.<br /><br /> Possible values are:<br /><br /> **ImageDefault** - The virtual machine's default patching configuration is used. <br /><br /> **AutomaticByPlatform** - The virtual machine will be automatically updated by the platform. The property provisionVMAgent must be true. Possible values include: 'LinuxVMGuestPatchModeImageDefault', 'LinuxVMGuestPatchModeAutomaticByPlatform'
 	PatchMode LinuxVMGuestPatchMode `json:"patchMode,omitempty"`
 }
 
@@ -7522,10 +7644,22 @@ type LogAnalyticsOperationResult struct {
 	Properties *LogAnalyticsOutput `json:"properties,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for LogAnalyticsOperationResult.
+func (laor LogAnalyticsOperationResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // LogAnalyticsOutput logAnalytics output properties
 type LogAnalyticsOutput struct {
 	// Output - READ-ONLY; Output file Uri path to blob container.
 	Output *string `json:"output,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for LogAnalyticsOutput.
+func (lao LogAnalyticsOutput) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // MaintenanceRedeployStatus maintenance Operation Status.
@@ -7554,7 +7688,7 @@ type ManagedArtifact struct {
 
 // ManagedDiskParameters the parameters of a managed disk.
 type ManagedDiskParameters struct {
-	// StorageAccountType - Specifies the storage account type for the managed disk. NOTE: UltraSSD_LRS can only be used with data disks, it cannot be used with OS Disk. Possible values include: 'StorageAccountTypesStandardLRS', 'StorageAccountTypesPremiumLRS', 'StorageAccountTypesStandardSSDLRS', 'StorageAccountTypesUltraSSDLRS', 'StorageAccountTypesPremiumZRS', 'StorageAccountTypesStandardSSDZRS'
+	// StorageAccountType - Specifies the storage account type for the managed disk. Managed OS disk storage account type can only be set when you create the scale set. NOTE: UltraSSD_LRS can only be used with data disks, it cannot be used with OS Disk. Possible values include: 'StorageAccountTypesStandardLRS', 'StorageAccountTypesPremiumLRS', 'StorageAccountTypesStandardSSDLRS', 'StorageAccountTypesUltraSSDLRS', 'StorageAccountTypesPremiumZRS', 'StorageAccountTypesStandardSSDZRS'
 	StorageAccountType StorageAccountTypes `json:"storageAccountType,omitempty"`
 	// DiskEncryptionSet - Specifies the customer managed disk encryption set resource id for the managed disk.
 	DiskEncryptionSet *DiskEncryptionSetParameters `json:"diskEncryptionSet,omitempty"`
@@ -7633,6 +7767,12 @@ type OperationListResult struct {
 	Value *[]OperationValue `json:"value,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for OperationListResult.
+func (olr OperationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // OperationValue describes the properties of a Compute Operation value.
 type OperationValue struct {
 	// Origin - READ-ONLY; The origin of the compute operation.
@@ -7705,27 +7845,39 @@ type OperationValueDisplay struct {
 	Provider *string `json:"provider,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for OperationValueDisplay.
+func (ovd OperationValueDisplay) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // OrchestrationServiceStateInput the input for OrchestrationServiceState
 type OrchestrationServiceStateInput struct {
-	// ServiceName - The name of the service. Possible values include: 'AutomaticRepairs'
+	// ServiceName - The name of the service. Possible values include: 'OrchestrationServiceNamesAutomaticRepairs'
 	ServiceName OrchestrationServiceNames `json:"serviceName,omitempty"`
-	// Action - The action to be performed. Possible values include: 'Resume', 'Suspend'
+	// Action - The action to be performed. Possible values include: 'OrchestrationServiceStateActionResume', 'OrchestrationServiceStateActionSuspend'
 	Action OrchestrationServiceStateAction `json:"action,omitempty"`
 }
 
 // OrchestrationServiceSummary summary for an orchestration service of a virtual machine scale set.
 type OrchestrationServiceSummary struct {
-	// ServiceName - READ-ONLY; The name of the service. Possible values include: 'AutomaticRepairs', 'DummyOrchestrationServiceName'
+	// ServiceName - READ-ONLY; The name of the service. Possible values include: 'OrchestrationServiceNamesAutomaticRepairs', 'OrchestrationServiceNamesDummyOrchestrationServiceName'
 	ServiceName OrchestrationServiceNames `json:"serviceName,omitempty"`
-	// ServiceState - READ-ONLY; The current state of the service. Possible values include: 'NotRunning', 'Running', 'Suspended'
+	// ServiceState - READ-ONLY; The current state of the service. Possible values include: 'OrchestrationServiceStateNotRunning', 'OrchestrationServiceStateRunning', 'OrchestrationServiceStateSuspended'
 	ServiceState OrchestrationServiceState `json:"serviceState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OrchestrationServiceSummary.
+func (oss OrchestrationServiceSummary) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // OSDisk specifies information about the operating system disk used by the virtual machine. <br><br> For
 // more information about disks, see [About disks and VHDs for Azure virtual
 // machines](https://docs.microsoft.com/azure/virtual-machines/virtual-machines-windows-about-disks-vhds?toc=%2fazure%2fvirtual-machines%2fwindows%2ftoc.json).
 type OSDisk struct {
-	// OsType - This property allows you to specify the type of the OS that is included in the disk if creating a VM from user-image or a specialized VHD. <br><br> Possible values are: <br><br> **Windows** <br><br> **Linux**. Possible values include: 'Windows', 'Linux'
+	// OsType - This property allows you to specify the type of the OS that is included in the disk if creating a VM from user-image or a specialized VHD. <br><br> Possible values are: <br><br> **Windows** <br><br> **Linux**. Possible values include: 'OperatingSystemTypesWindows', 'OperatingSystemTypesLinux'
 	OsType OperatingSystemTypes `json:"osType,omitempty"`
 	// EncryptionSettings - Specifies the encryption settings for the OS Disk. <br><br> Minimum api-version: 2015-06-15
 	EncryptionSettings *DiskEncryptionSettings `json:"encryptionSettings,omitempty"`
@@ -7751,7 +7903,7 @@ type OSDisk struct {
 
 // OSDiskImage contains the os disk image information.
 type OSDiskImage struct {
-	// OperatingSystem - The operating system of the osDiskImage. Possible values include: 'Windows', 'Linux'
+	// OperatingSystem - The operating system of the osDiskImage. Possible values include: 'OperatingSystemTypesWindows', 'OperatingSystemTypesLinux'
 	OperatingSystem OperatingSystemTypes `json:"operatingSystem,omitempty"`
 }
 
@@ -7801,6 +7953,12 @@ type PatchInstallationDetail struct {
 	InstallationState PatchInstallationState `json:"installationState,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PatchInstallationDetail.
+func (pid PatchInstallationDetail) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PatchSettings specifies settings related to VM Guest Patching on Windows.
 type PatchSettings struct {
 	// PatchMode - Specifies the mode of VM Guest Patching to IaaS virtual machine.<br /><br /> Possible values are:<br /><br /> **Manual** - You  control the application of patches to a virtual machine. You do this by applying patches manually inside the VM. In this mode, automatic updates are disabled; the property WindowsConfiguration.enableAutomaticUpdates must be false<br /><br /> **AutomaticByOS** - The virtual machine will automatically be updated by the OS. The property WindowsConfiguration.enableAutomaticUpdates must be true. <br /><br /> **AutomaticByPlatform** - the virtual machine will automatically updated by the platform. The properties provisionVMAgent and WindowsConfiguration.enableAutomaticUpdates must be true. Possible values include: 'WindowsVMGuestPatchModeManual', 'WindowsVMGuestPatchModeAutomaticByOS', 'WindowsVMGuestPatchModeAutomaticByPlatform'
@@ -7829,6 +7987,12 @@ type Plan struct {
 type PrivateEndpoint struct {
 	// ID - READ-ONLY; The ARM identifier for Private Endpoint
 	ID *string `json:"id,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpoint.
+func (peVar PrivateEndpoint) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PrivateEndpointConnection the Private Endpoint Connection resource.
@@ -8187,7 +8351,7 @@ func (plrp PrivateLinkResourceProperties) MarshalJSON() ([]byte, error) {
 // PrivateLinkServiceConnectionState a collection of information about the state of the connection between
 // service consumer and provider.
 type PrivateLinkServiceConnectionState struct {
-	// Status - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service. Possible values include: 'Pending', 'Approved', 'Rejected'
+	// Status - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service. Possible values include: 'PrivateEndpointServiceConnectionStatusPending', 'PrivateEndpointServiceConnectionStatusApproved', 'PrivateEndpointServiceConnectionStatusRejected'
 	Status PrivateEndpointServiceConnectionStatus `json:"status,omitempty"`
 	// Description - The reason for approval/rejection of the connection.
 	Description *string `json:"description,omitempty"`
@@ -8464,7 +8628,7 @@ func NewProximityPlacementGroupListResultPage(cur ProximityPlacementGroupListRes
 
 // ProximityPlacementGroupProperties describes the properties of a Proximity Placement Group.
 type ProximityPlacementGroupProperties struct {
-	// ProximityPlacementGroupType - Specifies the type of the proximity placement group. <br><br> Possible values are: <br><br> **Standard** : Co-locate resources within an Azure region or Availability Zone. <br><br> **Ultra** : For future use. Possible values include: 'Standard', 'Ultra'
+	// ProximityPlacementGroupType - Specifies the type of the proximity placement group. <br><br> Possible values are: <br><br> **Standard** : Co-locate resources within an Azure region or Availability Zone. <br><br> **Ultra** : For future use. Possible values include: 'ProximityPlacementGroupTypeStandard', 'ProximityPlacementGroupTypeUltra'
 	ProximityPlacementGroupType ProximityPlacementGroupType `json:"proximityPlacementGroupType,omitempty"`
 	// VirtualMachines - READ-ONLY; A list of references to all virtual machines in the proximity placement group.
 	VirtualMachines *[]SubResourceWithColocationStatus `json:"virtualMachines,omitempty"`
@@ -8513,6 +8677,12 @@ type ProxyOnlyResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ProxyOnlyResource.
+func (por ProxyOnlyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PurchasePlan used for establishing the purchase context of any 3rd Party artifact through MarketPlace.
 type PurchasePlan struct {
 	// Publisher - The publisher ID.
@@ -8541,6 +8711,12 @@ type RecoveryWalkResponse struct {
 	NextPlatformUpdateDomain *int32 `json:"nextPlatformUpdateDomain,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RecoveryWalkResponse.
+func (rwr RecoveryWalkResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RegionalReplicationStatus this is the regional replication status.
 type RegionalReplicationStatus struct {
 	// Region - READ-ONLY; The region to which the gallery Image Version is being replicated to.
@@ -8553,17 +8729,29 @@ type RegionalReplicationStatus struct {
 	Progress *int32 `json:"progress,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RegionalReplicationStatus.
+func (rrs RegionalReplicationStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ReplicationStatus this is the replication status of the gallery Image Version.
 type ReplicationStatus struct {
-	// AggregatedState - READ-ONLY; This is the aggregated replication status based on all the regional replication status flags. Possible values include: 'Unknown', 'InProgress', 'Completed', 'Failed'
+	// AggregatedState - READ-ONLY; This is the aggregated replication status based on all the regional replication status flags. Possible values include: 'AggregatedReplicationStateUnknown', 'AggregatedReplicationStateInProgress', 'AggregatedReplicationStateCompleted', 'AggregatedReplicationStateFailed'
 	AggregatedState AggregatedReplicationState `json:"aggregatedState,omitempty"`
 	// Summary - READ-ONLY; This is a summary of replication status for each region.
 	Summary *[]RegionalReplicationStatus `json:"summary,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ReplicationStatus.
+func (rs ReplicationStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RequestRateByIntervalInput api request input for LogAnalytics getRequestRateByInterval Api.
 type RequestRateByIntervalInput struct {
-	// IntervalLength - Interval value in minutes used to create LogAnalytics call rate logs. Possible values include: 'ThreeMins', 'FiveMins', 'ThirtyMins', 'SixtyMins'
+	// IntervalLength - Interval value in minutes used to create LogAnalytics call rate logs. Possible values include: 'IntervalInMinsThreeMins', 'IntervalInMinsFiveMins', 'IntervalInMinsThirtyMins', 'IntervalInMinsSixtyMins'
 	IntervalLength IntervalInMins `json:"intervalLength,omitempty"`
 	// BlobContainerSasURI - SAS Uri of the logging blob container to which LogAnalytics Api writes output logs to.
 	BlobContainerSasURI *string `json:"blobContainerSasUri,omitempty"`
@@ -8647,12 +8835,24 @@ type ResourceSku struct {
 	Restrictions *[]ResourceSkuRestrictions `json:"restrictions,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ResourceSku.
+func (rs ResourceSku) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ResourceSkuCapabilities describes The SKU capabilities object.
 type ResourceSkuCapabilities struct {
 	// Name - READ-ONLY; An invariant to describe the feature.
 	Name *string `json:"name,omitempty"`
 	// Value - READ-ONLY; An invariant if the feature is measured by quantity.
 	Value *string `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceSkuCapabilities.
+func (rsc ResourceSkuCapabilities) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceSkuCapacity describes scaling information of a SKU.
@@ -8667,6 +8867,12 @@ type ResourceSkuCapacity struct {
 	ScaleType ResourceSkuCapacityScaleType `json:"scaleType,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ResourceSkuCapacity.
+func (rsc ResourceSkuCapacity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ResourceSkuCosts describes metadata for retrieving price info.
 type ResourceSkuCosts struct {
 	// MeterID - READ-ONLY; Used for querying price from commerce.
@@ -8675,6 +8881,12 @@ type ResourceSkuCosts struct {
 	Quantity *int64 `json:"quantity,omitempty"`
 	// ExtendedUnit - READ-ONLY; An invariant to show the extended unit.
 	ExtendedUnit *string `json:"extendedUnit,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceSkuCosts.
+func (rsc ResourceSkuCosts) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceSkuLocationInfo ...
@@ -8687,6 +8899,12 @@ type ResourceSkuLocationInfo struct {
 	ZoneDetails *[]ResourceSkuZoneDetails `json:"zoneDetails,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ResourceSkuLocationInfo.
+func (rsli ResourceSkuLocationInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ResourceSkuRestrictionInfo ...
 type ResourceSkuRestrictionInfo struct {
 	// Locations - READ-ONLY; Locations where the SKU is restricted
@@ -8695,16 +8913,28 @@ type ResourceSkuRestrictionInfo struct {
 	Zones *[]string `json:"zones,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ResourceSkuRestrictionInfo.
+func (rsri ResourceSkuRestrictionInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ResourceSkuRestrictions describes scaling information of a SKU.
 type ResourceSkuRestrictions struct {
-	// Type - READ-ONLY; The type of restrictions. Possible values include: 'Location', 'Zone'
+	// Type - READ-ONLY; The type of restrictions. Possible values include: 'ResourceSkuRestrictionsTypeLocation', 'ResourceSkuRestrictionsTypeZone'
 	Type ResourceSkuRestrictionsType `json:"type,omitempty"`
 	// Values - READ-ONLY; The value of restrictions. If the restriction type is set to location. This would be different locations where the SKU is restricted.
 	Values *[]string `json:"values,omitempty"`
 	// RestrictionInfo - READ-ONLY; The information about the restriction where the SKU cannot be used.
 	RestrictionInfo *ResourceSkuRestrictionInfo `json:"restrictionInfo,omitempty"`
-	// ReasonCode - READ-ONLY; The reason for restriction. Possible values include: 'QuotaID', 'NotAvailableForSubscription'
+	// ReasonCode - READ-ONLY; The reason for restriction. Possible values include: 'ResourceSkuRestrictionsReasonCodeQuotaID', 'ResourceSkuRestrictionsReasonCodeNotAvailableForSubscription'
 	ReasonCode ResourceSkuRestrictionsReasonCode `json:"reasonCode,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceSkuRestrictions.
+func (rsr ResourceSkuRestrictions) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceSkusResult the List Resource Skus operation response.
@@ -8872,6 +9102,12 @@ type ResourceSkuZoneDetails struct {
 	Name *[]string `json:"name,omitempty"`
 	// Capabilities - READ-ONLY; A list of capabilities that are available for the SKU in the specified list of zones.
 	Capabilities *[]ResourceSkuCapabilities `json:"capabilities,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceSkuZoneDetails.
+func (rszd ResourceSkuZoneDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceURIList the List resources which are encrypted with the disk encryption set.
@@ -9042,6 +9278,12 @@ type RetrieveBootDiagnosticsDataResult struct {
 	SerialConsoleLogBlobURI *string `json:"serialConsoleLogBlobUri,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RetrieveBootDiagnosticsDataResult.
+func (rbddr RetrieveBootDiagnosticsDataResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RollbackStatusInfo information about rollback on failed VM instances after a OS Upgrade operation.
 type RollbackStatusInfo struct {
 	// SuccessfullyRolledbackInstanceCount - READ-ONLY; The number of instances which have been successfully rolled back.
@@ -9050,6 +9292,12 @@ type RollbackStatusInfo struct {
 	FailedRolledbackInstanceCount *int32 `json:"failedRolledbackInstanceCount,omitempty"`
 	// RollbackError - READ-ONLY; Error details if OS rollback failed.
 	RollbackError *APIError `json:"rollbackError,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RollbackStatusInfo.
+func (rsi RollbackStatusInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // RollingUpgradePolicy the configuration parameters used while performing a rolling upgrade.
@@ -9081,16 +9329,28 @@ type RollingUpgradeProgressInfo struct {
 	PendingInstanceCount *int32 `json:"pendingInstanceCount,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RollingUpgradeProgressInfo.
+func (rupi RollingUpgradeProgressInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RollingUpgradeRunningStatus information about the current running state of the overall upgrade.
 type RollingUpgradeRunningStatus struct {
 	// Code - READ-ONLY; Code indicating the current status of the upgrade. Possible values include: 'RollingUpgradeStatusCodeRollingForward', 'RollingUpgradeStatusCodeCancelled', 'RollingUpgradeStatusCodeCompleted', 'RollingUpgradeStatusCodeFaulted'
 	Code RollingUpgradeStatusCode `json:"code,omitempty"`
 	// StartTime - READ-ONLY; Start time of the upgrade.
 	StartTime *date.Time `json:"startTime,omitempty"`
-	// LastAction - READ-ONLY; The last action performed on the rolling upgrade. Possible values include: 'Start', 'Cancel'
+	// LastAction - READ-ONLY; The last action performed on the rolling upgrade. Possible values include: 'RollingUpgradeActionTypeStart', 'RollingUpgradeActionTypeCancel'
 	LastAction RollingUpgradeActionType `json:"lastAction,omitempty"`
 	// LastActionTime - READ-ONLY; Last action time of the upgrade.
 	LastActionTime *date.Time `json:"lastActionTime,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RollingUpgradeRunningStatus.
+func (rurs RollingUpgradeRunningStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // RollingUpgradeStatusInfo the status of the latest virtual machine scale set rolling upgrade.
@@ -9205,6 +9465,12 @@ type RollingUpgradeStatusInfoProperties struct {
 	Error *APIError `json:"error,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RollingUpgradeStatusInfoProperties.
+func (rusip RollingUpgradeStatusInfoProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RunCommandDocument describes the properties of a Run Command.
 type RunCommandDocument struct {
 	autorest.Response `json:"-"`
@@ -9216,7 +9482,7 @@ type RunCommandDocument struct {
 	Schema *string `json:"$schema,omitempty"`
 	// ID - The VM run command id.
 	ID *string `json:"id,omitempty"`
-	// OsType - The Operating System type. Possible values include: 'Windows', 'Linux'
+	// OsType - The Operating System type. Possible values include: 'OperatingSystemTypesWindows', 'OperatingSystemTypesLinux'
 	OsType OperatingSystemTypes `json:"osType,omitempty"`
 	// Label - The VM run command label.
 	Label *string `json:"label,omitempty"`
@@ -9230,7 +9496,7 @@ type RunCommandDocumentBase struct {
 	Schema *string `json:"$schema,omitempty"`
 	// ID - The VM run command id.
 	ID *string `json:"id,omitempty"`
-	// OsType - The Operating System type. Possible values include: 'Windows', 'Linux'
+	// OsType - The Operating System type. Possible values include: 'OperatingSystemTypesWindows', 'OperatingSystemTypesLinux'
 	OsType OperatingSystemTypes `json:"osType,omitempty"`
 	// Label - The VM run command label.
 	Label *string `json:"label,omitempty"`
@@ -9461,6 +9727,12 @@ type SecurityProfile struct {
 type ShareInfoElement struct {
 	// VMURI - READ-ONLY; A relative URI containing the ID of the VM that has the disk attached.
 	VMURI *string `json:"vmUri,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ShareInfoElement.
+func (sie ShareInfoElement) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Sku describes a virtual machine scale set sku. NOTE: If the new VM SKU is not supported on the hardware
@@ -9776,9 +10048,9 @@ func NewSnapshotListPage(cur SnapshotList, getNextPage func(context.Context, Sna
 type SnapshotProperties struct {
 	// TimeCreated - READ-ONLY; The time when the snapshot was created.
 	TimeCreated *date.Time `json:"timeCreated,omitempty"`
-	// OsType - The Operating System type. Possible values include: 'Windows', 'Linux'
+	// OsType - The Operating System type. Possible values include: 'OperatingSystemTypesWindows', 'OperatingSystemTypesLinux'
 	OsType OperatingSystemTypes `json:"osType,omitempty"`
-	// HyperVGeneration - The hypervisor generation of the Virtual Machine. Applicable to OS disks only. Possible values include: 'V1', 'V2'
+	// HyperVGeneration - The hypervisor generation of the Virtual Machine. Applicable to OS disks only. Possible values include: 'HyperVGenerationV1', 'HyperVGenerationV2'
 	HyperVGeneration HyperVGeneration `json:"hyperVGeneration,omitempty"`
 	// PurchasePlan - Purchase plan information for the image from which the source disk for the snapshot was originally created.
 	PurchasePlan *PurchasePlan `json:"purchasePlan,omitempty"`
@@ -9788,7 +10060,7 @@ type SnapshotProperties struct {
 	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
 	// DiskSizeBytes - READ-ONLY; The size of the disk in bytes. This field is read only.
 	DiskSizeBytes *int64 `json:"diskSizeBytes,omitempty"`
-	// DiskState - The state of the snapshot. Possible values include: 'Unattached', 'Attached', 'Reserved', 'ActiveSAS', 'ReadyToUpload', 'ActiveUpload'
+	// DiskState - The state of the snapshot. Possible values include: 'DiskStateUnattached', 'DiskStateAttached', 'DiskStateReserved', 'DiskStateActiveSAS', 'DiskStateReadyToUpload', 'DiskStateActiveUpload'
 	DiskState DiskState `json:"diskState,omitempty"`
 	// UniqueID - READ-ONLY; Unique Guid identifying the resource.
 	UniqueID *string `json:"uniqueId,omitempty"`
@@ -9800,7 +10072,7 @@ type SnapshotProperties struct {
 	Incremental *bool `json:"incremental,omitempty"`
 	// Encryption - Encryption property can be used to encrypt data at rest with customer managed keys or platform managed keys.
 	Encryption *Encryption `json:"encryption,omitempty"`
-	// NetworkAccessPolicy - Possible values include: 'AllowAll', 'AllowPrivate', 'DenyAll'
+	// NetworkAccessPolicy - Possible values include: 'NetworkAccessPolicyAllowAll', 'NetworkAccessPolicyAllowPrivate', 'NetworkAccessPolicyDenyAll'
 	NetworkAccessPolicy NetworkAccessPolicy `json:"networkAccessPolicy,omitempty"`
 	// DiskAccessID - ARM id of the DiskAccess resource for using private endpoints on disks.
 	DiskAccessID *string `json:"diskAccessId,omitempty"`
@@ -10139,7 +10411,7 @@ func (su *SnapshotUpdate) UnmarshalJSON(body []byte) error {
 
 // SnapshotUpdateProperties snapshot resource update properties.
 type SnapshotUpdateProperties struct {
-	// OsType - the Operating System type. Possible values include: 'Windows', 'Linux'
+	// OsType - the Operating System type. Possible values include: 'OperatingSystemTypesWindows', 'OperatingSystemTypesLinux'
 	OsType OperatingSystemTypes `json:"osType,omitempty"`
 	// DiskSizeGB - If creationData.createOption is Empty, this field is mandatory and it indicates the size of the disk to create. If this field is present for updates or creation with other options, it indicates a resize. Resizes are only allowed if the disk is not attached to a running VM, and can only increase the disk's size.
 	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
@@ -10147,7 +10419,7 @@ type SnapshotUpdateProperties struct {
 	EncryptionSettingsCollection *EncryptionSettingsCollection `json:"encryptionSettingsCollection,omitempty"`
 	// Encryption - Encryption property can be used to encrypt data at rest with customer managed keys or platform managed keys.
 	Encryption *Encryption `json:"encryption,omitempty"`
-	// NetworkAccessPolicy - Possible values include: 'AllowAll', 'AllowPrivate', 'DenyAll'
+	// NetworkAccessPolicy - Possible values include: 'NetworkAccessPolicyAllowAll', 'NetworkAccessPolicyAllowPrivate', 'NetworkAccessPolicyDenyAll'
 	NetworkAccessPolicy NetworkAccessPolicy `json:"networkAccessPolicy,omitempty"`
 	// DiskAccessID - ARM id of the DiskAccess resource for using private endpoints on disks.
 	DiskAccessID *string `json:"diskAccessId,omitempty"`
@@ -10530,6 +10802,12 @@ type SubResourceReadOnly struct {
 	ID *string `json:"id,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SubResourceReadOnly.
+func (srro SubResourceReadOnly) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SubResourceWithColocationStatus ...
 type SubResourceWithColocationStatus struct {
 	// ColocationStatus - Describes colocation status of a resource in the Proximity Placement Group.
@@ -10632,6 +10910,12 @@ type UpgradeOperationHistoricalStatusInfo struct {
 	Location *string `json:"location,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for UpgradeOperationHistoricalStatusInfo.
+func (uohsi UpgradeOperationHistoricalStatusInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // UpgradeOperationHistoricalStatusInfoProperties describes each OS upgrade on the Virtual Machine Scale
 // Set.
 type UpgradeOperationHistoricalStatusInfoProperties struct {
@@ -10649,6 +10933,12 @@ type UpgradeOperationHistoricalStatusInfoProperties struct {
 	RollbackInfo *RollbackStatusInfo `json:"rollbackInfo,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for UpgradeOperationHistoricalStatusInfoProperties.
+func (uohsip UpgradeOperationHistoricalStatusInfoProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // UpgradeOperationHistoryStatus information about the current running state of the overall upgrade.
 type UpgradeOperationHistoryStatus struct {
 	// Code - READ-ONLY; Code indicating the current status of the upgrade. Possible values include: 'UpgradeStateRollingForward', 'UpgradeStateCancelled', 'UpgradeStateCompleted', 'UpgradeStateFaulted'
@@ -10659,9 +10949,15 @@ type UpgradeOperationHistoryStatus struct {
 	EndTime *date.Time `json:"endTime,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for UpgradeOperationHistoryStatus.
+func (uohs UpgradeOperationHistoryStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // UpgradePolicy describes an upgrade policy - automatic, manual, or rolling.
 type UpgradePolicy struct {
-	// Mode - Specifies the mode of an upgrade to virtual machines in the scale set.<br /><br /> Possible values are:<br /><br /> **Manual** - You  control the application of updates to virtual machines in the scale set. You do this by using the manualUpgrade action.<br /><br /> **Automatic** - All virtual machines in the scale set are  automatically updated at the same time. Possible values include: 'Automatic', 'Manual', 'Rolling'
+	// Mode - Specifies the mode of an upgrade to virtual machines in the scale set.<br /><br /> Possible values are:<br /><br /> **Manual** - You  control the application of updates to virtual machines in the scale set. You do this by using the manualUpgrade action.<br /><br /> **Automatic** - All virtual machines in the scale set are  automatically updated at the same time. Possible values include: 'UpgradeModeAutomatic', 'UpgradeModeManual', 'UpgradeModeRolling'
 	Mode UpgradeMode `json:"mode,omitempty"`
 	// RollingUpgradePolicy - The configuration parameters used while performing a rolling upgrade.
 	RollingUpgradePolicy *RollingUpgradePolicy `json:"rollingUpgradePolicy,omitempty"`
@@ -10926,6 +11222,12 @@ type VirtualMachineAssessPatchesResult struct {
 	AvailablePatches *[]VirtualMachineSoftwarePatchProperties `json:"availablePatches,omitempty"`
 	// Error - READ-ONLY; The errors that were encountered during execution of the operation. The details array contains the list of them.
 	Error *APIError `json:"error,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualMachineAssessPatchesResult.
+func (vmapr VirtualMachineAssessPatchesResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // VirtualMachineCaptureParameters capture Virtual Machine parameters.
@@ -11465,6 +11767,12 @@ type VirtualMachineHealthStatus struct {
 	Status *InstanceViewStatus `json:"status,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for VirtualMachineHealthStatus.
+func (vmhs VirtualMachineHealthStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // VirtualMachineIdentity identity for the virtual machine.
 type VirtualMachineIdentity struct {
 	// PrincipalID - READ-ONLY; The principal id of virtual machine identity. This property will only be provided for a system assigned identity.
@@ -11495,6 +11803,12 @@ type VirtualMachineIdentityUserAssignedIdentitiesValue struct {
 	PrincipalID *string `json:"principalId,omitempty"`
 	// ClientID - READ-ONLY; The client id of user assigned identity.
 	ClientID *string `json:"clientId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualMachineIdentityUserAssignedIdentitiesValue.
+func (vmiAiv VirtualMachineIdentityUserAssignedIdentitiesValue) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // VirtualMachineImage describes a Virtual Machine Image.
@@ -11666,7 +11980,7 @@ func (vmir VirtualMachineImageResource) MarshalJSON() ([]byte, error) {
 type VirtualMachineInstallPatchesParameters struct {
 	// MaximumDuration - Specifies the maximum amount of time that the operation will run. It must be an ISO 8601-compliant duration string such as PT4H (4 hours)
 	MaximumDuration *string `json:"maximumDuration,omitempty"`
-	// RebootSetting - Defines when it is acceptable to reboot a VM during a software update operation. Possible values include: 'IfRequired', 'Never', 'Always'
+	// RebootSetting - Defines when it is acceptable to reboot a VM during a software update operation. Possible values include: 'VMGuestPatchRebootSettingIfRequired', 'VMGuestPatchRebootSettingNever', 'VMGuestPatchRebootSettingAlways'
 	RebootSetting VMGuestPatchRebootSetting `json:"rebootSetting,omitempty"`
 	// WindowsParameters - Input for InstallPatches on a Windows VM, as directly received by the API
 	WindowsParameters *WindowsParameters `json:"windowsParameters,omitempty"`
@@ -11701,6 +12015,12 @@ type VirtualMachineInstallPatchesResult struct {
 	StartDateTime *date.Time `json:"startDateTime,omitempty"`
 	// Error - READ-ONLY; The errors that were encountered during execution of the operation. The details array contains the list of them.
 	Error *APIError `json:"error,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualMachineInstallPatchesResult.
+func (vmipr VirtualMachineInstallPatchesResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // VirtualMachineInstanceView the instance view of a virtual machine.
@@ -11991,9 +12311,9 @@ type VirtualMachineProperties struct {
 	VirtualMachineScaleSet *SubResource `json:"virtualMachineScaleSet,omitempty"`
 	// ProximityPlacementGroup - Specifies information about the proximity placement group that the virtual machine should be assigned to. <br><br>Minimum api-version: 2018-04-01.
 	ProximityPlacementGroup *SubResource `json:"proximityPlacementGroup,omitempty"`
-	// Priority - Specifies the priority for the virtual machine. <br><br>Minimum api-version: 2019-03-01. Possible values include: 'Regular', 'Low', 'Spot'
+	// Priority - Specifies the priority for the virtual machine. <br><br>Minimum api-version: 2019-03-01. Possible values include: 'VirtualMachinePriorityTypesRegular', 'VirtualMachinePriorityTypesLow', 'VirtualMachinePriorityTypesSpot'
 	Priority VirtualMachinePriorityTypes `json:"priority,omitempty"`
-	// EvictionPolicy - Specifies the eviction policy for the Azure Spot virtual machine and Azure Spot scale set. <br><br>For Azure Spot virtual machines, both 'Deallocate' and 'Delete' are supported and the minimum api-version is 2019-03-01. <br><br>For Azure Spot scale sets, both 'Deallocate' and 'Delete' are supported and the minimum api-version is 2017-10-30-preview. Possible values include: 'Deallocate', 'Delete'
+	// EvictionPolicy - Specifies the eviction policy for the Azure Spot virtual machine and Azure Spot scale set. <br><br>For Azure Spot virtual machines, both 'Deallocate' and 'Delete' are supported and the minimum api-version is 2019-03-01. <br><br>For Azure Spot scale sets, both 'Deallocate' and 'Delete' are supported and the minimum api-version is 2017-10-30-preview. Possible values include: 'VirtualMachineEvictionPolicyTypesDeallocate', 'VirtualMachineEvictionPolicyTypesDelete'
 	EvictionPolicy VirtualMachineEvictionPolicyTypes `json:"evictionPolicy,omitempty"`
 	// BillingProfile - Specifies the billing related details of a Azure Spot virtual machine. <br><br>Minimum api-version: 2019-03-01.
 	BillingProfile *BillingProfile `json:"billingProfile,omitempty"`
@@ -13368,6 +13688,12 @@ type VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue struct {
 	ClientID *string `json:"clientId,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue.
+func (vmssiAiv VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // VirtualMachineScaleSetInstanceView the instance view of a virtual machine scale set.
 type VirtualMachineScaleSetInstanceView struct {
 	autorest.Response `json:"-"`
@@ -13395,6 +13721,12 @@ func (vmssiv VirtualMachineScaleSetInstanceView) MarshalJSON() ([]byte, error) {
 type VirtualMachineScaleSetInstanceViewStatusesSummary struct {
 	// StatusesSummary - READ-ONLY; The extensions information.
 	StatusesSummary *[]VirtualMachineStatusCodeCount `json:"statusesSummary,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualMachineScaleSetInstanceViewStatusesSummary.
+func (vmssivss VirtualMachineScaleSetInstanceViewStatusesSummary) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // VirtualMachineScaleSetIPConfiguration describes a virtual machine scale set network profile's IP
@@ -13473,7 +13805,7 @@ type VirtualMachineScaleSetIPConfigurationProperties struct {
 	Primary *bool `json:"primary,omitempty"`
 	// PublicIPAddressConfiguration - The publicIPAddressConfiguration.
 	PublicIPAddressConfiguration *VirtualMachineScaleSetPublicIPAddressConfiguration `json:"publicIPAddressConfiguration,omitempty"`
-	// PrivateIPAddressVersion - Available from Api-Version 2017-03-30 onwards, it represents whether the specific ipconfiguration is IPv4 or IPv6. Default is taken as IPv4.  Possible values are: 'IPv4' and 'IPv6'. Possible values include: 'IPv4', 'IPv6'
+	// PrivateIPAddressVersion - Available from Api-Version 2017-03-30 onwards, it represents whether the specific ipconfiguration is IPv4 or IPv6. Default is taken as IPv4.  Possible values are: 'IPv4' and 'IPv6'. Possible values include: 'IPVersionIPv4', 'IPVersionIPv6'
 	PrivateIPAddressVersion IPVersion `json:"privateIPAddressVersion,omitempty"`
 	// ApplicationGatewayBackendAddressPools - Specifies an array of references to backend address pools of application gateways. A scale set can reference backend address pools of multiple application gateways. Multiple scale sets cannot use the same application gateway.
 	ApplicationGatewayBackendAddressPools *[]SubResource `json:"applicationGatewayBackendAddressPools,omitempty"`
@@ -14258,7 +14590,7 @@ type VirtualMachineScaleSetOSDisk struct {
 	DiffDiskSettings *DiffDiskSettings `json:"diffDiskSettings,omitempty"`
 	// DiskSizeGB - Specifies the size of the operating system disk in gigabytes. This element can be used to overwrite the size of the disk in a virtual machine image. <br><br> This value cannot be larger than 1023 GB
 	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
-	// OsType - This property allows you to specify the type of the OS that is included in the disk if creating a VM from user-image or a specialized VHD. <br><br> Possible values are: <br><br> **Windows** <br><br> **Linux**. Possible values include: 'Windows', 'Linux'
+	// OsType - This property allows you to specify the type of the OS that is included in the disk if creating a VM from user-image or a specialized VHD. <br><br> Possible values are: <br><br> **Windows** <br><br> **Linux**. Possible values include: 'OperatingSystemTypesWindows', 'OperatingSystemTypesLinux'
 	OsType OperatingSystemTypes `json:"osType,omitempty"`
 	// Image - Specifies information about the unmanaged user image to base the scale set on.
 	Image *VirtualHardDisk `json:"image,omitempty"`
@@ -14316,7 +14648,7 @@ type VirtualMachineScaleSetProperties struct {
 	AdditionalCapabilities *AdditionalCapabilities `json:"additionalCapabilities,omitempty"`
 	// ScaleInPolicy - Specifies the scale-in policy that decides which virtual machines are chosen for removal when a Virtual Machine Scale Set is scaled-in.
 	ScaleInPolicy *ScaleInPolicy `json:"scaleInPolicy,omitempty"`
-	// OrchestrationMode - Specifies the orchestration mode for the virtual machine scale set. Possible values include: 'Uniform', 'Flexible'
+	// OrchestrationMode - Specifies the orchestration mode for the virtual machine scale set. Possible values include: 'OrchestrationModeUniform', 'OrchestrationModeFlexible'
 	OrchestrationMode OrchestrationMode `json:"orchestrationMode,omitempty"`
 }
 
@@ -14436,7 +14768,7 @@ type VirtualMachineScaleSetPublicIPAddressConfigurationProperties struct {
 	IPTags *[]VirtualMachineScaleSetIPTag `json:"ipTags,omitempty"`
 	// PublicIPPrefix - The PublicIPPrefix from which to allocate publicIP addresses.
 	PublicIPPrefix *SubResource `json:"publicIPPrefix,omitempty"`
-	// PublicIPAddressVersion - Available from Api-Version 2019-07-01 onwards, it represents whether the specific ipconfiguration is IPv4 or IPv6. Default is taken as IPv4. Possible values are: 'IPv4' and 'IPv6'. Possible values include: 'IPv4', 'IPv6'
+	// PublicIPAddressVersion - Available from Api-Version 2019-07-01 onwards, it represents whether the specific ipconfiguration is IPv4 or IPv6. Default is taken as IPv4. Possible values are: 'IPv4' and 'IPv6'. Possible values include: 'IPVersionIPv4', 'IPVersionIPv6'
 	PublicIPAddressVersion IPVersion `json:"publicIPAddressVersion,omitempty"`
 }
 
@@ -14723,6 +15055,12 @@ type VirtualMachineScaleSetSku struct {
 	Capacity *VirtualMachineScaleSetSkuCapacity `json:"capacity,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for VirtualMachineScaleSetSku.
+func (vmsss VirtualMachineScaleSetSku) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // VirtualMachineScaleSetSkuCapacity describes scaling information of a sku.
 type VirtualMachineScaleSetSkuCapacity struct {
 	// Minimum - READ-ONLY; The minimum capacity.
@@ -14733,6 +15071,12 @@ type VirtualMachineScaleSetSkuCapacity struct {
 	DefaultCapacity *int64 `json:"defaultCapacity,omitempty"`
 	// ScaleType - READ-ONLY; The scale type applicable to the sku. Possible values include: 'VirtualMachineScaleSetSkuScaleTypeAutomatic', 'VirtualMachineScaleSetSkuScaleTypeNone'
 	ScaleType VirtualMachineScaleSetSkuScaleType `json:"scaleType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualMachineScaleSetSkuCapacity.
+func (vmsssc VirtualMachineScaleSetSkuCapacity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // VirtualMachineScaleSetsPerformMaintenanceFuture an abstraction for monitoring and retrieving the results
@@ -15292,7 +15636,7 @@ type VirtualMachineScaleSetUpdateIPConfigurationProperties struct {
 	Primary *bool `json:"primary,omitempty"`
 	// PublicIPAddressConfiguration - The publicIPAddressConfiguration.
 	PublicIPAddressConfiguration *VirtualMachineScaleSetUpdatePublicIPAddressConfiguration `json:"publicIPAddressConfiguration,omitempty"`
-	// PrivateIPAddressVersion - Available from Api-Version 2017-03-30 onwards, it represents whether the specific ipconfiguration is IPv4 or IPv6. Default is taken as IPv4.  Possible values are: 'IPv4' and 'IPv6'. Possible values include: 'IPv4', 'IPv6'
+	// PrivateIPAddressVersion - Available from Api-Version 2017-03-30 onwards, it represents whether the specific ipconfiguration is IPv4 or IPv6. Default is taken as IPv4.  Possible values are: 'IPv4' and 'IPv6'. Possible values include: 'IPVersionIPv4', 'IPVersionIPv6'
 	PrivateIPAddressVersion IPVersion `json:"privateIPAddressVersion,omitempty"`
 	// ApplicationGatewayBackendAddressPools - The application gateway backend address pools.
 	ApplicationGatewayBackendAddressPools *[]SubResource `json:"applicationGatewayBackendAddressPools,omitempty"`
@@ -15870,6 +16214,12 @@ type VirtualMachineScaleSetVMExtensionsSummary struct {
 	StatusesSummary *[]VirtualMachineStatusCodeCount `json:"statusesSummary,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for VirtualMachineScaleSetVMExtensionsSummary.
+func (vmssves VirtualMachineScaleSetVMExtensionsSummary) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // VirtualMachineScaleSetVMExtensionsUpdateFuture an abstraction for monitoring and retrieving the results
 // of a long-running operation.
 type VirtualMachineScaleSetVMExtensionsUpdateFuture struct {
@@ -16246,9 +16596,9 @@ type VirtualMachineScaleSetVMProfile struct {
 	ExtensionProfile *VirtualMachineScaleSetExtensionProfile `json:"extensionProfile,omitempty"`
 	// LicenseType - Specifies that the image or disk that is being used was licensed on-premises. <br><br> Possible values for Windows Server operating system are: <br><br> Windows_Client <br><br> Windows_Server <br><br> Possible values for Linux Server operating system are: <br><br> RHEL_BYOS (for RHEL) <br><br> SLES_BYOS (for SUSE) <br><br> For more information, see [Azure Hybrid Use Benefit for Windows Server](https://docs.microsoft.com/azure/virtual-machines/windows/hybrid-use-benefit-licensing) <br><br> [Azure Hybrid Use Benefit for Linux Server](https://docs.microsoft.com/azure/virtual-machines/linux/azure-hybrid-benefit-linux) <br><br> Minimum api-version: 2015-06-15
 	LicenseType *string `json:"licenseType,omitempty"`
-	// Priority - Specifies the priority for the virtual machines in the scale set. <br><br>Minimum api-version: 2017-10-30-preview. Possible values include: 'Regular', 'Low', 'Spot'
+	// Priority - Specifies the priority for the virtual machines in the scale set. <br><br>Minimum api-version: 2017-10-30-preview. Possible values include: 'VirtualMachinePriorityTypesRegular', 'VirtualMachinePriorityTypesLow', 'VirtualMachinePriorityTypesSpot'
 	Priority VirtualMachinePriorityTypes `json:"priority,omitempty"`
-	// EvictionPolicy - Specifies the eviction policy for the Azure Spot virtual machine and Azure Spot scale set. <br><br>For Azure Spot virtual machines, both 'Deallocate' and 'Delete' are supported and the minimum api-version is 2019-03-01. <br><br>For Azure Spot scale sets, both 'Deallocate' and 'Delete' are supported and the minimum api-version is 2017-10-30-preview. Possible values include: 'Deallocate', 'Delete'
+	// EvictionPolicy - Specifies the eviction policy for the Azure Spot virtual machine and Azure Spot scale set. <br><br>For Azure Spot virtual machines, both 'Deallocate' and 'Delete' are supported and the minimum api-version is 2019-03-01. <br><br>For Azure Spot scale sets, both 'Deallocate' and 'Delete' are supported and the minimum api-version is 2017-10-30-preview. Possible values include: 'VirtualMachineEvictionPolicyTypesDeallocate', 'VirtualMachineEvictionPolicyTypesDelete'
 	EvictionPolicy VirtualMachineEvictionPolicyTypes `json:"evictionPolicy,omitempty"`
 	// BillingProfile - Specifies the billing related details of a Azure Spot VMSS. <br><br>Minimum api-version: 2019-03-01.
 	BillingProfile *BillingProfile `json:"billingProfile,omitempty"`
@@ -17175,6 +17525,12 @@ type VirtualMachineSoftwarePatchProperties struct {
 	AssessmentState PatchAssessmentState `json:"assessmentState,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for VirtualMachineSoftwarePatchProperties.
+func (vmspp VirtualMachineSoftwarePatchProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // VirtualMachinesPerformMaintenanceFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type VirtualMachinesPerformMaintenanceFuture struct {
@@ -17486,6 +17842,12 @@ type VirtualMachineStatusCodeCount struct {
 	Count *int32 `json:"count,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for VirtualMachineStatusCodeCount.
+func (vmscc VirtualMachineStatusCodeCount) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // VirtualMachinesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type VirtualMachinesUpdateFuture struct {
@@ -17667,7 +18029,7 @@ type WinRMConfiguration struct {
 
 // WinRMListener describes Protocol and thumbprint of Windows Remote Management listener
 type WinRMListener struct {
-	// Protocol - Specifies the protocol of WinRM listener. <br><br> Possible values are: <br>**http** <br><br> **https**. Possible values include: 'HTTP', 'HTTPS'
+	// Protocol - Specifies the protocol of WinRM listener. <br><br> Possible values are: <br>**http** <br><br> **https**. Possible values include: 'ProtocolTypesHTTP', 'ProtocolTypesHTTPS'
 	Protocol ProtocolTypes `json:"protocol,omitempty"`
 	// CertificateURL - This is the URL of a certificate that has been uploaded to Key Vault as a secret. For adding a secret to the Key Vault, see [Add a key or secret to the key vault](https://docs.microsoft.com/azure/key-vault/key-vault-get-started/#add). In this case, your certificate needs to be It is the Base64 encoding of the following JSON Object which is encoded in UTF-8: <br><br> {<br>  "data":"<Base64-encoded-certificate>",<br>  "dataType":"pfx",<br>  "password":"<pfx-file-password>"<br>}
 	CertificateURL *string `json:"certificateUrl,omitempty"`

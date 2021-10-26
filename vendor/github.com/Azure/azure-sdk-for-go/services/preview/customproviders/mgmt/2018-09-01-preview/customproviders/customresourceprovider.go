@@ -63,7 +63,7 @@ func (client CustomResourceProviderClient) CreateOrUpdate(ctx context.Context, r
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -97,6 +97,7 @@ func (client CustomResourceProviderClient) CreateOrUpdatePreparer(ctx context.Co
 // http.Response Body if it receives an error.
 func (client CustomResourceProviderClient) CreateOrUpdateSender(req *http.Request) (future CustomResourceProviderCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -150,7 +151,7 @@ func (client CustomResourceProviderClient) Delete(ctx context.Context, resourceG
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -182,6 +183,7 @@ func (client CustomResourceProviderClient) DeletePreparer(ctx context.Context, r
 // http.Response Body if it receives an error.
 func (client CustomResourceProviderClient) DeleteSender(req *http.Request) (future CustomResourceProviderDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

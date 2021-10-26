@@ -83,7 +83,7 @@ func (client ApplicationsClient) CreateOrUpdate(ctx context.Context, resourceGro
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -117,6 +117,7 @@ func (client ApplicationsClient) CreateOrUpdatePreparer(ctx context.Context, res
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) CreateOrUpdateSender(req *http.Request) (future ApplicationsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -186,7 +187,7 @@ func (client ApplicationsClient) CreateOrUpdateByID(ctx context.Context, applica
 
 	result, err = client.CreateOrUpdateByIDSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationsClient", "CreateOrUpdateByID", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationsClient", "CreateOrUpdateByID", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -218,6 +219,7 @@ func (client ApplicationsClient) CreateOrUpdateByIDPreparer(ctx context.Context,
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) CreateOrUpdateByIDSender(req *http.Request) (future ApplicationsCreateOrUpdateByIDFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return
@@ -275,7 +277,7 @@ func (client ApplicationsClient) Delete(ctx context.Context, resourceGroupName s
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -307,6 +309,7 @@ func (client ApplicationsClient) DeletePreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) DeleteSender(req *http.Request) (future ApplicationsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -353,7 +356,7 @@ func (client ApplicationsClient) DeleteByID(ctx context.Context, applicationID s
 
 	result, err = client.DeleteByIDSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationsClient", "DeleteByID", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationsClient", "DeleteByID", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -383,6 +386,7 @@ func (client ApplicationsClient) DeleteByIDPreparer(ctx context.Context, applica
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) DeleteByIDSender(req *http.Request) (future ApplicationsDeleteByIDFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return
@@ -838,7 +842,7 @@ func (client ApplicationsClient) RefreshPermissions(ctx context.Context, resourc
 
 	result, err = client.RefreshPermissionsSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationsClient", "RefreshPermissions", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationsClient", "RefreshPermissions", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -870,6 +874,7 @@ func (client ApplicationsClient) RefreshPermissionsPreparer(ctx context.Context,
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) RefreshPermissionsSender(req *http.Request) (future ApplicationsRefreshPermissionsFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

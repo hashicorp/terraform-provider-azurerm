@@ -2,7 +2,7 @@
 
 echo "==> Checking acceptance test terraform blocks are formatted..."
 
-files=$(find ./azurerm/internal -type f -name "*_test.go")
+files=$(find ./internal -type f -name "*_test.go")
 error=false
 
 for f in $files; do
@@ -22,7 +22,7 @@ if ${error}; then
   echo "$ find azurerm | egrep \"_test.go\" | sort | while read f; do terrafmt fmt -f \$f; done"
   echo ""
   echo "format a single test file:"
-  echo "$ terrafmt fmt -f ./azurerm/internal/services/service/tests/resource_test.go"
+  echo "$ terrafmt fmt -f ./internal/services/service/tests/resource_test.go"
   echo ""
   echo "on windows:"
   echo "$ Get-ChildItem -Path . -Recurse -Filter \"*_test.go\" | foreach {terrafmt fmt -f $_.fullName}"

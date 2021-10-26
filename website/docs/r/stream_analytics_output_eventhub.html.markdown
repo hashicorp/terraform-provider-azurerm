@@ -73,6 +73,10 @@ The following arguments are supported:
 
 * `serialization` - (Required) A `serialization` block as defined below.
 
+* `property_columns` - (Optional) A list of property columns to add to the Event Hub output.
+
+* `partition_key` - (Optional) The column that is used for the Event Hub partition key.
+
 ---
 
 A `serialization` block supports the following:
