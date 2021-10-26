@@ -2981,6 +2981,10 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 				output["name"] = *config.Name
 			}
 
+			if config.Priority != nil {
+				output["priority"] = *config.Priority
+			}
+
 			if pool := props.BackendAddressPool; pool != nil {
 				if pool.ID != nil {
 					poolId, err := azure.ParseAzureResourceID(*pool.ID)
