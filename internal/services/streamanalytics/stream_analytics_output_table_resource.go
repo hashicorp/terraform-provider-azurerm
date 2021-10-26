@@ -148,8 +148,7 @@ func (r OutputTableResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			_, err = client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "", "")
-			if err != nil {
+			if _, err = client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -234,10 +233,10 @@ func (r OutputTableResource) Update() sdk.ResourceFunc {
 				},
 			}
 
-			_, err = client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "")
-			if err != nil {
+			if _, err = client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
+
 			return nil
 		},
 	}
