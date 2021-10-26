@@ -1,4 +1,4 @@
-// Package costmanagement implements the Azure ARM Costmanagement service API version 2019-10-01.
+// Package costmanagement implements the Azure ARM Costmanagement service API version 2020-06-01.
 //
 //
 package costmanagement

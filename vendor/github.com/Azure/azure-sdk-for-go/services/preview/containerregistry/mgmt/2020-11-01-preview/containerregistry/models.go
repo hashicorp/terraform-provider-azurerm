@@ -3442,6 +3442,16 @@ func NewOperationListResultPage(cur OperationListResult, getNextPage func(contex
 	}
 }
 
+// OperationLogSpecificationDefinition the definition of Azure Monitoring log.
+type OperationLogSpecificationDefinition struct {
+	// Name - Log name.
+	Name *string `json:"name,omitempty"`
+	// DisplayName - Log display name.
+	DisplayName *string `json:"displayName,omitempty"`
+	// BlobDuration - Log blob duration.
+	BlobDuration *string `json:"blobDuration,omitempty"`
+}
+
 // OperationMetricSpecificationDefinition the definition of Azure Monitoring metric.
 type OperationMetricSpecificationDefinition struct {
 	// Name - Metric name.
@@ -3468,6 +3478,8 @@ type OperationPropertiesDefinition struct {
 type OperationServiceSpecificationDefinition struct {
 	// MetricSpecifications - A list of Azure Monitoring metrics definition.
 	MetricSpecifications *[]OperationMetricSpecificationDefinition `json:"metricSpecifications,omitempty"`
+	// LogSpecifications - A list of Azure Monitoring log definitions.
+	LogSpecifications *[]OperationLogSpecificationDefinition `json:"logSpecifications,omitempty"`
 }
 
 // OverrideTaskStepProperties ...
@@ -5196,8 +5208,6 @@ type RegistryProperties struct {
 	Status *Status `json:"status,omitempty"`
 	// AdminUserEnabled - The value that indicates whether the admin user is enabled.
 	AdminUserEnabled *bool `json:"adminUserEnabled,omitempty"`
-	// StorageAccount - The properties of the storage account for the container registry. Only applicable to Classic SKU.
-	StorageAccount *StorageAccountProperties `json:"storageAccount,omitempty"`
 	// NetworkRuleSet - The network rule set for a container registry.
 	NetworkRuleSet *NetworkRuleSet `json:"networkRuleSet,omitempty"`
 	// Policies - The policies for a container registry.
@@ -5216,6 +5226,8 @@ type RegistryProperties struct {
 	NetworkRuleBypassOptions NetworkRuleBypassOptions `json:"networkRuleBypassOptions,omitempty"`
 	// ZoneRedundancy - Whether or not zone redundancy is enabled for this container registry. Possible values include: 'ZoneRedundancyEnabled', 'ZoneRedundancyDisabled'
 	ZoneRedundancy ZoneRedundancy `json:"zoneRedundancy,omitempty"`
+	// AnonymousPullEnabled - Enables registry-wide pull from unauthenticated clients.
+	AnonymousPullEnabled *bool `json:"anonymousPullEnabled,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for RegistryProperties.
@@ -5223,9 +5235,6 @@ func (rp RegistryProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if rp.AdminUserEnabled != nil {
 		objectMap["adminUserEnabled"] = rp.AdminUserEnabled
-	}
-	if rp.StorageAccount != nil {
-		objectMap["storageAccount"] = rp.StorageAccount
 	}
 	if rp.NetworkRuleSet != nil {
 		objectMap["networkRuleSet"] = rp.NetworkRuleSet
@@ -5248,6 +5257,9 @@ func (rp RegistryProperties) MarshalJSON() ([]byte, error) {
 	if rp.ZoneRedundancy != "" {
 		objectMap["zoneRedundancy"] = rp.ZoneRedundancy
 	}
+	if rp.AnonymousPullEnabled != nil {
+		objectMap["anonymousPullEnabled"] = rp.AnonymousPullEnabled
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -5267,16 +5279,18 @@ type RegistryPropertiesUpdateParameters struct {
 	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 	// NetworkRuleBypassOptions - Whether to allow trusted Azure services to access a network restricted registry. Possible values include: 'NetworkRuleBypassOptionsAzureServices', 'NetworkRuleBypassOptionsNone'
 	NetworkRuleBypassOptions NetworkRuleBypassOptions `json:"networkRuleBypassOptions,omitempty"`
+	// AnonymousPullEnabled - Enables registry-wide pull from unauthenticated clients.
+	AnonymousPullEnabled *bool `json:"anonymousPullEnabled,omitempty"`
 }
 
 // RegistryUpdateParameters the parameters for updating a container registry.
 type RegistryUpdateParameters struct {
+	// Identity - The identity of the container registry.
+	Identity *IdentityProperties `json:"identity,omitempty"`
 	// Tags - The tags for the container registry.
 	Tags map[string]*string `json:"tags"`
 	// Sku - The SKU of the container registry.
 	Sku *Sku `json:"sku,omitempty"`
-	// Identity - The identity of the container registry.
-	Identity *IdentityProperties `json:"identity,omitempty"`
 	// RegistryPropertiesUpdateParameters - The properties that the container registry will be updated with.
 	*RegistryPropertiesUpdateParameters `json:"properties,omitempty"`
 }
@@ -5284,14 +5298,14 @@ type RegistryUpdateParameters struct {
 // MarshalJSON is the custom marshaler for RegistryUpdateParameters.
 func (rup RegistryUpdateParameters) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if rup.Identity != nil {
+		objectMap["identity"] = rup.Identity
+	}
 	if rup.Tags != nil {
 		objectMap["tags"] = rup.Tags
 	}
 	if rup.Sku != nil {
 		objectMap["sku"] = rup.Sku
-	}
-	if rup.Identity != nil {
-		objectMap["identity"] = rup.Identity
 	}
 	if rup.RegistryPropertiesUpdateParameters != nil {
 		objectMap["properties"] = rup.RegistryPropertiesUpdateParameters
@@ -5308,6 +5322,15 @@ func (rup *RegistryUpdateParameters) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
+		case "identity":
+			if v != nil {
+				var identity IdentityProperties
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				rup.Identity = &identity
+			}
 		case "tags":
 			if v != nil {
 				var tags map[string]*string
@@ -5325,15 +5348,6 @@ func (rup *RegistryUpdateParameters) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				rup.Sku = &sku
-			}
-		case "identity":
-			if v != nil {
-				var identity IdentityProperties
-				err = json.Unmarshal(*v, &identity)
-				if err != nil {
-					return err
-				}
-				rup.Identity = &identity
 			}
 		case "properties":
 			if v != nil {
@@ -7111,13 +7125,6 @@ type StatusDetailProperties struct {
 func (sdp StatusDetailProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
-}
-
-// StorageAccountProperties the properties of a storage account for a container registry. Only applicable
-// to Classic SKU.
-type StorageAccountProperties struct {
-	// ID - The resource ID of the storage account.
-	ID *string `json:"id,omitempty"`
 }
 
 // SyncProperties the sync properties of the connected registry with its parent.
