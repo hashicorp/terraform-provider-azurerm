@@ -577,6 +577,7 @@ func resourceFrontDoorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	location := "Global"
 	preExists := false
 	cfgLocation, hasLocation := d.GetOk("location")
+	rulesEngines := make(map[string]*parse.RulesEngineId)
 
 	exists, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -586,6 +587,18 @@ func resourceFrontDoorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	} else {
 		preExists = true
 		location = azure.NormalizeLocation(*exists.Location)
+
+		for _, rule := range *exists.RoutingRules {
+			if rule.RulesEngine != nil {
+				id, err := parse.RulesEngineID(*rule.RulesEngine.ID)
+
+				if err != nil {
+					return fmt.Errorf("Error parsing rules engine id for routing rule %q (Resource Group %q): %+v", *rule.Name, resourceGroup, err)
+				}
+
+				rulesEngines[*rule.Name] = id
+			}
+		}
 	}
 
 	if hasLocation && preExists {
@@ -610,13 +623,13 @@ func resourceFrontDoorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	// If the explicitResourceOrder is empty and it is a new resource it will run the CreateOrUpdate as expected
 	// If the explicitResourceOrder is NOT empty and it is NOT a new resource it will run the CreateOrUpdate as expected
 	if len(explicitResourceOrder) == 0 && !d.IsNewResource() {
-		d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, frontDoorId))
+		d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, frontDoorId, &rulesEngines))
 	} else {
 		frontDoorParameters := frontdoor.FrontDoor{
 			Location: utils.String(location),
 			Properties: &frontdoor.Properties{
 				FriendlyName:          utils.String(friendlyName),
-				RoutingRules:          expandFrontDoorRoutingRule(routingRules, frontDoorId),
+				RoutingRules:          expandFrontDoorRoutingRule(routingRules, frontDoorId, &rulesEngines),
 				BackendPools:          expandFrontDoorBackendPools(backendPools, frontDoorId),
 				BackendPoolsSettings:  expandFrontDoorBackendPoolsSettings(backendPoolsSettings, backendPoolsSendReceiveTimeoutSeconds),
 				FrontendEndpoints:     expandFrontDoorFrontendEndpoint(frontendEndpoints, frontDoorId),
@@ -635,7 +648,7 @@ func resourceFrontDoorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("waiting for creation of Front Door %q (Resource Group %q): %+v", frontDoorId.Name, frontDoorId.ResourceGroup, err)
 		}
 
-		d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, frontDoorId))
+		d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, frontDoorId, &rulesEngines))
 	}
 
 	d.SetId(frontDoorId.ID())
@@ -1037,7 +1050,7 @@ func expandFrontDoorLoadBalancingSettingsModel(input []interface{}, frontDoorId 
 	return &output
 }
 
-func expandFrontDoorRoutingRule(input []interface{}, frontDoorId parse.FrontDoorId) *[]frontdoor.RoutingRule {
+func expandFrontDoorRoutingRule(input []interface{}, frontDoorId parse.FrontDoorId, rulesEngines *map[string]*parse.RulesEngineId) *[]frontdoor.RoutingRule {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1065,6 +1078,15 @@ func expandFrontDoorRoutingRule(input []interface{}, frontDoorId parse.FrontDoor
 		}
 		routingRuleId := parse.NewRoutingRuleID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, name).ID()
 
+		// Preserve existing rules engine for this routing rule
+		// https://github.com/hashicorp/terraform-provider-azurerm/issues/7455#issuecomment-882769364
+		var rulesEngine *frontdoor.SubResource
+		if rulesEngineId, ok := (*rulesEngines)[name]; ok {
+			rulesEngine = &frontdoor.SubResource{
+				ID: utils.String(rulesEngineId.ID()),
+			}
+		}
+
 		currentRoutingRule := frontdoor.RoutingRule{
 			ID:   utils.String(routingRuleId),
 			Name: utils.String(name),
@@ -1074,6 +1096,7 @@ func expandFrontDoorRoutingRule(input []interface{}, frontDoorId parse.FrontDoor
 				PatternsToMatch:    &patternsToMatch,
 				EnabledState:       frontdoor.RoutingRuleEnabledState(expandFrontDoorEnabledState(enabled)),
 				RouteConfiguration: routingConfiguration,
+				RulesEngine:        rulesEngine,
 			},
 		}
 		output = append(output, currentRoutingRule)
@@ -1233,7 +1256,7 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId par
 	return forwardingConfiguration
 }
 
-func flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings []interface{}, frontDoorId parse.FrontDoorId) *[]interface{} {
+func flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings []interface{}, frontDoorId parse.FrontDoorId, rulesEngines *map[string]*parse.RulesEngineId) *[]interface{} {
 	output := make([]interface{}, 0)
 	var backendPoolOrder []string
 	var frontedEndpointOrder []string
@@ -1260,7 +1283,7 @@ func flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules,
 	}
 	if len(routingRules) > 0 {
 		var oldBlocks interface{}
-		flattenendRoutingRules, err := flattenFrontDoorRoutingRule(expandFrontDoorRoutingRule(routingRules, frontDoorId), oldBlocks, frontDoorId, make([]interface{}, 0))
+		flattenendRoutingRules, err := flattenFrontDoorRoutingRule(expandFrontDoorRoutingRule(routingRules, frontDoorId, rulesEngines), oldBlocks, frontDoorId, make([]interface{}, 0))
 		if err == nil {
 			for _, ids := range *flattenendRoutingRules {
 				routingRule := ids.(map[string]interface{})
