@@ -1064,7 +1064,7 @@ func TestAccApplicationGateway_requestRoutingRulePriority(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.requestRoutingRulePriorityEmpty(data),
+			Config: r.requestRoutingRulePriorityNotSet(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1079,7 +1079,7 @@ func TestAccApplicationGateway_requestRoutingRulePriority(t *testing.T) {
 		},
 		{
 			Config:      r.requestRoutingRulePriorityValidation(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_application_gateway"),
+			ExpectError: regexp.MustCompile("If you wish to use rule priority, you will have to specify rule-priority field values for all the existing request routing rules."),
 		},
 	})
 }
@@ -6567,7 +6567,7 @@ resource "azurerm_application_gateway" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r ApplicationGatewayResource) requestRoutingRulePriorityEmpty(data acceptance.TestData) string {
+func (r ApplicationGatewayResource) requestRoutingRulePriorityNotSet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
