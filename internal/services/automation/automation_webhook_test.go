@@ -75,22 +75,24 @@ func TestAccAutomationWebhook_WithParameters(t *testing.T) {
 	})
 }
 
+/*
 // missing workergroup creation
-//func TestAccAutomationWebhook_WithWorkerGroup(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_automation_webhook", "test")
-//	r := AutomationWebhookResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.WebhookOnWorkerGroup(data),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("run_on").HasValue("workergroup"),
-//			),
-//		},
-//		data.ImportStep("publish_content_link"),
-//	})
-//}
+func TestAccAutomationWebhook_WithWorkerGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_webhook", "test")
+	r := AutomationWebhookResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.WebhookOnWorkerGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("run_on").HasValue("workergroup"),
+			),
+		},
+		data.ImportStep("publish_content_link"),
+	})
+}
+*/
 
 func (t AutomationWebhookResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.WebhookID(state.ID)
@@ -194,7 +196,7 @@ resource "azurerm_automation_webhook" "test" {
 `, template, time.Now().UTC().Add(time.Hour).Format(time.RFC3339))
 }
 
-//requires creation of worker group
+// requires creation of worker group
 func (AutomationWebhookResource) WebhookOnWorkerGroup(data acceptance.TestData) string {
 	template := AutomationWebhookResource{}.ParentResources(data)
 	return fmt.Sprintf(`

@@ -2,10 +2,11 @@ package automation
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
 	"github.com/Azure/go-autorest/autorest/date"
@@ -164,7 +165,7 @@ func resourceAutomationWebhookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("cannot read Automation Webhook %q (Automation Account Name %q / Resource Group %q) ID", name, accountName, resourceGroup)
 	}
 	d.SetId(*resp.ID)
-	// set at the end, so won't have to worry about error scenarios
+	// URI is not present in the response from Azure, so it's set now, as there was no error returned
 	if stringURI != "" {
 		d.Set("uri", stringURI)
 	}
