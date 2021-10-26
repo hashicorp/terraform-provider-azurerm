@@ -71,7 +71,7 @@ resource "azurerm_purview_account" "test" {
   name                = "acctestsw%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "Standard_4"
+  sku_name            = "Standard_1"
 }
 `, template, data.RandomInteger)
 }
