@@ -392,7 +392,7 @@ func AzureTimeZoneString() func(interface{}, string) ([]string, []error) {
 		"Pacific/Tongatapu",
 		"Pacific/Wake",
 		"Pacific/Wallis",
-		"UTC",
+		"Etc/UTC",
 	}
 
 	return validation.StringInSlice(validTimeZones, false)
