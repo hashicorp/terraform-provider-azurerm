@@ -83,6 +83,7 @@ func NewClient(options *common.ClientOptions) *Client {
 	options.ConfigureClient(&syncGroupsClient.Client, options.ResourceManagerAuthorizer)
 
 	diskPoolsClient := storagepool.NewDiskPoolsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	options.ConfigureClient(&diskPoolsClient.Client, options.ResourceManagerAuthorizer)
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	client := Client{
