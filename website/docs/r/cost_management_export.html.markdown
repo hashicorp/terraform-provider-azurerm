@@ -68,7 +68,6 @@ The following arguments are supported:
 - for scope `Billing Profile`, the id format is `/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}`
 - for scope `Invoice Section`, the id format is `/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/invoiceSections/{invoiceSectionId}`
 - for scope `Partner Customer`, the id format is `/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/customers/{customerId}`
-...
 
 * `recurrence_type` - (Required) How often the requested information will be exported. Accepted values are `Annually`, `Daily`, `Monthly`, or `Weekly`.
 
