@@ -121,7 +121,7 @@ func TestAccVPNGateway_routingPreferenceMicrosoftNetwork(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.routingPreference(data, false),
+			Config: r.routingPreference(data, "Microsoft Network"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -136,7 +136,7 @@ func TestAccVPNGateway_routingPreferenceInternet(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.routingPreference(data, true),
+			Config: r.routingPreference(data, "Internet"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -171,7 +171,7 @@ resource "azurerm_vpn_gateway" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r VPNGatewayResource) routingPreference(data acceptance.TestData, publicRoutingPreference bool) string {
+func (r VPNGatewayResource) routingPreference(data acceptance.TestData, routingPreference string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -180,10 +180,9 @@ resource "azurerm_vpn_gateway" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   virtual_hub_id      = azurerm_virtual_hub.test.id
-
-  internet_routing_preference_enabled = %t
+  routing_preference  = "%s"
 }
-`, r.template(data), data.RandomInteger, publicRoutingPreference)
+`, r.template(data), data.RandomInteger, routingPreference)
 }
 
 func (r VPNGatewayResource) requiresImport(data acceptance.TestData) string {
