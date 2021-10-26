@@ -2,7 +2,6 @@ package applicationinsights
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"strings"
 	"time"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,7 +25,7 @@ func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
 		Delete: resourceApplicationInsightsAnalyticsItemDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			if strings.Contains(id, string(insights.ItemScopePathMyanalyticsItems)) {
+			if strings.Contains(id, "myAnalyticsItems") {
 				_, err := parse.AnalyticsUserItemID(id)
 				return err
 			} else {
@@ -258,7 +258,7 @@ func ResourcesArmApplicationInsightsAnalyticsItemParseID(id string) (string, str
 	// <appinsightsID>/analyticsItems/<itemID>     [for shared scope items]
 	// <appinsightsID>/myAnalyticsItems/<itemID>   [for user scope items]
 	switch {
-	case strings.Contains(id, string(insights.ItemScopePathMyanalyticsItems)):
+	case strings.Contains(id, "myAnalyticsItems"):
 		id, err := parse.AnalyticsUserItemID(id)
 		if err != nil {
 			return "", "", "", "", "", err

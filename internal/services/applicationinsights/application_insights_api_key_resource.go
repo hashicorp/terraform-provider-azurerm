@@ -2,7 +2,6 @@ package applicationinsights
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"log"
 	"regexp"
 	"time"
@@ -11,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -222,8 +222,8 @@ func resourceApplicationInsightsAPIKeyDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func camelCaseApiKeys(id string) string{
-	//Azure only returns the api key identifier in the resource ID string where apikeys isn't camel cased
+func camelCaseApiKeys(id string) string {
+	// Azure only returns the api key identifier in the resource ID string where apikeys isn't camel cased
 	r := regexp.MustCompile(`apikeys`)
 	return r.ReplaceAllString(id, "apiKeys")
 }

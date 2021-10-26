@@ -21,7 +21,7 @@ func (AnalyticsItemUpgradeV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 func (AnalyticsItemUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-		// old
+		// old:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/components/component1/[myanalyticsItems|analyticsItems]/item1
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/components/component1/[myAnalyticsItems|analyticsItems]/item1
@@ -30,7 +30,6 @@ func (AnalyticsItemUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			return rawState, err
 		}
 
-		log.Printf("[DEBUG] oldid: %s", oldId.Path)
 		itemName := ""
 		newId := ""
 		for key, value := range oldId.Path {
@@ -60,13 +59,13 @@ func (AnalyticsItemUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 func analyticsItemSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 
 		"application_insights_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 
 		"version": {
