@@ -27,5 +27,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_cost_management_export_resource_group": resourceCostManagementExportResourceGroup(),
+		"azurerm_cost_management_export":                resourceCostManagementExport(),
 	}
 }

@@ -178,7 +178,7 @@ func resourceCostManagementExportResourceGroupCreateUpdate(d *pluginsdk.Resource
 		},
 		DeliveryInfo: expandExportDeliveryInfo(d.Get("delivery_info").([]interface{})),
 		Format:       costmanagement.Csv,
-		Definition:   expandExportQuery(d.Get("query").([]interface{})),
+		Definition:   expandExportDefinition(d.Get("query").([]interface{})),
 	}
 
 	account := costmanagement.Export{
@@ -248,7 +248,7 @@ func resourceCostManagementExportResourceGroupRead(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("setting `delivery_info`: %+v", err)
 	}
 
-	if err := d.Set("query", flattenExportQuery(resp.Definition)); err != nil {
+	if err := d.Set("query", flattenExportDefinition(resp.Definition)); err != nil {
 		return fmt.Errorf("setting `query`: %+v", err)
 	}
 
@@ -312,7 +312,7 @@ func flattenExportDeliveryInfo(input *costmanagement.ExportDeliveryInfo) []inter
 	return []interface{}{attrs}
 }
 
-func expandExportQuery(input []interface{}) *costmanagement.ExportDefinition {
+func expandExportDefinition(input []interface{}) *costmanagement.ExportDefinition {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -326,7 +326,7 @@ func expandExportQuery(input []interface{}) *costmanagement.ExportDefinition {
 	return definitionInfo
 }
 
-func flattenExportQuery(input *costmanagement.ExportDefinition) []interface{} {
+func flattenExportDefinition(input *costmanagement.ExportDefinition) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
