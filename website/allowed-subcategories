@@ -24,7 +24,6 @@ CosmosDB (DocumentDB)
 Cost Management
 Custom Providers
 DNS
-Datadog
 Data Explorer
 Data Factory
 Data Lake
@@ -34,6 +33,7 @@ Database
 Database Migration
 Databox Edge
 Databricks
+Datadog
 Desktop Virtualization
 Dev Test
 DevSpace

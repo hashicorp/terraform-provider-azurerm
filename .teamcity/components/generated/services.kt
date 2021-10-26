@@ -24,7 +24,6 @@ var services = mapOf(
         "costmanagement" to "Cost Management",
         "customproviders" to "Custom Providers",
         "dns" to "DNS",
-        "datadog" to "Datadog"
         "datafactory" to "Data Factory",
         "datalake" to "Data Lake",
         "datashare" to "Data Share",
@@ -32,6 +31,7 @@ var services = mapOf(
         "dataprotection" to "DataProtection",
         "databasemigration" to "Database Migration",
         "databoxedge" to "Databox Edge",
+        "datadog" to "Datadog",
         "desktopvirtualization" to "Desktop Virtualization",
         "devtestlabs" to "Dev Test",
         "digitaltwins" to "Digital Twins",

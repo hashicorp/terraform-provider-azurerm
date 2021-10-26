@@ -2,7 +2,7 @@ package validate
 
 import "testing"
 
-func TestDatadogMonitorsPhoneNumber(t *testing.T) {
+func TestDatadogUsersName(t *testing.T) {
 	testCases := []struct {
 		Input    string
 		Expected bool
@@ -12,17 +12,17 @@ func TestDatadogMonitorsPhoneNumber(t *testing.T) {
 			Expected: false,
 		},
 		{
-			Input:    "1234567890",
+			Input:    "Test",
 			Expected: true,
 		},
 		{
-			Input:    "12345678901234567890123456789012345678901234567890",
+			Input:    "qwertyuiopasdfghjklzxcvbnmqwertyuiopasdfghjklzxcvbnm",
 			Expected: false,
 		},
 	}
 
 	for _, v := range testCases {
-		_, errors := DatadogMonitorsPhoneNumber(v.Input, "phone_number")
+		_, errors := DatadogUsersName(v.Input, "user_name")
 		result := len(errors) == 0
 		if result != v.Expected {
 			t.Fatalf("Expected the result to be %t but got %t (and %d errors)", v.Expected, result, len(errors))

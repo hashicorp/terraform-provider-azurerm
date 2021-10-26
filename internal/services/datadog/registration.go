@@ -1,30 +1,31 @@
 package datadog
 
-import "github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+import "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 
 type Registration struct{}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
-    return "Datadog"
+	return "Datadog"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
 func (r Registration) WebsiteCategories() []string {
-    return []string{
-        "Datadog",
-    }
+	return []string{
+		"Datadog",
+	}
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
-func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-    return map[string]*schema.Resource{
-    }
+func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
-func (r Registration) SupportedResources() map[string]*schema.Resource {
-    return map[string]*schema.Resource{
-        "azurerm_datadog_monitor":    resourceDatadogMonitor(),
-    }
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
+		"azurerm_datadog_monitor":          resourceDatadogMonitor(),
+		"azurerm_datadog_monitor_tagrules": resourceDatadogTagRules(),
+		"azurerm_datadog_monitor_sso":      resourceDatadogSingleSignOnConfigurations(),
+	}
 }
