@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/mysql/mgmt/2021-05-01-preview/mysqlflexibleservers"
+	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2021-05-01/mysqlflexibleservers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
