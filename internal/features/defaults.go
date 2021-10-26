@@ -33,6 +33,7 @@ func Default() UserFeatures {
 		VirtualMachineScaleSet: VirtualMachineScaleSetFeatures{
 			ForceDelete:               false,
 			RollInstancesWhenRequired: true,
+			ScaleToZeroOnDelete:       true,
 		},
 	}
 }

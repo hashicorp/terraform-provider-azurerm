@@ -45,6 +45,7 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
 					RollInstancesWhenRequired: true,
+					ScaleToZeroOnDelete:       true,
 				},
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: false,
@@ -100,8 +101,9 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
-							"roll_instances_when_required": true,
-							"force_delete":                 true,
+							"roll_instances_when_required":  true,
+							"force_delete":                  true,
+							"scale_to_zero_before_deletion": true,
 						},
 					},
 				},
@@ -137,6 +139,7 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					RollInstancesWhenRequired: true,
 					ForceDelete:               true,
+					ScaleToZeroOnDelete:       true,
 				},
 			},
 		},
@@ -189,8 +192,9 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
-							"force_delete":                 false,
-							"roll_instances_when_required": false,
+							"force_delete":                  false,
+							"roll_instances_when_required":  false,
+							"scale_to_zero_before_deletion": false,
 						},
 					},
 				},
@@ -226,6 +230,7 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
 					RollInstancesWhenRequired: false,
+					ScaleToZeroOnDelete:       false,
 				},
 			},
 		},
@@ -705,6 +710,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 			Expected: features.UserFeatures{
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					RollInstancesWhenRequired: true,
+					ScaleToZeroOnDelete:       true,
 				},
 			},
 		},
@@ -724,6 +730,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               true,
 					RollInstancesWhenRequired: false,
+					ScaleToZeroOnDelete:       true,
 				},
 			},
 		},
@@ -743,6 +750,28 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
 					RollInstancesWhenRequired: true,
+					ScaleToZeroOnDelete:       true,
+				},
+			},
+		},
+		{
+			Name: "Scale In On Delete Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"virtual_machine_scale_set": []interface{}{
+						map[string]interface{}{
+							"force_delete":                  false,
+							"roll_instances_when_required":  true,
+							"scale_to_zero_before_deletion": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
+					ForceDelete:               false,
+					RollInstancesWhenRequired: true,
+					ScaleToZeroOnDelete:       false,
 				},
 			},
 		},
@@ -752,8 +781,9 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 				map[string]interface{}{
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
-							"force_delete":                 false,
-							"roll_instances_when_required": false,
+							"force_delete":                  false,
+							"roll_instances_when_required":  false,
+							"scale_to_zero_before_deletion": false,
 						},
 					},
 				},
@@ -762,6 +792,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
 					RollInstancesWhenRequired: false,
+					ScaleToZeroOnDelete:       false,
 				},
 			},
 		},
@@ -771,7 +802,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.VirtualMachineScaleSet, testCase.Expected.VirtualMachineScaleSet) {
-			t.Fatalf("Expected %+v but got %+v", result.VirtualMachineScaleSet, testCase.Expected.VirtualMachineScaleSet)
+			t.Fatalf("Expected %+v but got %+v", testCase.Expected.VirtualMachineScaleSet, result.VirtualMachineScaleSet)
 		}
 	}
 }
