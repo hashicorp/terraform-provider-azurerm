@@ -56,7 +56,7 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 			"sku_name": {
 				Type:       pluginsdk.TypeString,
 				Optional:   true,
-				Deprecated: "This property cannot be updated by api any more, it can only be updated by creating support ticket at Azure",
+				Deprecated: "This property can no longer be specified on create/update, it can only be updated by creating a support ticket at Azure",
 			},
 
 			"public_network_enabled": {
