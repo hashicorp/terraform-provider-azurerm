@@ -43,9 +43,17 @@ func resourceSynapseWorkspaceKey() *pluginsdk.Resource {
 				ValidateFunc: validate.WorkspaceID,
 			},
 
+			"cusomter_managed_key_name": {
+				Type:       pluginsdk.TypeString,
+				Required:   true,
+				Deprecated: "As this property name contained a typo originally, please switch to using 'customer_managed_key_name' instead.",
+				ConflictsWith: []string{"customer_managed_key_name"},
+			},
+
 			"customer_managed_key_name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+				ConflictsWith: []string{"cusomter_managed_key_name"},
 			},
 
 			"customer_managed_key_versionless_id": {
@@ -76,6 +84,7 @@ func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	key := d.Get("customer_managed_key_versionless_id")
 	keyName := d.Get("customer_managed_key_name").(string)
+	keyNameTypoed := d.Get("cusomter_managed_key_name").(string)
 	isActiveCMK := d.Get("active").(bool)
 
 	log.Printf("[INFO] Is active CMK: %t", isActiveCMK)
@@ -89,7 +98,7 @@ func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta in
 		KeyProperties: &keyProperties,
 	}
 
-	keyresult, err := client.CreateOrUpdate(ctx, workspaceId.ResourceGroup, workspaceId.Name, keyName, synapseKey)
+	keyresult, err := client.CreateOrUpdate(ctx, workspaceId.ResourceGroup, workspaceId.Name, (keyName, synapseKey)
 	if err != nil {
 		return fmt.Errorf("creating Synapse Workspace Key %q (Workspace %q): %+v", workspaceId.Name, workspaceId.Name, err)
 	}
