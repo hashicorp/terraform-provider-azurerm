@@ -173,7 +173,7 @@ The following arguments are supported:
 
 * `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy.
 
-* `redirect_configuration` - (Optional) A `redirect_configuration` block as defined below.
+* `redirect_configuration` - (Optional) One or more `redirect_configuration` blocks as defined below.
 
 * `autoscale_configuration` - (Optional) A `autoscale_configuration` block as defined below.
 
