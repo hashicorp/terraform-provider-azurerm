@@ -1130,21 +1130,12 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   extension {
-    name                       = "CustomScript"
-    publisher                  = "Microsoft.Azure.Extensions"
-    type                       = "CustomScript"
-    type_handler_version       = "2.0"
+    name                       = "AzurePolicyforLinux"
+    publisher                  = "Microsoft.GuestConfiguration"
+    type                       = "ConfigurationforLinux"
+    type_handler_version       = "1.0"
     auto_upgrade_minor_version = false
     automatic_upgrade_enabled  = true
-
-    settings = jsonencode({
-      "commandToExecute" = "echo $HOSTNAME"
-    })
-
-    protected_settings = jsonencode({
-      "managedIdentity" = {}
-    })
-
   }
 
   tags = {

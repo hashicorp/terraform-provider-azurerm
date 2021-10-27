@@ -1105,20 +1105,12 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   extension {
-    name                       = "CustomScript"
-    publisher                  = "Microsoft.Compute"
-    type                       = "CustomScriptExtension"
-    type_handler_version       = "1.10"
+    name                       = "AzurePolicyforWindows"
+    publisher                  = "Microsoft.GuestConfiguration"
+    type                       = "ConfigurationforLinux"
+    type_handler_version       = "1.0"
     auto_upgrade_minor_version = false
     automatic_upgrade_enabled  = true
-
-    settings = jsonencode({
-      "commandToExecute" = "powershell.exe -c \"Get-Content env:computername\""
-    })
-
-    protected_settings = jsonencode({
-      "managedIdentity" = {}
-    })
   }
 }
 `, r.template(data))

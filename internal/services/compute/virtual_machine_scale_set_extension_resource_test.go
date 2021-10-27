@@ -491,13 +491,10 @@ func (r VirtualMachineScaleSetExtensionResource) automaticUpgradeEnabled(data ac
 resource "azurerm_virtual_machine_scale_set_extension" "test" {
   name                         = "acctestExt-%d"
   virtual_machine_scale_set_id = azurerm_linux_virtual_machine_scale_set.test.id
-  publisher                    = "Microsoft.Azure.Extensions"
-  type                         = "CustomScript"
-  type_handler_version         = "2.0"
+  publisher                    = "Microsoft.GuestConfiguration"
+  type                         = "ConfigurationforLinux"
+  type_handler_version         = "1.0"
   automatic_upgrade_enabled    = true
-  settings = jsonencode({
-    "commandToExecute" = "echo $HOSTNAME"
-  })
 }
 `, r.templateLinux(data), data.RandomInteger)
 }
