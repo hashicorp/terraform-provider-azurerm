@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"strings"
 
-	"golang.org/x/oauth2"
 	"github.com/google/go-github/github"
 	"github.com/spf13/viper"
+	"golang.org/x/oauth2"
 )
 
 // This go Script performs the following actions
@@ -50,17 +50,19 @@ func (g GitHubIssue) getMilestoneId(ctx context.Context, client *github.Client, 
 func (g GitHubIssue) getLinkedIssue(ctx context.Context, client *github.Client) (int, error) {
 	resp, _, _ := client.Issues.Get(ctx, g.Owner, g.Repo, g.Id)
 
-	bodySplit := strings.Split(*resp.Body, " ")
-	keywords := regexp.MustCompile(`^[fF]ix(.)?(.)?|[cC]lose(.)?|[rR]esolve(.)?`)
-	issue := regexp.MustCompile(`^#[0-9]+`)
+	if resp.Body != nil {
+		bodySplit := strings.Split(*resp.Body, " ")
+		keywords := regexp.MustCompile(`^[fF]ix(.)?(.)?|[cC]lose(.)?|[rR]esolve(.)?`)
+		issue := regexp.MustCompile(`^#[0-9]+`)
 
-	for i, s := range bodySplit {
-		if keywords.MatchString(s) {
-			// check whether next element is the issue number
-			next := bodySplit[i + 1]
-			if issue.MatchString(next) {
-				id, _ := strconv.Atoi(next[1:])
-				return id, nil
+		for i, s := range bodySplit {
+			if keywords.MatchString(s) {
+				// check whether next element is the issue number
+				next := bodySplit[i + 1]
+				if issue.MatchString(next) {
+					id, _ := strconv.Atoi(next[1:])
+					return id, nil
+				}
 			}
 		}
 	}
