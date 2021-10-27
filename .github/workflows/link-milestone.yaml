@@ -19,9 +19,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
       - uses: actions/github-script@v5
+      - run: make link-milestone
         env:
           PR_NUMBER: ${{ github.event.number }}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-          #        with:
-          #          github-token: ${{secrets.GITHUB_TOKEN}}
-          - run: make link-milestone
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
