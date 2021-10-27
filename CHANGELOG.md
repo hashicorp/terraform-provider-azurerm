@@ -18,6 +18,7 @@ IMPROVEMENTS:
 * `azurerm_servicebus_namespace_network_rule_set` - support for the `trusted_services_allowed` property [GH-13853]
 * `azurerm_windows_virtual_machine_scale_set` - added feature for `scale_to_zero_before_deletion`[GH-13635]
 * `azurerm_linux_virtual_machine_scale_set` - added feature for `scale_to_zero_before_deletion`[GH-13635]
+* `azurerm_vpn_gateway` - support for the `routing_preference` property [GH-13882]
 
 BUG FIXES:
 
