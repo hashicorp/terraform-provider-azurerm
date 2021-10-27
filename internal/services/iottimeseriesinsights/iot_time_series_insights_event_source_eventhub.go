@@ -149,8 +149,7 @@ func resourceIoTTimeSeriesInsightsEventSourceEventhubCreateUpdate(d *pluginsdk.R
 		},
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.EnvironmentName, id.Name, eventSource)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.EnvironmentName, id.Name, eventSource); err != nil {
 		return fmt.Errorf("creating/updating IoT Time Series Insights EventHub Event Source %q: %+v", id, err)
 	}
 
