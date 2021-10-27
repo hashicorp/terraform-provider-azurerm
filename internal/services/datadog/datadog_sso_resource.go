@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -27,6 +26,7 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -57,10 +57,6 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 			"singlesignon_state": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Enable",
-					"Disable",
-				}, false),
 			},
 
 			"singlesignon_url": {
@@ -102,13 +98,19 @@ func resourceDatadogSingleSignOnConfigurationsCreateorUpdate(d *pluginsdk.Resour
 	existing, err := client.Get(ctx, resourceGroup, name, configurationName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for existing Datadog Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Checking for existing Datadog Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
+	}
+
+	singleSignOnState := datadog.SingleSignOnStatesEnable
+	if d.Get("singlesignon_state").(string) == "Disable" {
+		singleSignOnState = datadog.SingleSignOnStatesDisable
 	}
 
 	body := datadog.SingleSignOnResource{
 		Properties: &datadog.SingleSignOnProperties{
-			EnterpriseAppID: utils.String(enterpriseAppID),
+			SingleSignOnState: singleSignOnState,
+			EnterpriseAppID:   utils.String(enterpriseAppID),
 		},
 	}
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, configurationName, &body); err != nil {
@@ -132,7 +134,7 @@ func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, me
 	resp, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.SingleSignOnConfigurationName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] datadog %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] Datadog monitor %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
@@ -151,5 +153,36 @@ func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, me
 }
 
 func resourceDatadogSingleSignOnConfigurationsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Datadog.SingleSignOnConfigurationsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.DatadogSingleSignOnConfigurationsID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.SingleSignOnConfigurationName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] Datadog monitor %q does not exist - removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
+	}
+
+	d.Set("enterpriseapp_id", nil)
+	enterpriseAppID := d.Get("enterpriseapp_id").(string)
+
+	body := datadog.SingleSignOnResource{
+		Properties: &datadog.SingleSignOnProperties{
+			SingleSignOnState: datadog.SingleSignOnStatesDisable,
+			EnterpriseAppID:   utils.String(enterpriseAppID),
+		},
+	}
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MonitorName, id.SingleSignOnConfigurationName, &body); err != nil {
+		return fmt.Errorf("Removing SingleSignOnConfiguration on Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+	}
+
 	return nil
 }
