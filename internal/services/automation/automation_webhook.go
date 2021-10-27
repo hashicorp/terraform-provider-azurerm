@@ -143,14 +143,22 @@ func resourceAutomationWebhookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		},
 	}
 
-	stringURI := ""
+	uri := ""
 	if d.IsNewResource() {
-		uri, err := client.GenerateURI(ctx, resourceGroup, accountName)
-		if err != nil {
-			return fmt.Errorf("unable to generate URI for Automation Webhook %q (Automattion Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+		if v := d.Get("uri"); v != nil && v.(string) != "" {
+			uri = v.(string)
+		} else {
+			resp, err := client.GenerateURI(ctx, resourceGroup, accountName)
+			if err != nil {
+				return fmt.Errorf("unable to generate URI for Automation Webhook %q (Automattion Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+			}
+			parameters.WebhookCreateOrUpdateProperties.URI = resp.Value
+			uri = *resp.Value
 		}
-		parameters.WebhookCreateOrUpdateProperties.URI = uri.Value
-		stringURI = *uri.Value
+	} else {
+		if d.Get("uri") != nil {
+			parameters.WebhookCreateOrUpdateProperties.URI = utils.String(d.Get("uri").(string))
+		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, name, parameters); err != nil {
@@ -166,8 +174,8 @@ func resourceAutomationWebhookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 	d.SetId(*resp.ID)
 	// URI is not present in the response from Azure, so it's set now, as there was no error returned
-	if stringURI != "" {
-		d.Set("uri", stringURI)
+	if uri != "" {
+		d.Set("uri", uri)
 	}
 	return resourceAutomationWebhookRead(d, meta)
 }
@@ -201,20 +209,11 @@ func resourceAutomationWebhookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("runbook_name", resp.Runbook.Name)
 	}
 	d.Set("run_on", resp.RunOn)
-	if err = d.Set("parameters", flattenMap(resp.Parameters)); err != nil {
+	if err = d.Set("parameters", utils.FlattenMapStringPtrString(resp.Parameters)); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func flattenMap(input map[string]*string) map[string]string {
-	output := make(map[string]string)
-	for k, v := range input {
-		output[k] = *v
-	}
-
-	return output
 }
 
 func resourceAutomationWebhookDelete(d *pluginsdk.ResourceData, meta interface{}) error {

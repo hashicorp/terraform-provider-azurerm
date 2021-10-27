@@ -3,6 +3,7 @@ package automation_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
@@ -72,6 +73,27 @@ func TestAccAutomationWebhook_WithParameters(t *testing.T) {
 			),
 		},
 		data.ImportStep("uri"),
+	})
+}
+
+func TestAccAutomationWebhook_ChangeUri(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_webhook", "test")
+	r := AutomationWebhookResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.WebhookURIChange(data, "https://12345678-9012-3456-7890-123456789012.webhook.we.azure-automation.net/webhooks?token=abcdefghijklmnoprstuwxyz1234567890abcdefghijklm"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("uri").HasValue("https://12345678-9012-3456-7890-123456789012.webhook.we.azure-automation.net/webhooks?token=abcdefghijklmnoprstuwxyz1234567890abcdefghijklm"),
+			),
+		},
+		data.ImportStep("uri"),
+		{
+			Config: r.WebhookURIChange(data, "https://12345678-9012-3456-7890-123456789012.webhook.we.azure-automation.net/webhooks?token=abcdefghijklmnoprstuwxyz1234567890abcdefg313377"),
+			// Azure does not allow chaning of the URI
+			ExpectError: regexp.MustCompile("automation.WebhookClient#CreateOrUpdate: Failure responding to request: StatusCode=400 -- Original Error: autorest/azure: Service returned an error. Status=400 Code=\"\" Message=\"Invalid uri.\""),
+		},
 	})
 }
 
@@ -212,4 +234,21 @@ resource "azurerm_automation_webhook" "test" {
   run_on                  = "workergroup"
 }
 `, template)
+}
+
+func (AutomationWebhookResource) WebhookURIChange(data acceptance.TestData, uri string) string {
+	template := AutomationWebhookResource{}.ParentResources(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_webhook" "test" {
+  name                    = "TestRunbook_webhook"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  expiry_time             = "%s"
+  enabled                 = true
+  runbook_name            = azurerm_automation_runbook.test.name
+  uri                     = "%s"
+}
+`, template, time.Now().UTC().Add(time.Hour).Format(time.RFC3339), uri)
 }
