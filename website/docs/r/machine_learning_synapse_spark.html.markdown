@@ -150,5 +150,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Machine Learning Synapse Sparks can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_machine_learning_synapse_spark.example C:/Program Files/Git/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.MachineLearningServices/workspaces/workspace1/computes/compute1
+terraform import azurerm_machine_learning_synapse_spark.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.MachineLearningServices/workspaces/workspace1/computes/compute1
 ```
