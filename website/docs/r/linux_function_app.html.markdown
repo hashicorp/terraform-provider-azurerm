@@ -13,14 +13,39 @@ Manages a Linux Function App.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "linuxfunctionappsa"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_service_plan" "example" {
+  name                = "example"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = "West Europe"
+  os_type             = "Linux"
+  sku_name            = "Y1"
+}
+
 resource "azurerm_linux_function_app" "example" {
   name                = "example"
   resource_group_name = "example"
   location            = "West Europe"
-  
-  storage_account_name = "example"
-  service_plan_id      = "TODO"
-  
+
+  storage_account_name = azurerm_storage_account.example.name
+  service_plan_id      = azurerm_service_plan.example.id
+
   site_config {}
 }
 ```
