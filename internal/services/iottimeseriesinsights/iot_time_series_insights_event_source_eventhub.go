@@ -159,8 +159,7 @@ func resourceIoTTimeSeriesInsightsEventSourceEventhubCreateUpdate(d *pluginsdk.R
 		return fmt.Errorf("retrieving IoT Time Series Insights EventHub EventSource %q: %+v", id, err)
 	}
 
-	_, ok := resp.Value.AsEventHubEventSourceResource()
-	if !ok {
+	if _, ok := resp.Value.AsEventHubEventSourceResource(); !ok {
 		return fmt.Errorf("created resource was not an IoT Time Series Insights EventHub Event Source %q", id)
 	}
 
