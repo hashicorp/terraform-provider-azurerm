@@ -22,6 +22,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_automation_schedule_resource` - allow `Etc/UTC` for the `timezone` property [GH-13906]
 * `azurerm_app_configuration_key` - now supports forward slashes in the `key` [GH-13859]
 * `azurerm_cognitive_account` - will now handle the unexpected state `Accepted` when waiting for creats [GH-13925]
 * `azurerm_data_factory` - can now read global parameter values [GH-13519]
