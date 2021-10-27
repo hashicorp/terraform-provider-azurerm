@@ -59,6 +59,17 @@ func resourceVPNGateway() *pluginsdk.Resource {
 				ValidateFunc: validate.VirtualHubID,
 			},
 
+			"routing_preference": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Microsoft Network",
+					"Internet",
+				}, false),
+			},
+
 			"bgp_settings": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -212,7 +223,8 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			VirtualHub: &network.SubResource{
 				ID: utils.String(virtualHubId),
 			},
-			VpnGatewayScaleUnit: utils.Int32(int32(scaleUnit)),
+			VpnGatewayScaleUnit:         utils.Int32(int32(scaleUnit)),
+			IsRoutingPreferenceInternet: utils.Bool(d.Get("routing_preference").(string) == "Internet"),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -353,6 +365,12 @@ func resourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			virtualHubId = *props.VirtualHub.ID
 		}
 		d.Set("virtual_hub_id", virtualHubId)
+
+		isRoutingPreferenceInternet := "Microsoft Network"
+		if props.IsRoutingPreferenceInternet != nil && *props.IsRoutingPreferenceInternet {
+			isRoutingPreferenceInternet = "Internet"
+		}
+		d.Set("routing_preference", isRoutingPreferenceInternet)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
