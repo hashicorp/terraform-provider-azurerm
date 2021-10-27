@@ -191,7 +191,6 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
-				Default:  false,
 			},
 
 			"tags": tags.Schema(),
