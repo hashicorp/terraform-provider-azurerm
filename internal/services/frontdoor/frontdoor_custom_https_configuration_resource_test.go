@@ -119,7 +119,7 @@ func (FrontDoorCustomHttpsConfigurationResource) Exists(ctx context.Context, cli
 
 	resp, err := clients.Frontdoor.FrontDoorsClient.FrontendEndpointsGet(ctx, *frontdoorId)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
 	return utils.Bool(resp.Model != nil), nil

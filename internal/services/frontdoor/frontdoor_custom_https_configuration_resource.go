@@ -153,7 +153,7 @@ func resourceFrontDoorCustomHttpsConfigurationRead(d *pluginsdk.ResourceData, me
 			return nil
 		}
 
-		return fmt.Errorf("reading %s: %+v", id, err)
+		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	d.Set("frontend_endpoint_id", id.ID())
@@ -186,7 +186,7 @@ func resourceFrontDoorCustomHttpsConfigurationDelete(d *pluginsdk.ResourceData, 
 		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
-		return fmt.Errorf("reading %s: %+v", id, err)
+		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	if model := resp.Model; model != nil {

@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-05-01/frontdoor"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -32,7 +31,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 		Delete: resourceFrontDoorDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontDoorID(id)
+			_, err := frontdoors.ParseFrontDoorID(id)
 			return err
 		}),
 
@@ -250,7 +249,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 									"forwarding_protocol": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(frontdoor.HTTPSOnly),
+										Default:  string(frontdoors.FrontDoorForwardingProtocolHttpsOnly),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoors.FrontDoorForwardingProtocolHttpOnly),
 											string(frontdoors.FrontDoorForwardingProtocolHttpsOnly),
@@ -658,7 +657,7 @@ func resourceFrontDoorRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading %s: %+v", id, err)
+		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)

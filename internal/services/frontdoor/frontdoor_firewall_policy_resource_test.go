@@ -115,7 +115,7 @@ func (FrontDoorFirewallPolicyResource) Exists(ctx context.Context, clients *clie
 
 	resp, err := clients.Frontdoor.FrontDoorsPolicyClient.PoliciesGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
 	return utils.Bool(resp.Model != nil), nil
