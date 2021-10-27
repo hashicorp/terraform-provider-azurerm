@@ -59,7 +59,7 @@ func (client SQLVirtualMachinesClient) CreateOrUpdate(ctx context.Context, resou
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -93,6 +93,7 @@ func (client SQLVirtualMachinesClient) CreateOrUpdatePreparer(ctx context.Contex
 // http.Response Body if it receives an error.
 func (client SQLVirtualMachinesClient) CreateOrUpdateSender(req *http.Request) (future SQLVirtualMachinesCreateOrUpdateFutureType, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -140,7 +141,7 @@ func (client SQLVirtualMachinesClient) Delete(ctx context.Context, resourceGroup
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -172,6 +173,7 @@ func (client SQLVirtualMachinesClient) DeletePreparer(ctx context.Context, resou
 // http.Response Body if it receives an error.
 func (client SQLVirtualMachinesClient) DeleteSender(req *http.Request) (future SQLVirtualMachinesDeleteFutureType, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -649,7 +651,7 @@ func (client SQLVirtualMachinesClient) Update(ctx context.Context, resourceGroup
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -683,6 +685,7 @@ func (client SQLVirtualMachinesClient) UpdatePreparer(ctx context.Context, resou
 // http.Response Body if it receives an error.
 func (client SQLVirtualMachinesClient) UpdateSender(req *http.Request) (future SQLVirtualMachinesUpdateFutureType, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

@@ -1,24 +1,20 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/videoanalyzer/mgmt/2021-05-01-preview/videoanalyzer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/sdk/2021-05-01-preview/videoanalyzer"
 )
 
 type Client struct {
-	VideoAnalyzersClient *videoanalyzer.VideoAnalyzersClient
-	EdgeModulesClient    *videoanalyzer.EdgeModulesClient
+	VideoAnalyzersClient *videoanalyzer.VideoAnalyzerClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	VideoAnalyzersClient := videoanalyzer.NewVideoAnalyzersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	EdgeModulesClient := videoanalyzer.NewEdgeModulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	VideoAnalyzersClient := videoanalyzer.NewVideoAnalyzerClientWithBaseURI(o.ResourceManagerEndpoint)
 
 	o.ConfigureClient(&VideoAnalyzersClient.Client, o.ResourceManagerAuthorizer)
-	o.ConfigureClient(&EdgeModulesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		VideoAnalyzersClient: &VideoAnalyzersClient,
-		EdgeModulesClient:    &EdgeModulesClient,
 	}
 }

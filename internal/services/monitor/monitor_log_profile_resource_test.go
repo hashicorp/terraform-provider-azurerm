@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -125,26 +125,26 @@ func testAccMonitorLogProfile_disappears(t *testing.T) {
 }
 
 func (t MonitorLogProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	name, err := monitor.ParseLogProfileNameFromID(state.ID)
+	id, err := parse.LogProfileID(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("parsing log profile name from ID %s: %s", state.ID, err)
+		return nil, err
 	}
 
-	resp, err := clients.Monitor.LogProfilesClient.Get(ctx, name)
+	resp, err := clients.Monitor.LogProfilesClient.Get(ctx, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading log profile %q: %+v", state.ID, err)
+		return nil, fmt.Errorf("reading (%s): %+v", state.ID, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
 }
 
 func (t MonitorLogProfileResource) Destroy(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	name, err := monitor.ParseLogProfileNameFromID(state.ID)
+	id, err := parse.LogProfileID(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("parsing log profile name from ID %s: %s", state.ID, err)
+		return nil, err
 	}
 
-	if _, err := clients.Monitor.LogProfilesClient.Delete(ctx, name); err != nil {
+	if _, err := clients.Monitor.LogProfilesClient.Delete(ctx, id.Name); err != nil {
 		return nil, fmt.Errorf("deleting log profile %q: %+v", state.ID, err)
 	}
 

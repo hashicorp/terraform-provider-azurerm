@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
@@ -271,7 +272,16 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if props := resp.ApplicationInsightsComponentProperties; props != nil {
-		d.Set("application_type", string(props.ApplicationType))
+		// Accommodate application_type that only differs by case and so shouldn't cause a recreation
+		vals := map[string]string{
+			"web":   "web",
+			"other": "other",
+		}
+		if v, ok := vals[strings.ToLower(string(props.ApplicationType))]; ok {
+			d.Set("application_type", v)
+		} else {
+			d.Set("application_type", string(props.ApplicationType))
+		}
 		d.Set("app_id", props.AppID)
 		d.Set("instrumentation_key", props.InstrumentationKey)
 		d.Set("sampling_percentage", props.SamplingPercentage)

@@ -110,8 +110,10 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		batch.Registration{},
 		eventhub.Registration{},
 		loadbalancer.Registration{},
+		mssql.Registration{},
 		policy.Registration{},
 		resource.Registration{},
+		streamanalytics.Registration{},
 		web.Registration{},
 	}
 }

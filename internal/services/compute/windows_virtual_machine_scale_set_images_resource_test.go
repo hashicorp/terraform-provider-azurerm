@@ -309,6 +309,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     pause_time_between_batches              = "PT30S"
   }
 
+  enable_automatic_updates = false
+
   depends_on = ["azurerm_lb_rule.test"]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, version)

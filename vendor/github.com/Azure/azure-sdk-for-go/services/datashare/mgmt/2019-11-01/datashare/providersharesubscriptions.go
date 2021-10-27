@@ -340,7 +340,7 @@ func (client ProviderShareSubscriptionsClient) Revoke(ctx context.Context, resou
 
 	result, err = client.RevokeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.ProviderShareSubscriptionsClient", "Revoke", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datashare.ProviderShareSubscriptionsClient", "Revoke", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -374,6 +374,7 @@ func (client ProviderShareSubscriptionsClient) RevokePreparer(ctx context.Contex
 // http.Response Body if it receives an error.
 func (client ProviderShareSubscriptionsClient) RevokeSender(req *http.Request) (future ProviderShareSubscriptionsRevokeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

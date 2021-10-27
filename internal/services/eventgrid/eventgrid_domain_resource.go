@@ -320,12 +320,10 @@ func resourceEventGridDomainDelete(d *pluginsdk.ResourceData, meta interface{}) 
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-
 		return fmt.Errorf("deleting Event Grid Domain %q: %+v", id.Name, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-
 		return fmt.Errorf("deleting Event Grid Domain %q: %+v", id.Name, err)
 	}
 

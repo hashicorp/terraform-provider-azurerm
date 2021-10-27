@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -96,7 +96,7 @@ func resourceMsSqlFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	parameters := sql.FirewallRule{
-		FirewallRuleProperties: &sql.FirewallRuleProperties{
+		ServerFirewallRuleProperties: &sql.ServerFirewallRuleProperties{
 			StartIPAddress: utils.String(d.Get("start_ip_address").(string)),
 			EndIPAddress:   utils.String(d.Get("end_ip_address").(string)),
 		},

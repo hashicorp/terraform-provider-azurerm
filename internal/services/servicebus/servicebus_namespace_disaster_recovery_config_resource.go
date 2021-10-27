@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
+	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -300,8 +300,8 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resour
 
 func resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx context.Context, client *servicebus.DisasterRecoveryConfigsClient, resourceGroup, namespaceName, name string, timeout time.Duration) error {
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(servicebus.Accepted)},
-		Target:     []string{string(servicebus.Succeeded)},
+		Pending:    []string{string(servicebus.ProvisioningStateDRAccepted)},
+		Target:     []string{string(servicebus.ProvisioningStateDRSucceeded)},
 		MinTimeout: 30 * time.Second,
 		Timeout:    timeout,
 		Refresh: func() (interface{}, string, error) {
@@ -311,7 +311,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx context.C
 			}
 
 			if props := read.ArmDisasterRecoveryProperties; props != nil {
-				if props.ProvisioningState == servicebus.Failed {
+				if props.ProvisioningState == servicebus.ProvisioningStateDRFailed {
 					return read, "failed", fmt.Errorf("replication for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q) failed", name, namespaceName, resourceGroup)
 				}
 				return read, string(props.ProvisioningState), nil

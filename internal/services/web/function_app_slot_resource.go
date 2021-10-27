@@ -130,10 +130,12 @@ func resourceFunctionAppSlot() *pluginsdk.Resource {
 				}, false),
 			},
 
+			// todo remove this for 3.0 as it doesn't do anything
 			"client_affinity_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Computed: true,
+				Type:       pluginsdk.TypeBool,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "This property is no longer configurable in the service and has been deprecated. It will be removed in 3.0 of the provider.",
 			},
 
 			"connection_string": {

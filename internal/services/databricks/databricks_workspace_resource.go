@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/databricks/mgmt/2021-04-01-preview/databricks"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/sdk/2021-04-01-preview/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -109,9 +109,9 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				ForceNew: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(databricks.RequiredNsgRulesAllRules),
-					string(databricks.RequiredNsgRulesNoAzureDatabricksRules),
-					string(databricks.RequiredNsgRulesNoAzureServiceRules),
+					string(workspaces.RequiredNsgRulesAllRules),
+					string(workspaces.RequiredNsgRulesNoAzureDatabricksRules),
+					string(workspaces.RequiredNsgRulesNoAzureServiceRules),
 				}, false),
 			},
 
@@ -282,8 +282,8 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			// You cannot have a Private Enpoint Workspace and a Secure Cluster Connectivity Workspace definitions in
 			// the same workspace configuration...
 			if !publicNetworkAccess.(bool) {
-				if requireNsgRules.(string) == string(databricks.RequiredNsgRulesAllRules) {
-					return fmt.Errorf("having 'network_security_group_rules_required' set to %q and 'public_network_access_enabled' set to 'false' is an invalid configuration", string(databricks.RequiredNsgRulesAllRules))
+				if requireNsgRules.(string) == string(workspaces.RequiredNsgRulesAllRules) {
+					return fmt.Errorf("having 'network_security_group_rules_required' set to %q and 'public_network_access_enabled' set to 'false' is an invalid configuration", string(workspaces.RequiredNsgRulesAllRules))
 				}
 				if backendPool.(string) != "" {
 					return fmt.Errorf("having 'load_balancer_backend_address_pool_id' defined and having 'public_network_access_enabled' set to 'false' is an invalid configuration")
@@ -316,16 +316,16 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := workspaces.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_databricks_workspace", id.ID())
 		}
 	}
@@ -335,8 +335,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	managedResourceGroupName := d.Get("managed_resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	backendPool := d.Get("load_balancer_backend_address_pool_id").(string)
-	t := d.Get("tags").(map[string]interface{})
-	expandedTags := tags.Expand(t)
+	expandedTags := expandTags(d.Get("tags").(map[string]interface{}))
 
 	if backendPool != "" {
 		backendPoolId, err := loadBalancerParse.LoadBalancerBackendAddressPoolID(backendPool)
@@ -360,7 +359,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		lb, err := lbClient.Get(ctx, lbId.ResourceGroup, lbId.Name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(lb.Response) {
-				return fmt.Errorf("Load Balancer %q for Backend Address Pool %q was not found", lbId, backendPoolId)
+				return fmt.Errorf("load balancer %q for Backend Address Pool %q was not found", lbId, backendPoolId)
 			}
 			return fmt.Errorf("failed to retrieve Load Balancer %q for Backend Address Pool %q: %+v", lbId, backendPoolId, err)
 		}
@@ -376,9 +375,9 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	customerEncryptionEnabled := d.Get("customer_managed_key_enabled").(bool)
 	infrastructureEncryptionEnabled := d.Get("infrastructure_encryption_enabled").(bool)
 	publicNetowrkAccessRaw := d.Get("public_network_access_enabled").(bool)
-	publicNetworkAccess := databricks.PublicNetworkAccessDisabled
+	publicNetworkAccess := workspaces.PublicNetworkAccessDisabled
 	if publicNetowrkAccessRaw {
-		publicNetworkAccess = databricks.PublicNetworkAccessEnabled
+		publicNetworkAccess = workspaces.PublicNetworkAccessEnabled
 	}
 	requireNsgRules := d.Get("network_security_group_rules_required").(string)
 	customParamsRaw := d.Get("custom_parameters").([]interface{})
@@ -404,22 +403,24 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	// Set up customer-managed keys for managed services encryption (e.g. notebook)
-	encrypt := &databricks.WorkspacePropertiesEncryption{}
+	setEncrypt := false
+	encrypt := &workspaces.WorkspacePropertiesEncryption{}
 	keyIdRaw := d.Get("managed_services_cmk_key_vault_key_id").(string)
 	if keyIdRaw != "" {
+		setEncrypt = true
 		key, err := keyVaultParse.ParseNestedItemID(keyIdRaw)
 		if err != nil {
 			return err
 		}
 
-		encrypt.Entities = &databricks.EncryptionEntitiesDefinition{
-			ManagedServices: &databricks.EncryptionV2{
+		encrypt.Entities = workspaces.EncryptionEntitiesDefinition{
+			ManagedServices: &workspaces.EncryptionV2{
 				// There is only one valid source for this field at this point in time so I have hardcoded the value
-				KeySource: utils.String(string(databricks.KeySourceMicrosoftKeyvault)),
-				KeyVaultProperties: &databricks.EncryptionV2KeyVaultProperties{
-					KeyName:     utils.String(key.Name),
-					KeyVersion:  utils.String(key.Version),
-					KeyVaultURI: utils.String(key.KeyVaultBaseUrl),
+				KeySource: workspaces.EncryptionKeySourceMicrosoftPointKeyvault,
+				KeyVaultProperties: &workspaces.EncryptionV2KeyVaultProperties{
+					KeyName:     key.Name,
+					KeyVersion:  key.Version,
+					KeyVaultUri: key.KeyVaultBaseUrl,
 				},
 			},
 		}
@@ -433,34 +434,30 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	// Including the Tags in the workspace parameters will update the tags on
 	// the workspace only
-	workspace := databricks.Workspace{
-		Sku: &databricks.Sku{
-			Name: utils.String(skuName),
+	workspace := workspaces.Workspace{
+		Sku: &workspaces.Sku{
+			Name: skuName,
 		},
-		Location: utils.String(location),
-		WorkspaceProperties: &databricks.WorkspaceProperties{
-			PublicNetworkAccess:    publicNetworkAccess,
-			ManagedResourceGroupID: &managedResourceGroupID,
+		Location: location,
+		Properties: workspaces.WorkspaceProperties{
+			PublicNetworkAccess:    &publicNetworkAccess,
+			ManagedResourceGroupId: managedResourceGroupID,
 			Parameters:             customParams,
 		},
-		Tags: expandedTags,
+		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
 	if requireNsgRules != "" {
-		workspace.WorkspaceProperties.RequiredNsgRules = databricks.RequiredNsgRules(requireNsgRules)
+		requiredNsgRulesConst := workspaces.RequiredNsgRules(requireNsgRules)
+		workspace.Properties.RequiredNsgRules = &requiredNsgRulesConst
 	}
 
-	if encrypt.Entities != nil {
-		workspace.WorkspaceProperties.Encryption = encrypt
+	if setEncrypt {
+		workspace.Properties.Encryption = encrypt
 	}
 
-	future, err := client.CreateOrUpdate(ctx, workspace, id.ResourceGroup, id.Name)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, workspace); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
 	// Only call Update(e.g. PATCH) if it is not a new resource and the Tags have changed
@@ -468,17 +465,13 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	// workspace resources.
 	// TODO: can be removed once https://github.com/Azure/azure-sdk-for-go/issues/14571 is fixed
 	if !d.IsNewResource() && d.HasChange("tags") {
-		workspaceUpdate := databricks.WorkspaceUpdate{
+		workspaceUpdate := workspaces.WorkspaceUpdate{
 			Tags: expandedTags,
 		}
 
-		future, err := client.Update(ctx, workspaceUpdate, id.ResourceGroup, id.Name)
+		err := client.UpdateThenPoll(ctx, id, workspaceUpdate)
 		if err != nil {
 			return fmt.Errorf("updating %s Tags: %+v", id, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for %s Tags to be updated: %+v", id, err)
 		}
 	}
 
@@ -488,10 +481,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	// subnet NSG association along with the backend Pool Id since they are not
 	// returned in the read from Azure...
 	custom, backendPoolReadId := flattenWorkspaceCustomParameters(customParams, pubSubAssoc, priSubAssoc)
-
-	if backendPoolReadId != nil {
-		d.Set("load_balancer_backend_address_pool_id", backendPoolReadId)
-	}
+	d.Set("load_balancer_backend_address_pool_id", backendPoolReadId)
 
 	if err := d.Set("custom_parameters", custom); err != nil {
 		return fmt.Errorf("setting `custom_parameters`: %+v", err)
@@ -509,14 +499,14 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WorkspaceID(d.Id())
+	id, err := workspaces.ParseWorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -528,36 +518,39 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	if model := resp.Model; model != nil {
+		d.Set("location", azure.NormalizeLocation(model.Location))
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku", sku.Name)
-	}
+		if sku := model.Sku; sku != nil {
+			d.Set("sku", sku.Name)
+		}
 
-	if props := resp.WorkspaceProperties; props != nil {
-		managedResourceGroupID, err := resourcesParse.ResourceGroupID(*props.ManagedResourceGroupID)
+		managedResourceGroupID, err := resourcesParse.ResourceGroupID(model.Properties.ManagedResourceGroupId)
 		if err != nil {
 			return err
 		}
-		d.Set("managed_resource_group_id", props.ManagedResourceGroupID)
+		d.Set("managed_resource_group_id", model.Properties.ManagedResourceGroupId)
 		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
-		d.Set("public_network_access_enabled", props.PublicNetworkAccess != databricks.PublicNetworkAccessDisabled)
 
-		if props.PublicNetworkAccess == databricks.PublicNetworkAccessDisabled {
-			d.Set("network_security_group_rules_required", string(props.RequiredNsgRules))
+		publicNetworkAccess := model.Properties.PublicNetworkAccess
+		if publicNetworkAccess != nil {
+			d.Set("public_network_access_enabled", *publicNetworkAccess != workspaces.PublicNetworkAccessDisabled)
+			if *publicNetworkAccess == workspaces.PublicNetworkAccessDisabled {
+				if model.Properties.RequiredNsgRules != nil {
+					d.Set("network_security_group_rules_required", string(*model.Properties.RequiredNsgRules))
+				}
+			}
 		}
-		var cmkEnabled, infraEnabled bool
 
-		if props.Parameters != nil {
-			if props.Parameters.PrepareEncryption != nil && props.Parameters.PrepareEncryption.Value != nil {
-				cmkEnabled = *props.Parameters.PrepareEncryption.Value
+		var cmkEnabled, infraEnabled bool
+		if parameters := model.Properties.Parameters; parameters != nil {
+			if parameters.PrepareEncryption != nil {
+				cmkEnabled = parameters.PrepareEncryption.Value
 			}
 			d.Set("customer_managed_key_enabled", cmkEnabled)
 
-			if props.Parameters.RequireInfrastructureEncryption != nil && props.Parameters.RequireInfrastructureEncryption.Value != nil {
-				infraEnabled = *props.Parameters.RequireInfrastructureEncryption.Value
+			if parameters.RequireInfrastructureEncryption != nil {
+				infraEnabled = parameters.RequireInfrastructureEncryption.Value
 			}
 			d.Set("infrastructure_encryption_enabled", infraEnabled)
 
@@ -566,56 +559,49 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			customParamsRaw := d.Get("custom_parameters").([]interface{})
 			_, pubSubAssoc, priSubAssoc := expandWorkspaceCustomParameters(customParamsRaw, cmkEnabled, infraEnabled, "", "")
 
-			custom, backendPoolReadId := flattenWorkspaceCustomParameters(props.Parameters, pubSubAssoc, priSubAssoc)
+			custom, backendPoolReadId := flattenWorkspaceCustomParameters(parameters, pubSubAssoc, priSubAssoc)
 			if err := d.Set("custom_parameters", custom); err != nil {
 				return fmt.Errorf("setting `custom_parameters`: %+v", err)
 			}
 
-			if backendPoolReadId != nil {
-				d.Set("load_balancer_backend_address_pool_id", backendPoolReadId)
-			}
+			d.Set("load_balancer_backend_address_pool_id", backendPoolReadId)
 		}
 
-		if err := d.Set("storage_account_identity", flattenWorkspaceStorageAccountIdentity(props.StorageAccountIdentity)); err != nil {
+		if err := d.Set("storage_account_identity", flattenWorkspaceStorageAccountIdentity(model.Properties.StorageAccountIdentity)); err != nil {
 			return fmt.Errorf("setting `storage_account_identity`: %+v", err)
 		}
 
-		if props.WorkspaceURL != nil {
-			d.Set("workspace_url", props.WorkspaceURL)
+		if model.Properties.WorkspaceUrl != nil {
+			d.Set("workspace_url", model.Properties.WorkspaceUrl)
 		}
 
-		if props.WorkspaceID != nil {
-			d.Set("workspace_id", props.WorkspaceID)
+		if model.Properties.WorkspaceId != nil {
+			d.Set("workspace_id", model.Properties.WorkspaceId)
 		}
-	}
 
-	// customer managed key for managed services
-	encryptKeyName := ""
-	encryptKeyVersion := ""
-	encryptKeyVaultURI := ""
+		// customer managed key for managed services
+		encryptKeyName := ""
+		encryptKeyVersion := ""
+		encryptKeyVaultURI := ""
 
-	if resp.WorkspaceProperties.Encryption != nil {
-		if props := resp.WorkspaceProperties.Encryption.Entities; props != nil {
-			if props.ManagedServices.KeyVaultProperties.KeyName != nil {
-				encryptKeyName = *props.ManagedServices.KeyVaultProperties.KeyName
-			}
-			if props.ManagedServices.KeyVaultProperties.KeyVersion != nil {
-				encryptKeyVersion = *props.ManagedServices.KeyVaultProperties.KeyVersion
-			}
-			if props.ManagedServices.KeyVaultProperties.KeyVaultURI != nil {
-				encryptKeyVaultURI = *props.ManagedServices.KeyVaultProperties.KeyVaultURI
+		if encryption := model.Properties.Encryption; encryption != nil {
+			if encryptionProps := encryption.Entities.ManagedServices; encryptionProps != nil {
+				encryptKeyName = encryptionProps.KeyVaultProperties.KeyName
+				encryptKeyVersion = encryptionProps.KeyVaultProperties.KeyVersion
+				encryptKeyVaultURI = encryptionProps.KeyVaultProperties.KeyVaultUri
 			}
 		}
-	}
 
-	if encryptKeyVaultURI != "" {
-		key, err := keyVaultParse.NewNestedItemID(encryptKeyVaultURI, "keys", encryptKeyName, encryptKeyVersion)
-		if err == nil {
-			d.Set("managed_services_cmk_key_vault_key_id", key.ID())
+		if encryptKeyVaultURI != "" {
+			key, err := keyVaultParse.NewNestedItemID(encryptKeyVaultURI, "keys", encryptKeyName, encryptKeyVersion)
+			if err == nil {
+				d.Set("managed_services_cmk_key_vault_key_id", key.ID())
+			}
 		}
+		return tags.FlattenAndSet(d, flattenTags(model.Tags))
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -623,26 +609,19 @@ func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WorkspaceID(d.Id())
+	id, err := workspaces.ParseWorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
-		}
 	}
 
 	return nil
 }
 
-func flattenWorkspaceStorageAccountIdentity(input *databricks.ManagedIdentityConfiguration) []interface{} {
+func flattenWorkspaceStorageAccountIdentity(input *workspaces.ManagedIdentityConfiguration) []interface{} {
 	if input == nil {
 		return nil
 	}
@@ -650,16 +629,14 @@ func flattenWorkspaceStorageAccountIdentity(input *databricks.ManagedIdentityCon
 	e := make(map[string]interface{})
 
 	if v := input; v != nil {
-		if t := v.PrincipalID; t != nil {
+		if t := v.PrincipalId; t != nil {
 			if t != nil {
-				e["principal_id"] = t.String()
+				e["principal_id"] = *t
 			}
 		}
 
-		if t := v.TenantID; t != nil {
-			if t != nil {
-				e["tenant_id"] = t.String()
-			}
+		if t := v.TenantId; t != nil {
+			e["tenant_id"] = *t
 		}
 
 		if t := v.Type; t != nil {
@@ -676,12 +653,12 @@ func flattenWorkspaceStorageAccountIdentity(input *databricks.ManagedIdentityCon
 	return []interface{}{e}
 }
 
-func flattenWorkspaceCustomParameters(input *databricks.WorkspaceCustomParameters, publicSubnetAssociation, privateSubnetAssociation *string) ([]interface{}, *string) {
+func flattenWorkspaceCustomParameters(input *workspaces.WorkspaceCustomParameters, publicSubnetAssociation, privateSubnetAssociation *string) ([]interface{}, string) {
 	if input == nil {
-		return nil, nil
+		return nil, ""
 	}
 
-	var backendAddressPoolId, backendName, loadBalancerId *string
+	var backendAddressPoolId, backendName, loadBalancerId string
 	parameters := make(map[string]interface{})
 
 	if publicSubnetAssociation != nil && *publicSubnetAssociation != "" {
@@ -693,102 +670,76 @@ func flattenWorkspaceCustomParameters(input *databricks.WorkspaceCustomParameter
 	}
 
 	if v := input.LoadBalancerBackendPoolName; v != nil {
-		if v.Value != nil {
-			backendName = v.Value
-		}
+		backendName = v.Value
 	}
 
-	if v := input.LoadBalancerID; v != nil {
-		if v.Value != nil {
-			loadBalancerId = v.Value
-		}
+	if v := input.LoadBalancerId; v != nil {
+		loadBalancerId = v.Value
 	}
 
 	if v := input.NatGatewayName; v != nil {
-		if v.Value != nil {
-			parameters["nat_gateway_name"] = *v.Value
-		}
+		parameters["nat_gateway_name"] = v.Value
 	}
 
-	if v := input.PublicIPName; v != nil {
-		if v.Value != nil {
-			parameters["public_ip_name"] = *v.Value
-		}
+	if v := input.PublicIpName; v != nil {
+		parameters["public_ip_name"] = v.Value
 	}
 
 	if v := input.StorageAccountName; v != nil {
-		if v.Value != nil {
-			parameters["storage_account_name"] = *v.Value
-		}
+		parameters["storage_account_name"] = v.Value
 	}
 
 	if v := input.StorageAccountSkuName; v != nil {
-		if v.Value != nil {
-			parameters["storage_account_sku_name"] = *v.Value
-		}
+		parameters["storage_account_sku_name"] = v.Value
 	}
 
 	if v := input.VnetAddressPrefix; v != nil {
-		if v.Value != nil {
-			parameters["vnet_address_prefix"] = *v.Value
-		}
+		parameters["vnet_address_prefix"] = v.Value
 	}
 
-	if v := input.AmlWorkspaceID; v != nil {
-		if v.Value != nil {
-			parameters["machine_learning_workspace_id"] = *v.Value
-		}
+	if v := input.AmlWorkspaceId; v != nil {
+		parameters["machine_learning_workspace_id"] = v.Value
 	}
 
-	if v := input.EnableNoPublicIP; v != nil {
-		if v.Value != nil {
-			parameters["no_public_ip"] = *v.Value
-		}
+	if v := input.EnableNoPublicIp; v != nil {
+		parameters["no_public_ip"] = v.Value
 	}
 
 	if v := input.CustomPrivateSubnetName; v != nil {
-		if v.Value != nil {
-			parameters["private_subnet_name"] = *v.Value
-		}
+		parameters["private_subnet_name"] = v.Value
 	}
 
 	if v := input.CustomPublicSubnetName; v != nil {
-		if v.Value != nil {
-			parameters["public_subnet_name"] = *v.Value
-		}
+		parameters["public_subnet_name"] = v.Value
 	}
 
-	if v := input.CustomVirtualNetworkID; v != nil {
-		if v.Value != nil {
-			parameters["virtual_network_id"] = *v.Value
-		}
+	if v := input.CustomVirtualNetworkId; v != nil {
+		parameters["virtual_network_id"] = v.Value
 	}
 
-	if backendName != nil && loadBalancerId != nil {
-		lbId, err := loadBalancerParse.LoadBalancerID(*loadBalancerId)
+	lbId, err := loadBalancerParse.LoadBalancerID(loadBalancerId)
 
-		if err == nil {
-			backendId := loadBalancerParse.NewLoadBalancerBackendAddressPoolID(lbId.SubscriptionId, lbId.ResourceGroup, lbId.Name, *backendName)
-			backendAddressPoolId = utils.String(backendId.ID())
-		}
+	if err == nil {
+		backendId := loadBalancerParse.NewLoadBalancerBackendAddressPoolID(lbId.SubscriptionId, lbId.ResourceGroup, lbId.Name, backendName)
+		backendAddressPoolId = backendId.ID()
 	}
 
 	return []interface{}{parameters}, backendAddressPoolId
 }
 
-func expandWorkspaceCustomParameters(input []interface{}, customerManagedKeyEnabled, infrastructureEncryptionEnabled bool, backendAddressPoolName, loadBalancerId string) (workspaceCustomParameters *databricks.WorkspaceCustomParameters, publicSubnetAssociation, privateSubnetAssociation *string) {
+func expandWorkspaceCustomParameters(input []interface{}, customerManagedKeyEnabled, infrastructureEncryptionEnabled bool, backendAddressPoolName, loadBalancerId string) (workspaceCustomParameters *workspaces.WorkspaceCustomParameters, publicSubnetAssociation, privateSubnetAssociation *string) {
 	if len(input) == 0 || input[0] == nil {
 		// This will be hit when there are no custom params set but we still
 		// need to pass the customerManagedKeyEnabled and infrastructureEncryptionEnabled
 		// flags anyway...
-		parameters := databricks.WorkspaceCustomParameters{}
+		parameters := workspaces.WorkspaceCustomParameters{}
 
-		parameters.PrepareEncryption = &databricks.WorkspaceCustomBooleanParameter{
-			Value: &customerManagedKeyEnabled,
+		parameters.PrepareEncryption = &workspaces.WorkspaceCustomBooleanParameter{
+			Value: customerManagedKeyEnabled,
 		}
 
-		parameters.RequireInfrastructureEncryption = &databricks.WorkspaceCustomBooleanParameter{
-			Value: &infrastructureEncryptionEnabled,
+		parameters.RequireInfrastructureEncryption = &workspaces.WorkspaceCustomBooleanParameter{
+			Value: infrastructureEncryptionEnabled,
 		}
 
 		return &parameters, nil, nil
@@ -796,7 +747,7 @@ func expandWorkspaceCustomParameters(input []interface{}, customerManagedKeyEnab
 
 	config := input[0].(map[string]interface{})
 	var pubSubnetAssoc, priSubnetAssoc *string
-	parameters := databricks.WorkspaceCustomParameters{}
+	parameters := workspaces.WorkspaceCustomParameters{}
 
 	if v, ok := config["public_subnet_network_security_group_association_id"].(string); ok && v != "" {
 		pubSubnetAssoc = &v
@@ -807,82 +758,82 @@ func expandWorkspaceCustomParameters(input []interface{}, customerManagedKeyEnab
 	}
 
 	if backendAddressPoolName != "" {
-		parameters.LoadBalancerBackendPoolName = &databricks.WorkspaceCustomStringParameter{
-			Value: utils.String(backendAddressPoolName),
+		parameters.LoadBalancerBackendPoolName = &workspaces.WorkspaceCustomStringParameter{
+			Value: backendAddressPoolName,
 		}
 	}
 
 	if loadBalancerId != "" {
-		parameters.LoadBalancerID = &databricks.WorkspaceCustomStringParameter{
-			Value: utils.String(loadBalancerId),
+		parameters.LoadBalancerId = &workspaces.WorkspaceCustomStringParameter{
+			Value: loadBalancerId,
 		}
 	}
 
 	if v, ok := config["nat_gateway_name"].(string); ok && v != "" {
-		parameters.NatGatewayName = &databricks.WorkspaceCustomStringParameter{
-			Value: &v,
+		parameters.NatGatewayName = &workspaces.WorkspaceCustomStringParameter{
+			Value: v,
 		}
 	}
 
 	if v, ok := config["public_ip_name"].(string); ok && v != "" {
-		parameters.PublicIPName = &databricks.WorkspaceCustomStringParameter{
-			Value: &v,
+		parameters.PublicIpName = &workspaces.WorkspaceCustomStringParameter{
+			Value: v,
 		}
 	}
 
 	if v, ok := config["storage_account_name"].(string); ok && v != "" {
-		parameters.StorageAccountName = &databricks.WorkspaceCustomStringParameter{
-			Value: &v,
+		parameters.StorageAccountName = &workspaces.WorkspaceCustomStringParameter{
+			Value: v,
 		}
 	}
 
 	if v, ok := config["storage_account_sku_name"].(string); ok && v != "" {
-		parameters.StorageAccountSkuName = &databricks.WorkspaceCustomStringParameter{
-			Value: &v,
+		parameters.StorageAccountSkuName = &workspaces.WorkspaceCustomStringParameter{
+			Value: v,
 		}
 	}
 
 	if v, ok := config["vnet_address_prefix"].(string); ok && v != "" {
-		parameters.VnetAddressPrefix = &databricks.WorkspaceCustomStringParameter{
-			Value: &v,
+		parameters.VnetAddressPrefix = &workspaces.WorkspaceCustomStringParameter{
+			Value: v,
 		}
 	}
 
 	if v, ok := config["machine_learning_workspace_id"].(string); ok && v != "" {
-		parameters.AmlWorkspaceID = &databricks.WorkspaceCustomStringParameter{
-			Value: &v,
+		parameters.AmlWorkspaceId = &workspaces.WorkspaceCustomStringParameter{
+			Value: v,
 		}
 	}
 
 	if v, ok := config["no_public_ip"].(bool); ok {
-		parameters.EnableNoPublicIP = &databricks.WorkspaceCustomBooleanParameter{
-			Value: &v,
+		parameters.EnableNoPublicIp = &workspaces.WorkspaceCustomBooleanParameter{
+			Value: v,
 		}
 	}
 
 	if v, ok := config["public_subnet_name"].(string); ok && v != "" {
-		parameters.CustomPublicSubnetName = &databricks.WorkspaceCustomStringParameter{
-			Value: &v,
+		parameters.CustomPublicSubnetName = &workspaces.WorkspaceCustomStringParameter{
+			Value: v,
 		}
 	}
 
-	parameters.PrepareEncryption = &databricks.WorkspaceCustomBooleanParameter{
-		Value: &customerManagedKeyEnabled,
+	parameters.PrepareEncryption = &workspaces.WorkspaceCustomBooleanParameter{
+		Value: customerManagedKeyEnabled,
 	}
 
-	parameters.RequireInfrastructureEncryption = &databricks.WorkspaceCustomBooleanParameter{
-		Value: &infrastructureEncryptionEnabled,
+	parameters.RequireInfrastructureEncryption = &workspaces.WorkspaceCustomBooleanParameter{
+		Value: infrastructureEncryptionEnabled,
 	}
 
 	if v, ok := config["private_subnet_name"].(string); ok && v != "" {
-		parameters.CustomPrivateSubnetName = &databricks.WorkspaceCustomStringParameter{
-			Value: &v,
+		parameters.CustomPrivateSubnetName = &workspaces.WorkspaceCustomStringParameter{
+			Value: v,
 		}
 	}
 
 	if v, ok := config["virtual_network_id"].(string); ok && v != "" {
-		parameters.CustomVirtualNetworkID = &databricks.WorkspaceCustomStringParameter{
-			Value: &v,
+		parameters.CustomVirtualNetworkId = &workspaces.WorkspaceCustomStringParameter{
+			Value: v,
 		}
 	}
 

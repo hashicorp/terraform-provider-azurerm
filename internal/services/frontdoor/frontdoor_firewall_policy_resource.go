@@ -159,6 +159,8 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 							MaxItems: 10,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
+
+									// TODO - rename to "variable" for consistency
 									"match_variable": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
@@ -175,6 +177,7 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 										}, false),
 									},
 
+									// TODO - rename to "value" for consistency
 									"match_values": {
 										Type:     pluginsdk.TypeList,
 										Required: true,
@@ -566,7 +569,6 @@ func resourceFrontDoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta inter
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
 	if err != nil {
-
 		return fmt.Errorf("deleting Front Door Firewall %q (Resource Group %q): %+v", id.FrontDoorWebApplicationFirewallPolicyName, id.ResourceGroup, err)
 	}
 

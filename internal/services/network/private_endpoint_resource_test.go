@@ -26,6 +26,8 @@ func TestAccPrivateEndpoint_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
+				check.That(data.ResourceName).Key("network_interface.0.id").Exists(),
+				check.That(data.ResourceName).Key("network_interface.0.name").Exists(),
 				check.That(data.ResourceName).Key("private_service_connection.0.private_ip_address").Exists(),
 			),
 		},
@@ -75,6 +77,8 @@ func TestAccPrivateEndpoint_requestMessage(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
+				check.That(data.ResourceName).Key("network_interface.0.id").Exists(),
+				check.That(data.ResourceName).Key("network_interface.0.name").Exists(),
 				check.That(data.ResourceName).Key("private_service_connection.0.request_message").HasValue("CATS: ALL YOUR BASE ARE BELONG TO US."),
 			),
 		},
@@ -84,6 +88,8 @@ func TestAccPrivateEndpoint_requestMessage(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
+				check.That(data.ResourceName).Key("network_interface.0.id").Exists(),
+				check.That(data.ResourceName).Key("network_interface.0.name").Exists(),
 				check.That(data.ResourceName).Key("private_service_connection.0.request_message").HasValue("CAPTAIN: WHAT YOU SAY!!"),
 			),
 		},
@@ -214,6 +220,8 @@ func TestAccPrivateEndpoint_privateConnectionAlias(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
+				check.That(data.ResourceName).Key("network_interface.0.id").Exists(),
+				check.That(data.ResourceName).Key("network_interface.0.name").Exists(),
 				check.That(data.ResourceName).Key("private_service_connection.0.private_connection_resource_alias").Exists(),
 			),
 		},
@@ -450,7 +458,7 @@ resource "azurerm_postgresql_server" "test" {
   geo_redundant_backup_enabled = false
   auto_grow_enabled            = true
 
-  administrator_login          = "psqladminun"
+  administrator_login          = "psqladmin"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.5"
   ssl_enforcement_enabled      = true
@@ -530,7 +538,7 @@ resource "azurerm_postgresql_server" "test" {
   geo_redundant_backup_enabled = false
   auto_grow_enabled            = true
 
-  administrator_login          = "psqladminun"
+  administrator_login          = "psqladmin"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.5"
   ssl_enforcement_enabled      = true
@@ -605,7 +613,7 @@ resource "azurerm_postgresql_server" "test" {
   geo_redundant_backup_enabled = false
   auto_grow_enabled            = true
 
-  administrator_login          = "psqladminun"
+  administrator_login          = "psqladmin"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.5"
   ssl_enforcement_enabled      = true
@@ -690,7 +698,7 @@ resource "azurerm_postgresql_server" "test" {
   geo_redundant_backup_enabled = false
   auto_grow_enabled            = true
 
-  administrator_login          = "psqladminun"
+  administrator_login          = "psqladmin"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.5"
   ssl_enforcement_enabled      = true

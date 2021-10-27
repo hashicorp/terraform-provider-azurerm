@@ -587,7 +587,6 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *network.Firewa
 			BypassTrafficSettings: &trafficBypass,
 		},
 	}
-
 }
 
 func expandFirewallPolicyTransportSecurity(input []interface{}) *network.FirewallPolicyTransportSecurity {
@@ -669,6 +668,18 @@ func flattenFirewallPolicyIntrusionDetection(input *network.FirewallPolicyIntrus
 	}
 
 	signatureOverrides := make([]interface{}, 0)
+	trafficBypass := make([]interface{}, 0)
+
+	if input.Configuration == nil {
+		return []interface{}{
+			map[string]interface{}{
+				"mode":                string(input.Mode),
+				"signature_overrides": signatureOverrides,
+				"traffic_bypass":      trafficBypass,
+			},
+		}
+	}
+
 	if overrides := input.Configuration.SignatureOverrides; overrides != nil {
 		for _, override := range *overrides {
 			id := ""
@@ -682,7 +693,6 @@ func flattenFirewallPolicyIntrusionDetection(input *network.FirewallPolicyIntrus
 		}
 	}
 
-	trafficBypass := make([]interface{}, 0)
 	if bypasses := input.Configuration.BypassTrafficSettings; bypasses != nil {
 		for _, bypass := range *bypasses {
 			name := ""
@@ -743,7 +753,7 @@ func flattenFirewallPolicyIntrusionDetection(input *network.FirewallPolicyIntrus
 }
 
 func flattenFirewallPolicyTransportSecurity(input *network.FirewallPolicyTransportSecurity) []interface{} {
-	if input == nil {
+	if input == nil || input.CertificateAuthority == nil {
 		return []interface{}{}
 	}
 

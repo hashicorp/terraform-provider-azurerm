@@ -47,6 +47,26 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 		Read:   resourceCosmosDbAccountRead,
 		Update: resourceCosmosDbAccountUpdate,
 		Delete: resourceCosmosDbAccountDelete,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			caps := diff.Get("capabilities")
+			mongo34found := false
+			enableMongo := false
+			for _, cap := range caps.(*pluginsdk.Set).List() {
+				m := cap.(map[string]interface{})
+				if v, ok := m["name"].(string); ok {
+					if v == "MongoDBv3.4" {
+						mongo34found = true
+					} else if v == "EnableMongo" {
+						enableMongo = true
+					}
+				}
+			}
+
+			if mongo34found && !enableMongo {
+				return fmt.Errorf("capability EnableMongo must be enabled if MongoDBv3.4 is also enabled")
+			}
+			return nil
+		}),
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
@@ -291,7 +311,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"mongo_server_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.ServerVersionThreeFullStopTwo),
@@ -695,6 +714,12 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
 	}
 
+	if v, ok := d.GetOk("mongo_server_version"); ok {
+		account.DatabaseAccountCreateUpdateProperties.APIProperties = &documentdb.APIProperties{
+			ServerVersion: documentdb.ServerVersion(v.(string)),
+		}
+	}
+
 	if v, ok := d.GetOk("backup"); ok {
 		policy, err := expandCosmosdbAccountBackup(v.([]interface{}))
 		if err != nil {
@@ -838,7 +863,9 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 		d.Set("network_acl_bypass_for_azure_services", props.NetworkACLBypass == documentdb.NetworkACLBypassAzureServices)
 		d.Set("network_acl_bypass_ids", utils.FlattenStringSlice(props.NetworkACLBypassResourceIds))
-		d.Set("local_authentication_disabled", props.DisableLocalAuth)
+		if v := resp.DisableLocalAuth; v != nil {
+			d.Set("local_authentication_disabled", props.DisableLocalAuth)
+		}
 
 		policy, err := flattenCosmosdbAccountBackup(props.BackupPolicy)
 		if err != nil {
@@ -1083,6 +1110,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *pluginsdk.ResourceData) ([]docu
 	// all priorities & locations must be unique
 	byPriorities := make(map[int]interface{}, len(locations))
 	byName := make(map[string]interface{}, len(locations))
+	locationsCount := len(locations)
 	for _, location := range locations {
 		priority := int(*location.FailoverPriority)
 		name := *location.LocationName
@@ -1093,6 +1121,10 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *pluginsdk.ResourceData) ([]docu
 
 		if _, ok := byName[name]; ok {
 			return nil, fmt.Errorf("Each `geo_location` needs to be in unique location. Multiple instances of '%s' found", name)
+		}
+
+		if priority > locationsCount-1 {
+			return nil, fmt.Errorf("The maximum value for a failover priority = (total number of regions - 1). '%d' was found", priority)
 		}
 
 		byPriorities[priority] = location

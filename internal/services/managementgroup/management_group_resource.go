@@ -295,6 +295,9 @@ func resourceManagementGroupDelete(d *pluginsdk.ResourceData, meta interface{}) 
 				if err != nil {
 					return fmt.Errorf("unable to parse child Subscription ID %+v", err)
 				}
+				if subscriptionId == nil {
+					continue
+				}
 				log.Printf("[DEBUG] De-associating Subscription %q from Management Group %q..", subscriptionId, id.Name)
 				// NOTE: whilst this says `Delete` it's actually `Deassociate` - which is /really/ helpful
 				deleteResp, err2 := subscriptionsClient.Delete(ctx, id.Name, subscriptionId.subscriptionId, managementGroupCacheControl)
@@ -364,7 +367,7 @@ func parseManagementGroupSubscriptionID(input string) (*subscriptionId, error) {
 	// this is either:
 	// /subscriptions/00000000-0000-0000-0000-000000000000
 
-	// we skip out the managementGroup ID's
+	// we skip out the child managementGroup ID's
 	if strings.HasPrefix(input, "/providers/Microsoft.Management/managementGroups/") {
 		return nil, nil
 	}

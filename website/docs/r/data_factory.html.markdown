@@ -77,13 +77,15 @@ A `global_parameter` block supports the following:
 
 * `value` - (Required) Specifies the global parameter value.
 
+-> **Note:** For type `Array` and `Object` it is recommended to use `jsonencode()` for the value
+
 ---
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Data Factory. Possible values are `SystemAssigned` and `UserAssigned`.
+* `type` - (Required) Specifies the identity type of the Data Factory. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned,UserAssigned`.
 
-* `identity_ids` - (Optional) Specifies the IDs of user assigned identities. Requiered if `UserAssigned` type is used.
+* `identity_ids` - (Optional) Specifies the IDs of user assigned identities. Required if `UserAssigned` or `SystemAssigned,UserAssigned` type is used.
 
 ---
 

@@ -64,7 +64,7 @@ resource "azurerm_postgresql_flexible_server" "example" {
   version                = "12"
   delegated_subnet_id    = azurerm_subnet.example.id
   private_dns_zone_id    = azurerm_private_dns_zone.example.id
-  administrator_login    = "psqladminun"
+  administrator_login    = "psqladmin"
   administrator_password = "H@Sh1CoR3!"
 
   storage_mb = 32768
@@ -91,7 +91,9 @@ The following arguments are supported:
 
 * `administrator_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server. Required when `create_mode` is `Default`.
 
-* `zone` - (Optional) The availability zone of the PostgreSQL Flexible Server. Possible values are `1`, `2` and `3`. Changing this forces a new PostgreSQL Flexible Server to be created.
+* `zone` - (Optional) The Availability Zone of the PostgreSQL Flexible Server. Possible values are `1`, `2` and `3`.
+
+~> **NOTE:** The Availability Zones available would change per the region.
 
 * `backup_retention_days` - (Optional) The backup retention days for the PostgreSQL Flexible Server. Possible values are between `7` and `35` days.
 
@@ -135,7 +137,7 @@ A `high_availability` block supports the following:
 
 * `mode` - (Required) The high availability mode for the PostgreSQL Flexible Server. The only possible value is `ZoneRedundant`.
 
-* `standby_availability_zone` - (Optional) The availability zone of the standby Flexible Server. Possible values are `1`, `2` and `3`.
+* `standby_availability_zone` - (Optional) The Availability Zone of the standby Flexible Server. Possible values are `1`, `2` and `3`.
 
 ## Attributes Reference
 

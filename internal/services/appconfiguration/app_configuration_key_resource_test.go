@@ -26,6 +26,7 @@ func TestAccAppConfigurationKey_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("etag").IsSet(),
 			),
 		},
 		data.ImportStep(),
@@ -38,6 +39,20 @@ func TestAccAppConfigurationKey_basicNoLabel(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicNoLabel(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppConfigurationKey_basicNoLabel_afterLabel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration_key", "test")
+	r := AppConfigurationKeyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicNoLabelAfterLabel(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -81,6 +96,20 @@ func TestAccAppConfigurationKey_KVToVault(t *testing.T) {
 	})
 }
 
+func TestAccAppConfigurationKey_slash(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration_key", "test")
+	r := AppConfigurationKeyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.slash(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAppConfigurationKey_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_key", "test")
 	r := AppConfigurationKeyResource{}
@@ -115,8 +144,7 @@ func TestAccAppConfigurationKey_lockUpdate(t *testing.T) {
 	})
 }
 func (t AppConfigurationKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-
-	resourceID, err := parse.AppConfigurationKeyID(state.ID)
+	resourceID, err := parse.KeyId(state.ID)
 	if err != nil {
 		return nil, fmt.Errorf("while parsing resource ID: %+v", err)
 	}
@@ -162,6 +190,34 @@ resource "azurerm_app_configuration_key" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
+func (t AppConfigurationKeyResource) slash(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appconfig-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_configuration" "test" {
+  name                = "testacc-appconf%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+}
+
+resource "azurerm_app_configuration_key" "test" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  key                    = "/acctest/-ackey/-%d"
+  content_type           = "test"
+  label                  = "acctest-ackeylabel-%d"
+  value                  = "a test"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
 func (t AppConfigurationKeyResource) basicNoLabel(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -189,6 +245,19 @@ resource "azurerm_app_configuration_key" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
+func (t AppConfigurationKeyResource) basicNoLabelAfterLabel(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_configuration_key" "test1" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  key                    = "acctest-ackey-%d"
+  content_type           = "test"
+  value                  = "a test"
+}
+`, t.basic(data), data.RandomInteger)
+}
+
 func (t AppConfigurationKeyResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -198,7 +267,7 @@ resource "azurerm_app_configuration_key" "import" {
   key                    = azurerm_app_configuration_key.test.key
   content_type           = azurerm_app_configuration_key.test.content_type
   label                  = azurerm_app_configuration_key.test.label
-  value                  = azurerm_app_configuration_key.test.value
+  value                  = "${azurerm_app_configuration_key.test.value}-another"
 }
 `, t.basic(data))
 }

@@ -61,6 +61,8 @@ A `identity` block exports the following:
 
 * `type` - The identity type of the Microsoft SQL Server.
 
+* `user_assigned_identity_ids` - A list of the User Assigned Identities of this SQL Server.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
