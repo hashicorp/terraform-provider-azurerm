@@ -590,7 +590,7 @@ func resourceFrontDoorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 		for _, rule := range *exists.RoutingRules {
 			if rule.RulesEngine != nil {
-				id, err := parse.RulesEngineID(*rule.RulesEngine.ID)
+				id, err := parse.RulesEngineIDInsensitively(*rule.RulesEngine.ID)
 
 				if err != nil {
 					return fmt.Errorf("Error parsing rules engine id for routing rule %q (Resource Group %q): %+v", *rule.Name, resourceGroup, err)
