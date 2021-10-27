@@ -247,7 +247,6 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 			"identity": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				ForceNew: false,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
