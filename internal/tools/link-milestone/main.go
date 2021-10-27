@@ -39,12 +39,12 @@ func (g GitHubIssue) getMilestoneId(ctx context.Context, client *github.Client, 
 
 	for _, m := range milestones {
 		title := *m.Title
-		if title[1:] == milestone {
+		if title[1:] == milestone && *m.State != "closed" {
 			return *m.Number, nil
 		}
 	}
-	//TODO create milestone here?
-	return 0, fmt.Errorf("milestone for %s doesn't exist yet", milestone)
+	// TODO create milestone here?
+	return 0, nil
 }
 
 func (g GitHubIssue) getLinkedIssue(ctx context.Context, client *github.Client) (int, error) {
@@ -122,15 +122,14 @@ func newGitHubClient(token string) (*github.Client, context.Context) {
 }
 
 func run() error {
-	// Setup Env
 	viper.AutomaticEnv()
+	token := viper.GetString("github_token")
+	owner := strings.Split(viper.GetString("github_repository"), "/")[0]
+	repo := strings.Split(viper.GetString("github_repository"), "/")[1]
 	prId, err := strconv.Atoi(viper.GetString("pr_number"))
 	if err != nil {
 		return fmt.Errorf("parsing pr number: %+v", err)
 	}
-	token := viper.GetString("github_token")
-	owner := "stephybun"
-	repo := "terraform-provider-azurerm"
 
 	pr := GitHubIssue{owner, repo, prId}
 	client, ctx := newGitHubClient(token)
@@ -143,6 +142,11 @@ func run() error {
 	milestoneId, err := pr.getMilestoneId(ctx, client, milestone)
 	if err != nil {
 		return fmt.Errorf("getting milestone id: %s", err)
+	}
+
+	if milestoneId == 0 {
+		log.Printf("[DEBUG] no milestone for %s exists in github, or it has been closed", milestone)
+		return nil
 	}
 
 	if err = pr.updateMilestone(ctx, client, milestoneId); err != nil {
