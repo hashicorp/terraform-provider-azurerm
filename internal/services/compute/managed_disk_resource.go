@@ -187,14 +187,11 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(2, 10),
 			},
 
-			"security_type": {
-				Type:     pluginsdk.TypeString,
+			"trusted_launch_enabled": {
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
 				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.SecurityTypesTrustedLaunch),
-				}, false),
+				Default:  false,
 			},
 
 			"tags": tags.Schema(),
@@ -345,19 +342,16 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.Tier = &tier
 	}
 
-	if v, ok := d.GetOk("security_type"); ok {
-		securityType := v.(string)
+	if d.Get("trusted_launch_enabled").(bool) {
 		props.SecurityProfile = &compute.DiskSecurityProfile{
-			SecurityType: compute.DiskSecurityTypes(securityType),
+			SecurityType: compute.DiskSecurityTypesTrustedLaunch,
 		}
 
-		if securityType == string(compute.SecurityTypesTrustedLaunch) {
-			switch createOption {
-			case compute.DiskCreateOptionFromImage:
-			case compute.DiskCreateOptionImport:
-			default:
-				return fmt.Errorf("security_type %q cannot be used with create_option %q. Supported create options are FromImage, Import", securityType, createOption)
-			}
+		switch createOption {
+		case compute.DiskCreateOptionFromImage:
+		case compute.DiskCreateOptionImport:
+		default:
+			return fmt.Errorf("trusted_launch_enabled cannot be set to true with create_option %q. Supported Create Options when Trusted Launch is enabled are FromImage, Import", createOption)
 		}
 	}
 
@@ -711,9 +705,13 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return fmt.Errorf("setting `encryption_settings`: %+v", err)
 		}
 
+		trustedLaunchEnabled := false
 		if securityProfile := props.SecurityProfile; securityProfile != nil {
-			d.Set("security_type", string(securityProfile.SecurityType))
+			if securityProfile.SecurityType == compute.DiskSecurityTypesTrustedLaunch {
+				trustedLaunchEnabled = true
+			}
 		}
+		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

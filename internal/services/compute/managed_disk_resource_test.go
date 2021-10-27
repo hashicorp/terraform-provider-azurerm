@@ -460,13 +460,13 @@ func TestAccAzureRMManagedDisk_create_withLogicalSectorSize(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMManagedDisk_create_withSecurityType(t *testing.T) {
+func TestAccAzureRMManagedDisk_create_withTrustedLaunchEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.create_withSecurityType(data),
+			Config: r.create_withTrustedLaunchEnabled(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1438,7 +1438,7 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ManagedDiskResource) create_withSecurityType(data acceptance.TestData) string {
+func (ManagedDiskResource) create_withTrustedLaunchEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1458,14 +1458,14 @@ resource "azurerm_resource_group" "test" {
 
 
 resource "azurerm_managed_disk" "test" {
-  name                 = "acctestd-%d"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  os_type              = "Linux"
-  create_option        = "FromImage"
-  image_reference_id   = data.azurerm_platform_image.test.id
-  storage_account_type = "Standard_LRS"
-  security_type        = "TrustedLaunch"
+  name                   = "acctestd-%d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  os_type                = "Linux"
+  create_option          = "FromImage"
+  image_reference_id     = data.azurerm_platform_image.test.id
+  storage_account_type   = "Standard_LRS"
+  trusted_launch_enabled = true
 }
 `, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
