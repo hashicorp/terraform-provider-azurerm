@@ -31,6 +31,9 @@ func Creds(ctx context.Context, ds *DialSettings) (*google.Credentials, error) {
 }
 
 func baseCreds(ctx context.Context, ds *DialSettings) (*google.Credentials, error) {
+	if ds.InternalCredentials != nil {
+		return ds.InternalCredentials, nil
+	}
 	if ds.Credentials != nil {
 		return ds.Credentials, nil
 	}
@@ -99,7 +102,7 @@ func credentialsFromJSON(ctx context.Context, data []byte, ds *DialSettings) (*g
 }
 
 func isSelfSignedJWTFlow(data []byte, ds *DialSettings) (bool, error) {
-	if (ds.EnableJwtWithScope || ds.HasCustomAudience() || len(ds.GetScopes()) == 0) &&
+	if (ds.EnableJwtWithScope || ds.HasCustomAudience()) &&
 		ds.ImpersonationConfig == nil {
 		// Check if JSON is a service account and if so create a self-signed JWT.
 		var f struct {
