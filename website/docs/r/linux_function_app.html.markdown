@@ -1,5 +1,5 @@
 ---
-subcategory: "TODO"
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_linux_function_app"
 description: |-
