@@ -3,7 +3,7 @@ package frontdoor
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-05-01/frontdoor"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-04-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-05-01/frontdoors"
 )
 
@@ -25,7 +25,7 @@ func NormalizeCustomHTTPSProvisioningStateToBool(provisioningState frontdoors.Cu
 	return provisioningState == frontdoors.CustomHttpsProvisioningStateEnabled || provisioningState == frontdoors.CustomHttpsProvisioningStateEnabling
 }
 
-func FlattenTransformSlice(input *[]frontdoor.TransformType) []interface{} {
+func FlattenTransformSlice(input *[]webapplicationfirewallpolicies.TransformType) []interface{} {
 	result := make([]interface{}, 0)
 
 	if input != nil {
@@ -36,16 +36,16 @@ func FlattenTransformSlice(input *[]frontdoor.TransformType) []interface{} {
 	return result
 }
 
-func FlattenFrontendEndpointLinkSlice(input *[]frontdoor.FrontendEndpointLink) []interface{} {
+func FlattenFrontendEndpointLinkSlice(input *[]webapplicationfirewallpolicies.FrontendEndpointLink) []interface{} {
 	result := make([]interface{}, 0)
 
 	if input != nil {
 		for _, item := range *input {
-			if item.ID == nil {
+			if item.Id == nil {
 				continue
 			}
 
-			result = append(result, *item.ID)
+			result = append(result, *item.Id)
 		}
 	}
 	return result
