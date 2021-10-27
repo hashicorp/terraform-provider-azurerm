@@ -46,6 +46,7 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		MaxItems: 1,
 		Computed: computed,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
