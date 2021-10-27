@@ -3,7 +3,6 @@ package automation_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"testing"
 	"time"
 
@@ -91,8 +90,10 @@ func TestAccAutomationWebhook_ChangeUri(t *testing.T) {
 		data.ImportStep("uri"),
 		{
 			Config: r.WebhookURIChange(data, "https://12345678-9012-3456-7890-123456789012.webhook.we.azure-automation.net/webhooks?token=abcdefghijklmnoprstuwxyz1234567890abcdefg313377"),
-			// Azure does not allow chaning of the URI
-			ExpectError: regexp.MustCompile("automation.WebhookClient#CreateOrUpdate: Failure responding to request: StatusCode=400 -- Original Error: autorest/azure: Service returned an error. Status=400 Code=\"\" Message=\"Invalid uri.\""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("uri").HasValue("https://12345678-9012-3456-7890-123456789012.webhook.we.azure-automation.net/webhooks?token=abcdefghijklmnoprstuwxyz1234567890abcdefg313377"),
+			),
 		},
 	})
 }

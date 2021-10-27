@@ -96,6 +96,7 @@ func resourceAutomationWebhookCommonSchema() map[string]*pluginsdk.Schema {
 			Type:       pluginsdk.TypeString,
 			ConfigMode: schema.SchemaConfigModeAttr,
 			Optional:   true,
+			ForceNew:   true,
 			Computed:   true,
 			Sensitive:  true,
 		},
