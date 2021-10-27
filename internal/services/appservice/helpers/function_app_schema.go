@@ -63,33 +63,38 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"always_on": { // Note: Not permitted to be true for ElasticPremium
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Computed: true, // Note - several factors change the default for this, so needs to be computed.
+				"always_on": {
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Computed:    true, // Note - several factors change the default for this, so needs to be computed.
+					Description: "If this Linux Web App is Always On enabled. Defaults to `false`.",
 				},
 
 				"api_management_api_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: apimValidate.ApiID,
+					Description:  "The ID of the API Management API for this Linux Function App.",
 				},
 
 				"api_definition_url": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+					Description:  "The URL of the API definition that describes this Linux Function App.",
 				},
 
 				"app_command_line": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Description: "The App command line to launch.",
 				},
 
 				"app_scale_limit": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Computed: true,
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
+					Computed:    true,
+					Description: "The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 					// TODO Validation?
 				},
 
@@ -101,6 +106,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 						"site_config.0.application_insights_connection_string",
 					},
 					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The Instrumentation Key for connecting the Linux Function App to Application Insights.",
 				},
 
 				"application_insights_connection_string": {
@@ -111,20 +117,23 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 						"site_config.0.application_insights_key",
 					},
 					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The Connection String for linking the Linux Function App to Application Insights.",
 				},
 
 				"application_stack": linuxFunctionAppStackSchema(),
 
 				"container_registry_use_managed_identity": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Should connections for Azure Container Registry use Managed Identity.",
 				},
 
 				"container_registry_managed_identity_client_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsUUID,
+					Description:  "The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.",
 				},
 
 				"default_documents": {
@@ -134,34 +143,39 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+					Description: "Specifies a list of Default Documents for the Linux Web App.",
 				},
 
 				"elastic_instance_minimum": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Computed: true,
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
+					Computed:    true,
+					Description: "The number of minimum instances for this Linux Function App. Only affects apps on Elastic Premium plans.",
 				},
 
 				"http2_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Specifies if the http2 protocol should be enabled. Defaults to `false`.",
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
 
 				"scm_use_main_ip_restriction": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Should the Linux Function App `ip_restriction` configuration be used for the SCM also.",
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
 
 				"local_mysql": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Use Local MySQL. Defaults to `false`.",
 				},
 
 				"load_balancing_mode": { // Supported on Function Apps?
@@ -176,6 +190,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 						"RequestHash",
 						"PerSiteRoundRobin",
 					}, false),
+					Description: "The Site load balancing mode. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.",
 				},
 
 				"managed_pipeline_mode": {
@@ -186,18 +201,21 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 						string(web.ManagedPipelineModeClassic),
 						string(web.ManagedPipelineModeIntegrated),
 					}, false),
+					Description: "The Managed Pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.",
 				},
 
 				"pre_warmed_instance_count": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Computed: true, // Variable defaults depending on plan etc
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
+					Computed:    true, // Variable defaults depending on plan etc
+					Description: "The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.",
 				},
 
 				"remote_debugging": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Should Remote Debugging be enabled. Defaults to `false`.",
 				},
 
 				"remote_debugging_version": {
@@ -208,28 +226,33 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 						"VS2017",
 						"VS2019",
 					}, false),
+					Description: "The Remote Debugging Version. Possible values include `VS2017` and `VS2019`",
 				},
 
 				"runtime_scale_monitoring_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Description: "Should Functions Runtime Scale Monitoring be enabled.",
 				},
 
 				"scm_type": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The SCM Type in use by the Linux Function App.",
 				},
 
 				"use_32_bit_worker": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Should the Linux Web App use a 32-bit worker.",
 				},
 
 				"websockets_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Should Web Sockets be enabled. Defaults to `false`.",
 				},
 
 				"ftps_state": {
@@ -241,11 +264,13 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 						string(web.FtpsStateDisabled),
 						string(web.FtpsStateFtpsOnly),
 					}, false),
+					Description: "State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.",
 				},
 
 				"health_check_path": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Description: "The path to be checked for this function app health.",
 				},
 
 				"number_of_workers": {
@@ -253,6 +278,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(1, 100),
+					Description:  "The number of Workers for this Linux Function App.",
 				},
 
 				"minimum_tls_version": {
@@ -264,6 +290,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 						string(web.SupportedTLSVersionsOneFullStopOne),
 						string(web.SupportedTLSVersionsOneFullStopTwo),
 					}, false),
+					Description: "The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.",
 				},
 
 				"scm_minimum_tls_version": {
@@ -275,6 +302,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 						string(web.SupportedTLSVersionsOneFullStopOne),
 						string(web.SupportedTLSVersionsOneFullStopTwo),
 					}, false),
+					Description: "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.",
 				},
 
 				"cors": CorsSettingsSchema(),
@@ -282,28 +310,27 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				"auto_swap_slot_name": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					// TODO - Add slot name validation here?
+					// TODO - Add slot name validation here when the resource is added
+					Description: "The Linux Function App Slot Name to automatically swap to when deployment to that slot is successfully completed.",
 				},
 
 				"vnet_route_all_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
 				},
 
 				"detailed_error_logging": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
+					Description: "Is detailed error logging enabled",
 				},
 
 				"linux_fx_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"windows_fx_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The Linux FX Version",
 				},
 			},
 		},
@@ -349,6 +376,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom",
 					},
+					Description: "The version of .Net. Possible values are `3.1`",
 				},
 
 				"python_version": {
@@ -368,6 +396,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom",
 					},
+					Description: "The version of Python to use. Possible values include `3.9`, `3.8`, `3.7`, and `3.6`, ",
 				},
 
 				"node_version": {
@@ -385,6 +414,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom",
 					},
+					Description: "The version of Node to use. Possible values include `12`, and `14`",
 				},
 
 				"java_version": {
@@ -402,6 +432,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom",
 					},
+					Description: "The version of Java to use. Possible values are `8`, and `11`",
 				},
 
 				"docker": {
@@ -413,6 +444,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
+								Description:  "The URL of the docker registry.",
 							},
 
 							"registry_username": {
@@ -420,24 +452,28 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 								Required:     true,
 								Sensitive:    true,
 								ValidateFunc: validation.StringIsNotEmpty,
+								Description:  "The username to use for connections to the registry.",
 							},
 
 							"registry_password": {
-								Type:      pluginsdk.TypeString,
-								Required:  true,
-								Sensitive: true, // Note: whilst it's not a good idea, this _can_ be blank...
+								Type:        pluginsdk.TypeString,
+								Required:    true,
+								Sensitive:   true, // Note: whilst it's not a good idea, this _can_ be blank...
+								Description: "The password for the account to use to connect to the registry.",
 							},
 
 							"image_name": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
+								Description:  "The name of the Docker image to use.",
 							},
 
 							"image_tag": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
+								Description:  "The image tag of the image to use.",
 							},
 						},
 					},
@@ -449,6 +485,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom",
 					},
+					Description: "A docker block",
 				},
 
 				"use_custom": {

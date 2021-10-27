@@ -40,6 +40,7 @@ type LinuxFunctionAppModel struct {
 	ClientCertEnabled         bool                                 `tfschema:"client_cert_enabled"`
 	ClientCertMode            string                               `tfschema:"client_cert_mode"`
 	ConnectionStrings         []helpers.ConnectionString           `tfschema:"connection_string"`
+	DailyMemoryTimeQuota      int                                  `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
 	Enabled                   bool                                 `tfschema:"enabled"`
 	FunctionExtensionsVersion string                               `tfschema:"functions_extension_version"`
 	ForceDisableContentShare  bool                                 `tfschema:"force_disable_content_share"`
@@ -49,17 +50,15 @@ type LinuxFunctionAppModel struct {
 	Tags                      map[string]string                    `tfschema:"tags"`
 
 	// Computed
-	CustomDomainVerificationId    string                   `tfschema:"custom_domain_verification_id"`
-	DefaultHostname               string                   `tfschema:"default_hostname"`
-	Kind                          string                   `tfschema:"kind"`
-	OutboundIPAddresses           string                   `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList         []string                 `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses   string                   `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList []string                 `tfschema:"possible_outbound_ip_address_list"`
-	SiteCredentials               []helpers.SiteCredential `tfschema:"site_credential"`
+	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
+	DefaultHostname               string   `tfschema:"default_hostname"`
+	Kind                          string   `tfschema:"kind"`
+	OutboundIPAddresses           string   `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList         []string `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses   string   `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList []string `tfschema:"possible_outbound_ip_address_list"`
 
-	// TODO - WEBSITE_RUN_FROM_PACKAGE (https://docs.microsoft.com/en-us/azure/azure-functions/run-functions-from-deployment-package) ??
-	DailyMemoryTimeQuota int `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
+	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxFunctionAppResource{}
@@ -87,6 +86,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.WebAppName,
+			Description:  "Specifies the name of the Function App.",
 		},
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
@@ -97,12 +97,14 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.ServicePlanID,
+			Description:  "The ID of the App Service Plan within which to create this Function App",
 		},
 
 		"storage_account_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: storageValidate.StorageAccountName,
+			Description:  "The backend storage account name which will be used by this Function App.",
 		},
 
 		"storage_account_access_key": {
@@ -114,6 +116,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 				"storage_uses_managed_identity",
 				"storage_account_access_key",
 			},
+			Description: "The access key which will be used to access the storage account for the Function App.",
 		},
 
 		"storage_uses_managed_identity": {
@@ -124,6 +127,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 				"storage_uses_managed_identity",
 				"storage_account_access_key",
 			},
+			Description: "Should the Function App use its Managed Identity to access storage",
 		},
 
 		"app_settings": {
@@ -132,6 +136,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
+			Description: "A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.",
 		},
 
 		"auth_settings": helpers.AuthSettingsSchema(),
@@ -139,15 +144,17 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"backup": helpers.BackupSchema(),
 
 		"builtin_logging_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
+			Description: "Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting",
 		},
 
 		"client_cert_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Should the function app use Client Certificates",
 		},
 
 		"client_cert_mode": {
@@ -159,6 +166,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 				string(web.ClientCertModeRequired),
 				string(web.ClientCertModeOptionalInteractiveUser),
 			}, false),
+			Description: "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
 		},
 
 		"connection_string": helpers.ConnectionStringSchema(),
@@ -168,30 +176,35 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Default:      0,
 			ValidateFunc: validation.IntAtLeast(0),
+			Description:  "The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps in Consumption Plans.",
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
+			Description: "Is the Linux Function App enabled.",
 		},
 
 		"force_disable_content_share": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Force disable the content share settings.",
 		},
 
 		"functions_extension_version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "~3",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     "~3",
+			Description: "The runtime version associated with the Function App.",
 		},
 
 		"https_only": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Can the Function App only be accessed via HTTPS?",
 		},
 
 		"identity": helpers.IdentitySchema(),
