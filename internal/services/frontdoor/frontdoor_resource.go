@@ -1146,8 +1146,6 @@ func expandFrontDoorRedirectConfiguration(input []interface{}) frontdoors.Redire
 		CustomHost:       utils.String(customHost),
 		RedirectType:     &redirectType,
 		RedirectProtocol: &redirectProtocol,
-		// todo fix this before merge
-		// OdataType:        frontdoor.OdataTypeMicrosoftAzureFrontDoorModelsFrontdoorRedirectConfiguration,
 	}
 	// The way the API works is if you don't include the attribute in the structure
 	// it is treated as Preserve instead of Replace...
@@ -1196,8 +1194,6 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId fro
 	forwardingConfiguration := frontdoors.ForwardingConfiguration{
 		ForwardingProtocol: &forwardingProtocol,
 		BackendPool:        backend,
-		// todo uncomment when the weird type issue is fixed
-		// OdataType:          frontdoor.OdataTypeMicrosoftAzureFrontDoorModelsFrontdoorForwardingConfiguration,
 	}
 	// Per the portal, if you enable the cache the cache_query_parameter_strip_directive
 	// is then a required attribute else the CacheConfiguration type is null
