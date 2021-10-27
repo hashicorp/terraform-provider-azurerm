@@ -135,6 +135,6 @@ teamcity-test:
 	@$(MAKE) -C .teamcity test
 
 link-milestone:
-	go run internal/tools/link-milestone.main.go
+	go run internal/tools/link-milestone/main.go
 
 .PHONY: build build-docker test test-docker testacc vet fmt fmtcheck errcheck scaffold-website test-compile website website-test
