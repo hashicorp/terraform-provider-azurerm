@@ -564,7 +564,8 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
 
 func (EventHubNamespaceResource) requiresImport(data acceptance.TestData) string {
 	template := EventHubNamespaceResource{}.basic(data)
-	return fmt.Sprintf(`
+	return fmt.Sprintf(
+		`
 %s
 
 resource "azurerm_eventhub_namespace" "import" {
@@ -696,7 +697,6 @@ resource "azurerm_eventhub_namespace" "test" {
     trusted_service_access_enabled = true
     ip_rule {
       ip_mask = "10.0.0.0/16"
-      action  = "Allow"
     }
   }
 }
@@ -808,12 +808,10 @@ resource "azurerm_eventhub_namespace" "test" {
 
     ip_rule {
       ip_mask = "10.0.1.0/24"
-      action  = "Allow"
     }
 
     ip_rule {
       ip_mask = "10.1.1.0/24"
-      action  = "Allow"
     }
   }
 }
@@ -941,7 +939,8 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 func (EventHubNamespaceResource) capacity(data acceptance.TestData, capacity int) string {
-	return fmt.Sprintf(`
+	return fmt.Sprintf(
+		`
 provider "azurerm" {
   features {}
 }
