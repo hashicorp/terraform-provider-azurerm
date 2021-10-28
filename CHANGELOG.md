@@ -13,6 +13,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * upgrading `mysql` to API Version `2021-05-01` [GH-13818]
+* `azurerm_application_gateway` - support for the `priority` property [GH-13498]
 * `azurerm_firewall_application_rule_collection` - the `port` property is now required instead of optional [GH-13869]
 * `azurerm_kubernetes_cluster` - expose the `portal_fqdn` attribute [GH-13887]
 * `azurerm_linux_virtual_machine_scale_set` -  support for `automatic_upgrade_enabled` in extensions [GH-13394]
