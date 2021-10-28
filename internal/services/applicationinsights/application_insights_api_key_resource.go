@@ -111,7 +111,6 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	for _, existingAPIKey := range *existingAPIKeyList.Value {
-		log.Printf("[DEBUG] id_test existing id is %s", *existingAPIKey.ID)
 		existingAPIKeyId, err := parse.ApiKeyID(camelCaseApiKeys(*existingAPIKey.ID))
 		if err != nil {
 			return err
