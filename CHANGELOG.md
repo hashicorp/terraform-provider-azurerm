@@ -14,6 +14,7 @@ IMPROVEMENTS:
 * `azurerm_firewall_application_rule_collection` - the `port` property is now required instead of optional [GH-13869]
 * `azurerm_kubernetes_cluster` - expose the `portal_fqdn` attribute [GH-13887]
 * `azurerm_linux_virtual_machine_scale_set` - added feature for `scale_to_zero_before_deletion`[GH-13635]
+* `azurerm_managed_disk` - support for the `trusted_launch_enabled` property [GH-13849]
 * `azurerm_servicebus_queue` - support for the `max_message_size_in_kilobytes` property [GH-13762]
 * `azurerm_servicebus_topic` - support for the `max_message_size_in_kilobytes` property [GH-13762]
 * `azurerm_servicebus_namespace_network_rule_set` - support for the `trusted_services_allowed` property [GH-13853]
