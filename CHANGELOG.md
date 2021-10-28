@@ -5,7 +5,9 @@ FEATURES:
 
 ## 2.81.0 (October 08, 2021)
 
-FEATURES:
+FEATURES: 
+* **New Resource:** `azurerm_test` [GH-123]
+* **New Resource:** `azurerm_test_2` [GH-1234]
 * **New Resource:** `azurerm_data_factory_linked_service_cosmosdb_mongoapi` [GH-13636]
 
 BUG FIXES:
