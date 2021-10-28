@@ -588,6 +588,7 @@ func resourceFrontDoorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		preExists = true
 		location = azure.NormalizeLocation(*exists.Location)
 
+        if exists.RoutingRules != nil {
 		for _, rule := range *exists.RoutingRules {
 			if rule.RulesEngine != nil {
 				id, err := parse.RulesEngineIDInsensitively(*rule.RulesEngine.ID)
