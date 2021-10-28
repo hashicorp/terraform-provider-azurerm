@@ -62,12 +62,27 @@ func dataSourceKeyVaultKey() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"curve": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"n": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"e": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"x": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"y": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -123,6 +138,9 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 		d.Set("n", key.N)
 		d.Set("e", key.E)
+		d.Set("x", key.X)
+		d.Set("y", key.Y)
+		d.Set("curve", key.Crv)
 	}
 
 	d.Set("version", parsedId.Version)
