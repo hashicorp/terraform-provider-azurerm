@@ -249,14 +249,14 @@ func TestAccStorageBlob_cacheControl(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.contentType(data),
+			Config: r.cacheControl(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("parallelism", "size", "type"),
 		{
-			Config: r.contentTypeUpdated(data),
+			Config: r.cacheControlUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

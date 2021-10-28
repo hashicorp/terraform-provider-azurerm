@@ -294,15 +294,15 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("cache_control") {
-		log.Printf("[DEBUG] Updating Properties for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
+		log.Printf("[DEBUG] Updating Cache Control for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
 		input := blobs.SetPropertiesInput{
 			CacheControl: utils.String(d.Get("cache_control").(string)),
 		}
 
 		if _, err := blobsClient.SetProperties(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
-			return fmt.Errorf("updating Properties for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
+			return fmt.Errorf("updating Cache Control for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
 		}
-		log.Printf("[DEBUG] Updated Properties for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
+		log.Printf("[DEBUG] Updated Cache Control for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
 	}
 
 	return resourceStorageBlobRead(d, meta)
