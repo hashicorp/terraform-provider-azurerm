@@ -43,7 +43,7 @@ type LinuxFunctionAppModel struct {
 	DailyMemoryTimeQuota      int                                  `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
 	Enabled                   bool                                 `tfschema:"enabled"`
 	FunctionExtensionsVersion string                               `tfschema:"functions_extension_version"`
-	ForceDisableContentShare  bool                                 `tfschema:"force_disable_content_share"`
+	ForceDisableContentShare  bool                                 `tfschema:"content_share_force_disabled"`
 	HttpsOnly                 bool                                 `tfschema:"https_only"`
 	Identity                  []helpers.Identity                   `tfschema:"identity"`
 	SiteConfig                []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
@@ -186,7 +186,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "Is the Linux Function App enabled.",
 		},
 
-		"force_disable_content_share": {
+		"content_share_force_disabled": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
