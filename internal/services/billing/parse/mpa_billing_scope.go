@@ -10,7 +10,6 @@ import (
 type MicrosoftPartnerAccountBillingScopeId struct {
 	BillingAccountName string
 	CustomerName       string
-	InvoiceSectionName string
 }
 
 func NewMPABillingScopeID(billingAccountName, customerName string) MicrosoftPartnerAccountBillingScopeId {
