@@ -10,6 +10,10 @@ type RouteConfiguration interface {
 }
 
 func unmarshalRouteConfigurationImplementation(input []byte) (RouteConfiguration, error) {
+	if input == nil {
+		return nil, nil
+	}
+
 	var temp map[string]interface{}
 	if err := json.Unmarshal(input, &temp); err != nil {
 		return nil, fmt.Errorf("unmarshaling RouteConfiguration into map[string]interface: %+v", err)
@@ -17,7 +21,7 @@ func unmarshalRouteConfigurationImplementation(input []byte) (RouteConfiguration
 
 	value, ok := temp["@odata.type"].(string)
 	if !ok {
-		return nil, fmt.Errorf("missing field '@odata.type' needed to discriminate RouteConfiguration type")
+		return nil, nil
 	}
 
 	if strings.EqualFold(value, "#Microsoft.Azure.FrontDoor.Models.FrontdoorForwardingConfiguration") {
