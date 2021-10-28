@@ -197,7 +197,7 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewVpnGatewayID(subscriptionId, d.Get("name").(string), d.Get("resource_group_name").(string))
+	id := parse.NewVpnGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
