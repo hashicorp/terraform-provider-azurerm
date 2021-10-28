@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/sdk/2021-06-01-preview/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -77,17 +77,17 @@ func testAccKeyVaultManagedHardwareSecurityModule_complete(t *testing.T) {
 }
 
 func (KeyVaultManagedHardwareSecurityModuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ManagedHSMID(state.ID)
+	id, err := managedhsms.ParseManagedHSMID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.KeyVault.ManagedHsmClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.KeyVault.ManagedHsmClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return utils.Bool(resp.Model.Properties != nil), nil
 }
 
 func (r KeyVaultManagedHardwareSecurityModuleResource) basic(data acceptance.TestData) string {

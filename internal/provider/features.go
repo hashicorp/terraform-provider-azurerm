@@ -54,6 +54,16 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
+					"recover_soft_deleted_managed_hsm": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+
+					"purge_soft_deleted_managed_hsm_on_destroy": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
 				},
 			},
 		},
@@ -221,6 +231,12 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := keyVaultRaw["recover_soft_deleted_key_vaults"]; ok {
 				features.KeyVault.RecoverSoftDeletedKeyVaults = v.(bool)
+			}
+			if v, ok := keyVaultRaw["purge_soft_deleted_managed_hsm_on_destroy"]; ok {
+				features.KeyVault.PurgeSoftDeletedManagedHSMsOnDestroy = v.(bool)
+			}
+			if v, ok := keyVaultRaw["recover_soft_deleted_managed_hsm"]; ok {
+				features.KeyVault.RecoverSoftDeletedManagedHSMs = v.(bool)
 			}
 		}
 	}

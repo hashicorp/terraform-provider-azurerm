@@ -213,5 +213,12 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
+	if meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedManagedHSMsOnDestroy {
+		deletedHSMId := managedhsms.NewDeletedManagedHSMID(id.SubscriptionId, d.Get("location").(string), id.Name)
+		if err := client.PurgeDeletedThenPoll(ctx, deletedHSMId); err != nil {
+			return fmt.Errorf("purging %s", deletedHSMId)
+		}
+	}
+
 	return nil
 }

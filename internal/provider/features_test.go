@@ -25,8 +25,10 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeleteOnDestroy: true,
 				},
 				KeyVault: features.KeyVaultFeatures{
-					PurgeSoftDeleteOnDestroy:    true,
-					RecoverSoftDeletedKeyVaults: true,
+					PurgeSoftDeleteOnDestroy:             true,
+					RecoverSoftDeletedKeyVaults:          true,
+					PurgeSoftDeletedManagedHSMsOnDestroy: true,
+					RecoverSoftDeletedManagedHSMs:        true,
 				},
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
 					PermanentlyDeleteOnDestroy: false,
@@ -68,8 +70,10 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"key_vault": []interface{}{
 						map[string]interface{}{
-							"purge_soft_delete_on_destroy":    true,
-							"recover_soft_deleted_key_vaults": true,
+							"purge_soft_delete_on_destroy":              true,
+							"recover_soft_deleted_key_vaults":           true,
+							"purge_soft_deleted_managed_hsm_on_destroy": true,
+							"recover_soft_deleted_managed_hsm":          true,
 						},
 					},
 					"log_analytics_workspace": []interface{}{
@@ -116,8 +120,10 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeleteOnDestroy: true,
 				},
 				KeyVault: features.KeyVaultFeatures{
-					PurgeSoftDeleteOnDestroy:    true,
-					RecoverSoftDeletedKeyVaults: true,
+					PurgeSoftDeleteOnDestroy:             true,
+					RecoverSoftDeletedKeyVaults:          true,
+					PurgeSoftDeletedManagedHSMsOnDestroy: true,
+					RecoverSoftDeletedManagedHSMs:        true,
 				},
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
 					PermanentlyDeleteOnDestroy: true,
@@ -159,8 +165,10 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"key_vault": []interface{}{
 						map[string]interface{}{
-							"purge_soft_delete_on_destroy":    false,
-							"recover_soft_deleted_key_vaults": false,
+							"purge_soft_delete_on_destroy":              false,
+							"recover_soft_deleted_key_vaults":           false,
+							"purge_soft_deleted_managed_hsm_on_destroy": false,
+							"recover_soft_deleted_managed_hsm":          false,
 						},
 					},
 					"log_analytics_workspace": []interface{}{
@@ -207,8 +215,10 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeleteOnDestroy: false,
 				},
 				KeyVault: features.KeyVaultFeatures{
-					PurgeSoftDeleteOnDestroy:    false,
-					RecoverSoftDeletedKeyVaults: false,
+					PurgeSoftDeleteOnDestroy:             false,
+					RecoverSoftDeletedKeyVaults:          false,
+					PurgeSoftDeletedManagedHSMsOnDestroy: false,
+					RecoverSoftDeletedManagedHSMs:        false,
 				},
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
 					PermanentlyDeleteOnDestroy: false,
@@ -391,8 +401,10 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				KeyVault: features.KeyVaultFeatures{
-					PurgeSoftDeleteOnDestroy:    true,
-					RecoverSoftDeletedKeyVaults: true,
+					PurgeSoftDeleteOnDestroy:             true,
+					RecoverSoftDeletedKeyVaults:          true,
+					PurgeSoftDeletedManagedHSMsOnDestroy: true,
+					RecoverSoftDeletedManagedHSMs:        true,
 				},
 			},
 		},
@@ -402,16 +414,20 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 				map[string]interface{}{
 					"key_vault": []interface{}{
 						map[string]interface{}{
-							"purge_soft_delete_on_destroy":    true,
-							"recover_soft_deleted_key_vaults": true,
+							"purge_soft_delete_on_destroy":              true,
+							"recover_soft_deleted_key_vaults":           true,
+							"purge_soft_deleted_managed_hsm_on_destroy": true,
+							"recover_soft_deleted_managed_hsm":          true,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				KeyVault: features.KeyVaultFeatures{
-					PurgeSoftDeleteOnDestroy:    true,
-					RecoverSoftDeletedKeyVaults: true,
+					PurgeSoftDeleteOnDestroy:             true,
+					RecoverSoftDeletedKeyVaults:          true,
+					PurgeSoftDeletedManagedHSMsOnDestroy: true,
+					RecoverSoftDeletedManagedHSMs:        true,
 				},
 			},
 		},
@@ -421,16 +437,20 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 				map[string]interface{}{
 					"key_vault": []interface{}{
 						map[string]interface{}{
-							"purge_soft_delete_on_destroy":    false,
-							"recover_soft_deleted_key_vaults": false,
+							"purge_soft_delete_on_destroy":              false,
+							"recover_soft_deleted_key_vaults":           false,
+							"purge_soft_deleted_managed_hsm_on_destroy": false,
+							"recover_soft_deleted_managed_hsm":          false,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				KeyVault: features.KeyVaultFeatures{
-					PurgeSoftDeleteOnDestroy:    false,
-					RecoverSoftDeletedKeyVaults: false,
+					PurgeSoftDeleteOnDestroy:             false,
+					RecoverSoftDeletedKeyVaults:          false,
+					PurgeSoftDeletedManagedHSMsOnDestroy: false,
+					RecoverSoftDeletedManagedHSMs:        false,
 				},
 			},
 		},
