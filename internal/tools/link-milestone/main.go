@@ -15,15 +15,8 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// This go Script performs the following actions
-// 1. Get the current milestone
-// 1.1 Extract milestone from CHANGELOG.md
-// 1.2 Check whether milestone exists and get its id number
-// 2. Link the milestone on PRs merged into main
-// 3. Link the milestone on issues linked to the PR
-// 4. Go through the CHANGELOG and retrospectively perform 2. and 3.
-// This script will be called by make
-// This script will be triggered by github actions
+// This script should only run when PRs are merged into main. It links the merged PR as well as linked issues
+// that were closed as a result of the merge, to the latest unreleased milestone (if exists and not already linked).
 
 type GitHubIssue struct {
 	Owner string
@@ -138,12 +131,15 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("getting latest milestone from CHANGELOG.md: %s", err)
 	}
+	if milestone == "" {
+		log.Print("[DEBUG] no unreleased milestone could be found in CHANGELOG")
+		return nil
+	}
 
 	milestoneId, err := pr.getMilestoneId(ctx, client, milestone)
 	if err != nil {
 		return fmt.Errorf("getting milestone id: %s", err)
 	}
-
 	if milestoneId == 0 {
 		log.Printf("[DEBUG] no milestone for %s exists in github, or it has been closed", milestone)
 		return nil
