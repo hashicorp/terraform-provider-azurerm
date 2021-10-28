@@ -75,15 +75,6 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
-
-						"not_data_actions": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
 					},
 				},
 			},
@@ -222,15 +213,9 @@ func expandSqlRoleDefinitionPermissions(input []interface{}) *[]documentdb.Permi
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
-		result := documentdb.Permission{
+		results = append(results, documentdb.Permission{
 			DataActions: utils.ExpandStringSlice(v["data_actions"].(*pluginsdk.Set).List()),
-		}
-
-		if notDataActions, ok := v["not_data_actions"]; ok {
-			result.NotDataActions = utils.ExpandStringSlice(notDataActions.(*pluginsdk.Set).List())
-		}
-
-		results = append(results, result)
+		})
 	}
 
 	return &results
@@ -244,8 +229,7 @@ func flattenSqlRoleDefinitionPermissions(input *[]documentdb.Permission) []inter
 
 	for _, item := range *input {
 		results = append(results, map[string]interface{}{
-			"data_actions":     utils.FlattenStringSlice(item.DataActions),
-			"not_data_actions": utils.FlattenStringSlice(item.NotDataActions),
+			"data_actions": utils.FlattenStringSlice(item.DataActions),
 		})
 	}
 
