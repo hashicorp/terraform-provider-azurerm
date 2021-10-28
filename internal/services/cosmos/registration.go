@@ -40,6 +40,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_cosmosdb_sql_container":        resourceCosmosDbSQLContainer(),
 		"azurerm_cosmosdb_sql_database":         resourceCosmosDbSQLDatabase(),
 		"azurerm_cosmosdb_sql_function":         resourceCosmosDbSQLFunction(),
+		"azurerm_cosmosdb_sql_role_assignment":  resourceCosmosDbSQLRoleAssignment(),
 		"azurerm_cosmosdb_sql_stored_procedure": resourceCosmosDbSQLStoredProcedure(),
 		"azurerm_cosmosdb_sql_trigger":          resourceCosmosDbSQLTrigger(),
 		"azurerm_cosmosdb_table":                resourceCosmosDbTable(),
