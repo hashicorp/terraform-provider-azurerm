@@ -14,6 +14,7 @@ IMPROVEMENTS:
 * upgrading `mysql` to API Version `2021-05-01` [GH-13818]
 * `azurerm_firewall_application_rule_collection` - the `port` property is now required instead of optional [GH-13869]
 * `azurerm_kubernetes_cluster` - expose the `portal_fqdn` attribute [GH-13887]
+* `azurerm_linux_virtual_machine_scale_set` -  support for `automatic_upgrade_enabled` in extensions [GH-13394]
 * `azurerm_linux_virtual_machine_scale_set` - added feature for `scale_to_zero_before_deletion`[GH-13635]
 * `azurerm_managed_disk` - support for the `trusted_launch_enabled` property [GH-13849]
 * `azurerm_servicebus_queue` - support for the `max_message_size_in_kilobytes` property [GH-13762]
@@ -23,6 +24,9 @@ IMPROVEMENTS:
 * `azurerm_synapse_workspace` - support for the `linking_allowed_for_aad_tenant_ids`, `compute_subnet_id`, `public_network_access_enabled`, `purview_id`, and `last_commit_id` properties  [GH-13817]
 * `azurerm_vpn_gateway` - support for the `routing_preference` property [GH-13882]
 * `azurerm_virtual_hub` - support for the `default_route_table_id` property [GH-13840]
+* `azurerm_virtual_machine_scale_set_extension ` - support for `automatic_upgrade_enabled` [GH-13394]
+* `azurerm_windows_virtual_machine_scale_set` -  support for `automatic_upgrade_enabled` in extensions [GH-13394]
+
 
 BUG FIXES:
 
