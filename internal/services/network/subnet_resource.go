@@ -134,6 +134,7 @@ func resourceSubnet() *pluginsdk.Resource {
 											"Microsoft.ServiceFabricMesh/networks",
 											"Microsoft.Sql/managedInstances",
 											"Microsoft.Sql/servers",
+											"Microsoft.StoragePool/diskpools",
 											"Microsoft.StreamAnalytics/streamingJobs",
 											"Microsoft.Synapse/workspaces",
 											"Microsoft.Web/hostingEnvironments",
