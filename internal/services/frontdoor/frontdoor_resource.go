@@ -588,16 +588,17 @@ func resourceFrontDoorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		preExists = true
 		location = azure.NormalizeLocation(*exists.Location)
 
-        if exists.RoutingRules != nil {
-		for _, rule := range *exists.RoutingRules {
-			if rule.RulesEngine != nil {
-				id, err := parse.RulesEngineIDInsensitively(*rule.RulesEngine.ID)
+		if exists.RoutingRules != nil {
+			for _, rule := range *exists.RoutingRules {
+				if rule.RulesEngine != nil {
+					id, err := parse.RulesEngineIDInsensitively(*rule.RulesEngine.ID)
 
-				if err != nil {
-					return fmt.Errorf("Error parsing rules engine id for routing rule %q (Resource Group %q): %+v", *rule.Name, resourceGroup, err)
+					if err != nil {
+						return fmt.Errorf("Error parsing rules engine id for routing rule %q (Resource Group %q): %+v", *rule.Name, resourceGroup, err)
+					}
+
+					rulesEngines[*rule.Name] = id
 				}
-
-				rulesEngines[*rule.Name] = id
 			}
 		}
 	}
