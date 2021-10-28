@@ -471,6 +471,7 @@ resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
+  account_kind             = "FileStorage"
   account_tier             = "Premium"
   account_replication_type = "LRS"
 }
