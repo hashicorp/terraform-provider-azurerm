@@ -29,6 +29,7 @@ BUG FIXES:
 * `azurerm_cognitive_account` - will now handle the unexpected state `Accepted` when waiting for creats [GH-13925]
 * `azurerm_data_factory` - can now read global parameter values [GH-13519]
 * `azurerm_firewall_policy` - will now correctly import [GH-13862]
+* `azurerm_firewall_policy` - changing the identity will no longer create a new resource [GH-13904]
 
 ## 2.82.0 (October 21, 2021)
 
