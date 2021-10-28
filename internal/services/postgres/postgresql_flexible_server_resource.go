@@ -64,7 +64,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.All(validation.StringIsNotWhiteSpace, validate.AdminUsernames),
 			},
 
 			"administrator_password": {
