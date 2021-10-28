@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_eventgrid_system_topic` [GH-13851]
+* **New Data Source:** `azurerm_billing_mpa_account_scope` [GH-13723]
 * **New Resource:** `azurerm_iot_time_series_insights_event_source_eventhub` [GH-13917]
 * **New Resource:** `azurerm_stream_analytics_reference_input_mssql` [GH-13822]
 * **New Resource:** `azurerm_sentinel_automation_rule` [GH-11502]
