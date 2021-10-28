@@ -249,14 +249,14 @@ func TestAccStorageBlob_cacheControl(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.cacheControl(data),
+			Config: r.cacheControl(data, "no-cache"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("parallelism", "size", "type"),
 		{
-			Config: r.cacheControlUpdated(data),
+			Config: r.cacheControl(data, "max-age=3600"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1009,7 +1009,7 @@ resource "azurerm_storage_blob" "test" {
 `, template)
 }
 
-func (r StorageBlobResource) cacheControl(data acceptance.TestData) string {
+func (r StorageBlobResource) cacheControl(data acceptance.TestData, cacheControl string) string {
 	template := r.template(data, "private")
 	return fmt.Sprintf(`
 %s
@@ -1025,9 +1025,9 @@ resource "azurerm_storage_blob" "test" {
   type                   = "Page"
   size                   = 5120
   content_type           = "image/png"
-  cache_control          = "no-cache"
+  cache_control          = "%s"
 }
-`, template)
+`, template, cacheControl)
 }
 
 func (r StorageBlobResource) template(data acceptance.TestData, accessLevel string) string {
