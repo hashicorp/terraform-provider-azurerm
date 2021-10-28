@@ -55,6 +55,10 @@ The following attributes are exported:
 
 * `n` - The RSA modulus of this Key Vault Key.
 
+* `public_key_pem` - The PEM encoded public key of this Key Vault Key.
+
+* `public_key_openssh` - The OpenSSH encoded public key of this Key Vault Key.
+
 * `tags` - A mapping of tags assigned to this Key Vault Key.
 
 * `version` - The current version of the Key Vault Key.
