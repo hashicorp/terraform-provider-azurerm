@@ -17,7 +17,7 @@ type CassandraMIDatacenterResource struct {
 }
 
 func TestAccCassandraMIDatacenter_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_mi_datacenter", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_managed_instance_datacenter", "test")
 	r := CassandraMIDatacenterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -32,7 +32,7 @@ func TestAccCassandraMIDatacenter_basic(t *testing.T) {
 }
 
 func TestAccCassandraMIDatacenter_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_mi_datacenter", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_managed_instance_datacenter", "test")
 	r := CassandraMIDatacenterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -61,7 +61,7 @@ func (t CassandraMIDatacenterResource) Exists(ctx context.Context, clients *clie
 		return nil, err
 	}
 
-	resp, err := clients.Cosmos.CassandraDatacentersClient.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatacenterName)
+	resp, err := clients.Cosmos.CassandraDatacentersClient.Get(ctx, id.ResourceGroup, id.CassandraClusterName, id.DataCenterName)
 	if err != nil {
 		return nil, fmt.Errorf("reading Cassandra MI Datacenter (%s): %+v", id.String(), err)
 	}
@@ -105,16 +105,16 @@ resource "azurerm_role_assignment" "test" {
   principal_id         = "e5007d2c-4b13-4a74-9b6a-605d99f03501"
 }
 
-resource "azurerm_cosmosdb_cassandra_mi_cluster" "test" {
-  cluster_name                     = "acctca-mi-cluster-%[1]d"
+resource "azurerm_cosmosdb_cassandra_managed_instance_cluster" "test" {
+  name                     = "acctca-mi-cluster-%[1]d"
   resource_group_name              = azurerm_resource_group.test.name
   location                         = azurerm_resource_group.test.location
   delegated_management_subnet_id   = azurerm_subnet.test.id
   initial_cassandra_admin_password = "Password1234"
 }
 
-resource "azurerm_cosmosdb_cassandra_mi_datacenter" "test" {
-  cluster_name                   = azurerm_cosmosdb_cassandra_mi_cluster.test.cluster_name
+resource "azurerm_cosmosdb_cassandra_managed_instance_datacenter" "test" {
+  name                   = azurerm_cosmosdb_cassandra_managed_instance_cluster.test.name
   datacenter_name                = "acctca-mi-dc-%[1]d"
   resource_group_name            = azurerm_resource_group.test.name
   location                       = azurerm_resource_group.test.location
@@ -160,16 +160,16 @@ resource "azurerm_role_assignment" "test" {
   principal_id         = "e5007d2c-4b13-4a74-9b6a-605d99f03501"
 }
 
-resource "azurerm_cosmosdb_cassandra_mi_cluster" "test" {
-  cluster_name                     = "acctca-mi-cluster-%[1]d"
+resource "azurerm_cosmosdb_cassandra_managed_instance_cluster" "test" {
+  name                     = "acctca-mi-cluster-%[1]d"
   resource_group_name              = azurerm_resource_group.test.name
   location                         = azurerm_resource_group.test.location
   delegated_management_subnet_id   = azurerm_subnet.test.id
   initial_cassandra_admin_password = "Password1234"
 }
 
-resource "azurerm_cosmosdb_cassandra_mi_datacenter" "test" {
-  cluster_name                   = azurerm_cosmosdb_cassandra_mi_cluster.test.cluster_name
+resource "azurerm_cosmosdb_cassandra_managed_instance_datacenter" "test" {
+  name                   = azurerm_cosmosdb_cassandra_managed_instance_cluster.test.name
   datacenter_name                = "acctca-mi-dc-%[1]d"
   resource_group_name            = azurerm_resource_group.test.name
   location                       = azurerm_resource_group.test.location

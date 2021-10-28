@@ -4,44 +4,43 @@ package parse
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
 type CassandraDatacenterId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	ClusterName    string
-	DatacenterName string
+	SubscriptionId       string
+	ResourceGroup        string
+	CassandraClusterName string
+	DataCenterName       string
 }
 
-func NewCassandraDatacenterID(subscriptionId, resourceGroup, clusterName, DatacenterName string) CassandraDatacenterId {
+func NewCassandraDatacenterID(subscriptionId, resourceGroup, cassandraClusterName, dataCenterName string) CassandraDatacenterId {
 	return CassandraDatacenterId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourceGroup,
-		ClusterName:    clusterName,
-		DatacenterName: DatacenterName,
+		SubscriptionId:       subscriptionId,
+		ResourceGroup:        resourceGroup,
+		CassandraClusterName: cassandraClusterName,
+		DataCenterName:       dataCenterName,
 	}
 }
 
 func (id CassandraDatacenterId) String() string {
 	segments := []string{
-		fmt.Sprintf("Datacenter Name %q", id.DatacenterName),
-		fmt.Sprintf("Cluster Name %q", id.ClusterName),
+		fmt.Sprintf("Data Center Name %q", id.DataCenterName),
+		fmt.Sprintf("Cassandra Cluster Name %q", id.CassandraClusterName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	log.Println("************** segmentsStr: " + segmentsStr)
-	return fmt.Sprintf("%s: (%s)", "Cassandra Cluster", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Cassandra Datacenter", segmentsStr)
 }
 
 func (id CassandraDatacenterId) ID() string {
-	fmtString := "/subscriptions/{%s}/resourceGroups/%s/providers/Microsoft.DocumentDB/cassandraClusters/%s/dataCenters/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName, id.DatacenterName)
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/cassandraClusters/%s/dataCenters/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.CassandraClusterName, id.DataCenterName)
 }
 
+// CassandraDatacenterID parses a CassandraDatacenter ID into an CassandraDatacenterId struct
 func CassandraDatacenterID(input string) (*CassandraDatacenterId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -61,11 +60,10 @@ func CassandraDatacenterID(input string) (*CassandraDatacenterId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.ClusterName, err = id.PopSegment("cassandraClusters"); err != nil {
+	if resourceId.CassandraClusterName, err = id.PopSegment("cassandraClusters"); err != nil {
 		return nil, err
 	}
-
-	if resourceId.DatacenterName, err = id.PopSegment("dataCenters"); err != nil {
+	if resourceId.DataCenterName, err = id.PopSegment("dataCenters"); err != nil {
 		return nil, err
 	}
 

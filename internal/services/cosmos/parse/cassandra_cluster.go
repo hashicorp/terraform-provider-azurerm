@@ -12,20 +12,20 @@ import (
 type CassandraClusterId struct {
 	SubscriptionId string
 	ResourceGroup  string
-	ClusterName    string
+	Name           string
 }
 
-func NewCassandraClusterID(subscriptionId, resourceGroup, clusterName string) CassandraClusterId {
+func NewCassandraClusterID(subscriptionId, resourceGroup, name string) CassandraClusterId {
 	return CassandraClusterId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
-		ClusterName:    clusterName,
+		Name:           name,
 	}
 }
 
 func (id CassandraClusterId) String() string {
 	segments := []string{
-		fmt.Sprintf("Cluster Name %q", id.ClusterName),
+		fmt.Sprintf("Name %q", id.Name),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
@@ -34,10 +34,10 @@ func (id CassandraClusterId) String() string {
 
 func (id CassandraClusterId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/cassandraClusters/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
-// CassandraClusterID parses a Cluster ID into an CassandraClusterId struct
+// CassandraClusterID parses a CassandraCluster ID into an CassandraClusterId struct
 func CassandraClusterID(input string) (*CassandraClusterId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -57,7 +57,7 @@ func CassandraClusterID(input string) (*CassandraClusterId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.ClusterName, err = id.PopSegment("cassandraClusters"); err != nil {
+	if resourceId.Name, err = id.PopSegment("cassandraClusters"); err != nil {
 		return nil, err
 	}
 

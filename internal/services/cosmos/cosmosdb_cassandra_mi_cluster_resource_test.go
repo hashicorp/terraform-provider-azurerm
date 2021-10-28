@@ -17,7 +17,7 @@ type CassandraMIClusterResource struct {
 }
 
 func TestAccCassandraMICluster_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_mi_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_managed_instance_cluster", "test")
 	r := CassandraMIClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -40,7 +40,7 @@ func (t CassandraMIClusterResource) Exists(ctx context.Context, clients *clients
 		return nil, err
 	}
 
-	resp, err := clients.Cosmos.CassandraClustersClient.Get(ctx, id.ResourceGroup, id.ClusterName)
+	resp, err := clients.Cosmos.CassandraClustersClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("reading Cassandra MI Cluster (%s): %+v", id.String(), err)
 	}
@@ -84,8 +84,8 @@ resource "azurerm_role_assignment" "test" {
 	principal_id         = "e5007d2c-4b13-4a74-9b6a-605d99f03501"
 }
 
-resource "azurerm_cosmosdb_cassandra_mi_cluster" "test" {
-	cluster_name                     = "acctca-mi-cluster-%[1]d"
+resource "azurerm_cosmosdb_cassandra_managed_instance_cluster" "test" {
+	name                     = "acctca-mi-cluster-%[1]d"
 	resource_group_name              = azurerm_resource_group.test.name
 	location                         = azurerm_resource_group.test.location
 	delegated_management_subnet_id   = azurerm_subnet.test.id
