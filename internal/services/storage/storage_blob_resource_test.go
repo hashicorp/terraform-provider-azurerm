@@ -243,6 +243,28 @@ func TestAccStorageBlob_blockFromLocalFileWithContentMd5(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_cacheControl(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.contentType(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type"),
+		{
+			Config: r.contentTypeUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type"),
+	})
+}
+
 func TestAccStorageBlob_contentType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
@@ -983,6 +1005,27 @@ resource "azurerm_storage_blob" "test" {
     hello = "world"
     panda = "pops"
   }
+}
+`, template)
+}
+
+func (r StorageBlobResource) cacheControl(data acceptance.TestData) string {
+	template := r.template(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.ext"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Page"
+  size                   = 5120
+  content_type           = "image/png"
+  cache_control          = "no-cache"
 }
 `, template)
 }
