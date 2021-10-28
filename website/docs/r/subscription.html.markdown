@@ -79,7 +79,7 @@ The following arguments are supported:
 
 * `alias` - (Optional) The Alias name for the subscription. Terraform will generate a new GUID if this is not supplied. Changing this forces a new Subscription to be created.
 
-* `billing_scope_id` - (Optional) The Azure Billing Scope ID. Can be a Microsoft Customer Account Billing Scope ID, an Microsoft Partner Account Billing Scope ID or an Enrollment Billing Scope ID.
+* `billing_scope_id` - (Optional) The Azure Billing Scope ID. Can be a Microsoft Customer Account Billing Scope ID, a Microsoft Partner Account Billing Scope ID or an Enrollment Billing Scope ID.
 
 * `subscription_id` - (Optional) The ID of the Subscription. Changing this forces a new Subscription to be created.
 
