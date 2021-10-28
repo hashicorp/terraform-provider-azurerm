@@ -12,7 +12,7 @@ var _ resourceid.Formatter = WebTestId{}
 
 func TestWebTestIDFormatter(t *testing.T) {
 	actual := NewWebTestID("12345678-1234-9876-4563-123456789012", "group1", "test1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/webtests/test1"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/webTests/test1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -57,19 +57,19 @@ func TestWebTestID(t *testing.T) {
 
 		{
 			// missing Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/",
 			Error: true,
 		},
 
 		{
 			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/webtests/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/webTests/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/webtests/test1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/webTests/test1",
 			Expected: &WebTestId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "group1",
