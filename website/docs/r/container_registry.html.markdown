@@ -99,8 +99,6 @@ The following arguments are supported:
 
 * `admin_enabled` - (Optional) Specifies whether the admin user is enabled. Defaults to `false`.
 
-* `storage_account_id` - (Required for `Classic` Sku - Forbidden otherwise) The ID of a Storage Account which must be located in the same Azure Region as the Container Registry.  Changing this forces a new resource to be created.
-
 * `sku` - (Optional) The SKU name of the container registry. Possible values are  `Basic`, `Standard` and `Premium`. `Classic` (which was previously `Basic`) is supported only for existing resources.
 
 ~> **NOTE:** The `Classic` SKU is Deprecated and will no longer be available for new resources from the end of March 2019.

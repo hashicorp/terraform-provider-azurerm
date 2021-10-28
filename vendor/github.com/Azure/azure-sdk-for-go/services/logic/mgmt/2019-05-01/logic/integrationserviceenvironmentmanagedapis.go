@@ -117,7 +117,7 @@ func (client IntegrationServiceEnvironmentManagedApisClient) DeleteResponder(res
 // resourceGroup - the resource group name.
 // integrationServiceEnvironmentName - the integration service environment name.
 // APIName - the api name.
-func (client IntegrationServiceEnvironmentManagedApisClient) Get(ctx context.Context, resourceGroup string, integrationServiceEnvironmentName string, APIName string) (result ManagedAPI, err error) {
+func (client IntegrationServiceEnvironmentManagedApisClient) Get(ctx context.Context, resourceGroup string, integrationServiceEnvironmentName string, APIName string) (result IntegrationServiceEnvironmentManagedAPI, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationServiceEnvironmentManagedApisClient.Get")
 		defer func() {
@@ -180,7 +180,7 @@ func (client IntegrationServiceEnvironmentManagedApisClient) GetSender(req *http
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client IntegrationServiceEnvironmentManagedApisClient) GetResponder(resp *http.Response) (result ManagedAPI, err error) {
+func (client IntegrationServiceEnvironmentManagedApisClient) GetResponder(resp *http.Response) (result IntegrationServiceEnvironmentManagedAPI, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -194,13 +194,13 @@ func (client IntegrationServiceEnvironmentManagedApisClient) GetResponder(resp *
 // Parameters:
 // resourceGroup - the resource group.
 // integrationServiceEnvironmentName - the integration service environment name.
-func (client IntegrationServiceEnvironmentManagedApisClient) List(ctx context.Context, resourceGroup string, integrationServiceEnvironmentName string) (result ManagedAPIListResultPage, err error) {
+func (client IntegrationServiceEnvironmentManagedApisClient) List(ctx context.Context, resourceGroup string, integrationServiceEnvironmentName string) (result IntegrationServiceEnvironmentManagedAPIListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationServiceEnvironmentManagedApisClient.List")
 		defer func() {
 			sc := -1
-			if result.malr.Response.Response != nil {
-				sc = result.malr.Response.Response.StatusCode
+			if result.isemalr.Response.Response != nil {
+				sc = result.isemalr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -214,17 +214,17 @@ func (client IntegrationServiceEnvironmentManagedApisClient) List(ctx context.Co
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.malr.Response = autorest.Response{Response: resp}
+		result.isemalr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.malr, err = client.ListResponder(resp)
+	result.isemalr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisClient", "List", resp, "Failure responding to request")
 		return
 	}
-	if result.malr.hasNextLink() && result.malr.IsEmpty() {
+	if result.isemalr.hasNextLink() && result.isemalr.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -261,7 +261,7 @@ func (client IntegrationServiceEnvironmentManagedApisClient) ListSender(req *htt
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client IntegrationServiceEnvironmentManagedApisClient) ListResponder(resp *http.Response) (result ManagedAPIListResult, err error) {
+func (client IntegrationServiceEnvironmentManagedApisClient) ListResponder(resp *http.Response) (result IntegrationServiceEnvironmentManagedAPIListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -272,8 +272,8 @@ func (client IntegrationServiceEnvironmentManagedApisClient) ListResponder(resp 
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client IntegrationServiceEnvironmentManagedApisClient) listNextResults(ctx context.Context, lastResults ManagedAPIListResult) (result ManagedAPIListResult, err error) {
-	req, err := lastResults.managedAPIListResultPreparer(ctx)
+func (client IntegrationServiceEnvironmentManagedApisClient) listNextResults(ctx context.Context, lastResults IntegrationServiceEnvironmentManagedAPIListResult) (result IntegrationServiceEnvironmentManagedAPIListResult, err error) {
+	req, err := lastResults.integrationServiceEnvironmentManagedAPIListResultPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisClient", "listNextResults", nil, "Failure preparing next results request")
 	}
@@ -293,7 +293,7 @@ func (client IntegrationServiceEnvironmentManagedApisClient) listNextResults(ctx
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client IntegrationServiceEnvironmentManagedApisClient) ListComplete(ctx context.Context, resourceGroup string, integrationServiceEnvironmentName string) (result ManagedAPIListResultIterator, err error) {
+func (client IntegrationServiceEnvironmentManagedApisClient) ListComplete(ctx context.Context, resourceGroup string, integrationServiceEnvironmentName string) (result IntegrationServiceEnvironmentManagedAPIListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationServiceEnvironmentManagedApisClient.List")
 		defer func() {
@@ -313,7 +313,8 @@ func (client IntegrationServiceEnvironmentManagedApisClient) ListComplete(ctx co
 // resourceGroup - the resource group name.
 // integrationServiceEnvironmentName - the integration service environment name.
 // APIName - the api name.
-func (client IntegrationServiceEnvironmentManagedApisClient) Put(ctx context.Context, resourceGroup string, integrationServiceEnvironmentName string, APIName string) (result IntegrationServiceEnvironmentManagedApisPutFuture, err error) {
+// integrationServiceEnvironmentManagedAPI - the integration service environment managed api.
+func (client IntegrationServiceEnvironmentManagedApisClient) Put(ctx context.Context, resourceGroup string, integrationServiceEnvironmentName string, APIName string, integrationServiceEnvironmentManagedAPI IntegrationServiceEnvironmentManagedAPI) (result IntegrationServiceEnvironmentManagedApisPutFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationServiceEnvironmentManagedApisClient.Put")
 		defer func() {
@@ -324,7 +325,7 @@ func (client IntegrationServiceEnvironmentManagedApisClient) Put(ctx context.Con
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.PutPreparer(ctx, resourceGroup, integrationServiceEnvironmentName, APIName)
+	req, err := client.PutPreparer(ctx, resourceGroup, integrationServiceEnvironmentName, APIName, integrationServiceEnvironmentManagedAPI)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisClient", "Put", nil, "Failure preparing request")
 		return
@@ -340,7 +341,7 @@ func (client IntegrationServiceEnvironmentManagedApisClient) Put(ctx context.Con
 }
 
 // PutPreparer prepares the Put request.
-func (client IntegrationServiceEnvironmentManagedApisClient) PutPreparer(ctx context.Context, resourceGroup string, integrationServiceEnvironmentName string, APIName string) (*http.Request, error) {
+func (client IntegrationServiceEnvironmentManagedApisClient) PutPreparer(ctx context.Context, resourceGroup string, integrationServiceEnvironmentName string, APIName string, integrationServiceEnvironmentManagedAPI IntegrationServiceEnvironmentManagedAPI) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"apiName":                           autorest.Encode("path", APIName),
 		"integrationServiceEnvironmentName": autorest.Encode("path", integrationServiceEnvironmentName),
@@ -354,9 +355,11 @@ func (client IntegrationServiceEnvironmentManagedApisClient) PutPreparer(ctx con
 	}
 
 	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Logic/integrationServiceEnvironments/{integrationServiceEnvironmentName}/managedApis/{apiName}", pathParameters),
+		autorest.WithJSON(integrationServiceEnvironmentManagedAPI),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -379,7 +382,7 @@ func (client IntegrationServiceEnvironmentManagedApisClient) PutSender(req *http
 
 // PutResponder handles the response to the Put request. The method always
 // closes the http.Response Body.
-func (client IntegrationServiceEnvironmentManagedApisClient) PutResponder(resp *http.Response) (result ManagedAPI, err error) {
+func (client IntegrationServiceEnvironmentManagedApisClient) PutResponder(resp *http.Response) (result IntegrationServiceEnvironmentManagedAPI, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
