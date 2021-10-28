@@ -22,13 +22,13 @@ func (s ForwardingConfiguration) MarshalJSON() ([]byte, error) {
 		return nil, fmt.Errorf("marshaling ForwardingConfiguration: %+v", err)
 	}
 
-	var decoded map[string]string
+	var decoded map[string]interface{}
 	if err := json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ForwardingConfiguration: %+v", err)
 	}
-	decoded["OdataType"] = "#Microsoft.Azure.FrontDoor.Models.FrontdoorForwardingConfiguration"
+	decoded["@odata.type"] = "#Microsoft.Azure.FrontDoor.Models.FrontdoorForwardingConfiguration"
 
-	encoded, err = json.Marshal(wrapped)
+	encoded, err = json.Marshal(decoded)
 	if err != nil {
 		return nil, fmt.Errorf("re-marshaling ForwardingConfiguration: %+v", err)
 	}
