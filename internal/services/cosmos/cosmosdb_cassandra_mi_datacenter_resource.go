@@ -157,8 +157,8 @@ func resourceCassandraMIDatacenterUpdate(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	//location := d.Get("location").(string)
-	//delegatedSubnetId := d.Get("delegated_management_subnet_id").(string)
+	location := d.Get("location").(string)
+	delegatedSubnetId := d.Get("delegated_management_subnet_id").(string)
 	nodeCount := d.Get("node_count").(int)
 
 	id, err := parse.CassandraDatacenterID(d.Id())
@@ -168,9 +168,9 @@ func resourceCassandraMIDatacenterUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 	body := documentdb.DataCenterResource{
 		Properties: &documentdb.DataCenterResourceProperties{
-			//DelegatedSubnetID:  &delegatedSubnetId,
-			NodeCount: utils.Int32(int32(nodeCount)),
-			//DataCenterLocation: &location,
+			DelegatedSubnetID:  &delegatedSubnetId,
+			NodeCount:          utils.Int32(int32(nodeCount)),
+			DataCenterLocation: &location,
 		},
 	}
 
