@@ -100,12 +100,12 @@ func resourceStorageShare() *pluginsdk.Resource {
 			"enabled_protocol": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(shares.SMB),
 					string(shares.NFS),
 				}, false),
+				Default: string(shares.SMB),
 			},
 
 			"resource_manager_id": {
