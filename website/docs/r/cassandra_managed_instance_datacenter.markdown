@@ -47,7 +47,7 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_cosmosdb_cassandra_managed_instance_cluster" "test" {
-    cluster_name                     = "myCluster"
+    name                             = "myCluster"
     resource_group_name              = azurerm_resource_group.test.name
     location                         = azurerm_resource_group.test.location
     delegated_management_subnet_id   = azurerm_subnet.test.id
@@ -55,7 +55,7 @@ resource "azurerm_cosmosdb_cassandra_managed_instance_cluster" "test" {
 }
 
 resource "azurerm_cosmosdb_cassandra_managed_instance_datacenter" "test" {
-    cluster_name                   = azurerm_cosmosdb_cassandra_managed_instance_cluster.test.cluster_name
+    name                   = azurerm_cosmosdb_cassandra_managed_instance_cluster.test.name
     datacenter_name                = "myDatacenter"
     resource_group_name            = azurerm_resource_group.test.name
     location                       = azurerm_resource_group.test.location
@@ -63,7 +63,7 @@ resource "azurerm_cosmosdb_cassandra_managed_instance_datacenter" "test" {
     node_count                     = 3
     disk_capacity                  = 2
     sku                            = "Standard_D8s_v4"
-  }
+}
 ```
 
 ## Argument Reference
