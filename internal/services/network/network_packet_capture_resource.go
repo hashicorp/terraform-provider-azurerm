@@ -22,9 +22,10 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 		Create: resourceNetworkPacketCaptureCreate,
 		Read:   resourceNetworkPacketCaptureRead,
 		Delete: resourceNetworkPacketCaptureDelete,
-
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.PacketCaptureID(id)
+			return err
+		}),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -151,22 +152,21 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 
 func resourceNetworkPacketCaptureCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PacketCapturesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	watcherName := d.Get("network_watcher_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewPacketCaptureID(subscriptionId, d.Get("resource_group_name").(string), d.Get("network_watcher_name").(string), d.Get("name").(string))
 
 	targetResourceId := d.Get("target_resource_id").(string)
 	bytesToCapturePerPacket := d.Get("maximum_bytes_per_packet").(int)
 	totalBytesPerSession := d.Get("maximum_bytes_per_session").(int)
 	timeLimitInSeconds := d.Get("maximum_capture_duration").(int)
 
-	existing, err := client.Get(ctx, resourceGroup, watcherName, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Packet Capture %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
@@ -190,21 +190,16 @@ func resourceNetworkPacketCaptureCreate(d *pluginsdk.ResourceData, meta interfac
 		},
 	}
 
-	future, err := client.Create(ctx, resourceGroup, watcherName, name, properties)
+	future, err := client.Create(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name, properties)
 	if err != nil {
-		return fmt.Errorf("creating Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, watcherName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceNetworkPacketCaptureRead(d, meta)
 }
@@ -222,12 +217,12 @@ func resourceNetworkPacketCaptureRead(d *pluginsdk.ResourceData, meta interface{
 	resp, err := client.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Packet Capture %q (Watcher %q / Resource Group %q) %qw not found - removing from state", id.Name, id.NetworkWatcherName, id.ResourceGroup, id)
+			log.Printf("[WARN] %s not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("reading Packet Capture %q (Watcher %q / Resource Group %q) %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
+		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -266,11 +261,11 @@ func resourceNetworkPacketCaptureDelete(d *pluginsdk.ResourceData, meta interfac
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Packet Capture %q (Watcher %q / Resource Group %q): %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of Packet Capture %q (Watcher %q / Resource Group %q): %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil
