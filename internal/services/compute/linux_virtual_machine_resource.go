@@ -945,6 +945,12 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
+	if d.HasChange("patch_mode") {
+		update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{
+			PatchMode: compute.LinuxVMGuestPatchMode(compute.LinuxVMGuestPatchMode(d.Get("patch_mode").(string))),
+		}
+	}
+
 	if d.HasChange("allow_extension_operations") {
 		allowExtensionOperations := d.Get("allow_extension_operations").(bool)
 
