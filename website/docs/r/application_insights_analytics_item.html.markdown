@@ -76,10 +76,10 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Application Insights Analytics Items can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_application_insights_analytics_item.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.insights/components/mycomponent1/analyticsItems/11111111-1111-1111-1111-111111111111
+terraform import azurerm_application_insights_analytics_item.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Insights/components/mycomponent1/analyticsItems/11111111-1111-1111-1111-111111111111
 ```
 
--> **Please Note:** This is a Terraform Unique ID matching the format: `{appInsightsID}/analyticsItems/{itemId}` for items with `scope` set to `shared`, or  `{appInsightsID}/myanalyticsItems/{itemId}` for items with `scope` set to `user`
+-> **Please Note:** This is a Terraform Unique ID matching the format: `{appInsightsID}/analyticsItems/{itemId}` for items with `scope` set to `shared`, or  `{appInsightsID}/myAnalyticsItems/{itemId}` for items with `scope` set to `user`
 
 To find the Analytics Item ID you can query the REST API using the [`az rest` CLI command](https://docs.microsoft.com/en-us/cli/azure/reference-index?view=azure-cli-latest#az-rest), e.g.
 

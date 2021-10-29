@@ -60,6 +60,10 @@ func TestAccCosmosDBAccount_basic_mongo_strong(t *testing.T) {
 	testAccCosmosDBAccount_basicMongoDBWith(t, documentdb.DefaultConsistencyLevelStrong)
 }
 
+func TestAccCosmosDBAccount_basic_mongo_strong_without_capability(t *testing.T) {
+	testAccCosmosDBAccount_basicWith(t, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelStrong)
+}
+
 func TestAccCosmosDBAccount_basic_parse_boundedStaleness(t *testing.T) {
 	testAccCosmosDBAccount_basicWith(t, documentdb.DatabaseAccountKindParse, documentdb.DefaultConsistencyLevelBoundedStaleness)
 }

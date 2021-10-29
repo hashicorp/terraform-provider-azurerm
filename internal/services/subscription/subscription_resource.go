@@ -70,6 +70,7 @@ func resourceSubscription() *pluginsdk.Resource {
 				ValidateFunc: validation.Any(
 					billingValidate.MicrosoftCustomerAccountBillingScopeID,
 					billingValidate.EnrollmentBillingScopeID,
+					billingValidate.MicrosoftPartnerAccountBillingScopeID,
 				),
 			},
 

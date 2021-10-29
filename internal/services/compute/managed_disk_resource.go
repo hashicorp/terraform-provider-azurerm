@@ -187,6 +187,12 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(2, 10),
 			},
 
+			"trusted_launch_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -333,6 +339,19 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
 		}
 		props.Tier = &tier
+	}
+
+	if d.Get("trusted_launch_enabled").(bool) {
+		props.SecurityProfile = &compute.DiskSecurityProfile{
+			SecurityType: compute.DiskSecurityTypesTrustedLaunch,
+		}
+
+		switch createOption {
+		case compute.DiskCreateOptionFromImage:
+		case compute.DiskCreateOptionImport:
+		default:
+			return fmt.Errorf("trusted_launch_enabled cannot be set to true with create_option %q. Supported Create Options when Trusted Launch is enabled are FromImage, Import", createOption)
+		}
 	}
 
 	createDisk := compute.Disk{
@@ -684,6 +703,14 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
 			return fmt.Errorf("setting `encryption_settings`: %+v", err)
 		}
+
+		trustedLaunchEnabled := false
+		if securityProfile := props.SecurityProfile; securityProfile != nil {
+			if securityProfile.SecurityType == compute.DiskSecurityTypesTrustedLaunch {
+				trustedLaunchEnabled = true
+			}
+		}
+		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

@@ -10,19 +10,19 @@ package appplatform
 type AppResourceProvisioningState string
 
 const (
-	// Creating ...
-	Creating AppResourceProvisioningState = "Creating"
-	// Failed ...
-	Failed AppResourceProvisioningState = "Failed"
-	// Succeeded ...
-	Succeeded AppResourceProvisioningState = "Succeeded"
-	// Updating ...
-	Updating AppResourceProvisioningState = "Updating"
+	// AppResourceProvisioningStateCreating ...
+	AppResourceProvisioningStateCreating AppResourceProvisioningState = "Creating"
+	// AppResourceProvisioningStateFailed ...
+	AppResourceProvisioningStateFailed AppResourceProvisioningState = "Failed"
+	// AppResourceProvisioningStateSucceeded ...
+	AppResourceProvisioningStateSucceeded AppResourceProvisioningState = "Succeeded"
+	// AppResourceProvisioningStateUpdating ...
+	AppResourceProvisioningStateUpdating AppResourceProvisioningState = "Updating"
 )
 
 // PossibleAppResourceProvisioningStateValues returns an array of possible values for the AppResourceProvisioningState const type.
 func PossibleAppResourceProvisioningStateValues() []AppResourceProvisioningState {
-	return []AppResourceProvisioningState{Creating, Failed, Succeeded, Updating}
+	return []AppResourceProvisioningState{AppResourceProvisioningStateCreating, AppResourceProvisioningStateFailed, AppResourceProvisioningStateSucceeded, AppResourceProvisioningStateUpdating}
 }
 
 // ConfigServerState enumerates the values for config server state.
@@ -94,19 +94,19 @@ func PossibleDeploymentResourceStatusValues() []DeploymentResourceStatus {
 type ManagedIdentityType string
 
 const (
-	// None ...
-	None ManagedIdentityType = "None"
-	// SystemAssigned ...
-	SystemAssigned ManagedIdentityType = "SystemAssigned"
-	// SystemAssignedUserAssigned ...
-	SystemAssignedUserAssigned ManagedIdentityType = "SystemAssigned,UserAssigned"
-	// UserAssigned ...
-	UserAssigned ManagedIdentityType = "UserAssigned"
+	// ManagedIdentityTypeNone ...
+	ManagedIdentityTypeNone ManagedIdentityType = "None"
+	// ManagedIdentityTypeSystemAssigned ...
+	ManagedIdentityTypeSystemAssigned ManagedIdentityType = "SystemAssigned"
+	// ManagedIdentityTypeSystemAssignedUserAssigned ...
+	ManagedIdentityTypeSystemAssignedUserAssigned ManagedIdentityType = "SystemAssigned,UserAssigned"
+	// ManagedIdentityTypeUserAssigned ...
+	ManagedIdentityTypeUserAssigned ManagedIdentityType = "UserAssigned"
 )
 
 // PossibleManagedIdentityTypeValues returns an array of possible values for the ManagedIdentityType const type.
 func PossibleManagedIdentityTypeValues() []ManagedIdentityType {
-	return []ManagedIdentityType{None, SystemAssigned, SystemAssignedUserAssigned, UserAssigned}
+	return []ManagedIdentityType{ManagedIdentityTypeNone, ManagedIdentityTypeSystemAssigned, ManagedIdentityTypeSystemAssignedUserAssigned, ManagedIdentityTypeUserAssigned}
 }
 
 // MonitoringSettingState enumerates the values for monitoring setting state.
@@ -161,47 +161,47 @@ func PossibleProvisioningStateValues() []ProvisioningState {
 type ResourceSkuRestrictionsReasonCode string
 
 const (
-	// NotAvailableForSubscription ...
-	NotAvailableForSubscription ResourceSkuRestrictionsReasonCode = "NotAvailableForSubscription"
-	// QuotaID ...
-	QuotaID ResourceSkuRestrictionsReasonCode = "QuotaId"
+	// ResourceSkuRestrictionsReasonCodeNotAvailableForSubscription ...
+	ResourceSkuRestrictionsReasonCodeNotAvailableForSubscription ResourceSkuRestrictionsReasonCode = "NotAvailableForSubscription"
+	// ResourceSkuRestrictionsReasonCodeQuotaID ...
+	ResourceSkuRestrictionsReasonCodeQuotaID ResourceSkuRestrictionsReasonCode = "QuotaId"
 )
 
 // PossibleResourceSkuRestrictionsReasonCodeValues returns an array of possible values for the ResourceSkuRestrictionsReasonCode const type.
 func PossibleResourceSkuRestrictionsReasonCodeValues() []ResourceSkuRestrictionsReasonCode {
-	return []ResourceSkuRestrictionsReasonCode{NotAvailableForSubscription, QuotaID}
+	return []ResourceSkuRestrictionsReasonCode{ResourceSkuRestrictionsReasonCodeNotAvailableForSubscription, ResourceSkuRestrictionsReasonCodeQuotaID}
 }
 
 // ResourceSkuRestrictionsType enumerates the values for resource sku restrictions type.
 type ResourceSkuRestrictionsType string
 
 const (
-	// Location ...
-	Location ResourceSkuRestrictionsType = "Location"
-	// Zone ...
-	Zone ResourceSkuRestrictionsType = "Zone"
+	// ResourceSkuRestrictionsTypeLocation ...
+	ResourceSkuRestrictionsTypeLocation ResourceSkuRestrictionsType = "Location"
+	// ResourceSkuRestrictionsTypeZone ...
+	ResourceSkuRestrictionsTypeZone ResourceSkuRestrictionsType = "Zone"
 )
 
 // PossibleResourceSkuRestrictionsTypeValues returns an array of possible values for the ResourceSkuRestrictionsType const type.
 func PossibleResourceSkuRestrictionsTypeValues() []ResourceSkuRestrictionsType {
-	return []ResourceSkuRestrictionsType{Location, Zone}
+	return []ResourceSkuRestrictionsType{ResourceSkuRestrictionsTypeLocation, ResourceSkuRestrictionsTypeZone}
 }
 
 // RuntimeVersion enumerates the values for runtime version.
 type RuntimeVersion string
 
 const (
-	// Java11 ...
-	Java11 RuntimeVersion = "Java_11"
-	// Java8 ...
-	Java8 RuntimeVersion = "Java_8"
-	// NetCore31 ...
-	NetCore31 RuntimeVersion = "NetCore_31"
+	// RuntimeVersionJava11 ...
+	RuntimeVersionJava11 RuntimeVersion = "Java_11"
+	// RuntimeVersionJava8 ...
+	RuntimeVersionJava8 RuntimeVersion = "Java_8"
+	// RuntimeVersionNetCore31 ...
+	RuntimeVersionNetCore31 RuntimeVersion = "NetCore_31"
 )
 
 // PossibleRuntimeVersionValues returns an array of possible values for the RuntimeVersion const type.
 func PossibleRuntimeVersionValues() []RuntimeVersion {
-	return []RuntimeVersion{Java11, Java8, NetCore31}
+	return []RuntimeVersion{RuntimeVersionJava11, RuntimeVersionJava8, RuntimeVersionNetCore31}
 }
 
 // SkuScaleType enumerates the values for sku scale type.
@@ -225,15 +225,15 @@ func PossibleSkuScaleTypeValues() []SkuScaleType {
 type SupportedRuntimePlatform string
 
 const (
-	// Java ...
-	Java SupportedRuntimePlatform = "Java"
-	// NETCore ...
-	NETCore SupportedRuntimePlatform = ".NET Core"
+	// SupportedRuntimePlatformJava ...
+	SupportedRuntimePlatformJava SupportedRuntimePlatform = "Java"
+	// SupportedRuntimePlatformNETCore ...
+	SupportedRuntimePlatformNETCore SupportedRuntimePlatform = ".NET Core"
 )
 
 // PossibleSupportedRuntimePlatformValues returns an array of possible values for the SupportedRuntimePlatform const type.
 func PossibleSupportedRuntimePlatformValues() []SupportedRuntimePlatform {
-	return []SupportedRuntimePlatform{Java, NETCore}
+	return []SupportedRuntimePlatform{SupportedRuntimePlatformJava, SupportedRuntimePlatformNETCore}
 }
 
 // SupportedRuntimeValue enumerates the values for supported runtime value.
@@ -257,45 +257,47 @@ func PossibleSupportedRuntimeValueValues() []SupportedRuntimeValue {
 type TestKeyType string
 
 const (
-	// Primary ...
-	Primary TestKeyType = "Primary"
-	// Secondary ...
-	Secondary TestKeyType = "Secondary"
+	// TestKeyTypePrimary ...
+	TestKeyTypePrimary TestKeyType = "Primary"
+	// TestKeyTypeSecondary ...
+	TestKeyTypeSecondary TestKeyType = "Secondary"
 )
 
 // PossibleTestKeyTypeValues returns an array of possible values for the TestKeyType const type.
 func PossibleTestKeyTypeValues() []TestKeyType {
-	return []TestKeyType{Primary, Secondary}
+	return []TestKeyType{TestKeyTypePrimary, TestKeyTypeSecondary}
 }
 
 // TrafficDirection enumerates the values for traffic direction.
 type TrafficDirection string
 
 const (
-	// Inbound ...
-	Inbound TrafficDirection = "Inbound"
-	// Outbound ...
-	Outbound TrafficDirection = "Outbound"
+	// TrafficDirectionInbound ...
+	TrafficDirectionInbound TrafficDirection = "Inbound"
+	// TrafficDirectionOutbound ...
+	TrafficDirectionOutbound TrafficDirection = "Outbound"
 )
 
 // PossibleTrafficDirectionValues returns an array of possible values for the TrafficDirection const type.
 func PossibleTrafficDirectionValues() []TrafficDirection {
-	return []TrafficDirection{Inbound, Outbound}
+	return []TrafficDirection{TrafficDirectionInbound, TrafficDirectionOutbound}
 }
 
 // UserSourceType enumerates the values for user source type.
 type UserSourceType string
 
 const (
-	// Jar ...
-	Jar UserSourceType = "Jar"
-	// NetCoreZip ...
-	NetCoreZip UserSourceType = "NetCoreZip"
-	// Source ...
-	Source UserSourceType = "Source"
+	// UserSourceTypeContainer ...
+	UserSourceTypeContainer UserSourceType = "Container"
+	// UserSourceTypeJar ...
+	UserSourceTypeJar UserSourceType = "Jar"
+	// UserSourceTypeNetCoreZip ...
+	UserSourceTypeNetCoreZip UserSourceType = "NetCoreZip"
+	// UserSourceTypeSource ...
+	UserSourceTypeSource UserSourceType = "Source"
 )
 
 // PossibleUserSourceTypeValues returns an array of possible values for the UserSourceType const type.
 func PossibleUserSourceTypeValues() []UserSourceType {
-	return []UserSourceType{Jar, NetCoreZip, Source}
+	return []UserSourceType{UserSourceTypeContainer, UserSourceTypeJar, UserSourceTypeNetCoreZip, UserSourceTypeSource}
 }

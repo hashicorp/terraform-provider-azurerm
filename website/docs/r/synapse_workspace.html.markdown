@@ -69,9 +69,17 @@ The following arguments are supported:
 
 * `sql_administrator_login_password` - (Required) The Password associated with the `sql_administrator_login` for the SQL administrator.
 
+* `linking_allowed_for_aad_tenant_ids` - (Optional) Allowed Aad Tenant Ids For Linking. 
+
+* `compute_subnet_id` - (Optional) Subnet ID used for computes in workspace
+
 * `data_exfiltration_protection_enabled` - (Optional) Is data exfiltration protection enabled in this workspace? If set to `true`, `managed_virtual_network_enabled` must also be set to `true`. Changing this forces a new resource to be created.
 
 * `managed_virtual_network_enabled` - (Optional) Is Virtual Network enabled for all computes in this workspace? Defaults to `false`. Changing this forces a new resource to be created.
+
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for the Cognitive Account. Defaults to `true`.
+
+* `purview_id` - (Optional) The ID of purview account.
 
 * `sql_identity_control_enabled` - (Optional) Are pipelines (running as workspace's system assigned identity) allowed to access SQL pools?
 
@@ -105,6 +113,8 @@ An `azure_devops_repo` block supports the following:
 
 * `branch_name` - (Required) Specifies the collaboration branch of the repository to get code from.
 
+* `last_commit_id` - (Optional) The last commit ID.
+
 * `project_name` - (Required) Specifies the name of the Azure DevOps project.
 
 * `repository_name` - (Required) Specifies the name of the git repository.
@@ -120,6 +130,8 @@ A `github_repo` block supports the following:
 * `account_name` - (Required) Specifies the GitHub account name.
 
 * `branch_name` - (Required) Specifies the collaboration branch of the repository to get code from.
+
+* `last_commit_id` - (Optional) The last commit ID.
 
 * `repository_name` - (Required) Specifies the name of the git repository.
 

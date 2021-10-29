@@ -13,21 +13,21 @@ type AnalyticsUserItemId struct {
 	SubscriptionId      string
 	ResourceGroup       string
 	ComponentName       string
-	MyanalyticsItemName string
+	MyAnalyticsItemName string
 }
 
-func NewAnalyticsUserItemID(subscriptionId, resourceGroup, componentName, myanalyticsItemName string) AnalyticsUserItemId {
+func NewAnalyticsUserItemID(subscriptionId, resourceGroup, componentName, myAnalyticsItemName string) AnalyticsUserItemId {
 	return AnalyticsUserItemId{
 		SubscriptionId:      subscriptionId,
 		ResourceGroup:       resourceGroup,
 		ComponentName:       componentName,
-		MyanalyticsItemName: myanalyticsItemName,
+		MyAnalyticsItemName: myAnalyticsItemName,
 	}
 }
 
 func (id AnalyticsUserItemId) String() string {
 	segments := []string{
-		fmt.Sprintf("Myanalytics Item Name %q", id.MyanalyticsItemName),
+		fmt.Sprintf("My Analytics Item Name %q", id.MyAnalyticsItemName),
 		fmt.Sprintf("Component Name %q", id.ComponentName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
@@ -36,8 +36,8 @@ func (id AnalyticsUserItemId) String() string {
 }
 
 func (id AnalyticsUserItemId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s/myanalyticsItems/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ComponentName, id.MyanalyticsItemName)
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Insights/components/%s/myAnalyticsItems/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ComponentName, id.MyAnalyticsItemName)
 }
 
 // AnalyticsUserItemID parses a AnalyticsUserItem ID into an AnalyticsUserItemId struct
@@ -63,7 +63,7 @@ func AnalyticsUserItemID(input string) (*AnalyticsUserItemId, error) {
 	if resourceId.ComponentName, err = id.PopSegment("components"); err != nil {
 		return nil, err
 	}
-	if resourceId.MyanalyticsItemName, err = id.PopSegment("myanalyticsItems"); err != nil {
+	if resourceId.MyAnalyticsItemName, err = id.PopSegment("myAnalyticsItems"); err != nil {
 		return nil, err
 	}
 

@@ -248,6 +248,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 														string(insights.ScaleTypeChangeCount),
 														string(insights.ScaleTypeExactCount),
 														string(insights.ScaleTypePercentChangeCount),
+														string(insights.ScaleTypeServiceAllowedNextValue),
 													}, true),
 													DiffSuppressFunc: suppress.CaseDifference,
 												},
