@@ -22,7 +22,6 @@ import (
 )
 
 func resourceCassandraMIDatacenter() *pluginsdk.Resource {
-	log.Println("manually merged API changes - resourceCassandraMIDatacenter**********")
 	return &pluginsdk.Resource{
 		Create: resourceCassandraMIDatacenterCreate,
 		Read:   resourceCassandraMIDatacenterRead,
@@ -31,11 +30,6 @@ func resourceCassandraMIDatacenter() *pluginsdk.Resource {
 
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
-
-		// SchemaVersion: 1,
-		// StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-		// 	0: migration.CassandraKeyspaceV0ToV1{},
-		// }),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -60,28 +54,18 @@ func resourceCassandraMIDatacenter() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			// "location": {
-			// 	Type:         pluginsdk.TypeString,
-			// 	Required:     true,
-			// 	ForceNew:     true,
-			// 	ValidateFunc: validate.CosmosAccountName,
-			// },
 			"location": azure.SchemaLocation(),
 
 			"delegated_management_subnet_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				// ValidateFunc: validate.CosmosEntityName,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: networkValidate.SubnetID,
 			},
 
 			"node_count": {
-				// Type:         pluginsdk.TypeString,
 				Type:     pluginsdk.TypeInt,
 				Required: true,
-				// ForceNew: false,
-				// ValidateFunc: validate.CosmosEntityName,
 			},
 			"sku": {
 				Type:     pluginsdk.TypeString,
@@ -96,25 +80,18 @@ func resourceCassandraMIDatacenter() *pluginsdk.Resource {
 }
 
 func resourceCassandraMIDatacenterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	log.Println("in updated *** resourceCassandraMIDatacenterCreate **********")
 	client := meta.(*clients.Client).Cosmos.CassandraDatacentersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	//name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	clusterName := d.Get("name").(string)
 	datacenterName := d.Get("datacenter_name").(string)
-	// nodeCount := d.Get("node_count").(string)
-	// nodeCountInt, err2 := strconv.ParseInt(nodeCount, 10, 32)
-	// nodeCountInt32 := int32(nodeCountInt)
 	location := d.Get("location").(string)
 	delegatedSubnetId := d.Get("delegated_management_subnet_id").(string)
 	sku := d.Get("sku").(string)
 	existing, err := client.Get(ctx, resourceGroup, clusterName, datacenterName)
 
-	// if err2 != nil {
-	// }
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("checking for presence of creating Cassandra MI  %q (Datacenter: %q): %+v", clusterName, location, err)
@@ -128,7 +105,6 @@ func resourceCassandraMIDatacenterCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	body := documentdb.DataCenterResource{
-		//Location: &location,
 		Properties: &documentdb.DataCenterResourceProperties{
 			DelegatedSubnetID:  &delegatedSubnetId,
 			NodeCount:          utils.Int32(int32(d.Get("node_count").(int))),
@@ -250,8 +226,6 @@ func resourceCassandraMIDatacenterRead(d *pluginsdk.ResourceData, meta interface
 	client := meta.(*clients.Client).Cosmos.CassandraDatacentersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	//datacenterName := d.Get("datacenter_name").(string)
-	//id, err := parse.CassandraDatacenterID(d.Id() + "/dataCenters/" + datacenterName)
 	id, err := parse.CassandraDatacenterID(d.Id())
 	if err != nil {
 		return err
@@ -274,7 +248,6 @@ func resourceCassandraMIDatacenterRead(d *pluginsdk.ResourceData, meta interface
 		if res := props; res != nil {
 			d.Set("delegated_management_subnet_id", props.DelegatedSubnetID)
 			d.Set("location", location.NormalizeNilable(props.DataCenterLocation))
-			// nodeCountString := fmt.Sprint(*props.NodeCount)
 			d.Set("node_count", int(*props.NodeCount))
 			d.Set("disk_capacity", int(*props.DiskCapacity))
 			d.Set("sku", props.Sku)
@@ -290,12 +263,6 @@ func resourceCassandraMIDatacenterDelete(d *pluginsdk.ResourceData, meta interfa
 	clusterName := d.Get("name").(string)
 	datacenterName := d.Get("datacenter_name").(string)
 	defer cancel()
-
-	// id, err := parse.CassandraDatacenterID(d.Id() + "/dataCenters/" + datacenterName)
-	// log.Println("************* id: " + d.Id() + "/dataCenters/" + datacenterName)
-	// if err != nil {
-	// 	return err
-	// }
 
 	future, err := client.Delete(ctx, resourceGroup, clusterName, datacenterName)
 	if err != nil {

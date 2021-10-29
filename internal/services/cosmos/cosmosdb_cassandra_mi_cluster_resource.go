@@ -21,7 +21,6 @@ import (
 )
 
 func resourceCassandraMICluster() *pluginsdk.Resource {
-	log.Println("manually merged API changes - resourceCassandraMICluster**********")
 	return &pluginsdk.Resource{
 		Create: resourceCassandraMIClusterCreate,
 		Read:   resourceCassandraMIClusterRead,
@@ -82,7 +81,6 @@ func resourceCassandraMIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	//name := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
 	clusterName := d.Get("name").(string)
 	location := d.Get("location").(string)
@@ -135,26 +133,7 @@ func resourceCassandraMIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceCassandraMIClusterRead(d, meta)
 }
 
-// func resourceCassandraMIClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-// 	log.Println("in resourceCassandraMIClusterUpdate ******************************")
-// 	client := meta.(*clients.Client).Cosmos.CassandraClustersClient
-// 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-// 	defer cancel()
-
-// 	id, err := parse.CassandraClusterID(d.Id())
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
-// 	d.SetId(*resp.ID)
-
-// 	return resourceCassandraMIClusterRead(d, meta)
-// }
-
 func resourceCassandraMIClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	log.Println("in resourceCassandraMIClusterRead ******************************")
 	client := meta.(*clients.Client).Cosmos.CassandraClustersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,7 +167,6 @@ func resourceCassandraMIClusterRead(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceCassandraMIClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	log.Println("in resourceCassandraMIClusterDelete ******************************")
 	client := meta.(*clients.Client).Cosmos.CassandraClustersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
