@@ -2127,12 +2127,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
+  name                     = "acctestsa%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -2140,7 +2140,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
+  name                = "acctestASP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -2151,7 +2151,7 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                       = "acctest-%d-func"
+  name                       = "acctest-%[1]d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
@@ -2159,7 +2159,7 @@ resource "azurerm_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   https_only                 = true
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r FunctionAppResource) dailyMemoryTimeQuota(data acceptance.TestData, dailyMemoryTimeQuota int) string {
@@ -2169,12 +2169,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
+  name                     = "acctestsa%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -2182,7 +2182,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
+  name                = "acctestASP-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   kind                = "FunctionApp"
@@ -2194,15 +2194,15 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                       = "acctest-%d-func"
+  name                       = "acctest-%[1]d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  daily_memory_time_quota    = %d
+  daily_memory_time_quota    = %[4]d
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, dailyMemoryTimeQuota)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, dailyMemoryTimeQuota)
 }
 
 func (r FunctionAppResource) consumptionPlan(data acceptance.TestData) string {
@@ -2212,12 +2212,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
+  name                     = "acctestsa%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -2225,7 +2225,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
+  name                = "acctestASP-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   kind                = "FunctionApp"
@@ -2237,14 +2237,14 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                       = "acctest-%d-func"
+  name                       = "acctest-%[1]d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r FunctionAppResource) consumptionPlanUppercaseName(data acceptance.TestData) string {
@@ -2254,12 +2254,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
+  name                     = "acctestsa%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -2267,7 +2267,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
+  name                = "acctestASP-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   kind                = "FunctionApp"
@@ -2279,14 +2279,14 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                       = "acctest-%d-FuncWithUppercase"
+  name                       = "acctest-%[1]d-FuncWithUppercase"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r FunctionAppResource) basicIdentity(data acceptance.TestData) string {
@@ -2929,12 +2929,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
+  name                     = "acctestsa%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -2942,7 +2942,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
+  name                = "acctestASP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -2953,7 +2953,7 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                       = "acctest-%d-func"
+  name                       = "acctest-%[1]d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
@@ -2966,7 +2966,7 @@ resource "azurerm_function_app" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r FunctionAppResource) oneVNetSubnetIpRestriction(data acceptance.TestData) string {
