@@ -1,4 +1,7 @@
-## 2.82.0 (Unreleased)
+## 2.83.0 (Unreleased)
+
+
+## 2.82.0 (October 08, 2021)
 
 FEATURES:
 * **New Resource:** `azurerm_test` [GH-123]
