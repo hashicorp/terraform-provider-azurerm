@@ -120,6 +120,8 @@ resource "azurerm_cosmosdb_cassandra_managed_instance_datacenter" "test" {
   location                       = azurerm_resource_group.test.location
   delegated_management_subnet_id = azurerm_subnet.test.id
   node_count                     = 3
+  disk_capacity                  = 4
+  sku                            = "Standard_DS14_v2"
 }
 `, data.RandomInteger, data.Locations.Secondary)
 }
@@ -175,6 +177,8 @@ resource "azurerm_cosmosdb_cassandra_managed_instance_datacenter" "test" {
   location                       = azurerm_resource_group.test.location
   delegated_management_subnet_id = azurerm_subnet.test.id
   node_count                     = %[3]s
+  disk_capacity                  = 4
+  sku                            = "Standard_DS14_v2"
 }
 `, data.RandomInteger, data.Locations.Secondary, fmt.Sprint(nodeCount))
 }

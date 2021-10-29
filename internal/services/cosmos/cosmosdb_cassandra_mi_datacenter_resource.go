@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-06-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -83,6 +83,14 @@ func resourceCassandraMIDatacenter() *pluginsdk.Resource {
 				// ForceNew: false,
 				// ValidateFunc: validate.CosmosEntityName,
 			},
+			"sku": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+			"disk_capacity": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -102,7 +110,7 @@ func resourceCassandraMIDatacenterCreate(d *pluginsdk.ResourceData, meta interfa
 	// nodeCountInt32 := int32(nodeCountInt)
 	location := d.Get("location").(string)
 	delegatedSubnetId := d.Get("delegated_management_subnet_id").(string)
-
+	sku := d.Get("sku").(string)
 	existing, err := client.Get(ctx, resourceGroup, clusterName, datacenterName)
 
 	// if err2 != nil {
@@ -124,6 +132,8 @@ func resourceCassandraMIDatacenterCreate(d *pluginsdk.ResourceData, meta interfa
 		Properties: &documentdb.DataCenterResourceProperties{
 			DelegatedSubnetID:  &delegatedSubnetId,
 			NodeCount:          utils.Int32(int32(d.Get("node_count").(int))),
+			Sku:                &sku,
+			DiskCapacity:       utils.Int32(int32(d.Get("disk_capacity").(int))),
 			DataCenterLocation: &location,
 		},
 	}
@@ -157,8 +167,8 @@ func resourceCassandraMIDatacenterUpdate(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	//location := d.Get("location").(string)
-	//delegatedSubnetId := d.Get("delegated_management_subnet_id").(string)
+	location := d.Get("location").(string)
+	delegatedSubnetId := d.Get("delegated_management_subnet_id").(string)
 	nodeCount := d.Get("node_count").(int)
 
 	id, err := parse.CassandraDatacenterID(d.Id())
@@ -168,9 +178,9 @@ func resourceCassandraMIDatacenterUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 	body := documentdb.DataCenterResource{
 		Properties: &documentdb.DataCenterResourceProperties{
-			//DelegatedSubnetID:  &delegatedSubnetId,
-			NodeCount: utils.Int32(int32(nodeCount)),
-			//DataCenterLocation: &location,
+			DelegatedSubnetID:  &delegatedSubnetId,
+			NodeCount:          utils.Int32(int32(nodeCount)),
+			DataCenterLocation: &location,
 		},
 	}
 
@@ -266,6 +276,8 @@ func resourceCassandraMIDatacenterRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("location", location.NormalizeNilable(props.DataCenterLocation))
 			// nodeCountString := fmt.Sprint(*props.NodeCount)
 			d.Set("node_count", int(*props.NodeCount))
+			d.Set("disk_capacity", int(*props.DiskCapacity))
+			d.Set("sku", props.Sku)
 		}
 	}
 	return nil

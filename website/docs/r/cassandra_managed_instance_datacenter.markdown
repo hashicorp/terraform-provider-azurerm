@@ -61,6 +61,8 @@ resource "azurerm_cosmosdb_cassandra_managed_instance_datacenter" "test" {
     location                       = azurerm_resource_group.test.location
     delegated_management_subnet_id = azurerm_subnet.test.id
     node_count                     = 3
+    disk_capacity                  = 2
+    sku                            = "Standard_D8s_v4"
   }
 ```
 
@@ -79,6 +81,10 @@ The following arguments are supported:
 * `delegated_management_subnet_id` - (Required) The resource id of the subnet in which the Datacenter nodes will be injected.
 
 * `node_count` - (Required) The number of nodes that will be provisioned in the Datacenter. 
+
+* `sku` - (Optional) Determines the selected sku. Defaults to Standard_DS14_v2. 
+
+* `disk_capacity` - (Optional) Determines the number of p30 disks that are attached to each node. Defaults to 4. 
 
 
 ## Attributes Reference
