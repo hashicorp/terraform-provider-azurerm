@@ -48,18 +48,9 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 		Update: resourceCosmosDbAccountUpdate,
 		Delete: resourceCosmosDbAccountDelete,
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-				if d.HasChange("backup.0.type") {
-					backupOld, backupNew := d.GetChange("backup.0.type")
-
-					if backupOld != string(documentdb.TypePeriodic) && backupNew != string(documentdb.TypeContinuous) {
-						log.Printf("[DEBUG] recreate CosmosDB Account, backup type can't be migrated from %s to %s", documentdb.TypeContinuous, documentdb.TypePeriodic)
-						d.ForceNew("backup.0.type")
-					} else {
-						log.Printf("[DEBUG] storage account can be upgraded from %s to %s", documentdb.TypePeriodic, documentdb.TypeContinuous)
-					}
-				}
-				return nil
+			pluginsdk.ForceNewIfChange("backup.0.type", func(ctx context.Context, old, new, _ interface{}) bool {
+				// backup type can only change from Periodic to Continuous
+				return old.(string) == string(documentdb.TypeContinuous) && new.(string) == string(documentdb.TypePeriodic)
 			}),
 
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
