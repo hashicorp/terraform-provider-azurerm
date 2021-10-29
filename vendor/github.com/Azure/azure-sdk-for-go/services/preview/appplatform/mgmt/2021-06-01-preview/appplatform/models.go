@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2020-11-01-preview/appplatform"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2021-06-01-preview/appplatform"
 
 // ApplicationInsightsAgentVersions application Insights agent versions properties payload
 type ApplicationInsightsAgentVersions struct {
@@ -230,7 +230,7 @@ type AppResourceProperties struct {
 	Public *bool `json:"public,omitempty"`
 	// URL - READ-ONLY; URL of the App
 	URL *string `json:"url,omitempty"`
-	// ProvisioningState - READ-ONLY; Provisioning state of the App. Possible values include: 'Succeeded', 'Failed', 'Creating', 'Updating'
+	// ProvisioningState - READ-ONLY; Provisioning state of the App. Possible values include: 'AppResourceProvisioningStateSucceeded', 'AppResourceProvisioningStateFailed', 'AppResourceProvisioningStateCreating', 'AppResourceProvisioningStateUpdating'
 	ProvisioningState AppResourceProvisioningState `json:"provisioningState,omitempty"`
 	// ActiveDeploymentName - Name of the active deployment of the App
 	ActiveDeploymentName *string `json:"activeDeploymentName,omitempty"`
@@ -238,14 +238,14 @@ type AppResourceProperties struct {
 	Fqdn *string `json:"fqdn,omitempty"`
 	// HTTPSOnly - Indicate if only https is allowed.
 	HTTPSOnly *bool `json:"httpsOnly,omitempty"`
-	// EnableEndToEndTLS - Indicate if end to end TLS is enabled.
-	EnableEndToEndTLS *bool `json:"enableEndToEndTLS,omitempty"`
 	// CreatedTime - READ-ONLY; Date time when the resource is created
 	CreatedTime *date.Time `json:"createdTime,omitempty"`
 	// TemporaryDisk - Temporary disk settings
 	TemporaryDisk *TemporaryDisk `json:"temporaryDisk,omitempty"`
 	// PersistentDisk - Persistent disk settings
 	PersistentDisk *PersistentDisk `json:"persistentDisk,omitempty"`
+	// EnableEndToEndTLS - Indicate if end to end TLS is enabled.
+	EnableEndToEndTLS *bool `json:"enableEndToEndTLS,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AppResourceProperties.
@@ -263,14 +263,14 @@ func (arp AppResourceProperties) MarshalJSON() ([]byte, error) {
 	if arp.HTTPSOnly != nil {
 		objectMap["httpsOnly"] = arp.HTTPSOnly
 	}
-	if arp.EnableEndToEndTLS != nil {
-		objectMap["enableEndToEndTLS"] = arp.EnableEndToEndTLS
-	}
 	if arp.TemporaryDisk != nil {
 		objectMap["temporaryDisk"] = arp.TemporaryDisk
 	}
 	if arp.PersistentDisk != nil {
 		objectMap["persistentDisk"] = arp.PersistentDisk
+	}
+	if arp.EnableEndToEndTLS != nil {
+		objectMap["enableEndToEndTLS"] = arp.EnableEndToEndTLS
 	}
 	return json.Marshal(objectMap)
 }
@@ -1473,6 +1473,20 @@ func (future *ConfigServersValidateFuture) result(client ConfigServersClient) (c
 	return
 }
 
+// CustomContainer custom container payload
+type CustomContainer struct {
+	// Server - The name of the registry that contains the container image
+	Server *string `json:"server,omitempty"`
+	// ContainerImage - Container image of the custom container. This should be in the form of <repository>:<tag> without the server name of the registry
+	ContainerImage *string `json:"containerImage,omitempty"`
+	// Command - Entrypoint array. Not executed within a shell. The docker image's ENTRYPOINT is used if this is not provided.
+	Command *[]string `json:"command,omitempty"`
+	// Args - Arguments to the entrypoint. The docker image's CMD is used if this is not provided.
+	Args *[]string `json:"args,omitempty"`
+	// ImageRegistryCredential - Credential of the image registry
+	ImageRegistryCredential *ImageRegistryCredential `json:"imageRegistryCredential,omitempty"`
+}
+
 // CustomDomainProperties custom domain of app resource payload.
 type CustomDomainProperties struct {
 	// Thumbprint - The thumbprint of bound certificate.
@@ -2138,17 +2152,19 @@ func (future *DeploymentsDeleteFuture) result(client DeploymentsClient) (ar auto
 
 // DeploymentSettings deployment settings payload
 type DeploymentSettings struct {
-	// CPU - Required CPU, basic tier should be 1, standard tier should be in range (1, 4)
+	// CPU - Required CPU. This should be 1 for Basic tier, and in range [1, 4] for Standard tier. This is deprecated starting from API version 2021-06-01-preview. Please use the resourceRequests field to set the CPU size.
 	CPU *int32 `json:"cpu,omitempty"`
-	// MemoryInGB - Required Memory size in GB, basic tier should be in range (1, 2), standard tier should be in range (1, 8)
+	// MemoryInGB - Required Memory size in GB. This should be in range [1, 2] for Basic tier, and in range [1, 8] for Standard tier. This is deprecated starting from API version 2021-06-01-preview. Please use the resourceRequests field to set the the memory size.
 	MemoryInGB *int32 `json:"memoryInGB,omitempty"`
+	// ResourceRequests - The requested resource quantity for required CPU and Memory. It is recommended that using this field to represent the required CPU and Memory, the old field cpu and memoryInGB will be deprecated later.
+	ResourceRequests *ResourceRequests `json:"resourceRequests,omitempty"`
 	// JvmOptions - JVM parameter
 	JvmOptions *string `json:"jvmOptions,omitempty"`
 	// NetCoreMainEntryPath - The path to the .NET executable relative to zip root
 	NetCoreMainEntryPath *string `json:"netCoreMainEntryPath,omitempty"`
 	// EnvironmentVariables - Collection of environment variables
 	EnvironmentVariables map[string]*string `json:"environmentVariables"`
-	// RuntimeVersion - Runtime version. Possible values include: 'Java8', 'Java11', 'NetCore31'
+	// RuntimeVersion - Runtime version. Possible values include: 'RuntimeVersionJava8', 'RuntimeVersionJava11', 'RuntimeVersionNetCore31'
 	RuntimeVersion RuntimeVersion `json:"runtimeVersion,omitempty"`
 }
 
@@ -2160,6 +2176,9 @@ func (ds DeploymentSettings) MarshalJSON() ([]byte, error) {
 	}
 	if ds.MemoryInGB != nil {
 		objectMap["memoryInGB"] = ds.MemoryInGB
+	}
+	if ds.ResourceRequests != nil {
+		objectMap["resourceRequests"] = ds.ResourceRequests
 	}
 	if ds.JvmOptions != nil {
 		objectMap["jvmOptions"] = ds.JvmOptions
@@ -2364,6 +2383,14 @@ type GitPatternRepository struct {
 	StrictHostKeyChecking *bool `json:"strictHostKeyChecking,omitempty"`
 }
 
+// ImageRegistryCredential credential of the image registry
+type ImageRegistryCredential struct {
+	// Username - The username of the image registry credential
+	Username *string `json:"username,omitempty"`
+	// Password - The password of the image registry credential
+	Password *string `json:"password,omitempty"`
+}
+
 // LogFileURLResponse log file URL payload
 type LogFileURLResponse struct {
 	autorest.Response `json:"-"`
@@ -2383,7 +2410,7 @@ type LogSpecification struct {
 
 // ManagedIdentityProperties managed identity properties retrieved from ARM request headers.
 type ManagedIdentityProperties struct {
-	// Type - Type of the managed identity. Possible values include: 'None', 'SystemAssigned', 'UserAssigned', 'SystemAssignedUserAssigned'
+	// Type - Type of the managed identity. Possible values include: 'ManagedIdentityTypeNone', 'ManagedIdentityTypeSystemAssigned', 'ManagedIdentityTypeUserAssigned', 'ManagedIdentityTypeSystemAssignedUserAssigned'
 	Type ManagedIdentityType `json:"type,omitempty"`
 	// PrincipalID - Principal Id
 	PrincipalID *string `json:"principalId,omitempty"`
@@ -2397,6 +2424,8 @@ type MetricDimension struct {
 	Name *string `json:"name,omitempty"`
 	// DisplayName - Localized friendly display name of the dimension
 	DisplayName *string `json:"displayName,omitempty"`
+	// ToBeExportedForShoebox - Whether this dimension should be included for the Shoebox export scenario
+	ToBeExportedForShoebox *bool `json:"toBeExportedForShoebox,omitempty"`
 }
 
 // MetricSpecification specifications of the Metrics for Azure Monitoring
@@ -2711,7 +2740,7 @@ func (pr ProxyResource) MarshalJSON() ([]byte, error) {
 
 // RegenerateTestKeyRequestPayload regenerate test key request payload
 type RegenerateTestKeyRequestPayload struct {
-	// KeyType - Type of the test key. Possible values include: 'Primary', 'Secondary'
+	// KeyType - Type of the test key. Possible values include: 'TestKeyTypePrimary', 'TestKeyTypeSecondary'
 	KeyType TestKeyType `json:"keyType,omitempty"`
 }
 
@@ -2725,7 +2754,7 @@ type RequiredTraffic struct {
 	Ips *[]string `json:"ips,omitempty"`
 	// Fqdns - READ-ONLY; The FQDN list of required traffic
 	Fqdns *[]string `json:"fqdns,omitempty"`
-	// Direction - READ-ONLY; The direction of required traffic. Possible values include: 'Inbound', 'Outbound'
+	// Direction - READ-ONLY; The direction of required traffic. Possible values include: 'TrafficDirectionInbound', 'TrafficDirectionOutbound'
 	Direction TrafficDirection `json:"direction,omitempty"`
 }
 
@@ -2749,6 +2778,14 @@ type Resource struct {
 func (r Resource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
+}
+
+// ResourceRequests deployment resource request payload
+type ResourceRequests struct {
+	// CPU - Required CPU. 1 core can be represented by 1 or 1000m. This should be 500m or 1 for Basic tier, and {500m, 1, 2, 3, 4} for Standard tier.
+	CPU *string `json:"cpu,omitempty"`
+	// Memory - Required memory. 1 GB can be represented by 1Gi or 1024Mi. This should be {512Mi, 1Gi, 2Gi} for Basic tier, and {512Mi, 1Gi, 2Gi, ..., 8Gi} for Standard tier.
+	Memory *string `json:"memory,omitempty"`
 }
 
 // ResourceSku describes an available Azure Spring Cloud SKU.
@@ -2959,14 +2996,14 @@ type ResourceSkuRestrictionInfo struct {
 
 // ResourceSkuRestrictions restrictions where the SKU cannot be used
 type ResourceSkuRestrictions struct {
-	// Type - Gets the type of restrictions. Possible values include: 'Location', 'Zone'
+	// Type - Gets the type of restrictions. Possible values include: 'Location', 'Zone'. Possible values include: 'ResourceSkuRestrictionsTypeLocation', 'ResourceSkuRestrictionsTypeZone'
 	Type ResourceSkuRestrictionsType `json:"type,omitempty"`
 	// Values - Gets the value of restrictions. If the restriction type is set to
 	// location. This would be different locations where the SKU is restricted.
 	Values *[]string `json:"values,omitempty"`
 	// RestrictionInfo - Gets the information about the restriction where the SKU cannot be used.
 	RestrictionInfo *ResourceSkuRestrictionInfo `json:"restrictionInfo,omitempty"`
-	// ReasonCode - Gets the reason for restriction. Possible values include: 'QuotaId', 'NotAvailableForSubscription'. Possible values include: 'QuotaID', 'NotAvailableForSubscription'
+	// ReasonCode - Gets the reason for restriction. Possible values include: 'QuotaId', 'NotAvailableForSubscription'. Possible values include: 'ResourceSkuRestrictionsReasonCodeQuotaID', 'ResourceSkuRestrictionsReasonCodeNotAvailableForSubscription'
 	ReasonCode ResourceSkuRestrictionsReasonCode `json:"reasonCode,omitempty"`
 }
 
@@ -3343,7 +3380,7 @@ type SkuCapacity struct {
 type SupportedRuntimeVersion struct {
 	// Value - The raw value which could be passed to deployment CRUD operations. Possible values include: 'SupportedRuntimeValueJava8', 'SupportedRuntimeValueJava11', 'SupportedRuntimeValueNetCore31'
 	Value SupportedRuntimeValue `json:"value,omitempty"`
-	// Platform - The platform of this runtime version (possible values: "Java" or ".NET"). Possible values include: 'Java', 'NETCore'
+	// Platform - The platform of this runtime version (possible values: "Java" or ".NET"). Possible values include: 'SupportedRuntimePlatformJava', 'SupportedRuntimePlatformNETCore'
 	Platform SupportedRuntimePlatform `json:"platform,omitempty"`
 	// Version - The detailed version (major.minor) of the platform.
 	Version *string `json:"version,omitempty"`
@@ -3400,7 +3437,7 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 
 // UserSourceInfo source information for a deployment
 type UserSourceInfo struct {
-	// Type - Type of the source uploaded. Possible values include: 'Jar', 'NetCoreZip', 'Source'
+	// Type - Type of the source uploaded. Possible values include: 'UserSourceTypeJar', 'UserSourceTypeNetCoreZip', 'UserSourceTypeSource', 'UserSourceTypeContainer'
 	Type UserSourceType `json:"type,omitempty"`
 	// RelativePath - Relative path of the storage which stores the source
 	RelativePath *string `json:"relativePath,omitempty"`
@@ -3409,4 +3446,6 @@ type UserSourceInfo struct {
 	// ArtifactSelector - Selector for the artifact to be used for the deployment for multi-module projects. This should be
 	// the relative path to the target module/project.
 	ArtifactSelector *string `json:"artifactSelector,omitempty"`
+	// CustomContainer - Custom container payload
+	CustomContainer *CustomContainer `json:"customContainer,omitempty"`
 }

@@ -66,7 +66,7 @@ func (client RuntimeVersionsClient) ListRuntimeVersions(ctx context.Context) (re
 
 // ListRuntimeVersionsPreparer prepares the ListRuntimeVersions request.
 func (client RuntimeVersionsClient) ListRuntimeVersionsPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2021-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
