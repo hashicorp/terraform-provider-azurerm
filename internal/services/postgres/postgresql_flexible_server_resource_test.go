@@ -17,7 +17,7 @@ import (
 type PostgresqlFlexibleServerResource struct {
 }
 
-func TestAccPostgresqlflexibleServer_basic(t *testing.T) {
+func TestAccPostgresqlFlexibleServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -35,7 +35,7 @@ func TestAccPostgresqlflexibleServer_basic(t *testing.T) {
 	})
 }
 
-func TestAccPostgresqlflexibleServer_requiresImport(t *testing.T) {
+func TestAccPostgresqlFlexibleServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -49,7 +49,7 @@ func TestAccPostgresqlflexibleServer_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccPostgresqlflexibleServer_complete(t *testing.T) {
+func TestAccPostgresqlFlexibleServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -65,7 +65,7 @@ func TestAccPostgresqlflexibleServer_complete(t *testing.T) {
 	})
 }
 
-func TestAccPostgresqlflexibleServer_completeUpdate(t *testing.T) {
+func TestAccPostgresqlFlexibleServer_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -90,7 +90,7 @@ func TestAccPostgresqlflexibleServer_completeUpdate(t *testing.T) {
 	})
 }
 
-func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
+func TestAccPostgresqlFlexibleServer_updateMaintenanceWindow(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -137,7 +137,7 @@ func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 	})
 }
 
-func TestAccPostgresqlflexibleServer_updateSku(t *testing.T) {
+func TestAccPostgresqlFlexibleServer_updateSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -174,7 +174,7 @@ func TestAccPostgresqlflexibleServer_updateSku(t *testing.T) {
 	})
 }
 
-func TestAccPostgresqlflexibleServer_pitr(t *testing.T) {
+func TestAccPostgresqlFlexibleServer_pointInTimeRestore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -202,7 +202,7 @@ func TestAccPostgresqlflexibleServer_pitr(t *testing.T) {
 	})
 }
 
-func TestAccPostgresqlflexibleServer_failover(t *testing.T) {
+func TestAccPostgresqlFlexibleServer_failover(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
 
