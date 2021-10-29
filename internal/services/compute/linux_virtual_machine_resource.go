@@ -427,7 +427,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 
 	if v, ok := d.GetOk("patch_mode"); ok {
 		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{
-			PatchMode: compute.LinuxVMGuestPatchMode(compute.LinuxVMGuestPatchMode(v)),
+			PatchMode: compute.LinuxVMGuestPatchMode(v.(string)),
 		}
 	}
 
@@ -947,7 +947,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("patch_mode") {
 		update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{
-			PatchMode: compute.LinuxVMGuestPatchMode(compute.LinuxVMGuestPatchMode(d.Get("patch_mode").(string))),
+			PatchMode: compute.LinuxVMGuestPatchMode(d.Get("patch_mode").(string)),
 		}
 	}
 
