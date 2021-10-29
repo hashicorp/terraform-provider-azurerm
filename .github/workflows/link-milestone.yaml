@@ -1,0 +1,29 @@
+---
+name: Link Milestone
+on:
+  pull_request:
+    branches: [main]
+    types: ['closed']
+
+jobs:
+  link-milestone:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.16.7'
+      - run: |
+          go install github.com/stephybun/link-milestone@latest
+          link-milestone
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
