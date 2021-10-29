@@ -36,6 +36,7 @@ func (td TestData) DataSourceTestInSequence(t *testing.T, steps []TestStep) {
 	td.runAcceptanceSequentialTest(t, testCase)
 }
 
+// lintignore:AT001
 func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
