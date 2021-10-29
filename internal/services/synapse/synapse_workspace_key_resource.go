@@ -46,6 +46,7 @@ func resourceSynapseWorkspaceKey() *pluginsdk.Resource {
 			"cusomter_managed_key_name": {
 				Type:       pluginsdk.TypeString,
 				Optional:   true,
+				Computed:   true,
 				Deprecated: "As this property name contained a typo originally, please switch to using 'customer_managed_key_name' instead.",
 				AtLeastOneOf: []string{
 					"cusomter_managed_key_name",
@@ -57,6 +58,7 @@ func resourceSynapseWorkspaceKey() *pluginsdk.Resource {
 			"customer_managed_key_name": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
+				Computed:   true,
 				ConflictsWith: []string{"cusomter_managed_key_name"},
 				AtLeastOneOf: []string{
 					"cusomter_managed_key_name",
