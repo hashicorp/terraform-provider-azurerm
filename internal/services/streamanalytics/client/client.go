@@ -11,7 +11,7 @@ type Client struct {
 	InputsClient          *streamanalytics.InputsClient
 	OutputsClient         *streamanalytics.OutputsClient
 	TransformationsClient *streamanalytics.TransformationsClient
-	ClustersClient		  *streamanalytics.ClustersClient
+	ClustersClient        *streamanalytics.ClustersClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -39,6 +39,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		InputsClient:          &inputsClient,
 		OutputsClient:         &outputsClient,
 		TransformationsClient: &transformationsClient,
-		ClustersClient:		   &clustersClient,
+		ClustersClient:        &clustersClient,
 	}
 }

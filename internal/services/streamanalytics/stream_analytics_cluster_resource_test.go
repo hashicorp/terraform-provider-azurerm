@@ -47,7 +47,7 @@ func TestAccStreamAnalyticsCluster_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("storage_account_key"),
+		data.ImportStep(),
 	})
 }
 
@@ -88,11 +88,10 @@ func (r StreamAnalyticsClusterResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_stream_analytics_cluster" "test" {
-  name                      = "acctestcluster-%d"
-  resource_group_name       = azurerm_resource_group.test.name
-  location      = azurerm_resource_group.test.location
-  sku_name = "Default"
-  streaming_capacity = 36
+  name                = "acctestcluster-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  streaming_capacity  = 36
 }
 `, template, data.RandomInteger)
 }
@@ -102,32 +101,14 @@ func (r StreamAnalyticsClusterResource) updated(data acceptance.TestData) string
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_storage_account" "updated" {
-  name                     = "acctestaccu%[2]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_table" "updated" {
-  name                 = "accteststu%[3]d"
-  storage_account_name = azurerm_storage_account.test.name
-}
-
 resource "azurerm_stream_analytics_cluster" "test" {
-  name                      = "acctestoutput-%[3]d"
-  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
-  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  storage_account_name      = azurerm_storage_account.updated.name
-  storage_account_key       = azurerm_storage_account.updated.primary_access_key
-  table                     = "updated"
-  partition_key             = "partitionkeyupdated"
-  row_key                   = "rowkeyupdated"
-  batch_size                = 50
+  name                = "acctestcluster-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  streaming_capacity  = 72
 }
 
-`, template, data.RandomString, data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
 func (r StreamAnalyticsClusterResource) requiresImport(data acceptance.TestData) string {
@@ -136,15 +117,10 @@ func (r StreamAnalyticsClusterResource) requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_stream_analytics_cluster" "import" {
-  name                      = azurerm_stream_analytics_cluster.test.name
-  stream_analytics_job_name = azurerm_stream_analytics_cluster.test.stream_analytics_job_name
-  resource_group_name       = azurerm_stream_analytics_cluster.test.resource_group_name
-  storage_account_name      = azurerm_stream_analytics_cluster.test.storage_account_name
-  storage_account_key       = azurerm_stream_analytics_cluster.test.storage_account_key
-  table                     = azurerm_stream_analytics_cluster.test.table
-  partition_key             = azurerm_stream_analytics_cluster.test.partition_key
-  row_key                   = azurerm_stream_analytics_cluster.test.row_key
-  batch_size                = azurerm_stream_analytics_cluster.test.batch_size
+  name                = azurerm_stream_analytics_cluster.test.name
+  resource_group_name = azurerm_stream_analytics_cluster.test.resource_group_name
+  location            = azurerm_stream_analytics_cluster.test.location
+  streaming_capacity  = azurerm_stream_analytics_cluster.test.streaming_capacity
 }
 `, template)
 }
@@ -161,4 +137,3 @@ resource "azurerm_resource_group" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
-
