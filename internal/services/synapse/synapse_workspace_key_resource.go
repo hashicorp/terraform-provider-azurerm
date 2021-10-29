@@ -58,7 +58,7 @@ func resourceSynapseWorkspaceKey() *pluginsdk.Resource {
 			"customer_managed_key_name": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				Computed:   true,
+				Computed:      true,
 				ConflictsWith: []string{"cusomter_managed_key_name"},
 				AtLeastOneOf: []string{
 					"cusomter_managed_key_name",
