@@ -11,13 +11,13 @@ func Default() UserFeatures {
 		},
 		KeyVault: KeyVaultFeatures{
 			PurgeSoftDeleteOnDestroy:         true,
+			PurgeSoftDeletedKeysOnDestroy:    true,
+			PurgeSoftDeletedCertsOnDestroy:   true,
+			PurgeSoftDeletedSecretsOnDestroy: true,
 			RecoverSoftDeletedKeyVaults:      true,
 			RecoverSoftDeletedKeys:           true,
-			PurgeSoftDeletedKeysOnDestroy:    true,
 			RecoverSoftDeletedCerts:          true,
-			PurgeSoftDeletedCertsOnDestroy:   true,
 			RecoverSoftDeletedSecrets:        true,
-			PurgeSoftDeletedSecretsOnDestroy: true,
 		},
 		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
 			PermanentlyDeleteOnDestroy: false,
