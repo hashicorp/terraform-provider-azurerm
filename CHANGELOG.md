@@ -25,6 +25,7 @@ IMPROVEMENTS:
 * `azurerm_servicebus_namespace_network_rule_set` - support for the `trusted_services_allowed` property [GH-13853]
 * `azurerm_windows_virtual_machine_scale_set` - added feature for `scale_to_zero_before_deletion`[GH-13635]
 * `azurerm_synapse_workspace` - support for the `linking_allowed_for_aad_tenant_ids`, `compute_subnet_id`, `public_network_access_enabled`, `purview_id`, and `last_commit_id` properties  [GH-13817]
+* `azurerm_spring_cloud_java_deployment` – the `cpu` and `memory_in_gb` properties have been deprecated in favour of the `quota` block [GH-12924]
 * `azurerm_vpn_gateway` - support for the `routing_preference` property [GH-13882]
 * `azurerm_virtual_hub` - support for the `default_route_table_id` property [GH-13840]
 * `azurerm_virtual_machine_scale_set_extension ` - support for `automatic_upgrade_enabled` [GH-13394]
