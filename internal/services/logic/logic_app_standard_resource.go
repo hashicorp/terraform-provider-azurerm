@@ -1300,8 +1300,7 @@ func expandLogicAppStandardIdentity(input []interface{}) *web.ManagedServiceIden
 }
 
 func expandLogicAppStandardSettings(d *pluginsdk.ResourceData, endpointSuffix string) (map[string]*string, error) {
-
-	output := make(map[string]*string, 0)
+	output := make(map[string]*string)
 	appSettings := expandAppSettings(d)
 	basicAppSettings, err := getBasicLogicAppSettings(d, endpointSuffix)
 	if err != nil {
