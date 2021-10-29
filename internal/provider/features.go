@@ -362,7 +362,7 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 				featuresMap.VirtualMachineScaleSet.ForceDelete = v.(bool)
 			}
 			if v, ok := scaleSetRaw["scale_to_zero_before_deletion"]; ok {
-				features.VirtualMachineScaleSet.ScaleToZeroOnDelete = v.(bool)
+				featuresMap.VirtualMachineScaleSet.ScaleToZeroOnDelete = v.(bool)
 			}
 		}
 	}
