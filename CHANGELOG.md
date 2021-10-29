@@ -1,46 +1,46 @@
-## 2.83.0 (Unreleased)
+## 2.83.0 (October 29, 2021)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_eventgrid_system_topic` [GH-13851]
-* **New Data Source:** `azurerm_billing_mpa_account_scope` [GH-13723]
-* **New Resource:** `azurerm_kusto_script` [GH-13692]
-* **New Resource:** `azurerm_iot_time_series_insights_event_source_eventhub` [GH-13917]
-* **New Resource:** `azurerm_stream_analytics_reference_input_mssql` [GH-13822]
-* **New Resource:** `azurerm_sentinel_automation_rule` [GH-11502]
-* **New Resource:** `azurerm_stream_analytics_output_table` [GH-13854]
+* **New Data Source:** `azurerm_eventgrid_system_topic` ([#13851](https://github.com/hashicorp/terraform-provider-azurerm/issues/13851))
+* **New Data Source:** `azurerm_billing_mpa_account_scope` ([#13723](https://github.com/hashicorp/terraform-provider-azurerm/issues/13723))
+* **New Resource:** `azurerm_kusto_script` ([#13692](https://github.com/hashicorp/terraform-provider-azurerm/issues/13692))
+* **New Resource:** `azurerm_iot_time_series_insights_event_source_eventhub` ([#13917](https://github.com/hashicorp/terraform-provider-azurerm/issues/13917))
+* **New Resource:** `azurerm_stream_analytics_reference_input_mssql` ([#13822](https://github.com/hashicorp/terraform-provider-azurerm/issues/13822))
+* **New Resource:** `azurerm_sentinel_automation_rule` ([#11502](https://github.com/hashicorp/terraform-provider-azurerm/issues/11502))
+* **New Resource:** `azurerm_stream_analytics_output_table` ([#13854](https://github.com/hashicorp/terraform-provider-azurerm/issues/13854))
 
 IMPROVEMENTS:
 
-* upgrading `mysql` to API Version `2021-05-01` [GH-13818]
-* `azurerm_application_gateway` - support for the `priority` property [GH-13498]
-* `azurerm_firewall_application_rule_collection` - the `port` property is now required instead of optional [GH-13869]
-* `azurerm_kubernetes_cluster` - expose the `portal_fqdn` attribute [GH-13887]
-* `azurerm_linux_virtual_machine_scale_set` -  support for `automatic_upgrade_enabled` in extensions [GH-13394]
-* `azurerm_linux_virtual_machine_scale_set` - added feature for `scale_to_zero_before_deletion`[GH-13635]
-* `azurerm_managed_disk` - support for the `trusted_launch_enabled` property [GH-13849]
-* `azurerm_postgres_flexible_server` - enhanced validation for the `administrator_login` property [GH-13942]
-* `azurerm_servicebus_queue` - support for the `max_message_size_in_kilobytes` property [GH-13762]
-* `azurerm_servicebus_topic` - support for the `max_message_size_in_kilobytes` property [GH-13762]
-* `azurerm_servicebus_namespace_network_rule_set` - support for the `trusted_services_allowed` property [GH-13853]
-* `azurerm_windows_virtual_machine_scale_set` - added feature for `scale_to_zero_before_deletion`[GH-13635]
-* `azurerm_synapse_workspace` - support for the `linking_allowed_for_aad_tenant_ids`, `compute_subnet_id`, `public_network_access_enabled`, `purview_id`, and `last_commit_id` properties  [GH-13817]
-* `azurerm_spring_cloud_java_deployment` – the `cpu` and `memory_in_gb` properties have been deprecated in favour of the `quota` block [GH-12924]
-* `azurerm_vpn_gateway` - support for the `routing_preference` property [GH-13882]
-* `azurerm_virtual_hub` - support for the `default_route_table_id` property [GH-13840]
-* `azurerm_virtual_machine_scale_set_extension ` - support for `automatic_upgrade_enabled` [GH-13394]
-* `azurerm_windows_virtual_machine_scale_set` -  support for `automatic_upgrade_enabled` in extensions [GH-13394]
+* upgrading `mysql` to API Version `2021-05-01` ([#13818](https://github.com/hashicorp/terraform-provider-azurerm/issues/13818))
+* `azurerm_application_gateway` - support for the `priority` property ([#13498](https://github.com/hashicorp/terraform-provider-azurerm/issues/13498))
+* `azurerm_firewall_application_rule_collection` - the `port` property is now required instead of optional ([#13869](https://github.com/hashicorp/terraform-provider-azurerm/issues/13869))
+* `azurerm_kubernetes_cluster` - expose the `portal_fqdn` attribute ([#13887](https://github.com/hashicorp/terraform-provider-azurerm/issues/13887))
+* `azurerm_linux_virtual_machine_scale_set` -  support for `automatic_upgrade_enabled` in extensions ([#13394](https://github.com/hashicorp/terraform-provider-azurerm/issues/13394))
+* `azurerm_linux_virtual_machine_scale_set` - added feature for `scale_to_zero_before_deletion`([#13635](https://github.com/hashicorp/terraform-provider-azurerm/issues/13635))
+* `azurerm_managed_disk` - support for the `trusted_launch_enabled` property ([#13849](https://github.com/hashicorp/terraform-provider-azurerm/issues/13849))
+* `azurerm_postgres_flexible_server` - enhanced validation for the `administrator_login` property ([#13942](https://github.com/hashicorp/terraform-provider-azurerm/issues/13942))
+* `azurerm_servicebus_queue` - support for the `max_message_size_in_kilobytes` property ([#13762](https://github.com/hashicorp/terraform-provider-azurerm/issues/13762))
+* `azurerm_servicebus_topic` - support for the `max_message_size_in_kilobytes` property ([#13762](https://github.com/hashicorp/terraform-provider-azurerm/issues/13762))
+* `azurerm_servicebus_namespace_network_rule_set` - support for the `trusted_services_allowed` property ([#13853](https://github.com/hashicorp/terraform-provider-azurerm/issues/13853))
+* `azurerm_windows_virtual_machine_scale_set` - added feature for `scale_to_zero_before_deletion`([#13635](https://github.com/hashicorp/terraform-provider-azurerm/issues/13635))
+* `azurerm_synapse_workspace` - support for the `linking_allowed_for_aad_tenant_ids`, `compute_subnet_id`, `public_network_access_enabled`, `purview_id`, and `last_commit_id` properties  ([#13817](https://github.com/hashicorp/terraform-provider-azurerm/issues/13817))
+* `azurerm_spring_cloud_java_deployment` – the `cpu` and `memory_in_gb` properties have been deprecated in favour of the `quota` block ([#12924](https://github.com/hashicorp/terraform-provider-azurerm/issues/12924))
+* `azurerm_vpn_gateway` - support for the `routing_preference` property ([#13882](https://github.com/hashicorp/terraform-provider-azurerm/issues/13882))
+* `azurerm_virtual_hub` - support for the `default_route_table_id` property ([#13840](https://github.com/hashicorp/terraform-provider-azurerm/issues/13840))
+* `azurerm_virtual_machine_scale_set_extension ` - support for `automatic_upgrade_enabled` ([#13394](https://github.com/hashicorp/terraform-provider-azurerm/issues/13394))
+* `azurerm_windows_virtual_machine_scale_set` -  support for `automatic_upgrade_enabled` in extensions ([#13394](https://github.com/hashicorp/terraform-provider-azurerm/issues/13394))
 
 BUG FIXES:
 
-* `azurerm_automation_schedule_resource` - allow `Etc/UTC` for the `timezone` property [GH-13906]
-* `azurerm_app_configuration_key` - now supports forward slashes in the `key` [GH-13859]
-* `azurerm_application_gateway` - prevent multiple `ssl_policy` blocks [GH-13929]
-* `azurerm_cosmosdb_account` - the `capabilities` property is now computed [GH-13936]
-* `azurerm_cognitive_account` - will now handle the unexpected state `Accepted` when waiting for creats [GH-13925]
-* `azurerm_data_factory` - can now read global parameter values [GH-13519]
-* `azurerm_firewall_policy` - will now correctly import [GH-13862]
-* `azurerm_firewall_policy` - changing the identity will no longer create a new resource [GH-13904]
+* `azurerm_automation_schedule_resource` - allow `Etc/UTC` for the `timezone` property ([#13906](https://github.com/hashicorp/terraform-provider-azurerm/issues/13906))
+* `azurerm_app_configuration_key` - now supports forward slashes in the `key` ([#13859](https://github.com/hashicorp/terraform-provider-azurerm/issues/13859))
+* `azurerm_application_gateway` - prevent multiple `ssl_policy` blocks ([#13929](https://github.com/hashicorp/terraform-provider-azurerm/issues/13929))
+* `azurerm_cosmosdb_account` - the `capabilities` property is now computed ([#13936](https://github.com/hashicorp/terraform-provider-azurerm/issues/13936))
+* `azurerm_cognitive_account` - will now handle the unexpected state `Accepted` when waiting for creats ([#13925](https://github.com/hashicorp/terraform-provider-azurerm/issues/13925))
+* `azurerm_data_factory` - can now read global parameter values ([#13519](https://github.com/hashicorp/terraform-provider-azurerm/issues/13519))
+* `azurerm_firewall_policy` - will now correctly import ([#13862](https://github.com/hashicorp/terraform-provider-azurerm/issues/13862))
+* `azurerm_firewall_policy` - changing the identity will no longer create a new resource ([#13904](https://github.com/hashicorp/terraform-provider-azurerm/issues/13904))
 
 ## 2.82.0 (October 21, 2021)
 
