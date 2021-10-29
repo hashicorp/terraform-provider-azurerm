@@ -47,26 +47,43 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 		Read:   resourceCosmosDbAccountRead,
 		Update: resourceCosmosDbAccountUpdate,
 		Delete: resourceCosmosDbAccountDelete,
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-			caps := diff.Get("capabilities")
-			mongo34found := false
-			enableMongo := false
-			for _, cap := range caps.(*pluginsdk.Set).List() {
-				m := cap.(map[string]interface{})
-				if v, ok := m["name"].(string); ok {
-					if v == "MongoDBv3.4" {
-						mongo34found = true
-					} else if v == "EnableMongo" {
-						enableMongo = true
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+				if d.HasChange("backup.0.type") {
+					backupOld, backupNew := d.GetChange("backup.0.type")
+
+					if backupOld != string(documentdb.TypePeriodic) && backupNew != string(documentdb.TypeContinuous) {
+						log.Printf("[DEBUG] recreate CosmosDB Account, backup type can't be migrated from %s to %s", documentdb.TypeContinuous, documentdb.TypePeriodic)
+						d.ForceNew("backup.0.type")
+					} else {
+						log.Printf("[DEBUG] storage account can be upgraded from %s to %s", documentdb.TypePeriodic, documentdb.TypeContinuous)
 					}
 				}
-			}
+				return nil
+			}),
 
-			if mongo34found && !enableMongo {
-				return fmt.Errorf("capability EnableMongo must be enabled if MongoDBv3.4 is also enabled")
-			}
-			return nil
-		}),
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				caps := diff.Get("capabilities")
+				mongo34found := false
+				enableMongo := false
+				for _, cap := range caps.(*pluginsdk.Set).List() {
+					m := cap.(map[string]interface{})
+					if v, ok := m["name"].(string); ok {
+						if v == "MongoDBv3.4" {
+							mongo34found = true
+						} else if v == "EnableMongo" {
+							enableMongo = true
+						}
+					}
+				}
+
+				if mongo34found && !enableMongo {
+					return fmt.Errorf("capability EnableMongo must be enabled if MongoDBv3.4 is also enabled")
+				}
+				return nil
+			}),
+		),
+
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
@@ -344,7 +361,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						"type": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(documentdb.TypeContinuous),
 								string(documentdb.TypePeriodic),
@@ -580,7 +596,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if v, ok := d.GetOk("backup"); ok {
-		policy, err := expandCosmosdbAccountBackup(v.([]interface{}))
+		policy, err := expandCosmosdbAccountBackup(v.([]interface{}), d.HasChange("backup.0.type"))
 		if err != nil {
 			return fmt.Errorf("expanding `backup`: %+v", err)
 		}
@@ -722,7 +738,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if v, ok := d.GetOk("backup"); ok {
-		policy, err := expandCosmosdbAccountBackup(v.([]interface{}))
+		policy, err := expandCosmosdbAccountBackup(v.([]interface{}), d.HasChange("backup.0.type"))
 		if err != nil {
 			return fmt.Errorf("expanding `backup`: %+v", err)
 		}
@@ -1296,7 +1312,7 @@ func resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash(v interface{}) int {
 	return pluginsdk.HashString(buf.String())
 }
 
-func expandCosmosdbAccountBackup(input []interface{}) (documentdb.BasicBackupPolicy, error) {
+func expandCosmosdbAccountBackup(input []interface{}, backupHasChange bool) (documentdb.BasicBackupPolicy, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
@@ -1304,11 +1320,11 @@ func expandCosmosdbAccountBackup(input []interface{}) (documentdb.BasicBackupPol
 
 	switch attr["type"].(string) {
 	case string(documentdb.TypeContinuous):
-		if v := attr["interval_in_minutes"].(int); v != 0 {
-			return nil, fmt.Errorf("`interval_in_minutes` can not be set when `type` in`backup` is `Continuous` ")
+		if v := attr["interval_in_minutes"].(int); v != 0 && !backupHasChange {
+			return nil, fmt.Errorf("`interval_in_minutes` can not be set when `type` in `backup` is `Continuous`")
 		}
-		if v := attr["retention_in_hours"].(int); v != 0 {
-			return nil, fmt.Errorf("`retention_in_hours` can not be set when `type` in`backup` is `Continuous` ")
+		if v := attr["retention_in_hours"].(int); v != 0 && !backupHasChange {
+			return nil, fmt.Errorf("`retention_in_hours` can not be set when `type` in `backup` is `Continuous`")
 		}
 		return documentdb.ContinuousModeBackupPolicy{
 			Type: documentdb.TypeContinuous,
