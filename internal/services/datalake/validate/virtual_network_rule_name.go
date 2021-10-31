@@ -6,10 +6,10 @@ import (
 )
 
 /*
-	This function checks the format of the Data Lake Store Virtual Network Rule Name to make sure that
+	This function checks the format of the Storage Data Lake Gen1 Virtual Network Rule Name to make sure that
 	it does not contain any potentially invalid values.
 */
-func ValidateDataLakeStoreVirtualNetworkRuleName(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateStorageDataLakeGen1VirtualNetworkRuleName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	// Cannot be empty

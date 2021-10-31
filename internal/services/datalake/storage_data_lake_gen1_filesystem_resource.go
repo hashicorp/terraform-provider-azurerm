@@ -20,11 +20,19 @@ import (
 )
 
 func resourceDataLakeStore() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceArmDateLakeStoreCreate,
-		Read:   resourceArmDateLakeStoreRead,
-		Update: resourceArmDateLakeStoreUpdate,
-		Delete: resourceArmDateLakeStoreDelete,
+	return _resourceStorageDataLakeGen1Filesystem(true)
+}
+
+func resourceStorageDataLakeGen1Filesystem() *pluginsdk.Resource {
+	return _resourceStorageDataLakeGen1Filesystem(false)
+}
+
+func _resourceStorageDataLakeGen1Filesystem(showDeprecationMessage bool) *pluginsdk.Resource {
+	resource := &pluginsdk.Resource{
+		Create: resourceArmStorageDataLakeGen1FilesystemCreate,
+		Read:   resourceArmStorageDataLakeGen1FilesystemRead,
+		Update: resourceArmStorageDataLakeGen1FilesystemUpdate,
+		Delete: resourceArmStorageDataLakeGen1FilesystemDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AccountID(id)
@@ -144,9 +152,15 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 		},
 	}
+
+	if showDeprecationMessage {
+		resource.DeprecationMessage = "This resrouce has been renamed to `azurerm_storage_data_lake_gen1_filesystem` and it will be removed in version 3.0, you can follow the renaming guide https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/migrating-between-renamed-resources#migrating-to-a-renamed-resource "
+	}
+
+	return resource
 }
 
-func resourceArmDateLakeStoreCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmStorageDataLakeGen1FilesystemCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreAccountsClient
 	subscriptionId := meta.(*clients.Client).Datalake.StoreAccountsClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -158,12 +172,12 @@ func resourceArmDateLakeStoreCreate(d *pluginsdk.ResourceData, meta interface{})
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Lake Store %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing Storage Data Lake Gen1 Filesystem %s: %+v", id, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_lake_store", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_storage_data_lake_gen1_filesystem", *existing.ID)
 		}
 	}
 
@@ -176,12 +190,12 @@ func resourceArmDateLakeStoreCreate(d *pluginsdk.ResourceData, meta interface{})
 	firewallAllowAzureIPs := account.FirewallAllowAzureIpsState(d.Get("firewall_allow_azure_ips").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	log.Printf("[INFO] preparing arguments for Data Lake Store creation %s", id)
+	log.Printf("[INFO] preparing arguments for Storage Data Lake Gen1 Filesystem creation %s", id)
 
-	dateLakeStore := account.CreateDataLakeStoreAccountParameters{
+	storageDateLakeGen1Filesystem := account.CreateDataLakeStoreAccountParameters{
 		Location: &location,
 		Tags:     tags.Expand(t),
-		Identity: expandDataLakeStoreIdentity(d.Get("identity").([]interface{})),
+		Identity: expandStorageDataLakeGen1FilesystemIdentity(d.Get("identity").([]interface{})),
 		CreateDataLakeStoreAccountProperties: &account.CreateDataLakeStoreAccountProperties{
 			NewTier:               account.TierType(tier),
 			FirewallState:         firewallState,
@@ -194,21 +208,21 @@ func resourceArmDateLakeStoreCreate(d *pluginsdk.ResourceData, meta interface{})
 		},
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.Name, dateLakeStore)
+	future, err := client.Create(ctx, id.ResourceGroup, id.Name, storageDateLakeGen1Filesystem)
 	if err != nil {
-		return fmt.Errorf("issuing create request for Data Lake Store %s: %+v", id, err)
+		return fmt.Errorf("issuing create request for Storage Data Lake Gen1 Filesystem %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("creating Data Lake Store %s: %+v", id, err)
+		return fmt.Errorf("creating Storage Data Lake Gen1 Filesystem %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	return resourceArmDateLakeStoreRead(d, meta)
+	return resourceArmStorageDataLakeGen1FilesystemRead(d, meta)
 }
 
-func resourceArmDateLakeStoreUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmStorageDataLakeGen1FilesystemUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreAccountsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -234,17 +248,17 @@ func resourceArmDateLakeStoreUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, props)
 	if err != nil {
-		return fmt.Errorf("issuing update request for Data Lake Store %s: %+v", id, err)
+		return fmt.Errorf("issuing update request for Storage Data Lake Gen1 Filesystem %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the update of Data Lake Store %s to complete: %+v", id, err)
+		return fmt.Errorf("waiting for the update of Storage Data Lake Gen1 Filesystem %s to complete: %+v", id, err)
 	}
 
-	return resourceArmDateLakeStoreRead(d, meta)
+	return resourceArmStorageDataLakeGen1FilesystemRead(d, meta)
 }
 
-func resourceArmDateLakeStoreRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmStorageDataLakeGen1FilesystemRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreAccountsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -257,12 +271,12 @@ func resourceArmDateLakeStoreRead(d *pluginsdk.ResourceData, meta interface{}) e
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Data Lake Store Account %s was not found", id)
+			log.Printf("[WARN] Storage Data Lake Gen1 Filesystem Account %s was not found", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure Data Lake Store %s: %+v", id, err)
+		return fmt.Errorf("making Read request on Azure Storage Data Lake Gen1 Filesystem %s: %+v", id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -271,8 +285,8 @@ func resourceArmDateLakeStoreRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if err := d.Set("identity", flattenDataLakeStoreIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("flattening identity on Data Lake Store %s: %+v", id, err)
+	if err := d.Set("identity", flattenStorageDataLakeGen1Identity(resp.Identity)); err != nil {
+		return fmt.Errorf("flattening identity on Storage Data Lake Gen1 Filesystem %s: %+v", id, err)
 	}
 
 	if properties := resp.DataLakeStoreAccountProperties; properties != nil {
@@ -292,7 +306,7 @@ func resourceArmDateLakeStoreRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDateLakeStoreDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmStorageDataLakeGen1FilesystemDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreAccountsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -304,17 +318,17 @@ func resourceArmDateLakeStoreDelete(d *pluginsdk.ResourceData, meta interface{})
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Data Lake Store %s: %+v", id, err)
+		return fmt.Errorf("deleting Storage Data Lake Gen1 Filesystem %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Data Lake Store %s: %+v", id, err)
+		return fmt.Errorf("waiting for deletion of Storage Data Lake Gen1 Filesystem %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandDataLakeStoreIdentity(input []interface{}) *account.EncryptionIdentity {
+func expandStorageDataLakeGen1FilesystemIdentity(input []interface{}) *account.EncryptionIdentity {
 	if len(input) == 0 {
 		return nil
 	}
@@ -326,7 +340,7 @@ func expandDataLakeStoreIdentity(input []interface{}) *account.EncryptionIdentit
 	}
 }
 
-func flattenDataLakeStoreIdentity(identity *account.EncryptionIdentity) []interface{} {
+func flattenStorageDataLakeGen1Identity(identity *account.EncryptionIdentity) []interface{} {
 	if identity == nil {
 		return []interface{}{}
 	}

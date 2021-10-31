@@ -16,16 +16,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DataLakeStoreVirtualNetworkRuleResource struct{}
+type StorageDataLakeGen1VirtualNetworkRuleResource struct{}
 
 /*
 	---Testing for Success---
-	Test a basic Data Lake Store virtual network rule configuration setup and update scenario, and
+	Test a basic Storage Data Lake Gen1 virtual network rule configuration setup and update scenario, and
 	validate that new property is set correctly.
 */
-func TestAccDataLakeStoreVirtualNetworkRule_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_virtual_network_rule", "test")
-	r := DataLakeStoreVirtualNetworkRuleResource{}
+func TestAccStorageDataLakeGen1VirtualNetworkRule_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen1_virtual_network_rule", "test")
+	r := StorageDataLakeGen1VirtualNetworkRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,9 +45,9 @@ func TestAccDataLakeStoreVirtualNetworkRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataLakeStoreVirtualNetworkRule_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_virtual_network_rule", "test")
-	r := DataLakeStoreVirtualNetworkRuleResource{}
+func TestAccStorageDataLakeGen1VirtualNetworkRule_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen1_virtual_network_rule", "test")
+	r := StorageDataLakeGen1VirtualNetworkRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -62,12 +62,12 @@ func TestAccDataLakeStoreVirtualNetworkRule_requiresImport(t *testing.T) {
 
 /*
 	---Testing for Success---
-	Test an update to the Data Lake Store Virtual Network Rule to connect to a different subnet, and
+	Test an update to the Storage Data Lake Gen1 Virtual Network Rule to connect to a different subnet, and
 	validate that new subnet is set correctly.
 */
-func TestAccDataLakeStoreVirtualNetworkRule_switchSubnets(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_virtual_network_rule", "test")
-	r := DataLakeStoreVirtualNetworkRuleResource{}
+func TestAccStorageDataLakeGen1VirtualNetworkRule_switchSubnets(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen1_virtual_network_rule", "test")
+	r := StorageDataLakeGen1VirtualNetworkRuleResource{}
 
 	// Create regex strings that will ensure that one subnet name exists, but not the other
 	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet1%d)$|(subnet[^2]%d)$", data.RandomInteger, data.RandomInteger))  // subnet 1 but not 2
@@ -94,9 +94,9 @@ func TestAccDataLakeStoreVirtualNetworkRule_switchSubnets(t *testing.T) {
 /*
 	---Testing for Success---
 */
-func TestAccDataLakeStoreVirtualNetworkRule_disappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_virtual_network_rule", "test")
-	r := DataLakeStoreVirtualNetworkRuleResource{}
+func TestAccStorageDataLakeGen1VirtualNetworkRule_disappears(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen1_virtual_network_rule", "test")
+	r := StorageDataLakeGen1VirtualNetworkRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
@@ -109,13 +109,13 @@ func TestAccDataLakeStoreVirtualNetworkRule_disappears(t *testing.T) {
 /*
 	--Testing for Success--
 	Test if we are able to create multiple subnets and connect multiple subnets to the
-	Data Lake Store.
+	Storage Data Lake Gen1.
 */
-func TestAccDataLakeStoreVirtualNetworkRule_multipleSubnets(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_virtual_network_rule", "test")
-	resourceName2 := "azurerm_data_lake_store_virtual_network_rule.rule2"
-	resourceName3 := "azurerm_data_lake_store_virtual_network_rule.rule3"
-	r := DataLakeStoreVirtualNetworkRuleResource{}
+func TestAccStorageDataLakeGen1VirtualNetworkRule_multipleSubnets(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen1_virtual_network_rule", "test")
+	resourceName2 := "azurerm_storage_data_lake_gen1_virtual_network_rule.rule2"
+	resourceName3 := "azurerm_storage_data_lake_gen1_virtual_network_rule.rule3"
+	r := StorageDataLakeGen1VirtualNetworkRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -133,7 +133,7 @@ func TestAccDataLakeStoreVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	--Testing for Failure--
 	Validation Function Tests - Invalid Name Validations
 */
-func TestResourceAzureRMDataLakeStoreVirtualNetworkRule_invalidNameValidation(t *testing.T) {
+func TestResourceAzureRMStorageDataLakeGen1VirtualNetworkRule_invalidNameValidation(t *testing.T) {
 	cases := []struct {
 		Value    string
 		ErrCount int
@@ -196,10 +196,10 @@ func TestResourceAzureRMDataLakeStoreVirtualNetworkRule_invalidNameValidation(t 
 	}
 
 	for _, tc := range cases {
-		_, errors := validate.ValidateDataLakeStoreVirtualNetworkRuleName(tc.Value, "azurerm_data_lake_store_virtual_network_rule")
+		_, errors := validate.ValidateStorageDataLakeGen1VirtualNetworkRuleName(tc.Value, "azurerm_storage_data_lake_gen1_virtual_network_rule")
 
 		if len(errors) != tc.ErrCount {
-			t.Fatalf("Bad: Expected the Azure RM Data Lake Store Virtual Network Rule Name to trigger a validation error.")
+			t.Fatalf("Bad: Expected the Azure RM Storage Data Lake Gen1 Virtual Network Rule Name to trigger a validation error.")
 		}
 	}
 }
@@ -208,7 +208,7 @@ func TestResourceAzureRMDataLakeStoreVirtualNetworkRule_invalidNameValidation(t 
 	--Testing for Success--
 	Validation Function Tests - (Barely) Valid Name Validations
 */
-func TestResourceAzureRMDataLakeStoreVirtualNetworkRule_validNameValidation(t *testing.T) {
+func TestResourceAzureRMStorageDataLakeGen1VirtualNetworkRule_validNameValidation(t *testing.T) {
 	cases := []struct {
 		Value    string
 		ErrCount int
@@ -291,15 +291,15 @@ func TestResourceAzureRMDataLakeStoreVirtualNetworkRule_validNameValidation(t *t
 	}
 
 	for _, tc := range cases {
-		_, errors := validate.ValidateDataLakeStoreVirtualNetworkRuleName(tc.Value, "azurerm_data_lake_store_virtual_network_rule")
+		_, errors := validate.ValidateStorageDataLakeGen1VirtualNetworkRuleName(tc.Value, "azurerm_storage_data_lake_gen1_virtual_network_rule")
 
 		if len(errors) != tc.ErrCount {
-			t.Fatalf("Bad: Expected the Azure RM Data Lake Store Virtual Network Rule Name pass name validation successfully but triggered a validation error.")
+			t.Fatalf("Bad: Expected the Azure RM Storage Data Lake Gen1 Virtual Network Rule Name pass name validation successfully but triggered a validation error.")
 		}
 	}
 }
 
-func (r DataLakeStoreVirtualNetworkRuleResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageDataLakeGen1VirtualNetworkRuleResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -309,12 +309,12 @@ func (r DataLakeStoreVirtualNetworkRuleResource) Exists(ctx context.Context, cli
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Data Lake Store Virtual Network Rule %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving Storage Data Lake Gen1 Virtual Network Rule %s: %+v", id, err)
 	}
 	return utils.Bool(true), nil
 }
 
-func (r DataLakeStoreVirtualNetworkRuleResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageDataLakeGen1VirtualNetworkRuleResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -322,7 +322,7 @@ func (r DataLakeStoreVirtualNetworkRuleResource) Destroy(ctx context.Context, cl
 	rulesClient := client.Datalake.VirtualNetworkRulesClient
 
 	if _, err = rulesClient.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name); err != nil {
-		return nil, fmt.Errorf("deleting Data Lake Store Virtual Network Rule %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("deleting Storage Data Lake Gen1 Virtual Network Rule %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(true), nil
@@ -332,7 +332,7 @@ func (r DataLakeStoreVirtualNetworkRuleResource) Destroy(ctx context.Context, cl
 	(This test configuration is intended to succeed.)
 	Basic Provisioning Configuration
 */
-func (r DataLakeStoreVirtualNetworkRuleResource) basic(data acceptance.TestData) string {
+func (r StorageDataLakeGen1VirtualNetworkRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -358,30 +358,30 @@ resource "azurerm_subnet" "test" {
   service_endpoints    = ["Microsoft.AzureActiveDirectory"]
 }
 
-resource "azurerm_data_lake_store" "test" {
+resource "azurerm_storage_data_lake_gen1_filesystem" "test" {
   name                = "acctestadls%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
-resource "azurerm_data_lake_store_virtual_network_rule" "test" {
+resource "azurerm_storage_data_lake_gen1_virtual_network_rule" "test" {
   name                = "acctestadlsvnetrule%d"
   resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_data_lake_store.test.name
+  account_name        = azurerm_storage_data_lake_gen1_filesystem.test.name
   subnet_id           = azurerm_subnet.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, strconv.Itoa(data.RandomInteger)[2:13], data.RandomInteger)
 }
 
-func (r DataLakeStoreVirtualNetworkRuleResource) requiresImport(data acceptance.TestData) string {
+func (r StorageDataLakeGen1VirtualNetworkRuleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_data_lake_store_virtual_network_rule" "import" {
-  name                = azurerm_data_lake_store_virtual_network_rule.test.name
-  resource_group_name = azurerm_data_lake_store_virtual_network_rule.test.resource_group_name
-  account_name        = azurerm_data_lake_store_virtual_network_rule.test.account_name
-  subnet_id           = azurerm_data_lake_store_virtual_network_rule.test.subnet_id
+resource "azurerm_storage_data_lake_gen1_virtual_network_rule" "import" {
+  name                = azurerm_storage_data_lake_gen1_virtual_network_rule.test.name
+  resource_group_name = azurerm_storage_data_lake_gen1_virtual_network_rule.test.resource_group_name
+  account_name        = azurerm_storage_data_lake_gen1_virtual_network_rule.test.account_name
+  subnet_id           = azurerm_storage_data_lake_gen1_virtual_network_rule.test.subnet_id
 }
 `, r.basic(data))
 }
@@ -390,7 +390,7 @@ resource "azurerm_data_lake_store_virtual_network_rule" "import" {
 	(This test configuration is intended to succeed.)
 	Basic Provisioning Update Configuration (all other properties would recreate the rule)
 */
-func (r DataLakeStoreVirtualNetworkRuleResource) withUpdates(data acceptance.TestData) string {
+func (r StorageDataLakeGen1VirtualNetworkRuleResource) withUpdates(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -416,16 +416,16 @@ resource "azurerm_subnet" "test" {
   service_endpoints    = ["Microsoft.AzureActiveDirectory"]
 }
 
-resource "azurerm_data_lake_store" "test" {
+resource "azurerm_storage_data_lake_gen1_filesystem" "test" {
   name                = "acctestadls%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
-resource "azurerm_data_lake_store_virtual_network_rule" "test" {
+resource "azurerm_storage_data_lake_gen1_virtual_network_rule" "test" {
   name                = "acctestadlsvnetrule%d"
   resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_data_lake_store.test.name
+  account_name        = azurerm_storage_data_lake_gen1_filesystem.test.name
   subnet_id           = azurerm_subnet.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, strconv.Itoa(data.RandomInteger)[2:13], data.RandomInteger)
@@ -434,9 +434,9 @@ resource "azurerm_data_lake_store_virtual_network_rule" "test" {
 /*
 	(This test configuration is intended to succeed.)
 	This test is designed to set up a scenario where a user would want to update the subnet
-	on a given Data Lake Store virtual network rule. This configuration sets up the resources initially.
+	on a given Storage Data Lake Gen1 Virtual Network Rule. This configuration sets up the resources initially.
 */
-func (r DataLakeStoreVirtualNetworkRuleResource) subnetSwitchPre(data acceptance.TestData) string {
+func (r StorageDataLakeGen1VirtualNetworkRuleResource) subnetSwitchPre(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -470,16 +470,16 @@ resource "azurerm_subnet" "test2" {
   service_endpoints    = ["Microsoft.AzureActiveDirectory"]
 }
 
-resource "azurerm_data_lake_store" "test" {
+resource "azurerm_storage_data_lake_gen1_filesystem" "test" {
   name                = "acctestadls%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
-resource "azurerm_data_lake_store_virtual_network_rule" "test" {
+resource "azurerm_storage_data_lake_gen1_virtual_network_rule" "test" {
   name                = "acctestadlsvnetrule%d"
   resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_data_lake_store.test.name
+  account_name        = azurerm_storage_data_lake_gen1_filesystem.test.name
   subnet_id           = azurerm_subnet.test1.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, strconv.Itoa(data.RandomInteger)[2:13], data.RandomInteger)
@@ -488,10 +488,10 @@ resource "azurerm_data_lake_store_virtual_network_rule" "test" {
 /*
 	(This test configuration is intended to succeed.)
 	This test is designed to set up a scenario where a user would want to update the subnet
-	on a given Data Lake Store virtual network rule. This configuration contains the update from
+	on a given Storage Data Lake Gen1 virtual network rule. This configuration contains the update from
 	azurerm_subnet.test1 to azurerm_subnet.test2.
 */
-func (r DataLakeStoreVirtualNetworkRuleResource) subnetSwitchPost(data acceptance.TestData) string {
+func (r StorageDataLakeGen1VirtualNetworkRuleResource) subnetSwitchPost(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -525,16 +525,16 @@ resource "azurerm_subnet" "test2" {
   service_endpoints    = ["Microsoft.AzureActiveDirectory"]
 }
 
-resource "azurerm_data_lake_store" "test" {
+resource "azurerm_storage_data_lake_gen1_filesystem" "test" {
   name                = "acctestadls%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
-resource "azurerm_data_lake_store_virtual_network_rule" "test" {
+resource "azurerm_storage_data_lake_gen1_virtual_network_rule" "test" {
   name                = "acctestadlsvnetrule%d"
   resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_data_lake_store.test.name
+  account_name        = azurerm_storage_data_lake_gen1_filesystem.test.name
   subnet_id           = azurerm_subnet.test2.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, strconv.Itoa(data.RandomInteger)[2:13], data.RandomInteger)
@@ -543,9 +543,9 @@ resource "azurerm_data_lake_store_virtual_network_rule" "test" {
 /*
 	(This test configuration is intended to succeed.)
 	This configuration sets up 3 subnets in 2 different virtual networks, and adds
-	Data Lake Store virtual network rules for all 3 subnets to the Data Lake Store.
+	Storage Data Lake Gen1 virtual network rules for all 3 subnets to the Storage Data Lake Gen1.
 */
-func (r DataLakeStoreVirtualNetworkRuleResource) multipleSubnets(data acceptance.TestData) string {
+func (r StorageDataLakeGen1VirtualNetworkRuleResource) multipleSubnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -594,30 +594,30 @@ resource "azurerm_subnet" "vnet2_subnet1" {
   service_endpoints    = ["Microsoft.AzureActiveDirectory"]
 }
 
-resource "azurerm_data_lake_store" "test" {
+resource "azurerm_storage_data_lake_gen1_filesystem" "test" {
   name                = "acctestadls%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
-resource "azurerm_data_lake_store_virtual_network_rule" "test" {
+resource "azurerm_storage_data_lake_gen1_virtual_network_rule" "test" {
   name                = "acctestsqlvnetrule1%d"
   resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_data_lake_store.test.name
+  account_name        = azurerm_storage_data_lake_gen1_filesystem.test.name
   subnet_id           = azurerm_subnet.vnet1_subnet1.id
 }
 
-resource "azurerm_data_lake_store_virtual_network_rule" "rule2" {
+resource "azurerm_storage_data_lake_gen1_virtual_network_rule" "rule2" {
   name                = "acctestsqlvnetrule2%d"
   resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_data_lake_store.test.name
+  account_name        = azurerm_storage_data_lake_gen1_filesystem.test.name
   subnet_id           = azurerm_subnet.vnet1_subnet2.id
 }
 
-resource "azurerm_data_lake_store_virtual_network_rule" "rule3" {
+resource "azurerm_storage_data_lake_gen1_virtual_network_rule" "rule3" {
   name                = "acctestsqlvnetrule3%d"
   resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_data_lake_store.test.name
+  account_name        = azurerm_storage_data_lake_gen1_filesystem.test.name
   subnet_id           = azurerm_subnet.vnet2_subnet1.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, strconv.Itoa(data.RandomInteger)[2:13], data.RandomInteger, data.RandomInteger, data.RandomInteger)

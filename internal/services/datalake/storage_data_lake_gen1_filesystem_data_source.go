@@ -14,8 +14,16 @@ import (
 )
 
 func dataSourceDataLakeStoreAccount() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Read: dataSourceArmDateLakeStoreAccountRead,
+	return _dataSourceStorageDataLakeGen1Filesystem(true)
+}
+
+func dataSourceStorageDataLakeGen1Filesystem() *pluginsdk.Resource {
+	return _dataSourceStorageDataLakeGen1Filesystem(false)
+}
+
+func _dataSourceStorageDataLakeGen1Filesystem(showDeprecationMessage bool) *pluginsdk.Resource {
+	resource := &pluginsdk.Resource{
+		Read: dataSourceArmStorageDateLakeGen1FilesystemRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -59,9 +67,16 @@ func dataSourceDataLakeStoreAccount() *pluginsdk.Resource {
 			"tags": tags.SchemaDataSource(),
 		},
 	}
+
+	if showDeprecationMessage {
+		resource.DeprecationMessage = "This resrouce has been renamed to `azurerm_storage_data_lake_gen1_filesystem` and it will be removed in version 3.0."
+	}
+
+	return resource
+
 }
 
-func dataSourceArmDateLakeStoreAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceArmStorageDateLakeGen1FilesystemRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreAccountsClient
 	subscriptionId := meta.(*clients.Client).Datalake.StoreAccountsClient.SubscriptionID
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -72,9 +87,9 @@ func dataSourceArmDateLakeStoreAccountRead(d *pluginsdk.ResourceData, meta inter
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Data Lake Store Account %s was not found", id)
+			return fmt.Errorf("Storage Data Lake Gen1 Filesystem %s was not found", id)
 		}
-		return fmt.Errorf("retrieving Data Lake Store Account %s: %+v", id, err)
+		return fmt.Errorf("retrieving Storage Data Lake Gen1 Filesystem %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

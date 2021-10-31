@@ -19,11 +19,19 @@ import (
 )
 
 func resourceDataLakeStoreFirewallRule() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceArmDateLakeStoreAccountFirewallRuleCreateUpdate,
-		Read:   resourceArmDateLakeStoreAccountFirewallRuleRead,
-		Update: resourceArmDateLakeStoreAccountFirewallRuleCreateUpdate,
-		Delete: resourceArmDateLakeStoreAccountFirewallRuleDelete,
+	return _resourceStorageDataLakeGen1FirewallRule(true)
+}
+
+func resourceStorageDataLakeGen1FirewallRule() *pluginsdk.Resource {
+	return _resourceStorageDataLakeGen1FirewallRule(false)
+}
+
+func _resourceStorageDataLakeGen1FirewallRule(showDeprecationMessage bool) *pluginsdk.Resource {
+	resource := &pluginsdk.Resource{
+		Create: resourceArmStorageDateLakeGen1FirewallRuleCreateUpdate,
+		Read:   resourceArmStorageDateLakeGen1FirewallRuleRead,
+		Update: resourceArmStorageDateLakeGen1FirewallRuleCreateUpdate,
+		Delete: resourceArmStorageDateLakeGen1FirewallRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.FirewallRuleID(id)
@@ -67,9 +75,15 @@ func resourceDataLakeStoreFirewallRule() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if showDeprecationMessage {
+		resource.DeprecationMessage = "This resrouces has been renamed to `azurerm_storage_data_lake_gen1_firewall_rule` and it will be removed in version 3.0, you can follow the renaming guide https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/migrating-between-renamed-resources#migrating-to-a-renamed-resource "
+	}
+
+	return resource
 }
 
-func resourceArmDateLakeStoreAccountFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmStorageDateLakeGen1FirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreFirewallRulesClient
 	subscriptionId := meta.(*clients.Client).Datalake.StoreFirewallRulesClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -81,37 +95,37 @@ func resourceArmDateLakeStoreAccountFirewallRuleCreateUpdate(d *pluginsdk.Resour
 		existing, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Date Lake Store Firewall Rule %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing Storage Date Lake Gen1 Firewall Rule %s: %+v", id, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_lake_store_firewall_rule", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_storage_data_lake_gen1_firewall_rule", *existing.ID)
 		}
 	}
 
 	startIPAddress := d.Get("start_ip_address").(string)
 	endIPAddress := d.Get("end_ip_address").(string)
 
-	log.Printf("[INFO] preparing arguments for Date Lake Store Firewall Rule creation  %s", id)
+	log.Printf("[INFO] preparing arguments for Storage Date Lake Gen1 Firewall Rule creation  %s", id)
 
-	dateLakeStore := account.CreateOrUpdateFirewallRuleParameters{
+	storageDateLakeGen1 := account.CreateOrUpdateFirewallRuleParameters{
 		CreateOrUpdateFirewallRuleProperties: &account.CreateOrUpdateFirewallRuleProperties{
 			StartIPAddress: utils.String(startIPAddress),
 			EndIPAddress:   utils.String(endIPAddress),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AccountName, id.Name, dateLakeStore); err != nil {
-		return fmt.Errorf("issuing create request for Data Lake Store %q (Resource Group %q): %+v", id.AccountName, id.ResourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AccountName, id.Name, storageDateLakeGen1); err != nil {
+		return fmt.Errorf("issuing create request for Storage Data Lake Gen1 %q (Resource Group %q): %+v", id.AccountName, id.ResourceGroup, err)
 	}
 
 	d.SetId(id.ID())
 
-	return resourceArmDateLakeStoreAccountFirewallRuleRead(d, meta)
+	return resourceArmStorageDateLakeGen1FirewallRuleRead(d, meta)
 }
 
-func resourceArmDateLakeStoreAccountFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmStorageDateLakeGen1FirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreFirewallRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -143,7 +157,7 @@ func resourceArmDateLakeStoreAccountFirewallRuleRead(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func resourceArmDateLakeStoreAccountFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmStorageDateLakeGen1FirewallRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreFirewallRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

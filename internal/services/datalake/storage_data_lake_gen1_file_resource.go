@@ -22,10 +22,18 @@ import (
 )
 
 func resourceDataLakeStoreFile() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceDataLakeStoreFileCreate,
-		Read:   resourceDataLakeStoreFileRead,
-		Delete: resourceDataLakeStoreFileDelete,
+	return _resourceStorageDataLakeGen1File(true)
+}
+
+func resourceStorageDataLakeGen1File() *pluginsdk.Resource {
+	return _resourceStorageDataLakeGen1File(false)
+}
+
+func _resourceStorageDataLakeGen1File(showDeprecationMessage bool) *pluginsdk.Resource {
+	resource := &pluginsdk.Resource{
+		Create: resourceStorageDataLakeGen1FileCreate,
+		Read:   resourceStorageDataLakeGen1FileRead,
+		Delete: resourceStorageDataLakeGen1FileDelete,
 
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
@@ -63,15 +71,21 @@ func resourceDataLakeStoreFile() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if showDeprecationMessage {
+		resource.DeprecationMessage = "This resrouces has been renamed to `azurerm_storage_data_lake_gen1_file` and it will be removed in version 3.0, you can follow the renaming guide https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/migrating-between-renamed-resources#migrating-to-a-renamed-resource "
+	}
+
+	return resource
 }
 
-func resourceDataLakeStoreFileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen1FileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreFilesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	chunkSize := 4 * 1024 * 1024
 
-	log.Printf("[INFO] preparing arguments for Date Lake Store File creation.")
+	log.Printf("[INFO] preparing arguments for Storage Date Lake Gen1 File creation.")
 
 	accountName := d.Get("account_name").(string)
 	remoteFilePath := d.Get("remote_file_path").(string)
@@ -83,12 +97,12 @@ func resourceDataLakeStoreFileCreate(d *pluginsdk.ResourceData, meta interface{}
 	existing, err := client.GetFileStatus(ctx, accountName, remoteFilePath, utils.Bool(true))
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Data Lake Store File %q (Account %q): %s", remoteFilePath, accountName, err)
+			return fmt.Errorf("checking for presence of existing Storage Data Lake Gen1 File %q (Account %q): %s", remoteFilePath, accountName, err)
 		}
 	}
 
 	if existing.FileStatus != nil && existing.FileStatus.ModificationTime != nil {
-		return tf.ImportAsExistsError("azurerm_data_lake_store_file", id)
+		return tf.ImportAsExistsError("azurerm_storage_data_lake_gen1_file", id)
 	}
 
 	file, err := os.Open(localFilePath)
@@ -97,12 +111,12 @@ func resourceDataLakeStoreFileCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 	defer func(c io.Closer) {
 		if err := c.Close(); err != nil {
-			log.Printf("[DEBUG] Error closing Data Lake Store File %q: %+v", localFilePath, err)
+			log.Printf("[DEBUG] Error closing Storage Data Lake Gen1 File %q: %+v", localFilePath, err)
 		}
 	}(file)
 
 	if _, err = client.Create(ctx, accountName, remoteFilePath, nil, nil, filesystem.DATA, nil, nil); err != nil {
-		return fmt.Errorf("issuing create request for Data Lake Store File %q : %+v", remoteFilePath, err)
+		return fmt.Errorf("issuing create request for Storage Data Lake Gen1 File %q : %+v", remoteFilePath, err)
 	}
 
 	buffer := make([]byte, chunkSize)
@@ -119,20 +133,20 @@ func resourceDataLakeStoreFileCreate(d *pluginsdk.ResourceData, meta interface{}
 		chunk := io.NopCloser(bytes.NewReader(buffer[:n]))
 
 		if _, err = client.Append(ctx, accountName, remoteFilePath, chunk, nil, flag, nil, nil); err != nil {
-			return fmt.Errorf("transferring chunk for Data Lake Store File %q : %+v", remoteFilePath, err)
+			return fmt.Errorf("transferring chunk for Storage Data Lake Gen1 File %q : %+v", remoteFilePath, err)
 		}
 	}
 
 	d.SetId(id)
-	return resourceDataLakeStoreFileRead(d, meta)
+	return resourceStorageDataLakeGen1FileRead(d, meta)
 }
 
-func resourceDataLakeStoreFileRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen1FileRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreFilesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
+	id, err := ParseStorageDataLakeGen1FileId(d.Id(), client.AdlsFileSystemDNSSuffix)
 	if err != nil {
 		return err
 	}
@@ -140,12 +154,12 @@ func resourceDataLakeStoreFileRead(d *pluginsdk.ResourceData, meta interface{}) 
 	resp, err := client.GetFileStatus(ctx, id.StorageAccountName, id.FilePath, utils.Bool(true))
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Data Lake Store File %q was not found (Account %q)", id.FilePath, id.StorageAccountName)
+			log.Printf("[WARN] Storage Data Lake Gen1 File %q was not found (Account %q)", id.FilePath, id.StorageAccountName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure Data Lake Store File %q (Account %q): %+v", id.FilePath, id.StorageAccountName, err)
+		return fmt.Errorf("making Read request on Azure Storage Data Lake Gen1 File %q (Account %q): %+v", id.FilePath, id.StorageAccountName, err)
 	}
 
 	d.Set("account_name", id.StorageAccountName)
@@ -154,12 +168,12 @@ func resourceDataLakeStoreFileRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceDataLakeStoreFileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen1FileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreFilesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
+	id, err := ParseStorageDataLakeGen1FileId(d.Id(), client.AdlsFileSystemDNSSuffix)
 	if err != nil {
 		return err
 	}
@@ -167,19 +181,19 @@ func resourceDataLakeStoreFileDelete(d *pluginsdk.ResourceData, meta interface{}
 	resp, err := client.Delete(ctx, id.StorageAccountName, id.FilePath, utils.Bool(false))
 	if err != nil {
 		if !response.WasNotFound(resp.Response.Response) {
-			return fmt.Errorf("issuing delete request for Data Lake Store File %q (Account %q): %+v", id.FilePath, id.StorageAccountName, err)
+			return fmt.Errorf("issuing delete request for Storage Data Lake Gen1 File %q (Account %q): %+v", id.FilePath, id.StorageAccountName, err)
 		}
 	}
 
 	return nil
 }
 
-type dataLakeStoreFileId struct {
+type storageDataLakeGen1FileId struct {
 	StorageAccountName string
 	FilePath           string
 }
 
-func ParseDataLakeStoreFileId(input string, suffix string) (*dataLakeStoreFileId, error) {
+func ParseStorageDataLakeGen1FileId(input string, suffix string) (*storageDataLakeGen1FileId, error) {
 	// Example: tomdevdls1.azuredatalakestore.net/test/example.txt
 	// we add a scheme to the start of this so it parses correctly
 	uri, err := url.Parse(fmt.Sprintf("https://%s", input))
@@ -192,7 +206,7 @@ func ParseDataLakeStoreFileId(input string, suffix string) (*dataLakeStoreFileId
 	replacement := fmt.Sprintf(".%s", suffix)
 	accountName := strings.ReplaceAll(uri.Host, replacement, "")
 
-	file := dataLakeStoreFileId{
+	file := storageDataLakeGen1FileId{
 		StorageAccountName: accountName,
 		FilePath:           uri.Path,
 	}

@@ -8,12 +8,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type DataLakeStoreDataSource struct {
+type StorageDataLakeGen1FilesystemDataSource struct {
 }
 
-func TestAccDataLakeStoreDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_data_lake_store", "test")
-	r := DataLakeStoreDataSource{}
+func TestAccStorageDataLakeGen1FilesystemDataSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_data_lake_gen1_filesystem", "test")
+	r := StorageDataLakeGen1FilesystemDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -25,9 +25,9 @@ func TestAccDataLakeStoreDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataLakeStoreDataSource_tier(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_data_lake_store", "test")
-	r := DataLakeStoreDataSource{}
+func TestAccStorageDataLakeGen1FilesystemDataSource_tier(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_data_lake_gen1_filesystem", "test")
+	r := StorageDataLakeGen1FilesystemDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -41,7 +41,7 @@ func TestAccDataLakeStoreDataSource_tier(t *testing.T) {
 	})
 }
 
-func (DataLakeStoreDataSource) basic(data acceptance.TestData) string {
+func (StorageDataLakeGen1FilesystemDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -52,20 +52,20 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_data_lake_store" "test" {
+resource "azurerm_storage_data_lake_gen1_filesystem" "test" {
   name                = "unlikely23exst2acct%s"
   location            = "%s"
   resource_group_name = azurerm_resource_group.test.name
 }
 
-data "azurerm_data_lake_store" "test" {
-  name                = azurerm_data_lake_store.test.name
-  resource_group_name = azurerm_data_lake_store.test.resource_group_name
+data "azurerm_storage_data_lake_gen1_filesystem" "test" {
+  name                = azurerm_storage_data_lake_gen1_filesystem.test.name
+  resource_group_name = azurerm_storage_data_lake_gen1_filesystem.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Primary)
 }
 
-func (DataLakeStoreDataSource) tier(data acceptance.TestData) string {
+func (StorageDataLakeGen1FilesystemDataSource) tier(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -76,7 +76,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_data_lake_store" "test" {
+resource "azurerm_storage_data_lake_gen1_filesystem" "test" {
   name                = "unlikely23exst2acct%s"
   location            = "%s"
   tier                = "Commitment_1TB"
@@ -87,9 +87,9 @@ resource "azurerm_data_lake_store" "test" {
   }
 }
 
-data "azurerm_data_lake_store" "test" {
-  name                = azurerm_data_lake_store.test.name
-  resource_group_name = azurerm_data_lake_store.test.resource_group_name
+data "azurerm_storage_data_lake_gen1_filesystem" "test" {
+  name                = azurerm_storage_data_lake_gen1_filesystem.test.name
+  resource_group_name = azurerm_storage_data_lake_gen1_filesystem.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Primary)
 }

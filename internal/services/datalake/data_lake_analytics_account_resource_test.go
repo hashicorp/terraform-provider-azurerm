@@ -110,9 +110,9 @@ resource "azurerm_data_lake_analytics_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  default_store_account_name = azurerm_data_lake_store.test.name
+  default_store_account_name = azurerm_storage_data_lake_gen1_filesystem.test.name
 }
-`, DataLakeStoreResource{}.basic(data), strconv.Itoa(data.RandomInteger)[2:17])
+`, StorageDataLakeGen1FilesystemResource{}.basic(data), strconv.Itoa(data.RandomInteger)[2:17])
 }
 
 func (r DataLakeAnalyticsAccountResource) requiresImport(data acceptance.TestData) string {
@@ -139,9 +139,9 @@ resource "azurerm_data_lake_analytics_account" "test" {
 
   tier = "Commitment_100AUHours"
 
-  default_store_account_name = azurerm_data_lake_store.test.name
+  default_store_account_name = azurerm_storage_data_lake_gen1_filesystem.test.name
 }
-`, DataLakeStoreResource{}.basic(data), strconv.Itoa(data.RandomInteger)[2:17])
+`, StorageDataLakeGen1FilesystemResource{}.basic(data), strconv.Itoa(data.RandomInteger)[2:17])
 }
 
 func (r DataLakeAnalyticsAccountResource) withTags(data acceptance.TestData) string {
@@ -153,14 +153,14 @@ resource "azurerm_data_lake_analytics_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  default_store_account_name = azurerm_data_lake_store.test.name
+  default_store_account_name = azurerm_storage_data_lake_gen1_filesystem.test.name
 
   tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
 }
-`, DataLakeStoreResource{}.basic(data), strconv.Itoa(data.RandomInteger)[2:17])
+`, StorageDataLakeGen1FilesystemResource{}.basic(data), strconv.Itoa(data.RandomInteger)[2:17])
 }
 
 func (r DataLakeAnalyticsAccountResource) withTagsUpdate(data acceptance.TestData) string {
@@ -172,11 +172,11 @@ resource "azurerm_data_lake_analytics_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  default_store_account_name = azurerm_data_lake_store.test.name
+  default_store_account_name = azurerm_storage_data_lake_gen1_filesystem.test.name
 
   tags = {
     environment = "staging"
   }
 }
-`, DataLakeStoreResource{}.basic(data), strconv.Itoa(data.RandomInteger)[2:17])
+`, StorageDataLakeGen1FilesystemResource{}.basic(data), strconv.Itoa(data.RandomInteger)[2:17])
 }

@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DataLakeStoreResource struct {
+type StorageDataLakeGen1FilesystemResource struct {
 }
 
-func TestAccDataLakeStore_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
-	r := DataLakeStoreResource{}
+func TestAccStorageDataLakeGen1FileSystem_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen1_filesystem", "test")
+	r := StorageDataLakeGen1FilesystemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,9 +35,9 @@ func TestAccDataLakeStore_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataLakeStore_withIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
-	r := DataLakeStoreResource{}
+func TestAccStorageDataLakeGen1FileSystem_withIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen1_filesystem", "test")
+	r := StorageDataLakeGen1FilesystemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -57,9 +57,9 @@ func TestAccDataLakeStore_withIdentity(t *testing.T) {
 	})
 }
 
-func TestAccDataLakeStore_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
-	r := DataLakeStoreResource{}
+func TestAccStorageDataLakeGen1FileSystem_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen1_filesystem", "test")
+	r := StorageDataLakeGen1FilesystemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -70,14 +70,14 @@ func TestAccDataLakeStore_requiresImport(t *testing.T) {
 		},
 		{
 			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_data_lake_store"),
+			ExpectError: acceptance.RequiresImportError("azurerm_storage_data_lake_gen1_filesystem"),
 		},
 	})
 }
 
-func TestAccDataLakeStore_tier(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
-	r := DataLakeStoreResource{}
+func TestAccStorageDataLakeGen1FileSystem_tier(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen1_filesystem", "test")
+	r := StorageDataLakeGen1FilesystemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -91,9 +91,9 @@ func TestAccDataLakeStore_tier(t *testing.T) {
 	})
 }
 
-func TestAccDataLakeStore_encryptionDisabled(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
-	r := DataLakeStoreResource{}
+func TestAccStorageDataLakeGen1FileSystem_encryptionDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen1_filesystem", "test")
+	r := StorageDataLakeGen1FilesystemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -108,9 +108,9 @@ func TestAccDataLakeStore_encryptionDisabled(t *testing.T) {
 	})
 }
 
-func TestAccDataLakeStore_firewallUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
-	r := DataLakeStoreResource{}
+func TestAccStorageDataLakeGen1FileSystem_firewallUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen1_filesystem", "test")
+	r := StorageDataLakeGen1FilesystemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -148,9 +148,9 @@ func TestAccDataLakeStore_firewallUpdate(t *testing.T) {
 	})
 }
 
-func TestAccDataLakeStore_withTags(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
-	r := DataLakeStoreResource{}
+func TestAccStorageDataLakeGen1FileSystem_withTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen1_filesystem", "test")
+	r := StorageDataLakeGen1FilesystemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -171,7 +171,7 @@ func TestAccDataLakeStore_withTags(t *testing.T) {
 	})
 }
 
-func (t DataLakeStoreResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t StorageDataLakeGen1FilesystemResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AccountID(state.ID)
 	if err != nil {
 		return nil, err
@@ -179,13 +179,13 @@ func (t DataLakeStoreResource) Exists(ctx context.Context, clients *clients.Clie
 
 	resp, err := clients.Datalake.StoreAccountsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Date Lake Store %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving Storage Data Lake Gen1 Filesystem %s: %+v", id, err)
 	}
 
 	return utils.Bool(resp.DataLakeStoreAccountProperties != nil), nil
 }
 
-func (DataLakeStoreResource) basic(data acceptance.TestData) string {
+func (StorageDataLakeGen1FilesystemResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -196,7 +196,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_data_lake_store" "test" {
+resource "azurerm_storage_data_lake_gen1_filesystem" "test" {
   name                = "acctest%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -204,7 +204,7 @@ resource "azurerm_data_lake_store" "test" {
 `, data.RandomInteger, data.Locations.Primary, strconv.Itoa(data.RandomInteger)[2:17])
 }
 
-func (DataLakeStoreResource) identity(data acceptance.TestData) string {
+func (StorageDataLakeGen1FilesystemResource) identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -215,7 +215,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_data_lake_store" "test" {
+resource "azurerm_storage_data_lake_gen1_filesystem" "test" {
   name                = "acctest%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -227,20 +227,20 @@ resource "azurerm_data_lake_store" "test" {
 `, data.RandomInteger, data.Locations.Primary, strconv.Itoa(data.RandomInteger)[2:17])
 }
 
-func (DataLakeStoreResource) requiresImport(data acceptance.TestData) string {
-	template := DataLakeStoreResource{}.basic(data)
+func (StorageDataLakeGen1FilesystemResource) requiresImport(data acceptance.TestData) string {
+	template := StorageDataLakeGen1FilesystemResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_data_lake_store" "import" {
-  name                = azurerm_data_lake_store.test.name
-  resource_group_name = azurerm_data_lake_store.test.resource_group_name
-  location            = azurerm_data_lake_store.test.location
+resource "azurerm_storage_data_lake_gen1_filesystem" "import" {
+  name                = azurerm_storage_data_lake_gen1_filesystem.test.name
+  resource_group_name = azurerm_storage_data_lake_gen1_filesystem.test.resource_group_name
+  location            = azurerm_storage_data_lake_gen1_filesystem.test.location
 }
 `, template)
 }
 
-func (DataLakeStoreResource) tier(data acceptance.TestData) string {
+func (StorageDataLakeGen1FilesystemResource) tier(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -251,7 +251,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_data_lake_store" "test" {
+resource "azurerm_storage_data_lake_gen1_filesystem" "test" {
   name                = "acctest%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -260,7 +260,7 @@ resource "azurerm_data_lake_store" "test" {
 `, data.RandomInteger, data.Locations.Primary, strconv.Itoa(data.RandomInteger)[2:17])
 }
 
-func (DataLakeStoreResource) encryptionDisabled(data acceptance.TestData) string {
+func (StorageDataLakeGen1FilesystemResource) encryptionDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -271,7 +271,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_data_lake_store" "test" {
+resource "azurerm_storage_data_lake_gen1_filesystem" "test" {
   name                = "acctest%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -280,7 +280,7 @@ resource "azurerm_data_lake_store" "test" {
 `, data.RandomInteger, data.Locations.Primary, strconv.Itoa(data.RandomInteger)[2:17])
 }
 
-func (DataLakeStoreResource) firewall(data acceptance.TestData, firewallState string, firewallAllowAzureIPs string) string {
+func (StorageDataLakeGen1FilesystemResource) firewall(data acceptance.TestData, firewallState string, firewallAllowAzureIPs string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -291,7 +291,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_data_lake_store" "test" {
+resource "azurerm_storage_data_lake_gen1_filesystem" "test" {
   name                     = "acctest%s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
@@ -301,7 +301,7 @@ resource "azurerm_data_lake_store" "test" {
 `, data.RandomInteger, data.Locations.Primary, strconv.Itoa(data.RandomInteger)[2:17], firewallState, firewallAllowAzureIPs)
 }
 
-func (DataLakeStoreResource) withTags(data acceptance.TestData) string {
+func (StorageDataLakeGen1FilesystemResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -312,7 +312,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_data_lake_store" "test" {
+resource "azurerm_storage_data_lake_gen1_filesystem" "test" {
   name                = "acctest%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -325,7 +325,7 @@ resource "azurerm_data_lake_store" "test" {
 `, data.RandomInteger, data.Locations.Primary, strconv.Itoa(data.RandomInteger)[2:17])
 }
 
-func (DataLakeStoreResource) withTagsUpdate(data acceptance.TestData) string {
+func (StorageDataLakeGen1FilesystemResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -336,7 +336,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_data_lake_store" "test" {
+resource "azurerm_storage_data_lake_gen1_filesystem" "test" {
   name                = "acctest%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location

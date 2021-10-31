@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DataLakeStoreFirewallRuleResource struct {
+type StorageDataLakeGen1FirewallRuleResource struct {
 }
 
-func TestAccDataLakeStoreFirewallRule_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_firewall_rule", "test")
-	r := DataLakeStoreFirewallRuleResource{}
+func TestAccStorageDataLakeGen1FirewallRule_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen1_firewall_rule", "test")
+	r := StorageDataLakeGen1FirewallRuleResource{}
 	startIP := "1.1.1.1"
 	endIP := "2.2.2.2"
 
@@ -38,9 +38,9 @@ func TestAccDataLakeStoreFirewallRule_basic(t *testing.T) {
 
 //
 
-func TestAccDataLakeStoreFirewallRule_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_firewall_rule", "test")
-	r := DataLakeStoreFirewallRuleResource{}
+func TestAccStorageDataLakeGen1FirewallRule_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen1_firewall_rule", "test")
+	r := StorageDataLakeGen1FirewallRuleResource{}
 	startIP := "1.1.1.1"
 	endIP := "2.2.2.2"
 
@@ -53,14 +53,14 @@ func TestAccDataLakeStoreFirewallRule_requiresImport(t *testing.T) {
 		},
 		{
 			Config:      r.requiresImport(data, startIP, endIP),
-			ExpectError: acceptance.RequiresImportError("azurerm_data_lake_store_firewall_rule"),
+			ExpectError: acceptance.RequiresImportError("azurerm_storage_data_lake_gen1_firewall_rule"),
 		},
 	})
 }
 
-func TestAccDataLakeStoreFirewallRule_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_firewall_rule", "test")
-	r := DataLakeStoreFirewallRuleResource{}
+func TestAccStorageDataLakeGen1FirewallRule_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen1_firewall_rule", "test")
+	r := StorageDataLakeGen1FirewallRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -82,9 +82,9 @@ func TestAccDataLakeStoreFirewallRule_update(t *testing.T) {
 	})
 }
 
-func TestAccDataLakeStoreFirewallRule_azureServices(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_firewall_rule", "test")
-	r := DataLakeStoreFirewallRuleResource{}
+func TestAccStorageDataLakeGen1FirewallRule_azureServices(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen1_firewall_rule", "test")
+	r := StorageDataLakeGen1FirewallRuleResource{}
 	azureServicesIP := "0.0.0.0"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -100,7 +100,7 @@ func TestAccDataLakeStoreFirewallRule_azureServices(t *testing.T) {
 	})
 }
 
-func (t DataLakeStoreFirewallRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t StorageDataLakeGen1FirewallRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FirewallRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -108,13 +108,13 @@ func (t DataLakeStoreFirewallRuleResource) Exists(ctx context.Context, clients *
 
 	resp, err := clients.Datalake.StoreFirewallRulesClient.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Date Lake Store Firewall Rule %s: %v", id, err)
+		return nil, fmt.Errorf("retrieving Storage Date Lake Gen1 Firewall Rule %s: %v", id, err)
 	}
 
 	return utils.Bool(resp.FirewallRuleProperties != nil), nil
 }
 
-func (DataLakeStoreFirewallRuleResource) basic(data acceptance.TestData, startIP, endIP string) string {
+func (StorageDataLakeGen1FirewallRuleResource) basic(data acceptance.TestData, startIP, endIP string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -125,15 +125,15 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_data_lake_store" "test" {
+resource "azurerm_storage_data_lake_gen1_filesystem" "test" {
   name                = "acctest%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
-resource "azurerm_data_lake_store_firewall_rule" "test" {
+resource "azurerm_storage_data_lake_gen1_firewall_rule" "test" {
   name                = "acctest"
-  account_name        = azurerm_data_lake_store.test.name
+  account_name        = azurerm_storage_data_lake_gen1_filesystem.test.name
   resource_group_name = azurerm_resource_group.test.name
   start_ip_address    = "%s"
   end_ip_address      = "%s"
@@ -141,17 +141,17 @@ resource "azurerm_data_lake_store_firewall_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, strconv.Itoa(data.RandomInteger)[2:17], startIP, endIP)
 }
 
-func (DataLakeStoreFirewallRuleResource) requiresImport(data acceptance.TestData, startIP, endIP string) string {
-	template := DataLakeStoreFirewallRuleResource{}.basic(data, startIP, endIP)
+func (StorageDataLakeGen1FirewallRuleResource) requiresImport(data acceptance.TestData, startIP, endIP string) string {
+	template := StorageDataLakeGen1FirewallRuleResource{}.basic(data, startIP, endIP)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_data_lake_store_firewall_rule" "import" {
-  name                = azurerm_data_lake_store_firewall_rule.test.name
-  account_name        = azurerm_data_lake_store_firewall_rule.test.account_name
-  resource_group_name = azurerm_data_lake_store_firewall_rule.test.resource_group_name
-  start_ip_address    = azurerm_data_lake_store_firewall_rule.test.start_ip_address
-  end_ip_address      = azurerm_data_lake_store_firewall_rule.test.end_ip_address
+resource "azurerm_storage_data_lake_gen1_firewall_rule" "import" {
+  name                = azurerm_storage_data_lake_gen1_firewall_rule.test.name
+  account_name        = azurerm_storage_data_lake_gen1_firewall_rule.test.account_name
+  resource_group_name = azurerm_storage_data_lake_gen1_firewall_rule.test.resource_group_name
+  start_ip_address    = azurerm_storage_data_lake_gen1_firewall_rule.test.start_ip_address
+  end_ip_address      = azurerm_storage_data_lake_gen1_firewall_rule.test.end_ip_address
 }
 `, template)
 }
