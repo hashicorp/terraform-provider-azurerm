@@ -113,7 +113,7 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.FloatBetween(0, 1000),
+				ValidateFunc: validation.FloatAtLeast(0),
 			},
 
 			"daily_data_cap_notifications_disabled": {
