@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -166,11 +167,15 @@ func resourceArmSqlMiServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
-				ForceNew:     true,
 			},
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.ForceNewIfChange("dns_zone_partner_id", func(ctx context.Context, old, new, _ interface{}) bool {
+			// dns_zone_partner_id can only be set on init
+			return old.(string) == "" && new.(string) != ""
+		}),
 	}
 }
 

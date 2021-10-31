@@ -108,6 +108,14 @@ func TestAccAzureRMSqlMiServer_dnsZonePartner(t *testing.T) {
 			),
 		},
 		data.ImportStep("administrator_login_password", "dns_zone_partner_id"),
+		{
+			// DNS Zone Partner empty makes delete faster as MI can be destroyed simultaneously
+			Config: r.emptyDnsZonePartner(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
@@ -266,6 +274,37 @@ resource "azurerm_sql_managed_instance" "test1" {
   vcores                       = 4
   storage_size_in_gb           = 32
   dns_zone_partner_id          = azurerm_sql_managed_instance.test.id
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test1,
+    azurerm_subnet_route_table_association.test1,
+  ]
+
+  tags = {
+    environment = "prod"
+    database    = "test"
+  }
+}
+`, r.basic(data), r.templateSecondary(data), data.RandomInteger)
+}
+
+func (r SqlManagedInstanceResource) emptyDnsZonePartner(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+%s
+
+resource "azurerm_sql_managed_instance" "test1" {
+  name                         = "acctestsqlserver2%d"
+  resource_group_name          = azurerm_resource_group.test1.name
+  location                     = azurerm_resource_group.test1.location
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+  license_type                 = "BasePrice"
+  subnet_id                    = azurerm_subnet.test1.id
+  sku_name                     = "GP_Gen5"
+  vcores                       = 4
+  storage_size_in_gb           = 32
 
   depends_on = [
     azurerm_subnet_network_security_group_association.test1,
