@@ -587,7 +587,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if v, ok := d.GetOk("backup"); ok {
-		policy, err := expandCosmosdbAccountBackup(v.([]interface{}), d.HasChange("backup.0.type"))
+		policy, err := expandCosmosdbAccountBackup(v.([]interface{}), false)
 		if err != nil {
 			return fmt.Errorf("expanding `backup`: %+v", err)
 		}
