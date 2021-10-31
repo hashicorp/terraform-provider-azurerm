@@ -162,6 +162,13 @@ func resourceArmSqlMiServer() *schema.Resource {
 				Computed: true,
 			},
 
+			"dns_zone_partner_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+				ForceNew:     true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -211,6 +218,7 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 			MinimalTLSVersion:          utils.String(d.Get("minimum_tls_version").(string)),
 			ProxyOverride:              sql.ManagedInstanceProxyOverride(d.Get("proxy_override").(string)),
 			TimezoneID:                 utils.String(d.Get("timezone_id").(string)),
+			DNSZonePartner:             utils.String(d.Get("dns_zone_partner_id").(string)),
 		},
 	}
 
