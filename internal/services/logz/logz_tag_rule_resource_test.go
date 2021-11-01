@@ -160,7 +160,7 @@ func (r LogzTagRuleResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_logz_tag_rule" "test" {
-  logz_monitor_id     = azurerm_logz_monitor.test.id
+  logz_monitor_id = azurerm_logz_monitor.test.id
 }
 `, template)
 }
@@ -171,7 +171,7 @@ func (r LogzTagRuleResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_logz_tag_rule" "import" {
-  logz_monitor_id     = azurerm_logz_tag_rule.test.logz_monitor_id
+  logz_monitor_id = azurerm_logz_tag_rule.test.logz_monitor_id
 }
 `, config)
 }
@@ -182,7 +182,7 @@ func (r LogzTagRuleResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_logz_tag_rule" "test" {
-  logz_monitor_id     = azurerm_logz_monitor.test.id
+  logz_monitor_id = azurerm_logz_monitor.test.id
   filtering_tag {
     name   = "ccc"
     action = "Include"

@@ -38,7 +38,7 @@ resource "azurerm_logz_monitor" "example" {
 }
 
 resource "azurerm_logz_tag_rule" "example" {
-  logz_monitor_id     = azurerm_logz_monitor.example.id
+  logz_monitor_id = azurerm_logz_monitor.example.id
   filtering_tag {
     name   = "name1"
     action = "Include"
