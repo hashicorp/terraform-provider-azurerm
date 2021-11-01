@@ -58,6 +58,8 @@ The following arguments are supported:
 
 * `enterprise_app_id` - (Optional) The ID of the enterprise_app. Changing this forces a new logz Monitor to be created.
 
+~> **NOTE** Please follow [Set up Logz.io single sign-on](https://docs.microsoft.com/en-us/azure/partner-solutions/logzio/setup-sso) to create the ID of the enterprise_app.
+
 * `enabled` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Possible values are "true" and "false" is allowed.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the logz Monitor.
