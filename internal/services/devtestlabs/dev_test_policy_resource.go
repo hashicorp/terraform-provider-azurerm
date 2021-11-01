@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -164,30 +165,26 @@ func resourceArmDevTestPolicyRead(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DevTestLabPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	labName := id.Path["labs"]
-	policySetName := id.Path["policysets"]
-	name := id.Path["policies"]
 
-	read, err := client.Get(ctx, resourceGroup, labName, policySetName, name, "")
+	read, err := client.Get(ctx, id.ResourceGroup, id.LabName, id.PolicysetName, id.PolicyName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			log.Printf("[DEBUG] DevTest Policy %q was not found in Policy Set %q / Lab %q / Resource Group %q - removing from state!", name, policySetName, labName, resourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on DevTest Policy %q (Policy Set %q / Lab %q / Resource Group %q): %+v", name, policySetName, labName, resourceGroup, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
-	d.Set("name", read.Name)
-	d.Set("policy_set_name", policySetName)
-	d.Set("lab_name", labName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.PolicyName)
+	d.Set("policy_set_name", id.PolicysetName)
+	d.Set("lab_name", id.LabName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := read.PolicyProperties; props != nil {
 		d.Set("description", props.Description)
