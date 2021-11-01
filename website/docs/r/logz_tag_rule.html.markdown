@@ -38,8 +38,7 @@ resource "azurerm_logz_monitor" "example" {
 }
 
 resource "azurerm_logz_tag_rule" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  logz_monitor_id     = azurerm_logz_monitor.example.name
+  logz_monitor_id     = azurerm_logz_monitor.example.id
   filtering_tag {
     name   = "name1"
     action = "Include"
@@ -61,9 +60,7 @@ resource "azurerm_logz_tag_rule" "example" {
 
 The following arguments are supported:
 
-* `resource_group_name` - (Required) The name of the Resource Group where the logz Tag Rule should exist. Changing this forces a new logz Tag Rule to be created.
-
-* `logz_monitor_id` - (Required) Monitor resource name. Changing this forces a new logz Tag Rule to be created.
+* `logz_monitor_id` - (Required) The ID of the Logz Monitor. Changing this forces a new logz Tag Rule to be created.
 
 ---
 

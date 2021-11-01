@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/logz/mgmt/2020-10-01/logz"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/parse"
@@ -39,13 +38,11 @@ func resourceLogzTagRule() *pluginsdk.Resource {
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
 			"logz_monitor_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.LogzMonitorName,
+				ValidateFunc: validate.LogzMonitorID,
 			},
 
 			"filtering_tag": {
@@ -99,11 +96,15 @@ func resourceLogzTagRule() *pluginsdk.Resource {
 }
 func resourceLogzTagRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logz.TagRuleClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewLogzTagRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("logz_monitor_id").(string), tagRuleName)
+	monitorId, err := parse.LogzMonitorID(d.Get("logz_monitor_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := parse.NewLogzTagRuleID(monitorId.SubscriptionId, monitorId.ResourceGroup, monitorId.MonitorName, tagRuleName)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
@@ -149,8 +150,7 @@ func resourceLogzTagRuleRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("logz_monitor_id", id.MonitorName)
+	d.Set("logz_monitor_id", parse.NewLogzMonitorID(id.SubscriptionId, id.ResourceGroup, id.MonitorName).ID())
 	if props := resp.Properties; props != nil {
 		flattenTagRuleLogRules(d, props.LogRules)
 	}
