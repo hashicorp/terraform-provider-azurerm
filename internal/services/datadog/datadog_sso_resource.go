@@ -98,7 +98,7 @@ func resourceDatadogSingleSignOnConfigurationsCreateorUpdate(d *pluginsdk.Resour
 	existing, err := client.Get(ctx, resourceGroup, name, configurationName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Checking for existing Datadog Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for existing Datadog Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -114,7 +114,7 @@ func resourceDatadogSingleSignOnConfigurationsCreateorUpdate(d *pluginsdk.Resour
 		},
 	}
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, configurationName, &body); err != nil {
-		return fmt.Errorf("Configuring SingleSignOn on Datadog Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("configuring SingleSignOn on Datadog Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(id)
@@ -181,7 +181,7 @@ func resourceDatadogSingleSignOnConfigurationsDelete(d *pluginsdk.ResourceData, 
 		},
 	}
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MonitorName, id.SingleSignOnConfigurationName, &body); err != nil {
-		return fmt.Errorf("Removing SingleSignOnConfiguration on Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+		return fmt.Errorf("removing SingleSignOnConfiguration on Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
 	}
 
 	return nil

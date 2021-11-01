@@ -214,7 +214,7 @@ func resourceDatadogMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Checking for existing Datadog Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for existing Datadog Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 	if !utils.ResponseWasNotFound(existing.Response) {
@@ -239,11 +239,11 @@ func resourceDatadogMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 	future, err := client.Create(ctx, resourceGroup, name, &body)
 	if err != nil {
-		return fmt.Errorf("Creating Datadog Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Datadog Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Waiting for creation of the Datadog Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of the Datadog Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(id)
@@ -267,28 +267,28 @@ func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Retrieving Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
 	}
 	d.Set("name", id.MonitorName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if err := d.Set("identity", flattenMonitorIdentityProperties(resp.Identity)); err != nil {
-		return fmt.Errorf("Setting `identity`: %+v", err)
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 	if props := resp.Properties; props != nil {
 		if err := d.Set("datadog_organization_properties", flattenMonitorOrganizationProperties(props.DatadogOrganizationProperties)); err != nil {
-			return fmt.Errorf("Setting `datadog_organization_properties`: %+v", err)
+			return fmt.Errorf("setting `datadog_organization_properties`: %+v", err)
 		}
 		d.Set("monitoring_status", props.MonitoringStatus == datadog.MonitoringStatusEnabled)
 		if err := d.Set("user_info", flattenMonitorUserInfo(props.UserInfo)); err != nil {
-			return fmt.Errorf("Setting `user_info`: %+v", err)
+			return fmt.Errorf("setting `user_info`: %+v", err)
 		}
 		d.Set("liftr_resource_category", props.LiftrResourceCategory)
 		d.Set("liftr_resource_preference", props.LiftrResourcePreference)
 		d.Set("marketplace_subscription_status", props.MarketplaceSubscriptionStatus)
 	}
 	if err := d.Set("sku", flattenMonitorResourceSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Setting `sku`: %+v", err)
+		return fmt.Errorf("setting `sku`: %+v", err)
 	}
 	d.Set("type", resp.Type)
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -319,7 +319,7 @@ func resourceDatadogMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.MonitorName, &body); err != nil {
-		return fmt.Errorf("Updating Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+		return fmt.Errorf("updating Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
 	}
 	return resourceDatadogMonitorRead(d, meta)
 }
@@ -336,11 +336,11 @@ func resourceDatadogMonitorDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.MonitorName)
 	if err != nil {
-		return fmt.Errorf("Deleting Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Waiting for deletion of the Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of the Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
 	}
 	return nil
 }

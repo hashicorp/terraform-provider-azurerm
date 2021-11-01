@@ -164,7 +164,7 @@ func resourceDatadogTagRulesCreateorUpdate(d *pluginsdk.ResourceData, meta inter
 	existing, err := client.Get(ctx, resourceGroup, name, ruleSetName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Checking for existing Datadog Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for existing Datadog Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -175,7 +175,7 @@ func resourceDatadogTagRulesCreateorUpdate(d *pluginsdk.ResourceData, meta inter
 		},
 	}
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, ruleSetName, &body); err != nil {
-		return fmt.Errorf("Configuring Tag Rules on Datadog Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("configuring Tag Rules on Datadog Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(id)
@@ -248,7 +248,7 @@ func resourceDatadogTagRulesDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName, &body); err != nil {
-		return fmt.Errorf("Removing Tag Rules configuration from Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+		return fmt.Errorf("removing Tag Rules configuration from Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
 	}
 
 	return nil
