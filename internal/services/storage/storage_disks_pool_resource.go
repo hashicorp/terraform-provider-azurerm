@@ -35,8 +35,6 @@ type DiskPoolJobModel struct {
 	Sku                    []DiskPoolSku          `tfschema:"sku"`                     // Determines the SKU of the Disk Pool
 	SubnetId               string                 `tfschema:"subnet_id"`               // Azure Resource ID of a Subnet for the Disk Pool.
 	Tags                   map[string]interface{} `tfschema:"tags"`                    // Resource tags.
-	// TODO: Type's candidates?
-	Type string `tfschema:"type"` // Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts or Microsoft.StoragePool/diskPools?
 }
 
 type DiskPoolSku struct {
@@ -133,10 +131,6 @@ func (d DiskPoolResource) Attributes() map[string]*schema.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
 	}
 }
 
@@ -180,7 +174,6 @@ func (d DiskPoolResource) Create() sdk.ResourceFunc {
 					Tier: utils.String((diskPool.Sku)[0].Tier),
 				},
 				Tags: tags.Expand(diskPool.Tags),
-				Type: utils.String(diskPool.Type),
 			}
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, diskPool.Name, createParameter)
 			if err != nil {
@@ -224,7 +217,6 @@ func (d DiskPoolResource) Read() sdk.ResourceFunc {
 				Sku:                    flattenDiskPoolSku(*resp.Sku),
 				SubnetId:               *resp.SubnetID,
 				Tags:                   tags.Flatten(resp.Tags),
-				Type:                   "",
 			}
 			if resp.AdditionalCapabilities != nil {
 				model.AdditionalCapabilities = *resp.AdditionalCapabilities
@@ -234,9 +226,6 @@ func (d DiskPoolResource) Read() sdk.ResourceFunc {
 			}
 			if resp.ManagedByExtended != nil {
 				model.ManagedByExtended = *resp.ManagedByExtended
-			}
-			if resp.Type != nil {
-				model.Type = *resp.Type
 			}
 			return metadata.Encode(&model)
 		},

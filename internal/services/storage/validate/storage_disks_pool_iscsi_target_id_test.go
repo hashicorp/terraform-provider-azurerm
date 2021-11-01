@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestStorageDisksPoolID(t *testing.T) {
+func TestStorageDisksPoolISCSITargetID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -53,20 +53,32 @@ func TestStorageDisksPoolID(t *testing.T) {
 		},
 
 		{
+			// missing IscsiTargetName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/storageAccount1/",
+			Valid: false,
+		},
+
+		{
+			// missing value for IscsiTargetName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/storageAccount1/iscsiTargets/",
+			Valid: false,
+		},
+
+		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/storagePool1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/storageAccount1/iscsiTargets/target1",
 			Valid: true,
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.STORAGEPOOL/DISKPOOLS/STORAGEPOOL1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.STORAGEPOOL/DISKPOOLS/STORAGEACCOUNT1/ISCSITARGETS/TARGET1",
 			Valid: false,
 		},
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := StorageDisksPoolID(tc.Input, "test")
+		_, errors := StorageDisksPoolISCSITargetID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

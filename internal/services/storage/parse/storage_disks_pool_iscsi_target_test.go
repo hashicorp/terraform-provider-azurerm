@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = StorageDisksPoolId{}
+var _ resourceid.Formatter = StorageDisksPoolISCSITargetId{}
 
-func TestStorageDisksPoolIDFormatter(t *testing.T) {
-	actual := NewStorageDisksPoolID("12345678-1234-9876-4563-123456789012", "resGroup1", "storagePool1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/storagePool1"
+func TestStorageDisksPoolISCSITargetIDFormatter(t *testing.T) {
+	actual := NewStorageDisksPoolISCSITargetID("12345678-1234-9876-4563-123456789012", "resGroup1", "storageAccount1", "target1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/storageAccount1/iscsiTargets/target1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestStorageDisksPoolID(t *testing.T) {
+func TestStorageDisksPoolISCSITargetID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *StorageDisksPoolId
+		Expected *StorageDisksPoolISCSITargetId
 	}{
 
 		{
@@ -68,18 +68,31 @@ func TestStorageDisksPoolID(t *testing.T) {
 		},
 
 		{
+			// missing IscsiTargetName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/storageAccount1/",
+			Error: true,
+		},
+
+		{
+			// missing value for IscsiTargetName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/storageAccount1/iscsiTargets/",
+			Error: true,
+		},
+
+		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/storagePool1",
-			Expected: &StorageDisksPoolId{
-				SubscriptionId: "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:  "resGroup1",
-				DiskPoolName:   "storagePool1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/storageAccount1/iscsiTargets/target1",
+			Expected: &StorageDisksPoolISCSITargetId{
+				SubscriptionId:  "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:   "resGroup1",
+				DiskPoolName:    "storageAccount1",
+				IscsiTargetName: "target1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.STORAGEPOOL/DISKPOOLS/STORAGEPOOL1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.STORAGEPOOL/DISKPOOLS/STORAGEACCOUNT1/ISCSITARGETS/TARGET1",
 			Error: true,
 		},
 	}
@@ -87,7 +100,7 @@ func TestStorageDisksPoolID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := StorageDisksPoolID(v.Input)
+		actual, err := StorageDisksPoolISCSITargetID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -107,6 +120,9 @@ func TestStorageDisksPoolID(t *testing.T) {
 		}
 		if actual.DiskPoolName != v.Expected.DiskPoolName {
 			t.Fatalf("Expected %q but got %q for DiskPoolName", v.Expected.DiskPoolName, actual.DiskPoolName)
+		}
+		if actual.IscsiTargetName != v.Expected.IscsiTargetName {
+			t.Fatalf("Expected %q but got %q for IscsiTargetName", v.Expected.IscsiTargetName, actual.IscsiTargetName)
 		}
 	}
 }
