@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -22,7 +23,7 @@ import (
 type DiskPoolResource struct{}
 
 var _ sdk.ResourceWithUpdate = DiskPoolResource{}
-// TODO: It seems like disks are not same as iscsi... Need more study on swagger
+
 type DiskPoolJobModel struct {
 	AdditionalCapabilities []string               `tfschema:"additional_capabilities"` // List of additional capabilities for a Disk Pool.
 	AvailabilityZones      []string               `tfschema:"availability_zones"`      // Logical zone for Disk Pool resource; example: [\"1\"].
@@ -34,7 +35,8 @@ type DiskPoolJobModel struct {
 	Sku                    []DiskPoolSku          `tfschema:"sku"`                     // Determines the SKU of the Disk Pool
 	SubnetId               string                 `tfschema:"subnet_id"`               // Azure Resource ID of a Subnet for the Disk Pool.
 	Tags                   map[string]interface{} `tfschema:"tags"`                    // Resource tags.
-	Type                   string                 `tfschema:"type"`                    // Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts
+	// TODO: Type's candidates?
+	Type string `tfschema:"type"` // Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts or Microsoft.StoragePool/diskPools?
 }
 
 type DiskPoolSku struct {
@@ -91,16 +93,19 @@ func (d DiskPoolResource) Arguments() map[string]*schema.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						// TODO: How to design sku?
-						ValidateFunc: validation.StringIsNotEmpty,
-						// ValidateFunc: validation.StringInSlice([]string{"B1", "S1", "P1"}, false),
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"Basic_B1",
+							"Standard_S1",
+							"Premium_P1",
+						}, false),
 					},
 					"tier": {
 						Type:         pluginsdk.TypeString,
+						Computed:     true,
 						Optional:     true,
-						ValidateFunc: validation.StringInSlice([]string{"Basic", "Standard", "Premium"}, false),
+						ValidateFunc: validation.StringInSlice(possibleDiskPoolTierValues(), false),
 					},
 				},
 			},
@@ -111,7 +116,6 @@ func (d DiskPoolResource) Arguments() map[string]*schema.Schema {
 			ForceNew:     true,
 			ValidateFunc: networkValidate.SubnetID,
 		},
-		// TODO: How to validate tags?
 		"tags": {
 			Type:         pluginsdk.TypeMap,
 			Optional:     true,
@@ -146,7 +150,8 @@ func (d DiskPoolResource) Create() sdk.ResourceFunc {
 				return err
 			}
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := parse.NewDiskPoolID(subscriptionId, diskPool.ResourceGroupName, diskPool.Name)
+			id := parse.NewStorageDisksPoolID(subscriptionId, diskPool.ResourceGroupName, diskPool.Name)
+
 			client := metadata.Client.Storage.DiskPoolsClient
 
 			if metadata.ResourceData.IsNewResource() {
@@ -171,7 +176,7 @@ func (d DiskPoolResource) Create() sdk.ResourceFunc {
 				ManagedByExtended: &diskPool.ManagedByExtended,
 				Name:              utils.String(diskPool.Name),
 				Sku: &storagepool.Sku{
-					Name: utils.String(fmt.Sprintf("%s_%s", (diskPool.Sku)[0].Tier, (diskPool.Sku)[0].Name)),
+					Name: utils.String((diskPool.Sku)[0].Name),
 					Tier: utils.String((diskPool.Sku)[0].Tier),
 				},
 				Tags: tags.Expand(diskPool.Tags),
@@ -182,7 +187,7 @@ func (d DiskPoolResource) Create() sdk.ResourceFunc {
 				return err
 			}
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of DiskPool %q (Resource Group %q): %+v", diskPool.Name, diskPool.ResourceGroupName, err)
+				return fmt.Errorf("waiting for creation of DisksPool %q (Resource Group %q): %+v", diskPool.Name, diskPool.ResourceGroupName, err)
 			}
 
 			metadata.SetID(id)
@@ -195,20 +200,19 @@ func (d DiskPoolResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.DiskPoolID(metadata.ResourceData.Id())
+			id, err := parse.StorageDisksPoolID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-			diskPoolId := parse.NewDiskPoolID(id.SubscriptionId, id.ResourceGroup, id.Name)
+			diskPoolId := parse.NewStorageDisksPoolID(id.SubscriptionId, id.ResourceGroup, id.DiskPoolName)
 			client := metadata.Client.Storage.DiskPoolsClient
-			resp, err := client.Get(ctx, diskPoolId.ResourceGroup, diskPoolId.Name)
+			resp, err := client.Get(ctx, diskPoolId.ResourceGroup, diskPoolId.DiskPoolName)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
-			fmt.Printf("Sku name is: '%s' and tier is: '%s'", *resp.Sku.Name, *resp.Sku.Tier)
 			model := DiskPoolJobModel{
 				AdditionalCapabilities: nil,
 				AvailabilityZones:      *resp.AvailabilityZones,
@@ -243,18 +247,20 @@ func (d DiskPoolResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.DiskPoolID(metadata.ResourceData.Id())
+			id, err := parse.StorageDisksPoolID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-			poolId := parse.NewDiskPoolID(id.SubscriptionId, id.ResourceGroup, id.Name)
+			locks.ByID(metadata.ResourceData.Id())
+			defer locks.UnlockByID(metadata.ResourceData.Id())
+			poolId := parse.NewStorageDisksPoolID(id.SubscriptionId, id.ResourceGroup, id.DiskPoolName)
 			client := metadata.Client.Storage.DiskPoolsClient
-			future, err := client.Delete(ctx, poolId.ResourceGroup, poolId.Name)
+			future, err := client.Delete(ctx, poolId.ResourceGroup, poolId.DiskPoolName)
 			if err != nil {
 				return err
 			}
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for deletion of DiskPool %q (Resource Group %q): %+v", poolId.Name, poolId.ResourceGroup, err)
+				return fmt.Errorf("waiting for deletion of DiskPool %q (Resource Group %q): %+v", poolId.DiskPoolName, poolId.ResourceGroup, err)
 			}
 			return nil
 		},
@@ -262,7 +268,7 @@ func (d DiskPoolResource) Delete() sdk.ResourceFunc {
 }
 
 func (d DiskPoolResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.DiskPoolID
+	return validate.StorageDisksPoolID
 }
 
 func (d DiskPoolResource) Update() sdk.ResourceFunc {
@@ -270,14 +276,16 @@ func (d DiskPoolResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			r := metadata.ResourceData
-			id, err := parse.DiskPoolID(r.Id())
+			id, err := parse.StorageDisksPoolID(r.Id())
 			if err != nil {
 				return err
 			}
-			poolId := parse.NewDiskPoolID(id.SubscriptionId, id.ResourceGroup, id.Name)
+			locks.ByID(r.Id())
+			defer locks.UnlockByID(r.Id())
+			poolId := parse.NewStorageDisksPoolID(id.SubscriptionId, id.ResourceGroup, id.DiskPoolName)
 			client := metadata.Client.Storage.DiskPoolsClient
 			patch := storagepool.DiskPoolUpdate{
-				ManagedBy:                nil,
+				ManagedBy: nil,
 			}
 
 			m := DiskPoolJobModel{}
@@ -288,8 +296,6 @@ func (d DiskPoolResource) Update() sdk.ResourceFunc {
 			if r.HasChange("managed_by_extended") {
 				patch.ManagedByExtended = &m.ManagedByExtended
 			}
-			// TODO: Need more investigate on following error: Failure sending request: StatusCode=400 -- Original Error: Code="400" Message="invalid request; request is malformed or invalid; invalid
-			// │ value for Disk pool `sku.name`: S1"
 			if r.HasChange("sku") {
 				patch.Sku = &storagepool.Sku{
 					Name: utils.String(m.Sku[0].Name),
@@ -299,12 +305,12 @@ func (d DiskPoolResource) Update() sdk.ResourceFunc {
 			if r.HasChange("tags") {
 				patch.Tags = tags.Expand(m.Tags)
 			}
-			future, err := client.Update(ctx, poolId.ResourceGroup, poolId.Name, patch)
+			future, err := client.Update(ctx, poolId.ResourceGroup, poolId.DiskPoolName, patch)
 			if err != nil {
 				return err
 			}
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for update of DiskPool %q (Resource Group %q): %+v", poolId.Name, poolId.ResourceGroup, err)
+				return fmt.Errorf("waiting for update of DiskPool %q (Resource Group %q): %+v", poolId.DiskPoolName, poolId.ResourceGroup, err)
 			}
 			return nil
 		},
@@ -316,7 +322,7 @@ func (d DiskPoolResource) ModelObject() interface{} {
 }
 
 func (d DiskPoolResource) ResourceType() string {
-	return "azurerm_disks_pool"
+	return "azurerm_storage_disks_pool"
 }
 func flattenDiskPoolSku(sku storagepool.Sku) []DiskPoolSku {
 	r := DiskPoolSku{
@@ -326,4 +332,12 @@ func flattenDiskPoolSku(sku storagepool.Sku) []DiskPoolSku {
 		r.Tier = *sku.Tier
 	}
 	return []DiskPoolSku{r}
+}
+
+func possibleDiskPoolTierValues() []string {
+	var tiers []string
+	for _, tier := range storagepool.PossibleDiskPoolTierValues() {
+		tiers = append(tiers, string(tier))
+	}
+	return tiers
 }

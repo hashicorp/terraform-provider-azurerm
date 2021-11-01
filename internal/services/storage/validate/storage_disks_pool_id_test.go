@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestDiskPoolID(t *testing.T) {
+func TestStorageDisksPoolID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -41,13 +41,13 @@ func TestDiskPoolID(t *testing.T) {
 		},
 
 		{
-			// missing Name
+			// missing DiskPoolName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StoragePool/",
 			Valid: false,
 		},
 
 		{
-			// missing value for Name
+			// missing value for DiskPoolName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/",
 			Valid: false,
 		},
@@ -66,7 +66,7 @@ func TestDiskPoolID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := DiskPoolID(tc.Input, "test")
+		_, errors := StorageDisksPoolID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

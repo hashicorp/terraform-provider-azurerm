@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = DiskPoolId{}
+var _ resourceid.Formatter = StorageDisksPoolId{}
 
-func TestDiskPoolIDFormatter(t *testing.T) {
-	actual := NewDiskPoolID("12345678-1234-9876-4563-123456789012", "resGroup1", "storageAccount1").ID()
+func TestStorageDisksPoolIDFormatter(t *testing.T) {
+	actual := NewStorageDisksPoolID("12345678-1234-9876-4563-123456789012", "resGroup1", "storageAccount1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/storageAccount1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestDiskPoolID(t *testing.T) {
+func TestStorageDisksPoolID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *DiskPoolId
+		Expected *StorageDisksPoolId
 	}{
 
 		{
@@ -56,13 +56,13 @@ func TestDiskPoolID(t *testing.T) {
 		},
 
 		{
-			// missing Name
+			// missing DiskPoolName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StoragePool/",
 			Error: true,
 		},
 
 		{
-			// missing value for Name
+			// missing value for DiskPoolName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/",
 			Error: true,
 		},
@@ -70,10 +70,10 @@ func TestDiskPoolID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/storageAccount1",
-			Expected: &DiskPoolId{
+			Expected: &StorageDisksPoolId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
-				Name:           "storageAccount1",
+				DiskPoolName:   "storageAccount1",
 			},
 		},
 
@@ -87,7 +87,7 @@ func TestDiskPoolID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := DiskPoolID(v.Input)
+		actual, err := StorageDisksPoolID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -105,8 +105,8 @@ func TestDiskPoolID(t *testing.T) {
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.DiskPoolName != v.Expected.DiskPoolName {
+			t.Fatalf("Expected %q but got %q for DiskPoolName", v.Expected.DiskPoolName, actual.DiskPoolName)
 		}
 	}
 }
