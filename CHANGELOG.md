@@ -5,6 +5,8 @@ FEATURES:
 IMPROVEMENTS:
 
 * upgrading `purview` to API Version `2021-07-01` [GH-13785]
+* `azurerm_synapse_workspace` - supports for the `sql_aad_admin` block [GH-13659]
+
 
 BUG FIXES:
 
