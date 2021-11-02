@@ -32,7 +32,7 @@ func TestAccLogzMonitor_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("user_info"),
+		data.ImportStep("user"),
 	})
 }
 
@@ -70,7 +70,7 @@ func TestAccLogzMonitor_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("user_info"),
+		data.ImportStep("user"),
 	})
 }
 
@@ -89,21 +89,21 @@ func TestAccLogzMonitor_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("user_info"),
+		data.ImportStep("user"),
 		{
 			Config: r.update(data, effectiveDate),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("user_info"),
+		data.ImportStep("user"),
 		{
 			Config: r.basic(data, effectiveDate),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("user_info"),
+		data.ImportStep("user"),
 	})
 }
 
@@ -144,18 +144,18 @@ resource "azurerm_logz_monitor" "test" {
   name                = "acctest-lm-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  plan_data {
+  plan {
     billing_cycle  = "Monthly"
     effective_date = "%s"
     plan_id        = "100gb14days"
     usage_type     = "Committed"
   }
 
-  user_info {
-    email_address = "%s"
-    first_name    = "first"
-    last_name     = "last"
-    phone_number  = "123456"
+  user {
+    email        = "%s"
+    first_name   = "first"
+    last_name    = "last"
+    phone_number = "123456"
   }
 }
 `, template, data.RandomInteger, effectiveDate, os.Getenv("ARM_RUN_TEST_LOGZ_MONITOR_EMAIL"))
@@ -170,18 +170,18 @@ resource "azurerm_logz_monitor" "test" {
   name                = "acctest-lm-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  plan_data {
+  plan {
     billing_cycle  = "Monthly"
     effective_date = "%s"
     plan_id        = "100gb14days"
     usage_type     = "Committed"
   }
 
-  user_info {
-    email_address = "%s"
-    first_name    = "first"
-    last_name     = "last"
-    phone_number  = "123456"
+  user {
+    email        = "%s"
+    first_name   = "first"
+    last_name    = "last"
+    phone_number = "123456"
   }
   enabled = false
 }
@@ -198,18 +198,18 @@ resource "azurerm_logz_monitor" "import" {
   name                = azurerm_logz_monitor.test.name
   resource_group_name = azurerm_logz_monitor.test.resource_group_name
   location            = azurerm_logz_monitor.test.location
-  plan_data {
+  plan {
     billing_cycle  = "Monthly"
     effective_date = "%s"
     plan_id        = "100gb14days"
     usage_type     = "Committed"
   }
 
-  user_info {
-    email_address = "%s"
-    first_name    = "first"
-    last_name     = "last"
-    phone_number  = "123456"
+  user {
+    email        = "%s"
+    first_name   = "first"
+    last_name    = "last"
+    phone_number = "123456"
   }
 }
 `, config, effectiveDate, os.Getenv("ARM_RUN_TEST_LOGZ_MONITOR_EMAIL"))
@@ -227,18 +227,18 @@ resource "azurerm_logz_monitor" "test" {
 
   company_name      = "company-name-1"
   enterprise_app_id = "%s"
-  plan_data {
+  plan {
     billing_cycle  = "Monthly"
     effective_date = "%s"
     plan_id        = "100gb14days"
     usage_type     = "Committed"
   }
 
-  user_info {
-    email_address = "%s"
-    first_name    = "first"
-    last_name     = "last"
-    phone_number  = "123456"
+  user {
+    email        = "%s"
+    first_name   = "first"
+    last_name    = "last"
+    phone_number = "123456"
   }
   enabled = false
   tags = {
