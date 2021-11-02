@@ -142,7 +142,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				Optional:   true,
 				Computed:   true,
 				ForceNew:   true,
-				Deprecated: "this property is not functional at all, will remove in v3.0",
+				Deprecated: "this attribute is no longer recognized by the API and is not functional anymore, thus this property will be removed in v3.0",
 			},
 
 			"login_server": {
