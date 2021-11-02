@@ -137,7 +137,7 @@ func resourceCognitiveAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, m
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	if resp.Model != nil && resp.Model.Properties == nil || resp.Model.Properties.Encryption == nil || resp.Model.Properties.Encryption.KeySource != nil {
+	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.Encryption == nil || resp.Model.Properties.Encryption.KeySource == nil {
 		d.SetId("")
 		return nil
 	}
