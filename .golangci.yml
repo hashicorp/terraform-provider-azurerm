@@ -1,5 +1,5 @@
 run:
-  timeout: 40m
+  timeout: 60m
   modules-download-mode: vendor
   skip-dirs:
     - /sdk/ # Excluding sdk folders as these are externally generated
