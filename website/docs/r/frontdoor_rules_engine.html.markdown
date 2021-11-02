@@ -23,7 +23,7 @@ resource "azurerm_frontdoor_rules_engine" "example_rules_engine" {
     priority = 1
 
     action {
-      response_header_actions {
+      response_header {
         header_action_type = "Append"
         header_name        = "X-TEST-HEADER"
         value              = "Append Header Rule"
