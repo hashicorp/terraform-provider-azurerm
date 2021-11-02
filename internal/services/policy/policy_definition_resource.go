@@ -115,6 +115,7 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 				Optional:         true,
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+				ForceNew:         true,
 			},
 
 			"metadata": metadataSchema(),
