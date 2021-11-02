@@ -137,6 +137,10 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 						},
 
 						// 128 limit per https://docs.microsoft.com/azure/event-hubs/event-hubs-quotas
+						// Returned value of the nested property subnet_id does not honor the input order,
+						// possibly a service design, thus changed to TypeSet
+						// Case sensitivity issue of subnet_id: https://github.com/Azure/azure-sdk-for-go/issues/5855
+						// & the default caseDiff suppress func is not working in TypeSet
 						"virtual_network_rule": {
 							Type:       pluginsdk.TypeSet,
 							Optional:   true,
