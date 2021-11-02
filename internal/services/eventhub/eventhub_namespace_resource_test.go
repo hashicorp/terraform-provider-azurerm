@@ -564,8 +564,7 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
 
 func (EventHubNamespaceResource) requiresImport(data acceptance.TestData) string {
 	template := EventHubNamespaceResource{}.basic(data)
-	return fmt.Sprintf(
-		`
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_eventhub_namespace" "import" {
@@ -939,8 +938,7 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 func (EventHubNamespaceResource) capacity(data acceptance.TestData, capacity int) string {
-	return fmt.Sprintf(
-		`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
