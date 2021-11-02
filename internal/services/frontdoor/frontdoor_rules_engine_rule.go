@@ -148,7 +148,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 									"negate_condition": {
 										Type:     pluginsdk.TypeBool,
 										Optional: true,
-										Default:  true, // TODO - needs to change https://github.com/hashicorp/terraform-provider-azurerm/pull/13605
+										Default:  true, // TODO 3,0 change to false- needs to change https://github.com/hashicorp/terraform-provider-azurerm/pull/13605
 									},
 
 									"value": {
