@@ -235,11 +235,6 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"security_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
 			"single_placement_group": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
