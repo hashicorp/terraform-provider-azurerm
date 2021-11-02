@@ -798,7 +798,6 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
-	d.Set("security_type", securityType)
 	d.Set("vtpm_enabled", vtpmEnabled)
 	d.Set("secure_boot_enabled", secureBootEnabled)
 
