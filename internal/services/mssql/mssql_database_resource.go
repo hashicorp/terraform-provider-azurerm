@@ -470,15 +470,15 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		Name:     &name,
 		Location: &location,
 		DatabaseProperties: &sql.DatabaseProperties{
-			AutoPauseDelay:                 utils.Int32(int32(d.Get("auto_pause_delay_in_minutes").(int))),
-			Collation:                      utils.String(d.Get("collation").(string)),
-			ElasticPoolID:                  utils.String(d.Get("elastic_pool_id").(string)),
-			LicenseType:                    sql.DatabaseLicenseType(d.Get("license_type").(string)),
-			MinCapacity:                    utils.Float(d.Get("min_capacity").(float64)),
-			HighAvailabilityReplicaCount:   utils.Int32(int32(d.Get("read_replica_count").(int))),
-			SampleName:                     sql.SampleName(d.Get("sample_name").(string)),
-			CurrentBackupStorageRedundancy: expandMsSqlBackupStorageRedundancy(d.Get("storage_account_type").(string)),
-			ZoneRedundant:                  utils.Bool(d.Get("zone_redundant").(bool)),
+			AutoPauseDelay:                   utils.Int32(int32(d.Get("auto_pause_delay_in_minutes").(int))),
+			Collation:                        utils.String(d.Get("collation").(string)),
+			ElasticPoolID:                    utils.String(d.Get("elastic_pool_id").(string)),
+			LicenseType:                      sql.DatabaseLicenseType(d.Get("license_type").(string)),
+			MinCapacity:                      utils.Float(d.Get("min_capacity").(float64)),
+			HighAvailabilityReplicaCount:     utils.Int32(int32(d.Get("read_replica_count").(int))),
+			SampleName:                       sql.SampleName(d.Get("sample_name").(string)),
+			RequestedBackupStorageRedundancy: expandMsSqlBackupStorageRedundancy(d.Get("storage_account_type").(string)),
+			ZoneRedundant:                    utils.Bool(d.Get("zone_redundant").(bool)),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -900,14 +900,14 @@ func flattenMsSqlBackupStorageRedundancy(currentBackupStorageRedundancy sql.Curr
 	}
 }
 
-// TODO - 3.0: change input to sql.CurrentBackupStorageRedundancy enums
-func expandMsSqlBackupStorageRedundancy(storageAccountType string) sql.CurrentBackupStorageRedundancy {
+// TODO - 3.0: change input to sql.RequestedBackupStorageRedundancy enums
+func expandMsSqlBackupStorageRedundancy(storageAccountType string) sql.RequestedBackupStorageRedundancy {
 	switch storageAccountType {
 	case "LRS":
-		return sql.CurrentBackupStorageRedundancyLocal
+		return sql.RequestedBackupStorageRedundancyLocal
 	case "ZRS":
-		return sql.CurrentBackupStorageRedundancyZone
+		return sql.RequestedBackupStorageRedundancyZone
 	default:
-		return sql.CurrentBackupStorageRedundancyGeo
+		return sql.RequestedBackupStorageRedundancyGeo
 	}
 }
