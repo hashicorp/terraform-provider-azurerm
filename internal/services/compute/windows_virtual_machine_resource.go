@@ -784,9 +784,6 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 		if secprofile.EncryptionAtHost != nil {
 			encryptionAtHostEnabled = *secprofile.EncryptionAtHost
 		}
-		if secprofile.SecurityType != "" {
-			securityType = string(secprofile.SecurityType)
-		}
 		if uefi := props.SecurityProfile.UefiSettings; uefi != nil {
 			if uefi.VTpmEnabled != nil {
 				vtpmEnabled = *uefi.VTpmEnabled
