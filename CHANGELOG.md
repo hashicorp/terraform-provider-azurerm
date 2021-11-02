@@ -4,6 +4,8 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* upgrading `purview` to API Version `2021-07-01` [GH-13785]
+
 BUG FIXES:
 
 * `azurerm_synapse_workspace_key` - deprecated the `cusomter_managed_key_name` property in favour of the correctly spelled `customer_managed_key_name` one [GH-13881]
