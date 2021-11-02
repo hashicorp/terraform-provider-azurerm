@@ -692,7 +692,6 @@ func TestAccWindowsVirtualMachineScaleSet_otherSecureBootEnabled(t *testing.T) {
 	})
 }
 
-
 func TestAccWindowsVirtualMachineScaleSet_otherVTpmEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
@@ -708,34 +707,6 @@ func TestAccWindowsVirtualMachineScaleSet_otherVTpmEnabled(t *testing.T) {
 	})
 }
 
-func TestAccWindowsVirtualMachineScaleSet_otherVTpmEnabledUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
-	r := WindowsVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.otherVTpmEnabled(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.otherVTpmEnabled(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.otherVTpmEnabled(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
 func TestAccWindowsVirtualMachineScaleSet_otherPlatformFaultDomainCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
