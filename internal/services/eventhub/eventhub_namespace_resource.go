@@ -150,7 +150,6 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 
 									// the API returns the subnet ID's resource group name in lowercase
 									// https://github.com/Azure/azure-sdk-for-go/issues/5855
-									// default caseDiff suppress func is not working in TypeSet
 									"subnet_id": {
 										Type:             pluginsdk.TypeString,
 										Required:         true,
@@ -619,6 +618,8 @@ func flattenEventHubIdentity(input *identity.SystemUserAssignedIdentityMap) []in
 	return eventhubNamespaceIdentityType{}.Flatten(&config)
 }
 
+// The resource id of subnet_id that's being returned by API is always lower case &
+// the default caseDiff suppress func is not working in TypeSet
 func resourceVnetRuleHash(v interface{}) int {
 	var buf bytes.Buffer
 
