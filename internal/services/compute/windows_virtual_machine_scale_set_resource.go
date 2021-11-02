@@ -1165,9 +1165,6 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 			if secprofile.EncryptionAtHost != nil {
 				encryptionAtHostEnabled = *secprofile.EncryptionAtHost
 			}
-			if secprofile.SecurityType != "" {
-				securityType = string(secprofile.SecurityType)
-			}
 			if uefi := profile.SecurityProfile.UefiSettings; uefi != nil {
 				if uefi.VTpmEnabled != nil {
 					vtpmEnabled = *uefi.VTpmEnabled
@@ -1179,7 +1176,6 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 		}
 
 		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
-		d.Set("security_type", securityType)
 		d.Set("vtpm_enabled", vtpmEnabled)
 		d.Set("secure_boot_enabled", secureBootEnabled)
 	}
