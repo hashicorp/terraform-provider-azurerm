@@ -275,7 +275,7 @@ func resourceComputeInstanceDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, machinelearningservices.UnderlyingResourceActionDetach)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, machinelearningservices.UnderlyingResourceActionDelete)
 	if err != nil {
 		return fmt.Errorf("deleting Machine Learning Compute (%q): %+v", id, err)
 	}
