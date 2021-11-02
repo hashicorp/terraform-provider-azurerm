@@ -10,6 +10,7 @@ IMPROVEMENTS:
 * `azurerm_synapse_workspace` - supports for the `sql_aad_admin` block [GH-13659]
 * `azurerm_sql_managed_instance` - support for the `dns_zone_partner_id` property [GH-13951]
 * `azurerm_storage_blob` - support for the `cache_control` property [GH-13946]
+* `azurerm_linux_virtual_machine` - support for the `patch_mode` property [GH-13866]
 
 BUG FIXES:
 
