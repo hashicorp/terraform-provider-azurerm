@@ -16,8 +16,9 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_application_insights` - correct vlaidation for the `daily_data_cap_in_gb` property [GH-13971]
-* `azurerm_synapse_workspace_key` - deprecated the `cusomter_managed_key_name` property in favour of the correctly spelled `customer_managed_key_name` one [GH-13881]
+* `azurerm_logic_app_standard` - will no longer error when working on private networks [GH-13964]
 * `azurerm_purview_account` - deprecate the `sku_name` property [GH-13897]
+* `azurerm_synapse_workspace_key` - deprecated the `cusomter_managed_key_name` property in favour of the correctly spelled `customer_managed_key_name` one [GH-13881]
 
 ## 2.83.0 (October 29, 2021)
 
