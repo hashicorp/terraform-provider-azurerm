@@ -1193,7 +1193,7 @@ func (r MsSqlDatabaseResource) storageAccountTypeLRS(data acceptance.TestData) s
 resource "azurerm_mssql_database" "test" {
   name      = "acctest-db-%[2]d"
   server_id = azurerm_mssql_server.test.id
-  
+
   storage_account_type = "LRS"
 }
 `, r.template(data), data.RandomInteger)
