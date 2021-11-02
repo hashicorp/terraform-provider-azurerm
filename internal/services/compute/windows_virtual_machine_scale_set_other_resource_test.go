@@ -692,34 +692,6 @@ func TestAccWindowsVirtualMachineScaleSet_otherSecureBootEnabled(t *testing.T) {
 	})
 }
 
-func TestAccWindowsVirtualMachineScaleSet_otherSecureBootEnabledUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
-	r := WindowsVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.otherSecureBootEnabled(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.otherSecureBootEnabled(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.otherSecureBootEnabled(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
 
 func TestAccWindowsVirtualMachineScaleSet_otherVTpmEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
