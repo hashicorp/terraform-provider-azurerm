@@ -61,7 +61,7 @@ func dataSourceContainerRegistry() *pluginsdk.Resource {
 			"storage_account_id": {
 				Type:       pluginsdk.TypeString,
 				Computed:   true,
-				Deprecated: "this attribute is not functional at all, will be removed in v3.0",
+				Deprecated: "this attribute is no longer recognized by the API and is not functional anymore, thus this property will be removed in v3.0",
 			},
 
 			"tags": tags.SchemaDataSource(),
