@@ -7,11 +7,12 @@ IMPROVEMENTS:
 * upgrading `purview` to API Version `2021-07-01` [GH-13785]
 * `azurerm_firewall_policy_rule_collection_group` - support for the `translated_fqdn` property [GH-13976]
 * `azurerm_function_app` - support for the `key_vault_reference_identity_id` property [GH-13962]
+* `azurerm_linux_virtual_machine` - support for the `patch_mode` property [GH-13866]
 * `azurerm_mssql_elasticpool` - support `GP_FSv2` for the `sku` property [GH-13973]
 * `azurerm_synapse_workspace` - supports for the `sql_aad_admin` block [GH-13659]
 * `azurerm_sql_managed_instance` - support for the `dns_zone_partner_id` property [GH-13951]
 * `azurerm_storage_blob` - support for the `cache_control` property [GH-13946]
-* `azurerm_linux_virtual_machine` - support for the `patch_mode` property [GH-13866]
+* `azurerm_storage_share` - support for the `enabled_protocol` property [GH-13938]
 
 BUG FIXES:
 
