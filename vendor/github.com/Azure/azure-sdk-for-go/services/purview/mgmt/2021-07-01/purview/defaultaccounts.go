@@ -72,7 +72,7 @@ func (client DefaultAccountsClient) Get(ctx context.Context, scopeTenantID uuid.
 
 // GetPreparer prepares the Get request.
 func (client DefaultAccountsClient) GetPreparer(ctx context.Context, scopeTenantID uuid.UUID, scopeType ScopeType, scope string) (*http.Request, error) {
-	const APIVersion = "2020-12-01-preview"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version":   APIVersion,
 		"scopeTenantId": autorest.Encode("query", scopeTenantID),
@@ -108,7 +108,7 @@ func (client DefaultAccountsClient) GetResponder(resp *http.Response) (result De
 	return
 }
 
-// Remove remove the default account from the scope.
+// Remove removes the default account from the scope.
 // Parameters:
 // scopeTenantID - the tenant ID.
 // scopeType - the scope for the default account.
@@ -149,7 +149,7 @@ func (client DefaultAccountsClient) Remove(ctx context.Context, scopeTenantID uu
 
 // RemovePreparer prepares the Remove request.
 func (client DefaultAccountsClient) RemovePreparer(ctx context.Context, scopeTenantID uuid.UUID, scopeType ScopeType, scope string) (*http.Request, error) {
-	const APIVersion = "2020-12-01-preview"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version":   APIVersion,
 		"scopeTenantId": autorest.Encode("query", scopeTenantID),
@@ -184,7 +184,7 @@ func (client DefaultAccountsClient) RemoveResponder(resp *http.Response) (result
 	return
 }
 
-// Set set the default account for the scope.
+// Set sets the default account for the scope.
 // Parameters:
 // defaultAccountPayload - the payload containing the default account information and the scope.
 func (client DefaultAccountsClient) Set(ctx context.Context, defaultAccountPayload DefaultAccountPayload) (result DefaultAccountPayload, err error) {
@@ -222,7 +222,7 @@ func (client DefaultAccountsClient) Set(ctx context.Context, defaultAccountPaylo
 
 // SetPreparer prepares the Set request.
 func (client DefaultAccountsClient) SetPreparer(ctx context.Context, defaultAccountPayload DefaultAccountPayload) (*http.Request, error) {
-	const APIVersion = "2020-12-01-preview"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

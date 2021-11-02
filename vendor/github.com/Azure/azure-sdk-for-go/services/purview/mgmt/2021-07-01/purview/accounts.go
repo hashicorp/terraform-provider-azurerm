@@ -30,6 +30,84 @@ func NewAccountsClientWithBaseURI(baseURI string, subscriptionID string) Account
 	return AccountsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// AddRootCollectionAdmin add the administrator for root collection associated with this account.
+// Parameters:
+// resourceGroupName - the resource group name.
+// accountName - the name of the account.
+// collectionAdminUpdate - the collection admin update payload.
+func (client AccountsClient) AddRootCollectionAdmin(ctx context.Context, resourceGroupName string, accountName string, collectionAdminUpdate CollectionAdminUpdate) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AccountsClient.AddRootCollectionAdmin")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.AddRootCollectionAdminPreparer(ctx, resourceGroupName, accountName, collectionAdminUpdate)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "purview.AccountsClient", "AddRootCollectionAdmin", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.AddRootCollectionAdminSender(req)
+	if err != nil {
+		result.Response = resp
+		err = autorest.NewErrorWithError(err, "purview.AccountsClient", "AddRootCollectionAdmin", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.AddRootCollectionAdminResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "purview.AccountsClient", "AddRootCollectionAdmin", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// AddRootCollectionAdminPreparer prepares the AddRootCollectionAdmin request.
+func (client AccountsClient) AddRootCollectionAdminPreparer(ctx context.Context, resourceGroupName string, accountName string, collectionAdminUpdate CollectionAdminUpdate) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"accountName":       autorest.Encode("path", accountName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-07-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Purview/accounts/{accountName}/addRootCollectionAdmin", pathParameters),
+		autorest.WithJSON(collectionAdminUpdate),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// AddRootCollectionAdminSender sends the AddRootCollectionAdmin request. The method will close the
+// http.Response Body if it receives an error.
+func (client AccountsClient) AddRootCollectionAdminSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// AddRootCollectionAdminResponder handles the response to the AddRootCollectionAdmin request. The method always
+// closes the http.Response Body.
+func (client AccountsClient) AddRootCollectionAdminResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
 // CheckNameAvailability checks if account name is available.
 // Parameters:
 // checkNameAvailabilityRequest - the check name availability request.
@@ -72,7 +150,7 @@ func (client AccountsClient) CheckNameAvailabilityPreparer(ctx context.Context, 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01-preview"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -144,7 +222,7 @@ func (client AccountsClient) CreateOrUpdatePreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01-preview"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -225,7 +303,7 @@ func (client AccountsClient) DeletePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01-preview"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -310,7 +388,7 @@ func (client AccountsClient) GetPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01-preview"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -390,7 +468,7 @@ func (client AccountsClient) ListByResourceGroupPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01-preview"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -508,7 +586,7 @@ func (client AccountsClient) ListBySubscriptionPreparer(ctx context.Context, ski
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01-preview"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -624,7 +702,7 @@ func (client AccountsClient) ListKeysPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01-preview"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -694,7 +772,7 @@ func (client AccountsClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01-preview"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

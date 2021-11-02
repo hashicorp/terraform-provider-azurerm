@@ -78,7 +78,7 @@ func (client PrivateLinkResourcesClient) GetByGroupIDPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01-preview"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -159,7 +159,7 @@ func (client PrivateLinkResourcesClient) ListByAccountPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01-preview"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

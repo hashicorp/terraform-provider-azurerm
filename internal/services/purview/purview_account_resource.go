@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/purview/mgmt/2020-12-01-preview/purview"
+	"github.com/Azure/azure-sdk-for-go/services/purview/mgmt/2021-07-01/purview"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -146,7 +146,7 @@ func resourcePurviewAccountCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	account := purview.Account{
 		AccountProperties: &purview.AccountProperties{},
 		Identity: &purview.Identity{
-			Type: purview.SystemAssigned,
+			Type: purview.TypeSystemAssigned,
 		},
 		Location: &location,
 		Sku:      expandPurviewSkuName(d),
@@ -154,9 +154,9 @@ func resourcePurviewAccountCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if d.Get("public_network_enabled").(bool) {
-		account.AccountProperties.PublicNetworkAccess = purview.Enabled
+		account.AccountProperties.PublicNetworkAccess = purview.PublicNetworkAccessEnabled
 	} else {
-		account.AccountProperties.PublicNetworkAccess = purview.Disabled
+		account.AccountProperties.PublicNetworkAccess = purview.PublicNetworkAccessDisabled
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, account)
@@ -202,7 +202,7 @@ func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if props := resp.AccountProperties; props != nil {
-		d.Set("public_network_enabled", props.PublicNetworkAccess == purview.Enabled)
+		d.Set("public_network_enabled", props.PublicNetworkAccess == purview.PublicNetworkAccessEnabled)
 
 		if endpoints := resp.Endpoints; endpoints != nil {
 			d.Set("catalog_endpoint", endpoints.Catalog)

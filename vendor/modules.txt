@@ -85,7 +85,6 @@ github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-previ
 github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement
 github.com/Azure/azure-sdk-for-go/services/preview/policyinsights/mgmt/2019-10-01-preview/policyinsights
 github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal
-github.com/Azure/azure-sdk-for-go/services/preview/purview/mgmt/2020-12-01-preview/purview
 github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups
 github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2019-06-01-preview/templatespecs
 github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security
@@ -101,6 +100,7 @@ github.com/Azure/azure-sdk-for-go/services/preview/synapse/2019-06-01-preview/ma
 github.com/Azure/azure-sdk-for-go/services/preview/synapse/2020-08-01-preview/accesscontrol
 github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns
 github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub
+github.com/Azure/azure-sdk-for-go/services/purview/mgmt/2021-07-01/purview
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup

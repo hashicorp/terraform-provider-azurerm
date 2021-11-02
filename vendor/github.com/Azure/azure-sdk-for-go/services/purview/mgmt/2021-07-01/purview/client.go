@@ -1,4 +1,4 @@
-// Package purview implements the Azure ARM Purview service API version 2020-12-01-preview.
+// Package purview implements the Azure ARM Purview service API version 2021-07-01.
 //
 // Creates a Microsoft.Purview management client.
 package purview
