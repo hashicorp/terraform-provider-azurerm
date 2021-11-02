@@ -32,13 +32,14 @@ type Client struct {
 	BlobServicesClient          *storage.BlobServicesClient
 	BlobInventoryPoliciesClient *storage.BlobInventoryPoliciesClient
 	CloudEndpointsClient        *storagesync.CloudEndpointsClient
+	DisksPoolsClient            *storagepool.DiskPoolsClient
+	DisksPoolIscsiTargetClient  *storagepool.IscsiTargetsClient
 	EncryptionScopesClient      *storage.EncryptionScopesClient
 	Environment                 az.Environment
 	FileServicesClient          *storage.FileServicesClient
 	ObjectReplicationClient     *storage.ObjectReplicationPoliciesClient
 	SyncServiceClient           *storagesync.ServicesClient
 	SyncGroupsClient            *storagesync.SyncGroupsClient
-	DiskPoolsClient             *storagepool.DiskPoolsClient
 	SubscriptionId              string
 
 	resourceManagerAuthorizer autorest.Authorizer
@@ -70,6 +71,12 @@ func NewClient(options *common.ClientOptions) *Client {
 	encryptionScopesClient := storage.NewEncryptionScopesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&encryptionScopesClient.Client, options.ResourceManagerAuthorizer)
 
+	disksPoolsClient := storagepool.NewDiskPoolsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	options.ConfigureClient(&disksPoolsClient.Client, options.ResourceManagerAuthorizer)
+
+	disksPoolIscsiTargetClient := storagepool.NewIscsiTargetsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	options.ConfigureClient(&disksPoolIscsiTargetClient.Client, options.ResourceManagerAuthorizer)
+
 	fileServicesClient := storage.NewFileServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&fileServicesClient.Client, options.ResourceManagerAuthorizer)
 
@@ -82,8 +89,6 @@ func NewClient(options *common.ClientOptions) *Client {
 	syncGroupsClient := storagesync.NewSyncGroupsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&syncGroupsClient.Client, options.ResourceManagerAuthorizer)
 
-	diskPoolsClient := storagepool.NewDiskPoolsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&diskPoolsClient.Client, options.ResourceManagerAuthorizer)
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	client := Client{
@@ -94,14 +99,15 @@ func NewClient(options *common.ClientOptions) *Client {
 		BlobServicesClient:          &blobServicesClient,
 		BlobInventoryPoliciesClient: &blobInventoryPoliciesClient,
 		CloudEndpointsClient:        &cloudEndpointsClient,
+		DisksPoolsClient:            &disksPoolsClient,
 		EncryptionScopesClient:      &encryptionScopesClient,
 		Environment:                 options.Environment,
 		FileServicesClient:          &fileServicesClient,
+		DisksPoolIscsiTargetClient:  &disksPoolIscsiTargetClient,
 		ObjectReplicationClient:     &objectReplicationPolicyClient,
 		SubscriptionId:              options.SubscriptionId,
 		SyncServiceClient:           &syncServiceClient,
 		SyncGroupsClient:            &syncGroupsClient,
-		DiskPoolsClient:             &diskPoolsClient,
 
 		resourceManagerAuthorizer: options.ResourceManagerAuthorizer,
 	}

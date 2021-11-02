@@ -20,9 +20,9 @@ import (
 	"time"
 )
 
-type DiskPoolResource struct{}
+type DisksPoolResource struct{}
 
-var _ sdk.ResourceWithUpdate = DiskPoolResource{}
+var _ sdk.ResourceWithUpdate = DisksPoolResource{}
 
 type DiskPoolJobModel struct {
 	AdditionalCapabilities []string               `tfschema:"additional_capabilities"` // List of additional capabilities for a Disk Pool.
@@ -43,7 +43,7 @@ type DiskPoolSku struct {
 	Tier string `tfschema:"tier"` // Sku tier
 }
 
-func (d DiskPoolResource) Arguments() map[string]*schema.Schema {
+func (d DisksPoolResource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"additional_capabilities": {
 			Type:     pluginsdk.TypeList,
@@ -87,6 +87,7 @@ func (d DiskPoolResource) Arguments() map[string]*schema.Schema {
 		"sku": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			MinItems: 1,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -125,7 +126,7 @@ func (d DiskPoolResource) Arguments() map[string]*schema.Schema {
 	}
 }
 
-func (d DiskPoolResource) Attributes() map[string]*schema.Schema {
+func (d DisksPoolResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"managed_by": {
 			Type:     pluginsdk.TypeString,
@@ -134,7 +135,7 @@ func (d DiskPoolResource) Attributes() map[string]*schema.Schema {
 	}
 }
 
-func (d DiskPoolResource) Create() sdk.ResourceFunc {
+func (d DisksPoolResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -146,13 +147,13 @@ func (d DiskPoolResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := parse.NewStorageDisksPoolID(subscriptionId, diskPool.ResourceGroupName, diskPool.Name)
 
-			client := metadata.Client.Storage.DiskPoolsClient
+			client := metadata.Client.Storage.DisksPoolsClient
 
 			if metadata.ResourceData.IsNewResource() {
 				existing, err := client.Get(ctx, diskPool.ResourceGroupName, diskPool.Name)
 				notExistingResp := utils.ResponseWasNotFound(existing.Response)
 				if err != nil && !notExistingResp {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					return fmt.Errorf("checking for presence of existing %q: %+v", id, err)
 				}
 				if !notExistingResp {
 					return metadata.ResourceRequiresImport(d.ResourceType(), id)
@@ -169,11 +170,8 @@ func (d DiskPoolResource) Create() sdk.ResourceFunc {
 				ManagedBy:         utils.String(diskPool.ManagedBy),
 				ManagedByExtended: &diskPool.ManagedByExtended,
 				Name:              utils.String(diskPool.Name),
-				Sku: &storagepool.Sku{
-					Name: utils.String((diskPool.Sku)[0].Name),
-					Tier: utils.String((diskPool.Sku)[0].Tier),
-				},
-				Tags: tags.Expand(diskPool.Tags),
+				Sku:               expandDisksPoolSku(diskPool),
+				Tags:              tags.Expand(diskPool.Tags),
 			}
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, diskPool.Name, createParameter)
 			if err != nil {
@@ -189,7 +187,7 @@ func (d DiskPoolResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (d DiskPoolResource) Read() sdk.ResourceFunc {
+func (d DisksPoolResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -198,7 +196,7 @@ func (d DiskPoolResource) Read() sdk.ResourceFunc {
 				return err
 			}
 			diskPoolId := parse.NewStorageDisksPoolID(id.SubscriptionId, id.ResourceGroup, id.DiskPoolName)
-			client := metadata.Client.Storage.DiskPoolsClient
+			client := metadata.Client.Storage.DisksPoolsClient
 			resp, err := client.Get(ctx, diskPoolId.ResourceGroup, diskPoolId.DiskPoolName)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
@@ -232,7 +230,7 @@ func (d DiskPoolResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (d DiskPoolResource) Delete() sdk.ResourceFunc {
+func (d DisksPoolResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -243,7 +241,7 @@ func (d DiskPoolResource) Delete() sdk.ResourceFunc {
 			locks.ByID(metadata.ResourceData.Id())
 			defer locks.UnlockByID(metadata.ResourceData.Id())
 			poolId := parse.NewStorageDisksPoolID(id.SubscriptionId, id.ResourceGroup, id.DiskPoolName)
-			client := metadata.Client.Storage.DiskPoolsClient
+			client := metadata.Client.Storage.DisksPoolsClient
 			future, err := client.Delete(ctx, poolId.ResourceGroup, poolId.DiskPoolName)
 			if err != nil {
 				return err
@@ -256,11 +254,11 @@ func (d DiskPoolResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (d DiskPoolResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (d DisksPoolResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.StorageDisksPoolID
 }
 
-func (d DiskPoolResource) Update() sdk.ResourceFunc {
+func (d DisksPoolResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -272,7 +270,7 @@ func (d DiskPoolResource) Update() sdk.ResourceFunc {
 			locks.ByID(r.Id())
 			defer locks.UnlockByID(r.Id())
 			poolId := parse.NewStorageDisksPoolID(id.SubscriptionId, id.ResourceGroup, id.DiskPoolName)
-			client := metadata.Client.Storage.DiskPoolsClient
+			client := metadata.Client.Storage.DisksPoolsClient
 			patch := storagepool.DiskPoolUpdate{
 				ManagedBy: nil,
 			}
@@ -306,13 +304,21 @@ func (d DiskPoolResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (d DiskPoolResource) ModelObject() interface{} {
+func (d DisksPoolResource) ModelObject() interface{} {
 	return &DiskPoolJobModel{}
 }
 
-func (d DiskPoolResource) ResourceType() string {
+func (d DisksPoolResource) ResourceType() string {
 	return "azurerm_storage_disks_pool"
 }
+
+func expandDisksPoolSku(diskPool DiskPoolJobModel) *storagepool.Sku {
+	return &storagepool.Sku{
+		Name: utils.String((diskPool.Sku)[0].Name),
+		Tier: utils.String((diskPool.Sku)[0].Tier),
+	}
+}
+
 func flattenDiskPoolSku(sku storagepool.Sku) []DiskPoolSku {
 	r := DiskPoolSku{
 		Name: *sku.Name,

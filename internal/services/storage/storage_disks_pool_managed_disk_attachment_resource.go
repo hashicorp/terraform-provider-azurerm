@@ -78,7 +78,7 @@ func (d DisksPoolManagedDiskAttachmentResource) Create() sdk.ResourceFunc {
 			locks.ByID(attachment.DisksPoolId)
 			defer locks.UnlockByID(attachment.DisksPoolId)
 
-			client := metadata.Client.Storage.DiskPoolsClient
+			client := metadata.Client.Storage.DisksPoolsClient
 			pool, err := client.Get(ctx, poolId.ResourceGroup, poolId.DiskPoolName)
 			if err != nil {
 				return fmt.Errorf("retrieving %q: %v", *poolId, err)
@@ -132,10 +132,13 @@ func (d DisksPoolManagedDiskAttachmentResource) Read() sdk.ResourceFunc {
 				return err
 			}
 			poolId, _ := parse.StorageDisksPoolID(id.DisksPoolId)
-			client := metadata.Client.Storage.DiskPoolsClient
+			client := metadata.Client.Storage.DisksPoolsClient
 
 			poolResp, err := client.Get(ctx, poolId.ResourceGroup, poolId.DiskPoolName)
 			if err != nil {
+				if utils.ResponseWasNotFound(poolResp.Response) {
+					return metadata.MarkAsGone(id)
+				}
 				return fmt.Errorf("retrieving disks pool %q error: %v", id.DisksPoolId, err)
 			}
 			if poolResp.Disks == nil || len(*poolResp.Disks) == 0 {
@@ -162,7 +165,7 @@ func (d DisksPoolManagedDiskAttachmentResource) Read() sdk.ResourceFunc {
 
 func (d DisksPoolManagedDiskAttachmentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			diskToDetach := &DisksPoolManagedDiskAttachmentModel{}
 			err := metadata.Decode(diskToDetach)
@@ -176,7 +179,7 @@ func (d DisksPoolManagedDiskAttachmentResource) Delete() sdk.ResourceFunc {
 			locks.ByID(diskToDetach.DisksPoolId)
 			defer locks.UnlockByID(diskToDetach.DisksPoolId)
 
-			client := metadata.Client.Storage.DiskPoolsClient
+			client := metadata.Client.Storage.DisksPoolsClient
 			pool, err := client.Get(ctx, poolId.ResourceGroup, poolId.DiskPoolName)
 			if err != nil {
 				return fmt.Errorf("retrieving disks pool %q error %v", diskToDetach.DisksPoolId, err)
