@@ -93,6 +93,8 @@ The following arguments are supported:
 
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
 
+* `sql_aad_admin` - (Optional) An `sql_aad_admin` block as defined below.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Workspace.
 
 ---
@@ -104,6 +106,16 @@ An `aad_admin` block supports the following:
 * `object_id` - (Required) The object id of the Azure AD Administrator of this Synapse Workspace.
 
 * `tenant_id` - (Required) The tenant id of the Azure AD Administrator of this Synapse Workspace.
+
+---
+
+An `sql_aad_admin` block supports the following:
+
+* `login` - (Required) The login name of the Azure AD Administrator of this Synapse Workspace SQL.
+
+* `object_id` - (Required) The object id of the Azure AD Administrator of this Synapse Workspace SQL.
+
+* `tenant_id` - (Required) The tenant id of the Azure AD Administrator of this Synapse Workspace SQL.
 
 ---
 
