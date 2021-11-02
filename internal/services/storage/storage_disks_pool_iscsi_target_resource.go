@@ -27,6 +27,7 @@ type DiskPoolIscsiTargetModel struct {
 	DisksPoolId       string                    `tfschema:"disks_pool_id"`
 	Endpoints         []string                  `tfschema:"endpoints"` // List of private IPv4 addresses to connect to the iSCSI Target.
 	Luns              []DisksPoolIscsiLun       `tfschema:"luns"`
+	ManagedBy         string                    `tfschema:"managed_by"`
 	ManagedByExtended []string                  `tfschema:"managed_by_extended"`
 	Name              string                    `tfschema:"name"`
 	Port              int                       `tfschema:"port"` // The port used by iSCSI Target portal group.
@@ -237,13 +238,12 @@ func (d DisksPoolIscsiTargetResource) Read() sdk.ResourceFunc {
 			model := DiskPoolIscsiTargetModel{
 				ACLMode:     string(resp.ACLMode),
 				DisksPoolId: poolID.ID(),
+				ManagedBy:   utils.NormalizeNilableString(resp.ManagedBy),
 				Name:        *resp.Name,
+				TargetIqn:   utils.NormalizeNilableString(resp.TargetIqn),
 			}
 			if resp.ManagedByExtended != nil {
 				model.ManagedByExtended = *resp.ManagedByExtended
-			}
-			if resp.TargetIqn != nil {
-				model.TargetIqn = *resp.TargetIqn
 			}
 			model.StaticAcls = flattenDisksPoolIscsiTargetStaticAcls(resp)
 			model.Luns = flattenDisksPoolIscsiTargetLuns(resp)
@@ -301,8 +301,11 @@ func (d DisksPoolIscsiTargetResource) Update() sdk.ResourceFunc {
 			locks.ByID(poolId.ID())
 			defer locks.UnlockByID(poolId.ID())
 			client := metadata.Client.Storage.DisksPoolIscsiTargetClient
-			patch := storagepool.IscsiTargetUpdate{}
+			patch := storagepool.IscsiTargetUpdate{
+				IscsiTargetUpdateProperties: &storagepool.IscsiTargetUpdateProperties{},
+			}
 			m := DiskPoolIscsiTargetModel{}
+
 			err = metadata.Decode(&m)
 			if err != nil {
 				return err
@@ -313,6 +316,7 @@ func (d DisksPoolIscsiTargetResource) Update() sdk.ResourceFunc {
 			if r.HasChange("static_acls") {
 				patch.StaticAcls = expandDisksPoolIscsiTargetStaticAcls(m)
 			}
+
 			if r.HasChange("luns") {
 				patch.Luns = expandDisksPoolIscsiTargetLuns(m)
 			}
@@ -336,6 +340,9 @@ func expandDisksPoolIscsiTargetLuns(model DiskPoolIscsiTargetModel) *[]storagepo
 			ManagedDiskAzureResourceID: &lun.ManagedDiskAzureResourceId,
 			Lun:                        utils.Int32(int32(lun.Lun)),
 		})
+	}
+	if len(luns) == 0 {
+		return nil
 	}
 	return &luns
 }
