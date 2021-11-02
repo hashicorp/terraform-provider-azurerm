@@ -7,6 +7,7 @@ IMPROVEMENTS:
 * upgrading `purview` to API Version `2021-07-01` [GH-13785]
 * `azurerm_mssql_elasticpool` - support `GP_FSv2` for the `sku` property [GH-13973]
 * `azurerm_synapse_workspace` - supports for the `sql_aad_admin` block [GH-13659]
+* `azurerm_sql_managed_instance` - support for the `dns_zone_partner_id` property [GH-13951]
 
 BUG FIXES:
 
