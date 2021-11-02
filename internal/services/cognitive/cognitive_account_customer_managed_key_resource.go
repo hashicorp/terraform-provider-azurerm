@@ -75,7 +75,7 @@ func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	if d.IsNewResource() {
-		if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Encryption != nil && resp.Model.Properties.Encryption.KeySource != nil && *resp.Model.Properties.Encryption.KeySource != cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault {
+		if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Encryption != nil && resp.Model.Properties.Encryption.KeySource != nil && *resp.Model.Properties.Encryption.KeySource != cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices {
 			return tf.ImportAsExistsError("azurerm_cognitive_account_customer_managed_key", id.ID())
 		}
 	}
