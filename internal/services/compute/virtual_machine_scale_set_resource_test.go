@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -822,7 +823,8 @@ func (VirtualMachineScaleSetResource) hasLoadBalancer(ctx context.Context, clien
 		return err
 	}
 
-	read, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	read, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		return err
 	}
@@ -860,7 +862,8 @@ func (VirtualMachineScaleSetResource) hasApplicationGateway(ctx context.Context,
 		return err
 	}
 
-	read, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	read, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		return err
 	}
@@ -898,9 +901,10 @@ func (t VirtualMachineScaleSetResource) Exists(ctx context.Context, clients *cli
 		return nil, err
 	}
 
-	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Compute Virtual Machine Scale Set %q", id)
+		return nil, fmt.Errorf("retrieving Virtual Machine Scale Set %q", id)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
