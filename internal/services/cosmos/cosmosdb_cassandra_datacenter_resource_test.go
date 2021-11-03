@@ -113,7 +113,7 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
   delegated_management_subnet_id = azurerm_subnet.test.id
   node_count                     = %[3]d
   disk_capacity                  = 4
-  sku                            = "Standard_DS14_v2"  
+  sku_name                      = "Standard_DS14_v2"  
 }
 `, data.RandomInteger, data.Locations.Primary, nodeCount)
 }

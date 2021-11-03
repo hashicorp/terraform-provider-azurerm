@@ -71,7 +71,7 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 				ValidateFunc: validation.IntAtLeast(3),
 				Default:      3,
 			},
-			"sku": {
+			"sku_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
@@ -105,7 +105,7 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 		Properties: &documentdb.DataCenterResourceProperties{
 			DelegatedSubnetID:  utils.String(d.Get("delegated_management_subnet_id").(string)),
 			NodeCount:          utils.Int32(int32(d.Get("node_count").(int))),
-			Sku:                utils.String(d.Get("sku").(string)),
+			Sku:                utils.String(d.Get("sku_name").(string)),
 			DiskCapacity:       utils.Int32(int32(d.Get("disk_capacity").(int))),
 			DataCenterLocation: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		},
@@ -154,7 +154,7 @@ func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("location", location.NormalizeNilable(props.DataCenterLocation))
 			d.Set("node_count", props.NodeCount)
 			d.Set("disk_capacity", int(*props.DiskCapacity))
-			d.Set("sku", props.Sku)
+			d.Set("sku_name", props.Sku)
 		}
 	}
 	return nil

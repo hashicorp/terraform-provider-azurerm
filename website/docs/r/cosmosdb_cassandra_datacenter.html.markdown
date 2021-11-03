@@ -57,7 +57,7 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "example" {
   delegated_management_subnet_id = azurerm_subnet.example.id
   node_count                     = 3
   disk_capacity                  = 4
-  sku                            = "Standard_DS14_v2" 
+  sku_name                       = "Standard_DS14_v2" 
 }
 ```
 
@@ -77,7 +77,7 @@ The following arguments are supported:
 
 ---
 
-* `sku` - (Optional) Determines the selected sku. Defaults to Standard_DS14_v2. 
+* `sku_name` - (Optional) Determines the selected sku. Defaults to Standard_DS14_v2. 
 
 * `disk_capacity` - (Optional) Determines the number of p30 disks that are attached to each node. Defaults to 4.
 
