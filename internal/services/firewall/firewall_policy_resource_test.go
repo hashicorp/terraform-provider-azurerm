@@ -164,6 +164,35 @@ func TestAccFirewallPolicy_inherit(t *testing.T) {
 	})
 }
 
+func TestAccFirewallPolicy_insights(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	r := FirewallPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.defaultWorkspaceOnly(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.regionalWorkspace(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.defaultWorkspaceOnly(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (FirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	var id, err = parse.FirewallPolicyID(state.ID)
 	if err != nil {
@@ -493,4 +522,70 @@ resource "azurerm_key_vault_certificate" "test" {
   depends_on = [azurerm_key_vault_access_policy.test2]
 }
 `, data.RandomInteger, "westeurope", data.RandomInteger, data.RandomInteger)
+}
+
+func (FirewallPolicyResource) defaultWorkspaceOnly(data acceptance.TestData) string {
+	r := FirewallPolicyResource{}
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace" "default" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_firewall_policy" "test" {
+  name                = "acctest-networkfw-Policy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  insights {
+    enabled                            = true
+    retention_in_days                  = 7
+    default_log_analytics_workspace_id = azurerm_log_analytics_workspace.default.id
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (FirewallPolicyResource) regionalWorkspace(data acceptance.TestData) string {
+	r := FirewallPolicyResource{}
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace" "default" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_log_analytics_workspace" "regional" {
+  name                = "acctestLAW-region-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_firewall_policy" "test" {
+  name                = "acctest-networkfw-Policy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  insights {
+    enabled                            = true
+    retention_in_days                  = 7
+    default_log_analytics_workspace_id = azurerm_log_analytics_workspace.default.id
+    log_analytics_workspace {
+      id                = azurerm_log_analytics_workspace.regional.id
+      firewall_location = "%s"
+    }
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
