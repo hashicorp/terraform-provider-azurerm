@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -301,16 +300,14 @@ func TestAccFirewall_privateRanges(t *testing.T) {
 }
 
 func (FirewallResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	var id, err = azure.ParseAzureResourceID(state.ID)
+	var id, err = parse.FirewallID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	name := id.Path["azureFirewalls"]
-
-	resp, err := clients.Firewall.AzureFirewallsClient.Get(ctx, id.ResourceGroup, name)
+	resp, err := clients.Firewall.AzureFirewallsClient.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Azure Firewall %q (Resource Group: %q): %v", name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Azure Firewall %s : %v", *id, err)
 	}
 
 	return utils.Bool(resp.AzureFirewallPropertiesFormat != nil), nil

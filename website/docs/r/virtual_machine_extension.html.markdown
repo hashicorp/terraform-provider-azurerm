@@ -149,6 +149,7 @@ $ az vm extension image list --location westus -o table
 * `auto_upgrade_minor_version` - (Optional) Specifies if the platform deploys
     the latest minor version update to the `type_handler_version` specified.
 
+* `automatic_upgrade_enabled` - (Optional) Should the Extension be automatically updated whenever the Publisher releases a new version of this VM Extension? Defaults to `false`.
 * `settings` - (Required) The settings passed to the extension, these are
     specified as a JSON object in a string.
 
@@ -181,5 +182,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Virtual Machine Extensions can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_virtual_machine_extension.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachines/myVM/extensions/hostname
+terraform import azurerm_virtual_machine_extension.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachines/myVM/extensions/extensionName
 ```

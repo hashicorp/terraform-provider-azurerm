@@ -202,7 +202,7 @@ func (r ConsumerGroupResource) Delete() sdk.ResourceFunc {
 }
 
 func (r ConsumerGroupResource) ModelObject() interface{} {
-	return ConsumerGroupObject{}
+	return &ConsumerGroupObject{}
 }
 
 func (r ConsumerGroupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

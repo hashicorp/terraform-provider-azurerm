@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -66,8 +66,8 @@ func resourceBatchCertificate() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(batch.Cer),
-					string(batch.Pfx),
+					string(batch.CertificateFormatCer),
+					string(batch.CertificateFormatPfx),
 				}, false),
 			},
 
@@ -146,13 +146,9 @@ func resourceBatchCertificateCreate(d *pluginsdk.ResourceData, meta interface{})
 		CertificateCreateOrUpdateProperties: &certificateProperties,
 	}
 
-	future, err := client.Create(ctx, resourceGroupName, accountName, name, parameters, "", "")
+	_, err := client.Create(ctx, resourceGroupName, accountName, name, parameters, "", "")
 	if err != nil {
 		return fmt.Errorf("creating Batch certificate %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroupName, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Batch certificate %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroupName, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroupName, accountName, name)

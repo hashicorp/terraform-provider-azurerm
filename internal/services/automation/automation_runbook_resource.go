@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helper"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,8 +30,10 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 		Update: resourceAutomationRunbookCreateUpdate,
 		Delete: resourceAutomationRunbookDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.RunbookID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -263,31 +266,28 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.RunbookID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	accName := id.Path["automationAccounts"]
-	name := id.Path["runbooks"]
 
-	resp, err := client.Get(ctx, resGroup, accName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on AzureRM Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+		return fmt.Errorf("making Read request on AzureRM Automation Runbook %q (Account %q / Resource Group %q): %+v", id.Name, id.AutomationAccountName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	d.Set("automation_account_name", accName)
+	d.Set("automation_account_name", id.AutomationAccountName)
 	if props := resp.RunbookProperties; props != nil {
 		d.Set("log_verbose", props.LogVerbose)
 		d.Set("log_progress", props.LogProgress)
@@ -295,12 +295,12 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("description", props.Description)
 	}
 
-	response, err := client.GetContent(ctx, resGroup, accName, name)
+	response, err := client.GetContent(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(response.Response) {
 			d.Set("content", "")
 		} else {
-			return fmt.Errorf("retrieving content for Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+			return fmt.Errorf("retrieving content for Automation Runbook %q (Account %q / Resource Group %q): %+v", id.Name, id.AutomationAccountName, id.ResourceGroup, err)
 		}
 	}
 
@@ -308,7 +308,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if contentBytes := *response.Value; contentBytes != nil {
 			buf := new(bytes.Buffer)
 			if _, err := buf.ReadFrom(contentBytes); err != nil {
-				return fmt.Errorf("reading from Automation Runbook buffer %q: %+v", name, err)
+				return fmt.Errorf("reading from Automation Runbook buffer %q: %+v", id.Name, err)
 			}
 			content := buf.String()
 			d.Set("content", content)
@@ -316,18 +316,18 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	jsMap := make(map[uuid.UUID]automation.JobScheduleProperties)
-	for jsIterator, err := jsClient.ListByAutomationAccountComplete(ctx, resGroup, accName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
+	for jsIterator, err := jsClient.ListByAutomationAccountComplete(ctx, id.ResourceGroup, id.AutomationAccountName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
 		if err != nil {
-			return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", accName, err)
+			return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", id.AutomationAccountName, err)
 		}
 		if props := jsIterator.Value().JobScheduleProperties; props != nil {
-			if props.Runbook.Name != nil && *props.Runbook.Name == name {
+			if props.Runbook.Name != nil && *props.Runbook.Name == id.Name {
 				if jsIterator.Value().JobScheduleID == nil || *jsIterator.Value().JobScheduleID == "" {
-					return fmt.Errorf("job schedule Id is nil or empty listed by Automation Account %q Job Schedule List: %+v", accName, err)
+					return fmt.Errorf("job schedule Id is nil or empty listed by Automation Account %q Job Schedule List: %+v", id.AutomationAccountName, err)
 				}
 				jsId, err := uuid.FromString(*jsIterator.Value().JobScheduleID)
 				if err != nil {
-					return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List:%v", accName, err)
+					return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List:%v", id.AutomationAccountName, err)
 				}
 				jsMap[jsId] = *props
 			}
@@ -351,21 +351,18 @@ func resourceAutomationRunbookDelete(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.RunbookID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	accName := id.Path["automationAccounts"]
-	name := id.Path["runbooks"]
 
-	resp, err := client.Delete(ctx, resGroup, accName, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 
-		return fmt.Errorf("issuing AzureRM delete request for Automation Runbook '%s': %+v", name, err)
+		return fmt.Errorf("issuing AzureRM delete request for Automation Runbook '%s': %+v", id.Name, err)
 	}
 
 	return nil

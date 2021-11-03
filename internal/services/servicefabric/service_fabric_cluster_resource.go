@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/servicefabric/mgmt/2018-02-01-preview/servicefabric"
+	"github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2021-06-01/servicefabric"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -68,6 +68,24 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servicefabric.UpgradeModeAutomatic),
 					string(servicefabric.UpgradeModeManual),
+				}, false),
+			},
+
+			"service_fabric_zonal_upgrade_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(servicefabric.SfZonalUpgradeModeHierarchical),
+					string(servicefabric.SfZonalUpgradeModeParallel),
+				}, false),
+			},
+
+			"vmss_zonal_upgrade_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(servicefabric.VmssZonalUpgradeModeHierarchical),
+					string(servicefabric.VmssZonalUpgradeModeParallel),
 				}, false),
 			},
 
@@ -456,6 +474,14 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
+						"is_stateless": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"multiple_availability_zones": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
 						"client_endpoint_port": {
 							Type:     pluginsdk.TypeInt,
 							Required: true,
@@ -472,11 +498,11 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 						"durability_level": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(servicefabric.Bronze),
+							Default:  string(servicefabric.DurabilityLevelBronze),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(servicefabric.Bronze),
-								string(servicefabric.Gold),
-								string(servicefabric.Silver),
+								string(servicefabric.DurabilityLevelBronze),
+								string(servicefabric.DurabilityLevelSilver),
+								string(servicefabric.DurabilityLevelGold),
 							}, false),
 						},
 
@@ -598,6 +624,14 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 		},
 	}
 
+	if sfZonalUpgradeMode, ok := d.GetOk("service_fabric_zonal_upgrade_mode"); ok {
+		cluster.ClusterProperties.SfZonalUpgradeMode = servicefabric.SfZonalUpgradeMode(sfZonalUpgradeMode.(string))
+	}
+
+	if vmssZonalUpgradeMode, ok := d.GetOk("vmss_zonal_upgrade_mode"); ok {
+		cluster.ClusterProperties.VmssZonalUpgradeMode = servicefabric.VmssZonalUpgradeMode(vmssZonalUpgradeMode.(string))
+	}
+
 	if certificateRaw, ok := d.GetOk("certificate"); ok {
 		certificate := expandServiceFabricClusterCertificate(certificateRaw.([]interface{}))
 		cluster.ClusterProperties.Certificate = certificate
@@ -622,7 +656,7 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 		cluster.ClusterProperties.ClusterCodeVersion = utils.String(clusterCodeVersion)
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, cluster)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, cluster)
 	if err != nil {
 		return fmt.Errorf("creating Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -678,6 +712,8 @@ func resourceServiceFabricClusterRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("reliability_level", string(props.ReliabilityLevel))
 		d.Set("vm_image", props.VMImage)
 		d.Set("upgrade_mode", string(props.UpgradeMode))
+		d.Set("service_fabric_zonal_upgrade_mode", string(props.SfZonalUpgradeMode))
+		d.Set("vmss_zonal_upgrade_mode", string(props.VmssZonalUpgradeMode))
 
 		addOnFeatures := flattenServiceFabricClusterAddOnFeatures(props.AddOnFeatures)
 		if err := d.Set("add_on_features", pluginsdk.NewSet(pluginsdk.HashString, addOnFeatures)); err != nil {
@@ -1373,6 +1409,14 @@ func expandServiceFabricClusterNodeTypes(input []interface{}) *[]servicefabric.N
 			DurabilityLevel:              servicefabric.DurabilityLevel(durabilityLevel),
 		}
 
+		if isStateless, ok := node["is_stateless"]; ok {
+			result.IsStateless = utils.Bool(isStateless.(bool))
+		}
+
+		if multipleAvailabilityZones, ok := node["multiple_availability_zones"]; ok {
+			result.MultipleAvailabilityZones = utils.Bool(multipleAvailabilityZones.(bool))
+		}
+
 		if props, ok := node["placement_properties"]; ok {
 			placementProperties := make(map[string]*string)
 			for key, value := range props.(map[string]interface{}) {
@@ -1467,6 +1511,14 @@ func flattenServiceFabricClusterNodeTypes(input *[]servicefabric.NodeTypeDescrip
 
 		if port := v.ReverseProxyEndpointPort; port != nil {
 			output["reverse_proxy_endpoint_port"] = *port
+		}
+
+		if isStateless := v.IsStateless; isStateless != nil {
+			output["is_stateless"] = *isStateless
+		}
+
+		if multipleAvailabilityZones := v.MultipleAvailabilityZones; multipleAvailabilityZones != nil {
+			output["multiple_availability_zones"] = *multipleAvailabilityZones
 		}
 
 		output["durability_level"] = string(v.DurabilityLevel)

@@ -280,7 +280,7 @@ func (client DeletedAccountsClient) Purge(ctx context.Context, location string, 
 
 	result, err = client.PurgeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cognitiveservices.DeletedAccountsClient", "Purge", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cognitiveservices.DeletedAccountsClient", "Purge", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -313,6 +313,7 @@ func (client DeletedAccountsClient) PurgePreparer(ctx context.Context, location 
 // http.Response Body if it receives an error.
 func (client DeletedAccountsClient) PurgeSender(req *http.Request) (future DeletedAccountsPurgeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

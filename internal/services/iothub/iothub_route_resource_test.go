@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -72,12 +72,12 @@ func TestAccIotHubRoute_update(t *testing.T) {
 }
 
 func (t IotHubRouteResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.RouteID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 	resourceGroup := id.ResourceGroup
-	iothubName := id.Path["IotHubs"]
+	iothubName := id.IotHubName
 
 	resp, err := clients.IoTHub.ResourceClient.Get(ctx, resourceGroup, iothubName)
 	if err != nil || resp.Properties == nil || resp.Properties.Routing == nil {

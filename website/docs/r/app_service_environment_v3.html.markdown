@@ -34,9 +34,13 @@ resource "azurerm_subnet" "example" {
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.2.0/24"]
 
-  service_delegation {
-    name    = "Microsoft.Web/hostingEnvironments"
-    actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/hostingEnvironments"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
   }
 }
 
@@ -151,5 +155,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 A 3rd Generation (v3) App Service Environment can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_service_environment.myAppServiceEnv /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myResourceGroup/providers/Microsoft.Web/hostingEnvironments/myAppServiceEnv
+terraform import azurerm_app_service_environment_v3.myAppServiceEnv /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myResourceGroup/providers/Microsoft.Web/hostingEnvironments/myAppServiceEnv
 ```

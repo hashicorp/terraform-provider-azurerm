@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -17,8 +18,11 @@ func resourceLogicAppTriggerCustom() *pluginsdk.Resource {
 		Read:   resourceLogicAppTriggerCustomRead,
 		Update: resourceLogicAppTriggerCustomCreateUpdate,
 		Delete: resourceLogicAppTriggerCustomDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.TriggerID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -52,16 +56,23 @@ func resourceLogicAppTriggerCustom() *pluginsdk.Resource {
 }
 
 func resourceLogicAppTriggerCustomCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	logicAppId := d.Get("logic_app_id").(string)
-	name := d.Get("name").(string)
+	workflowId, err := parse.WorkflowID(d.Get("logic_app_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := parse.NewTriggerID(workflowId.SubscriptionId, workflowId.ResourceGroup, workflowId.Name, d.Get("name").(string))
+
 	bodyRaw := d.Get("body").(string)
 
 	var body map[string]interface{}
 	if err := json.Unmarshal([]byte(bodyRaw), &body); err != nil {
-		return fmt.Errorf("unmarshalling JSON for Custom Trigger %q: %+v", name, err)
+		return fmt.Errorf("unmarshalling JSON for Custom Trigger %q: %+v", id.Name, err)
 	}
 
-	if err := resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, body, "azurerm_logic_app_trigger_custom"); err != nil {
+	log.Printf("[DEBUG] logic_custom_trigger initial body is: %s", body)
+
+	if err := resourceLogicAppTriggerUpdate(d, meta, *workflowId, id, body, "azurerm_logic_app_trigger_custom"); err != nil {
 		return err
 	}
 
@@ -69,56 +80,53 @@ func resourceLogicAppTriggerCustomCreateUpdate(d *pluginsdk.ResourceData, meta i
 }
 
 func resourceLogicAppTriggerCustomRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.TriggerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	logicAppName := id.Path["workflows"]
-	name := id.Path["triggers"]
-
-	t, app, err := retrieveLogicAppTrigger(d, meta, resourceGroup, logicAppName, name)
+	t, app, err := retrieveLogicAppTrigger(d, meta, id.ResourceGroup, id.WorkflowName, id.Name)
 	if err != nil {
 		return err
 	}
 
 	if t == nil {
-		log.Printf("[DEBUG] Logic App %q (Resource Group %q) does not contain Trigger %q - removing from state", logicAppName, resourceGroup, name)
+		log.Printf("[DEBUG] Logic App %q (Resource Group %q) does not contain Trigger %q - removing from state", id.WorkflowName, id.ResourceGroup, id.Name)
 		d.SetId("")
 		return nil
 	}
 
 	action := *t
 
-	d.Set("name", name)
+	d.Set("name", id.Name)
 	d.Set("logic_app_id", app.ID)
+
+	// Azure returns an additional field called evaluatedRecurrence in the trigger body which
+	// is a copy of the recurrence specified in the body property and breaks the diff suppress logic
+	delete(action, "evaluatedRecurrence")
 
 	body, err := json.Marshal(action)
 	if err != nil {
-		return fmt.Errorf("serializing `body` for Trigger %q: %+v", name, err)
+		return fmt.Errorf("serializing `body` for Trigger %q: %+v", id.Name, err)
 	}
+	log.Printf("[DEBUG] logic_custom_trigger body is: %s", string(body))
 
 	if err := d.Set("body", string(body)); err != nil {
-		return fmt.Errorf("setting `body` for Trigger %q: %+v", name, err)
+		return fmt.Errorf("setting `body` for Trigger %q: %+v", id.Name, err)
 	}
 
 	return nil
 }
 
 func resourceLogicAppTriggerCustomDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.TriggerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	logicAppName := id.Path["workflows"]
-	name := id.Path["triggers"]
-
-	err = resourceLogicAppTriggerRemove(d, meta, resourceGroup, logicAppName, name)
+	err = resourceLogicAppTriggerRemove(d, meta, id.ResourceGroup, id.WorkflowName, id.Name)
 	if err != nil {
-		return fmt.Errorf("removing Trigger %q from Logic App %q (Resource Group %q): %+v", name, logicAppName, resourceGroup, err)
+		return fmt.Errorf("removing Trigger %s: %+v", id, err)
 	}
 
 	return nil

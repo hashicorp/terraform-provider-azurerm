@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -146,24 +147,24 @@ func dataSourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 
 func dataSourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewScheduledQueryRulesID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ScheduledQueryRuleName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("[DEBUG] Scheduled Query Rule %q was not found in Resource Group %q: %+v", name, resourceGroup, err)
+			return fmt.Errorf("[DEBUG] Scheduled Query Rule %q was not found in Resource Group %q: %+v", id.ScheduledQueryRuleName, id.ResourceGroup, err)
 		}
-		return fmt.Errorf("getting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("getting Monitor %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.ScheduledQueryRuleName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -177,14 +178,16 @@ func dataSourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, me
 
 	action, ok := resp.Action.(insights.AlertingAction)
 	if !ok {
-		return fmt.Errorf("Wrong action type in Scheduled Query Rule %q (resource group %q): %T", name, resourceGroup, resp.Action)
+		return fmt.Errorf("wrong action type in %s: %T", id, resp.Action)
 	}
-	if err = d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
-		return fmt.Errorf("setting `action`: %+v", err)
+	if action.AznsAction != nil {
+		if err = d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
+			return fmt.Errorf("setting `action`: %+v", err)
+		}
 	}
 	severity, err := strconv.Atoi(string(action.Severity))
 	if err != nil {
-		return fmt.Errorf("converting action.Severity %q in query rule %q to int (resource group %q): %+v", action.Severity, name, resourceGroup, err)
+		return fmt.Errorf("converting action.Severity %q to int in %s: %+v", action.Severity, id, err)
 	}
 	d.Set("severity", severity)
 	d.Set("throttling", action.ThrottlingInMin)

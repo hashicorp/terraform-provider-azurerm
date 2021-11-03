@@ -97,6 +97,11 @@ func resourceStorageBlob() *pluginsdk.Resource {
 				Default:  "application/octet-stream",
 			},
 
+			"cache_control": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+
 			"source": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
@@ -199,6 +204,7 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Client:        blobsClient,
 
 		BlobType:      d.Get("type").(string),
+		CacheControl:  d.Get("cache_control").(string),
 		ContentType:   d.Get("content_type").(string),
 		ContentMD5:    contentMD5,
 		MetaData:      ExpandMetaData(metaDataRaw),
@@ -287,6 +293,18 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		log.Printf("[DEBUG] Updated MetaData for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
 	}
 
+	if d.HasChange("cache_control") {
+		log.Printf("[DEBUG] Updating Cache Control for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
+		input := blobs.SetPropertiesInput{
+			CacheControl: utils.String(d.Get("cache_control").(string)),
+		}
+
+		if _, err := blobsClient.SetProperties(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
+			return fmt.Errorf("updating Cache Control for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
+		}
+		log.Printf("[DEBUG] Updated Cache Control for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
+	}
+
 	return resourceStorageBlobRead(d, meta)
 }
 
@@ -334,6 +352,7 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	d.Set("access_tier", string(props.AccessTier))
 	d.Set("content_type", props.ContentType)
+	d.Set("cache_control", props.CacheControl)
 
 	// Set the ContentMD5 value to md5 hash in hex
 	contentMD5 := ""

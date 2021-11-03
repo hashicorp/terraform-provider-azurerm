@@ -40,6 +40,7 @@ func TestAccServiceBusNamespaceNetworkRule_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("trusted_services_allowed").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -96,7 +97,7 @@ func (t ServiceBusNamespaceNetworkRuleSetResource) Exists(ctx context.Context, c
 		return nil, err
 	}
 
-	resp, err := clients.ServiceBus.NamespacesClientPreview.GetNetworkRuleSet(ctx, id.ResourceGroup, id.NamespaceName)
+	resp, err := clients.ServiceBus.NamespacesClient.GetNetworkRuleSet(ctx, id.ResourceGroup, id.NamespaceName)
 	if err != nil {
 		return nil, fmt.Errorf("reading Service Bus NameSpace Network Rule Set (%s): %+v", id.String(), err)
 	}
@@ -130,7 +131,8 @@ resource "azurerm_servicebus_namespace_network_rule_set" "test" {
   namespace_name      = azurerm_servicebus_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
 
-  default_action = "Deny"
+  default_action           = "Deny"
+  trusted_services_allowed = true
 
   network_rules {
     subnet_id                            = azurerm_subnet.test.id

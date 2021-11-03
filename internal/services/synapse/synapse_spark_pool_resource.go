@@ -56,6 +56,7 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(synapse.NodeSizeFamilyMemoryOptimized),
+					string(synapse.NodeSizeFamilyNone),
 				}, false),
 			},
 
@@ -66,7 +67,28 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 					string(synapse.NodeSizeSmall),
 					string(synapse.NodeSizeMedium),
 					string(synapse.NodeSizeLarge),
+					string(synapse.NodeSizeNone),
+					string(synapse.NodeSizeXLarge),
+					string(synapse.NodeSizeXXLarge),
+					string(synapse.NodeSizeXXXLarge),
 				}, false),
+			},
+
+			"cache_size": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+			},
+
+			"compute_isolation_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"dynamic_executor_allocation_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"node_count": {
@@ -108,6 +130,33 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntBetween(5, 10080),
+						},
+					},
+				},
+			},
+
+			"session_level_packages_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"spark_config": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"content": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"filename": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -190,13 +239,20 @@ func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{})
 	bigDataPoolInfo := synapse.BigDataPoolResourceInfo{
 		Location: workspace.Location,
 		BigDataPoolResourceProperties: &synapse.BigDataPoolResourceProperties{
-			AutoPause:             expandArmSparkPoolAutoPauseProperties(d.Get("auto_pause").([]interface{})),
-			AutoScale:             autoScale,
-			DefaultSparkLogFolder: utils.String(d.Get("spark_log_folder").(string)),
-			NodeSize:              synapse.NodeSize(d.Get("node_size").(string)),
-			NodeSizeFamily:        synapse.NodeSizeFamily(d.Get("node_size_family").(string)),
-			SparkEventsFolder:     utils.String(d.Get("spark_events_folder").(string)),
-			SparkVersion:          utils.String(d.Get("spark_version").(string)),
+			AutoPause:                 expandArmSparkPoolAutoPauseProperties(d.Get("auto_pause").([]interface{})),
+			AutoScale:                 autoScale,
+			CacheSize:                 utils.Int32(int32(d.Get("cache_size").(int))),
+			IsComputeIsolationEnabled: utils.Bool(d.Get("compute_isolation_enabled").(bool)),
+			DynamicExecutorAllocation: &synapse.DynamicExecutorAllocation{
+				Enabled: utils.Bool(d.Get("dynamic_executor_allocation_enabled").(bool)),
+			},
+			DefaultSparkLogFolder:       utils.String(d.Get("spark_log_folder").(string)),
+			NodeSize:                    synapse.NodeSize(d.Get("node_size").(string)),
+			NodeSizeFamily:              synapse.NodeSizeFamily(d.Get("node_size_family").(string)),
+			SessionLevelPackagesEnabled: utils.Bool(d.Get("session_level_packages_enabled").(bool)),
+			SparkConfigProperties:       expandSparkPoolSparkConfig(d.Get("spark_config").([]interface{})),
+			SparkEventsFolder:           utils.String(d.Get("spark_events_folder").(string)),
+			SparkVersion:                utils.String(d.Get("spark_version").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -266,9 +322,16 @@ func resourceSynapseSparkPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if err := d.Set("library_requirement", flattenArmSparkPoolLibraryRequirements(props.LibraryRequirements)); err != nil {
 			return fmt.Errorf("setting `library_requirement`: %+v", err)
 		}
+		d.Set("cache_size", props.CacheSize)
+		d.Set("compute_isolation_enabled", props.IsComputeIsolationEnabled)
+		if props.DynamicExecutorAllocation != nil {
+			d.Set("dynamic_executor_allocation_enabled", props.DynamicExecutorAllocation.Enabled)
+		}
 		d.Set("node_count", props.NodeCount)
 		d.Set("node_size", props.NodeSize)
 		d.Set("node_size_family", string(props.NodeSizeFamily))
+		d.Set("session_level_packages_enabled", props.SessionLevelPackagesEnabled)
+		d.Set("spark_config", flattenSparkPoolSparkConfig(props.SparkConfigProperties))
 		d.Set("spark_version", props.SparkVersion)
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -294,14 +357,21 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 	bigDataPoolInfo := synapse.BigDataPoolResourceInfo{
 		Location: workspace.Location,
 		BigDataPoolResourceProperties: &synapse.BigDataPoolResourceProperties{
-			AutoPause:             expandArmSparkPoolAutoPauseProperties(d.Get("auto_pause").([]interface{})),
-			AutoScale:             autoScale,
-			DefaultSparkLogFolder: utils.String(d.Get("spark_log_folder").(string)),
-			LibraryRequirements:   expandArmSparkPoolLibraryRequirements(d.Get("library_requirement").([]interface{})),
-			NodeSize:              synapse.NodeSize(d.Get("node_size").(string)),
-			NodeSizeFamily:        synapse.NodeSizeFamily(d.Get("node_size_family").(string)),
-			SparkEventsFolder:     utils.String(d.Get("spark_events_folder").(string)),
-			SparkVersion:          utils.String(d.Get("spark_version").(string)),
+			AutoPause:                 expandArmSparkPoolAutoPauseProperties(d.Get("auto_pause").([]interface{})),
+			AutoScale:                 autoScale,
+			CacheSize:                 utils.Int32(int32(d.Get("cache_size").(int))),
+			IsComputeIsolationEnabled: utils.Bool(d.Get("compute_isolation_enabled").(bool)),
+			DynamicExecutorAllocation: &synapse.DynamicExecutorAllocation{
+				Enabled: utils.Bool(d.Get("dynamic_executor_allocation_enabled").(bool)),
+			},
+			DefaultSparkLogFolder:       utils.String(d.Get("spark_log_folder").(string)),
+			LibraryRequirements:         expandArmSparkPoolLibraryRequirements(d.Get("library_requirement").([]interface{})),
+			NodeSize:                    synapse.NodeSize(d.Get("node_size").(string)),
+			NodeSizeFamily:              synapse.NodeSizeFamily(d.Get("node_size_family").(string)),
+			SessionLevelPackagesEnabled: utils.Bool(d.Get("session_level_packages_enabled").(bool)),
+			SparkConfigProperties:       expandSparkPoolSparkConfig(d.Get("spark_config").([]interface{})),
+			SparkEventsFolder:           utils.String(d.Get("spark_events_folder").(string)),
+			SparkVersion:                utils.String(d.Get("spark_version").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -392,6 +462,17 @@ func expandArmSparkPoolLibraryRequirements(input []interface{}) *synapse.Library
 	}
 }
 
+func expandSparkPoolSparkConfig(input []interface{}) *synapse.LibraryRequirements {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	value := input[0].(map[string]interface{})
+	return &synapse.LibraryRequirements{
+		Content:  utils.String(value["content"].(string)),
+		Filename: utils.String(value["filename"].(string)),
+	}
+}
+
 func flattenArmSparkPoolAutoPauseProperties(input *synapse.AutoPauseProperties) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
@@ -448,6 +529,27 @@ func flattenArmSparkPoolAutoScaleProperties(input *synapse.AutoScaleProperties) 
 }
 
 func flattenArmSparkPoolLibraryRequirements(input *synapse.LibraryRequirements) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	var content string
+	if input.Content != nil {
+		content = *input.Content
+	}
+	var filename string
+	if input.Filename != nil {
+		filename = *input.Filename
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"content":  content,
+			"filename": filename,
+		},
+	}
+}
+
+func flattenSparkPoolSparkConfig(input *synapse.LibraryRequirements) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}

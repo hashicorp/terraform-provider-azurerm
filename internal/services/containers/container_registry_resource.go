@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	validate2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	identityParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
@@ -39,8 +40,10 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			1: migration.RegistryV1ToV2{},
 		}),
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.RegistryID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -117,6 +120,11 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 							Default:  false,
 						},
 
+						"regional_endpoint_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
 						"tags": tags.Schema(),
 					},
 				},
@@ -128,10 +136,13 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			// TODO 3.0 - Remove this property as all the Classic sku instances are now deprecated and out of support at the serice side.
 			"storage_account_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:       pluginsdk.TypeString,
+				Optional:   true,
+				Computed:   true,
+				ForceNew:   true,
+				Deprecated: "this attribute is no longer recognized by the API and is not functional anymore, thus this property will be removed in v3.0",
 			},
 
 			"login_server": {
@@ -477,18 +488,6 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 		Tags: tags.Expand(t),
 	}
 
-	if v, ok := d.GetOk("storage_account_id"); ok {
-		if !strings.EqualFold(sku, string(containerregistry.Classic)) {
-			return fmt.Errorf("`storage_account_id` can only be specified for a Classic (unmanaged) Sku.")
-		}
-
-		parameters.StorageAccount = &containerregistry.StorageAccountProperties{
-			ID: utils.String(v.(string)),
-		}
-	} else if strings.EqualFold(sku, string(containerregistry.Classic)) {
-		return fmt.Errorf("`storage_account_id` must be specified for a Classic (unmanaged) Sku.")
-	}
-
 	future, err := client.Create(ctx, resourceGroup, name, parameters)
 	if err != nil {
 		return fmt.Errorf("creating Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -717,26 +716,24 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.RegistryID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["registries"]
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Container Registry %q was not found in Resource Group %q", name, resourceGroup)
+			log.Printf("[DEBUG] Container Registry %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Container Registry %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	location := resp.Location
 	if location != nil {
@@ -776,14 +773,10 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("sku", string(sku.Tier))
 	}
 
-	if account := resp.StorageAccount; account != nil {
-		d.Set("storage_account_id", account.ID)
-	}
-
 	if *resp.AdminUserEnabled {
-		credsResp, errList := client.ListCredentials(ctx, resourceGroup, name)
+		credsResp, errList := client.ListCredentials(ctx, id.ResourceGroup, id.Name)
 		if errList != nil {
-			return fmt.Errorf("making Read request on Azure Container Registry %s for Credentials: %s", name, errList)
+			return fmt.Errorf("making Read request on Azure Container Registry %s for Credentials: %s", id.Name, errList)
 		}
 
 		d.Set("admin_username", credsResp.Username)
@@ -796,9 +789,9 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("admin_password", "")
 	}
 
-	replications, err := replicationClient.List(ctx, resourceGroup, name)
+	replications, err := replicationClient.List(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("making Read request on Azure Container Registry %s for replications: %s", name, err)
+		return fmt.Errorf("making Read request on Azure Container Registry %s for replications: %s", id.Name, err)
 	}
 
 	geoReplicationLocations := make([]interface{}, 0)
@@ -812,6 +805,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 				replication["location"] = valueLocation
 				replication["tags"] = tags.Flatten(value.Tags)
 				replication["zone_redundancy_enabled"] = value.ZoneRedundancy == containerregistry.ZoneRedundancyEnabled
+				replication["regional_endpoint_enabled"] = value.RegionEndpointEnabled != nil && *value.RegionEndpointEnabled
 				geoReplications = append(geoReplications, replication)
 			}
 		}
@@ -819,6 +813,10 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	d.Set("georeplication_locations", geoReplicationLocations)
 	d.Set("georeplications", geoReplications)
+
+	// Deprecated as it is not returned by the API now.
+	d.Set("storage_account_id", "")
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -827,20 +825,18 @@ func resourceContainerRegistryDelete(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.RegistryID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["registries"]
 
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Container Registry %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for Container Registry %q (Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for Container Registry %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -960,7 +956,8 @@ func expandReplications(p []interface{}) []containerregistry.Replication {
 			Name:     &location,
 			Tags:     tags,
 			ReplicationProperties: &containerregistry.ReplicationProperties{
-				ZoneRedundancy: zoneRedundancy,
+				ZoneRedundancy:        zoneRedundancy,
+				RegionEndpointEnabled: utils.Bool(value["regional_endpoint_enabled"].(bool)),
 			},
 		})
 	}

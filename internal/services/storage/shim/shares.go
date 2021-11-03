@@ -3,7 +3,7 @@ package shim
 import (
 	"context"
 
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/shares"
 )
 
 type StorageShareWrapper interface {
@@ -17,7 +17,8 @@ type StorageShareWrapper interface {
 }
 
 type StorageShareProperties struct {
-	ACLs     []shares.SignedIdentifier
-	MetaData map[string]string
-	QuotaGB  int
+	ACLs            []shares.SignedIdentifier
+	MetaData        map[string]string
+	QuotaGB         int
+	EnabledProtocol shares.ShareProtocol
 }

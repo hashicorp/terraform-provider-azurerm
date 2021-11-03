@@ -69,9 +69,17 @@ The following arguments are supported:
 
 * `sql_administrator_login_password` - (Required) The Password associated with the `sql_administrator_login` for the SQL administrator.
 
+* `linking_allowed_for_aad_tenant_ids` - (Optional) Allowed Aad Tenant Ids For Linking. 
+
+* `compute_subnet_id` - (Optional) Subnet ID used for computes in workspace
+
 * `data_exfiltration_protection_enabled` - (Optional) Is data exfiltration protection enabled in this workspace? If set to `true`, `managed_virtual_network_enabled` must also be set to `true`. Changing this forces a new resource to be created.
 
 * `managed_virtual_network_enabled` - (Optional) Is Virtual Network enabled for all computes in this workspace? Defaults to `false`. Changing this forces a new resource to be created.
+
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for the Cognitive Account. Defaults to `true`.
+
+* `purview_id` - (Optional) The ID of purview account.
 
 * `sql_identity_control_enabled` - (Optional) Are pipelines (running as workspace's system assigned identity) allowed to access SQL pools?
 
@@ -83,7 +91,9 @@ The following arguments are supported:
 
 * `github_repo` - (Optional) A `github_repo` block as defined below.
 
-* `customer_managed_key_versionless_id` - (Optional) The Azure Key Vault Key Versionless ID to be used as the Customer Managed Key (CMK) for double encryption (e.g. `https://example-keyvault.vault.azure.net/type/cmk/`).
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
+
+* `sql_aad_admin` - (Optional) An `sql_aad_admin` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Workspace.
 
@@ -99,11 +109,23 @@ An `aad_admin` block supports the following:
 
 ---
 
+An `sql_aad_admin` block supports the following:
+
+* `login` - (Required) The login name of the Azure AD Administrator of this Synapse Workspace SQL.
+
+* `object_id` - (Required) The object id of the Azure AD Administrator of this Synapse Workspace SQL.
+
+* `tenant_id` - (Required) The tenant id of the Azure AD Administrator of this Synapse Workspace SQL.
+
+---
+
 An `azure_devops_repo` block supports the following:
 
 * `account_name` - (Required) Specifies the Azure DevOps account name.
 
 * `branch_name` - (Required) Specifies the collaboration branch of the repository to get code from.
+
+* `last_commit_id` - (Optional) The last commit ID.
 
 * `project_name` - (Required) Specifies the name of the Azure DevOps project.
 
@@ -121,6 +143,8 @@ A `github_repo` block supports the following:
 
 * `branch_name` - (Required) Specifies the collaboration branch of the repository to get code from.
 
+* `last_commit_id` - (Optional) The last commit ID.
+
 * `repository_name` - (Required) Specifies the name of the git repository.
 
 * `root_folder` - (Required) Specifies the root folder within the repository. Set to `/` for the top level.
@@ -128,6 +152,14 @@ A `github_repo` block supports the following:
 * `git_url` - (Optional) Specifies the GitHub Enterprise host name. For example: https://github.mydomain.com.
 
 -> **Note:** You must log in to the Synapse UI to complete the authentication to the GitHub repository.
+
+---
+
+A `customer_managed_key` block supports the following:
+
+* `key_versionless_id` - (Required) The Azure Key Vault Key Versionless ID to be used as the Customer Managed Key (CMK) for double encryption (e.g. `https://example-keyvault.vault.azure.net/type/cmk/`).
+
+* `key_name` - (Optional) An identifier for the key. Name needs to match the name of the key used with the `azurerm_synapse_workspace_key` resource. Defaults to "cmk" if not specified.
 
 ## Attributes Reference
 

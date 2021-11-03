@@ -47,6 +47,34 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 		Read:   resourceCosmosDbAccountRead,
 		Update: resourceCosmosDbAccountUpdate,
 		Delete: resourceCosmosDbAccountDelete,
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("backup.0.type", func(ctx context.Context, old, new, _ interface{}) bool {
+				// backup type can only change from Periodic to Continuous
+				return old.(string) == string(documentdb.TypeContinuous) && new.(string) == string(documentdb.TypePeriodic)
+			}),
+
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				caps := diff.Get("capabilities")
+				mongo34found := false
+				enableMongo := false
+				for _, cap := range caps.(*pluginsdk.Set).List() {
+					m := cap.(map[string]interface{})
+					if v, ok := m["name"].(string); ok {
+						if v == "MongoDBv3.4" {
+							mongo34found = true
+						} else if v == "EnableMongo" {
+							enableMongo = true
+						}
+					}
+				}
+
+				if mongo34found && !enableMongo {
+					return fmt.Errorf("capability EnableMongo must be enabled if MongoDBv3.4 is also enabled")
+				}
+				return nil
+			}),
+		),
+
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
@@ -217,6 +245,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"capabilities": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -291,7 +320,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"mongo_server_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.ServerVersionThreeFullStopTwo),
@@ -324,7 +352,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						"type": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(documentdb.TypeContinuous),
 								string(documentdb.TypePeriodic),
@@ -560,7 +587,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if v, ok := d.GetOk("backup"); ok {
-		policy, err := expandCosmosdbAccountBackup(v.([]interface{}))
+		policy, err := expandCosmosdbAccountBackup(v.([]interface{}), false)
 		if err != nil {
 			return fmt.Errorf("expanding `backup`: %+v", err)
 		}
@@ -695,8 +722,14 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
 	}
 
+	if v, ok := d.GetOk("mongo_server_version"); ok {
+		account.DatabaseAccountCreateUpdateProperties.APIProperties = &documentdb.APIProperties{
+			ServerVersion: documentdb.ServerVersion(v.(string)),
+		}
+	}
+
 	if v, ok := d.GetOk("backup"); ok {
-		policy, err := expandCosmosdbAccountBackup(v.([]interface{}))
+		policy, err := expandCosmosdbAccountBackup(v.([]interface{}), d.HasChange("backup.0.type"))
 		if err != nil {
 			return fmt.Errorf("expanding `backup`: %+v", err)
 		}
@@ -838,7 +871,9 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 		d.Set("network_acl_bypass_for_azure_services", props.NetworkACLBypass == documentdb.NetworkACLBypassAzureServices)
 		d.Set("network_acl_bypass_ids", utils.FlattenStringSlice(props.NetworkACLBypassResourceIds))
-		d.Set("local_authentication_disabled", props.DisableLocalAuth)
+		if v := resp.DisableLocalAuth; v != nil {
+			d.Set("local_authentication_disabled", props.DisableLocalAuth)
+		}
 
 		policy, err := flattenCosmosdbAccountBackup(props.BackupPolicy)
 		if err != nil {
@@ -1083,6 +1118,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *pluginsdk.ResourceData) ([]docu
 	// all priorities & locations must be unique
 	byPriorities := make(map[int]interface{}, len(locations))
 	byName := make(map[string]interface{}, len(locations))
+	locationsCount := len(locations)
 	for _, location := range locations {
 		priority := int(*location.FailoverPriority)
 		name := *location.LocationName
@@ -1093,6 +1129,10 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *pluginsdk.ResourceData) ([]docu
 
 		if _, ok := byName[name]; ok {
 			return nil, fmt.Errorf("Each `geo_location` needs to be in unique location. Multiple instances of '%s' found", name)
+		}
+
+		if priority > locationsCount-1 {
+			return nil, fmt.Errorf("The maximum value for a failover priority = (total number of regions - 1). '%d' was found", priority)
 		}
 
 		byPriorities[priority] = location
@@ -1263,7 +1303,7 @@ func resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash(v interface{}) int {
 	return pluginsdk.HashString(buf.String())
 }
 
-func expandCosmosdbAccountBackup(input []interface{}) (documentdb.BasicBackupPolicy, error) {
+func expandCosmosdbAccountBackup(input []interface{}, backupHasChange bool) (documentdb.BasicBackupPolicy, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
@@ -1271,11 +1311,11 @@ func expandCosmosdbAccountBackup(input []interface{}) (documentdb.BasicBackupPol
 
 	switch attr["type"].(string) {
 	case string(documentdb.TypeContinuous):
-		if v := attr["interval_in_minutes"].(int); v != 0 {
-			return nil, fmt.Errorf("`interval_in_minutes` can not be set when `type` in`backup` is `Continuous` ")
+		if v := attr["interval_in_minutes"].(int); v != 0 && !backupHasChange {
+			return nil, fmt.Errorf("`interval_in_minutes` can not be set when `type` in `backup` is `Continuous`")
 		}
-		if v := attr["retention_in_hours"].(int); v != 0 {
-			return nil, fmt.Errorf("`retention_in_hours` can not be set when `type` in`backup` is `Continuous` ")
+		if v := attr["retention_in_hours"].(int); v != 0 && !backupHasChange {
+			return nil, fmt.Errorf("`retention_in_hours` can not be set when `type` in `backup` is `Continuous`")
 		}
 		return documentdb.ContinuousModeBackupPolicy{
 			Type: documentdb.TypeContinuous,

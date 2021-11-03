@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -129,10 +130,12 @@ func resourceFunctionAppSlot() *pluginsdk.Resource {
 				}, false),
 			},
 
+			// todo remove this for 3.0 as it doesn't do anything
 			"client_affinity_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Computed: true,
+				Type:       pluginsdk.TypeBool,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "This property is no longer configurable in the service and has been deprecated. It will be removed in 3.0 of the provider.",
 			},
 
 			"connection_string": {
@@ -264,7 +267,7 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	basicAppSettings := getBasicFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix)
+	basicAppSettings := getBasicFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix, nil)
 
 	siteConfig, err := expandFunctionAppSiteConfig(d)
 	if err != nil {
@@ -359,7 +362,17 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	basicAppSettings := getBasicFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix)
+	existing, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
+	if err != nil {
+		return fmt.Errorf("reading %s: %+v", id, err)
+	}
+
+	var currentAppSettings *[]web.NameValuePair
+	if existing.AppSettings != nil {
+		currentAppSettings = existing.AppSettings
+	}
+
+	basicAppSettings := getBasicFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix, currentAppSettings)
 
 	siteConfig, err := expandFunctionAppSiteConfig(d)
 	if err != nil {
@@ -398,10 +411,7 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("waiting for update of Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
 	}
 
-	appSettings, err := expandFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix)
-	if err != nil {
-		return err
-	}
+	appSettings := expandFunctionAppSlotAppSettings(d, basicAppSettings)
 	settings := web.StringDictionary{
 		Properties: appSettings,
 	}
@@ -622,7 +632,7 @@ func resourceFunctionAppSlotDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func getBasicFunctionAppSlotAppSettings(d *pluginsdk.ResourceData, appServiceTier, endpointSuffix string) []web.NameValuePair {
+func getBasicFunctionAppSlotAppSettings(d *pluginsdk.ResourceData, appServiceTier, endpointSuffix string, existingSettings *[]web.NameValuePair) []web.NameValuePair {
 	// TODO: This is a workaround since there are no public Functions API
 	// You may track the API request here: https://github.com/Azure/azure-rest-api-specs/issues/3750
 	dashboardPropName := "AzureWebJobsDashboard"
@@ -636,7 +646,19 @@ func getBasicFunctionAppSlotAppSettings(d *pluginsdk.ResourceData, appServiceTie
 	storageConnection := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", storageAccount, connectionString, endpointSuffix)
 
 	functionVersion := d.Get("version").(string)
-	contentShare := strings.ToLower(d.Get("name").(string)) + "-content"
+	var contentShare string
+	if existingSettings == nil {
+		// generate and use a new value
+		suffix := uuid.New().String()[0:4]
+		contentShare = strings.ToLower(d.Get("name").(string)) + suffix
+	} else {
+		// find and re-use the current
+		for _, v := range *existingSettings {
+			if v.Name != nil && *v.Name == contentSharePropName {
+				contentShare = *v.Name
+			}
+		}
+	}
 
 	basicSettings := []web.NameValuePair{
 		{Name: &storagePropName, Value: &storageConnection},
@@ -687,18 +709,14 @@ func getFunctionAppSlotServiceTier(ctx context.Context, appServicePlanID string,
 	return "", fmt.Errorf("No `sku` block was returned for App Service Plan ID %q", appServicePlanID)
 }
 
-func expandFunctionAppSlotAppSettings(d *pluginsdk.ResourceData, appServiceTier, endpointSuffix string) (map[string]*string, error) {
+func expandFunctionAppSlotAppSettings(d *pluginsdk.ResourceData, basicAppSettings []web.NameValuePair) map[string]*string {
 	output := expandAppServiceAppSettings(d)
 
-	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
-	if err != nil {
-		return nil, err
-	}
 	for _, p := range basicAppSettings {
 		output[*p.Name] = p.Value
 	}
 
-	return output, nil
+	return output
 }
 
 func expandFunctionAppSlotConnectionStrings(d *pluginsdk.ResourceData) map[string]*web.ConnStringValueTypePair {

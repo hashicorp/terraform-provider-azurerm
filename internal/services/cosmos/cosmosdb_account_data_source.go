@@ -3,6 +3,7 @@ package cosmos
 import (
 	"fmt"
 	"log"
+	"sort"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-06-15/documentdb"
@@ -265,13 +266,29 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `consistency_policy`: %+v", err)
 		}
 
-		// sort `geo_locations` by fail over priority
 		locations := make([]map[string]interface{}, len(*props.FailoverPolicies))
-		for _, l := range *props.FailoverPolicies {
-			locations[*l.FailoverPriority] = map[string]interface{}{
-				"id":                *l.ID,
-				"location":          azure.NormalizeLocation(*l.LocationName),
-				"failover_priority": int(*l.FailoverPriority),
+
+		// the original procedure leads to a sorted locations slice by using failover priority as index
+		// sort `geo_locations` by failover priority if we found priorities were not within limitation.
+		if anyUnexpectedFailoverPriority(*props.FailoverPolicies) {
+			policies := *props.FailoverPolicies
+			sort.Slice(policies, func(i, j int) bool {
+				return *policies[i].FailoverPriority < *policies[j].FailoverPriority
+			})
+			for i, l := range policies {
+				locations[i] = map[string]interface{}{
+					"id":                *l.ID,
+					"location":          azure.NormalizeLocation(*l.LocationName),
+					"failover_priority": int(*l.FailoverPriority),
+				}
+			}
+		} else {
+			for _, l := range *props.FailoverPolicies {
+				locations[*l.FailoverPriority] = map[string]interface{}{
+					"id":                *l.ID,
+					"location":          azure.NormalizeLocation(*l.LocationName),
+					"failover_priority": int(*l.FailoverPriority),
+				}
 			}
 		}
 		if err = d.Set("geo_location", locations); err != nil {
@@ -338,6 +355,16 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func anyUnexpectedFailoverPriority(failoverPolicies []documentdb.FailoverPolicy) bool {
+	size := len(failoverPolicies)
+	for _, policy := range failoverPolicies {
+		if int(*policy.FailoverPriority) > size-1 {
+			return true
+		}
+	}
+	return false
 }
 
 func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]documentdb.Capability) *[]map[string]interface{} {

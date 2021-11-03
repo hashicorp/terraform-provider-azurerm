@@ -63,6 +63,7 @@ func resourceVirtualHubRouteTable() *pluginsdk.Resource {
 			"route": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {

@@ -1,10 +1,24 @@
 package streamanalytics
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var _ sdk.TypedServiceRegistration = Registration{}
+var _ sdk.UntypedServiceRegistration = Registration{}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		OutputTableResource{},
+	}
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -36,6 +50,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_stream_analytics_output_servicebus_queue": resourceStreamAnalyticsOutputServiceBusQueue(),
 		"azurerm_stream_analytics_output_servicebus_topic": resourceStreamAnalyticsOutputServiceBusTopic(),
 		"azurerm_stream_analytics_reference_input_blob":    resourceStreamAnalyticsReferenceInputBlob(),
+		"azurerm_stream_analytics_reference_input_mssql":   resourceStreamAnalyticsReferenceMsSql(),
 		"azurerm_stream_analytics_stream_input_blob":       resourceStreamAnalyticsStreamInputBlob(),
 		"azurerm_stream_analytics_stream_input_eventhub":   resourceStreamAnalyticsStreamInputEventHub(),
 		"azurerm_stream_analytics_stream_input_iothub":     resourceStreamAnalyticsStreamInputIoTHub(),

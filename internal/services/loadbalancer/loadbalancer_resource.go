@@ -1,6 +1,7 @@
 package loadbalancer
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/state"
@@ -58,8 +60,21 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.LoadBalancerSkuNameBasic),
 					string(network.LoadBalancerSkuNameStandard),
+					string(network.LoadBalancerSkuNameGateway),
 				}, true),
+				// TODO - 3.0 remove this property
 				DiffSuppressFunc: suppress.CaseDifference,
+			},
+
+			"sku_tier": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(network.LoadBalancerSkuTierRegional),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.LoadBalancerSkuTierRegional),
+					string(network.LoadBalancerSkuTierGlobal),
+				}, false),
 			},
 
 			"frontend_ip_configuration": {
@@ -79,7 +94,6 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							Optional: true,
 							//Default:  "Zone-Redundant",
 							Computed: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"No-Zone",
 								"1",
@@ -142,6 +156,13 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
+						"gateway_load_balancer_frontend_ip_configuration_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.LoadBalancerFrontendIpConfigurationID,
+						},
+
 						"load_balancer_rules": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
@@ -177,7 +198,6 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							Type:       pluginsdk.TypeList,
 							Optional:   true,
 							Computed:   true,
-							ForceNew:   true,
 							Deprecated: "This property has been deprecated in favour of `availability_zone` due to a breaking behavioural change in Azure: https://azure.microsoft.com/en-us/updates/zone-behavior-change/",
 							MaxItems:   1,
 							Elem: &pluginsdk.Schema{
@@ -208,6 +228,25 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			if ok := d.HasChange("frontend_ip_configuration"); ok {
+				configs := d.Get("frontend_ip_configuration").([]interface{})
+
+				for index := range configs {
+					if d.HasChange(fmt.Sprintf("frontend_ip_configuration.%d.availability_zone", index)) && !d.HasChange(fmt.Sprintf("frontend_ip_configuration.%d.name", index)) {
+						return fmt.Errorf("in place change of the `frontend_ip_configuration.%[1]d.availability_zone` is not allowed. It is allowed to do this while also changing `frontend_ip_configuration.%[1]d.name`", index)
+					}
+
+					// TODO - Remove in 3.0
+					if d.HasChange(fmt.Sprintf("frontend_ip_configuration.%d.zones", index)) && !d.HasChange(fmt.Sprintf("frontend_ip_configuration.%d.name", index)) {
+						return fmt.Errorf("in place change of the `frontend_ip_configuration.%[1]d.zones` is not allowed. It is allowed to do this while also changing `frontend_ip_configuration.%[1]d.name`", index)
+					}
+				}
+			}
+
+			return nil
+		}),
 	}
 }
 
@@ -234,9 +273,16 @@ func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	if strings.EqualFold(d.Get("sku_tier").(string), string(network.LoadBalancerSkuTierGlobal)) {
+		if !strings.EqualFold(d.Get("sku").(string), string(network.LoadBalancerSkuNameStandard)) {
+			return fmt.Errorf("global load balancing is only supported for standard SKU load balancers")
+		}
+	}
+
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := network.LoadBalancerSku{
 		Name: network.LoadBalancerSkuName(d.Get("sku").(string)),
+		Tier: network.LoadBalancerSkuTier(d.Get("sku_tier").(string)),
 	}
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
@@ -301,6 +347,7 @@ func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
+		d.Set("sku_tier", string(sku.Tier))
 	}
 
 	if props := resp.LoadBalancerPropertiesFormat; props != nil {
@@ -366,6 +413,12 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 			PrivateIPAllocationMethod: network.IPAllocationMethod(privateIpAllocationMethod),
 		}
 
+		if v := data["gateway_load_balancer_frontend_ip_configuration_id"].(string); v != "" {
+			properties.GatewayLoadBalancer = &network.SubResource{
+				ID: utils.String(v),
+			}
+		}
+
 		if v := data["private_ip_address"].(string); v != "" {
 			properties.PrivateIPAddress = &v
 		}
@@ -418,7 +471,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 				zones = &[]string{}
 			}
 		}
-		if !strings.EqualFold(sku, string(network.LoadBalancerSkuNameStandard)) {
+		if strings.EqualFold(sku, string(network.LoadBalancerSkuNameBasic)) {
 			if zonesSet && len(*zones) > 0 {
 				return nil, fmt.Errorf("Availability Zones are not available on the `Basic` SKU")
 			}
@@ -475,6 +528,10 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 
 		if props := config.FrontendIPConfigurationPropertiesFormat; props != nil {
 			ipConfig["private_ip_address_allocation"] = string(props.PrivateIPAllocationMethod)
+
+			if props.GatewayLoadBalancer != nil && props.GatewayLoadBalancer.ID != nil {
+				ipConfig["gateway_load_balancer_frontend_ip_configuration_id"] = *props.GatewayLoadBalancer.ID
+			}
 
 			if subnet := props.Subnet; subnet != nil {
 				ipConfig["subnet_id"] = *subnet.ID

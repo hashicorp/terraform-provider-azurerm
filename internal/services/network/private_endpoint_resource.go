@@ -64,6 +64,23 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"network_interface": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"private_dns_zone_group": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -418,13 +435,21 @@ func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("setting `custom_dns_configs`: %+v", err)
 		}
 
+		networkInterfaceId := ""
 		privateIpAddress := ""
 		if nics := props.NetworkInterfaces; nics != nil && len(*nics) > 0 {
 			nic := (*nics)[0]
 			if nic.ID != nil && *nic.ID != "" {
-				privateIpAddress = getPrivateIpAddress(ctx, nicsClient, *nic.ID)
+				networkInterfaceId = *nic.ID
+				privateIpAddress = getPrivateIpAddress(ctx, nicsClient, networkInterfaceId)
 			}
 		}
+
+		networkInterface := getNetworkInterface(networkInterfaceId)
+		if err := d.Set("network_interface", networkInterface); err != nil {
+			return fmt.Errorf("setting `network_interface`: %+v", err)
+		}
+
 		flattenedConnection := flattenPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)
 		if err := d.Set("private_service_connection", flattenedConnection); err != nil {
 			return fmt.Errorf("setting `private_service_connection`: %+v", err)
@@ -485,7 +510,6 @@ func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	log.Printf("[DEBUG] Deleting the Private Endpoint %q / Resource Group %q..", id.Name, id.ResourceGroup)
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-
 		return fmt.Errorf("deleting Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 

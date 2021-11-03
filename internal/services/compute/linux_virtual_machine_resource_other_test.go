@@ -1265,6 +1265,15 @@ func (r LinuxVirtualMachineResource) otherSecretTemplate(data acceptance.TestDat
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {
+    key_vault {
+      recover_soft_deleted_key_vaults = false
+      purge_soft_delete_on_destroy    = false
+    }
+  }
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {

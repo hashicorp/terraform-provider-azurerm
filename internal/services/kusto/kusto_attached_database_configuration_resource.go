@@ -85,6 +85,63 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 					string(kusto.DefaultPrincipalsModificationKindUnion),
 				}, false),
 			},
+
+			"sharing": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"external_tables_to_exclude": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"external_tables_to_include": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"materialized_views_to_exclude": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"materialized_views_to_include": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"tables_to_exclude": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"tables_to_include": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -173,6 +230,7 @@ func resourceKustoAttachedDatabaseConfigurationRead(d *pluginsdk.ResourceData, m
 		d.Set("database_name", props.DatabaseName)
 		d.Set("default_principal_modification_kind", props.DefaultPrincipalsModificationKind)
 		d.Set("attached_database_names", props.AttachedDatabaseNames)
+		d.Set("sharing", flattenAttachedDatabaseConfigurationTableLevelSharingProperties(props.TableLevelSharingProperties))
 	}
 
 	return nil
@@ -215,5 +273,39 @@ func expandKustoAttachedDatabaseConfigurationProperties(d *pluginsdk.ResourceDat
 		AttachedDatabaseConfigurationProperties.DefaultPrincipalsModificationKind = kusto.DefaultPrincipalsModificationKind(defaultPrincipalModificationKind.(string))
 	}
 
+	AttachedDatabaseConfigurationProperties.TableLevelSharingProperties = expandAttachedDatabaseConfigurationTableLevelSharingProperties(d.Get("sharing").([]interface{}))
+
 	return AttachedDatabaseConfigurationProperties
+}
+
+func expandAttachedDatabaseConfigurationTableLevelSharingProperties(input []interface{}) *kusto.TableLevelSharingProperties {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	return &kusto.TableLevelSharingProperties{
+		TablesToInclude:            utils.ExpandStringSlice(v["tables_to_include"].(*pluginsdk.Set).List()),
+		TablesToExclude:            utils.ExpandStringSlice(v["tables_to_exclude"].(*pluginsdk.Set).List()),
+		ExternalTablesToInclude:    utils.ExpandStringSlice(v["external_tables_to_include"].(*pluginsdk.Set).List()),
+		ExternalTablesToExclude:    utils.ExpandStringSlice(v["external_tables_to_exclude"].(*pluginsdk.Set).List()),
+		MaterializedViewsToInclude: utils.ExpandStringSlice(v["materialized_views_to_include"].(*pluginsdk.Set).List()),
+		MaterializedViewsToExclude: utils.ExpandStringSlice(v["materialized_views_to_exclude"].(*pluginsdk.Set).List()),
+	}
+}
+
+func flattenAttachedDatabaseConfigurationTableLevelSharingProperties(input *kusto.TableLevelSharingProperties) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"external_tables_to_exclude":    utils.FlattenStringSlice(input.ExternalTablesToExclude),
+			"external_tables_to_include":    utils.FlattenStringSlice(input.ExternalTablesToInclude),
+			"materialized_views_to_exclude": utils.FlattenStringSlice(input.MaterializedViewsToExclude),
+			"materialized_views_to_include": utils.FlattenStringSlice(input.MaterializedViewsToInclude),
+			"tables_to_exclude":             utils.FlattenStringSlice(input.TablesToExclude),
+			"tables_to_include":             utils.FlattenStringSlice(input.TablesToInclude),
+		},
+	}
 }

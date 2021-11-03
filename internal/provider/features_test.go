@@ -18,6 +18,9 @@ func TestExpandFeatures(t *testing.T) {
 			Name:  "Empty Block",
 			Input: []interface{}{},
 			Expected: features.UserFeatures{
+				ApiManagement: features.ApiManagementFeatures{
+					PurgeSoftDeleteOnDestroy: false,
+				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 				},
@@ -42,6 +45,7 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
 					RollInstancesWhenRequired: true,
+					ScaleToZeroOnDelete:       true,
 				},
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: false,
@@ -52,6 +56,11 @@ func TestExpandFeatures(t *testing.T) {
 			Name: "Complete Enabled",
 			Input: []interface{}{
 				map[string]interface{}{
+					"api_management": []interface{}{
+						map[string]interface{}{
+							"purge_soft_delete_on_destroy": true,
+						},
+					},
 					"cognitive_account": []interface{}{
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy": true,
@@ -92,13 +101,17 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
-							"roll_instances_when_required": true,
-							"force_delete":                 true,
+							"roll_instances_when_required":  true,
+							"force_delete":                  true,
+							"scale_to_zero_before_deletion": true,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
+				ApiManagement: features.ApiManagementFeatures{
+					PurgeSoftDeleteOnDestroy: true,
+				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 				},
@@ -126,6 +139,7 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					RollInstancesWhenRequired: true,
 					ForceDelete:               true,
+					ScaleToZeroOnDelete:       true,
 				},
 			},
 		},
@@ -133,6 +147,11 @@ func TestExpandFeatures(t *testing.T) {
 			Name: "Complete Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
+					"api_management": []interface{}{
+						map[string]interface{}{
+							"purge_soft_delete_on_destroy": false,
+						},
+					},
 					"cognitive_account": []interface{}{
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy": false,
@@ -173,13 +192,17 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
-							"force_delete":                 false,
-							"roll_instances_when_required": false,
+							"force_delete":                  false,
+							"roll_instances_when_required":  false,
+							"scale_to_zero_before_deletion": false,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
+				ApiManagement: features.ApiManagementFeatures{
+					PurgeSoftDeleteOnDestroy: false,
+				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: false,
 				},
@@ -207,6 +230,7 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
 					RollInstancesWhenRequired: false,
+					ScaleToZeroOnDelete:       false,
 				},
 			},
 		},
@@ -217,6 +241,71 @@ func TestExpandFeatures(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result, testCase.Expected) {
 			t.Fatalf("Expected %+v but got %+v", result, testCase.Expected)
+		}
+	}
+}
+
+func TestExpandFeaturesApiManagement(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"api_management": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				ApiManagement: features.ApiManagementFeatures{
+					PurgeSoftDeleteOnDestroy: false,
+				},
+			},
+		},
+		{
+			Name: "Purge Soft Delete On Destroy Api Management Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"api_management": []interface{}{
+						map[string]interface{}{
+							"purge_soft_delete_on_destroy": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				ApiManagement: features.ApiManagementFeatures{
+					PurgeSoftDeleteOnDestroy: true,
+				},
+			},
+		},
+		{
+			Name: "Purge Soft Delete On Destroy Api Management Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"api_management": []interface{}{
+						map[string]interface{}{
+							"purge_soft_delete_on_destroy": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				ApiManagement: features.ApiManagementFeatures{
+					PurgeSoftDeleteOnDestroy: false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.ApiManagement, testCase.Expected.ApiManagement) {
+			t.Fatalf("Expected %+v but got %+v", result.ApiManagement, testCase.Expected.ApiManagement)
 		}
 	}
 }
@@ -621,6 +710,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 			Expected: features.UserFeatures{
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					RollInstancesWhenRequired: true,
+					ScaleToZeroOnDelete:       true,
 				},
 			},
 		},
@@ -640,6 +730,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               true,
 					RollInstancesWhenRequired: false,
+					ScaleToZeroOnDelete:       true,
 				},
 			},
 		},
@@ -659,6 +750,28 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
 					RollInstancesWhenRequired: true,
+					ScaleToZeroOnDelete:       true,
+				},
+			},
+		},
+		{
+			Name: "Scale In On Delete Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"virtual_machine_scale_set": []interface{}{
+						map[string]interface{}{
+							"force_delete":                  false,
+							"roll_instances_when_required":  true,
+							"scale_to_zero_before_deletion": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
+					ForceDelete:               false,
+					RollInstancesWhenRequired: true,
+					ScaleToZeroOnDelete:       false,
 				},
 			},
 		},
@@ -668,8 +781,9 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 				map[string]interface{}{
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
-							"force_delete":                 false,
-							"roll_instances_when_required": false,
+							"force_delete":                  false,
+							"roll_instances_when_required":  false,
+							"scale_to_zero_before_deletion": false,
 						},
 					},
 				},
@@ -678,6 +792,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
 					RollInstancesWhenRequired: false,
+					ScaleToZeroOnDelete:       false,
 				},
 			},
 		},
@@ -687,7 +802,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.VirtualMachineScaleSet, testCase.Expected.VirtualMachineScaleSet) {
-			t.Fatalf("Expected %+v but got %+v", result.VirtualMachineScaleSet, testCase.Expected.VirtualMachineScaleSet)
+			t.Fatalf("Expected %+v but got %+v", testCase.Expected.VirtualMachineScaleSet, result.VirtualMachineScaleSet)
 		}
 	}
 }

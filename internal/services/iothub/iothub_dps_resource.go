@@ -8,12 +8,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices"
 	"github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,8 +31,10 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 		Update: resourceIotHubDPSCreateUpdate,
 		Delete: resourceIotHubDPSDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.IotHubDpsID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -63,7 +66,7 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.S1),
+								string(devices.IotHubSkuS1),
 							}, false),
 						},
 
@@ -153,17 +156,17 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 
 func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.DPSResourceClient
+	subscriptionId := meta.(*clients.Client).IoTHub.DPSResourceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewIotHubDpsID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, name, resourceGroup)
+		existing, err := client.Get(ctx, id.ProvisioningServiceName, id.ResourceGroup)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing IoT Device Provisioning Service %s: %+v", id, err)
 			}
 		}
 
@@ -174,7 +177,7 @@ func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	iotdps := iothub.ProvisioningServiceDescription{
 		Location: utils.String(d.Get("location").(string)),
-		Name:     utils.String(name),
+		Name:     utils.String(id.ProvisioningServiceName),
 		Sku:      expandIoTHubDPSSku(d),
 		Properties: &iothub.IotDpsPropertiesDescription{
 			IotHubs:          expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]interface{})),
@@ -183,25 +186,16 @@ func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, iotdps)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ProvisioningServiceName, iotdps)
 	if err != nil {
-		return fmt.Errorf("creating/updating IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating IoT Device Provisioning Service %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the completion of the creating/updating of IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the completion of the creating/updating of IoT Device Provisioning Service %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, name, resourceGroup)
-	if err != nil {
-		return fmt.Errorf("retrieving IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceIotHubDPSRead(d, meta)
 }
@@ -211,29 +205,23 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.IotHubDpsID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["provisioningServices"]
-	// the name path can use the ProvisioningServices in older iterations
-	if name == "" {
-		name = id.Path["ProvisioningServices"]
-	}
 
-	resp, err := client.Get(ctx, name, resourceGroup)
+	resp, err := client.Get(ctx, id.ProvisioningServiceName, id.ResourceGroup)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.ProvisioningServiceName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -261,21 +249,19 @@ func resourceIotHubDPSDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.IotHubDpsID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["provisioningServices"]
 
-	future, err := client.Delete(ctx, name, resourceGroup)
+	future, err := client.Delete(ctx, id.ProvisioningServiceName, id.ResourceGroup)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("deleting IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}
 
-	return waitForIotHubDPSToBeDeleted(ctx, client, resourceGroup, name, d)
+	return waitForIotHubDPSToBeDeleted(ctx, client, id.ResourceGroup, id.ProvisioningServiceName, d)
 }
 
 func waitForIotHubDPSToBeDeleted(ctx context.Context, client *iothub.IotDpsResourceClient, resourceGroup, name string, d *pluginsdk.ResourceData) error {

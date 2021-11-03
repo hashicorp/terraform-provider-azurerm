@@ -10,7 +10,7 @@ description: |-
 
 Manages an App Service: Service Plan.
 
-!> **NOTE:** This is a 3.0 beta resource and is intended to replace the older `azurerm_app_service_plan`. This older resource will be removed in 3.0 and this resource will be renamed to supersede it. Please see the [3.0 Beta guide](https://github.com/hashicorp/terraform-provider-azurerm/blob/f/main/website/docs/guides/3.0-beta.html.markdown) for more information on enabling and using this resource.
+!> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
 
 ## Example Usage
 
@@ -52,7 +52,7 @@ The following arguments are supported:
 
 ---
 
-* `app_service_environment_id` - (Optional) The ID of the App Service Plan to create this plan in.
+* `app_service_environment_id` - (Optional) The ID of the App Service Environment to create this Service Plan in.
 
 ~> **NOTE:** Requires an Isolated SKU. Use one of `I1`, `I2`, `I3` for `azurerm_app_service_environment`, or `I1v2`, `I2v2`, `I3v2` for `azurerm_app_service_environment_v3`
 

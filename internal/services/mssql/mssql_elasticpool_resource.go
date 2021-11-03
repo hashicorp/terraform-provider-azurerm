@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -77,6 +77,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 								"GP_Gen5",
 								"BC_Gen4",
 								"BC_Gen5",
+								"GP_FSv2",
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
@@ -160,8 +161,8 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(sql.BasePrice),
-					string(sql.LicenseIncluded),
+					string(sql.DatabaseLicenseTypeBasePrice),
+					string(sql.DatabaseLicenseTypeLicenseIncluded),
 				}, false),
 			},
 

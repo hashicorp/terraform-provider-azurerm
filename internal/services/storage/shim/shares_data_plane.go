@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/shares"
 )
 
 type DataPlaneStorageShareWrapper struct {
@@ -87,9 +87,10 @@ func (w DataPlaneStorageShareWrapper) Get(ctx context.Context, _, accountName, s
 	}
 
 	return &StorageShareProperties{
-		MetaData: props.MetaData,
-		QuotaGB:  props.ShareQuota,
-		ACLs:     acls.SignedIdentifiers,
+		MetaData:        props.MetaData,
+		QuotaGB:         props.ShareQuota,
+		ACLs:            acls.SignedIdentifiers,
+		EnabledProtocol: props.EnabledProtocol,
 	}, nil
 }
 

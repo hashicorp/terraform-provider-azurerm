@@ -23,8 +23,10 @@ func resourceDataFactoryLinkedServiceAzureFileStorage() *pluginsdk.Resource {
 		Update: resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceAzureFileStorageDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.LinkedServiceID(id)
+			return err
+		}, importDataFactoryLinkedService(datafactory.TypeBasicLinkedServiceTypeAzureFileStorage)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -146,18 +148,17 @@ func resourceDataFactoryLinkedServiceAzureFileStorage() *pluginsdk.Resource {
 
 func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
+	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	dataFactoryName := d.Get("data_factory_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewLinkedServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("data_factory_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Linked Service Azure File Storage Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Data Factory Azure File Storage Anonymous %s: %+v", id, err)
 			}
 		}
 
@@ -216,20 +217,11 @@ func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *pluginsdk.R
 		Properties: fileStorageLinkedService,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, linkedService, ""); err != nil {
-		return fmt.Errorf("creating/updating Data Factory Linked Service Azure File Storage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, linkedService, ""); err != nil {
+		return fmt.Errorf("creating/updating Data Factory Azure File Storage %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Data Factory Linked Service Azure File Storage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory Linked Service Azure File Storage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceDataFactoryLinkedServiceAzureFileStorageRead(d, meta)
 }
@@ -251,7 +243,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorageRead(d *pluginsdk.ResourceD
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Data Factory Linked Service Azure File Storage %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Data Factory Azure File Storage %s: %+v", *id, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -260,7 +252,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorageRead(d *pluginsdk.ResourceD
 
 	fileStorage, ok := resp.Properties.AsAzureFileStorageLinkedService()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Linked Service Azure File Storage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureFileStorage, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Azure File Storage %s: Expected: %q Received: %q", *id, datafactory.TypeBasicLinkedServiceTypeAzureFileStorage, *resp.Type)
 	}
 
 	d.Set("additional_properties", fileStorage.AdditionalProperties)
@@ -276,7 +268,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorageRead(d *pluginsdk.ResourceD
 
 	annotations := flattenDataFactoryAnnotations(fileStorage.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
-		return fmt.Errorf("setting `annotations` for Data Factory Linked Service Azure File Storage %q (Data Factory %q) / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
+		return fmt.Errorf("setting `annotations` for Data Factory Azure File Storage %s: %+v", *id, err)
 	}
 
 	parameters := flattenDataFactoryParameters(fileStorage.Parameters)
@@ -312,7 +304,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorageDelete(d *pluginsdk.Resourc
 	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting Data Factory Linked Service Azure File Storage %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Data Factory Azure File Storage %s: %+v", *id, err)
 		}
 	}
 

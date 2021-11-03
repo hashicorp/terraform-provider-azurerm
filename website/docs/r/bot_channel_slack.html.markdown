@@ -58,6 +58,7 @@ The following arguments are supported:
 
 * `landing_page_url` - (Optional) The Slack Landing Page URL.
 
+* `signing_secret` - (Optional) The Signing Secret that will be used to sign the requests.
 
 ## Attributes Reference
 

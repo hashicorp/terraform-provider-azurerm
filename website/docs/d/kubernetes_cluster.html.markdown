@@ -100,6 +100,8 @@ A `addon_profile` block exports the following:
 
 * `ingress_application_gateway` - An `ingress_application_gateway` block.
 
+* `open_service_mesh` - An `open_service_mesh` block.
+
 ---
 
 A `agent_pool_profile` block exports the following:
@@ -290,6 +292,12 @@ The `ingress_application_gateway_identity` block exports the following:
 
 ---
 
+An `open_service_mesh` block supports the following:
+
+* `enabled` - Is Open Service Mesh enabled?
+
+---
+
 A `role_based_access_control` block exports the following:
 
 * `azure_active_directory` - A `azure_active_directory` block as documented above.
@@ -311,6 +319,8 @@ The `identity` block exports the following:
 * `principal_id` - The principal id of the system assigned identity which is used by primary components.
 
 * `tenant_id` - The tenant id of the system assigned identity which is used by primary components.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity which is used by primary components. This value will be empty when using system assigned identity.
 
 ---
 

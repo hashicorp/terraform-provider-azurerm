@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -120,17 +120,12 @@ func TestAccBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
 }
 
 func (t BackupProtectedVmResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ProtectedItemID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	protectedItemName := id.Path["protectedItems"]
-	vaultName := id.Path["vaults"]
-	resourceGroup := id.ResourceGroup
-	containerName := id.Path["protectionContainers"]
-
-	resp, err := clients.RecoveryServices.ProtectedItemsClient.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
+	resp, err := clients.RecoveryServices.ProtectedItemsClient.Get(ctx, id.VaultName, id.ResourceGroup, "Azure", id.ProtectionContainerName, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("reading Recovery Service Protected VM (%s): %+v", id, err)
 	}

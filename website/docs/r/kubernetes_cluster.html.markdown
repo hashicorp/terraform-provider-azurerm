@@ -80,7 +80,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 ---
 
-* `automatic_channel_upgrade` - (Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `patch`, `rapid`, `node-image` and `stable`.
+* `automatic_channel_upgrade` - (Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `patch`, `rapid`, `node-image` and `stable`. Omitting this field sets this value to `none`.
 
 !> **Note:** Cluster Auto-Upgrade will update the Kubernetes Cluster (and it's Node Pools) to the latest GA version of Kubernetes automatically - please [see the Azure documentation for more information](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#set-auto-upgrade-channel-preview).
 
@@ -107,6 +107,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 -> **NOTE:** Upgrading your cluster may take up to 10 minutes per node.
 
 * `linux_profile` - (Optional) A `linux_profile` block as defined below.
+
+* `local_account_disabled` - (Optional) - If `true` local accounts will be disabled. Defaults to `false`. See [the documentation](https://docs.microsoft.com/en-us/azure/aks/managed-aad#disable-local-accounts) for more information.
 
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
@@ -227,6 +229,12 @@ A `addon_profile` block supports the following:
 
 * `ingress_application_gateway` - (Optional) An `ingress_application_gateway` block as defined below.
 
+* `open_service_mesh` - (Optional) An `open_service_mesh` block as defined below. For more details, please visit [Open Service Mesh for AKS](https://docs.microsoft.com/azure/aks/open-service-mesh-about).
+
+-> **NOTE.** At this time Open Service Mesh is not supported in Azure US government or Azure China.
+
+-> **NOTE.** Open Service Mesh is available on an opt-in preview basis. For more details about how to opt-in, please visit [Open Service Mesh for AKS](https://docs.microsoft.com/azure/aks/open-service-mesh-deploy-add-on#register-the-aks-openservicemesh-preview-feature)
+
 ---
 
 An `auto_scaler_profile` block supports the following:
@@ -324,8 +332,6 @@ A `default_node_pool` block supports the following:
 ~> NOTE: FIPS support is in Public Preview - more information and details on how to opt into the Preview can be found in [this article](https://docs.microsoft.com/en-us/azure/aks/use-multiple-node-pools#add-a-fips-enabled-node-pool-preview).
 
 * `kubelet_disk_type` - (Optional) The type of disk used by kubelet. At this time the only possible value is `OS`.
-
-* `local_account_disabled` - (Optional) Is local account disabled for AAD integrated kubernetes cluster?
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
 
@@ -562,6 +568,12 @@ An `ingress_application_gateway` block supports the following:
 
 ---
 
+An `open_service_mesh` block supports the following:
+
+* `enabled` - Is Open Service Mesh enabled?
+
+---
+
 A `role_based_access_control` block supports the following:
 
 * `azure_active_directory` - (Optional) An `azure_active_directory` block.
@@ -674,13 +686,19 @@ The following attributes are exported:
 
 * `private_fqdn` - The FQDN for the Kubernetes Cluster when private link has been enabled, which is only resolvable inside the Virtual Network used by the Kubernetes Cluster.
 
+* `portal_fqdn` - The FQDN for the Azure Portal resources when private link has been enabled, which is only resolvable inside the Virtual Network used by the Kubernetes Cluster.
+
 * `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled.
+
+~> **NOTE:** To mark the whole of `kube_admin_config` as Sensitive in State, set the environment variable `ARM_AKS_KUBE_CONFIGS_SENSITIVE` to `true`. Any values from this block used in `outputs` will then also need to be marked as sensitive.
 
 * `kube_admin_config_raw` - Raw Kubernetes config for the admin account to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools. This is only available when Role Based Access Control with Azure Active Directory is enabled.
 
 * `kube_config` - A `kube_config` block as defined below.
 
-* `kube_config_raw` - Raw Kubernetes config to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools
+~> **NOTE:** To mark the whole of `kube_config` as Sensitive in State, set the environment variable `ARM_AKS_KUBE_CONFIGS_SENSITIVE` to `true`. Any values from this block used in `outputs` will then also need to be marked as sensitive. 
+
+* `kube_config_raw` - Raw Kubernetes config to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools.
 
 * `http_application_routing` - A `http_application_routing` block as defined below.
 
@@ -724,7 +742,7 @@ The `kube_admin_config` and `kube_config` blocks export the following:
 
 * `password` - A password or token used to authenticate to the Kubernetes cluster.
 
--> **NOTE:** It's possible to use these credentials with [the Kubernetes Provider](/docs/providers/kubernetes/index.html) like so:
+-> **NOTE:** It's possible to use these credentials with [the Kubernetes Provider](/providers/hashicorp/kubernetes/latest/docs) like so:
 
 ```
 provider "kubernetes" {

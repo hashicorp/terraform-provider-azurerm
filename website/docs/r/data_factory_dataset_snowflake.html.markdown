@@ -72,13 +72,27 @@ The following arguments are supported:
 
 ---
 
-A `schema_column` block supports the following:
+~> **NOTE:** This block has been deprecated in favour of the `schema_column`.
+
+A `structure_column` block supports the following (Conflicts with `schema_column`):
 
 * `name` - (Required) The name of the column.
 
 * `type` - (Optional) Type of the column. Valid values are `Byte`, `Byte[]`, `Boolean`, `Date`, `DateTime`,`DateTimeOffset`, `Decimal`, `Double`, `Guid`, `Int16`, `Int32`, `Int64`, `Single`, `String`, `TimeSpan`. Please note these values are case sensitive.
 
 * `description` - (Optional) The description of the column.
+
+---
+
+A `schema_column` block supports the following (Conflicts with `structure_column`):
+
+* `name` - (Required) The name of the column.
+
+* `type` - (Optional) Type of the column. Valid values are `NUMBER`, `DECIMAL`, `NUMERIC`, `INT`, `INTEGER`, `BIGINT`, `SMALLINT`, `FLOAT``FLOAT4`, `FLOAT8`, `DOUBLE`, `DOUBLE PRECISION`, `REAL`, `VARCHAR`, `CHAR`, `CHARACTER`, `STRING`, `TEXT`, `BINARY`, `VARBINARY`, `BOOLEAN`, `DATE`, `DATETIME`, `TIME`, `TIMESTAMP`, `TIMESTAMP_LTZ`, `TIMESTAMP_NTZ`, `TIMESTAMP_TZ`, `VARIANT`, `OBJECT`, `ARRAY`, `GEOGRAPHY`. Please note these values are case sensitive.
+
+* `precision` - (Optional) The total number of digits allowed.
+
+* `scale` - (Optional) The number of digits allowed to the right of the decimal point.
 
 ## Attributes Reference
 
@@ -97,7 +111,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Data Factory Snowflake Datasets can be imported using the `resource id`, e.g.
+Data Factory Snowflake Datasets can be imported using the `resource id`,  e.g.
 
 ```shell
 terraform import azurerm_data_factory_dataset_snowflake.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/datasets/example

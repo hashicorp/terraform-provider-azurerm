@@ -451,11 +451,6 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"linux_fx_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
 				"windows_fx_version": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
@@ -669,11 +664,6 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
-
-				"windows_fx_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
 			},
 		},
 	}
@@ -827,18 +817,13 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
-
-				"windows_fx_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
 			},
 		},
 	}
 }
 
 type ApplicationStackWindows struct {
-	NetFrameworkVersion     string `tfschema:"dotnet_framework_version"`
+	NetFrameworkVersion     string `tfschema:"dotnet_version"`
 	PhpVersion              string `tfschema:"php_version"`
 	JavaVersion             string `tfschema:"java_version"`
 	PythonVersion           string `tfschema:"python_version"`
@@ -860,10 +845,9 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"dotnet_framework_version": { // Windows Only
+				"dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					// Default:  "4.0",
 					ValidateFunc: validation.StringInSlice([]string{
 						"v2.0",
 						"v3.0",
@@ -875,7 +859,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"php_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					// Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"5.6",
 						"7.3",
@@ -994,7 +977,7 @@ func windowsApplicationStackSchemaComputed() *pluginsdk.Schema {
 		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"dotnet_framework_version": { // Windows Only
+				"dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -1053,7 +1036,7 @@ func windowsApplicationStackSchemaComputed() *pluginsdk.Schema {
 }
 
 type ApplicationStackLinux struct {
-	NetFrameworkVersion string `tfschema:"dotnet_framework_version"`
+	NetFrameworkVersion string `tfschema:"dotnet_version"`
 	PhpVersion          string `tfschema:"php_version"`
 	PythonVersion       string `tfschema:"python_version"` // Linux Only?
 	NodeVersion         string `tfschema:"node_version"`
@@ -1074,7 +1057,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"dotnet_framework_version": {
+				"dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -1101,7 +1084,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"7.4",
 					}, false),
 					ConflictsWith: []string{
-						"site_config.0.application_stack.0.dotnet_framework_version",
+						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.python_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.ruby_version",
@@ -1119,7 +1102,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"3.8",
 					}, false),
 					ConflictsWith: []string{
-						"site_config.0.application_stack.0.dotnet_framework_version",
+						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.php_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.ruby_version",
@@ -1139,7 +1122,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"14-lts",
 					}, false),
 					ConflictsWith: []string{
-						"site_config.0.application_stack.0.dotnet_framework_version",
+						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.php_version",
 						"site_config.0.application_stack.0.python_version",
 						"site_config.0.application_stack.0.ruby_version",
@@ -1155,7 +1138,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"2.6",
 					}, false),
 					ConflictsWith: []string{
-						"site_config.0.application_stack.0.dotnet_framework_version",
+						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.php_version",
 						"site_config.0.application_stack.0.python_version",
 						"site_config.0.application_stack.0.node_version",
@@ -1169,7 +1152,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty, // There a significant number of variables here, and the versions are not uniformly formatted.
 					// TODO - Needs notes in the docs for this to help users navigate the inconsistencies in the service. e.g. jre8 va java8 etc
 					ConflictsWith: []string{
-						"site_config.0.application_stack.0.dotnet_framework_version",
+						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.php_version",
 						"site_config.0.application_stack.0.python_version",
 						"site_config.0.application_stack.0.node_version",
@@ -1220,7 +1203,7 @@ func linuxApplicationStackSchemaComputed() *pluginsdk.Schema {
 		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"dotnet_framework_version": { // Windows Only
+				"dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -3292,7 +3275,6 @@ func FlattenLogsConfig(logsConfig web.SiteLogsConfig) []LogsConfig {
 			}
 			logs.ApplicationLogs = []ApplicationLog{applicationLog}
 		}
-
 	}
 
 	if props.HTTPLogs != nil {

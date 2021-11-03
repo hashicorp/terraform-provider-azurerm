@@ -57,7 +57,7 @@ func (client ReplicationProtectedItemsClient) AddDisks(ctx context.Context, fabr
 
 	result, err = client.AddDisksSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "AddDisks", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "AddDisks", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -94,6 +94,7 @@ func (client ReplicationProtectedItemsClient) AddDisksPreparer(ctx context.Conte
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) AddDisksSender(req *http.Request) (future ReplicationProtectedItemsAddDisksFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -142,7 +143,7 @@ func (client ReplicationProtectedItemsClient) ApplyRecoveryPoint(ctx context.Con
 
 	result, err = client.ApplyRecoveryPointSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "ApplyRecoveryPoint", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "ApplyRecoveryPoint", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -179,6 +180,7 @@ func (client ReplicationProtectedItemsClient) ApplyRecoveryPointPreparer(ctx con
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) ApplyRecoveryPointSender(req *http.Request) (future ReplicationProtectedItemsApplyRecoveryPointFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -227,7 +229,7 @@ func (client ReplicationProtectedItemsClient) Create(ctx context.Context, fabric
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -264,6 +266,7 @@ func (client ReplicationProtectedItemsClient) CreatePreparer(ctx context.Context
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) CreateSender(req *http.Request) (future ReplicationProtectedItemsCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -312,7 +315,7 @@ func (client ReplicationProtectedItemsClient) Delete(ctx context.Context, fabric
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -349,6 +352,7 @@ func (client ReplicationProtectedItemsClient) DeletePreparer(ctx context.Context
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) DeleteSender(req *http.Request) (future ReplicationProtectedItemsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -395,7 +399,7 @@ func (client ReplicationProtectedItemsClient) FailoverCommit(ctx context.Context
 
 	result, err = client.FailoverCommitSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "FailoverCommit", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "FailoverCommit", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -430,6 +434,7 @@ func (client ReplicationProtectedItemsClient) FailoverCommitPreparer(ctx context
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) FailoverCommitSender(req *http.Request) (future ReplicationProtectedItemsFailoverCommitFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -802,7 +807,7 @@ func (client ReplicationProtectedItemsClient) PlannedFailover(ctx context.Contex
 
 	result, err = client.PlannedFailoverSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "PlannedFailover", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "PlannedFailover", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -839,6 +844,7 @@ func (client ReplicationProtectedItemsClient) PlannedFailoverPreparer(ctx contex
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) PlannedFailoverSender(req *http.Request) (future ReplicationProtectedItemsPlannedFailoverFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -888,7 +894,7 @@ func (client ReplicationProtectedItemsClient) Purge(ctx context.Context, fabricN
 
 	result, err = client.PurgeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "Purge", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "Purge", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -923,6 +929,7 @@ func (client ReplicationProtectedItemsClient) PurgePreparer(ctx context.Context,
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) PurgeSender(req *http.Request) (future ReplicationProtectedItemsPurgeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -970,7 +977,7 @@ func (client ReplicationProtectedItemsClient) RemoveDisks(ctx context.Context, f
 
 	result, err = client.RemoveDisksSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "RemoveDisks", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "RemoveDisks", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1007,6 +1014,7 @@ func (client ReplicationProtectedItemsClient) RemoveDisksPreparer(ctx context.Co
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) RemoveDisksSender(req *http.Request) (future ReplicationProtectedItemsRemoveDisksFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1055,7 +1063,7 @@ func (client ReplicationProtectedItemsClient) RepairReplication(ctx context.Cont
 
 	result, err = client.RepairReplicationSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "RepairReplication", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "RepairReplication", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1090,6 +1098,7 @@ func (client ReplicationProtectedItemsClient) RepairReplicationPreparer(ctx cont
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) RepairReplicationSender(req *http.Request) (future ReplicationProtectedItemsRepairReplicationFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1138,7 +1147,7 @@ func (client ReplicationProtectedItemsClient) Reprotect(ctx context.Context, fab
 
 	result, err = client.ReprotectSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "Reprotect", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "Reprotect", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1175,6 +1184,7 @@ func (client ReplicationProtectedItemsClient) ReprotectPreparer(ctx context.Cont
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) ReprotectSender(req *http.Request) (future ReplicationProtectedItemsReprotectFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1223,7 +1233,7 @@ func (client ReplicationProtectedItemsClient) ResolveHealthErrors(ctx context.Co
 
 	result, err = client.ResolveHealthErrorsSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "ResolveHealthErrors", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "ResolveHealthErrors", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1260,6 +1270,7 @@ func (client ReplicationProtectedItemsClient) ResolveHealthErrorsPreparer(ctx co
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) ResolveHealthErrorsSender(req *http.Request) (future ReplicationProtectedItemsResolveHealthErrorsFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1308,7 +1319,7 @@ func (client ReplicationProtectedItemsClient) TestFailover(ctx context.Context, 
 
 	result, err = client.TestFailoverSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "TestFailover", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "TestFailover", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1345,6 +1356,7 @@ func (client ReplicationProtectedItemsClient) TestFailoverPreparer(ctx context.C
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) TestFailoverSender(req *http.Request) (future ReplicationProtectedItemsTestFailoverFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1399,7 +1411,7 @@ func (client ReplicationProtectedItemsClient) TestFailoverCleanup(ctx context.Co
 
 	result, err = client.TestFailoverCleanupSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "TestFailoverCleanup", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "TestFailoverCleanup", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1436,6 +1448,7 @@ func (client ReplicationProtectedItemsClient) TestFailoverCleanupPreparer(ctx co
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) TestFailoverCleanupSender(req *http.Request) (future ReplicationProtectedItemsTestFailoverCleanupFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1484,7 +1497,7 @@ func (client ReplicationProtectedItemsClient) UnplannedFailover(ctx context.Cont
 
 	result, err = client.UnplannedFailoverSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "UnplannedFailover", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "UnplannedFailover", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1521,6 +1534,7 @@ func (client ReplicationProtectedItemsClient) UnplannedFailoverPreparer(ctx cont
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) UnplannedFailoverSender(req *http.Request) (future ReplicationProtectedItemsUnplannedFailoverFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1569,7 +1583,7 @@ func (client ReplicationProtectedItemsClient) Update(ctx context.Context, fabric
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1606,6 +1620,7 @@ func (client ReplicationProtectedItemsClient) UpdatePreparer(ctx context.Context
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) UpdateSender(req *http.Request) (future ReplicationProtectedItemsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1655,7 +1670,7 @@ func (client ReplicationProtectedItemsClient) UpdateMobilityService(ctx context.
 
 	result, err = client.UpdateMobilityServiceSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "UpdateMobilityService", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "UpdateMobilityService", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1692,6 +1707,7 @@ func (client ReplicationProtectedItemsClient) UpdateMobilityServicePreparer(ctx 
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) UpdateMobilityServiceSender(req *http.Request) (future ReplicationProtectedItemsUpdateMobilityServiceFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

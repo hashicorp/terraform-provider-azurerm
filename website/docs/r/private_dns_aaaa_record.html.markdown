@@ -6,7 +6,7 @@ description: |-
   Manages a Private DNS AAAA Record.
 ---
 
-# azurerm_private_dns_a_record
+# azurerm_private_dns_aaaa_record
 
 Enables you to manage DNS AAAA Records within Azure Private DNS.
 
@@ -70,5 +70,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Private DNS AAAA Records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_private_dns_a_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/privateDnsZones/zone1/AAAA/myrecord1
+terraform import azurerm_private_dns_aaaa_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/privateDnsZones/zone1/AAAA/myrecord1
 ```

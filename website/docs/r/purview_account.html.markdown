@@ -22,7 +22,6 @@ resource "azurerm_purview_account" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  sku_name            = "Standard_4"
 }
 ```
 
@@ -35,8 +34,6 @@ The following arguments are supported:
 * `name` - (Required) The name which should be used for this Purview Account. Changing this forces a new Purview Account to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Purview Account should exist. Changing this forces a new Purview Account to be created.
-
-* `sku_name` - (Required) The SKU's capacity for platform size and catalog capabilities. Accepted values are `Standard_4` and `Standard_16`.
 
 ---
 

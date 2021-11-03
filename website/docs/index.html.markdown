@@ -169,6 +169,8 @@ It's possible to configure the behaviour of certain resources using the `feature
 
 The `features` block supports the following:
 
+* `api_management` - (Optional) An `api_management` block as defined below.
+
 * `cognitive_account` - (Optional) A `cognitive_account` block as defined below.
 
 * `key_vault` - (Optional) A `key_vault` block as defined below.
@@ -182,6 +184,12 @@ The `features` block supports the following:
 * `virtual_machine` - (Optional) A `virtual_machine` block as defined below.
 
 * `virtual_machine_scale_set` - (Optional) A `virtual_machine_scale_set` block as defined below.
+
+---
+
+The `api_management` block supports the following:
+
+* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_api_management` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
 
 ---
 
@@ -233,7 +241,7 @@ The `virtual_machine` block supports the following:
 
 ~> **Note:** When using a graceful shutdown, Azure gives the Virtual Machine a 5 minutes window in which to complete the shutdown process, at which point the machine will be force powered off - [more information can be found in this blog post](https://azure.microsoft.com/en-us/blog/linux-and-graceful-shutdowns-2/).
 
-* `skip_shutdown_and_force_delete` - Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` skip the shutdown command and `Force Delete`, this provides the ability to forcefully and immediately delete the VM and detach all sub-resources associated with the virtual machine. This allows those freed resources to be reattached to another VM instance or deleted. Defaults to `false`.  
+* `skip_shutdown_and_force_delete` - Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` skip the shutdown command and `Force Delete`, this provides the ability to forcefully and immediately delete the VM and detach all sub-resources associated with the virtual machine. This allows those freed resources to be reattached to another VM instance or deleted. Defaults to `false`.
 
 ~> **Note:** Support for Force Delete is in an opt-in Preview.
 
@@ -246,3 +254,5 @@ The `virtual_machine_scale_set` block supports the following:
 ~> **Note:** Support for Force Delete is in an opt-in Preview.
 
 * `roll_instances_when_required` - (Optional) Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources automatically roll the instances in the Scale Set when Required (for example when updating the Sku/Image). Defaults to `true`.
+
+* `scale_to_zero_before_deletion` - (Optional) Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources scale to 0 instances before deleting the resource. Defaults to `true`.

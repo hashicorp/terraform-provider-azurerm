@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	webValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -108,10 +110,12 @@ func resourceFunctionApp() *pluginsdk.Resource {
 				},
 			},
 
+			// todo remove for 3.0 as it doesn't do anything
 			"client_affinity_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Computed: true,
+				Type:       pluginsdk.TypeBool,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "This property is no longer configurable in the service and has been deprecated. It will be removed in 3.0 of the provider.",
 			},
 
 			"client_cert_mode": {
@@ -157,6 +161,13 @@ func resourceFunctionApp() *pluginsdk.Resource {
 					"linux",
 					"",
 				}, false),
+			},
+
+			"key_vault_reference_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: msivalidate.UserAssignedIdentityID,
 			},
 
 			"site_config": schemaAppServiceFunctionAppSiteConfig(),
@@ -307,7 +318,7 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
+	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix, nil)
 	if err != nil {
 		return err
 	}
@@ -332,6 +343,10 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
 			SiteConfig:            &siteConfig,
 		},
+	}
+
+	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
+		siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(v.(string))
 	}
 
 	if clientCertMode != "" {
@@ -427,7 +442,16 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
+	var currentAppSettings map[string]*string
+	appSettingsList, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+	if err != nil {
+		return fmt.Errorf("reading App Settings for %s: %+v", id, err)
+	}
+	if appSettingsList.Properties != nil {
+		currentAppSettings = appSettingsList.Properties
+	}
+
+	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix, currentAppSettings)
 	if err != nil {
 		return err
 	}
@@ -438,6 +462,15 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	siteConfig.AppSettings = &basicAppSettings
+
+	// WEBSITE_VNET_ROUTE_ALL is superseded by a setting in site_config that defaults to false from 2021-02-01
+	appSettings := expandFunctionAppAppSettings(d, basicAppSettings)
+	if vnetRouteAll, ok := appSettings["WEBSITE_VNET_ROUTE_ALL"]; ok {
+		if !d.HasChange("site_config.0.vnet_route_all_enabled") { // Only update the property if it's not set explicitly
+			vnetRouteAllEnabled, _ := strconv.ParseBool(*vnetRouteAll)
+			siteConfig.VnetRouteAllEnabled = &vnetRouteAllEnabled
+		}
+	}
 
 	siteEnvelope := web.Site{
 		Kind:     &kind,
@@ -452,6 +485,10 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
 			SiteConfig:            &siteConfig,
 		},
+	}
+
+	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
+		siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(v.(string))
 	}
 
 	if clientCertMode != "" {
@@ -473,10 +510,6 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("waiting for update of Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 
-	appSettings, err := expandFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
-	if err != nil {
-		return err
-	}
 	settings := web.StringDictionary{
 		Properties: appSettings,
 	}
@@ -625,7 +658,11 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	appServicePlanID := ""
 	if props := resp.SiteProperties; props != nil {
+		if props.ServerFarmID != nil {
+			appServicePlanID = *props.ServerFarmID
+		}
 		d.Set("app_service_plan_id", props.ServerFarmID)
 		d.Set("enabled", props.Enabled)
 		d.Set("default_hostname", props.DefaultHostName)
@@ -641,6 +678,15 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			clientCertMode = string(props.ClientCertMode)
 		}
 		d.Set("client_cert_mode", clientCertMode)
+
+		if props.KeyVaultReferenceIdentity != nil {
+			d.Set("key_vault_reference_identity_id", props.KeyVaultReferenceIdentity)
+		}
+	}
+
+	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanID, meta)
+	if err != nil {
+		return err
 	}
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
@@ -680,10 +726,10 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
 	}
 
-	// Let the user have a final say whether they want to keep these 2 or not on
-	// Linux consumption plans. They shouldn't be there according to a bug
-	// report (see // https://github.com/Azure/azure-functions-python-worker/issues/598)
-	if !strings.EqualFold(d.Get("os_type").(string), "linux") {
+	// From the docs:
+	// Only used when deploying to a Premium plan or to a Consumption plan running on Windows. Not supported for Consumptions plans running Linux.
+	if (strings.EqualFold(appServiceTier, "dynamic") && strings.EqualFold(d.Get("os_type").(string), "linux")) ||
+		(strings.EqualFold(appServiceTier, "dynamic") || strings.HasPrefix(strings.ToLower(appServiceTier), "elastic")) {
 		delete(appSettings, "WEBSITE_CONTENTSHARE")
 		delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
 	}

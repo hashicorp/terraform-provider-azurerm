@@ -2,7 +2,6 @@ package network
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -27,10 +26,10 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 		Read:   resourceVirtualNetworkGatewayRead,
 		Update: resourceVirtualNetworkGatewayCreateUpdate,
 		Delete: resourceVirtualNetworkGatewayDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
-
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceVirtualNetworkGatewayCustomizeDiff),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.VirtualNetworkGatewayID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -178,14 +177,26 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 						"aad_tenant": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							RequiredWith: []string{
+								"vpn_client_configuration.0.aad_audience",
+								"vpn_client_configuration.0.aad_issuer",
+							},
 						},
 						"aad_audience": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							RequiredWith: []string{
+								"vpn_client_configuration.0.aad_issuer",
+								"vpn_client_configuration.0.aad_tenant",
+							},
 						},
 						"aad_issuer": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							RequiredWith: []string{
+								"vpn_client_configuration.0.aad_audience",
+								"vpn_client_configuration.0.aad_tenant",
+							},
 						},
 
 						"root_certificate": {
@@ -228,11 +239,13 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.IsIPv4Address,
+							RequiredWith: []string{"vpn_client_configuration.0.radius_server_secret"},
 						},
 
 						"radius_server_secret": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							RequiredWith: []string{"vpn_client_configuration.0.radius_server_address"},
 						},
 
 						"vpn_auth_types": {
@@ -383,16 +396,13 @@ func resourceVirtualNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway creation.")
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-
-	id := parse.NewVirtualNetworkGatewayID(subscriptionId, resGroup, name)
+	id := parse.NewVirtualNetworkGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Virtual Network Gateway %q: %s", id, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -414,19 +424,19 @@ func resourceVirtualNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	gateway := network.VirtualNetworkGateway{
-		Name:                                  &name,
+		Name:                                  &id.Name,
 		Location:                              &location,
 		Tags:                                  tags.Expand(t),
 		VirtualNetworkGatewayPropertiesFormat: properties,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, gateway)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, gateway)
 	if err != nil {
-		return fmt.Errorf("Creating/Updating AzureRM Virtual Network Gateway %q: %+v", id, err)
+		return fmt.Errorf("Creating/Updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of AzureRM Virtual Network Gateway %q: %+v", id, err)
+		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -450,10 +460,10 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on AzureRM Virtual Network Gateway %q: %+v", id, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -514,11 +524,11 @@ func resourceVirtualNetworkGatewayDelete(d *pluginsdk.ResourceData, meta interfa
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Virtual Network Gateway %q: %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Virtual Network Gateway %q: %+v", id, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
@@ -1022,52 +1032,6 @@ func validateVirtualNetworkGatewayExpressRouteSku() pluginsdk.SchemaValidateFunc
 		string(network.VirtualNetworkGatewaySkuNameErGw2AZ),
 		string(network.VirtualNetworkGatewaySkuNameErGw3AZ),
 	}, true)
-}
-
-func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, diff *pluginsdk.ResourceDiff, _ interface{}) error {
-	if vpnClient, ok := diff.GetOk("vpn_client_configuration"); ok {
-		if vpnClientConfig, ok := vpnClient.([]interface{})[0].(map[string]interface{}); ok {
-			hasAadTenant := vpnClientConfig["aad_tenant"] != ""
-			hasAadAudience := vpnClientConfig["aad_audience"] != ""
-			hasAadIssuer := vpnClientConfig["aad_issuer"] != ""
-
-			if hasAadTenant && (!hasAadAudience || !hasAadIssuer) {
-				return fmt.Errorf("if aad_tenant is set aad_audience and aad_issuer must also be set")
-			}
-			if hasAadAudience && (!hasAadTenant || !hasAadIssuer) {
-				return fmt.Errorf("if aad_audience is set aad_tenant and aad_issuer must also be set")
-			}
-			if hasAadIssuer && (!hasAadTenant || !hasAadAudience) {
-				return fmt.Errorf("if aad_issuer is set aad_tenant and aad_audience must also be set")
-			}
-
-			hasRadiusAddress := vpnClientConfig["radius_server_address"] != ""
-			hasRadiusSecret := vpnClientConfig["radius_server_secret"] != ""
-
-			if hasRadiusAddress && !hasRadiusSecret {
-				return fmt.Errorf("if radius_server_address is set radius_server_secret must also be set")
-			}
-			if !hasRadiusAddress && hasRadiusSecret {
-				return fmt.Errorf("if radius_server_secret is set radius_server_address must also be set")
-			}
-
-			hasRootCert := len(vpnClientConfig["root_certificate"].(*pluginsdk.Set).List()) > 0
-
-			vpnAuthTypes := utils.ExpandStringSlice(vpnClientConfig["vpn_auth_types"].(*pluginsdk.Set).List())
-			for _, authType := range *vpnAuthTypes {
-				if authType == "Certificate" && !hasRootCert {
-					return fmt.Errorf("if Certificate is listed in vpn_auth_types then root_certificate must also be set")
-				}
-				if authType == "Radius" && (!hasRadiusAddress || !hasRadiusSecret) {
-					return fmt.Errorf("if Radius is listed in vpn_auth_types then radius_server_address and radius_server_secret must also be set")
-				}
-				if authType == "AAD" && (!hasAadTenant || !hasAadIssuer || !hasAadAudience) {
-					return fmt.Errorf("if AAD is listed in vpn_auth_types then aad_issuer, aad_tenant and aad_audience must also be set")
-				}
-			}
-		}
-	}
-	return nil
 }
 
 func flattenVirtualNetworkGatewayAddressSpace(input *network.AddressSpace) []interface{} {

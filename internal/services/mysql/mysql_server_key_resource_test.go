@@ -146,7 +146,7 @@ resource "azurerm_mysql_server" "test" {
   ssl_enforcement_enabled          = true
   ssl_minimal_tls_version_enforced = "TLS1_1"
   storage_mb                       = 51200
-  version                          = "5.6"
+  version                          = "5.7"
 
   identity {
     type = "SystemAssigned"

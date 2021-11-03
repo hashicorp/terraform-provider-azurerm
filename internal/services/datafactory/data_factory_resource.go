@@ -2,7 +2,10 @@ package datafactory
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"reflect"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
@@ -36,8 +39,10 @@ func resourceDataFactory() *pluginsdk.Resource {
 			1: migration.DataFactoryV1ToV2{},
 		}),
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.DataFactoryID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -73,6 +78,7 @@ func resourceDataFactory() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(datafactory.FactoryIdentityTypeSystemAssigned),
 								string(datafactory.FactoryIdentityTypeUserAssigned),
+								string(datafactory.FactoryIdentityTypeSystemAssignedUserAssigned),
 							}, false),
 						},
 
@@ -273,8 +279,8 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		identityIdsRaw := d.Get("identity.0.identity_ids").([]interface{})
 		if len(identityIdsRaw) > 0 {
-			if identityType != string(datafactory.FactoryIdentityTypeUserAssigned) {
-				return fmt.Errorf("`identity_ids` can only be specified when `type` is `%s`", string(datafactory.FactoryIdentityTypeUserAssigned))
+			if !(identityType == string(datafactory.FactoryIdentityTypeUserAssigned) || identityType == string(datafactory.FactoryIdentityTypeSystemAssignedUserAssigned)) {
+				return fmt.Errorf("`identity_ids` can only be specified when `type` is `%s` or `%s`", string(datafactory.FactoryIdentityTypeUserAssigned), string(datafactory.FactoryIdentityTypeSystemAssignedUserAssigned))
 			}
 
 			identityIds := make(map[string]interface{})
@@ -603,12 +609,23 @@ func flattenDataFactoryGlobalParameters(input map[string]*datafactory.GlobalPara
 	if len(input) == 0 {
 		return []interface{}{}
 	}
+
 	result := make([]interface{}, 0)
 	for name, item := range input {
+		var valueResult string
+		typeResult := strings.Title(string(item.Type))
+
+		if (typeResult == "Array" || typeResult == "Object") && reflect.TypeOf(item.Value).Name() != "string" {
+			j, _ := json.Marshal(item.Value)
+			valueResult = string(j)
+		} else {
+			valueResult = fmt.Sprintf("%v", item.Value)
+		}
+
 		result = append(result, map[string]interface{}{
 			"name":  name,
-			"type":  string(item.Type),
-			"value": item.Value,
+			"type":  typeResult,
+			"value": valueResult,
 		})
 	}
 	return result

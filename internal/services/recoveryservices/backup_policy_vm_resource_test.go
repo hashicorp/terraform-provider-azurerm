@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -268,18 +268,14 @@ func TestAccBackupProtectionPolicyVM_updateWeeklyToPartial(t *testing.T) {
 }
 
 func (t BackupProtectionPolicyVMResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.BackupPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	policyName := id.Path["backupPolicies"]
-	vaultName := id.Path["vaults"]
-	resourceGroup := id.ResourceGroup
-
-	resp, err := clients.RecoveryServices.ProtectionPoliciesClient.Get(ctx, vaultName, resourceGroup, policyName)
+	resp, err := clients.RecoveryServices.ProtectionPoliciesClient.Get(ctx, id.VaultName, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Recovery Service Protection Policy (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading Recovery Service Protection Policy (%s): %+v", id.String(), err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

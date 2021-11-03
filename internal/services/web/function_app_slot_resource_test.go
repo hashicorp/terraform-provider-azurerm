@@ -95,44 +95,6 @@ func TestAccFunctionAppSlot_appSettings(t *testing.T) {
 	})
 }
 
-func TestAccFunctionAppSlot_clientAffinityEnabled(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
-	r := FunctionAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.clientAffinityEnabled(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_affinity_enabled").HasValue("true"),
-			),
-		},
-	})
-}
-
-func TestAccFunctionAppSlot_clientAffinityEnabledUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
-	r := FunctionAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.clientAffinityEnabled(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_affinity_enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.clientAffinityEnabled(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_affinity_enabled").HasValue("false"),
-			),
-		},
-	})
-}
-
 func TestAccFunctionAppSlot_connectionStrings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
@@ -142,12 +104,6 @@ func TestAccFunctionAppSlot_connectionStrings(t *testing.T) {
 			Config: r.connectionStrings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("connection_string.3173438943.name").HasValue("First"),
-				check.That(data.ResourceName).Key("connection_string.3173438943.value").HasValue("first-connection-string"),
-				check.That(data.ResourceName).Key("connection_string.3173438943.type").HasValue("Custom"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.name").HasValue("Second"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.value").HasValue("some-postgresql-connection-string"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.type").HasValue("PostgreSQL"),
 			),
 		},
 		data.ImportStep(),
@@ -155,12 +111,6 @@ func TestAccFunctionAppSlot_connectionStrings(t *testing.T) {
 			Config: r.connectionStringsUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("connection_string.3173438943.name").HasValue("First"),
-				check.That(data.ResourceName).Key("connection_string.3173438943.value").HasValue("first-connection-string"),
-				check.That(data.ResourceName).Key("connection_string.3173438943.type").HasValue("Custom"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.name").HasValue("Second"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.value").HasValue("some-postgresql-connection-string"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.type").HasValue("PostgreSQL"),
 			),
 		},
 	})
@@ -931,58 +881,6 @@ resource "azurerm_function_app_slot" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func (r FunctionAppSlotResource) clientAffinityEnabled(data acceptance.TestData, clientAffinityEnabled bool) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_function_app" "test" {
-  name                       = "acctestFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-}
-
-resource "azurerm_function_app_slot" "test" {
-  name                       = "acctestFASlot-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
-  function_app_name          = azurerm_function_app.test.name
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  client_affinity_enabled    = %t
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, clientAffinityEnabled)
-}
-
 func (r FunctionAppSlotResource) connectionStrings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1186,10 +1084,11 @@ resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  kind                = "elastic"
 
   sku {
-    tier = "Standard"
-    size = "S1"
+    tier = "ElasticPremium"
+    size = "EP1"
   }
 }
 
@@ -1208,6 +1107,7 @@ resource "azurerm_function_app" "test" {
   app_service_plan_id        = azurerm_app_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  version                    = "~3"
 }
 
 resource "azurerm_function_app_slot" "test" {
@@ -1218,6 +1118,7 @@ resource "azurerm_function_app_slot" "test" {
   function_app_name          = azurerm_function_app.test.name
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  version                    = "~3"
 
   site_config {
     auto_swap_slot_name = "production"

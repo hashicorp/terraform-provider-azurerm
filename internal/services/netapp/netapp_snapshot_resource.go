@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2020-09-01/netapp"
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-06-01/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -23,6 +23,7 @@ func resourceNetAppSnapshot() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceNetAppSnapshotCreate,
 		Read:   resourceNetAppSnapshotRead,
+		// todo remove this in version 3.0 of the provider as tags was the only updatable property and they can no longer be updated and will also be removed
 		Update: resourceNetAppSnapshotUpdate,
 		Delete: resourceNetAppSnapshotDelete,
 
@@ -72,6 +73,7 @@ func resourceNetAppSnapshot() *pluginsdk.Resource {
 
 			// TODO: remove this in a next breaking changes release since tags are
 			// not supported anymore on Snapshots (todo 3.0)
+			// todo remove this in version 3.0 of the provider
 			"tags": {
 				Type:     pluginsdk.TypeMap,
 				Optional: true,
@@ -169,6 +171,7 @@ func resourceNetAppSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
+// todo remove this in version 3.0 of the provider
 func resourceNetAppSnapshotUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	// Snapshot resource in Azure changed its type to proxied resource, therefore
 	// tags are not supported anymore, ignoring any tags.

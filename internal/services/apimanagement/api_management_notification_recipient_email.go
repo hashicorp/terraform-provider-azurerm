@@ -63,7 +63,7 @@ func (r ApiManagementNotificationRecipientEmailResource) Attributes() map[string
 }
 
 func (r ApiManagementNotificationRecipientEmailResource) ModelObject() interface{} {
-	return ApiManagementNotificationRecipientEmailModel{}
+	return &ApiManagementNotificationRecipientEmailModel{}
 }
 
 func (r ApiManagementNotificationRecipientEmailResource) ResourceType() string {
