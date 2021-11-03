@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* **New Resource:** `logz_monitor` [GH-13874]
+
 IMPROVEMENTS:
 
 * upgrading `sdk` to API Version `2021-08-01` [GH-13465]
