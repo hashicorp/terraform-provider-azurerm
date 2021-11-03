@@ -92,6 +92,7 @@ resource "azurerm_api_management_product" "test" {
   subscription_required = true
   approval_required     = false
   published             = true
+  description           = "This is an example description"
 }
 
 resource "azurerm_api_management_group" "test" {

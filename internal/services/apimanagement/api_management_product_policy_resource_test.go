@@ -122,6 +122,7 @@ resource "azurerm_api_management_product" "test" {
   display_name          = "Test Product"
   subscription_required = false
   published             = false
+  description           = "This is an example description"
 }
 
 resource "azurerm_api_management_product_policy" "test" {
@@ -173,6 +174,7 @@ resource "azurerm_api_management_product" "test" {
   display_name          = "Test Product"
   subscription_required = false
   published             = false
+  description           = "This is an example description"
 }
 
 resource "azurerm_api_management_product_policy" "test" {

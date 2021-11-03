@@ -27,7 +27,7 @@ func TestAccApiManagementProduct_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("approval_required").HasValue("false"),
-				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("description").HasValue("This is an example description"),
 				check.That(data.ResourceName).Key("display_name").HasValue("Test Product"),
 				check.That(data.ResourceName).Key("product_id").HasValue("test-product"),
 				check.That(data.ResourceName).Key("published").HasValue("false"),
@@ -64,7 +64,7 @@ func TestAccApiManagementProduct_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("approval_required").HasValue("false"),
-				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("description").HasValue("This is an example description"),
 				check.That(data.ResourceName).Key("display_name").HasValue("Test Product"),
 				check.That(data.ResourceName).Key("product_id").HasValue("test-product"),
 				check.That(data.ResourceName).Key("published").HasValue("false"),
@@ -78,7 +78,7 @@ func TestAccApiManagementProduct_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("approval_required").HasValue("true"),
-				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("description").HasValue("This is an updated example description"),
 				check.That(data.ResourceName).Key("display_name").HasValue("Test Updated Product"),
 				check.That(data.ResourceName).Key("product_id").HasValue("test-product"),
 				check.That(data.ResourceName).Key("published").HasValue("true"),
@@ -91,7 +91,7 @@ func TestAccApiManagementProduct_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("description").HasValue("This is an example description"),
 				check.That(data.ResourceName).Key("display_name").HasValue("Test Product"),
 				check.That(data.ResourceName).Key("product_id").HasValue("test-product"),
 				check.That(data.ResourceName).Key("published").HasValue("false"),
@@ -200,6 +200,7 @@ resource "azurerm_api_management_product" "test" {
   display_name          = "Test Product"
   subscription_required = false
   published             = false
+  description           = "This is an example description"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -216,6 +217,7 @@ resource "azurerm_api_management_product" "import" {
   subscription_required = azurerm_api_management_product.test.subscription_required
   approval_required     = azurerm_api_management_product.test.approval_required
   published             = azurerm_api_management_product.test.published
+  description           = azurerm_api_management_product.test.description
 }
 `, r.basic(data))
 }
@@ -250,6 +252,7 @@ resource "azurerm_api_management_product" "test" {
   approval_required     = true
   subscriptions_limit   = 1
   published             = true
+  description           = "This is an updated example description"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -284,6 +287,7 @@ resource "azurerm_api_management_product" "test" {
   approval_required     = true
   subscriptions_limit   = 2
   published             = false
+  description           = "This is an example description"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

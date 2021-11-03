@@ -63,7 +63,7 @@ func resourceApiManagementProduct() *pluginsdk.Resource {
 
 			"description": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Required: true,
 			},
 
 			"terms": {
