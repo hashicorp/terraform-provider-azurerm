@@ -3,6 +3,7 @@ package streamanalytics_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -102,15 +103,17 @@ func TestAccStreamAnalyticsJob_identity(t *testing.T) {
 }
 
 func (r StreamAnalyticsJobResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	name := state.Attributes["name"]
-	resourceGroup := state.Attributes["resource_group_name"]
+	id, err := parse.StreamingJobID(state.ID)
+	if err != nil {
+		return nil, err
+	}
 
-	resp, err := client.StreamAnalytics.JobsClient.Get(ctx, resourceGroup, name, "")
+	resp, err := client.StreamAnalytics.JobsClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), err
 		}
-		return nil, fmt.Errorf("retrieving Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return utils.Bool(true), nil
 }
