@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -162,8 +163,19 @@ func resourceArmSqlMiServer() *schema.Resource {
 				Computed: true,
 			},
 
+			"dns_zone_partner_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.ForceNewIfChange("dns_zone_partner_id", func(ctx context.Context, old, new, _ interface{}) bool {
+			// dns_zone_partner_id can only be set on init
+			return old.(string) == "" && new.(string) != ""
+		}),
 	}
 }
 
@@ -211,6 +223,7 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 			MinimalTLSVersion:          utils.String(d.Get("minimum_tls_version").(string)),
 			ProxyOverride:              sql.ManagedInstanceProxyOverride(d.Get("proxy_override").(string)),
 			TimezoneID:                 utils.String(d.Get("timezone_id").(string)),
+			DNSZonePartner:             utils.String(d.Get("dns_zone_partner_id").(string)),
 		},
 	}
 

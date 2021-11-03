@@ -27,9 +27,10 @@ func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
 		Read:   resourceNetworkConnectionMonitorRead,
 		Update: resourceNetworkConnectionMonitorCreateUpdate,
 		Delete: resourceNetworkConnectionMonitorDelete,
-
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ConnectionMonitorID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -518,23 +519,24 @@ func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
 
 func resourceNetworkConnectionMonitorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ConnectionMonitorsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
-	watcherId := d.Get("network_watcher_id").(string)
-	id, err := parse.NetworkWatcherID(watcherId)
+	watcherId, err := parse.NetworkWatcherID(d.Get("network_watcher_id").(string))
 	if err != nil {
 		return err
 	}
 
+	connectionMonitorId := parse.NewConnectionMonitorID(subscriptionId, watcherId.ResourceGroup, watcherId.Name, d.Get("name").(string))
+
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
+		existing, err := client.Get(ctx, watcherId.ResourceGroup, watcherId.Name, connectionMonitorId.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Connection Monitor %q (Watcher %q / Resource Group %q): %s", name, id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", connectionMonitorId, err)
 			}
 		}
 
@@ -563,24 +565,16 @@ func resourceNetworkConnectionMonitorCreateUpdate(d *pluginsdk.ResourceData, met
 		properties.Notes = utils.String(notes.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, name, properties, "") // empty string indicating we are not migrating V1 to V2
+	future, err := client.CreateOrUpdate(ctx, watcherId.ResourceGroup, watcherId.Name, connectionMonitorId.Name, properties, "") // empty string indicating we are not migrating V1 to V2
 	if err != nil {
-		return fmt.Errorf("creating Connection Monitor %q (Watcher %q / Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", connectionMonitorId, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Connection Monitor %q (Watcher %q / Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for completion of %s: %+v", connectionMonitorId, err)
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Connection Monitor %q (Watcher %q / Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Connection Monitor %q (Watcher %q / Resource Group %q) ID", name, id.Name, id.ResourceGroup)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(connectionMonitorId.ID())
 
 	return resourceNetworkConnectionMonitorRead(d, meta)
 }
@@ -601,7 +595,7 @@ func resourceNetworkConnectionMonitorRead(d *pluginsdk.ResourceData, meta interf
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Connection Monitor %q (Watcher %q / Resource Group %q) %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
+		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	if resp.ConnectionMonitorType == network.ConnectionMonitorTypeSingleSourceDestination {
@@ -653,12 +647,12 @@ func resourceNetworkConnectionMonitorDelete(d *pluginsdk.ResourceData, meta inte
 	future, err := client.Delete(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("deleting Connection Monitor %q (Watcher %q / Resource Group %q): %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of Connection Monitor %q (Watcher %q / Resource Group %q): %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil

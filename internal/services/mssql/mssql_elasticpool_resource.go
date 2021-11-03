@@ -77,6 +77,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 								"GP_Gen5",
 								"BC_Gen4",
 								"BC_Gen5",
+								"GP_FSv2",
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},

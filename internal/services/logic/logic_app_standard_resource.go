@@ -283,7 +283,11 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 		kind = "functionapp,linux,container,workflowapp"
 	}
 
-	siteConfig.AppSettings = &basicAppSettings
+	// Some appSettings declared by user are required at creation time so we will combine both settings
+	appSettings := expandAppSettings(d)
+	appSettings = append(appSettings, basicAppSettings...)
+
+	siteConfig.AppSettings = &appSettings
 
 	siteEnvelope := web.Site{
 		Kind:     &kind,
@@ -1296,25 +1300,29 @@ func expandLogicAppStandardIdentity(input []interface{}) *web.ManagedServiceIden
 }
 
 func expandLogicAppStandardSettings(d *pluginsdk.ResourceData, endpointSuffix string) (map[string]*string, error) {
-	output := expandAppSettings(d)
-
+	output := make(map[string]*string)
+	appSettings := expandAppSettings(d)
 	basicAppSettings, err := getBasicLogicAppSettings(d, endpointSuffix)
 	if err != nil {
 		return nil, err
 	}
-	for _, p := range basicAppSettings {
+	for _, p := range append(basicAppSettings, appSettings...) {
 		output[*p.Name] = p.Value
 	}
 
 	return output, nil
 }
 
-func expandAppSettings(d *pluginsdk.ResourceData) map[string]*string {
+func expandAppSettings(d *pluginsdk.ResourceData) []web.NameValuePair {
 	input := d.Get("app_settings").(map[string]interface{})
-	output := make(map[string]*string, len(input))
+	output := make([]web.NameValuePair, 0)
 
 	for k, v := range input {
-		output[k] = utils.String(v.(string))
+		nameValue := web.NameValuePair{
+			Name:  utils.String(k),
+			Value: utils.String(v.(string)),
+		}
+		output = append(output, nameValue)
 	}
 
 	return output

@@ -18,6 +18,9 @@ type CreateInput struct {
 	// Must be greater than 0, and less than or equal to 5TB (5120).
 	QuotaInGB int
 
+	// Specifies the enabled protocols on the share. If not specified, the default is SMB.
+	EnabledProtocol ShareProtocol
+
 	MetaData map[string]string
 }
 
@@ -75,6 +78,12 @@ func (client Client) CreatePreparer(ctx context.Context, accountName, shareName 
 		"x-ms-version":     APIVersion,
 		"x-ms-share-quota": input.QuotaInGB,
 	}
+
+	protocol := SMB
+	if input.EnabledProtocol != "" {
+		protocol = input.EnabledProtocol
+	}
+	headers["x-ms-enabled-protocols"] = protocol
 
 	headers = metadata.SetIntoHeaders(headers, input.MetaData)
 

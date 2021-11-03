@@ -125,7 +125,7 @@ The following arguments are supported:
 
 * `queue_properties` - (Optional) A `queue_properties` block as defined below.
 
-~> **NOTE:** `queue_properties` cannot be set when the `access_tier` is set to `BlobStorage`
+~> **NOTE:** `queue_properties` cannot be set when the `account_kind` is set to `BlobStorage`
 
 * `static_website` - (Optional) A `static_website` block as defined below.
 
@@ -158,8 +158,6 @@ A `blob_properties` block supports the following:
 * `last_access_time_enabled` - (Optional) Is the last access time based tracking enabled? Default to `false`.
 
 * `container_delete_retention_policy` - (Optional) A `container_delete_retention_policy` block as defined below.
-
-~> **Note:** Before setting `container_delete_retention_policy`, the feature `ContainerSoftDelete` needs to be enabled by [steps](https://docs.microsoft.com/en-us/azure/storage/blobs/soft-delete-container-overview?tabs=powershell#register-for-the-preview)
 
 ---
 

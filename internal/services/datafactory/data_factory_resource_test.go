@@ -675,13 +675,13 @@ resource "azurerm_data_factory" "test" {
   global_parameter {
     name  = "arrayVal"
     type  = "Array"
-    value = "[\"a\", \"b\", \"c\"]"
+    value = jsonencode(["a", "b", "c"])
   }
 
   global_parameter {
     name  = "objectVal"
     type  = "Object"
-    value = "{'name': 'value'}"
+    value = jsonencode({ name : "value" })
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

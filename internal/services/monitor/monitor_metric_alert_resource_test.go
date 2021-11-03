@@ -181,6 +181,13 @@ resource "azurerm_monitor_metric_alert" "test" {
   }
 
   window_size = "PT1H"
+
+  tags = {
+    test      = "123"
+    Example   = "Example123"
+    terraform = "Coolllll"
+    CUSTOMER  = "CUSTOMERx"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
@@ -269,6 +276,16 @@ resource "azurerm_monitor_metric_alert" "test" {
 
   action {
     action_group_id = azurerm_monitor_action_group.test2.id
+  }
+
+  tags = {
+    test          = "456"
+    Example       = "Example456"
+    Terraform     = "Coolllll"
+    tfazurerm     = "Awesome"
+    CUSTOMER      = "CUSTOMERx"
+    "EXAMPLE.TAG" = "sample"
+    "Foo.Bar"     = "Test tag"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

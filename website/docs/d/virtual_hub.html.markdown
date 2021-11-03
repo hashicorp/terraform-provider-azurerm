@@ -23,7 +23,6 @@ output "virtual_hub_id" {
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -31,7 +30,6 @@ The following arguments are supported:
 * `name` - The name of the Virtual Hub.
 
 * `resource_group_name` - The Name of the Resource Group where the Virtual Hub exists.
-
 
 ## Attributes Reference
 
@@ -44,6 +42,8 @@ The following attributes are exported:
 * `tags` - A mapping of tags assigned to the Virtual Hub.
 
 * `virtual_wan_id` - The ID of the Virtual WAN within which the Virtual Hub exists.
+
+* `default_route_table_id` - The ID of the default Route Table in the Virtual Hub.
 
 ## Timeouts
 

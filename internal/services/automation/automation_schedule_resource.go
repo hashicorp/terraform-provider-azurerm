@@ -105,7 +105,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 			"timezone": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      "UTC",
+				Default:      "UTC", // TODO 3.0 Change the default to Etc/UTC
 				ValidateFunc: azvalidate.AzureTimeZoneString(),
 			},
 
