@@ -59,6 +59,13 @@ func resourceLogicAppIntegrationAccount() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"integration_service_environment_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.IntegrationServiceEnvironmentID,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -91,6 +98,12 @@ func resourceLogicAppIntegrationAccountCreateUpdate(d *pluginsdk.ResourceData, m
 			Name: logic.IntegrationAccountSkuName(d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("integration_service_environment_id"); ok {
+		account.IntegrationAccountProperties.IntegrationServiceEnvironment = &logic.ResourceReference{
+			ID: utils.String(v.(string)),
+		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, account); err != nil {
@@ -129,6 +142,14 @@ func resourceLogicAppIntegrationAccountRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("sku_name", string(resp.Sku.Name))
+
+	if props := resp.IntegrationAccountProperties; props != nil {
+		iseId := ""
+		if props.IntegrationServiceEnvironment != nil && props.IntegrationServiceEnvironment.ID != nil {
+			iseId = *props.IntegrationServiceEnvironment.ID
+		}
+		d.Set("integration_service_environment_id", iseId)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
