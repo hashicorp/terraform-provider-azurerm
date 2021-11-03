@@ -9,6 +9,7 @@ IMPROVEMENTS:
 * upgrading `sdk` to API Version `2021-08-01` [GH-13465]
 * upgrading `purview` to API Version `2021-07-01` [GH-13785]
 * Data Source: `azurerm_key_vault_key` - export the `cureve`, `x`, `y`, `public_key_pem`, and `public_key_openssh` attributes [GH-13934]
+* `azurerm_app_service_slot` - support for the `key_vault_reference_identity_id` property  [GH-13988]
 * `azurerm_cosmosdb_account` - the backup backup type can now be changed from `Periodic` to `Continuous` without creating a new resource [GH-13967]
 * `azurerm_firewall_policy_rule_collection_group` - support for the `translated_fqdn` property [GH-13976]
 * `azurerm_firewall_policy` - support for the `insights` block [GH-14004]
