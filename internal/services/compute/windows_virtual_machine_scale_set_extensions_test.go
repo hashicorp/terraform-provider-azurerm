@@ -319,6 +319,21 @@ func TestAccWindowsVirtualMachineScaleSet_extensionAutomaticUpgradeUpdate(t *tes
 	})
 }
 
+func TestAccWindowsVirtualMachineScaleSet_extensionAutomaticUpgradeEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.extensionAutomaticUpgradeEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
+	})
+}
+
 func (r WindowsVirtualMachineScaleSetResource) extensionDoNotRunOnOverProvisionedMachines(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
@@ -1044,6 +1059,58 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
       durabilityLevel    = "Silver"
       enableParallelJobs = true
     })
+  }
+}
+`, r.template(data))
+}
+
+func (r WindowsVirtualMachineScaleSetResource) extensionAutomaticUpgradeEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                       = "AzurePolicyforWindows"
+    publisher                  = "Microsoft.GuestConfiguration"
+    type                       = "ConfigurationforLinux"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = false
+    automatic_upgrade_enabled  = true
   }
 }
 `, r.template(data))

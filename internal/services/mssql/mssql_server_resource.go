@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
@@ -101,6 +102,12 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validation.IsUUID,
+						},
+
+						"azuread_authentication_only": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Computed: true,
 						},
 					},
 				},
@@ -209,6 +216,7 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
 	adminClient := meta.(*clients.Client).MSSQL.ServerAzureADAdministratorsClient
+	aadOnlyAuthentictionsClient := meta.(*clients.Client).MSSQL.ServerAzureADOnlyAuthenticationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -266,6 +274,10 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		props.ServerProperties.MinimalTLSVersion = utils.String(v.(string))
 	}
 
+	if azureADAdministrator, ok := d.GetOk("azuread_administrator"); d.IsNewResource() && ok {
+		props.ServerProperties.Administrators = expandMsSqlServerAdministrators(azureADAdministrator.([]interface{}))
+	}
+
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props)
 	if err != nil {
 		return fmt.Errorf("issuing create/update request for %s: %+v", id.String(), err)
@@ -281,14 +293,15 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	d.SetId(id.ID())
 
-	if d.HasChange("azuread_administrator") {
-		adminDelFuture, err := adminClient.Delete(ctx, id.ResourceGroup, id.Name)
+	if d.HasChange("azuread_administrator") && !d.IsNewResource() {
+		aadOnlyDeleteFuture, err := aadOnlyAuthentictionsClient.Delete(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("deleting AAD admin  %s: %+v", id.String(), err)
-		}
-
-		if err = adminDelFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
-			return fmt.Errorf("waiting for deletion of AAD admin %s: %+v", id.String(), err)
+			if aadOnlyDeleteFuture.Response() == nil || aadOnlyDeleteFuture.Response().StatusCode != http.StatusBadRequest {
+				return fmt.Errorf("deleting AD Only Authentications %s: %+v", id.String(), err)
+			}
+			log.Printf("[INFO] AD Only Authentication is not removed as AD Admin is not set for %s: %+v", id.String(), err)
+		} else if err = aadOnlyDeleteFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
+			return fmt.Errorf("waiting for deletion of AD Only Authentications %s: %+v", id.String(), err)
 		}
 
 		if adminParams := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminParams != nil {
@@ -299,6 +312,31 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 			if err = adminFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
 				return fmt.Errorf("waiting for creation of AAD admin %s: %+v", id.String(), err)
+			}
+
+			if aadOnlyAuthentictionsEnabled := expandMsSqlServerAADOnlyAuthentictions(d.Get("azuread_administrator").([]interface{})); aadOnlyAuthentictionsEnabled {
+				aadOnlyAuthentictionsParams := sql.ServerAzureADOnlyAuthentication{
+					AzureADOnlyAuthProperties: &sql.AzureADOnlyAuthProperties{
+						AzureADOnlyAuthentication: utils.Bool(aadOnlyAuthentictionsEnabled),
+					},
+				}
+				aadOnlyEnabledFuture, err := aadOnlyAuthentictionsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, aadOnlyAuthentictionsParams)
+				if err != nil {
+					return fmt.Errorf("setting AAD only authentication for %s: %+v", id.String(), err)
+				}
+
+				if err = aadOnlyEnabledFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
+					return fmt.Errorf("waiting for setting of AAD only authentication for %s: %+v", id.String(), err)
+				}
+			}
+		} else {
+			adminDelFuture, err := adminClient.Delete(ctx, id.ResourceGroup, id.Name)
+			if err != nil {
+				return fmt.Errorf("deleting AAD admin  %s: %+v", id.String(), err)
+			}
+
+			if err = adminDelFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
+				return fmt.Errorf("waiting for deletion of AAD admin %s: %+v", id.String(), err)
 			}
 		}
 	}
@@ -332,7 +370,6 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
-	adminClient := meta.(*clients.Client).MSSQL.ServerAzureADAdministratorsClient
 	restorableDroppedDatabasesClient := meta.(*clients.Client).MSSQL.RestorableDroppedDatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -382,17 +419,10 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			primaryUserAssignedIdentityID = parsedPrimaryUserAssignedIdentityID.ID()
 		}
 		d.Set("primary_user_assigned_identity_id", primaryUserAssignedIdentityID)
-	}
+		if props.Administrators != nil {
+			d.Set("azuread_administrator", flatternMsSqlServerAdministrators(*props.Administrators))
+		}
 
-	adminResp, err := adminClient.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(adminResp.Response) {
-			return fmt.Errorf("reading AAD admin %s: %v", id.Name, err)
-		}
-	} else {
-		if err := d.Set("azuread_administrator", flatternMsSqlServerAdministrator(adminResp)); err != nil {
-			return fmt.Errorf("setting `azuread_administrator`: %+v", err)
-		}
 	}
 
 	connection, err := connectionClient.Get(ctx, id.ResourceGroup, id.Name)
@@ -494,6 +524,17 @@ func flattenSqlServerIdentity(identity *sql.ResourceIdentity) ([]interface{}, er
 	return []interface{}{result}, nil
 }
 
+func expandMsSqlServerAADOnlyAuthentictions(input []interface{}) bool {
+	if len(input) == 0 || input[0] == nil {
+		return false
+	}
+	admin := input[0].(map[string]interface{})
+	if v, ok := admin["azuread_authentication_only"]; ok && v != nil {
+		return v.(bool)
+	}
+	return false
+}
+
 func expandMsSqlServerAdministrator(input []interface{}) *sql.ServerAzureADAdministrator {
 	if len(input) == 0 || input[0] == nil {
 		return nil
@@ -518,7 +559,29 @@ func expandMsSqlServerAdministrator(input []interface{}) *sql.ServerAzureADAdmin
 	return &adminParams
 }
 
-func flatternMsSqlServerAdministrator(admin sql.ServerAzureADAdministrator) []interface{} {
+func expandMsSqlServerAdministrators(input []interface{}) *sql.ServerExternalAdministrator {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	admin := input[0].(map[string]interface{})
+	sid, _ := uuid.FromString(admin["object_id"].(string))
+
+	adminParams := sql.ServerExternalAdministrator{
+		AdministratorType: sql.AdministratorTypeActiveDirectory,
+		Login:             utils.String(admin["login_username"].(string)),
+		Sid:               &sid,
+	}
+
+	if v, ok := admin["tenant_id"]; ok && v != "" {
+		tid, _ := uuid.FromString(v.(string))
+		adminParams.TenantID = &tid
+	}
+
+	return &adminParams
+}
+
+func flatternMsSqlServerAdministrators(admin sql.ServerExternalAdministrator) []interface{} {
 	var login, sid, tid string
 	if admin.Login != nil {
 		login = *admin.Login
@@ -532,11 +595,17 @@ func flatternMsSqlServerAdministrator(admin sql.ServerAzureADAdministrator) []in
 		tid = admin.TenantID.String()
 	}
 
+	var aadOnlyAuthentictionsEnabled bool
+	if admin.AzureADOnlyAuthentication != nil {
+		aadOnlyAuthentictionsEnabled = *admin.AzureADOnlyAuthentication
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"login_username": login,
-			"object_id":      sid,
-			"tenant_id":      tid,
+			"login_username":              login,
+			"object_id":                   sid,
+			"tenant_id":                   tid,
+			"azuread_authentication_only": aadOnlyAuthentictionsEnabled,
 		},
 	}
 }

@@ -126,7 +126,7 @@ func resourceFirewallApplicationRuleCollection() *pluginsdk.Resource {
 									},
 									"port": {
 										Type:         pluginsdk.TypeInt,
-										Optional:     true,
+										Required:     true,
 										ValidateFunc: validate.PortNumber,
 									},
 								},

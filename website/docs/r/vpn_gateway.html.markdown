@@ -63,6 +63,9 @@ The following arguments are supported:
 
 * `bgp_settings` - (Optional) A `bgp_settings` block as defined below.
 
+* `routing_preference` - (Optional) Azure routing preference lets you to choose how your traffic routes between Azure and the internet. You can choose to route traffic either via the Microsoft network (default value, `Microsoft Network`), or via the ISP network (public internet, set to `Internet`). More context of the configuration can be found in the
+[Microsoft Docs](https://docs.microsoft.com/en-us/azure/virtual-wan/virtual-wan-site-to-site-portal#gateway) to create a VPN Gateway. Changing this forces a new resource to be created.
+
 * `scale_unit` - (Optional) The Scale Unit for this VPN Gateway. Defaults to `1`.
 
 * `tags` - (Optional) A mapping of tags to assign to the VPN Gateway.

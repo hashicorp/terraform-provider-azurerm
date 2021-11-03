@@ -91,5 +91,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Private DNS MX Records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_private_dns_srv_record.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/privateDnsZones/contoso.com/MX/@
+terraform import azurerm_private_dns_mx_record.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/privateDnsZones/contoso.com/MX/@
 ```

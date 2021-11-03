@@ -6,10 +6,10 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -92,17 +92,14 @@ func TestAccMariaDbVirtualNetworkRule_multipleSubnets(t *testing.T) {
 }
 
 func (MariaDbVirtualNetworkRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.MariaDBVirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	serverName := id.Path["servers"]
-	name := id.Path["virtualNetworkRules"]
-
-	resp, err := clients.MariaDB.VirtualNetworkRulesClient.Get(ctx, id.ResourceGroup, serverName, name)
+	resp, err := clients.MariaDB.VirtualNetworkRulesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.VirtualNetworkRuleName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving MariaDB Virtual Network Rule %q (Server %q / Resource Group %q): %v", name, serverName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
 	return utils.Bool(resp.VirtualNetworkRuleProperties != nil), nil

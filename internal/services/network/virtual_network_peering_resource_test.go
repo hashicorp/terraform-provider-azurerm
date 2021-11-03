@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -97,38 +97,31 @@ func TestAccVirtualNetworkPeering_update(t *testing.T) {
 }
 
 func (t VirtualNetworkPeeringResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.VirtualNetworkPeeringID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	vnetName := id.Path["virtualNetworks"]
-	name := id.Path["virtualNetworkPeerings"]
-
-	resp, err := clients.Network.VnetPeeringsClient.Get(ctx, resGroup, vnetName, name)
+	resp, err := clients.Network.VnetPeeringsClient.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Virtual Network Peering (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
 }
 
 func (r VirtualNetworkPeeringResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.VirtualNetworkPeeringID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	vnetName := id.Path["virtualNetworks"]
-	name := id.Path["virtualNetworkPeerings"]
 
-	future, err := client.Network.VnetPeeringsClient.Delete(ctx, resGroup, vnetName, name)
+	future, err := client.Network.VnetPeeringsClient.Delete(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("deleting on virtual network peering: %+v", err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Network.VnetPeeringsClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for deletion of Peering %q: %+v", id, err)
+		return nil, fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return utils.Bool(true), nil

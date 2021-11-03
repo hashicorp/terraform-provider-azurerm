@@ -3,12 +3,14 @@ package applicationinsights
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,6 +27,11 @@ func resourceApplicationInsightsAPIKey() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ApiKeyID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ApiKeyUpgradeV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -104,7 +111,7 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	for _, existingAPIKey := range *existingAPIKeyList.Value {
-		existingAPIKeyId, err := parse.ApiKeyID(*existingAPIKey.ID)
+		existingAPIKeyId, err := parse.ApiKeyID(camelCaseApiKeys(*existingAPIKey.ID))
 		if err != nil {
 			return err
 		}
@@ -143,7 +150,7 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("creating Application Insights API key %q (%s): got empty API key", name, appInsightsId)
 	}
 
-	d.SetId(*result.ID)
+	d.SetId(camelCaseApiKeys(*result.ID))
 
 	// API key can only retrieved at key creation
 	d.Set("api_key", result.APIKey)
@@ -212,4 +219,10 @@ func resourceApplicationInsightsAPIKeyDelete(d *pluginsdk.ResourceData, meta int
 	}
 
 	return nil
+}
+
+func camelCaseApiKeys(id string) string {
+	// Azure only returns the api key identifier in the resource ID string where apikeys isn't camel cased
+	r := regexp.MustCompile(`apikeys`)
+	return r.ReplaceAllString(id, "apiKeys")
 }

@@ -12,7 +12,7 @@ var _ resourceid.Formatter = AnalyticsUserItemId{}
 
 func TestAnalyticsUserItemIDFormatter(t *testing.T) {
 	actual := NewAnalyticsUserItemID("12345678-1234-9876-4563-123456789012", "group1", "component1", "item1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/components/component1/myanalyticsItems/item1"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/myAnalyticsItems/item1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -57,36 +57,36 @@ func TestAnalyticsUserItemID(t *testing.T) {
 
 		{
 			// missing ComponentName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/",
 			Error: true,
 		},
 
 		{
 			// missing value for ComponentName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/components/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/",
 			Error: true,
 		},
 
 		{
-			// missing MyanalyticsItemName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/components/component1/",
+			// missing MyAnalyticsItemName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/",
 			Error: true,
 		},
 
 		{
-			// missing value for MyanalyticsItemName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/components/component1/myanalyticsItems/",
+			// missing value for MyAnalyticsItemName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/myAnalyticsItems/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/components/component1/myanalyticsItems/item1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/myAnalyticsItems/item1",
 			Expected: &AnalyticsUserItemId{
 				SubscriptionId:      "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:       "group1",
 				ComponentName:       "component1",
-				MyanalyticsItemName: "item1",
+				MyAnalyticsItemName: "item1",
 			},
 		},
 
@@ -121,8 +121,8 @@ func TestAnalyticsUserItemID(t *testing.T) {
 		if actual.ComponentName != v.Expected.ComponentName {
 			t.Fatalf("Expected %q but got %q for ComponentName", v.Expected.ComponentName, actual.ComponentName)
 		}
-		if actual.MyanalyticsItemName != v.Expected.MyanalyticsItemName {
-			t.Fatalf("Expected %q but got %q for MyanalyticsItemName", v.Expected.MyanalyticsItemName, actual.MyanalyticsItemName)
+		if actual.MyAnalyticsItemName != v.Expected.MyAnalyticsItemName {
+			t.Fatalf("Expected %q but got %q for MyAnalyticsItemName", v.Expected.MyAnalyticsItemName, actual.MyAnalyticsItemName)
 		}
 	}
 }

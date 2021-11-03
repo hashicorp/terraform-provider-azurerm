@@ -50,8 +50,8 @@ func RequestBody() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(cdn.Lowercase),
-						string(cdn.Uppercase),
+						string(cdn.TransformLowercase),
+						string(cdn.TransformUppercase),
 					}, false),
 				},
 			},

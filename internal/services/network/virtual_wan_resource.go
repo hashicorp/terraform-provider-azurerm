@@ -24,8 +24,10 @@ func resourceVirtualWan() *pluginsdk.Resource {
 		Read:   resourceVirtualWanRead,
 		Update: resourceVirtualWanCreateUpdate,
 		Delete: resourceVirtualWanDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.VirtualWanID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -91,13 +93,14 @@ func resourceVirtualWan() *pluginsdk.Resource {
 
 func resourceVirtualWanCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWanClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Virtual WAN creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewVirtualWanID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	disableVpnEncryption := d.Get("disable_vpn_encryption").(bool)
 	allowBranchToBranchTraffic := d.Get("allow_branch_to_branch_traffic").(bool)
@@ -106,10 +109,10 @@ func resourceVirtualWanCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	t := d.Get("tags").(map[string]interface{})
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Virtual WAN %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
@@ -129,25 +132,16 @@ func resourceVirtualWanCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, wan)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, wan)
 	if err != nil {
-		return fmt.Errorf("creating/updating Virtual WAN %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of Virtual WAN %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Virtual WAN %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Virtual WAN %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceVirtualWanRead(d, meta)
 }
@@ -165,12 +159,12 @@ func resourceVirtualWanRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Virtual WAN %q (Resource Group %q) was not found - removing from state", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Virtual WAN %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -204,12 +198,12 @@ func resourceVirtualWanDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	if err != nil {
 		// deleted outside of Terraform
 
-		return fmt.Errorf("deleting Virtual WAN %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for the deletion of Virtual WAN %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 		}
 	}
 

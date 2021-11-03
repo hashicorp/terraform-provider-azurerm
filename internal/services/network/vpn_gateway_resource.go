@@ -30,8 +30,10 @@ func resourceVPNGateway() *pluginsdk.Resource {
 		Read:   resourceVPNGatewayRead,
 		Update: resourceVPNGatewayUpdate,
 		Delete: resourceVPNGatewayDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.VpnGatewayID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
@@ -57,6 +59,17 @@ func resourceVPNGateway() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.VirtualHubID,
+			},
+
+			"routing_preference": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Microsoft Network",
+					"Internet",
+				}, false),
 			},
 
 			"bgp_settings": {
@@ -180,16 +193,16 @@ func resourceVPNGateway() *pluginsdk.Resource {
 
 func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnGatewaysClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewVpnGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
@@ -212,21 +225,22 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			VirtualHub: &network.SubResource{
 				ID: utils.String(virtualHubId),
 			},
-			VpnGatewayScaleUnit: utils.Int32(int32(scaleUnit)),
+			VpnGatewayScaleUnit:         utils.Int32(int32(scaleUnit)),
+			IsRoutingPreferenceInternet: utils.Bool(d.Get("routing_preference").(string) == "Internet"),
 		},
 		Tags: tags.Expand(t),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("creating VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-	if err := waitForCompletion(d, ctx, client, resourceGroup, name); err != nil {
+	if err := waitForCompletion(d, ctx, client, id.ResourceGroup, id.Name); err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	// `vpnGatewayParameters.Properties.bgpSettings.bgpPeeringAddress` customer cannot provide this field during create. This will be set with default value once gateway is created.
@@ -245,10 +259,10 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 				val := input1[0].(map[string]interface{})
 				(*resp.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses)[1].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
 			}
-			if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, resp); err != nil {
-				return fmt.Errorf("creating VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+			if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, resp); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-			if err := waitForCompletion(d, ctx, client, resourceGroup, name); err != nil {
+			if err := waitForCompletion(d, ctx, client, id.ResourceGroup, id.Name); err != nil {
 				return err
 			}
 		}
@@ -323,15 +337,15 @@ func resourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] VPN Gateway %q was not found in Resource Group %q - removing from state", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -353,6 +367,12 @@ func resourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			virtualHubId = *props.VirtualHub.ID
 		}
 		d.Set("virtual_hub_id", virtualHubId)
+
+		isRoutingPreferenceInternet := "Microsoft Network"
+		if props.IsRoutingPreferenceInternet != nil && *props.IsRoutingPreferenceInternet {
+			isRoutingPreferenceInternet = "Internet"
+		}
+		d.Set("routing_preference", isRoutingPreferenceInternet)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -374,7 +394,7 @@ func resourceVPNGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error
 			return nil
 		}
 
-		return fmt.Errorf("deleting VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
@@ -383,7 +403,7 @@ func resourceVPNGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error
 			return nil
 		}
 
-		return fmt.Errorf("waiting for deletion of VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

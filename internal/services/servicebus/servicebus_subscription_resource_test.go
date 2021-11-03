@@ -238,7 +238,7 @@ resource "azurerm_servicebus_topic" "test" {
 }
 
 resource "azurerm_servicebus_subscription" "test" {
-  name                = "acctestservicebussubscription-%d"
+  name                = "_acctestservicebussubscription-%d_"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
   topic_name          = "${azurerm_servicebus_topic.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
