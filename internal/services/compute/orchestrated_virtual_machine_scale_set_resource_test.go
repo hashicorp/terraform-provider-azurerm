@@ -3189,11 +3189,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
 
-    settings = <<SETTINGS
-		{
-			"commandToExecute": "echo $HOSTNAME"
-		}
-SETTINGS
+    settings = jsonencode({
+      "commandToExecute" = "echo $HOSTNAME"
+    })
+
+    protected_settings = jsonencode({
+      "managedIdentity" = {}
+    })
 
   }
 }
