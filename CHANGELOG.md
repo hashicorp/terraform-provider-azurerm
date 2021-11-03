@@ -2,11 +2,15 @@
 
 FEATURES:
 
+* **New Resource:** `logz_monitor` [GH-13874]
+
 IMPROVEMENTS:
 
+* upgrading `sdk` to API Version `2021-08-01` [GH-13465]
 * upgrading `purview` to API Version `2021-07-01` [GH-13785]
 * `azurerm_cosmosdb_account` - the backup backup type can now be changed from `Periodic` to `Continuous` without creating a new resource [GH-13967]
 * `azurerm_firewall_policy_rule_collection_group` - support for the `translated_fqdn` property [GH-13976]
+* `azurerm_firewall_policy` - support for the `insights` block [GH-14004]
 * `azurerm_function_app` - support for the `key_vault_reference_identity_id` property [GH-13962]
 * `azurerm_linux_virtual_machine` - support for the `patch_mode` property [GH-13866]
 * `azurerm_machine_learning_compute_cluster` - support for the `local_auth_enabled` property [GH-13820]

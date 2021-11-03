@@ -52,6 +52,7 @@ var services = mapOf(
         "loadbalancer" to "Load Balancer",
         "loganalytics" to "Log Analytics",
         "logic" to "Logic",
+        "logz" to "Logz",
         "machinelearning" to "Machine Learning",
         "maintenance" to "Maintenance",
         "managedapplications" to "Managed Applications",
