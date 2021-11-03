@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -132,6 +133,13 @@ func resourceAppService() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"key_vault_reference_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: msivalidate.UserAssignedIdentityID,
 			},
 
 			"logs": schemaAppServiceLogsConfig(),
@@ -274,6 +282,10 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		},
 	}
 
+	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
+		siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(v.(string))
+	}
+
 	if _, ok := d.GetOk("identity"); ok {
 		appServiceIdentityRaw := d.Get("identity").([]interface{})
 		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
@@ -396,6 +408,10 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 			HTTPSOnly:    utils.Bool(httpsOnly),
 			SiteConfig:   siteConfig,
 		},
+	}
+
+	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
+		siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(v.(string))
 	}
 
 	siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(d.Get("client_cert_enabled").(bool))
@@ -684,6 +700,10 @@ func resourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("possible_outbound_ip_address_list", strings.Split(*props.PossibleOutboundIPAddresses, ","))
 		}
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
+
+		if props.KeyVaultReferenceIdentity != nil {
+			d.Set("key_vault_reference_identity_id", props.KeyVaultReferenceIdentity)
+		}
 	}
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)

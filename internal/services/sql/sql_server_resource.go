@@ -170,7 +170,7 @@ func resourceSqlServer() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(sql.SecurityAlertPolicyStateDisabled),
 								string(sql.SecurityAlertPolicyStateEnabled),
-								string(sql.SecurityAlertPolicyStateNew),
+								string(sql.SecurityAlertPolicyStateNew), // Only kept for backward compatibility - TODO 3.0 should we change this to enabled and a boolean?
 							}, true),
 						},
 
@@ -424,7 +424,6 @@ func flattenAzureRmSqlServerIdentity(identity *sql.ResourceIdentity) []interface
 }
 
 func flattenSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, policy sql.ServerSecurityAlertPolicy) []interface{} {
-
 	properties := policy.SecurityAlertPolicyProperties
 
 	securityAlertPolicy := make(map[string]interface{})

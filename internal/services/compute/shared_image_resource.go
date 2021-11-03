@@ -73,8 +73,8 @@ func resourceSharedImage() *pluginsdk.Resource {
 				Default:  string(compute.HyperVGenerationTypesV1),
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.HyperVGenerationTypesV1),
-					string(compute.HyperVGenerationTypesV2),
+					string(compute.HyperVGenerationV1),
+					string(compute.HyperVGenerationV2),
 				}, false),
 			},
 

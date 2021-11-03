@@ -6,16 +6,15 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/videoanalyzer/mgmt/2021-05-01-preview/videoanalyzer"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/sdk/2021-05-01-preview/videoanalyzer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVideoAnalyzerEdgeModule() *pluginsdk.Resource {
@@ -31,7 +30,7 @@ func resourceVideoAnalyzerEdgeModule() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.EdgeModuleID(id)
+			_, err := videoanalyzer.ParseEdgeModuleID(id)
 			return err
 		}),
 
@@ -59,45 +58,45 @@ func resourceVideoAnalyzerEdgeModule() *pluginsdk.Resource {
 }
 
 func resourceVideoAnalyzerEdgeModuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).VideoAnalyzer.EdgeModulesClient
+	client := meta.(*clients.Client).VideoAnalyzer.VideoAnalyzersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	resourceId := parse.NewEdgeModuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("video_analyzer_name").(string), d.Get("name").(string))
+	id := videoanalyzer.NewEdgeModuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("video_analyzer_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.VideoAnalyzerName, resourceId.Name)
+		existing, err := client.EdgeModulesGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", resourceId, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_video_analyzer_edge_module", resourceId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_video_analyzer_edge_module", id.ID())
 		}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.VideoAnalyzerName, resourceId.Name, videoanalyzer.EdgeModuleEntity{}); err != nil {
-		return fmt.Errorf("creating %s: %+v", resourceId, err)
+	if _, err := client.EdgeModulesCreateOrUpdate(ctx, id, videoanalyzer.EdgeModuleEntity{}); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 	return resourceVideoAnalyzerEdgeModuleRead(d, meta)
 }
 
 func resourceVideoAnalyzerEdgeModuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).VideoAnalyzer.EdgeModulesClient
+	client := meta.(*clients.Client).VideoAnalyzer.VideoAnalyzersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EdgeModuleID(d.Id())
+	id, err := videoanalyzer.ParseEdgeModuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.VideoAnalyzerName, id.Name)
+	resp, err := client.EdgeModulesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -114,17 +113,16 @@ func resourceVideoAnalyzerEdgeModuleRead(d *pluginsdk.ResourceData, meta interfa
 }
 
 func resourceVideoAnalyzerEdgeModuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).VideoAnalyzer.EdgeModulesClient
+	client := meta.(*clients.Client).VideoAnalyzer.VideoAnalyzersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EdgeModuleID(d.Id())
+	id, err := videoanalyzer.ParseEdgeModuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, id.VideoAnalyzerName, id.Name)
-	if err != nil {
+	if _, err = client.EdgeModulesDelete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

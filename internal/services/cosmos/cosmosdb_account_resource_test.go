@@ -3,6 +3,7 @@ package cosmos_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"testing"
 
@@ -57,6 +58,10 @@ func TestAccCosmosDBAccount_basic_mongo_session(t *testing.T) {
 
 func TestAccCosmosDBAccount_basic_mongo_strong(t *testing.T) {
 	testAccCosmosDBAccount_basicMongoDBWith(t, documentdb.DefaultConsistencyLevelStrong)
+}
+
+func TestAccCosmosDBAccount_basic_mongo_strong_without_capability(t *testing.T) {
+	testAccCosmosDBAccount_basicWith(t, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelStrong)
 }
 
 func TestAccCosmosDBAccount_basic_parse_boundedStaleness(t *testing.T) {
@@ -469,6 +474,17 @@ func TestAccCosmosDBAccount_capabilities_MongoDBv34(t *testing.T) {
 	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.DatabaseAccountKindMongoDB, []string{"EnableMongo", "MongoDBv3.4"})
 }
 
+func TestAccCosmosDBAccount_capabilities_MongoDBv34_NoEnableMongo(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.capabilities(data, documentdb.DatabaseAccountKindMongoDB, []string{"MongoDBv3.4"}),
+			ExpectError: regexp.MustCompile("capability EnableMongo must be enabled if MongoDBv3.4 is also enabled"),
+		},
+	})
+}
+
 func TestAccCosmosDBAccount_capabilities_mongoEnableDocLevelTTL(t *testing.T) {
 	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.DatabaseAccountKindMongoDB, []string{"EnableMongo", "mongoEnableDocLevelTTL"})
 }
@@ -676,6 +692,28 @@ func TestAccCosmosDBAccount_backup(t *testing.T) {
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backup.0.type").HasValue("Periodic"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDBAccount_backupPeriodicToContinuous(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithBackupPeriodic(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithBackupContinuous(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),

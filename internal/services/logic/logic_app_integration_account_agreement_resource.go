@@ -58,9 +58,9 @@ func resourceLogicAppIntegrationAccountAgreement() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(logic.AS2),
-					string(logic.X12),
-					string(logic.Edifact),
+					string(logic.AgreementTypeAS2),
+					string(logic.AgreementTypeX12),
+					string(logic.AgreementTypeEdifact),
 				}, false),
 			},
 

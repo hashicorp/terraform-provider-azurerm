@@ -91,6 +91,22 @@ func TestAccSynapseSparkPool_update(t *testing.T) {
 	})
 }
 
+func TestAccSynapseSparkPool_isolation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
+	r := SynapseSparkPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.isolation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// not returned by service
+		data.ImportStep("spark_events_folder", "spark_log_folder"),
+	})
+}
+
 func TestAccSynapseSpark3Pool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
 	r := SynapseSparkPoolResource{}
@@ -154,7 +170,7 @@ func (r SynapseSparkPoolResource) Exists(ctx context.Context, client *clients.Cl
 }
 
 func (r SynapseSparkPoolResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, data.Locations.Primary)
 	return fmt.Sprintf(`
 %s
 
@@ -184,16 +200,18 @@ resource "azurerm_synapse_spark_pool" "import" {
 }
 
 func (r SynapseSparkPoolResource) complete(data acceptance.TestData, sparkVersion string) string {
-	template := r.template(data)
+	template := r.template(data, data.Locations.Primary)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_synapse_spark_pool" "test" {
-  name                 = "acctestSSP%s"
-  synapse_workspace_id = azurerm_synapse_workspace.test.id
-  node_size_family     = "MemoryOptimized"
-  node_size            = "Medium"
-
+  name                                = "acctestSSP%s"
+  synapse_workspace_id                = azurerm_synapse_workspace.test.id
+  node_size_family                    = "MemoryOptimized"
+  node_size                           = "Medium"
+  dynamic_executor_allocation_enabled = true
+  session_level_packages_enabled      = true
+  cache_size                          = 100
   auto_pause {
     delay_in_minutes = 15
   }
@@ -211,6 +229,13 @@ EOF
     filename = "requirements.txt"
   }
 
+  spark_config {
+    content  = <<EOF
+spark.shuffle.spill                true
+EOF
+    filename = "config.txt"
+  }
+
   spark_log_folder    = "/logs"
   spark_events_folder = "/events"
   spark_version       = "%s"
@@ -222,7 +247,23 @@ EOF
 `, template, data.RandomString, sparkVersion)
 }
 
-func (r SynapseSparkPoolResource) template(data acceptance.TestData) string {
+func (r SynapseSparkPoolResource) isolation(data acceptance.TestData) string {
+	template := r.template(data, "East US")
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_synapse_spark_pool" "test" {
+  name                      = "acctestSSP%s"
+  synapse_workspace_id      = azurerm_synapse_workspace.test.id
+  node_size_family          = "MemoryOptimized"
+  node_size                 = "XXXLarge"
+  node_count                = 3
+  compute_isolation_enabled = true
+}
+`, template, data.RandomString)
+}
+
+func (r SynapseSparkPoolResource) template(data acceptance.TestData, location string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -255,5 +296,5 @@ resource "azurerm_synapse_workspace" "test" {
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, location, data.RandomString, data.RandomInteger, data.RandomInteger)
 }

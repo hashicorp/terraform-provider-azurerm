@@ -159,17 +159,17 @@ func resourceMonitorActionRuleSuppression() *pluginsdk.Resource {
 
 func resourceMonitorActionRuleSuppressionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionRulesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewActionRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.GetByName(ctx, resourceGroup, name)
+		existing, err := client.GetByName(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Monitor ActionRule %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -201,20 +201,11 @@ func resourceMonitorActionRuleSuppressionCreateUpdate(d *pluginsdk.ResourceData,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.CreateUpdate(ctx, resourceGroup, name, actionRule); err != nil {
-		return fmt.Errorf("creating/updatinge Monitor ActionRule %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateUpdate(ctx, id.ResourceGroup, id.Name, actionRule); err != nil {
+		return fmt.Errorf("creating/updating Monitor %s: %+v", id, err)
 	}
 
-	resp, err := client.GetByName(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Monitor ActionRule %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Monitor ActionRule %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 	return resourceMonitorActionRuleSuppressionRead(d, meta)
 }
 
@@ -235,7 +226,7 @@ func resourceMonitorActionRuleSuppressionRead(d *pluginsdk.ResourceData, meta in
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving monitor ActionRule %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Monitor %s: %+v", *id, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -269,7 +260,7 @@ func resourceMonitorActionRuleSuppressionDelete(d *pluginsdk.ResourceData, meta 
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("deleting monitor ActionRule %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Monitor %s: %+v", *id, err)
 	}
 	return nil
 }

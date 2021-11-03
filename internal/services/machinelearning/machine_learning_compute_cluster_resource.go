@@ -89,6 +89,13 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"local_auth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+				ForceNew: true,
+			},
+
 			"ssh": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -183,9 +190,10 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	computeClusterProperties := machinelearningservices.AmlCompute{
-		Properties:      &computeClusterAmlComputeProperties,
-		ComputeLocation: utils.String(d.Get("location").(string)),
-		Description:     utils.String(d.Get("description").(string)),
+		Properties:       &computeClusterAmlComputeProperties,
+		ComputeLocation:  utils.String(d.Get("location").(string)),
+		Description:      utils.String(d.Get("description").(string)),
+		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
 	}
 
 	// Get SKU from Workspace
@@ -256,6 +264,9 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("compute resource %s is not an Aml Compute cluster", id.ComputeName)
 	}
 
+	if computeCluster.DisableLocalAuth != nil {
+		d.Set("local_auth_enabled", !*computeCluster.DisableLocalAuth)
+	}
 	if props := computeCluster.Properties; props != nil {
 		d.Set("vm_size", props.VMSize)
 		d.Set("vm_priority", props.VMPriority)

@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus"
+	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -55,10 +55,10 @@ func resourceServiceBusNamespaceNetworkRuleSet() *pluginsdk.Resource {
 			"default_action": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(servicebus.Allow),
+				Default:  string(servicebus.DefaultActionAllow),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(servicebus.Allow),
-					string(servicebus.Deny),
+					string(servicebus.DefaultActionAllow),
+					string(servicebus.DefaultActionDeny),
 				}, false),
 			},
 
@@ -68,6 +68,12 @@ func resourceServiceBusNamespaceNetworkRuleSet() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
+			},
+
+			"trusted_services_allowed": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"network_rules": {
@@ -96,7 +102,7 @@ func resourceServiceBusNamespaceNetworkRuleSet() *pluginsdk.Resource {
 }
 
 func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
+	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -106,7 +112,7 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.Resource
 		existing, err := client.GetNetworkRuleSet(ctx, resourceId.ResourceGroup, resourceId.NamespaceName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for the presnece of existing %s: %+v", resourceId, err)
+				return fmt.Errorf("checking for the presence of existing %s: %+v", resourceId, err)
 			}
 		}
 
@@ -119,9 +125,10 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.Resource
 
 	parameters := servicebus.NetworkRuleSet{
 		NetworkRuleSetProperties: &servicebus.NetworkRuleSetProperties{
-			DefaultAction:       servicebus.DefaultAction(d.Get("default_action").(string)),
-			VirtualNetworkRules: expandServiceBusNamespaceVirtualNetworkRules(d.Get("network_rules").(*pluginsdk.Set).List()),
-			IPRules:             expandServiceBusNamespaceIPRules(d.Get("ip_rules").(*pluginsdk.Set).List()),
+			DefaultAction:               servicebus.DefaultAction(d.Get("default_action").(string)),
+			VirtualNetworkRules:         expandServiceBusNamespaceVirtualNetworkRules(d.Get("network_rules").(*pluginsdk.Set).List()),
+			IPRules:                     expandServiceBusNamespaceIPRules(d.Get("ip_rules").(*pluginsdk.Set).List()),
+			TrustedServiceAccessEnabled: utils.Bool(d.Get("trusted_services_allowed").(bool)),
 		},
 	}
 
@@ -134,7 +141,7 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.Resource
 }
 
 func resourceServiceBusNamespaceNetworkRuleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
+	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -158,6 +165,7 @@ func resourceServiceBusNamespaceNetworkRuleSetRead(d *pluginsdk.ResourceData, me
 
 	if props := resp.NetworkRuleSetProperties; props != nil {
 		d.Set("default_action", string(props.DefaultAction))
+		d.Set("trusted_services_allowed", props.TrustedServiceAccessEnabled)
 
 		if err := d.Set("network_rules", pluginsdk.NewSet(networkRuleHash, flattenServiceBusNamespaceVirtualNetworkRules(props.VirtualNetworkRules))); err != nil {
 			return fmt.Errorf("failed to set `network_rules`: %+v", err)
@@ -172,7 +180,7 @@ func resourceServiceBusNamespaceNetworkRuleSetRead(d *pluginsdk.ResourceData, me
 }
 
 func resourceServiceBusNamespaceNetworkRuleSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
+	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -186,7 +194,7 @@ func resourceServiceBusNamespaceNetworkRuleSetDelete(d *pluginsdk.ResourceData, 
 
 	parameters := servicebus.NetworkRuleSet{
 		NetworkRuleSetProperties: &servicebus.NetworkRuleSetProperties{
-			DefaultAction: servicebus.Deny,
+			DefaultAction: servicebus.DefaultActionAllow,
 		},
 	}
 
@@ -288,7 +296,7 @@ func CheckNetworkRuleNullified(resp servicebus.NetworkRuleSet) bool {
 	if resp.NetworkRuleSetProperties == nil {
 		return true
 	}
-	if resp.DefaultAction != servicebus.Deny {
+	if resp.DefaultAction != servicebus.DefaultActionAllow {
 		return false
 	}
 	if resp.VirtualNetworkRules != nil && len(*resp.VirtualNetworkRules) > 0 {

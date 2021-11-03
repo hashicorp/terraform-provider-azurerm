@@ -227,7 +227,6 @@ func resourceHPCCacheBlobNFSTargetDelete(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-
 		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 

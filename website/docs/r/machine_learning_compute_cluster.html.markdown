@@ -106,7 +106,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Machine Learning Compute Cluster should exist. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `vm_priority` - (Required) The priority of the VM. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `vm_priority` - (Required) The priority of the VM. Changing this forces a new Machine Learning Compute Cluster to be created. Accepted values are `Dedicated` and `LowPriority`.
 
 * `vm_size` - (Required) The size of the VM. Changing this forces a new Machine Learning Compute Cluster to be created.
 
@@ -118,6 +118,8 @@ The following arguments are supported:
 * `description` - (Optional) The description of the Machine Learning compute. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `identity` - (Optional) A `identity` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
+
+* `local_auth_enabled` - (Optional) Whether local authentication methods is enabled. Defaults to `true`. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `ssh_public_access_enabled` - (Optional)  A boolean value indicating whether enable the public SSH port. Changing this forces a new Machine Learning Compute Cluster to be created.
 

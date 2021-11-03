@@ -134,6 +134,7 @@ func resourceSubnet() *pluginsdk.Resource {
 											"Microsoft.ServiceFabricMesh/networks",
 											"Microsoft.Sql/managedInstances",
 											"Microsoft.Sql/servers",
+											"Microsoft.StoragePool/diskpools",
 											"Microsoft.StreamAnalytics/streamingJobs",
 											"Microsoft.Synapse/workspaces",
 											"Microsoft.Web/hostingEnvironments",
@@ -289,6 +290,12 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
+
+	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+
+	locks.ByName(id.Name, SubnetResourceName)
+	defer locks.UnlockByName(id.Name, SubnetResourceName)
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
 	if err != nil {

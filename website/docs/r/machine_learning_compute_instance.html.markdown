@@ -115,6 +115,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) A `identity` block as defined below. Changing this forces a new Machine Learning Compute Instance to be created.
 
+* `local_auth_enabled` - (Optional) Whether local authentication methods is enabled. Defaults to `true`. Changing this forces a new Machine Learning Compute Instance to be created.
+  
 * `ssh` - (Optional) A `ssh` block as defined below. Specifies policy and settings for SSH access. Changing this forces a new Machine Learning Compute Instance to be created.
 
 * `subnet_resource_id` - (Optional) Virtual network subnet resource ID the compute nodes belong to. Changing this forces a new Machine Learning Compute Instance to be created.
@@ -181,5 +183,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Machine Learning Compute Instances can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_machine_learning_compute_instance.example C:/Program Files/Git/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.MachineLearningServices/workspaces/workspace1/computes/compute1
+terraform import azurerm_machine_learning_compute_instance.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.MachineLearningServices/workspaces/workspace1/computes/compute1
 ```

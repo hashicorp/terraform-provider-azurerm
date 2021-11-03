@@ -194,7 +194,11 @@ A `rule` (nat rule) block supports the following:
 
 * `destination_ports` - (Optional) Specifies a list of destination ports.
 
-* `translated_address` - (Required) Specifies the translated address.
+* `translated_address` - (Optional) Specifies the translated address.
+ 
+* `translated_fqdn` - (Optional) Specifies the translated FQDN.
+
+~> **NOTE:** Exactly one of `translated_address` and `translated_fqdn` should be set.
 
 * `translated_port` - (Required) Specifies the translated port.
 

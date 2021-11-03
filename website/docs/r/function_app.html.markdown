@@ -124,8 +124,11 @@ resource "azurerm_function_app" "example" {
   storage_account_name       = azurerm_storage_account.example.name
   storage_account_access_key = azurerm_storage_account.example.primary_access_key
   os_type                    = "linux"
+  version                    = "~3"
 }
 ```
+~> **Note:** Version `~3` is required for Linux Function Apps.
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -159,6 +162,8 @@ The following arguments are supported:
 * `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`.
 
 * `identity` - (Optional) An `identity` block as defined below.
+
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity Id used for looking up KeyVault secrets. The identity must be assigned to the application. See [Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity) for more information.
 
 * `os_type` - (Optional) A string indicating the Operating System type for this function app. 
 

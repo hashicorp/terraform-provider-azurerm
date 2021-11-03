@@ -30,7 +30,7 @@ resource "azurerm_postgresql_server" "example" {
   geo_redundant_backup_enabled = false
   auto_grow_enabled            = true
 
-  administrator_login          = "psqladminun"
+  administrator_login          = "psqladmin"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.5"
   ssl_enforcement_enabled      = true

@@ -1,4 +1,4 @@
-locals  {
+locals {
   api_token_var = "AZURE_STATIC_WEB_APPS_API_TOKEN"
 }
 
@@ -9,7 +9,7 @@ provider "azurerm" {
   features {}
 }
 
-output hostname {
+output "hostname" {
   value = azurerm_static_site.test.default_host_name
 }
 
@@ -30,22 +30,22 @@ resource "azurerm_static_site" "test" {
 }
 
 resource "github_actions_secret" "test" {
-  repository       = "my-first-static-web-app"
-  secret_name      = local.api_token_var
-  plaintext_value  = azurerm_static_site.test.api_key
+  repository      = "my-first-static-web-app"
+  secret_name     = local.api_token_var
+  plaintext_value = azurerm_static_site.test.api_key
 }
 
 # This will cause github provider crash, until https://github.com/integrations/terraform-provider-github/pull/732 is merged.
 resource "github_repository_file" "foo" {
-  repository          = "my-first-static-web-app"
-  branch              = "main"
-  file                = ".github/workflows/azure-static-web-app.yml"
-  content             = templatefile("./azure-static-web-app.tpl",
+  repository = "my-first-static-web-app"
+  branch     = "main"
+  file       = ".github/workflows/azure-static-web-app.yml"
+  content = templatefile("./azure-static-web-app.tpl",
     {
-      app_location = "/"
-      api_location = "api"
+      app_location    = "/"
+      api_location    = "api"
       output_location = ""
-      api_token_var = local.api_token_var
+      api_token_var   = local.api_token_var
     }
   )
 }

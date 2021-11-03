@@ -58,12 +58,12 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.DiskStorageAccountTypesStandardLRS),
-					string(compute.DiskStorageAccountTypesStandardSSDZRS),
-					string(compute.DiskStorageAccountTypesPremiumLRS),
-					string(compute.DiskStorageAccountTypesPremiumZRS),
-					string(compute.DiskStorageAccountTypesStandardSSDLRS),
-					string(compute.DiskStorageAccountTypesUltraSSDLRS),
+					string(compute.StorageAccountTypesStandardLRS),
+					string(compute.StorageAccountTypesStandardSSDZRS),
+					string(compute.StorageAccountTypesPremiumLRS),
+					string(compute.StorageAccountTypesPremiumZRS),
+					string(compute.StorageAccountTypesStandardSSDLRS),
+					string(compute.StorageAccountTypesUltraSSDLRS),
 				}, false),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -79,6 +79,16 @@ func resourceManagedDisk() *pluginsdk.Resource {
 					string(compute.DiskCreateOptionImport),
 					string(compute.DiskCreateOptionRestore),
 				}, false),
+			},
+
+			"logical_sector_size": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.IntInSlice([]int{
+					512,
+					4096}),
+				Computed: true,
 			},
 
 			"source_uri": {
@@ -177,6 +187,12 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(2, 10),
 			},
 
+			"trusted_launch_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -235,7 +251,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.MaxShares = utils.Int32(int32(v.(int)))
 	}
 
-	if storageAccountType == string(compute.DiskStorageAccountTypesUltraSSDLRS) {
+	if storageAccountType == string(compute.StorageAccountTypesUltraSSDLRS) {
 		if d.HasChange("disk_iops_read_write") {
 			v := d.Get("disk_iops_read_write")
 			diskIOPS := int64(v.(int))
@@ -247,8 +263,12 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			diskMBps := int64(v.(int))
 			props.DiskMBpsReadWrite = &diskMBps
 		}
-	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") {
-		return fmt.Errorf("[ERROR] disk_iops_read_write and disk_mbps_read_write are only available for UltraSSD disks")
+
+		if v, ok := d.GetOk("logical_sector_size"); ok {
+			props.CreationData.LogicalSectorSize = utils.Int32(int32(v.(int)))
+		}
+	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") || d.HasChange("logical_sector_size") {
+		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write and logical_sector_size are only available for UltraSSD disks")
 	}
 
 	if createOption == compute.DiskCreateOptionImport {
@@ -315,10 +335,23 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if tier := d.Get("tier").(string); tier != "" {
-		if storageAccountType != string(compute.DiskStorageAccountTypesPremiumZRS) && storageAccountType != string(compute.DiskStorageAccountTypesPremiumLRS) {
+		if storageAccountType != string(compute.StorageAccountTypesPremiumZRS) && storageAccountType != string(compute.StorageAccountTypesPremiumLRS) {
 			return fmt.Errorf("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
 		}
 		props.Tier = &tier
+	}
+
+	if d.Get("trusted_launch_enabled").(bool) {
+		props.SecurityProfile = &compute.DiskSecurityProfile{
+			SecurityType: compute.DiskSecurityTypesTrustedLaunch,
+		}
+
+		switch createOption {
+		case compute.DiskCreateOptionFromImage:
+		case compute.DiskCreateOptionImport:
+		default:
+			return fmt.Errorf("trusted_launch_enabled cannot be set to true with create_option %q. Supported Create Options when Trusted Launch is enabled are FromImage, Import", createOption)
+		}
 	}
 
 	createDisk := compute.Disk{
@@ -395,7 +428,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("tier") {
-		if storageAccountType != string(compute.DiskStorageAccountTypesPremiumZRS) && storageAccountType != string(compute.DiskStorageAccountTypesPremiumLRS) {
+		if storageAccountType != string(compute.StorageAccountTypesPremiumZRS) && storageAccountType != string(compute.StorageAccountTypesPremiumLRS) {
 			return fmt.Errorf("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
 		}
 		shouldShutDown = true
@@ -421,7 +454,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if strings.EqualFold(storageAccountType, string(compute.DiskStorageAccountTypesUltraSSDLRS)) {
+	if strings.EqualFold(storageAccountType, string(compute.StorageAccountTypesUltraSSDLRS)) {
 		if d.HasChange("disk_iops_read_write") {
 			v := d.Get("disk_iops_read_write")
 			diskIOPS := int64(v.(int))
@@ -635,6 +668,9 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	if props := resp.DiskProperties; props != nil {
 		if creationData := props.CreationData; creationData != nil {
 			d.Set("create_option", string(creationData.CreateOption))
+			if creationData.LogicalSectorSize != nil {
+				d.Set("logical_sector_size", creationData.LogicalSectorSize)
+			}
 
 			imageReferenceID := ""
 			if creationData.ImageReference != nil && creationData.ImageReference.ID != nil {
@@ -668,6 +704,14 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
 			return fmt.Errorf("setting `encryption_settings`: %+v", err)
 		}
+
+		trustedLaunchEnabled := false
+		if securityProfile := props.SecurityProfile; securityProfile != nil {
+			if securityProfile.SecurityType == compute.DiskSecurityTypesTrustedLaunch {
+				trustedLaunchEnabled = true
+			}
+		}
+		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

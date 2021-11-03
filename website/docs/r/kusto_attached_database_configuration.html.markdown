@@ -47,14 +47,30 @@ resource "azurerm_kusto_database" "followed_database" {
   cluster_name        = azurerm_kusto_cluster.cluster2.name
 }
 
+resource "azurerm_kusto_database" "example" {
+  name                = "example"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  cluster_name        = azurerm_kusto_cluster.cluster2.name
+}
+
 resource "azurerm_kusto_attached_database_configuration" "example" {
   name                                 = "configuration1"
   resource_group_name                  = azurerm_resource_group.rg.name
   location                             = azurerm_resource_group.rg.location
   cluster_name                         = azurerm_kusto_cluster.follower_cluster.name
   cluster_resource_id                  = azurerm_kusto_cluster.followed_cluster.id
-  database_name                        = "*"
+  database_name                        = azurerm_kusto_database.example.name
   default_principal_modifications_kind = "None"
+
+  sharing {
+    external_tables_to_exclude    = ["ExternalTable2"]
+    external_tables_to_include    = ["ExternalTable1"]
+    materialized_views_to_exclude = ["MaterializedViewTable2"]
+    materialized_views_to_include = ["MaterializedViewTable1"]
+    tables_to_exclude             = ["Table2"]
+    tables_to_include             = ["Table1"]
+  }
 }
 ```
 
@@ -75,6 +91,24 @@ The following arguments are supported:
 * `database_name` - (Required) The name of the database which you would like to attach, use * if you want to follow all current and future databases.
 
 * `default_principal_modification_kind` - (Optional) The default principals modification kind. Valid values are: `None` (default), `Replace` and `Union`.
+
+* `sharing` - (Optional) A `sharing` block as defined below.
+
+---
+
+An `sharing` block exports the following:
+
+* `external_tables_to_exclude` - (Optional) List of external tables exclude from the follower database.
+
+* `external_tables_to_include` - (Optional) List of external tables to include in the follower database.
+
+* `materialized_views_to_exclude` - (Optional) List of materialized views exclude from the follower database.
+
+* `materialized_views_to_include` - (Optional) List of materialized views to include in the follower database.
+
+* `tables_to_exclude` - (Optional) List of tables to exclude from the follower database.
+
+* `tables_to_include` - (Optional) List of tables to include in the follower database.
 
 ## Attributes Reference
 

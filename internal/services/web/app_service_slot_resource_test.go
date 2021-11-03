@@ -973,40 +973,6 @@ func TestAccAppServiceSlot_windowsJava11Tomcat(t *testing.T) {
 	})
 }
 
-func TestAccAppServiceSlot_windowsJava7Minor(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
-	r := AppServiceSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.windowsJava(data, "1.7.0_80", "TOMCAT", "9.0"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("1.7.0_80"),
-				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("TOMCAT"),
-				check.That(data.ResourceName).Key("site_config.0.java_container_version").HasValue("9.0"),
-			),
-		},
-	})
-}
-
-func TestAccAppServiceSlot_windowsJava8Minor(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
-	r := AppServiceSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.windowsJava(data, "1.8.0_181", "TOMCAT", "9.0"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("1.8.0_181"),
-				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("TOMCAT"),
-				check.That(data.ResourceName).Key("site_config.0.java_container_version").HasValue("9.0"),
-			),
-		},
-	})
-}
-
 func TestAccAppServiceSlot_windowsPHP7(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
@@ -1156,23 +1122,6 @@ func TestAccAppServiceSlot_httpBlobStorageLogs(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("logs.0.http_logs.0.azure_blob_storage.0.sas_url").HasValue("https://example.com/"),
 				check.That(data.ResourceName).Key("logs.0.http_logs.0.azure_blob_storage.0.retention_in_days").HasValue("3"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccAppServiceSlot_emptyHttpBlobStorageLogs(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
-	r := AppServiceSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.emptyHttpBlobStorageLogs(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("logs.0.http_logs.0.azure_blob_storage.#").HasValue("0"),
-				check.That(data.ResourceName).Key("logs.0.http_logs.0.file_system.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -3644,50 +3593,6 @@ resource "azurerm_app_service_slot" "test" {
         sas_url           = "https://example.com/"
         retention_in_days = 3
       }
-    }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (r AppServiceSlotResource) emptyHttpBlobStorageLogs(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "acctestAS-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
-}
-
-resource "azurerm_app_service_slot" "test" {
-  name                = "acctestASSlot-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
-  app_service_name    = azurerm_app_service.test.name
-
-  logs {
-    http_logs {
     }
   }
 }

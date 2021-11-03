@@ -83,8 +83,8 @@ func resourceImage() *pluginsdk.Resource {
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.OperatingSystemTypeLinux),
-								string(compute.OperatingSystemTypeWindows),
+								string(compute.OperatingSystemTypesLinux),
+								string(compute.OperatingSystemTypesWindows),
 							}, true),
 						},
 

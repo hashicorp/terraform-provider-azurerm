@@ -17,9 +17,9 @@ func CacheExpiration() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.BypassCache),
-					string(cdn.Override),
-					string(cdn.SetIfMissing),
+					string(cdn.CacheBehaviorBypassCache),
+					string(cdn.CacheBehaviorOverride),
+					string(cdn.CacheBehaviorSetIfMissing),
 				}, false),
 			},
 
@@ -39,7 +39,7 @@ func ExpandArmCdnEndpointActionCacheExpiration(input []interface{}) (*[]cdn.Basi
 		item := v.(map[string]interface{})
 
 		cacheExpirationAction := cdn.DeliveryRuleCacheExpirationAction{
-			Name: cdn.NameCacheExpiration,
+			Name: cdn.NameBasicDeliveryRuleActionNameCacheExpiration,
 			Parameters: &cdn.CacheExpirationActionParameters{
 				OdataType:     utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleCacheExpirationActionParameters"),
 				CacheBehavior: cdn.CacheBehavior(item["behavior"].(string)),
@@ -48,7 +48,7 @@ func ExpandArmCdnEndpointActionCacheExpiration(input []interface{}) (*[]cdn.Basi
 		}
 
 		if duration := item["duration"].(string); duration != "" {
-			if cacheExpirationAction.Parameters.CacheBehavior == cdn.BypassCache {
+			if cacheExpirationAction.Parameters.CacheBehavior == cdn.CacheBehaviorBypassCache {
 				return nil, fmt.Errorf("Cache expiration duration must not be set when using behavior `BypassCache`")
 			}
 

@@ -12,7 +12,7 @@ func FlexibleServerSkuName(i interface{}, k string) (warnings []string, errors [
 		return
 	}
 
-	if !regexp.MustCompile(`^(B|GP|MO)_((Standard_E(2|4|8|16|32|48|64)s_v3)|(Standard_B(1m|2)s)|(Standard_D(2|4|8|16|32|48|64)s_v3))$`).MatchString(v) {
+	if !regexp.MustCompile(`^((B_Standard_B(1ms|2s))|(GP_Standard_D(((2|4|8|16|32|48|64)s_v3)|((2|4|8|16|32|48|64)ds_v4)))|(MO_Standard_E((((2|4|8|16|20|32|48|64)s)_v3)|((2|4|6|8|16|20|32|48|64)ds_v4))))$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%q is not a valid sku name, got %v", k, v))
 		return
 	}

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	webValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -109,10 +110,12 @@ func resourceFunctionApp() *pluginsdk.Resource {
 				},
 			},
 
+			// todo remove for 3.0 as it doesn't do anything
 			"client_affinity_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Computed: true,
+				Type:       pluginsdk.TypeBool,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "This property is no longer configurable in the service and has been deprecated. It will be removed in 3.0 of the provider.",
 			},
 
 			"client_cert_mode": {
@@ -158,6 +161,13 @@ func resourceFunctionApp() *pluginsdk.Resource {
 					"linux",
 					"",
 				}, false),
+			},
+
+			"key_vault_reference_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: msivalidate.UserAssignedIdentityID,
 			},
 
 			"site_config": schemaAppServiceFunctionAppSiteConfig(),
@@ -335,6 +345,10 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		},
 	}
 
+	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
+		siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(v.(string))
+	}
+
 	if clientCertMode != "" {
 		siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode)
 	}
@@ -428,14 +442,13 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	existing, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
+	var currentAppSettings map[string]*string
+	appSettingsList, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("reading %s: %+v", id, err)
+		return fmt.Errorf("reading App Settings for %s: %+v", id, err)
 	}
-
-	var currentAppSettings *[]web.NameValuePair
-	if existing.AppSettings != nil {
-		currentAppSettings = existing.AppSettings
+	if appSettingsList.Properties != nil {
+		currentAppSettings = appSettingsList.Properties
 	}
 
 	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix, currentAppSettings)
@@ -472,6 +485,10 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
 			SiteConfig:            &siteConfig,
 		},
+	}
+
+	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
+		siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(v.(string))
 	}
 
 	if clientCertMode != "" {
@@ -661,6 +678,10 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			clientCertMode = string(props.ClientCertMode)
 		}
 		d.Set("client_cert_mode", clientCertMode)
+
+		if props.KeyVaultReferenceIdentity != nil {
+			d.Set("key_vault_reference_identity_id", props.KeyVaultReferenceIdentity)
+		}
 	}
 
 	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanID, meta)

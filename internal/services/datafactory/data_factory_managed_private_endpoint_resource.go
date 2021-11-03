@@ -106,6 +106,17 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{"Provisioning"},
+		Target:     []string{"Succeeded"},
+		Refresh:    getManagedPrivateEndpointProvisionStatus(ctx, client, id),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be created: %+v", id.ID(), err)
+	}
+
 	d.SetId(id.ID())
 
 	return resourceDataFactoryManagedPrivateEndpointRead(d, meta)
@@ -178,4 +189,15 @@ func getManagedPrivateEndpoint(ctx context.Context, client *datafactory.ManagedP
 		}
 	}
 	return nil, nil
+}
+
+func getManagedPrivateEndpointProvisionStatus(ctx context.Context, client *datafactory.ManagedPrivateEndpointsClient, id parse.ManagedPrivateEndpointId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.ManagedVirtualNetworkName, id.Name, "")
+		if err != nil || resp.Properties == nil || resp.Properties.ProvisioningState == nil {
+			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+
+		return resp, *resp.Properties.ProvisioningState, nil
+	}
 }

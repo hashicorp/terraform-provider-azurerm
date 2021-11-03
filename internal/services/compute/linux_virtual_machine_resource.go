@@ -211,6 +211,15 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"patch_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.LinuxVMGuestPatchModeAutomaticByPlatform),
+					string(compute.LinuxVMGuestPatchModeImageDefault),
+				}, false),
+			},
+
 			"proximity_placement_group_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -414,6 +423,12 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 			ExtensionsTimeBudget:   utils.String(d.Get("extensions_time_budget").(string)),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("patch_mode"); ok {
+		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{
+			PatchMode: compute.LinuxVMGuestPatchMode(v.(string)),
+		}
 	}
 
 	if v, ok := d.GetOk("license_type"); ok {
@@ -927,6 +942,12 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 
 		update.VirtualMachineProperties.HardwareProfile = &compute.HardwareProfile{
 			VMSize: compute.VirtualMachineSizeTypes(vmSize),
+		}
+	}
+
+	if d.HasChange("patch_mode") {
+		update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{
+			PatchMode: compute.LinuxVMGuestPatchMode(d.Get("patch_mode").(string)),
 		}
 	}
 

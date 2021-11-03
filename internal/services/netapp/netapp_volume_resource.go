@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2020-09-01/netapp"
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-06-01/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -78,9 +78,9 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(netapp.Premium),
-					string(netapp.Standard),
-					string(netapp.Ultra),
+					string(netapp.ServiceLevelPremium),
+					string(netapp.ServiceLevelStandard),
+					string(netapp.ServiceLevelUltra),
 				}, false),
 			},
 
@@ -169,6 +169,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							},
 						},
 
+						// todo remove this in version 3.0 of the provider
 						"cifs_enabled": {
 							Type:       pluginsdk.TypeBool,
 							Optional:   true,
@@ -176,6 +177,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							Deprecated: "Deprecated in favour of `protocols_enabled`",
 						},
 
+						// todo remove this in version 3.0 of the provider
 						"nfsv3_enabled": {
 							Type:       pluginsdk.TypeBool,
 							Optional:   true,
@@ -183,6 +185,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							Deprecated: "Deprecated in favour of `protocols_enabled`",
 						},
 
+						// todo remove this in version 3.0 of the provider
 						"nfsv4_enabled": {
 							Type:       pluginsdk.TypeBool,
 							Optional:   true,
@@ -763,9 +766,11 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePrope
 						}
 					}
 				} else {
-					// TODO: Remove in next major version
+					// todo remove this in version 3.0 of the provider
 					cifsEnabled = v["cifs_enabled"].(bool)
+					// todo remove this in version 3.0 of the provider
 					nfsv3Enabled = v["nfsv3_enabled"].(bool)
+					// todo remove this in version 3.0 of the provider
 					nfsv41Enabled = v["nfsv4_enabled"].(bool)
 				}
 			}
@@ -836,29 +841,33 @@ func flattenNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExportPol
 		if v := item.AllowedClients; v != nil {
 			allowedClients = strings.Split(*v, ",")
 		}
-		// TODO: Start - Remove in next major version
+		// todo remove this in version 3.0 of the provider
 		cifsEnabled := false
+		// todo remove this in version 3.0 of the provider
 		nfsv3Enabled := false
+		// todo remove this in version 3.0 of the provider
 		nfsv4Enabled := false
-		// End - Remove in next major version
 		protocolsEnabled := []string{}
 		if v := item.Cifs; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "CIFS")
 			}
-			cifsEnabled = *v // TODO: Remove in next major version
+			// todo remove this in version 3.0 of the provider
+			cifsEnabled = *v
 		}
 		if v := item.Nfsv3; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "NFSv3")
 			}
-			nfsv3Enabled = *v // TODO: Remove in next major version
+			// todo remove this in version 3.0 of the provider
+			nfsv3Enabled = *v
 		}
 		if v := item.Nfsv41; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
 			}
-			nfsv4Enabled = *v // TODO: Remove in next major version
+			// todo remove this in version 3.0 of the provider
+			nfsv4Enabled = *v
 		}
 		unixReadOnly := false
 		if v := item.UnixReadOnly; v != nil {
@@ -880,9 +889,11 @@ func flattenNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExportPol
 			"unix_read_write":     unixReadWrite,
 			"root_access_enabled": rootAccessEnabled,
 			"protocols_enabled":   utils.FlattenStringSlice(&protocolsEnabled),
-			// TODO: Remove in next major version
-			"cifs_enabled":  cifsEnabled,
+			// todo remove this in version 3.0 of the provider
+			"cifs_enabled": cifsEnabled,
+			// todo remove this in version 3.0 of the provider
 			"nfsv3_enabled": nfsv3Enabled,
+			// todo remove this in version 3.0 of the provider
 			"nfsv4_enabled": nfsv4Enabled,
 		})
 	}

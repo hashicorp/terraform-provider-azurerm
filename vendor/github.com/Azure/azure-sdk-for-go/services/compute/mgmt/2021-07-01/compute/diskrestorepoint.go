@@ -8,11 +8,12 @@ package compute
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // DiskRestorePointClient is the compute Client
@@ -116,8 +117,11 @@ func (client DiskRestorePointClient) GetResponder(resp *http.Response) (result D
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // restorePointCollectionName - the name of the restore point collection that the disk restore point belongs.
-// VMRestorePointName - the name of the vm restore point that the disk disk restore point belongs.
-// diskRestorePointName - the name of the disk restore point created.
+// Supported characters for the name are a-z, A-Z, 0-9 and _. The maximum name length is 80 characters.
+// VMRestorePointName - the name of the vm restore point that the disk disk restore point belongs. Supported
+// characters for the name are a-z, A-Z, 0-9 and _. The maximum name length is 80 characters.
+// diskRestorePointName - the name of the disk restore point created. Supported characters for the name are
+// a-z, A-Z, 0-9 and _. The maximum name length is 80 characters.
 // grantAccessData - access data object supplied in the body of the get disk access operation.
 func (client DiskRestorePointClient) GrantAccess(ctx context.Context, resourceGroupName string, restorePointCollectionName string, VMRestorePointName string, diskRestorePointName string, grantAccessData GrantAccessData) (result DiskRestorePointGrantAccessFuture, err error) {
 	if tracing.IsEnabled() {

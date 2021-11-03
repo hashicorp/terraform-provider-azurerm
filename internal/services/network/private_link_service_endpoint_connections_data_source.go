@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -82,28 +83,25 @@ func dataSourcePrivateLinkServiceEndpointConnectionsRead(d *pluginsdk.ResourceDa
 
 	serviceId := d.Get("service_id").(string)
 
-	id, err := azure.ParseAzureResourceID(serviceId)
+	id, err := parse.PrivateLinkServiceID(serviceId)
 	if err != nil {
 		return fmt.Errorf("parsing %q: %s", serviceId, err)
 	}
 
-	name := id.Path["privateLinkServices"]
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Private Link Service %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("Error: %s was not found", *id)
 		}
-		return fmt.Errorf("reading Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("API returns a nil/empty id on Private Link Service Endpoint Connection Status %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("API returns a nil/empty id on %s: %+v", *id, err)
 	}
 
 	d.Set("service_id", serviceId)
-	d.Set("service_name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("service_name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", azure.NormalizeLocation(*resp.Location))
 
 	if props := resp.PrivateLinkServiceProperties; props != nil {
@@ -112,7 +110,7 @@ func dataSourcePrivateLinkServiceEndpointConnectionsRead(d *pluginsdk.ResourceDa
 		}
 	}
 
-	d.SetId(fmt.Sprintf("%s/privateLinkServiceEndpointConnections/%s", *resp.ID, name))
+	d.SetId(fmt.Sprintf("%s/privateLinkServiceEndpointConnections/%s", *resp.ID, id.Name))
 
 	return nil
 }
@@ -137,10 +135,9 @@ func dataSourceflattenPrivateLinkServicePrivateEndpointConnections(input *[]netw
 				if id := p.ID; id != nil {
 					v["private_endpoint_id"] = *id
 
-					id, _ := azure.ParseAzureResourceID(*id)
-					name := id.Path["privateEndpoints"]
-					if name != "" {
-						v["private_endpoint_name"] = name
+					id, _ := parse.PrivateEndpointID(*id)
+					if id.Name != "" {
+						v["private_endpoint_name"] = id.Name
 					}
 				}
 			}

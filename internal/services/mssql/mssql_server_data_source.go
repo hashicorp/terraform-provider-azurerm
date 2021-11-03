@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -55,6 +56,14 @@ func dataSourceMsSqlServer() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+						"user_assigned_identity_ids": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: msivalidate.UserAssignedIdentityID,
+							},
+						},
 						"principal_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -89,7 +98,7 @@ func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("sql Server %q was not found in Resource Group %q", name, resourceGroup)
@@ -110,15 +119,20 @@ func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
 	}
 
-	if err := d.Set("identity", flattenSqlServerIdentity(resp.Identity)); err != nil {
+	identity, err := flattenSqlServerIdentity(resp.Identity)
+	if err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
-	restorableResp, err := restorableDroppedDatabasesClient.ListByServer(ctx, resourceGroup, name)
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
+	restorableListPage, err := restorableDroppedDatabasesClient.ListByServerComplete(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("listing SQL Server %s Restorable Dropped Databases: %v", name, err)
 	}
-	if err := d.Set("restorable_dropped_database_ids", flattenSqlServerRestorableDatabases(restorableResp)); err != nil {
+	if err := d.Set("restorable_dropped_database_ids", flattenSqlServerRestorableDatabases(restorableListPage.Response())); err != nil {
 		return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
 	}
 
