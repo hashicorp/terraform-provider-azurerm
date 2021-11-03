@@ -43,11 +43,11 @@ resource "azurerm_role_assignment" "example" {
 }
 
 resource "azurerm_cosmosdb_cassandra_cluster" "example" {
-  name                             = "example-cluster"
-  resource_group_name              = azurerm_resource_group.example.name
-  location                         = azurerm_resource_group.example.location
-  delegated_management_subnet_id   = azurerm_subnet.example.id
-  default_admin_password = "Password1234"
+  name                           = "example-cluster"
+  resource_group_name            = azurerm_resource_group.example.name
+  location                       = azurerm_resource_group.example.location
+  delegated_management_subnet_id = azurerm_subnet.example.id
+  default_admin_password         = "Password1234"
 }
 
 resource "azurerm_cosmosdb_cassandra_datacenter" "example" {
@@ -56,8 +56,8 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "example" {
   cassandra_cluster_id           = azurerm_cosmosdb_cassandra_cluster.example.id
   delegated_management_subnet_id = azurerm_subnet.example.id
   node_count                     = 3
-  disk_count                  = 4
-  sku_name                       = "Standard_DS14_v2" 
+  disk_count                     = 4
+  sku_name                       = "Standard_DS14_v2"
 }
 ```
 
