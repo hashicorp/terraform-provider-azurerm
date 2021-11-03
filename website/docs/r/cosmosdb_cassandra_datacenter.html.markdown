@@ -81,8 +81,6 @@ The following arguments are supported:
 
 * `disk_capacity` - (Optional) Determines the number of p30 disks that are attached to each node. Defaults to 4.
 
-
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
