@@ -3730,9 +3730,13 @@ resource "azurerm_nat_gateway" "test" {
   name                    = "acctng-%[1]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
-  public_ip_address_ids   = [azurerm_public_ip.test.id]
   sku_name                = "Standard"
   idle_timeout_in_minutes = 10
+}
+
+resource "azurerm_nat_gateway_public_ip_association" "test" {
+  nat_gateway_id       = azurerm_nat_gateway.test.id
+  public_ip_address_id = azurerm_public_ip.test.id
 }
 
 resource "azurerm_subnet_nat_gateway_association" "example" {
