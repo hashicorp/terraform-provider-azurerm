@@ -130,6 +130,7 @@ func (r SentinelDataConnectorMicrosoftCloudAppSecurityResource) basic(data accep
 resource "azurerm_sentinel_data_connector_microsoft_cloud_app_security" "test" {
   name                       = "accTestDC-%d"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  depends_on                 = [azurerm_log_analytics_solution.test]
 }
 `, template, data.RandomInteger)
 }
@@ -147,6 +148,7 @@ resource "azurerm_sentinel_data_connector_microsoft_cloud_app_security" "test" {
   tenant_id                  = data.azurerm_client_config.test.tenant_id
   alerts_enabled             = %t
   discovery_logs_enabled     = %t
+  depends_on                 = [azurerm_log_analytics_solution.test]
 }
 `, template, data.RandomInteger, alertsEnabled, discoveryLogsEnabled)
 }
@@ -179,6 +181,19 @@ resource "azurerm_log_analytics_workspace" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
+}
+
+resource "azurerm_log_analytics_solution" "test" {
+  solution_name         = "SecurityInsights"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/SecurityInsights"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
