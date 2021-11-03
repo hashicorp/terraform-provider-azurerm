@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-05-01/containerservice"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
 
 // AccessProfile profile for enabling a user to access a managed cluster.
 type AccessProfile struct {
@@ -102,11 +102,11 @@ func (ap *AgentPool) UnmarshalJSON(body []byte) error {
 // AgentPoolAvailableVersions the list of available versions for an agent pool.
 type AgentPoolAvailableVersions struct {
 	autorest.Response `json:"-"`
-	// ID - READ-ONLY; Id of the agent pool available versions.
+	// ID - READ-ONLY; The ID of the agent pool version list.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the agent pool available versions.
+	// Name - READ-ONLY; The name of the agent pool version list.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the agent pool  available versions.
+	// Type - READ-ONLY; Type of the agent pool version list.
 	Type *string `json:"type,omitempty"`
 	// AgentPoolAvailableVersionsProperties - Properties of agent pool available versions.
 	*AgentPoolAvailableVersionsProperties `json:"properties,omitempty"`
@@ -182,7 +182,7 @@ type AgentPoolAvailableVersionsProperties struct {
 type AgentPoolAvailableVersionsPropertiesAgentPoolVersionsItem struct {
 	// Default - Whether this version is the default agent pool version.
 	Default *bool `json:"default,omitempty"`
-	// KubernetesVersion - Kubernetes version (major, minor, patch).
+	// KubernetesVersion - The Kubernetes version (major.minor.patch).
 	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
 	// IsPreview - Whether Kubernetes version is currently in preview.
 	IsPreview *bool `json:"isPreview,omitempty"`
@@ -482,13 +482,13 @@ func (future *AgentPoolsUpgradeNodeImageVersionFuture) result(client AgentPoolsC
 // AgentPoolUpgradeProfile the list of available upgrades for an agent pool.
 type AgentPoolUpgradeProfile struct {
 	autorest.Response `json:"-"`
-	// ID - READ-ONLY; Id of the agent pool upgrade profile.
+	// ID - READ-ONLY; The ID of the agent pool upgrade profile.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the agent pool upgrade profile.
+	// Name - READ-ONLY; The name of the agent pool upgrade profile.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the agent pool upgrade profile.
+	// Type - READ-ONLY; The type of the agent pool upgrade profile.
 	Type *string `json:"type,omitempty"`
-	// AgentPoolUpgradeProfileProperties - Properties of agent pool upgrade profile.
+	// AgentPoolUpgradeProfileProperties - The properties of the agent pool upgrade profile.
 	*AgentPoolUpgradeProfileProperties `json:"properties,omitempty"`
 }
 
@@ -554,27 +554,27 @@ func (apup *AgentPoolUpgradeProfile) UnmarshalJSON(body []byte) error {
 
 // AgentPoolUpgradeProfileProperties the list of available upgrade versions.
 type AgentPoolUpgradeProfileProperties struct {
-	// KubernetesVersion - Kubernetes version (major, minor, patch).
+	// KubernetesVersion - The Kubernetes version (major.minor.patch).
 	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
-	// OsType - OsType to be used to specify os type. Choose from Linux and Windows. Default to Linux. Possible values include: 'OSTypeLinux', 'OSTypeWindows'
+	// OsType - Possible values include: 'OSTypeLinux', 'OSTypeWindows'
 	OsType OSType `json:"osType,omitempty"`
 	// Upgrades - List of orchestrator types and versions available for upgrade.
 	Upgrades *[]AgentPoolUpgradeProfilePropertiesUpgradesItem `json:"upgrades,omitempty"`
-	// LatestNodeImageVersion - LatestNodeImageVersion is the latest AKS supported node image version.
+	// LatestNodeImageVersion - The latest AKS supported node image version.
 	LatestNodeImageVersion *string `json:"latestNodeImageVersion,omitempty"`
 }
 
 // AgentPoolUpgradeProfilePropertiesUpgradesItem ...
 type AgentPoolUpgradeProfilePropertiesUpgradesItem struct {
-	// KubernetesVersion - Kubernetes version (major, minor, patch).
+	// KubernetesVersion - The Kubernetes version (major.minor.patch).
 	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
-	// IsPreview - Whether Kubernetes version is currently in preview.
+	// IsPreview - Whether the Kubernetes version is currently in preview.
 	IsPreview *bool `json:"isPreview,omitempty"`
 }
 
 // AgentPoolUpgradeSettings settings for upgrading an agentpool
 type AgentPoolUpgradeSettings struct {
-	// MaxSurge - Count or percentage of additional nodes to be added during upgrade. If empty uses AKS default
+	// MaxSurge - This can either be set to an integer (e.g. '5') or a percentage (e.g. '50%'). If a percentage is specified, it is the percentage of the total agent pool size at the time of the upgrade. For percentages, fractional nodes are rounded up. If not specified, the default is 1. For more information, including best practices, see: https://docs.microsoft.com/azure/aks/upgrade-cluster#customize-node-surge-upgrade
 	MaxSurge *string `json:"maxSurge,omitempty"`
 }
 
@@ -596,19 +596,19 @@ type CloudErrorBody struct {
 	Details *[]CloudErrorBody `json:"details,omitempty"`
 }
 
-// CommandResultProperties ...
+// CommandResultProperties the results of a run command
 type CommandResultProperties struct {
 	// ProvisioningState - READ-ONLY; provisioning State
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// ExitCode - READ-ONLY; exit code of the command
+	// ExitCode - READ-ONLY; The exit code of the command
 	ExitCode *int32 `json:"exitCode,omitempty"`
-	// StartedAt - READ-ONLY; time when the command started.
+	// StartedAt - READ-ONLY; The time when the command started.
 	StartedAt *date.Time `json:"startedAt,omitempty"`
-	// FinishedAt - READ-ONLY; time when the command finished.
+	// FinishedAt - READ-ONLY; The time when the command finished.
 	FinishedAt *date.Time `json:"finishedAt,omitempty"`
-	// Logs - READ-ONLY; command output.
+	// Logs - READ-ONLY; The command output.
 	Logs *string `json:"logs,omitempty"`
-	// Reason - READ-ONLY; explain why provisioningState is set to failed (if so).
+	// Reason - READ-ONLY; An explanation of why provisioningState is set to failed (if so).
 	Reason *string `json:"reason,omitempty"`
 }
 
@@ -616,6 +616,12 @@ type CommandResultProperties struct {
 func (crp CommandResultProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
+}
+
+// CreationData data used when creating a target resource from a source resource.
+type CreationData struct {
+	// SourceResourceID - This is the ARM ID of the source object to be used to create the target object.
+	SourceResourceID *string `json:"sourceResourceId,omitempty"`
 }
 
 // CredentialResult the credential result response.
@@ -632,7 +638,7 @@ func (cr CredentialResult) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// CredentialResults the list of credential result response.
+// CredentialResults the list credential result response.
 type CredentialResults struct {
 	autorest.Response `json:"-"`
 	// Kubeconfigs - READ-ONLY; Base64-encoded Kubernetes configuration file.
@@ -679,21 +685,22 @@ type ExtendedLocation struct {
 	Type ExtendedLocationTypes `json:"type,omitempty"`
 }
 
-// KubeletConfig kubelet configurations of agent nodes.
+// KubeletConfig see [AKS custom node
+// configuration](https://docs.microsoft.com/azure/aks/custom-node-configuration) for more details.
 type KubeletConfig struct {
-	// CPUManagerPolicy - CPU Manager policy to use.
+	// CPUManagerPolicy - The default is 'none'. See [Kubernetes CPU management policies](https://kubernetes.io/docs/tasks/administer-cluster/cpu-management-policies/#cpu-management-policies) for more information. Allowed values are 'none' and 'static'.
 	CPUManagerPolicy *string `json:"cpuManagerPolicy,omitempty"`
-	// CPUCfsQuota - Enable CPU CFS quota enforcement for containers that specify CPU limits.
+	// CPUCfsQuota - The default is true.
 	CPUCfsQuota *bool `json:"cpuCfsQuota,omitempty"`
-	// CPUCfsQuotaPeriod - Sets CPU CFS quota period value.
+	// CPUCfsQuotaPeriod - The default is '100ms.' Valid values are a sequence of decimal numbers with an optional fraction and a unit suffix. For example: '300ms', '2h45m'. Supported units are 'ns', 'us', 'ms', 's', 'm', and 'h'.
 	CPUCfsQuotaPeriod *string `json:"cpuCfsQuotaPeriod,omitempty"`
-	// ImageGcHighThreshold - The percent of disk usage after which image garbage collection is always run.
+	// ImageGcHighThreshold - To disable image garbage collection, set to 100. The default is 85%
 	ImageGcHighThreshold *int32 `json:"imageGcHighThreshold,omitempty"`
-	// ImageGcLowThreshold - The percent of disk usage before which image garbage collection is never run.
+	// ImageGcLowThreshold - This cannot be set higher than imageGcHighThreshold. The default is 80%
 	ImageGcLowThreshold *int32 `json:"imageGcLowThreshold,omitempty"`
-	// TopologyManagerPolicy - Topology Manager policy to use.
+	// TopologyManagerPolicy - For more information see [Kubernetes Topology Manager](https://kubernetes.io/docs/tasks/administer-cluster/topology-manager). The default is 'none'. Allowed values are 'none', 'best-effort', 'restricted', and 'single-numa-node'.
 	TopologyManagerPolicy *string `json:"topologyManagerPolicy,omitempty"`
-	// AllowedUnsafeSysctls - Allowlist of unsafe sysctls or unsafe sysctl patterns (ending in `*`).
+	// AllowedUnsafeSysctls - Allowed list of unsafe sysctls or unsafe sysctl patterns (ending in `*`).
 	AllowedUnsafeSysctls *[]string `json:"allowedUnsafeSysctls,omitempty"`
 	// FailSwapOn - If set to true it will make the Kubelet fail to start if swap is enabled on the node.
 	FailSwapOn *bool `json:"failSwapOn,omitempty"`
@@ -705,15 +712,16 @@ type KubeletConfig struct {
 	PodMaxPids *int32 `json:"podMaxPids,omitempty"`
 }
 
-// LinuxOSConfig OS configurations of Linux agent nodes.
+// LinuxOSConfig see [AKS custom node
+// configuration](https://docs.microsoft.com/azure/aks/custom-node-configuration) for more details.
 type LinuxOSConfig struct {
 	// Sysctls - Sysctl settings for Linux agent nodes.
 	Sysctls *SysctlConfig `json:"sysctls,omitempty"`
-	// TransparentHugePageEnabled - Transparent Huge Page enabled configuration.
+	// TransparentHugePageEnabled - Valid values are 'always', 'madvise', and 'never'. The default is 'always'. For more information see [Transparent Hugepages](https://www.kernel.org/doc/html/latest/admin-guide/mm/transhuge.html#admin-guide-transhuge).
 	TransparentHugePageEnabled *string `json:"transparentHugePageEnabled,omitempty"`
-	// TransparentHugePageDefrag - Transparent Huge Page defrag configuration.
+	// TransparentHugePageDefrag - Valid values are 'always', 'defer', 'defer+madvise', 'madvise' and 'never'. The default is 'madvise'. For more information see [Transparent Hugepages](https://www.kernel.org/doc/html/latest/admin-guide/mm/transhuge.html#admin-guide-transhuge).
 	TransparentHugePageDefrag *string `json:"transparentHugePageDefrag,omitempty"`
-	// SwapFileSizeMB - SwapFileSizeMB specifies size in MB of a swap file will be created on each node.
+	// SwapFileSizeMB - The size in MB of a swap file that will be created on each node.
 	SwapFileSizeMB *int32 `json:"swapFileSizeMB,omitempty"`
 }
 
@@ -721,14 +729,16 @@ type LinuxOSConfig struct {
 type LinuxProfile struct {
 	// AdminUsername - The administrator username to use for Linux VMs.
 	AdminUsername *string `json:"adminUsername,omitempty"`
-	// SSH - SSH configuration for Linux-based VMs running on Azure.
+	// SSH - The SSH configuration for Linux-based VMs running on Azure.
 	SSH *SSHConfiguration `json:"ssh,omitempty"`
 }
 
-// MaintenanceConfiguration maintenance configuration.
+// MaintenanceConfiguration see [planned
+// maintenance](https://docs.microsoft.com/azure/aks/planned-maintenance) for more information about
+// planned maintenance.
 type MaintenanceConfiguration struct {
 	autorest.Response `json:"-"`
-	// SystemData - READ-ONLY; The system meta data relating to this resource.
+	// SystemData - READ-ONLY; The system metadata relating to this resource.
 	SystemData *SystemData `json:"systemData,omitempty"`
 	// MaintenanceConfigurationProperties - Properties of a default maintenance configuration.
 	*MaintenanceConfigurationProperties `json:"properties,omitempty"`
@@ -978,9 +988,10 @@ func NewMaintenanceConfigurationListResultPage(cur MaintenanceConfigurationListR
 	}
 }
 
-// MaintenanceConfigurationProperties default maintenance configuration properties.
+// MaintenanceConfigurationProperties properties used to configure planned maintenance for a Managed
+// Cluster.
 type MaintenanceConfigurationProperties struct {
-	// TimeInWeek - Weekday time slots allowed to upgrade.
+	// TimeInWeek - If two array entries specify the same day of the week, the applied configuration is the union of times in both entries.
 	TimeInWeek *[]TimeInWeek `json:"timeInWeek,omitempty"`
 	// NotAllowedTime - Time slots on which upgrade is not allowed.
 	NotAllowedTime *[]TimeSpan `json:"notAllowedTime,omitempty"`
@@ -989,14 +1000,14 @@ type MaintenanceConfigurationProperties struct {
 // ManagedCluster managed cluster.
 type ManagedCluster struct {
 	autorest.Response `json:"-"`
-	// ManagedClusterProperties - Properties of a managed cluster.
-	*ManagedClusterProperties `json:"properties,omitempty"`
-	// Identity - The identity of the managed cluster, if configured.
-	Identity *ManagedClusterIdentity `json:"identity,omitempty"`
 	// Sku - The managed cluster SKU.
 	Sku *ManagedClusterSKU `json:"sku,omitempty"`
 	// ExtendedLocation - The extended location of the Virtual Machine.
 	ExtendedLocation *ExtendedLocation `json:"extendedLocation,omitempty"`
+	// Identity - The identity of the managed cluster, if configured.
+	Identity *ManagedClusterIdentity `json:"identity,omitempty"`
+	// ManagedClusterProperties - Properties of a managed cluster.
+	*ManagedClusterProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name
@@ -1012,17 +1023,17 @@ type ManagedCluster struct {
 // MarshalJSON is the custom marshaler for ManagedCluster.
 func (mc ManagedCluster) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if mc.ManagedClusterProperties != nil {
-		objectMap["properties"] = mc.ManagedClusterProperties
-	}
-	if mc.Identity != nil {
-		objectMap["identity"] = mc.Identity
-	}
 	if mc.Sku != nil {
 		objectMap["sku"] = mc.Sku
 	}
 	if mc.ExtendedLocation != nil {
 		objectMap["extendedLocation"] = mc.ExtendedLocation
+	}
+	if mc.Identity != nil {
+		objectMap["identity"] = mc.Identity
+	}
+	if mc.ManagedClusterProperties != nil {
+		objectMap["properties"] = mc.ManagedClusterProperties
 	}
 	if mc.Location != nil {
 		objectMap["location"] = mc.Location
@@ -1042,24 +1053,6 @@ func (mc *ManagedCluster) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
-		case "properties":
-			if v != nil {
-				var managedClusterProperties ManagedClusterProperties
-				err = json.Unmarshal(*v, &managedClusterProperties)
-				if err != nil {
-					return err
-				}
-				mc.ManagedClusterProperties = &managedClusterProperties
-			}
-		case "identity":
-			if v != nil {
-				var identity ManagedClusterIdentity
-				err = json.Unmarshal(*v, &identity)
-				if err != nil {
-					return err
-				}
-				mc.Identity = &identity
-			}
 		case "sku":
 			if v != nil {
 				var sku ManagedClusterSKU
@@ -1077,6 +1070,24 @@ func (mc *ManagedCluster) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				mc.ExtendedLocation = &extendedLocation
+			}
+		case "identity":
+			if v != nil {
+				var identity ManagedClusterIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				mc.Identity = &identity
+			}
+		case "properties":
+			if v != nil {
+				var managedClusterProperties ManagedClusterProperties
+				err = json.Unmarshal(*v, &managedClusterProperties)
+				if err != nil {
+					return err
+				}
+				mc.ManagedClusterProperties = &managedClusterProperties
 			}
 		case "id":
 			if v != nil {
@@ -1129,13 +1140,14 @@ func (mc *ManagedCluster) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ManagedClusterAADProfile aADProfile specifies attributes for Azure Active Directory integration.
+// ManagedClusterAADProfile for more details see [managed AAD on
+// AKS](https://docs.microsoft.com/azure/aks/managed-aad).
 type ManagedClusterAADProfile struct {
 	// Managed - Whether to enable managed AAD.
 	Managed *bool `json:"managed,omitempty"`
 	// EnableAzureRBAC - Whether to enable Azure RBAC for Kubernetes authorization.
 	EnableAzureRBAC *bool `json:"enableAzureRBAC,omitempty"`
-	// AdminGroupObjectIDs - AAD group object IDs that will have admin role of the cluster.
+	// AdminGroupObjectIDs - The list of AAD group object IDs that will have admin role of the cluster.
 	AdminGroupObjectIDs *[]string `json:"adminGroupObjectIDs,omitempty"`
 	// ClientAppID - The client AAD application ID.
 	ClientAppID *string `json:"clientAppID,omitempty"`
@@ -1272,90 +1284,95 @@ func (mcap ManagedClusterAddonProfile) MarshalJSON() ([]byte, error) {
 
 // ManagedClusterAddonProfileIdentity information of user assigned identity used by this add-on.
 type ManagedClusterAddonProfileIdentity struct {
-	// ResourceID - The resource id of the user assigned identity.
+	// ResourceID - The resource ID of the user assigned identity.
 	ResourceID *string `json:"resourceId,omitempty"`
-	// ClientID - The client id of the user assigned identity.
+	// ClientID - The client ID of the user assigned identity.
 	ClientID *string `json:"clientId,omitempty"`
-	// ObjectID - The object id of the user assigned identity.
+	// ObjectID - The object ID of the user assigned identity.
 	ObjectID *string `json:"objectId,omitempty"`
 }
 
 // ManagedClusterAgentPoolProfile profile for the container service agent pool.
 type ManagedClusterAgentPoolProfile struct {
-	// Name - Unique name of the agent pool profile in the context of the subscription and resource group.
+	// Name - Windows agent pool names must be 6 characters or less.
 	Name *string `json:"name,omitempty"`
 	// Count - Number of agents (VMs) to host docker containers. Allowed values must be in the range of 0 to 1000 (inclusive) for user pools and in the range of 1 to 1000 (inclusive) for system pools. The default value is 1.
 	Count *int32 `json:"count,omitempty"`
-	// VMSize - Size of agent VMs.
-	VMSize *string `json:"vmSize,omitempty"`
-	// OsDiskSizeGB - OS Disk Size in GB to be used to specify the disk size for every machine in this master/agent pool. If you specify 0, it will apply the default osDisk size according to the vmSize specified.
-	OsDiskSizeGB *int32 `json:"osDiskSizeGB,omitempty"`
-	// OsDiskType - OS disk type to be used for machines in a given agent pool. Allowed values are 'Ephemeral' and 'Managed'. If unspecified, defaults to 'Ephemeral' when the VM supports ephemeral OS and has a cache disk larger than the requested OSDiskSizeGB. Otherwise, defaults to 'Managed'. May not be changed after creation. Possible values include: 'OSDiskTypeManaged', 'OSDiskTypeEphemeral'
+	// VMSize - VM size availability varies by region. If a node contains insufficient compute resources (memory, cpu, etc) pods might fail to run correctly. For more details on restricted VM sizes, see: https://docs.microsoft.com/azure/aks/quotas-skus-regions
+	VMSize       *string `json:"vmSize,omitempty"`
+	OsDiskSizeGB *int32  `json:"osDiskSizeGB,omitempty"`
+	// OsDiskType - Possible values include: 'OSDiskTypeManaged', 'OSDiskTypeEphemeral'
 	OsDiskType OSDiskType `json:"osDiskType,omitempty"`
-	// KubeletDiskType - KubeletDiskType determines the placement of emptyDir volumes, container runtime data root, and Kubelet ephemeral storage. Currently allows one value, OS, resulting in Kubelet using the OS disk for data. Possible values include: 'KubeletDiskTypeOS', 'KubeletDiskTypeTemporary'
+	// KubeletDiskType - Possible values include: 'KubeletDiskTypeOS', 'KubeletDiskTypeTemporary'
 	KubeletDiskType KubeletDiskType `json:"kubeletDiskType,omitempty"`
-	// VnetSubnetID - VNet SubnetID specifies the VNet's subnet identifier for nodes and maybe pods
+	// WorkloadRuntime - Possible values include: 'WorkloadRuntimeOCIContainer', 'WorkloadRuntimeWasmWasi'
+	WorkloadRuntime WorkloadRuntime `json:"workloadRuntime,omitempty"`
+	// VnetSubnetID - If this is not specified, a VNET and subnet will be generated and used. If no podSubnetID is specified, this applies to nodes and pods, otherwise it applies to just nodes. This is of the form: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkName}/subnets/{subnetName}
 	VnetSubnetID *string `json:"vnetSubnetID,omitempty"`
-	// PodSubnetID - Pod SubnetID specifies the VNet's subnet identifier for pods.
+	// PodSubnetID - If omitted, pod IPs are statically assigned on the node subnet (see vnetSubnetID for more details). This is of the form: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkName}/subnets/{subnetName}
 	PodSubnetID *string `json:"podSubnetID,omitempty"`
-	// MaxPods - Maximum number of pods that can run on a node.
+	// MaxPods - The maximum number of pods that can run on a node.
 	MaxPods *int32 `json:"maxPods,omitempty"`
-	// OsType - OsType to be used to specify os type. Choose from Linux and Windows. Default to Linux. Possible values include: 'OSTypeLinux', 'OSTypeWindows'
+	// OsType - Possible values include: 'OSTypeLinux', 'OSTypeWindows'
 	OsType OSType `json:"osType,omitempty"`
-	// OsSKU - OsSKU to be used to specify os sku. Choose from Ubuntu(default) and CBLMariner for Linux OSType. Not applicable to Windows OSType. Possible values include: 'OSSKUUbuntu', 'OSSKUCBLMariner'
+	// OsSKU - Possible values include: 'OSSKUUbuntu', 'OSSKUCBLMariner'
 	OsSKU OSSKU `json:"osSKU,omitempty"`
-	// MaxCount - Maximum number of nodes for auto-scaling
+	// MaxCount - The maximum number of nodes for auto-scaling
 	MaxCount *int32 `json:"maxCount,omitempty"`
-	// MinCount - Minimum number of nodes for auto-scaling
+	// MinCount - The minimum number of nodes for auto-scaling
 	MinCount *int32 `json:"minCount,omitempty"`
 	// EnableAutoScaling - Whether to enable auto-scaler
 	EnableAutoScaling *bool `json:"enableAutoScaling,omitempty"`
-	// Type - AgentPoolType represents types of an agent pool. Possible values include: 'AgentPoolTypeVirtualMachineScaleSets', 'AgentPoolTypeAvailabilitySet'
+	// ScaleDownMode - This also effects the cluster autoscaler behavior. If not specified, it defaults to Delete. Possible values include: 'ScaleDownModeDelete', 'ScaleDownModeDeallocate'
+	ScaleDownMode ScaleDownMode `json:"scaleDownMode,omitempty"`
+	// Type - Possible values include: 'AgentPoolTypeVirtualMachineScaleSets', 'AgentPoolTypeAvailabilitySet'
 	Type AgentPoolType `json:"type,omitempty"`
-	// Mode - AgentPoolMode represents mode of an agent pool. Possible values include: 'AgentPoolModeSystem', 'AgentPoolModeUser'
+	// Mode - Possible values include: 'AgentPoolModeSystem', 'AgentPoolModeUser'
 	Mode AgentPoolMode `json:"mode,omitempty"`
-	// OrchestratorVersion - Version of orchestrator specified when creating the managed cluster.
+	// OrchestratorVersion - As a best practice, you should upgrade all node pools in an AKS cluster to the same Kubernetes version. The node pool version must have the same major version as the control plane. The node pool minor version must be within two minor versions of the control plane version. The node pool version cannot be greater than the control plane version. For more information see [upgrading a node pool](https://docs.microsoft.com/azure/aks/use-multiple-node-pools#upgrade-a-node-pool).
 	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
-	// NodeImageVersion - READ-ONLY; Version of node image
+	// NodeImageVersion - READ-ONLY; The version of node image
 	NodeImageVersion *string `json:"nodeImageVersion,omitempty"`
 	// UpgradeSettings - Settings for upgrading the agentpool
 	UpgradeSettings *AgentPoolUpgradeSettings `json:"upgradeSettings,omitempty"`
-	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response.
+	// ProvisioningState - READ-ONLY; The current deployment or provisioning state.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// PowerState - READ-ONLY; Describes whether the Agent Pool is Running or Stopped
 	PowerState *PowerState `json:"powerState,omitempty"`
-	// AvailabilityZones - Availability zones for nodes. Must use VirtualMachineScaleSets AgentPoolType.
+	// AvailabilityZones - The list of Availability zones to use for nodes. This can only be specified if the AgentPoolType property is 'VirtualMachineScaleSets'.
 	AvailabilityZones *[]string `json:"availabilityZones,omitempty"`
-	// EnableNodePublicIP - Enable public IP for nodes
+	// EnableNodePublicIP - Some scenarios may require nodes in a node pool to receive their own dedicated public IP addresses. A common scenario is for gaming workloads, where a console needs to make a direct connection to a cloud virtual machine to minimize hops. For more information see [assigning a public IP per node](https://docs.microsoft.com/azure/aks/use-multiple-node-pools#assign-a-public-ip-per-node-for-your-node-pools). The default is false.
 	EnableNodePublicIP *bool `json:"enableNodePublicIP,omitempty"`
-	// NodePublicIPPrefixID - Public IP Prefix ID. VM nodes use IPs assigned from this Public IP Prefix.
+	// NodePublicIPPrefixID - This is of the form: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/publicIPPrefixes/{publicIPPrefixName}
 	NodePublicIPPrefixID *string `json:"nodePublicIPPrefixID,omitempty"`
-	// ScaleSetPriority - ScaleSetPriority to be used to specify virtual machine scale set priority. Default to regular. Possible values include: 'ScaleSetPrioritySpot', 'ScaleSetPriorityRegular'
+	// ScaleSetPriority - The Virtual Machine Scale Set priority. If not specified, the default is 'Regular'. Possible values include: 'ScaleSetPrioritySpot', 'ScaleSetPriorityRegular'
 	ScaleSetPriority ScaleSetPriority `json:"scaleSetPriority,omitempty"`
-	// ScaleSetEvictionPolicy - ScaleSetEvictionPolicy to be used to specify eviction policy for Spot virtual machine scale set. Default to Delete. Possible values include: 'ScaleSetEvictionPolicyDelete', 'ScaleSetEvictionPolicyDeallocate'
+	// ScaleSetEvictionPolicy - This cannot be specified unless the scaleSetPriority is 'Spot'. If not specified, the default is 'Delete'. Possible values include: 'ScaleSetEvictionPolicyDelete', 'ScaleSetEvictionPolicyDeallocate'
 	ScaleSetEvictionPolicy ScaleSetEvictionPolicy `json:"scaleSetEvictionPolicy,omitempty"`
-	// SpotMaxPrice - SpotMaxPrice to be used to specify the maximum price you are willing to pay in US Dollars. Possible values are any decimal value greater than zero or -1 which indicates default price to be up-to on-demand.
+	// SpotMaxPrice - Possible values are any decimal value greater than zero or -1 which indicates the willingness to pay any on-demand price. For more details on spot pricing, see [spot VMs pricing](https://docs.microsoft.com/azure/virtual-machines/spot-vms#pricing)
 	SpotMaxPrice *float64 `json:"spotMaxPrice,omitempty"`
-	// Tags - Agent pool tags to be persisted on the agent pool virtual machine scale set.
+	// Tags - The tags to be persisted on the agent pool virtual machine scale set.
 	Tags map[string]*string `json:"tags"`
-	// NodeLabels - Agent pool node labels to be persisted across all nodes in agent pool.
+	// NodeLabels - The node labels to be persisted across all nodes in agent pool.
 	NodeLabels map[string]*string `json:"nodeLabels"`
-	// NodeTaints - Taints added to new nodes during node pool create and scale. For example, key=value:NoSchedule.
+	// NodeTaints - The taints added to new nodes during node pool create and scale. For example, key=value:NoSchedule.
 	NodeTaints *[]string `json:"nodeTaints,omitempty"`
 	// ProximityPlacementGroupID - The ID for Proximity Placement Group.
 	ProximityPlacementGroupID *string `json:"proximityPlacementGroupID,omitempty"`
-	// KubeletConfig - KubeletConfig specifies the configuration of kubelet on agent nodes.
+	// KubeletConfig - The Kubelet configuration on the agent pool nodes.
 	KubeletConfig *KubeletConfig `json:"kubeletConfig,omitempty"`
-	// LinuxOSConfig - LinuxOSConfig specifies the OS configuration of linux agent nodes.
+	// LinuxOSConfig - The OS configuration of Linux agent nodes.
 	LinuxOSConfig *LinuxOSConfig `json:"linuxOSConfig,omitempty"`
-	// EnableEncryptionAtHost - Whether to enable EncryptionAtHost
+	// EnableEncryptionAtHost - This is only supported on certain VM sizes and in certain Azure regions. For more information, see: https://docs.microsoft.com/azure/aks/enable-host-encryption
 	EnableEncryptionAtHost *bool `json:"enableEncryptionAtHost,omitempty"`
 	// EnableUltraSSD - Whether to enable UltraSSD
 	EnableUltraSSD *bool `json:"enableUltraSSD,omitempty"`
-	// EnableFIPS - Whether to use FIPS enabled OS
+	// EnableFIPS - See [Add a FIPS-enabled node pool](https://docs.microsoft.com/azure/aks/use-multiple-node-pools#add-a-fips-enabled-node-pool-preview) for more details.
 	EnableFIPS *bool `json:"enableFIPS,omitempty"`
-	// GpuInstanceProfile - GPUInstanceProfile to be used to specify GPU MIG instance profile for supported GPU VM SKU. Supported values are MIG1g, MIG2g, MIG3g, MIG4g and MIG7g. Possible values include: 'GPUInstanceProfileMIG1g', 'GPUInstanceProfileMIG2g', 'GPUInstanceProfileMIG3g', 'GPUInstanceProfileMIG4g', 'GPUInstanceProfileMIG7g'
+	// GpuInstanceProfile - GPUInstanceProfile to be used to specify GPU MIG instance profile for supported GPU VM SKU. Possible values include: 'GPUInstanceProfileMIG1g', 'GPUInstanceProfileMIG2g', 'GPUInstanceProfileMIG3g', 'GPUInstanceProfileMIG4g', 'GPUInstanceProfileMIG7g'
 	GpuInstanceProfile GPUInstanceProfile `json:"gpuInstanceProfile,omitempty"`
+	// CreationData - CreationData to be used to specify the source Snapshot ID if the node pool will be created/upgraded using a snapshot.
+	CreationData *CreationData `json:"creationData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedClusterAgentPoolProfile.
@@ -1378,6 +1395,9 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 	}
 	if mcapp.KubeletDiskType != "" {
 		objectMap["kubeletDiskType"] = mcapp.KubeletDiskType
+	}
+	if mcapp.WorkloadRuntime != "" {
+		objectMap["workloadRuntime"] = mcapp.WorkloadRuntime
 	}
 	if mcapp.VnetSubnetID != nil {
 		objectMap["vnetSubnetID"] = mcapp.VnetSubnetID
@@ -1402,6 +1422,9 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 	}
 	if mcapp.EnableAutoScaling != nil {
 		objectMap["enableAutoScaling"] = mcapp.EnableAutoScaling
+	}
+	if mcapp.ScaleDownMode != "" {
+		objectMap["scaleDownMode"] = mcapp.ScaleDownMode
 	}
 	if mcapp.Type != "" {
 		objectMap["type"] = mcapp.Type
@@ -1463,6 +1486,9 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 	if mcapp.GpuInstanceProfile != "" {
 		objectMap["gpuInstanceProfile"] = mcapp.GpuInstanceProfile
 	}
+	if mcapp.CreationData != nil {
+		objectMap["creationData"] = mcapp.CreationData
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -1470,76 +1496,81 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 type ManagedClusterAgentPoolProfileProperties struct {
 	// Count - Number of agents (VMs) to host docker containers. Allowed values must be in the range of 0 to 1000 (inclusive) for user pools and in the range of 1 to 1000 (inclusive) for system pools. The default value is 1.
 	Count *int32 `json:"count,omitempty"`
-	// VMSize - Size of agent VMs.
-	VMSize *string `json:"vmSize,omitempty"`
-	// OsDiskSizeGB - OS Disk Size in GB to be used to specify the disk size for every machine in this master/agent pool. If you specify 0, it will apply the default osDisk size according to the vmSize specified.
-	OsDiskSizeGB *int32 `json:"osDiskSizeGB,omitempty"`
-	// OsDiskType - OS disk type to be used for machines in a given agent pool. Allowed values are 'Ephemeral' and 'Managed'. If unspecified, defaults to 'Ephemeral' when the VM supports ephemeral OS and has a cache disk larger than the requested OSDiskSizeGB. Otherwise, defaults to 'Managed'. May not be changed after creation. Possible values include: 'OSDiskTypeManaged', 'OSDiskTypeEphemeral'
+	// VMSize - VM size availability varies by region. If a node contains insufficient compute resources (memory, cpu, etc) pods might fail to run correctly. For more details on restricted VM sizes, see: https://docs.microsoft.com/azure/aks/quotas-skus-regions
+	VMSize       *string `json:"vmSize,omitempty"`
+	OsDiskSizeGB *int32  `json:"osDiskSizeGB,omitempty"`
+	// OsDiskType - Possible values include: 'OSDiskTypeManaged', 'OSDiskTypeEphemeral'
 	OsDiskType OSDiskType `json:"osDiskType,omitempty"`
-	// KubeletDiskType - KubeletDiskType determines the placement of emptyDir volumes, container runtime data root, and Kubelet ephemeral storage. Currently allows one value, OS, resulting in Kubelet using the OS disk for data. Possible values include: 'KubeletDiskTypeOS', 'KubeletDiskTypeTemporary'
+	// KubeletDiskType - Possible values include: 'KubeletDiskTypeOS', 'KubeletDiskTypeTemporary'
 	KubeletDiskType KubeletDiskType `json:"kubeletDiskType,omitempty"`
-	// VnetSubnetID - VNet SubnetID specifies the VNet's subnet identifier for nodes and maybe pods
+	// WorkloadRuntime - Possible values include: 'WorkloadRuntimeOCIContainer', 'WorkloadRuntimeWasmWasi'
+	WorkloadRuntime WorkloadRuntime `json:"workloadRuntime,omitempty"`
+	// VnetSubnetID - If this is not specified, a VNET and subnet will be generated and used. If no podSubnetID is specified, this applies to nodes and pods, otherwise it applies to just nodes. This is of the form: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkName}/subnets/{subnetName}
 	VnetSubnetID *string `json:"vnetSubnetID,omitempty"`
-	// PodSubnetID - Pod SubnetID specifies the VNet's subnet identifier for pods.
+	// PodSubnetID - If omitted, pod IPs are statically assigned on the node subnet (see vnetSubnetID for more details). This is of the form: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkName}/subnets/{subnetName}
 	PodSubnetID *string `json:"podSubnetID,omitempty"`
-	// MaxPods - Maximum number of pods that can run on a node.
+	// MaxPods - The maximum number of pods that can run on a node.
 	MaxPods *int32 `json:"maxPods,omitempty"`
-	// OsType - OsType to be used to specify os type. Choose from Linux and Windows. Default to Linux. Possible values include: 'OSTypeLinux', 'OSTypeWindows'
+	// OsType - Possible values include: 'OSTypeLinux', 'OSTypeWindows'
 	OsType OSType `json:"osType,omitempty"`
-	// OsSKU - OsSKU to be used to specify os sku. Choose from Ubuntu(default) and CBLMariner for Linux OSType. Not applicable to Windows OSType. Possible values include: 'OSSKUUbuntu', 'OSSKUCBLMariner'
+	// OsSKU - Possible values include: 'OSSKUUbuntu', 'OSSKUCBLMariner'
 	OsSKU OSSKU `json:"osSKU,omitempty"`
-	// MaxCount - Maximum number of nodes for auto-scaling
+	// MaxCount - The maximum number of nodes for auto-scaling
 	MaxCount *int32 `json:"maxCount,omitempty"`
-	// MinCount - Minimum number of nodes for auto-scaling
+	// MinCount - The minimum number of nodes for auto-scaling
 	MinCount *int32 `json:"minCount,omitempty"`
 	// EnableAutoScaling - Whether to enable auto-scaler
 	EnableAutoScaling *bool `json:"enableAutoScaling,omitempty"`
-	// Type - AgentPoolType represents types of an agent pool. Possible values include: 'AgentPoolTypeVirtualMachineScaleSets', 'AgentPoolTypeAvailabilitySet'
+	// ScaleDownMode - This also effects the cluster autoscaler behavior. If not specified, it defaults to Delete. Possible values include: 'ScaleDownModeDelete', 'ScaleDownModeDeallocate'
+	ScaleDownMode ScaleDownMode `json:"scaleDownMode,omitempty"`
+	// Type - Possible values include: 'AgentPoolTypeVirtualMachineScaleSets', 'AgentPoolTypeAvailabilitySet'
 	Type AgentPoolType `json:"type,omitempty"`
-	// Mode - AgentPoolMode represents mode of an agent pool. Possible values include: 'AgentPoolModeSystem', 'AgentPoolModeUser'
+	// Mode - Possible values include: 'AgentPoolModeSystem', 'AgentPoolModeUser'
 	Mode AgentPoolMode `json:"mode,omitempty"`
-	// OrchestratorVersion - Version of orchestrator specified when creating the managed cluster.
+	// OrchestratorVersion - As a best practice, you should upgrade all node pools in an AKS cluster to the same Kubernetes version. The node pool version must have the same major version as the control plane. The node pool minor version must be within two minor versions of the control plane version. The node pool version cannot be greater than the control plane version. For more information see [upgrading a node pool](https://docs.microsoft.com/azure/aks/use-multiple-node-pools#upgrade-a-node-pool).
 	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
-	// NodeImageVersion - READ-ONLY; Version of node image
+	// NodeImageVersion - READ-ONLY; The version of node image
 	NodeImageVersion *string `json:"nodeImageVersion,omitempty"`
 	// UpgradeSettings - Settings for upgrading the agentpool
 	UpgradeSettings *AgentPoolUpgradeSettings `json:"upgradeSettings,omitempty"`
-	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response.
+	// ProvisioningState - READ-ONLY; The current deployment or provisioning state.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// PowerState - READ-ONLY; Describes whether the Agent Pool is Running or Stopped
 	PowerState *PowerState `json:"powerState,omitempty"`
-	// AvailabilityZones - Availability zones for nodes. Must use VirtualMachineScaleSets AgentPoolType.
+	// AvailabilityZones - The list of Availability zones to use for nodes. This can only be specified if the AgentPoolType property is 'VirtualMachineScaleSets'.
 	AvailabilityZones *[]string `json:"availabilityZones,omitempty"`
-	// EnableNodePublicIP - Enable public IP for nodes
+	// EnableNodePublicIP - Some scenarios may require nodes in a node pool to receive their own dedicated public IP addresses. A common scenario is for gaming workloads, where a console needs to make a direct connection to a cloud virtual machine to minimize hops. For more information see [assigning a public IP per node](https://docs.microsoft.com/azure/aks/use-multiple-node-pools#assign-a-public-ip-per-node-for-your-node-pools). The default is false.
 	EnableNodePublicIP *bool `json:"enableNodePublicIP,omitempty"`
-	// NodePublicIPPrefixID - Public IP Prefix ID. VM nodes use IPs assigned from this Public IP Prefix.
+	// NodePublicIPPrefixID - This is of the form: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/publicIPPrefixes/{publicIPPrefixName}
 	NodePublicIPPrefixID *string `json:"nodePublicIPPrefixID,omitempty"`
-	// ScaleSetPriority - ScaleSetPriority to be used to specify virtual machine scale set priority. Default to regular. Possible values include: 'ScaleSetPrioritySpot', 'ScaleSetPriorityRegular'
+	// ScaleSetPriority - The Virtual Machine Scale Set priority. If not specified, the default is 'Regular'. Possible values include: 'ScaleSetPrioritySpot', 'ScaleSetPriorityRegular'
 	ScaleSetPriority ScaleSetPriority `json:"scaleSetPriority,omitempty"`
-	// ScaleSetEvictionPolicy - ScaleSetEvictionPolicy to be used to specify eviction policy for Spot virtual machine scale set. Default to Delete. Possible values include: 'ScaleSetEvictionPolicyDelete', 'ScaleSetEvictionPolicyDeallocate'
+	// ScaleSetEvictionPolicy - This cannot be specified unless the scaleSetPriority is 'Spot'. If not specified, the default is 'Delete'. Possible values include: 'ScaleSetEvictionPolicyDelete', 'ScaleSetEvictionPolicyDeallocate'
 	ScaleSetEvictionPolicy ScaleSetEvictionPolicy `json:"scaleSetEvictionPolicy,omitempty"`
-	// SpotMaxPrice - SpotMaxPrice to be used to specify the maximum price you are willing to pay in US Dollars. Possible values are any decimal value greater than zero or -1 which indicates default price to be up-to on-demand.
+	// SpotMaxPrice - Possible values are any decimal value greater than zero or -1 which indicates the willingness to pay any on-demand price. For more details on spot pricing, see [spot VMs pricing](https://docs.microsoft.com/azure/virtual-machines/spot-vms#pricing)
 	SpotMaxPrice *float64 `json:"spotMaxPrice,omitempty"`
-	// Tags - Agent pool tags to be persisted on the agent pool virtual machine scale set.
+	// Tags - The tags to be persisted on the agent pool virtual machine scale set.
 	Tags map[string]*string `json:"tags"`
-	// NodeLabels - Agent pool node labels to be persisted across all nodes in agent pool.
+	// NodeLabels - The node labels to be persisted across all nodes in agent pool.
 	NodeLabels map[string]*string `json:"nodeLabels"`
-	// NodeTaints - Taints added to new nodes during node pool create and scale. For example, key=value:NoSchedule.
+	// NodeTaints - The taints added to new nodes during node pool create and scale. For example, key=value:NoSchedule.
 	NodeTaints *[]string `json:"nodeTaints,omitempty"`
 	// ProximityPlacementGroupID - The ID for Proximity Placement Group.
 	ProximityPlacementGroupID *string `json:"proximityPlacementGroupID,omitempty"`
-	// KubeletConfig - KubeletConfig specifies the configuration of kubelet on agent nodes.
+	// KubeletConfig - The Kubelet configuration on the agent pool nodes.
 	KubeletConfig *KubeletConfig `json:"kubeletConfig,omitempty"`
-	// LinuxOSConfig - LinuxOSConfig specifies the OS configuration of linux agent nodes.
+	// LinuxOSConfig - The OS configuration of Linux agent nodes.
 	LinuxOSConfig *LinuxOSConfig `json:"linuxOSConfig,omitempty"`
-	// EnableEncryptionAtHost - Whether to enable EncryptionAtHost
+	// EnableEncryptionAtHost - This is only supported on certain VM sizes and in certain Azure regions. For more information, see: https://docs.microsoft.com/azure/aks/enable-host-encryption
 	EnableEncryptionAtHost *bool `json:"enableEncryptionAtHost,omitempty"`
 	// EnableUltraSSD - Whether to enable UltraSSD
 	EnableUltraSSD *bool `json:"enableUltraSSD,omitempty"`
-	// EnableFIPS - Whether to use FIPS enabled OS
+	// EnableFIPS - See [Add a FIPS-enabled node pool](https://docs.microsoft.com/azure/aks/use-multiple-node-pools#add-a-fips-enabled-node-pool-preview) for more details.
 	EnableFIPS *bool `json:"enableFIPS,omitempty"`
-	// GpuInstanceProfile - GPUInstanceProfile to be used to specify GPU MIG instance profile for supported GPU VM SKU. Supported values are MIG1g, MIG2g, MIG3g, MIG4g and MIG7g. Possible values include: 'GPUInstanceProfileMIG1g', 'GPUInstanceProfileMIG2g', 'GPUInstanceProfileMIG3g', 'GPUInstanceProfileMIG4g', 'GPUInstanceProfileMIG7g'
+	// GpuInstanceProfile - GPUInstanceProfile to be used to specify GPU MIG instance profile for supported GPU VM SKU. Possible values include: 'GPUInstanceProfileMIG1g', 'GPUInstanceProfileMIG2g', 'GPUInstanceProfileMIG3g', 'GPUInstanceProfileMIG4g', 'GPUInstanceProfileMIG7g'
 	GpuInstanceProfile GPUInstanceProfile `json:"gpuInstanceProfile,omitempty"`
+	// CreationData - CreationData to be used to specify the source Snapshot ID if the node pool will be created/upgraded using a snapshot.
+	CreationData *CreationData `json:"creationData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedClusterAgentPoolProfileProperties.
@@ -1559,6 +1590,9 @@ func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, er
 	}
 	if mcappp.KubeletDiskType != "" {
 		objectMap["kubeletDiskType"] = mcappp.KubeletDiskType
+	}
+	if mcappp.WorkloadRuntime != "" {
+		objectMap["workloadRuntime"] = mcappp.WorkloadRuntime
 	}
 	if mcappp.VnetSubnetID != nil {
 		objectMap["vnetSubnetID"] = mcappp.VnetSubnetID
@@ -1583,6 +1617,9 @@ func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, er
 	}
 	if mcappp.EnableAutoScaling != nil {
 		objectMap["enableAutoScaling"] = mcappp.EnableAutoScaling
+	}
+	if mcappp.ScaleDownMode != "" {
+		objectMap["scaleDownMode"] = mcappp.ScaleDownMode
 	}
 	if mcappp.Type != "" {
 		objectMap["type"] = mcappp.Type
@@ -1644,34 +1681,39 @@ func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, er
 	if mcappp.GpuInstanceProfile != "" {
 		objectMap["gpuInstanceProfile"] = mcappp.GpuInstanceProfile
 	}
+	if mcappp.CreationData != nil {
+		objectMap["creationData"] = mcappp.CreationData
+	}
 	return json.Marshal(objectMap)
 }
 
 // ManagedClusterAPIServerAccessProfile access profile for managed cluster API server.
 type ManagedClusterAPIServerAccessProfile struct {
-	// AuthorizedIPRanges - Authorized IP Ranges to kubernetes API server.
+	// AuthorizedIPRanges - IP ranges are specified in CIDR format, e.g. 137.117.106.88/29. This feature is not compatible with clusters that use Public IP Per Node, or clusters that are using a Basic Load Balancer. For more information see [API server authorized IP ranges](https://docs.microsoft.com/azure/aks/api-server-authorized-ip-ranges).
 	AuthorizedIPRanges *[]string `json:"authorizedIPRanges,omitempty"`
-	// EnablePrivateCluster - Whether to create the cluster as a private cluster or not.
+	// EnablePrivateCluster - For more details, see [Creating a private AKS cluster](https://docs.microsoft.com/azure/aks/private-clusters).
 	EnablePrivateCluster *bool `json:"enablePrivateCluster,omitempty"`
-	// PrivateDNSZone - Private dns zone mode for private cluster.
+	// PrivateDNSZone - The default is System. For more details see [configure private DNS zone](https://docs.microsoft.com/azure/aks/private-clusters#configure-private-dns-zone). Allowed values are 'system' and 'none'.
 	PrivateDNSZone *string `json:"privateDNSZone,omitempty"`
 	// EnablePrivateClusterPublicFQDN - Whether to create additional public FQDN for private cluster or not.
 	EnablePrivateClusterPublicFQDN *bool `json:"enablePrivateClusterPublicFQDN,omitempty"`
+	// DisableRunCommand - Whether to disable run command for the cluster or not.
+	DisableRunCommand *bool `json:"disableRunCommand,omitempty"`
 }
 
 // ManagedClusterAutoUpgradeProfile auto upgrade profile for a managed cluster.
 type ManagedClusterAutoUpgradeProfile struct {
-	// UpgradeChannel - upgrade channel for auto upgrade. Possible values include: 'UpgradeChannelRapid', 'UpgradeChannelStable', 'UpgradeChannelPatch', 'UpgradeChannelNodeImage', 'UpgradeChannelNone'
+	// UpgradeChannel - For more information see [setting the AKS cluster auto-upgrade channel](https://docs.microsoft.com/azure/aks/upgrade-cluster#set-auto-upgrade-channel). Possible values include: 'UpgradeChannelRapid', 'UpgradeChannelStable', 'UpgradeChannelPatch', 'UpgradeChannelNodeImage', 'UpgradeChannelNone'
 	UpgradeChannel UpgradeChannel `json:"upgradeChannel,omitempty"`
 }
 
-// ManagedClusterHTTPProxyConfig configurations for provisioning the cluster with HTTP proxy servers.
+// ManagedClusterHTTPProxyConfig cluster HTTP proxy configuration.
 type ManagedClusterHTTPProxyConfig struct {
-	// HTTPProxy - HTTP proxy server endpoint to use.
+	// HTTPProxy - The HTTP proxy server endpoint to use.
 	HTTPProxy *string `json:"httpProxy,omitempty"`
-	// HTTPSProxy - HTTPS proxy server endpoint to use.
+	// HTTPSProxy - The HTTPS proxy server endpoint to use.
 	HTTPSProxy *string `json:"httpsProxy,omitempty"`
-	// NoProxy - Endpoints that should not go through proxy.
+	// NoProxy - The endpoints that should not go through proxy.
 	NoProxy *[]string `json:"noProxy,omitempty"`
 	// TrustedCa - Alternative CA cert to use for connecting to proxy servers.
 	TrustedCa *string `json:"trustedCa,omitempty"`
@@ -1683,9 +1725,9 @@ type ManagedClusterIdentity struct {
 	PrincipalID *string `json:"principalId,omitempty"`
 	// TenantID - READ-ONLY; The tenant id of the system assigned identity which is used by master components.
 	TenantID *string `json:"tenantId,omitempty"`
-	// Type - The type of identity used for the managed cluster. Type 'SystemAssigned' will use an implicitly created identity in master components and an auto-created user assigned identity in MC_ resource group in agent nodes. Type 'None' will not use MSI for the managed cluster, service principal will be used instead. Possible values include: 'ResourceIdentityTypeSystemAssigned', 'ResourceIdentityTypeUserAssigned', 'ResourceIdentityTypeNone'
+	// Type - For more information see [use managed identities in AKS](https://docs.microsoft.com/azure/aks/use-managed-identity). Possible values include: 'ResourceIdentityTypeSystemAssigned', 'ResourceIdentityTypeUserAssigned', 'ResourceIdentityTypeNone'
 	Type ResourceIdentityType `json:"type,omitempty"`
-	// UserAssignedIdentities - The user identity associated with the managed cluster. This identity will be used in control plane and only one user assigned identity is allowed. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'.
+	// UserAssignedIdentities - The keys must be ARM resource IDs in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'.
 	UserAssignedIdentities map[string]*ManagedClusterIdentityUserAssignedIdentitiesValue `json:"userAssignedIdentities"`
 }
 
@@ -1893,16 +1935,18 @@ type ManagedClusterLoadBalancerProfile struct {
 	OutboundIPs *ManagedClusterLoadBalancerProfileOutboundIPs `json:"outboundIPs,omitempty"`
 	// EffectiveOutboundIPs - The effective outbound IP resources of the cluster load balancer.
 	EffectiveOutboundIPs *[]ResourceReference `json:"effectiveOutboundIPs,omitempty"`
-	// AllocatedOutboundPorts - Desired number of allocated SNAT ports per VM. Allowed values must be in the range of 0 to 64000 (inclusive). The default value is 0 which results in Azure dynamically allocating ports.
+	// AllocatedOutboundPorts - The desired number of allocated SNAT ports per VM. Allowed values are in the range of 0 to 64000 (inclusive). The default value is 0 which results in Azure dynamically allocating ports.
 	AllocatedOutboundPorts *int32 `json:"allocatedOutboundPorts,omitempty"`
-	// IdleTimeoutInMinutes - Desired outbound flow idle timeout in minutes. Allowed values must be in the range of 4 to 120 (inclusive). The default value is 30 minutes.
+	// IdleTimeoutInMinutes - Desired outbound flow idle timeout in minutes. Allowed values are in the range of 4 to 120 (inclusive). The default value is 30 minutes.
 	IdleTimeoutInMinutes *int32 `json:"idleTimeoutInMinutes,omitempty"`
+	// EnableMultipleStandardLoadBalancers - Enable multiple standard load balancers per AKS cluster or not.
+	EnableMultipleStandardLoadBalancers *bool `json:"enableMultipleStandardLoadBalancers,omitempty"`
 }
 
 // ManagedClusterLoadBalancerProfileManagedOutboundIPs desired managed outbound IPs for the cluster load
 // balancer.
 type ManagedClusterLoadBalancerProfileManagedOutboundIPs struct {
-	// Count - Desired number of outbound IP created/managed by Azure for the cluster load balancer. Allowed values must be in the range of 1 to 100 (inclusive). The default value is 1.
+	// Count - The desired number of outbound IPs created/managed by Azure for the cluster load balancer. Allowed values must be in the range of 1 to 100 (inclusive). The default value is 1.
 	Count *int32 `json:"count,omitempty"`
 }
 
@@ -1920,15 +1964,32 @@ type ManagedClusterLoadBalancerProfileOutboundIPs struct {
 	PublicIPs *[]ResourceReference `json:"publicIPs,omitempty"`
 }
 
-// ManagedClusterPodIdentity ...
+// ManagedClusterManagedOutboundIPProfile profile of the managed outbound IP resources of the managed
+// cluster.
+type ManagedClusterManagedOutboundIPProfile struct {
+	// Count - The desired number of outbound IPs created/managed by Azure. Allowed values must be in the range of 1 to 16 (inclusive). The default value is 1.
+	Count *int32 `json:"count,omitempty"`
+}
+
+// ManagedClusterNATGatewayProfile profile of the managed cluster NAT gateway.
+type ManagedClusterNATGatewayProfile struct {
+	// ManagedOutboundIPProfile - Profile of the managed outbound IP resources of the cluster NAT gateway.
+	ManagedOutboundIPProfile *ManagedClusterManagedOutboundIPProfile `json:"managedOutboundIPProfile,omitempty"`
+	// EffectiveOutboundIPs - The effective outbound IP resources of the cluster NAT gateway.
+	EffectiveOutboundIPs *[]ResourceReference `json:"effectiveOutboundIPs,omitempty"`
+	// IdleTimeoutInMinutes - Desired outbound flow idle timeout in minutes. Allowed values are in the range of 4 to 120 (inclusive). The default value is 4 minutes.
+	IdleTimeoutInMinutes *int32 `json:"idleTimeoutInMinutes,omitempty"`
+}
+
+// ManagedClusterPodIdentity details about the pod identity assigned to the Managed Cluster.
 type ManagedClusterPodIdentity struct {
-	// Name - Name of the pod identity.
+	// Name - The name of the pod identity.
 	Name *string `json:"name,omitempty"`
-	// Namespace - Namespace of the pod identity.
+	// Namespace - The namespace of the pod identity.
 	Namespace *string `json:"namespace,omitempty"`
-	// BindingSelector - Binding selector to use for the AzureIdentityBinding resource.
+	// BindingSelector - The binding selector to use for the AzureIdentityBinding resource.
 	BindingSelector *string `json:"bindingSelector,omitempty"`
-	// Identity - Information of the user assigned identity.
+	// Identity - The user assigned identity details.
 	Identity *UserAssignedIdentity `json:"identity,omitempty"`
 	// ProvisioningState - READ-ONLY; The current provisioning state of the pod identity. Possible values include: 'ManagedClusterPodIdentityProvisioningStateAssigned', 'ManagedClusterPodIdentityProvisioningStateUpdating', 'ManagedClusterPodIdentityProvisioningStateDeleting', 'ManagedClusterPodIdentityProvisioningStateFailed'
 	ProvisioningState ManagedClusterPodIdentityProvisioningState `json:"provisioningState,omitempty"`
@@ -1954,13 +2015,15 @@ func (mcpi ManagedClusterPodIdentity) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ManagedClusterPodIdentityException ...
+// ManagedClusterPodIdentityException see [disable AAD Pod Identity for a specific
+// Pod/Application](https://azure.github.io/aad-pod-identity/docs/configure/application_exception/) for
+// more details.
 type ManagedClusterPodIdentityException struct {
-	// Name - Name of the pod identity exception.
+	// Name - The name of the pod identity exception.
 	Name *string `json:"name,omitempty"`
-	// Namespace - Namespace of the pod identity exception.
+	// Namespace - The namespace of the pod identity exception.
 	Namespace *string `json:"namespace,omitempty"`
-	// PodLabels - Pod labels to match.
+	// PodLabels - The pod labels to match.
 	PodLabels map[string]*string `json:"podLabels"`
 }
 
@@ -1979,31 +2042,51 @@ func (mcpie ManagedClusterPodIdentityException) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ManagedClusterPodIdentityProfile ...
+// ManagedClusterPodIdentityProfile see [use AAD pod
+// identity](https://docs.microsoft.com/azure/aks/use-azure-ad-pod-identity) for more details on pod
+// identity integration.
 type ManagedClusterPodIdentityProfile struct {
 	// Enabled - Whether the pod identity addon is enabled.
 	Enabled *bool `json:"enabled,omitempty"`
-	// AllowNetworkPluginKubenet - Customer consent for enabling AAD pod identity addon in cluster using Kubenet network plugin.
+	// AllowNetworkPluginKubenet - Running in Kubenet is disabled by default due to the security related nature of AAD Pod Identity and the risks of IP spoofing. See [using Kubenet network plugin with AAD Pod Identity](https://docs.microsoft.com/azure/aks/use-azure-ad-pod-identity#using-kubenet-network-plugin-with-azure-active-directory-pod-managed-identities) for more information.
 	AllowNetworkPluginKubenet *bool `json:"allowNetworkPluginKubenet,omitempty"`
-	// UserAssignedIdentities - User assigned pod identity settings.
+	// UserAssignedIdentities - The pod identities to use in the cluster.
 	UserAssignedIdentities *[]ManagedClusterPodIdentity `json:"userAssignedIdentities,omitempty"`
-	// UserAssignedIdentityExceptions - User assigned pod identity exception settings.
+	// UserAssignedIdentityExceptions - The pod identity exceptions to allow.
 	UserAssignedIdentityExceptions *[]ManagedClusterPodIdentityException `json:"userAssignedIdentityExceptions,omitempty"`
+}
+
+// ManagedClusterPodIdentityProvisioningError an error response from the pod identity provisioning.
+type ManagedClusterPodIdentityProvisioningError struct {
+	// Error - Details about the error.
+	Error *ManagedClusterPodIdentityProvisioningErrorBody `json:"error,omitempty"`
+}
+
+// ManagedClusterPodIdentityProvisioningErrorBody an error response from the pod identity provisioning.
+type ManagedClusterPodIdentityProvisioningErrorBody struct {
+	// Code - An identifier for the error. Codes are invariant and are intended to be consumed programmatically.
+	Code *string `json:"code,omitempty"`
+	// Message - A message describing the error, intended to be suitable for display in a user interface.
+	Message *string `json:"message,omitempty"`
+	// Target - The target of the particular error. For example, the name of the property in error.
+	Target *string `json:"target,omitempty"`
+	// Details - A list of additional details about the error.
+	Details *[]ManagedClusterPodIdentityProvisioningErrorBody `json:"details,omitempty"`
 }
 
 // ManagedClusterPodIdentityProvisioningInfo ...
 type ManagedClusterPodIdentityProvisioningInfo struct {
 	// Error - Pod identity assignment error (if any).
-	Error *CloudError `json:"error,omitempty"`
+	Error *ManagedClusterPodIdentityProvisioningError `json:"error,omitempty"`
 }
 
 // ManagedClusterPoolUpgradeProfile the list of available upgrade versions.
 type ManagedClusterPoolUpgradeProfile struct {
-	// KubernetesVersion - Kubernetes version (major, minor, patch).
+	// KubernetesVersion - The Kubernetes version (major.minor.patch).
 	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
-	// Name - Pool name.
+	// Name - The Agent Pool name.
 	Name *string `json:"name,omitempty"`
-	// OsType - OsType to be used to specify os type. Choose from Linux and Windows. Default to Linux. Possible values include: 'OSTypeLinux', 'OSTypeWindows'
+	// OsType - Possible values include: 'OSTypeLinux', 'OSTypeWindows'
 	OsType OSType `json:"osType,omitempty"`
 	// Upgrades - List of orchestrator types and versions available for upgrade.
 	Upgrades *[]ManagedClusterPoolUpgradeProfileUpgradesItem `json:"upgrades,omitempty"`
@@ -2011,70 +2094,74 @@ type ManagedClusterPoolUpgradeProfile struct {
 
 // ManagedClusterPoolUpgradeProfileUpgradesItem ...
 type ManagedClusterPoolUpgradeProfileUpgradesItem struct {
-	// KubernetesVersion - Kubernetes version (major, minor, patch).
+	// KubernetesVersion - The Kubernetes version (major.minor.patch).
 	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
-	// IsPreview - Whether Kubernetes version is currently in preview.
+	// IsPreview - Whether the Kubernetes version is currently in preview.
 	IsPreview *bool `json:"isPreview,omitempty"`
 }
 
 // ManagedClusterProperties properties of the managed cluster.
 type ManagedClusterProperties struct {
-	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response.
+	// ProvisioningState - READ-ONLY; The current provisioning state.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// PowerState - READ-ONLY; Represents the Power State of the cluster
+	// PowerState - READ-ONLY; The Power State of the cluster.
 	PowerState *PowerState `json:"powerState,omitempty"`
 	// MaxAgentPools - READ-ONLY; The max number of agent pools for the managed cluster.
 	MaxAgentPools *int32 `json:"maxAgentPools,omitempty"`
-	// KubernetesVersion - Version of Kubernetes specified when creating the managed cluster.
+	// KubernetesVersion - When you upgrade a supported AKS cluster, Kubernetes minor versions cannot be skipped. All upgrades must be performed sequentially by major version number. For example, upgrades between 1.14.x -> 1.15.x or 1.15.x -> 1.16.x are allowed, however 1.14.x -> 1.16.x is not allowed. See [upgrading an AKS cluster](https://docs.microsoft.com/azure/aks/upgrade-cluster) for more details.
 	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
-	// DNSPrefix - DNS prefix specified when creating the managed cluster.
+	// DNSPrefix - This cannot be updated once the Managed Cluster has been created.
 	DNSPrefix *string `json:"dnsPrefix,omitempty"`
-	// FqdnSubdomain - FQDN subdomain specified when creating private cluster with custom private dns zone.
+	// FqdnSubdomain - This cannot be updated once the Managed Cluster has been created.
 	FqdnSubdomain *string `json:"fqdnSubdomain,omitempty"`
-	// Fqdn - READ-ONLY; FQDN for the master pool.
+	// Fqdn - READ-ONLY; The FQDN of the master pool.
 	Fqdn *string `json:"fqdn,omitempty"`
-	// PrivateFQDN - READ-ONLY; FQDN of private cluster.
+	// PrivateFQDN - READ-ONLY; The FQDN of private cluster.
 	PrivateFQDN *string `json:"privateFQDN,omitempty"`
-	// AzurePortalFQDN - READ-ONLY; FQDN for the master pool which used by proxy config.
+	// AzurePortalFQDN - READ-ONLY; The Azure Portal requires certain Cross-Origin Resource Sharing (CORS) headers to be sent in some responses, which Kubernetes APIServer doesn't handle by default. This special FQDN supports CORS, allowing the Azure Portal to function properly.
 	AzurePortalFQDN *string `json:"azurePortalFQDN,omitempty"`
-	// AgentPoolProfiles - Properties of the agent pool.
+	// AgentPoolProfiles - The agent pool properties.
 	AgentPoolProfiles *[]ManagedClusterAgentPoolProfile `json:"agentPoolProfiles,omitempty"`
-	// LinuxProfile - Profile for Linux VMs in the container service cluster.
+	// LinuxProfile - The profile for Linux VMs in the Managed Cluster.
 	LinuxProfile *LinuxProfile `json:"linuxProfile,omitempty"`
-	// WindowsProfile - Profile for Windows VMs in the container service cluster.
+	// WindowsProfile - The profile for Windows VMs in the Managed Cluster.
 	WindowsProfile *ManagedClusterWindowsProfile `json:"windowsProfile,omitempty"`
 	// ServicePrincipalProfile - Information about a service principal identity for the cluster to use for manipulating Azure APIs.
 	ServicePrincipalProfile *ManagedClusterServicePrincipalProfile `json:"servicePrincipalProfile,omitempty"`
-	// AddonProfiles - Profile of managed cluster add-on.
+	// AddonProfiles - The profile of managed cluster add-on.
 	AddonProfiles map[string]*ManagedClusterAddonProfile `json:"addonProfiles"`
-	// PodIdentityProfile - Profile of managed cluster pod identity.
+	// PodIdentityProfile - See [use AAD pod identity](https://docs.microsoft.com/azure/aks/use-azure-ad-pod-identity) for more details on AAD pod identity integration.
 	PodIdentityProfile *ManagedClusterPodIdentityProfile `json:"podIdentityProfile,omitempty"`
-	// NodeResourceGroup - Name of the resource group containing agent pool nodes.
+	// NodeResourceGroup - The name of the resource group containing agent pool nodes.
 	NodeResourceGroup *string `json:"nodeResourceGroup,omitempty"`
 	// EnableRBAC - Whether to enable Kubernetes Role-Based Access Control.
 	EnableRBAC *bool `json:"enableRBAC,omitempty"`
 	// EnablePodSecurityPolicy - (DEPRECATING) Whether to enable Kubernetes pod security policy (preview). This feature is set for removal on October 15th, 2020. Learn more at aka.ms/aks/azpodpolicy.
 	EnablePodSecurityPolicy *bool `json:"enablePodSecurityPolicy,omitempty"`
-	// NetworkProfile - Profile of network configuration.
+	// NetworkProfile - The network configuration profile.
 	NetworkProfile *NetworkProfile `json:"networkProfile,omitempty"`
-	// AadProfile - Profile of Azure Active Directory configuration.
+	// AadProfile - The Azure Active Directory configuration.
 	AadProfile *ManagedClusterAADProfile `json:"aadProfile,omitempty"`
-	// AutoUpgradeProfile - Profile of auto upgrade configuration.
+	// AutoUpgradeProfile - The auto upgrade configuration.
 	AutoUpgradeProfile *ManagedClusterAutoUpgradeProfile `json:"autoUpgradeProfile,omitempty"`
 	// AutoScalerProfile - Parameters to be applied to the cluster-autoscaler when enabled
 	AutoScalerProfile *ManagedClusterPropertiesAutoScalerProfile `json:"autoScalerProfile,omitempty"`
-	// APIServerAccessProfile - Access profile for managed cluster API server.
+	// APIServerAccessProfile - The access profile for managed cluster API server.
 	APIServerAccessProfile *ManagedClusterAPIServerAccessProfile `json:"apiServerAccessProfile,omitempty"`
-	// DiskEncryptionSetID - ResourceId of the disk encryption set to use for enabling encryption at rest.
+	// DiskEncryptionSetID - This is of the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/diskEncryptionSets/{encryptionSetName}'
 	DiskEncryptionSetID *string `json:"diskEncryptionSetID,omitempty"`
 	// IdentityProfile - Identities associated with the cluster.
-	IdentityProfile map[string]*ManagedClusterPropertiesIdentityProfileValue `json:"identityProfile"`
+	IdentityProfile map[string]*UserAssignedIdentity `json:"identityProfile"`
 	// PrivateLinkResources - Private link resources associated with the cluster.
 	PrivateLinkResources *[]PrivateLinkResource `json:"privateLinkResources,omitempty"`
-	// DisableLocalAccounts - If set to true, getting static credential will be disabled for this cluster. Expected to only be used for AAD clusters.
+	// DisableLocalAccounts - If set to true, getting static credentials will be disabled for this cluster. This must only be used on Managed Clusters that are AAD enabled. For more details see [disable local accounts](https://docs.microsoft.com/azure/aks/managed-aad#disable-local-accounts-preview).
 	DisableLocalAccounts *bool `json:"disableLocalAccounts,omitempty"`
 	// HTTPProxyConfig - Configurations for provisioning the cluster with HTTP proxy servers.
 	HTTPProxyConfig *ManagedClusterHTTPProxyConfig `json:"httpProxyConfig,omitempty"`
+	// SecurityProfile - Security profile for the managed cluster.
+	SecurityProfile *ManagedClusterSecurityProfile `json:"securityProfile,omitempty"`
+	// PublicNetworkAccess - Default value is 'Enabled' (case insensitive). Could be set to 'Disabled' to enable private cluster. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedClusterProperties.
@@ -2146,40 +2233,52 @@ func (mcp ManagedClusterProperties) MarshalJSON() ([]byte, error) {
 	if mcp.HTTPProxyConfig != nil {
 		objectMap["httpProxyConfig"] = mcp.HTTPProxyConfig
 	}
+	if mcp.SecurityProfile != nil {
+		objectMap["securityProfile"] = mcp.SecurityProfile
+	}
+	if mcp.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = mcp.PublicNetworkAccess
+	}
 	return json.Marshal(objectMap)
 }
 
 // ManagedClusterPropertiesAutoScalerProfile parameters to be applied to the cluster-autoscaler when
 // enabled
 type ManagedClusterPropertiesAutoScalerProfile struct {
+	// BalanceSimilarNodeGroups - Valid values are 'true' and 'false'
 	BalanceSimilarNodeGroups *string `json:"balance-similar-node-groups,omitempty"`
-	// Expander - Possible values include: 'ExpanderLeastWaste', 'ExpanderMostPods', 'ExpanderPriority', 'ExpanderRandom'
-	Expander                      Expander `json:"expander,omitempty"`
-	MaxEmptyBulkDelete            *string  `json:"max-empty-bulk-delete,omitempty"`
-	MaxGracefulTerminationSec     *string  `json:"max-graceful-termination-sec,omitempty"`
-	MaxNodeProvisionTime          *string  `json:"max-node-provision-time,omitempty"`
-	MaxTotalUnreadyPercentage     *string  `json:"max-total-unready-percentage,omitempty"`
-	NewPodScaleUpDelay            *string  `json:"new-pod-scale-up-delay,omitempty"`
-	OkTotalUnreadyCount           *string  `json:"ok-total-unready-count,omitempty"`
-	ScanInterval                  *string  `json:"scan-interval,omitempty"`
-	ScaleDownDelayAfterAdd        *string  `json:"scale-down-delay-after-add,omitempty"`
-	ScaleDownDelayAfterDelete     *string  `json:"scale-down-delay-after-delete,omitempty"`
-	ScaleDownDelayAfterFailure    *string  `json:"scale-down-delay-after-failure,omitempty"`
-	ScaleDownUnneededTime         *string  `json:"scale-down-unneeded-time,omitempty"`
-	ScaleDownUnreadyTime          *string  `json:"scale-down-unready-time,omitempty"`
-	ScaleDownUtilizationThreshold *string  `json:"scale-down-utilization-threshold,omitempty"`
-	SkipNodesWithLocalStorage     *string  `json:"skip-nodes-with-local-storage,omitempty"`
-	SkipNodesWithSystemPods       *string  `json:"skip-nodes-with-system-pods,omitempty"`
-}
-
-// ManagedClusterPropertiesIdentityProfileValue ...
-type ManagedClusterPropertiesIdentityProfileValue struct {
-	// ResourceID - The resource id of the user assigned identity.
-	ResourceID *string `json:"resourceId,omitempty"`
-	// ClientID - The client id of the user assigned identity.
-	ClientID *string `json:"clientId,omitempty"`
-	// ObjectID - The object id of the user assigned identity.
-	ObjectID *string `json:"objectId,omitempty"`
+	// Expander - If not specified, the default is 'random'. See [expanders](https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/FAQ.md#what-are-expanders) for more information. Possible values include: 'ExpanderLeastWaste', 'ExpanderMostPods', 'ExpanderPriority', 'ExpanderRandom'
+	Expander Expander `json:"expander,omitempty"`
+	// MaxEmptyBulkDelete - The default is 10.
+	MaxEmptyBulkDelete *string `json:"max-empty-bulk-delete,omitempty"`
+	// MaxGracefulTerminationSec - The default is 600.
+	MaxGracefulTerminationSec *string `json:"max-graceful-termination-sec,omitempty"`
+	// MaxNodeProvisionTime - The default is '15m'. Values must be an integer followed by an 'm'. No unit of time other than minutes (m) is supported.
+	MaxNodeProvisionTime *string `json:"max-node-provision-time,omitempty"`
+	// MaxTotalUnreadyPercentage - The default is 45. The maximum is 100 and the minimum is 0.
+	MaxTotalUnreadyPercentage *string `json:"max-total-unready-percentage,omitempty"`
+	// NewPodScaleUpDelay - For scenarios like burst/batch scale where you don't want CA to act before the kubernetes scheduler could schedule all the pods, you can tell CA to ignore unscheduled pods before they're a certain age. The default is '0s'. Values must be an integer followed by a unit ('s' for seconds, 'm' for minutes, 'h' for hours, etc).
+	NewPodScaleUpDelay *string `json:"new-pod-scale-up-delay,omitempty"`
+	// OkTotalUnreadyCount - This must be an integer. The default is 3.
+	OkTotalUnreadyCount *string `json:"ok-total-unready-count,omitempty"`
+	// ScanInterval - The default is '10'. Values must be an integer number of seconds.
+	ScanInterval *string `json:"scan-interval,omitempty"`
+	// ScaleDownDelayAfterAdd - The default is '10m'. Values must be an integer followed by an 'm'. No unit of time other than minutes (m) is supported.
+	ScaleDownDelayAfterAdd *string `json:"scale-down-delay-after-add,omitempty"`
+	// ScaleDownDelayAfterDelete - The default is the scan-interval. Values must be an integer followed by an 'm'. No unit of time other than minutes (m) is supported.
+	ScaleDownDelayAfterDelete *string `json:"scale-down-delay-after-delete,omitempty"`
+	// ScaleDownDelayAfterFailure - The default is '3m'. Values must be an integer followed by an 'm'. No unit of time other than minutes (m) is supported.
+	ScaleDownDelayAfterFailure *string `json:"scale-down-delay-after-failure,omitempty"`
+	// ScaleDownUnneededTime - The default is '10m'. Values must be an integer followed by an 'm'. No unit of time other than minutes (m) is supported.
+	ScaleDownUnneededTime *string `json:"scale-down-unneeded-time,omitempty"`
+	// ScaleDownUnreadyTime - The default is '20m'. Values must be an integer followed by an 'm'. No unit of time other than minutes (m) is supported.
+	ScaleDownUnreadyTime *string `json:"scale-down-unready-time,omitempty"`
+	// ScaleDownUtilizationThreshold - The default is '0.5'.
+	ScaleDownUtilizationThreshold *string `json:"scale-down-utilization-threshold,omitempty"`
+	// SkipNodesWithLocalStorage - The default is true.
+	SkipNodesWithLocalStorage *string `json:"skip-nodes-with-local-storage,omitempty"`
+	// SkipNodesWithSystemPods - The default is true.
+	SkipNodesWithSystemPods *string `json:"skip-nodes-with-system-pods,omitempty"`
 }
 
 // ManagedClustersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -2262,6 +2361,20 @@ func (future *ManagedClustersDeleteFuture) result(client ManagedClustersClient) 
 	return
 }
 
+// ManagedClusterSecurityProfile security profile for the container service cluster.
+type ManagedClusterSecurityProfile struct {
+	// AzureDefender - Azure Defender settings for the security profile.
+	AzureDefender *ManagedClusterSecurityProfileAzureDefender `json:"azureDefender,omitempty"`
+}
+
+// ManagedClusterSecurityProfileAzureDefender azure Defender settings for the security profile.
+type ManagedClusterSecurityProfileAzureDefender struct {
+	// Enabled - Whether to enable Azure Defender
+	Enabled *bool `json:"enabled,omitempty"`
+	// LogAnalyticsWorkspaceResourceID - Resource ID of the Log Analytics workspace to be associated with Azure Defender.  When Azure Defender is enabled, this field is required and must be a valid workspace resource ID. When Azure Defender is disabled, leave the field empty.
+	LogAnalyticsWorkspaceResourceID *string `json:"logAnalyticsWorkspaceResourceId,omitempty"`
+}
+
 // ManagedClusterServicePrincipalProfile information about a service principal identity for the cluster to
 // use for manipulating Azure APIs.
 type ManagedClusterServicePrincipalProfile struct {
@@ -2271,11 +2384,11 @@ type ManagedClusterServicePrincipalProfile struct {
 	Secret *string `json:"secret,omitempty"`
 }
 
-// ManagedClusterSKU ...
+// ManagedClusterSKU the SKU of a Managed Cluster.
 type ManagedClusterSKU struct {
-	// Name - Name of a managed cluster SKU. Possible values include: 'ManagedClusterSKUNameBasic'
+	// Name - The name of a managed cluster SKU. Possible values include: 'ManagedClusterSKUNameBasic'
 	Name ManagedClusterSKUName `json:"name,omitempty"`
-	// Tier - Tier of a managed cluster SKU. Possible values include: 'ManagedClusterSKUTierPaid', 'ManagedClusterSKUTierFree'
+	// Tier - If not specified, the default is 'Free'. See [uptime SLA](https://docs.microsoft.com/azure/aks/uptime-sla) for more details. Possible values include: 'ManagedClusterSKUTierPaid', 'ManagedClusterSKUTierFree'
 	Tier ManagedClusterSKUTier `json:"tier,omitempty"`
 }
 
@@ -2553,13 +2666,13 @@ func (future *ManagedClustersUpdateTagsFuture) result(client ManagedClustersClie
 // ManagedClusterUpgradeProfile the list of available upgrades for compute pools.
 type ManagedClusterUpgradeProfile struct {
 	autorest.Response `json:"-"`
-	// ID - READ-ONLY; Id of upgrade profile.
+	// ID - READ-ONLY; The ID of the upgrade profile.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of upgrade profile.
+	// Name - READ-ONLY; The name of the upgrade profile.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of upgrade profile.
+	// Type - READ-ONLY; The type of the upgrade profile.
 	Type *string `json:"type,omitempty"`
-	// ManagedClusterUpgradeProfileProperties - Properties of upgrade profile.
+	// ManagedClusterUpgradeProfileProperties - The properties of the upgrade profile.
 	*ManagedClusterUpgradeProfileProperties `json:"properties,omitempty"`
 }
 
@@ -2631,15 +2744,15 @@ type ManagedClusterUpgradeProfileProperties struct {
 	AgentPoolProfiles *[]ManagedClusterPoolUpgradeProfile `json:"agentPoolProfiles,omitempty"`
 }
 
-// ManagedClusterWindowsProfile profile for Windows VMs in the container service cluster.
+// ManagedClusterWindowsProfile profile for Windows VMs in the managed cluster.
 type ManagedClusterWindowsProfile struct {
-	// AdminUsername - Specifies the name of the administrator account. <br><br> **restriction:** Cannot end in "." <br><br> **Disallowed values:** "administrator", "admin", "user", "user1", "test", "user2", "test1", "user3", "admin1", "1", "123", "a", "actuser", "adm", "admin2", "aspnet", "backup", "console", "david", "guest", "john", "owner", "root", "server", "sql", "support", "support_388945a0", "sys", "test2", "test3", "user4", "user5". <br><br> **Minimum-length:** 1 character <br><br> **Max-length:** 20 characters
+	// AdminUsername - Specifies the name of the administrator account. <br><br> **Restriction:** Cannot end in "." <br><br> **Disallowed values:** "administrator", "admin", "user", "user1", "test", "user2", "test1", "user3", "admin1", "1", "123", "a", "actuser", "adm", "admin2", "aspnet", "backup", "console", "david", "guest", "john", "owner", "root", "server", "sql", "support", "support_388945a0", "sys", "test2", "test3", "user4", "user5". <br><br> **Minimum-length:** 1 character <br><br> **Max-length:** 20 characters
 	AdminUsername *string `json:"adminUsername,omitempty"`
 	// AdminPassword - Specifies the password of the administrator account. <br><br> **Minimum-length:** 8 characters <br><br> **Max-length:** 123 characters <br><br> **Complexity requirements:** 3 out of 4 conditions below need to be fulfilled <br> Has lower characters <br>Has upper characters <br> Has a digit <br> Has a special character (Regex match [\W_]) <br><br> **Disallowed values:** "abc@123", "P@$$w0rd", "P@ssw0rd", "P@ssword123", "Pa$$word", "pass@word1", "Password!", "Password1", "Password22", "iloveyou!"
 	AdminPassword *string `json:"adminPassword,omitempty"`
-	// LicenseType - The licenseType to use for Windows VMs. Windows_Server is used to enable Azure Hybrid User Benefits for Windows VMs. Possible values include: 'LicenseTypeNone', 'LicenseTypeWindowsServer'
+	// LicenseType - The license type to use for Windows VMs. See [Azure Hybrid User Benefits](https://azure.microsoft.com/pricing/hybrid-benefit/faq/) for more details. Possible values include: 'LicenseTypeNone', 'LicenseTypeWindowsServer'
 	LicenseType LicenseType `json:"licenseType,omitempty"`
-	// EnableCSIProxy - Whether to enable CSI proxy.
+	// EnableCSIProxy - For more details on CSI proxy, see the [CSI proxy GitHub repo](https://github.com/kubernetes-csi/csi-proxy).
 	EnableCSIProxy *bool `json:"enableCSIProxy,omitempty"`
 }
 
@@ -2692,11 +2805,11 @@ func (mp MasterProfile) MarshalJSON() ([]byte, error) {
 
 // NetworkProfile profile of network configuration.
 type NetworkProfile struct {
-	// NetworkPlugin - Network plugin used for building Kubernetes network. Possible values include: 'NetworkPluginAzure', 'NetworkPluginKubenet'
+	// NetworkPlugin - Network plugin used for building the Kubernetes network. Possible values include: 'NetworkPluginAzure', 'NetworkPluginKubenet'
 	NetworkPlugin NetworkPlugin `json:"networkPlugin,omitempty"`
-	// NetworkPolicy - Network policy used for building Kubernetes network. Possible values include: 'NetworkPolicyCalico', 'NetworkPolicyAzure'
+	// NetworkPolicy - Network policy used for building the Kubernetes network. Possible values include: 'NetworkPolicyCalico', 'NetworkPolicyAzure'
 	NetworkPolicy NetworkPolicy `json:"networkPolicy,omitempty"`
-	// NetworkMode - Network mode used for building Kubernetes network. Possible values include: 'NetworkModeTransparent', 'NetworkModeBridge'
+	// NetworkMode - This cannot be specified if networkPlugin is anything other than 'azure'. Possible values include: 'NetworkModeTransparent', 'NetworkModeBridge'
 	NetworkMode NetworkMode `json:"networkMode,omitempty"`
 	// PodCidr - A CIDR notation IP range from which to assign pod IPs when kubenet is used.
 	PodCidr *string `json:"podCidr,omitempty"`
@@ -2706,18 +2819,20 @@ type NetworkProfile struct {
 	DNSServiceIP *string `json:"dnsServiceIP,omitempty"`
 	// DockerBridgeCidr - A CIDR notation IP range assigned to the Docker bridge network. It must not overlap with any Subnet IP ranges or the Kubernetes service address range.
 	DockerBridgeCidr *string `json:"dockerBridgeCidr,omitempty"`
-	// OutboundType - The outbound (egress) routing method. Possible values include: 'OutboundTypeLoadBalancer', 'OutboundTypeUserDefinedRouting'
+	// OutboundType - This can only be set at cluster creation time and cannot be changed later. For more information see [egress outbound type](https://docs.microsoft.com/azure/aks/egress-outboundtype). Possible values include: 'OutboundTypeLoadBalancer', 'OutboundTypeUserDefinedRouting', 'OutboundTypeManagedNATGateway', 'OutboundTypeUserAssignedNATGateway'
 	OutboundType OutboundType `json:"outboundType,omitempty"`
-	// LoadBalancerSku - The load balancer sku for the managed cluster. Possible values include: 'LoadBalancerSkuStandard', 'LoadBalancerSkuBasic'
+	// LoadBalancerSku - The default is 'standard'. See [Azure Load Balancer SKUs](https://docs.microsoft.com/azure/load-balancer/skus) for more information about the differences between load balancer SKUs. Possible values include: 'LoadBalancerSkuStandard', 'LoadBalancerSkuBasic'
 	LoadBalancerSku LoadBalancerSku `json:"loadBalancerSku,omitempty"`
 	// LoadBalancerProfile - Profile of the cluster load balancer.
 	LoadBalancerProfile *ManagedClusterLoadBalancerProfile `json:"loadBalancerProfile,omitempty"`
+	// NatGatewayProfile - Profile of the cluster NAT gateway.
+	NatGatewayProfile *ManagedClusterNATGatewayProfile `json:"natGatewayProfile,omitempty"`
 }
 
-// OperationListResult the List Compute Operation operation response.
+// OperationListResult the List Operation response.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
-	// Value - READ-ONLY; The list of compute operations
+	// Value - READ-ONLY; The list of operations
 	Value *[]OperationValue `json:"value,omitempty"`
 }
 
@@ -2727,13 +2842,13 @@ func (olr OperationListResult) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// OperationValue describes the properties of a Compute Operation value.
+// OperationValue describes the properties of a Operation value.
 type OperationValue struct {
-	// Origin - READ-ONLY; The origin of the compute operation.
+	// Origin - READ-ONLY; The origin of the operation.
 	Origin *string `json:"origin,omitempty"`
-	// Name - READ-ONLY; The name of the compute operation.
+	// Name - READ-ONLY; The name of the operation.
 	Name *string `json:"name,omitempty"`
-	// OperationValueDisplay - Describes the properties of a Compute Operation Value Display.
+	// OperationValueDisplay - Describes the properties of a Operation Value Display.
 	*OperationValueDisplay `json:"display,omitempty"`
 }
 
@@ -2788,9 +2903,9 @@ func (ov *OperationValue) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// OperationValueDisplay describes the properties of a Compute Operation Value Display.
+// OperationValueDisplay describes the properties of a Operation Value Display.
 type OperationValueDisplay struct {
-	// Operation - READ-ONLY; The display name of the compute operation.
+	// Operation - READ-ONLY; The display name of the operation.
 	Operation *string `json:"operation,omitempty"`
 	// Resource - READ-ONLY; The display name of the resource the operation applies to.
 	Resource *string `json:"resource,omitempty"`
@@ -2809,13 +2924,13 @@ func (ovd OperationValueDisplay) MarshalJSON() ([]byte, error) {
 // OSOptionProfile the OS option profile.
 type OSOptionProfile struct {
 	autorest.Response `json:"-"`
-	// ID - READ-ONLY; Id of the OS option profile.
+	// ID - READ-ONLY; The ID of the OS option resource.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the OS option profile.
+	// Name - READ-ONLY; The name of the OS option resource.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the OS option profile.
+	// Type - READ-ONLY; The type of the OS option resource.
 	Type *string `json:"type,omitempty"`
-	// OSOptionPropertyList - The list of an OS option properties.
+	// OSOptionPropertyList - The list of OS options.
 	*OSOptionPropertyList `json:"properties,omitempty"`
 }
 
@@ -2881,15 +2996,15 @@ func (oop *OSOptionProfile) UnmarshalJSON(body []byte) error {
 
 // OSOptionProperty OS option property.
 type OSOptionProperty struct {
-	// OsType - OS type.
+	// OsType - The OS type.
 	OsType *string `json:"os-type,omitempty"`
-	// EnableFipsImage - Whether FIPS image is enabled.
+	// EnableFipsImage - Whether the image is FIPS-enabled.
 	EnableFipsImage *bool `json:"enable-fips-image,omitempty"`
 }
 
 // OSOptionPropertyList the list of OS option properties.
 type OSOptionPropertyList struct {
-	// OsOptionPropertyList - The list of OS option properties.
+	// OsOptionPropertyList - The list of OS options.
 	OsOptionPropertyList *[]OSOptionProperty `json:"osOptionPropertyList,omitempty"`
 }
 
@@ -3078,7 +3193,7 @@ type PowerState struct {
 
 // PrivateEndpoint private endpoint which a connection belongs to.
 type PrivateEndpoint struct {
-	// ID - The resource Id for private endpoint
+	// ID - The resource ID of the private endpoint
 	ID *string `json:"id,omitempty"`
 }
 
@@ -3232,7 +3347,7 @@ type PrivateLinkResource struct {
 	Type *string `json:"type,omitempty"`
 	// GroupID - The group ID of the resource.
 	GroupID *string `json:"groupId,omitempty"`
-	// RequiredMembers - RequiredMembers of the resource
+	// RequiredMembers - The RequiredMembers of the resource
 	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
 	// PrivateLinkServiceID - READ-ONLY; The private link service ID of the resource, this field is exposed only to NRP internally.
 	PrivateLinkServiceID *string `json:"privateLinkServiceID,omitempty"`
@@ -3306,11 +3421,11 @@ type ResourceReference struct {
 	ID *string `json:"id,omitempty"`
 }
 
-// RunCommandRequest run command request
+// RunCommandRequest a run command request
 type RunCommandRequest struct {
-	// Command - command to run.
+	// Command - The command to run.
 	Command *string `json:"command,omitempty"`
-	// Context - base64 encoded zip file, contains files required by the command
+	// Context - A base64 encoded zip file containing the files required by the command.
 	Context *string `json:"context,omitempty"`
 	// ClusterToken - AuthToken issued for AKS AAD Server App.
 	ClusterToken *string `json:"clusterToken,omitempty"`
@@ -3319,7 +3434,7 @@ type RunCommandRequest struct {
 // RunCommandResult run command result.
 type RunCommandResult struct {
 	autorest.Response `json:"-"`
-	// ID - READ-ONLY; command id.
+	// ID - READ-ONLY; The command id.
 	ID *string `json:"id,omitempty"`
 	// CommandResultProperties - Properties of command result.
 	*CommandResultProperties `json:"properties,omitempty"`
@@ -3367,9 +3482,297 @@ func (rcr *RunCommandResult) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// Snapshot a node pool snapshot resource.
+type Snapshot struct {
+	autorest.Response `json:"-"`
+	// SystemData - READ-ONLY; The system metadata relating to this snapshot.
+	SystemData *SystemData `json:"systemData,omitempty"`
+	// SnapshotProperties - Properties of a snapshot.
+	*SnapshotProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+	// Location - Resource location
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for Snapshot.
+func (s Snapshot) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if s.SnapshotProperties != nil {
+		objectMap["properties"] = s.SnapshotProperties
+	}
+	if s.Location != nil {
+		objectMap["location"] = s.Location
+	}
+	if s.Tags != nil {
+		objectMap["tags"] = s.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for Snapshot struct.
+func (s *Snapshot) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				s.SystemData = &systemData
+			}
+		case "properties":
+			if v != nil {
+				var snapshotProperties SnapshotProperties
+				err = json.Unmarshal(*v, &snapshotProperties)
+				if err != nil {
+					return err
+				}
+				s.SnapshotProperties = &snapshotProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				s.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				s.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				s.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				s.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				s.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// SnapshotListResult the response from the List Snapshots operation.
+type SnapshotListResult struct {
+	autorest.Response `json:"-"`
+	// Value - The list of snapshots.
+	Value *[]Snapshot `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URL to get the next set of snapshot results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SnapshotListResult.
+func (slr SnapshotListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if slr.Value != nil {
+		objectMap["value"] = slr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// SnapshotListResultIterator provides access to a complete listing of Snapshot values.
+type SnapshotListResultIterator struct {
+	i    int
+	page SnapshotListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *SnapshotListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SnapshotListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *SnapshotListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter SnapshotListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter SnapshotListResultIterator) Response() SnapshotListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter SnapshotListResultIterator) Value() Snapshot {
+	if !iter.page.NotDone() {
+		return Snapshot{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the SnapshotListResultIterator type.
+func NewSnapshotListResultIterator(page SnapshotListResultPage) SnapshotListResultIterator {
+	return SnapshotListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (slr SnapshotListResult) IsEmpty() bool {
+	return slr.Value == nil || len(*slr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (slr SnapshotListResult) hasNextLink() bool {
+	return slr.NextLink != nil && len(*slr.NextLink) != 0
+}
+
+// snapshotListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (slr SnapshotListResult) snapshotListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !slr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(slr.NextLink)))
+}
+
+// SnapshotListResultPage contains a page of Snapshot values.
+type SnapshotListResultPage struct {
+	fn  func(context.Context, SnapshotListResult) (SnapshotListResult, error)
+	slr SnapshotListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *SnapshotListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SnapshotListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.slr)
+		if err != nil {
+			return err
+		}
+		page.slr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *SnapshotListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page SnapshotListResultPage) NotDone() bool {
+	return !page.slr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page SnapshotListResultPage) Response() SnapshotListResult {
+	return page.slr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page SnapshotListResultPage) Values() []Snapshot {
+	if page.slr.IsEmpty() {
+		return nil
+	}
+	return *page.slr.Value
+}
+
+// Creates a new instance of the SnapshotListResultPage type.
+func NewSnapshotListResultPage(cur SnapshotListResult, getNextPage func(context.Context, SnapshotListResult) (SnapshotListResult, error)) SnapshotListResultPage {
+	return SnapshotListResultPage{
+		fn:  getNextPage,
+		slr: cur,
+	}
+}
+
+// SnapshotProperties properties used to configure a node pool snapshot.
+type SnapshotProperties struct {
+	// CreationData - CreationData to be used to specify the source agent pool resource ID to create this snapshot.
+	CreationData *CreationData `json:"creationData,omitempty"`
+	// SnapshotType - Possible values include: 'SnapshotTypeNodePool'
+	SnapshotType SnapshotType `json:"snapshotType,omitempty"`
+}
+
 // SSHConfiguration SSH configuration for Linux-based VMs running on Azure.
 type SSHConfiguration struct {
-	// PublicKeys - The list of SSH public keys used to authenticate with Linux-based VMs. Only expect one key specified.
+	// PublicKeys - The list of SSH public keys used to authenticate with Linux-based VMs. A maximum of 1 key may be specified.
 	PublicKeys *[]SSHPublicKey `json:"publicKeys,omitempty"`
 }
 
@@ -3461,7 +3864,7 @@ type SystemData struct {
 	CreatedBy *string `json:"createdBy,omitempty"`
 	// CreatedByType - The type of identity that created the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
 	CreatedByType CreatedByType `json:"createdByType,omitempty"`
-	// CreatedAt - The timestamp of resource creation (UTC).
+	// CreatedAt - The UTC timestamp of resource creation.
 	CreatedAt *date.Time `json:"createdAt,omitempty"`
 	// LastModifiedBy - The identity that last modified the resource.
 	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
@@ -3488,13 +3891,13 @@ func (toVar TagsObject) MarshalJSON() ([]byte, error) {
 
 // TimeInWeek time in a week.
 type TimeInWeek struct {
-	// Day - A day in a week. Possible values include: 'WeekDaySunday', 'WeekDayMonday', 'WeekDayTuesday', 'WeekDayWednesday', 'WeekDayThursday', 'WeekDayFriday', 'WeekDaySaturday'
+	// Day - The day of the week. Possible values include: 'WeekDaySunday', 'WeekDayMonday', 'WeekDayTuesday', 'WeekDayWednesday', 'WeekDayThursday', 'WeekDayFriday', 'WeekDaySaturday'
 	Day WeekDay `json:"day,omitempty"`
-	// HourSlots - hour slots in a day.
+	// HourSlots - Each integer hour represents a time range beginning at 0m after the hour ending at the next hour (non-inclusive). 0 corresponds to 00:00 UTC, 23 corresponds to 23:00 UTC. Specifying [0, 1] means the 00:00 - 02:00 UTC time range.
 	HourSlots *[]int32 `json:"hourSlots,omitempty"`
 }
 
-// TimeSpan the time span with start and end properties.
+// TimeSpan for example, between 2021-05-25T13:00:00Z and 2021-05-25T14:00:00Z.
 type TimeSpan struct {
 	// Start - The start of a time span
 	Start *date.Time `json:"start,omitempty"`
@@ -3502,13 +3905,13 @@ type TimeSpan struct {
 	End *date.Time `json:"end,omitempty"`
 }
 
-// UserAssignedIdentity ...
+// UserAssignedIdentity details about a user assigned identity.
 type UserAssignedIdentity struct {
-	// ResourceID - The resource id of the user assigned identity.
+	// ResourceID - The resource ID of the user assigned identity.
 	ResourceID *string `json:"resourceId,omitempty"`
-	// ClientID - The client id of the user assigned identity.
+	// ClientID - The client ID of the user assigned identity.
 	ClientID *string `json:"clientId,omitempty"`
-	// ObjectID - The object id of the user assigned identity.
+	// ObjectID - The object ID of the user assigned identity.
 	ObjectID *string `json:"objectId,omitempty"`
 }
 

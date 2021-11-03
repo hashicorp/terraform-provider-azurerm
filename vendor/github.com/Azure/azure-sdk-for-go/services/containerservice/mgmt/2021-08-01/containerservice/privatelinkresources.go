@@ -32,8 +32,7 @@ func NewPrivateLinkResourcesClientWithBaseURI(baseURI string, subscriptionID str
 	return PrivateLinkResourcesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// List gets a list of private link resources in the specified managed cluster. The operation returns properties of
-// each private link resource.
+// List to learn more about private clusters, see: https://docs.microsoft.com/azure/aks/private-clusters
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // resourceName - the name of the managed cluster resource.
@@ -88,7 +87,7 @@ func (client PrivateLinkResourcesClient) ListPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-05-01"
+	const APIVersion = "2021-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

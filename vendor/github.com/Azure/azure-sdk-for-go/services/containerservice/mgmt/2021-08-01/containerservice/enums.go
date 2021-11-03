@@ -10,9 +10,11 @@ package containerservice
 type AgentPoolMode string
 
 const (
-	// AgentPoolModeSystem ...
+	// AgentPoolModeSystem System agent pools are primarily for hosting critical system pods such as CoreDNS
+	// and metrics-server. System agent pools osType must be Linux. System agent pools VM SKU must have at
+	// least 2vCPUs and 4GB of memory.
 	AgentPoolModeSystem AgentPoolMode = "System"
-	// AgentPoolModeUser ...
+	// AgentPoolModeUser User agent pools are primarily for hosting your application pods.
 	AgentPoolModeUser AgentPoolMode = "User"
 )
 
@@ -25,9 +27,9 @@ func PossibleAgentPoolModeValues() []AgentPoolMode {
 type AgentPoolType string
 
 const (
-	// AgentPoolTypeAvailabilitySet ...
+	// AgentPoolTypeAvailabilitySet Use of this is strongly discouraged.
 	AgentPoolTypeAvailabilitySet AgentPoolType = "AvailabilitySet"
-	// AgentPoolTypeVirtualMachineScaleSets ...
+	// AgentPoolTypeVirtualMachineScaleSets Create an Agent Pool backed by a Virtual Machine Scale Set.
 	AgentPoolTypeVirtualMachineScaleSets AgentPoolType = "VirtualMachineScaleSets"
 )
 
@@ -40,9 +42,9 @@ func PossibleAgentPoolTypeValues() []AgentPoolType {
 type Code string
 
 const (
-	// CodeRunning ...
+	// CodeRunning The cluster is running.
 	CodeRunning Code = "Running"
-	// CodeStopped ...
+	// CodeStopped The cluster is stopped.
 	CodeStopped Code = "Stopped"
 )
 
@@ -93,13 +95,21 @@ func PossibleCreatedByTypeValues() []CreatedByType {
 type Expander string
 
 const (
-	// ExpanderLeastWaste ...
+	// ExpanderLeastWaste Selects the node group that will have the least idle CPU (if tied, unused memory)
+	// after scale-up. This is useful when you have different classes of nodes, for example, high CPU or high
+	// memory nodes, and only want to expand those when there are pending pods that need a lot of those
+	// resources.
 	ExpanderLeastWaste Expander = "least-waste"
-	// ExpanderMostPods ...
+	// ExpanderMostPods Selects the node group that would be able to schedule the most pods when scaling up.
+	// This is useful when you are using nodeSelector to make sure certain pods land on certain nodes. Note
+	// that this won't cause the autoscaler to select bigger nodes vs. smaller, as it can add multiple smaller
+	// nodes at once.
 	ExpanderMostPods Expander = "most-pods"
-	// ExpanderPriority ...
+	// ExpanderPriority Selects the node group that has the highest priority assigned by the user. It's
+	// configuration is described in more details
+	// [here](https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/expander/priority/readme.md).
 	ExpanderPriority Expander = "priority"
-	// ExpanderRandom ...
+	// ExpanderRandom Used when you don't have a particular need for the node groups to scale differently.
 	ExpanderRandom Expander = "random"
 )
 
@@ -146,9 +156,9 @@ func PossibleGPUInstanceProfileValues() []GPUInstanceProfile {
 type KubeletDiskType string
 
 const (
-	// KubeletDiskTypeOS ...
+	// KubeletDiskTypeOS Kubelet will use the OS disk for its data.
 	KubeletDiskTypeOS KubeletDiskType = "OS"
-	// KubeletDiskTypeTemporary ...
+	// KubeletDiskTypeTemporary Kubelet will use the temporary disk for its data.
 	KubeletDiskTypeTemporary KubeletDiskType = "Temporary"
 )
 
@@ -161,9 +171,9 @@ func PossibleKubeletDiskTypeValues() []KubeletDiskType {
 type LicenseType string
 
 const (
-	// LicenseTypeNone ...
+	// LicenseTypeNone No additional licensing is applied.
 	LicenseTypeNone LicenseType = "None"
-	// LicenseTypeWindowsServer ...
+	// LicenseTypeWindowsServer Enables Azure Hybrid User Benefits for Windows VMs.
 	LicenseTypeWindowsServer LicenseType = "Windows_Server"
 )
 
@@ -176,9 +186,11 @@ func PossibleLicenseTypeValues() []LicenseType {
 type LoadBalancerSku string
 
 const (
-	// LoadBalancerSkuBasic ...
+	// LoadBalancerSkuBasic Use a basic Load Balancer with limited functionality.
 	LoadBalancerSkuBasic LoadBalancerSku = "basic"
-	// LoadBalancerSkuStandard ...
+	// LoadBalancerSkuStandard Use a a standard Load Balancer. This is the recommended Load Balancer SKU. For
+	// more information about on working with the load balancer in the managed cluster, see the [standard Load
+	// Balancer](https://docs.microsoft.com/azure/aks/load-balancer-standard) article.
 	LoadBalancerSkuStandard LoadBalancerSku = "standard"
 )
 
@@ -224,9 +236,12 @@ func PossibleManagedClusterSKUNameValues() []ManagedClusterSKUName {
 type ManagedClusterSKUTier string
 
 const (
-	// ManagedClusterSKUTierFree ...
+	// ManagedClusterSKUTierFree No guaranteed SLA, no additional charges. Free tier clusters have an SLO of
+	// 99.5%.
 	ManagedClusterSKUTierFree ManagedClusterSKUTier = "Free"
-	// ManagedClusterSKUTierPaid ...
+	// ManagedClusterSKUTierPaid Guarantees 99.95% availability of the Kubernetes API server endpoint for
+	// clusters that use Availability Zones and 99.9% of availability for clusters that don't use Availability
+	// Zones.
 	ManagedClusterSKUTierPaid ManagedClusterSKUTier = "Paid"
 )
 
@@ -239,9 +254,11 @@ func PossibleManagedClusterSKUTierValues() []ManagedClusterSKUTier {
 type NetworkMode string
 
 const (
-	// NetworkModeBridge ...
+	// NetworkModeBridge This is no longer supported
 	NetworkModeBridge NetworkMode = "bridge"
-	// NetworkModeTransparent ...
+	// NetworkModeTransparent No bridge is created. Intra-VM Pod to Pod communication is through IP routes
+	// created by Azure CNI. See [Transparent Mode](https://docs.microsoft.com/azure/aks/faq#transparent-mode)
+	// for more information.
 	NetworkModeTransparent NetworkMode = "transparent"
 )
 
@@ -254,9 +271,13 @@ func PossibleNetworkModeValues() []NetworkMode {
 type NetworkPlugin string
 
 const (
-	// NetworkPluginAzure ...
+	// NetworkPluginAzure Use the Azure CNI network plugin. See [Azure CNI (advanced)
+	// networking](https://docs.microsoft.com/azure/aks/concepts-network#azure-cni-advanced-networking) for
+	// more information.
 	NetworkPluginAzure NetworkPlugin = "azure"
-	// NetworkPluginKubenet ...
+	// NetworkPluginKubenet Use the Kubenet network plugin. See [Kubenet (basic)
+	// networking](https://docs.microsoft.com/azure/aks/concepts-network#kubenet-basic-networking) for more
+	// information.
 	NetworkPluginKubenet NetworkPlugin = "kubenet"
 )
 
@@ -269,9 +290,13 @@ func PossibleNetworkPluginValues() []NetworkPlugin {
 type NetworkPolicy string
 
 const (
-	// NetworkPolicyAzure ...
+	// NetworkPolicyAzure Use Azure network policies. See [differences between Azure and Calico
+	// policies](https://docs.microsoft.com/azure/aks/use-network-policies#differences-between-azure-and-calico-policies-and-their-capabilities)
+	// for more information.
 	NetworkPolicyAzure NetworkPolicy = "azure"
-	// NetworkPolicyCalico ...
+	// NetworkPolicyCalico Use Calico network policies. See [differences between Azure and Calico
+	// policies](https://docs.microsoft.com/azure/aks/use-network-policies#differences-between-azure-and-calico-policies-and-their-capabilities)
+	// for more information.
 	NetworkPolicyCalico NetworkPolicy = "calico"
 )
 
@@ -284,9 +309,13 @@ func PossibleNetworkPolicyValues() []NetworkPolicy {
 type OSDiskType string
 
 const (
-	// OSDiskTypeEphemeral ...
+	// OSDiskTypeEphemeral Ephemeral OS disks are stored only on the host machine, just like a temporary disk.
+	// This provides lower read/write latency, along with faster node scaling and cluster upgrades.
 	OSDiskTypeEphemeral OSDiskType = "Ephemeral"
-	// OSDiskTypeManaged ...
+	// OSDiskTypeManaged Azure replicates the operating system disk for a virtual machine to Azure storage to
+	// avoid data loss should the VM need to be relocated to another host. Since containers aren't designed to
+	// have local state persisted, this behavior offers limited value while providing some drawbacks, including
+	// slower node provisioning and higher read/write latency.
 	OSDiskTypeManaged OSDiskType = "Managed"
 )
 
@@ -314,9 +343,9 @@ func PossibleOSSKUValues() []OSSKU {
 type OSType string
 
 const (
-	// OSTypeLinux ...
+	// OSTypeLinux Use Linux.
 	OSTypeLinux OSType = "Linux"
-	// OSTypeWindows ...
+	// OSTypeWindows Use Windows.
 	OSTypeWindows OSType = "Windows"
 )
 
@@ -329,15 +358,24 @@ func PossibleOSTypeValues() []OSType {
 type OutboundType string
 
 const (
-	// OutboundTypeLoadBalancer ...
+	// OutboundTypeLoadBalancer The load balancer is used for egress through an AKS assigned public IP. This
+	// supports Kubernetes services of type 'loadBalancer'. For more information see [outbound type
+	// loadbalancer](https://docs.microsoft.com/azure/aks/egress-outboundtype#outbound-type-of-loadbalancer).
 	OutboundTypeLoadBalancer OutboundType = "loadBalancer"
-	// OutboundTypeUserDefinedRouting ...
+	// OutboundTypeManagedNATGateway The AKS-managed NAT gateway is used for egress.
+	OutboundTypeManagedNATGateway OutboundType = "managedNATGateway"
+	// OutboundTypeUserAssignedNATGateway The user-assigned NAT gateway associated to the cluster subnet is
+	// used for egress. This is an advanced scenario and requires proper network configuration.
+	OutboundTypeUserAssignedNATGateway OutboundType = "userAssignedNATGateway"
+	// OutboundTypeUserDefinedRouting Egress paths must be defined by the user. This is an advanced scenario
+	// and requires proper network configuration. For more information see [outbound type
+	// userDefinedRouting](https://docs.microsoft.com/azure/aks/egress-outboundtype#outbound-type-of-userdefinedrouting).
 	OutboundTypeUserDefinedRouting OutboundType = "userDefinedRouting"
 )
 
 // PossibleOutboundTypeValues returns an array of possible values for the OutboundType const type.
 func PossibleOutboundTypeValues() []OutboundType {
-	return []OutboundType{OutboundTypeLoadBalancer, OutboundTypeUserDefinedRouting}
+	return []OutboundType{OutboundTypeLoadBalancer, OutboundTypeManagedNATGateway, OutboundTypeUserAssignedNATGateway, OutboundTypeUserDefinedRouting}
 }
 
 // PrivateEndpointConnectionProvisioningState enumerates the values for private endpoint connection
@@ -360,15 +398,35 @@ func PossiblePrivateEndpointConnectionProvisioningStateValues() []PrivateEndpoin
 	return []PrivateEndpointConnectionProvisioningState{PrivateEndpointConnectionProvisioningStateCreating, PrivateEndpointConnectionProvisioningStateDeleting, PrivateEndpointConnectionProvisioningStateFailed, PrivateEndpointConnectionProvisioningStateSucceeded}
 }
 
+// PublicNetworkAccess enumerates the values for public network access.
+type PublicNetworkAccess string
+
+const (
+	// PublicNetworkAccessDisabled ...
+	PublicNetworkAccessDisabled PublicNetworkAccess = "Disabled"
+	// PublicNetworkAccessEnabled ...
+	PublicNetworkAccessEnabled PublicNetworkAccess = "Enabled"
+)
+
+// PossiblePublicNetworkAccessValues returns an array of possible values for the PublicNetworkAccess const type.
+func PossiblePublicNetworkAccessValues() []PublicNetworkAccess {
+	return []PublicNetworkAccess{PublicNetworkAccessDisabled, PublicNetworkAccessEnabled}
+}
+
 // ResourceIdentityType enumerates the values for resource identity type.
 type ResourceIdentityType string
 
 const (
-	// ResourceIdentityTypeNone ...
+	// ResourceIdentityTypeNone Do not use a managed identity for the Managed Cluster, service principal will
+	// be used instead.
 	ResourceIdentityTypeNone ResourceIdentityType = "None"
-	// ResourceIdentityTypeSystemAssigned ...
+	// ResourceIdentityTypeSystemAssigned Use an implicitly created system assigned managed identity to manage
+	// cluster resources. Master components in the control plane such as kube-controller-manager will use the
+	// system assigned managed identity to manipulate Azure resources.
 	ResourceIdentityTypeSystemAssigned ResourceIdentityType = "SystemAssigned"
-	// ResourceIdentityTypeUserAssigned ...
+	// ResourceIdentityTypeUserAssigned Use a user-specified identity to manage cluster resources. Master
+	// components in the control plane such as kube-controller-manager will use the specified user assigned
+	// managed identity to manipulate Azure resources.
 	ResourceIdentityTypeUserAssigned ResourceIdentityType = "UserAssigned"
 )
 
@@ -377,13 +435,32 @@ func PossibleResourceIdentityTypeValues() []ResourceIdentityType {
 	return []ResourceIdentityType{ResourceIdentityTypeNone, ResourceIdentityTypeSystemAssigned, ResourceIdentityTypeUserAssigned}
 }
 
+// ScaleDownMode enumerates the values for scale down mode.
+type ScaleDownMode string
+
+const (
+	// ScaleDownModeDeallocate Attempt to start deallocated instances (if they exist) during scale up and
+	// deallocate instances during scale down.
+	ScaleDownModeDeallocate ScaleDownMode = "Deallocate"
+	// ScaleDownModeDelete Create new instances during scale up and remove instances during scale down.
+	ScaleDownModeDelete ScaleDownMode = "Delete"
+)
+
+// PossibleScaleDownModeValues returns an array of possible values for the ScaleDownMode const type.
+func PossibleScaleDownModeValues() []ScaleDownMode {
+	return []ScaleDownMode{ScaleDownModeDeallocate, ScaleDownModeDelete}
+}
+
 // ScaleSetEvictionPolicy enumerates the values for scale set eviction policy.
 type ScaleSetEvictionPolicy string
 
 const (
-	// ScaleSetEvictionPolicyDeallocate ...
+	// ScaleSetEvictionPolicyDeallocate Nodes in the underlying Scale Set of the node pool are set to the
+	// stopped-deallocated state upon eviction. Nodes in the stopped-deallocated state count against your
+	// compute quota and can cause issues with cluster scaling or upgrading.
 	ScaleSetEvictionPolicyDeallocate ScaleSetEvictionPolicy = "Deallocate"
-	// ScaleSetEvictionPolicyDelete ...
+	// ScaleSetEvictionPolicyDelete Nodes in the underlying Scale Set of the node pool are deleted when they're
+	// evicted.
 	ScaleSetEvictionPolicyDelete ScaleSetEvictionPolicy = "Delete"
 )
 
@@ -396,15 +473,29 @@ func PossibleScaleSetEvictionPolicyValues() []ScaleSetEvictionPolicy {
 type ScaleSetPriority string
 
 const (
-	// ScaleSetPriorityRegular ...
+	// ScaleSetPriorityRegular Regular VMs will be used.
 	ScaleSetPriorityRegular ScaleSetPriority = "Regular"
-	// ScaleSetPrioritySpot ...
+	// ScaleSetPrioritySpot Spot priority VMs will be used. There is no SLA for spot nodes. See [spot on
+	// AKS](https://docs.microsoft.com/azure/aks/spot-node-pool) for more information.
 	ScaleSetPrioritySpot ScaleSetPriority = "Spot"
 )
 
 // PossibleScaleSetPriorityValues returns an array of possible values for the ScaleSetPriority const type.
 func PossibleScaleSetPriorityValues() []ScaleSetPriority {
 	return []ScaleSetPriority{ScaleSetPriorityRegular, ScaleSetPrioritySpot}
+}
+
+// SnapshotType enumerates the values for snapshot type.
+type SnapshotType string
+
+const (
+	// SnapshotTypeNodePool The snapshot is a snapshot of a node pool.
+	SnapshotTypeNodePool SnapshotType = "NodePool"
+)
+
+// PossibleSnapshotTypeValues returns an array of possible values for the SnapshotType const type.
+func PossibleSnapshotTypeValues() []SnapshotType {
+	return []SnapshotType{SnapshotTypeNodePool}
 }
 
 // StorageProfileTypes enumerates the values for storage profile types.
@@ -426,15 +517,29 @@ func PossibleStorageProfileTypesValues() []StorageProfileTypes {
 type UpgradeChannel string
 
 const (
-	// UpgradeChannelNodeImage ...
+	// UpgradeChannelNodeImage Automatically upgrade the node image to the latest version available. Microsoft
+	// provides patches and new images for image nodes frequently (usually weekly), but your running nodes
+	// won't get the new images unless you do a node image upgrade. Turning on the node-image channel will
+	// automatically update your node images whenever a new version is available.
 	UpgradeChannelNodeImage UpgradeChannel = "node-image"
-	// UpgradeChannelNone ...
+	// UpgradeChannelNone Disables auto-upgrades and keeps the cluster at its current version of Kubernetes.
 	UpgradeChannelNone UpgradeChannel = "none"
-	// UpgradeChannelPatch ...
+	// UpgradeChannelPatch Automatically upgrade the cluster to the latest supported patch version when it
+	// becomes available while keeping the minor version the same. For example, if a cluster is running version
+	// 1.17.7 and versions 1.17.9, 1.18.4, 1.18.6, and 1.19.1 are available, your cluster is upgraded to
+	// 1.17.9.
 	UpgradeChannelPatch UpgradeChannel = "patch"
-	// UpgradeChannelRapid ...
+	// UpgradeChannelRapid Automatically upgrade the cluster to the latest supported patch release on the
+	// latest supported minor version. In cases where the cluster is at a version of Kubernetes that is at an
+	// N-2 minor version where N is the latest supported minor version, the cluster first upgrades to the
+	// latest supported patch version on N-1 minor version. For example, if a cluster is running version 1.17.7
+	// and versions 1.17.9, 1.18.4, 1.18.6, and 1.19.1 are available, your cluster first is upgraded to 1.18.6,
+	// then is upgraded to 1.19.1.
 	UpgradeChannelRapid UpgradeChannel = "rapid"
-	// UpgradeChannelStable ...
+	// UpgradeChannelStable Automatically upgrade the cluster to the latest supported patch release on minor
+	// version N-1, where N is the latest supported minor version. For example, if a cluster is running version
+	// 1.17.7 and versions 1.17.9, 1.18.4, 1.18.6, and 1.19.1 are available, your cluster is upgraded to
+	// 1.18.6.
 	UpgradeChannelStable UpgradeChannel = "stable"
 )
 
@@ -825,4 +930,19 @@ const (
 // PossibleWeekDayValues returns an array of possible values for the WeekDay const type.
 func PossibleWeekDayValues() []WeekDay {
 	return []WeekDay{WeekDayFriday, WeekDayMonday, WeekDaySaturday, WeekDaySunday, WeekDayThursday, WeekDayTuesday, WeekDayWednesday}
+}
+
+// WorkloadRuntime enumerates the values for workload runtime.
+type WorkloadRuntime string
+
+const (
+	// WorkloadRuntimeOCIContainer Nodes will use Kubelet to run standard OCI container workloads.
+	WorkloadRuntimeOCIContainer WorkloadRuntime = "OCIContainer"
+	// WorkloadRuntimeWasmWasi Nodes will use Krustlet to run WASM workloads using the WASI provider (Preview).
+	WorkloadRuntimeWasmWasi WorkloadRuntime = "WasmWasi"
+)
+
+// PossibleWorkloadRuntimeValues returns an array of possible values for the WorkloadRuntime const type.
+func PossibleWorkloadRuntimeValues() []WorkloadRuntime {
+	return []WorkloadRuntime{WorkloadRuntimeOCIContainer, WorkloadRuntimeWasmWasi}
 }

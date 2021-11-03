@@ -32,7 +32,7 @@ func NewPrivateEndpointConnectionsClientWithBaseURI(baseURI string, subscription
 	return PrivateEndpointConnectionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Delete deletes the private endpoint connection in the specified managed cluster.
+// Delete sends the delete request.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // resourceName - the name of the managed cluster resource.
@@ -82,7 +82,7 @@ func (client PrivateEndpointConnectionsClient) DeletePreparer(ctx context.Contex
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-05-01"
+	const APIVersion = "2021-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -122,7 +122,7 @@ func (client PrivateEndpointConnectionsClient) DeleteResponder(resp *http.Respon
 	return
 }
 
-// Get gets the details of the private endpoint connection by managed cluster and resource group.
+// Get to learn more about private clusters, see: https://docs.microsoft.com/azure/aks/private-clusters
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // resourceName - the name of the managed cluster resource.
@@ -179,7 +179,7 @@ func (client PrivateEndpointConnectionsClient) GetPreparer(ctx context.Context, 
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-05-01"
+	const APIVersion = "2021-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -210,8 +210,7 @@ func (client PrivateEndpointConnectionsClient) GetResponder(resp *http.Response)
 	return
 }
 
-// List gets a list of private endpoint connections in the specified managed cluster. The operation returns properties
-// of each private endpoint connection.
+// List to learn more about private clusters, see: https://docs.microsoft.com/azure/aks/private-clusters
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // resourceName - the name of the managed cluster resource.
@@ -266,7 +265,7 @@ func (client PrivateEndpointConnectionsClient) ListPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-05-01"
+	const APIVersion = "2021-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -297,12 +296,12 @@ func (client PrivateEndpointConnectionsClient) ListResponder(resp *http.Response
 	return
 }
 
-// Update updates a private endpoint connection in the specified managed cluster.
+// Update sends the update request.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // resourceName - the name of the managed cluster resource.
 // privateEndpointConnectionName - the name of the private endpoint connection.
-// parameters - parameters supplied to the Update a private endpoint connection operation.
+// parameters - the updated private endpoint connection.
 func (client PrivateEndpointConnectionsClient) Update(ctx context.Context, resourceGroupName string, resourceName string, privateEndpointConnectionName string, parameters PrivateEndpointConnection) (result PrivateEndpointConnection, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateEndpointConnectionsClient.Update")
@@ -358,7 +357,7 @@ func (client PrivateEndpointConnectionsClient) UpdatePreparer(ctx context.Contex
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-05-01"
+	const APIVersion = "2021-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
