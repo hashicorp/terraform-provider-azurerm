@@ -78,16 +78,16 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(cdn.Shared),
-								string(cdn.Dedicated),
+								string(cdn.CertificateTypeShared),
+								string(cdn.CertificateTypeDedicated),
 							}, false),
 						},
 						"protocol_type": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(cdn.ServerNameIndication),
-								string(cdn.IPBased),
+								string(cdn.ProtocolTypeServerNameIndication),
+								string(cdn.ProtocolTypeIPBased),
 							}, false),
 						},
 					},
@@ -126,10 +126,10 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 			if settings, ok := diff.GetOk("cdn_managed_https_settings"); ok {
 				settings := settings.([]interface{})[0].(map[string]interface{})
 				cert, protocol := settings["certificate_type"].(string), settings["protocol_type"].(string)
-				if cert == string(cdn.Shared) && protocol != string(cdn.ServerNameIndication) {
+				if cert == string(cdn.CertificateTypeShared) && protocol != string(cdn.ProtocolTypeServerNameIndication) {
 					return fmt.Errorf("`certificate_type = Shared` has to be used together with `protocol_type = ServerNameIndication`")
 				}
-				if cert == string(cdn.Dedicated) && protocol != string(cdn.IPBased) {
+				if cert == string(cdn.CertificateTypeDedicated) && protocol != string(cdn.ProtocolTypeIPBased) {
 					return fmt.Errorf("`certificate_type = Dedicated` has to be used together with `protocol_type = IPBased`")
 				}
 			}
@@ -189,7 +189,7 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 			return fmt.Errorf("retrieving Cdn Profile %q (Resource Group %q): %+v",
 				id.ResourceGroup, id.ProfileName, err)
 		}
-		if cdnEndpointResp.Sku != nil && (cdnEndpointResp.Sku.Name != cdn.StandardMicrosoft && cdnEndpointResp.Sku.Name != cdn.StandardVerizon) {
+		if cdnEndpointResp.Sku != nil && (cdnEndpointResp.Sku.Name != cdn.SkuNameStandardMicrosoft && cdnEndpointResp.Sku.Name != cdn.SkuNameStandardVerizon) {
 			return errors.New("user managed HTTPS certificate is only available for Azure CDN from Microsoft or Azure CDN from Verizon profiles")
 		}
 		params, err = expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(v.([]interface{}))
@@ -397,7 +397,7 @@ func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(input []interface{
 			DeleteRule:        utils.String("NoAction"),
 		},
 		CertificateSource: cdn.CertificateSourceAzureKeyVault,
-		ProtocolType:      cdn.ServerNameIndication,
+		ProtocolType:      cdn.ProtocolTypeServerNameIndication,
 		MinimumTLSVersion: cdn.MinimumTLSVersionNone,
 	}
 
@@ -473,10 +473,10 @@ func enableArmCdnEndpointCustomDomainHttps(ctx context.Context, client *cdn.Cust
 	if err != nil {
 		return fmt.Errorf("waiting for HTTPS provision state: %+v", err)
 	}
-	if state == cdn.Failed {
+	if state == cdn.CustomHTTPSProvisioningStateFailed {
 		return errors.New("HTTPS provision state is Failed")
 	}
-	if state == cdn.Disabled {
+	if state == cdn.CustomHTTPSProvisioningStateDisabled {
 		return errors.New("HTTPS provision state is back to Disabled")
 	}
 
@@ -503,10 +503,10 @@ func disableArmCdnEndpointCustomDomainHttps(ctx context.Context, client *cdn.Cus
 	if err != nil {
 		return fmt.Errorf("waiting for HTTPS provision state: %+v", err)
 	}
-	if state == cdn.Failed {
+	if state == cdn.CustomHTTPSProvisioningStateFailed {
 		return errors.New("HTTPS provision state is Failed")
 	}
-	if state == cdn.Enabled {
+	if state == cdn.CustomHTTPSProvisioningStateEnabled {
 		return errors.New("HTTPS provision state is back to Enabled")
 	}
 
