@@ -48,6 +48,12 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
+			"stream_analytics_cluster_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"compatibility_level": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -211,6 +217,12 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		Tags: tags.Expand(t),
 	}
 
+	if streamAnalyticsCluster, ok := d.GetOk("stream_analytics_cluster_id"); ok {
+		props.StreamingJobProperties.Cluster = &streamanalytics.ClusterInfo{
+			ID: utils.String(streamAnalyticsCluster.(string)),
+		}
+	}
+
 	if dataLocale, ok := d.GetOk("data_locale"); ok {
 		props.StreamingJobProperties.DataLocale = utils.String(dataLocale.(string))
 	}
@@ -300,6 +312,9 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 		if props.EventsOutOfOrderMaxDelayInSeconds != nil {
 			d.Set("events_out_of_order_max_delay_in_seconds", int(*props.EventsOutOfOrderMaxDelayInSeconds))
+		}
+		if props.Cluster != nil {
+			d.Set("stream_analytics_cluster_id", *props.Cluster.ID)
 		}
 		d.Set("events_out_of_order_policy", string(props.EventsOutOfOrderPolicy))
 		d.Set("output_error_policy", string(props.OutputErrorPolicy))

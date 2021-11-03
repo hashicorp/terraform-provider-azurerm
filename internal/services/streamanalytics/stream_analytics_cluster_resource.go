@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-
 )
 
 type ClusterResource struct{}
@@ -69,8 +68,7 @@ func (r ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (r ClusterResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r ClusterResource) Create() sdk.ResourceFunc {
