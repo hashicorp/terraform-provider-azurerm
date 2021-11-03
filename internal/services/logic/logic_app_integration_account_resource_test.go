@@ -96,6 +96,21 @@ func TestAccLogicAppIntegrationAccount_update(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppIntegrationAccount_integrationServiceEnvironment(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account", "test")
+	r := LogicAppIntegrationAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.integrationServiceEnvironment(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (LogicAppIntegrationAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.IntegrationAccountID(state.ID)
 	if err != nil {
