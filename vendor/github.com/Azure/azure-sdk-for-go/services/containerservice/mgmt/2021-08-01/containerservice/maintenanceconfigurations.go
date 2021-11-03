@@ -32,12 +32,12 @@ func NewMaintenanceConfigurationsClientWithBaseURI(baseURI string, subscriptionI
 	return MaintenanceConfigurationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate creates or updates a maintenance configuration in the specified managed cluster.
+// CreateOrUpdate sends the create or update request.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // resourceName - the name of the managed cluster resource.
 // configName - the name of the maintenance configuration.
-// parameters - parameters supplied to the Create or Update a default maintenance configuration.
+// parameters - the maintenance configuration to create or update.
 func (client MaintenanceConfigurationsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, resourceName string, configName string, parameters MaintenanceConfiguration) (result MaintenanceConfiguration, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/MaintenanceConfigurationsClient.CreateOrUpdate")
@@ -90,7 +90,7 @@ func (client MaintenanceConfigurationsClient) CreateOrUpdatePreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-05-01"
+	const APIVersion = "2021-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -124,7 +124,7 @@ func (client MaintenanceConfigurationsClient) CreateOrUpdateResponder(resp *http
 	return
 }
 
-// Delete deletes the maintenance configuration in the specified managed cluster.
+// Delete sends the delete request.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // resourceName - the name of the managed cluster resource.
@@ -181,7 +181,7 @@ func (client MaintenanceConfigurationsClient) DeletePreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-05-01"
+	const APIVersion = "2021-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -211,7 +211,7 @@ func (client MaintenanceConfigurationsClient) DeleteResponder(resp *http.Respons
 	return
 }
 
-// Get gets the details of maintenance configurations by managed cluster and resource group.
+// Get sends the get request.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // resourceName - the name of the managed cluster resource.
@@ -268,7 +268,7 @@ func (client MaintenanceConfigurationsClient) GetPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-05-01"
+	const APIVersion = "2021-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -299,8 +299,7 @@ func (client MaintenanceConfigurationsClient) GetResponder(resp *http.Response) 
 	return
 }
 
-// ListByManagedCluster gets a list of maintenance configurations in the specified managed cluster. The operation
-// returns properties of each maintenance configuration.
+// ListByManagedCluster sends the list by managed cluster request.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // resourceName - the name of the managed cluster resource.
@@ -360,7 +359,7 @@ func (client MaintenanceConfigurationsClient) ListByManagedClusterPreparer(ctx c
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-05-01"
+	const APIVersion = "2021-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

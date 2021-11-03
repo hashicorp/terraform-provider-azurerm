@@ -32,11 +32,11 @@ func NewResolvePrivateLinkServiceIDClientWithBaseURI(baseURI string, subscriptio
 	return ResolvePrivateLinkServiceIDClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// POST gets the private link service ID the specified managed cluster.
+// POST sends the post request.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // resourceName - the name of the managed cluster resource.
-// parameters - parameters (name, groupId) supplied in order to resolve a private link service ID.
+// parameters - parameters required in order to resolve a private link service ID.
 func (client ResolvePrivateLinkServiceIDClient) POST(ctx context.Context, resourceGroupName string, resourceName string, parameters PrivateLinkResource) (result PrivateLinkResource, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ResolvePrivateLinkServiceIDClient.POST")
@@ -88,7 +88,7 @@ func (client ResolvePrivateLinkServiceIDClient) POSTPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-05-01"
+	const APIVersion = "2021-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

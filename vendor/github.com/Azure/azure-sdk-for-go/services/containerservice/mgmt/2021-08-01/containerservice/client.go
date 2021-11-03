@@ -1,4 +1,4 @@
-// Package containerservice implements the Azure ARM Containerservice service API version 2021-05-01.
+// Package containerservice implements the Azure ARM Containerservice service API version 2021-08-01.
 //
 // The Container Service Client.
 package containerservice
