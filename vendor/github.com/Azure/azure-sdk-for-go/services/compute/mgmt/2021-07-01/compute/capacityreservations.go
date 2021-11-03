@@ -64,7 +64,7 @@ func (client CapacityReservationsClient) CreateOrUpdate(ctx context.Context, res
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.CapacityReservationsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.CapacityReservationsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -99,6 +99,7 @@ func (client CapacityReservationsClient) CreateOrUpdatePreparer(ctx context.Cont
 // http.Response Body if it receives an error.
 func (client CapacityReservationsClient) CreateOrUpdateSender(req *http.Request) (future CapacityReservationsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -148,7 +149,7 @@ func (client CapacityReservationsClient) Delete(ctx context.Context, resourceGro
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.CapacityReservationsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.CapacityReservationsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -181,6 +182,7 @@ func (client CapacityReservationsClient) DeletePreparer(ctx context.Context, res
 // http.Response Body if it receives an error.
 func (client CapacityReservationsClient) DeleteSender(req *http.Request) (future CapacityReservationsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -431,7 +433,7 @@ func (client CapacityReservationsClient) Update(ctx context.Context, resourceGro
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.CapacityReservationsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.CapacityReservationsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -466,6 +468,7 @@ func (client CapacityReservationsClient) UpdatePreparer(ctx context.Context, res
 // http.Response Body if it receives an error.
 func (client CapacityReservationsClient) UpdateSender(req *http.Request) (future CapacityReservationsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

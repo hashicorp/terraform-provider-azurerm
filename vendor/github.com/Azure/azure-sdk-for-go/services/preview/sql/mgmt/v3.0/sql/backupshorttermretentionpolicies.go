@@ -59,7 +59,7 @@ func (client BackupShortTermRetentionPoliciesClient) CreateOrUpdate(ctx context.
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.BackupShortTermRetentionPoliciesClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.BackupShortTermRetentionPoliciesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -95,6 +95,7 @@ func (client BackupShortTermRetentionPoliciesClient) CreateOrUpdatePreparer(ctx 
 // http.Response Body if it receives an error.
 func (client BackupShortTermRetentionPoliciesClient) CreateOrUpdateSender(req *http.Request) (future BackupShortTermRetentionPoliciesCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -345,7 +346,7 @@ func (client BackupShortTermRetentionPoliciesClient) Update(ctx context.Context,
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.BackupShortTermRetentionPoliciesClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.BackupShortTermRetentionPoliciesClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -381,6 +382,7 @@ func (client BackupShortTermRetentionPoliciesClient) UpdatePreparer(ctx context.
 // http.Response Body if it receives an error.
 func (client BackupShortTermRetentionPoliciesClient) UpdateSender(req *http.Request) (future BackupShortTermRetentionPoliciesUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

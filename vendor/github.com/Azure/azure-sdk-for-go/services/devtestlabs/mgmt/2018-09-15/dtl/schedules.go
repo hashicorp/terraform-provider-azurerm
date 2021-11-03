@@ -219,7 +219,7 @@ func (client SchedulesClient) Execute(ctx context.Context, resourceGroupName str
 
 	result, err = client.ExecuteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "Execute", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "Execute", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -252,6 +252,7 @@ func (client SchedulesClient) ExecutePreparer(ctx context.Context, resourceGroup
 // http.Response Body if it receives an error.
 func (client SchedulesClient) ExecuteSender(req *http.Request) (future SchedulesExecuteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

@@ -217,6 +217,9 @@ const (
 	// DiskCreateOptionCopy Create a new disk or snapshot by copying from a disk or snapshot specified by the
 	// given sourceResourceId.
 	DiskCreateOptionCopy DiskCreateOption = "Copy"
+	// DiskCreateOptionCopyStart Create a new disk by using a deep copy process, where the resource creation is
+	// considered complete only after all data has been copied from the source.
+	DiskCreateOptionCopyStart DiskCreateOption = "CopyStart"
 	// DiskCreateOptionEmpty Create an empty data disk of a size given by diskSizeGB.
 	DiskCreateOptionEmpty DiskCreateOption = "Empty"
 	// DiskCreateOptionFromImage Create a new disk from a platform image specified by the given imageReference
@@ -234,7 +237,7 @@ const (
 
 // PossibleDiskCreateOptionValues returns an array of possible values for the DiskCreateOption const type.
 func PossibleDiskCreateOptionValues() []DiskCreateOption {
-	return []DiskCreateOption{DiskCreateOptionAttach, DiskCreateOptionCopy, DiskCreateOptionEmpty, DiskCreateOptionFromImage, DiskCreateOptionImport, DiskCreateOptionRestore, DiskCreateOptionUpload}
+	return []DiskCreateOption{DiskCreateOptionAttach, DiskCreateOptionCopy, DiskCreateOptionCopyStart, DiskCreateOptionEmpty, DiskCreateOptionFromImage, DiskCreateOptionImport, DiskCreateOptionRestore, DiskCreateOptionUpload}
 }
 
 // DiskCreateOptionTypes enumerates the values for disk create option types.
@@ -335,14 +338,19 @@ type DiskState string
 const (
 	// DiskStateActiveSAS The disk currently has an Active SAS Uri associated with it.
 	DiskStateActiveSAS DiskState = "ActiveSAS"
+	// DiskStateActiveSASFrozen The disk is attached to a VM in hibernated state and has an active SAS URI
+	// associated with it.
+	DiskStateActiveSASFrozen DiskState = "ActiveSASFrozen"
 	// DiskStateActiveUpload A disk is created for upload and a write token has been issued for uploading to
 	// it.
 	DiskStateActiveUpload DiskState = "ActiveUpload"
-	// DiskStateAttached The disk is currently mounted to a running VM.
+	// DiskStateAttached The disk is currently attached to a running VM.
 	DiskStateAttached DiskState = "Attached"
+	// DiskStateFrozen The disk is attached to a VM which is in hibernated state.
+	DiskStateFrozen DiskState = "Frozen"
 	// DiskStateReadyToUpload A disk is ready to be created by upload by requesting a write token.
 	DiskStateReadyToUpload DiskState = "ReadyToUpload"
-	// DiskStateReserved The disk is mounted to a stopped-deallocated VM
+	// DiskStateReserved The disk is attached to a stopped-deallocated VM.
 	DiskStateReserved DiskState = "Reserved"
 	// DiskStateUnattached The disk is not being used and can be attached to a VM.
 	DiskStateUnattached DiskState = "Unattached"
@@ -350,7 +358,7 @@ const (
 
 // PossibleDiskStateValues returns an array of possible values for the DiskState const type.
 func PossibleDiskStateValues() []DiskState {
-	return []DiskState{DiskStateActiveSAS, DiskStateActiveUpload, DiskStateAttached, DiskStateReadyToUpload, DiskStateReserved, DiskStateUnattached}
+	return []DiskState{DiskStateActiveSAS, DiskStateActiveSASFrozen, DiskStateActiveUpload, DiskStateAttached, DiskStateFrozen, DiskStateReadyToUpload, DiskStateReserved, DiskStateUnattached}
 }
 
 // DiskStorageAccountTypes enumerates the values for disk storage account types.
@@ -1082,6 +1090,25 @@ const (
 // PossiblePublicIPAllocationMethodValues returns an array of possible values for the PublicIPAllocationMethod const type.
 func PossiblePublicIPAllocationMethodValues() []PublicIPAllocationMethod {
 	return []PublicIPAllocationMethod{PublicIPAllocationMethodDynamic, PublicIPAllocationMethodStatic}
+}
+
+// PublicNetworkAccess enumerates the values for public network access.
+type PublicNetworkAccess string
+
+const (
+	// PublicNetworkAccessDisabled You cannot access the underlying data of the disk publicly on the internet
+	// even when NetworkAccessPolicy is set to AllowAll. You can access the data via the SAS URI only from your
+	// trusted Azure VNET when NetworkAccessPolicy is set to AllowPrivate.
+	PublicNetworkAccessDisabled PublicNetworkAccess = "Disabled"
+	// PublicNetworkAccessEnabled You can generate a SAS URI to access the underlying data of the disk publicly
+	// on the internet when NetworkAccessPolicy is set to AllowAll. You can access the data via the SAS URI
+	// only from your trusted Azure VNET when NetworkAccessPolicy is set to AllowPrivate.
+	PublicNetworkAccessEnabled PublicNetworkAccess = "Enabled"
+)
+
+// PossiblePublicNetworkAccessValues returns an array of possible values for the PublicNetworkAccess const type.
+func PossiblePublicNetworkAccessValues() []PublicNetworkAccess {
+	return []PublicNetworkAccess{PublicNetworkAccessDisabled, PublicNetworkAccessEnabled}
 }
 
 // ReplicationMode enumerates the values for replication mode.

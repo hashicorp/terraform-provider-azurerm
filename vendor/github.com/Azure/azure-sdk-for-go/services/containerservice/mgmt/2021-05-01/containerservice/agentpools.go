@@ -73,7 +73,7 @@ func (client AgentPoolsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -108,6 +108,7 @@ func (client AgentPoolsClient) CreateOrUpdatePreparer(ctx context.Context, resou
 // http.Response Body if it receives an error.
 func (client AgentPoolsClient) CreateOrUpdateSender(req *http.Request) (future AgentPoolsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -165,7 +166,7 @@ func (client AgentPoolsClient) Delete(ctx context.Context, resourceGroupName str
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -198,6 +199,7 @@ func (client AgentPoolsClient) DeletePreparer(ctx context.Context, resourceGroup
 // http.Response Body if it receives an error.
 func (client AgentPoolsClient) DeleteSender(req *http.Request) (future AgentPoolsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -646,7 +648,7 @@ func (client AgentPoolsClient) UpgradeNodeImageVersion(ctx context.Context, reso
 
 	result, err = client.UpgradeNodeImageVersionSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "UpgradeNodeImageVersion", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "UpgradeNodeImageVersion", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -679,6 +681,7 @@ func (client AgentPoolsClient) UpgradeNodeImageVersionPreparer(ctx context.Conte
 // http.Response Body if it receives an error.
 func (client AgentPoolsClient) UpgradeNodeImageVersionSender(req *http.Request) (future AgentPoolsUpgradeNodeImageVersionFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

@@ -55,7 +55,7 @@ func (client GallerySharingProfileClient) Update(ctx context.Context, resourceGr
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.GallerySharingProfileClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.GallerySharingProfileClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -89,6 +89,7 @@ func (client GallerySharingProfileClient) UpdatePreparer(ctx context.Context, re
 // http.Response Body if it receives an error.
 func (client GallerySharingProfileClient) UpdateSender(req *http.Request) (future GallerySharingProfileUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

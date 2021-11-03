@@ -35,7 +35,7 @@ func NewDisksClientWithBaseURI(baseURI string, subscriptionID string) DisksClien
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // diskName - the name of the managed disk that is being created. The name can't be changed after the disk is
-// created. Supported characters for the name are a-z, A-Z, 0-9 and _. The maximum name length is 80
+// created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The maximum name length is 80
 // characters.
 // disk - disk object supplied in the body of the Put disk operation.
 func (client DisksClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, diskName string, disk Disk) (result DisksCreateOrUpdateFuture, err error) {
@@ -77,7 +77,7 @@ func (client DisksClient) CreateOrUpdate(ctx context.Context, resourceGroupName 
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.DisksClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.DisksClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -92,7 +92,7 @@ func (client DisksClient) CreateOrUpdatePreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -113,6 +113,7 @@ func (client DisksClient) CreateOrUpdatePreparer(ctx context.Context, resourceGr
 // http.Response Body if it receives an error.
 func (client DisksClient) CreateOrUpdateSender(req *http.Request) (future DisksCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -140,7 +141,7 @@ func (client DisksClient) CreateOrUpdateResponder(resp *http.Response) (result D
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // diskName - the name of the managed disk that is being created. The name can't be changed after the disk is
-// created. Supported characters for the name are a-z, A-Z, 0-9 and _. The maximum name length is 80
+// created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The maximum name length is 80
 // characters.
 func (client DisksClient) Delete(ctx context.Context, resourceGroupName string, diskName string) (result DisksDeleteFuture, err error) {
 	if tracing.IsEnabled() {
@@ -161,7 +162,7 @@ func (client DisksClient) Delete(ctx context.Context, resourceGroupName string, 
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.DisksClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.DisksClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -176,7 +177,7 @@ func (client DisksClient) DeletePreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -193,6 +194,7 @@ func (client DisksClient) DeletePreparer(ctx context.Context, resourceGroupName 
 // http.Response Body if it receives an error.
 func (client DisksClient) DeleteSender(req *http.Request) (future DisksDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -219,7 +221,7 @@ func (client DisksClient) DeleteResponder(resp *http.Response) (result autorest.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // diskName - the name of the managed disk that is being created. The name can't be changed after the disk is
-// created. Supported characters for the name are a-z, A-Z, 0-9 and _. The maximum name length is 80
+// created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The maximum name length is 80
 // characters.
 func (client DisksClient) Get(ctx context.Context, resourceGroupName string, diskName string) (result Disk, err error) {
 	if tracing.IsEnabled() {
@@ -262,7 +264,7 @@ func (client DisksClient) GetPreparer(ctx context.Context, resourceGroupName str
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -297,7 +299,7 @@ func (client DisksClient) GetResponder(resp *http.Response) (result Disk, err er
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // diskName - the name of the managed disk that is being created. The name can't be changed after the disk is
-// created. Supported characters for the name are a-z, A-Z, 0-9 and _. The maximum name length is 80
+// created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The maximum name length is 80
 // characters.
 // grantAccessData - access data object supplied in the body of the get disk access operation.
 func (client DisksClient) GrantAccess(ctx context.Context, resourceGroupName string, diskName string, grantAccessData GrantAccessData) (result DisksGrantAccessFuture, err error) {
@@ -325,7 +327,7 @@ func (client DisksClient) GrantAccess(ctx context.Context, resourceGroupName str
 
 	result, err = client.GrantAccessSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.DisksClient", "GrantAccess", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.DisksClient", "GrantAccess", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -340,7 +342,7 @@ func (client DisksClient) GrantAccessPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -359,6 +361,7 @@ func (client DisksClient) GrantAccessPreparer(ctx context.Context, resourceGroup
 // http.Response Body if it receives an error.
 func (client DisksClient) GrantAccessSender(req *http.Request) (future DisksGrantAccessFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -427,7 +430,7 @@ func (client DisksClient) ListPreparer(ctx context.Context) (*http.Request, erro
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -543,7 +546,7 @@ func (client DisksClient) ListByResourceGroupPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -615,7 +618,7 @@ func (client DisksClient) ListByResourceGroupComplete(ctx context.Context, resou
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // diskName - the name of the managed disk that is being created. The name can't be changed after the disk is
-// created. Supported characters for the name are a-z, A-Z, 0-9 and _. The maximum name length is 80
+// created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The maximum name length is 80
 // characters.
 func (client DisksClient) RevokeAccess(ctx context.Context, resourceGroupName string, diskName string) (result DisksRevokeAccessFuture, err error) {
 	if tracing.IsEnabled() {
@@ -636,7 +639,7 @@ func (client DisksClient) RevokeAccess(ctx context.Context, resourceGroupName st
 
 	result, err = client.RevokeAccessSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.DisksClient", "RevokeAccess", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.DisksClient", "RevokeAccess", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -651,7 +654,7 @@ func (client DisksClient) RevokeAccessPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -668,6 +671,7 @@ func (client DisksClient) RevokeAccessPreparer(ctx context.Context, resourceGrou
 // http.Response Body if it receives an error.
 func (client DisksClient) RevokeAccessSender(req *http.Request) (future DisksRevokeAccessFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -694,7 +698,7 @@ func (client DisksClient) RevokeAccessResponder(resp *http.Response) (result aut
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // diskName - the name of the managed disk that is being created. The name can't be changed after the disk is
-// created. Supported characters for the name are a-z, A-Z, 0-9 and _. The maximum name length is 80
+// created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The maximum name length is 80
 // characters.
 // disk - disk object supplied in the body of the Patch disk operation.
 func (client DisksClient) Update(ctx context.Context, resourceGroupName string, diskName string, disk DiskUpdate) (result DisksUpdateFuture, err error) {
@@ -716,7 +720,7 @@ func (client DisksClient) Update(ctx context.Context, resourceGroupName string, 
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.DisksClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.DisksClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -731,7 +735,7 @@ func (client DisksClient) UpdatePreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -750,6 +754,7 @@ func (client DisksClient) UpdatePreparer(ctx context.Context, resourceGroupName 
 // http.Response Body if it receives an error.
 func (client DisksClient) UpdateSender(req *http.Request) (future DisksUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

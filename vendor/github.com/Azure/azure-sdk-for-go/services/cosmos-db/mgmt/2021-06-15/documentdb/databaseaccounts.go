@@ -166,7 +166,7 @@ func (client DatabaseAccountsClient) CreateOrUpdate(ctx context.Context, resourc
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -200,6 +200,7 @@ func (client DatabaseAccountsClient) CreateOrUpdatePreparer(ctx context.Context,
 // http.Response Body if it receives an error.
 func (client DatabaseAccountsClient) CreateOrUpdateSender(req *http.Request) (future DatabaseAccountsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -259,7 +260,7 @@ func (client DatabaseAccountsClient) Delete(ctx context.Context, resourceGroupNa
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -291,6 +292,7 @@ func (client DatabaseAccountsClient) DeletePreparer(ctx context.Context, resourc
 // http.Response Body if it receives an error.
 func (client DatabaseAccountsClient) DeleteSender(req *http.Request) (future DatabaseAccountsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -354,7 +356,7 @@ func (client DatabaseAccountsClient) FailoverPriorityChange(ctx context.Context,
 
 	result, err = client.FailoverPriorityChangeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsClient", "FailoverPriorityChange", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsClient", "FailoverPriorityChange", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -388,6 +390,7 @@ func (client DatabaseAccountsClient) FailoverPriorityChangePreparer(ctx context.
 // http.Response Body if it receives an error.
 func (client DatabaseAccountsClient) FailoverPriorityChangeSender(req *http.Request) (future DatabaseAccountsFailoverPriorityChangeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1330,7 +1333,7 @@ func (client DatabaseAccountsClient) OfflineRegion(ctx context.Context, resource
 
 	result, err = client.OfflineRegionSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsClient", "OfflineRegion", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsClient", "OfflineRegion", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1364,6 +1367,7 @@ func (client DatabaseAccountsClient) OfflineRegionPreparer(ctx context.Context, 
 // http.Response Body if it receives an error.
 func (client DatabaseAccountsClient) OfflineRegionSender(req *http.Request) (future DatabaseAccountsOfflineRegionFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1425,7 +1429,7 @@ func (client DatabaseAccountsClient) OnlineRegion(ctx context.Context, resourceG
 
 	result, err = client.OnlineRegionSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsClient", "OnlineRegion", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsClient", "OnlineRegion", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1459,6 +1463,7 @@ func (client DatabaseAccountsClient) OnlineRegionPreparer(ctx context.Context, r
 // http.Response Body if it receives an error.
 func (client DatabaseAccountsClient) OnlineRegionSender(req *http.Request) (future DatabaseAccountsOnlineRegionFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1518,7 +1523,7 @@ func (client DatabaseAccountsClient) RegenerateKey(ctx context.Context, resource
 
 	result, err = client.RegenerateKeySender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsClient", "RegenerateKey", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsClient", "RegenerateKey", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1552,6 +1557,7 @@ func (client DatabaseAccountsClient) RegenerateKeyPreparer(ctx context.Context, 
 // http.Response Body if it receives an error.
 func (client DatabaseAccountsClient) RegenerateKeySender(req *http.Request) (future DatabaseAccountsRegenerateKeyFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1611,7 +1617,7 @@ func (client DatabaseAccountsClient) Update(ctx context.Context, resourceGroupNa
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1645,6 +1651,7 @@ func (client DatabaseAccountsClient) UpdatePreparer(ctx context.Context, resourc
 // http.Response Body if it receives an error.
 func (client DatabaseAccountsClient) UpdateSender(req *http.Request) (future DatabaseAccountsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

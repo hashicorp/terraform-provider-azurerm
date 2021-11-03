@@ -63,7 +63,7 @@ func (client ShareSubscriptionsClient) CancelSynchronization(ctx context.Context
 
 	result, err = client.CancelSynchronizationSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "CancelSynchronization", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "CancelSynchronization", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -104,6 +104,7 @@ func (client ShareSubscriptionsClient) CancelSynchronizationPreparer(ctx context
 // http.Response Body if it receives an error.
 func (client ShareSubscriptionsClient) CancelSynchronizationSender(req *http.Request) (future ShareSubscriptionsCancelSynchronizationFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -241,7 +242,7 @@ func (client ShareSubscriptionsClient) Delete(ctx context.Context, resourceGroup
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -274,6 +275,7 @@ func (client ShareSubscriptionsClient) DeletePreparer(ctx context.Context, resou
 // http.Response Body if it receives an error.
 func (client ShareSubscriptionsClient) DeleteSender(req *http.Request) (future ShareSubscriptionsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -933,7 +935,7 @@ func (client ShareSubscriptionsClient) SynchronizeMethod(ctx context.Context, re
 
 	result, err = client.SynchronizeMethodSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "SynchronizeMethod", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "SynchronizeMethod", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -968,6 +970,7 @@ func (client ShareSubscriptionsClient) SynchronizeMethodPreparer(ctx context.Con
 // http.Response Body if it receives an error.
 func (client ShareSubscriptionsClient) SynchronizeMethodSender(req *http.Request) (future ShareSubscriptionsSynchronizeMethodFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

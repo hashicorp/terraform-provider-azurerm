@@ -36,8 +36,7 @@ func NewRuleSetsClientWithBaseURI(baseURI string, subscriptionID string) RuleSet
 // resourceGroupName - name of the Resource group within the Azure subscription.
 // profileName - name of the CDN profile which is unique within the resource group.
 // ruleSetName - name of the rule set under the profile which is unique globally
-// ruleSet - ruleSet properties
-func (client RuleSetsClient) Create(ctx context.Context, resourceGroupName string, profileName string, ruleSetName string, ruleSet RuleSet) (result RuleSetsCreateFuture, err error) {
+func (client RuleSetsClient) Create(ctx context.Context, resourceGroupName string, profileName string, ruleSetName string) (result RuleSetsCreateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RuleSetsClient.Create")
 		defer func() {
@@ -56,7 +55,7 @@ func (client RuleSetsClient) Create(ctx context.Context, resourceGroupName strin
 		return result, validation.NewError("cdn.RuleSetsClient", "Create", err.Error())
 	}
 
-	req, err := client.CreatePreparer(ctx, resourceGroupName, profileName, ruleSetName, ruleSet)
+	req, err := client.CreatePreparer(ctx, resourceGroupName, profileName, ruleSetName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.RuleSetsClient", "Create", nil, "Failure preparing request")
 		return
@@ -64,7 +63,7 @@ func (client RuleSetsClient) Create(ctx context.Context, resourceGroupName strin
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.RuleSetsClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.RuleSetsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -72,7 +71,7 @@ func (client RuleSetsClient) Create(ctx context.Context, resourceGroupName strin
 }
 
 // CreatePreparer prepares the Create request.
-func (client RuleSetsClient) CreatePreparer(ctx context.Context, resourceGroupName string, profileName string, ruleSetName string, ruleSet RuleSet) (*http.Request, error) {
+func (client RuleSetsClient) CreatePreparer(ctx context.Context, resourceGroupName string, profileName string, ruleSetName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"profileName":       autorest.Encode("path", profileName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -86,11 +85,9 @@ func (client RuleSetsClient) CreatePreparer(ctx context.Context, resourceGroupNa
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/ruleSets/{ruleSetName}", pathParameters),
-		autorest.WithJSON(ruleSet),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -99,6 +96,7 @@ func (client RuleSetsClient) CreatePreparer(ctx context.Context, resourceGroupNa
 // http.Response Body if it receives an error.
 func (client RuleSetsClient) CreateSender(req *http.Request) (future RuleSetsCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -155,7 +153,7 @@ func (client RuleSetsClient) Delete(ctx context.Context, resourceGroupName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.RuleSetsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.RuleSetsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -188,6 +186,7 @@ func (client RuleSetsClient) DeletePreparer(ctx context.Context, resourceGroupNa
 // http.Response Body if it receives an error.
 func (client RuleSetsClient) DeleteSender(req *http.Request) (future RuleSetsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

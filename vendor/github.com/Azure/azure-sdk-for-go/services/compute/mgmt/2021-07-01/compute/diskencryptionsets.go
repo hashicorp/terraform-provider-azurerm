@@ -36,7 +36,7 @@ func NewDiskEncryptionSetsClientWithBaseURI(baseURI string, subscriptionID strin
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // diskEncryptionSetName - the name of the disk encryption set that is being created. The name can't be changed
-// after the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The
+// after the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The
 // maximum name length is 80 characters.
 // diskEncryptionSet - disk encryption set object supplied in the body of the Put disk encryption set
 // operation.
@@ -68,7 +68,7 @@ func (client DiskEncryptionSetsClient) CreateOrUpdate(ctx context.Context, resou
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.DiskEncryptionSetsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.DiskEncryptionSetsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -83,7 +83,7 @@ func (client DiskEncryptionSetsClient) CreateOrUpdatePreparer(ctx context.Contex
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -102,6 +102,7 @@ func (client DiskEncryptionSetsClient) CreateOrUpdatePreparer(ctx context.Contex
 // http.Response Body if it receives an error.
 func (client DiskEncryptionSetsClient) CreateOrUpdateSender(req *http.Request) (future DiskEncryptionSetsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -129,7 +130,7 @@ func (client DiskEncryptionSetsClient) CreateOrUpdateResponder(resp *http.Respon
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // diskEncryptionSetName - the name of the disk encryption set that is being created. The name can't be changed
-// after the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The
+// after the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The
 // maximum name length is 80 characters.
 func (client DiskEncryptionSetsClient) Delete(ctx context.Context, resourceGroupName string, diskEncryptionSetName string) (result DiskEncryptionSetsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
@@ -150,7 +151,7 @@ func (client DiskEncryptionSetsClient) Delete(ctx context.Context, resourceGroup
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.DiskEncryptionSetsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.DiskEncryptionSetsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -165,7 +166,7 @@ func (client DiskEncryptionSetsClient) DeletePreparer(ctx context.Context, resou
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -182,6 +183,7 @@ func (client DiskEncryptionSetsClient) DeletePreparer(ctx context.Context, resou
 // http.Response Body if it receives an error.
 func (client DiskEncryptionSetsClient) DeleteSender(req *http.Request) (future DiskEncryptionSetsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -208,7 +210,7 @@ func (client DiskEncryptionSetsClient) DeleteResponder(resp *http.Response) (res
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // diskEncryptionSetName - the name of the disk encryption set that is being created. The name can't be changed
-// after the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The
+// after the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The
 // maximum name length is 80 characters.
 func (client DiskEncryptionSetsClient) Get(ctx context.Context, resourceGroupName string, diskEncryptionSetName string) (result DiskEncryptionSet, err error) {
 	if tracing.IsEnabled() {
@@ -251,7 +253,7 @@ func (client DiskEncryptionSetsClient) GetPreparer(ctx context.Context, resource
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -327,7 +329,7 @@ func (client DiskEncryptionSetsClient) ListPreparer(ctx context.Context) (*http.
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -399,7 +401,7 @@ func (client DiskEncryptionSetsClient) ListComplete(ctx context.Context) (result
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // diskEncryptionSetName - the name of the disk encryption set that is being created. The name can't be changed
-// after the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The
+// after the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The
 // maximum name length is 80 characters.
 func (client DiskEncryptionSetsClient) ListAssociatedResources(ctx context.Context, resourceGroupName string, diskEncryptionSetName string) (result ResourceURIListPage, err error) {
 	if tracing.IsEnabled() {
@@ -447,7 +449,7 @@ func (client DiskEncryptionSetsClient) ListAssociatedResourcesPreparer(ctx conte
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -563,7 +565,7 @@ func (client DiskEncryptionSetsClient) ListByResourceGroupPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -635,7 +637,7 @@ func (client DiskEncryptionSetsClient) ListByResourceGroupComplete(ctx context.C
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // diskEncryptionSetName - the name of the disk encryption set that is being created. The name can't be changed
-// after the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The
+// after the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The
 // maximum name length is 80 characters.
 // diskEncryptionSet - disk encryption set object supplied in the body of the Patch disk encryption set
 // operation.
@@ -658,7 +660,7 @@ func (client DiskEncryptionSetsClient) Update(ctx context.Context, resourceGroup
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.DiskEncryptionSetsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.DiskEncryptionSetsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -673,7 +675,7 @@ func (client DiskEncryptionSetsClient) UpdatePreparer(ctx context.Context, resou
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -692,6 +694,7 @@ func (client DiskEncryptionSetsClient) UpdatePreparer(ctx context.Context, resou
 // http.Response Body if it receives an error.
 func (client DiskEncryptionSetsClient) UpdateSender(req *http.Request) (future DiskEncryptionSetsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

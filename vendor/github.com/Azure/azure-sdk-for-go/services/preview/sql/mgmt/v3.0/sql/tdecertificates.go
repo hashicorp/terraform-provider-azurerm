@@ -65,7 +65,7 @@ func (client TdeCertificatesClient) Create(ctx context.Context, resourceGroupNam
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.TdeCertificatesClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.TdeCertificatesClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -99,6 +99,7 @@ func (client TdeCertificatesClient) CreatePreparer(ctx context.Context, resource
 // http.Response Body if it receives an error.
 func (client TdeCertificatesClient) CreateSender(req *http.Request) (future TdeCertificatesCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

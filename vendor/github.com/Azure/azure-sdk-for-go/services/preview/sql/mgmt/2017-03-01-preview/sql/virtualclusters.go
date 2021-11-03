@@ -56,7 +56,7 @@ func (client VirtualClustersClient) Delete(ctx context.Context, resourceGroupNam
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.VirtualClustersClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.VirtualClustersClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -88,6 +88,7 @@ func (client VirtualClustersClient) DeletePreparer(ctx context.Context, resource
 // http.Response Body if it receives an error.
 func (client VirtualClustersClient) DeleteSender(req *http.Request) (future VirtualClustersDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -442,7 +443,7 @@ func (client VirtualClustersClient) Update(ctx context.Context, resourceGroupNam
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.VirtualClustersClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.VirtualClustersClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -476,6 +477,7 @@ func (client VirtualClustersClient) UpdatePreparer(ctx context.Context, resource
 // http.Response Body if it receives an error.
 func (client VirtualClustersClient) UpdateSender(req *http.Request) (future VirtualClustersUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

@@ -35,7 +35,8 @@ func NewSnapshotsClientWithBaseURI(baseURI string, subscriptionID string) Snapsh
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // snapshotName - the name of the snapshot that is being created. The name can't be changed after the snapshot
-// is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The max name length is 80 characters.
+// is created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The max name length is 80
+// characters.
 // snapshot - snapshot object supplied in the body of the Put disk operation.
 func (client SnapshotsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, snapshotName string, snapshot Snapshot) (result SnapshotsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
@@ -76,7 +77,7 @@ func (client SnapshotsClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.SnapshotsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.SnapshotsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -91,7 +92,7 @@ func (client SnapshotsClient) CreateOrUpdatePreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -111,6 +112,7 @@ func (client SnapshotsClient) CreateOrUpdatePreparer(ctx context.Context, resour
 // http.Response Body if it receives an error.
 func (client SnapshotsClient) CreateOrUpdateSender(req *http.Request) (future SnapshotsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -138,7 +140,8 @@ func (client SnapshotsClient) CreateOrUpdateResponder(resp *http.Response) (resu
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // snapshotName - the name of the snapshot that is being created. The name can't be changed after the snapshot
-// is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The max name length is 80 characters.
+// is created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The max name length is 80
+// characters.
 func (client SnapshotsClient) Delete(ctx context.Context, resourceGroupName string, snapshotName string) (result SnapshotsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SnapshotsClient.Delete")
@@ -158,7 +161,7 @@ func (client SnapshotsClient) Delete(ctx context.Context, resourceGroupName stri
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.SnapshotsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.SnapshotsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -173,7 +176,7 @@ func (client SnapshotsClient) DeletePreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -190,6 +193,7 @@ func (client SnapshotsClient) DeletePreparer(ctx context.Context, resourceGroupN
 // http.Response Body if it receives an error.
 func (client SnapshotsClient) DeleteSender(req *http.Request) (future SnapshotsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -216,7 +220,8 @@ func (client SnapshotsClient) DeleteResponder(resp *http.Response) (result autor
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // snapshotName - the name of the snapshot that is being created. The name can't be changed after the snapshot
-// is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The max name length is 80 characters.
+// is created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The max name length is 80
+// characters.
 func (client SnapshotsClient) Get(ctx context.Context, resourceGroupName string, snapshotName string) (result Snapshot, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SnapshotsClient.Get")
@@ -258,7 +263,7 @@ func (client SnapshotsClient) GetPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -293,7 +298,8 @@ func (client SnapshotsClient) GetResponder(resp *http.Response) (result Snapshot
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // snapshotName - the name of the snapshot that is being created. The name can't be changed after the snapshot
-// is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The max name length is 80 characters.
+// is created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The max name length is 80
+// characters.
 // grantAccessData - access data object supplied in the body of the get snapshot access operation.
 func (client SnapshotsClient) GrantAccess(ctx context.Context, resourceGroupName string, snapshotName string, grantAccessData GrantAccessData) (result SnapshotsGrantAccessFuture, err error) {
 	if tracing.IsEnabled() {
@@ -320,7 +326,7 @@ func (client SnapshotsClient) GrantAccess(ctx context.Context, resourceGroupName
 
 	result, err = client.GrantAccessSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.SnapshotsClient", "GrantAccess", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.SnapshotsClient", "GrantAccess", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -335,7 +341,7 @@ func (client SnapshotsClient) GrantAccessPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -354,6 +360,7 @@ func (client SnapshotsClient) GrantAccessPreparer(ctx context.Context, resourceG
 // http.Response Body if it receives an error.
 func (client SnapshotsClient) GrantAccessSender(req *http.Request) (future SnapshotsGrantAccessFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -422,7 +429,7 @@ func (client SnapshotsClient) ListPreparer(ctx context.Context) (*http.Request, 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -538,7 +545,7 @@ func (client SnapshotsClient) ListByResourceGroupPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -610,7 +617,8 @@ func (client SnapshotsClient) ListByResourceGroupComplete(ctx context.Context, r
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // snapshotName - the name of the snapshot that is being created. The name can't be changed after the snapshot
-// is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The max name length is 80 characters.
+// is created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The max name length is 80
+// characters.
 func (client SnapshotsClient) RevokeAccess(ctx context.Context, resourceGroupName string, snapshotName string) (result SnapshotsRevokeAccessFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SnapshotsClient.RevokeAccess")
@@ -630,7 +638,7 @@ func (client SnapshotsClient) RevokeAccess(ctx context.Context, resourceGroupNam
 
 	result, err = client.RevokeAccessSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.SnapshotsClient", "RevokeAccess", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.SnapshotsClient", "RevokeAccess", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -645,7 +653,7 @@ func (client SnapshotsClient) RevokeAccessPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -662,6 +670,7 @@ func (client SnapshotsClient) RevokeAccessPreparer(ctx context.Context, resource
 // http.Response Body if it receives an error.
 func (client SnapshotsClient) RevokeAccessSender(req *http.Request) (future SnapshotsRevokeAccessFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -688,7 +697,8 @@ func (client SnapshotsClient) RevokeAccessResponder(resp *http.Response) (result
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // snapshotName - the name of the snapshot that is being created. The name can't be changed after the snapshot
-// is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The max name length is 80 characters.
+// is created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The max name length is 80
+// characters.
 // snapshot - snapshot object supplied in the body of the Patch snapshot operation.
 func (client SnapshotsClient) Update(ctx context.Context, resourceGroupName string, snapshotName string, snapshot SnapshotUpdate) (result SnapshotsUpdateFuture, err error) {
 	if tracing.IsEnabled() {
@@ -709,7 +719,7 @@ func (client SnapshotsClient) Update(ctx context.Context, resourceGroupName stri
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.SnapshotsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.SnapshotsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -724,7 +734,7 @@ func (client SnapshotsClient) UpdatePreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -743,6 +753,7 @@ func (client SnapshotsClient) UpdatePreparer(ctx context.Context, resourceGroupN
 // http.Response Body if it receives an error.
 func (client SnapshotsClient) UpdateSender(req *http.Request) (future SnapshotsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

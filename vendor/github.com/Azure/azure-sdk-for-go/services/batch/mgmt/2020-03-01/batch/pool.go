@@ -109,7 +109,7 @@ func (client PoolClient) Create(ctx context.Context, resourceGroupName string, a
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "batch.PoolClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "batch.PoolClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -152,6 +152,7 @@ func (client PoolClient) CreatePreparer(ctx context.Context, resourceGroupName s
 // http.Response Body if it receives an error.
 func (client PoolClient) CreateSender(req *http.Request) (future PoolCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -211,7 +212,7 @@ func (client PoolClient) Delete(ctx context.Context, resourceGroupName string, a
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "batch.PoolClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "batch.PoolClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -244,6 +245,7 @@ func (client PoolClient) DeletePreparer(ctx context.Context, resourceGroupName s
 // http.Response Body if it receives an error.
 func (client PoolClient) DeleteSender(req *http.Request) (future PoolDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

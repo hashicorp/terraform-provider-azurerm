@@ -55,7 +55,7 @@ func (client ApplicationsClient) Create(ctx context.Context, resourceGroupName s
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationsClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -90,6 +90,7 @@ func (client ApplicationsClient) CreatePreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) CreateSender(req *http.Request) (future ApplicationsCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -137,7 +138,7 @@ func (client ApplicationsClient) Delete(ctx context.Context, resourceGroupName s
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -170,6 +171,7 @@ func (client ApplicationsClient) DeletePreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) DeleteSender(req *http.Request) (future ApplicationsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -373,7 +375,7 @@ func (client ApplicationsClient) Update(ctx context.Context, resourceGroupName s
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -408,6 +410,7 @@ func (client ApplicationsClient) UpdatePreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) UpdateSender(req *http.Request) (future ApplicationsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

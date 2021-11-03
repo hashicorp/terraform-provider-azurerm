@@ -79,7 +79,7 @@ func (client RestorePointsClient) Create(ctx context.Context, resourceGroupName 
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.RestorePointsClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.RestorePointsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -114,6 +114,7 @@ func (client RestorePointsClient) CreatePreparer(ctx context.Context, resourceGr
 // http.Response Body if it receives an error.
 func (client RestorePointsClient) CreateSender(req *http.Request) (future RestorePointsCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -161,7 +162,7 @@ func (client RestorePointsClient) Delete(ctx context.Context, resourceGroupName 
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.RestorePointsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.RestorePointsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -194,6 +195,7 @@ func (client RestorePointsClient) DeletePreparer(ctx context.Context, resourceGr
 // http.Response Body if it receives an error.
 func (client RestorePointsClient) DeleteSender(req *http.Request) (future RestorePointsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

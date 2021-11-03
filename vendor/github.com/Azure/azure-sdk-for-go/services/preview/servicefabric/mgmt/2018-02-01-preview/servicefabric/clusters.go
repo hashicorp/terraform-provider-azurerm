@@ -107,7 +107,7 @@ func (client ClustersClient) Create(ctx context.Context, resourceGroupName strin
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicefabric.ClustersClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "servicefabric.ClustersClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -141,6 +141,7 @@ func (client ClustersClient) CreatePreparer(ctx context.Context, resourceGroupNa
 // http.Response Body if it receives an error.
 func (client ClustersClient) CreateSender(req *http.Request) (future ClustersCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -487,7 +488,7 @@ func (client ClustersClient) Update(ctx context.Context, resourceGroupName strin
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicefabric.ClustersClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "servicefabric.ClustersClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -521,6 +522,7 @@ func (client ClustersClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 // http.Response Body if it receives an error.
 func (client ClustersClient) UpdateSender(req *http.Request) (future ClustersUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

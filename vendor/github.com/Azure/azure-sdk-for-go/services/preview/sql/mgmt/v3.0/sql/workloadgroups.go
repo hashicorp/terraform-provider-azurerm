@@ -70,7 +70,7 @@ func (client WorkloadGroupsClient) CreateOrUpdate(ctx context.Context, resourceG
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.WorkloadGroupsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.WorkloadGroupsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -106,6 +106,7 @@ func (client WorkloadGroupsClient) CreateOrUpdatePreparer(ctx context.Context, r
 // http.Response Body if it receives an error.
 func (client WorkloadGroupsClient) CreateOrUpdateSender(req *http.Request) (future WorkloadGroupsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -155,7 +156,7 @@ func (client WorkloadGroupsClient) Delete(ctx context.Context, resourceGroupName
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.WorkloadGroupsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.WorkloadGroupsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -189,6 +190,7 @@ func (client WorkloadGroupsClient) DeletePreparer(ctx context.Context, resourceG
 // http.Response Body if it receives an error.
 func (client WorkloadGroupsClient) DeleteSender(req *http.Request) (future WorkloadGroupsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

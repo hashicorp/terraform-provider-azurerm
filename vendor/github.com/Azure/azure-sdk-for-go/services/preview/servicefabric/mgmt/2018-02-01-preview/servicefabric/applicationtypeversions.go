@@ -65,7 +65,7 @@ func (client ApplicationTypeVersionsClient) Create(ctx context.Context, resource
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypeVersionsClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypeVersionsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -101,6 +101,7 @@ func (client ApplicationTypeVersionsClient) CreatePreparer(ctx context.Context, 
 // http.Response Body if it receives an error.
 func (client ApplicationTypeVersionsClient) CreateSender(req *http.Request) (future ApplicationTypeVersionsCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -149,7 +150,7 @@ func (client ApplicationTypeVersionsClient) Delete(ctx context.Context, resource
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypeVersionsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypeVersionsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -183,6 +184,7 @@ func (client ApplicationTypeVersionsClient) DeletePreparer(ctx context.Context, 
 // http.Response Body if it receives an error.
 func (client ApplicationTypeVersionsClient) DeleteSender(req *http.Request) (future ApplicationTypeVersionsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

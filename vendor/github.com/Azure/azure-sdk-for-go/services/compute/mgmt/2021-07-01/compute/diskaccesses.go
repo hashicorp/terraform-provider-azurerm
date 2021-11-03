@@ -35,8 +35,8 @@ func NewDiskAccessesClientWithBaseURI(baseURI string, subscriptionID string) Dis
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // diskAccessName - the name of the disk access resource that is being created. The name can't be changed after
-// the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The maximum
-// name length is 80 characters.
+// the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The
+// maximum name length is 80 characters.
 // diskAccess - disk access object supplied in the body of the Put disk access operation.
 func (client DiskAccessesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, diskAccessName string, diskAccess DiskAccess) (result DiskAccessesCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
@@ -57,7 +57,7 @@ func (client DiskAccessesClient) CreateOrUpdate(ctx context.Context, resourceGro
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.DiskAccessesClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.DiskAccessesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -72,7 +72,7 @@ func (client DiskAccessesClient) CreateOrUpdatePreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -91,6 +91,7 @@ func (client DiskAccessesClient) CreateOrUpdatePreparer(ctx context.Context, res
 // http.Response Body if it receives an error.
 func (client DiskAccessesClient) CreateOrUpdateSender(req *http.Request) (future DiskAccessesCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -118,8 +119,8 @@ func (client DiskAccessesClient) CreateOrUpdateResponder(resp *http.Response) (r
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // diskAccessName - the name of the disk access resource that is being created. The name can't be changed after
-// the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The maximum
-// name length is 80 characters.
+// the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The
+// maximum name length is 80 characters.
 func (client DiskAccessesClient) Delete(ctx context.Context, resourceGroupName string, diskAccessName string) (result DiskAccessesDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DiskAccessesClient.Delete")
@@ -139,7 +140,7 @@ func (client DiskAccessesClient) Delete(ctx context.Context, resourceGroupName s
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.DiskAccessesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.DiskAccessesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -154,7 +155,7 @@ func (client DiskAccessesClient) DeletePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -171,6 +172,7 @@ func (client DiskAccessesClient) DeletePreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client DiskAccessesClient) DeleteSender(req *http.Request) (future DiskAccessesDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -197,9 +199,9 @@ func (client DiskAccessesClient) DeleteResponder(resp *http.Response) (result au
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // diskAccessName - the name of the disk access resource that is being created. The name can't be changed after
-// the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The maximum
-// name length is 80 characters.
-// privateEndpointConnectionName - the name of the private endpoint connection
+// the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The
+// maximum name length is 80 characters.
+// privateEndpointConnectionName - the name of the private endpoint connection.
 func (client DiskAccessesClient) DeleteAPrivateEndpointConnection(ctx context.Context, resourceGroupName string, diskAccessName string, privateEndpointConnectionName string) (result DiskAccessesDeleteAPrivateEndpointConnectionFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DiskAccessesClient.DeleteAPrivateEndpointConnection")
@@ -219,7 +221,7 @@ func (client DiskAccessesClient) DeleteAPrivateEndpointConnection(ctx context.Co
 
 	result, err = client.DeleteAPrivateEndpointConnectionSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.DiskAccessesClient", "DeleteAPrivateEndpointConnection", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.DiskAccessesClient", "DeleteAPrivateEndpointConnection", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -235,7 +237,7 @@ func (client DiskAccessesClient) DeleteAPrivateEndpointConnectionPreparer(ctx co
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -252,6 +254,7 @@ func (client DiskAccessesClient) DeleteAPrivateEndpointConnectionPreparer(ctx co
 // http.Response Body if it receives an error.
 func (client DiskAccessesClient) DeleteAPrivateEndpointConnectionSender(req *http.Request) (future DiskAccessesDeleteAPrivateEndpointConnectionFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -278,8 +281,8 @@ func (client DiskAccessesClient) DeleteAPrivateEndpointConnectionResponder(resp 
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // diskAccessName - the name of the disk access resource that is being created. The name can't be changed after
-// the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The maximum
-// name length is 80 characters.
+// the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The
+// maximum name length is 80 characters.
 func (client DiskAccessesClient) Get(ctx context.Context, resourceGroupName string, diskAccessName string) (result DiskAccess, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DiskAccessesClient.Get")
@@ -321,7 +324,7 @@ func (client DiskAccessesClient) GetPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -356,9 +359,9 @@ func (client DiskAccessesClient) GetResponder(resp *http.Response) (result DiskA
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // diskAccessName - the name of the disk access resource that is being created. The name can't be changed after
-// the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The maximum
-// name length is 80 characters.
-// privateEndpointConnectionName - the name of the private endpoint connection
+// the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The
+// maximum name length is 80 characters.
+// privateEndpointConnectionName - the name of the private endpoint connection.
 func (client DiskAccessesClient) GetAPrivateEndpointConnection(ctx context.Context, resourceGroupName string, diskAccessName string, privateEndpointConnectionName string) (result PrivateEndpointConnection, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DiskAccessesClient.GetAPrivateEndpointConnection")
@@ -401,7 +404,7 @@ func (client DiskAccessesClient) GetAPrivateEndpointConnectionPreparer(ctx conte
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -436,8 +439,8 @@ func (client DiskAccessesClient) GetAPrivateEndpointConnectionResponder(resp *ht
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // diskAccessName - the name of the disk access resource that is being created. The name can't be changed after
-// the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The maximum
-// name length is 80 characters.
+// the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The
+// maximum name length is 80 characters.
 func (client DiskAccessesClient) GetPrivateLinkResources(ctx context.Context, resourceGroupName string, diskAccessName string) (result PrivateLinkResourceListResult, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DiskAccessesClient.GetPrivateLinkResources")
@@ -479,7 +482,7 @@ func (client DiskAccessesClient) GetPrivateLinkResourcesPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -555,7 +558,7 @@ func (client DiskAccessesClient) ListPreparer(ctx context.Context) (*http.Reques
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -671,7 +674,7 @@ func (client DiskAccessesClient) ListByResourceGroupPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -743,8 +746,8 @@ func (client DiskAccessesClient) ListByResourceGroupComplete(ctx context.Context
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // diskAccessName - the name of the disk access resource that is being created. The name can't be changed after
-// the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The maximum
-// name length is 80 characters.
+// the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The
+// maximum name length is 80 characters.
 func (client DiskAccessesClient) ListPrivateEndpointConnections(ctx context.Context, resourceGroupName string, diskAccessName string) (result PrivateEndpointConnectionListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DiskAccessesClient.ListPrivateEndpointConnections")
@@ -791,7 +794,7 @@ func (client DiskAccessesClient) ListPrivateEndpointConnectionsPreparer(ctx cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -863,8 +866,8 @@ func (client DiskAccessesClient) ListPrivateEndpointConnectionsComplete(ctx cont
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // diskAccessName - the name of the disk access resource that is being created. The name can't be changed after
-// the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The maximum
-// name length is 80 characters.
+// the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The
+// maximum name length is 80 characters.
 // diskAccess - disk access object supplied in the body of the Patch disk access operation.
 func (client DiskAccessesClient) Update(ctx context.Context, resourceGroupName string, diskAccessName string, diskAccess DiskAccessUpdate) (result DiskAccessesUpdateFuture, err error) {
 	if tracing.IsEnabled() {
@@ -885,7 +888,7 @@ func (client DiskAccessesClient) Update(ctx context.Context, resourceGroupName s
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.DiskAccessesClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.DiskAccessesClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -900,7 +903,7 @@ func (client DiskAccessesClient) UpdatePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -919,6 +922,7 @@ func (client DiskAccessesClient) UpdatePreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client DiskAccessesClient) UpdateSender(req *http.Request) (future DiskAccessesUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -947,9 +951,9 @@ func (client DiskAccessesClient) UpdateResponder(resp *http.Response) (result Di
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // diskAccessName - the name of the disk access resource that is being created. The name can't be changed after
-// the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The maximum
-// name length is 80 characters.
-// privateEndpointConnectionName - the name of the private endpoint connection
+// the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9, _ and -. The
+// maximum name length is 80 characters.
+// privateEndpointConnectionName - the name of the private endpoint connection.
 // privateEndpointConnection - private endpoint connection object supplied in the body of the Put private
 // endpoint connection operation.
 func (client DiskAccessesClient) UpdateAPrivateEndpointConnection(ctx context.Context, resourceGroupName string, diskAccessName string, privateEndpointConnectionName string, privateEndpointConnection PrivateEndpointConnection) (result DiskAccessesUpdateAPrivateEndpointConnectionFuture, err error) {
@@ -978,7 +982,7 @@ func (client DiskAccessesClient) UpdateAPrivateEndpointConnection(ctx context.Co
 
 	result, err = client.UpdateAPrivateEndpointConnectionSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.DiskAccessesClient", "UpdateAPrivateEndpointConnection", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.DiskAccessesClient", "UpdateAPrivateEndpointConnection", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -994,7 +998,7 @@ func (client DiskAccessesClient) UpdateAPrivateEndpointConnectionPreparer(ctx co
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1016,6 +1020,7 @@ func (client DiskAccessesClient) UpdateAPrivateEndpointConnectionPreparer(ctx co
 // http.Response Body if it receives an error.
 func (client DiskAccessesClient) UpdateAPrivateEndpointConnectionSender(req *http.Request) (future DiskAccessesUpdateAPrivateEndpointConnectionFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

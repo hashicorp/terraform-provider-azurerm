@@ -68,7 +68,7 @@ func (client ImportExportClient) Import(ctx context.Context, resourceGroupName s
 
 	result, err = client.ImportSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ImportExportClient", "Import", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ImportExportClient", "Import", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -103,6 +103,7 @@ func (client ImportExportClient) ImportPreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client ImportExportClient) ImportSender(req *http.Request) (future ImportExportImportFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

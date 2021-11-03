@@ -2608,9 +2608,285 @@ type CloudServiceVaultSecretGroup struct {
 	VaultCertificates *[]CloudServiceVaultCertificate `json:"vaultCertificates,omitempty"`
 }
 
+// CommunityGallery specifies information about the Community Gallery that you want to create or update.
+type CommunityGallery struct {
+	autorest.Response `json:"-"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Location - READ-ONLY; Resource location
+	Location *string `json:"location,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type                        *string `json:"type,omitempty"`
+	*CommunityGalleryIdentifier `json:"identifier,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CommunityGallery.
+func (cg CommunityGallery) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cg.CommunityGalleryIdentifier != nil {
+		objectMap["identifier"] = cg.CommunityGalleryIdentifier
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for CommunityGallery struct.
+func (cg *CommunityGallery) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				cg.Name = &name
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				cg.Location = &location
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				cg.Type = &typeVar
+			}
+		case "identifier":
+			if v != nil {
+				var communityGalleryIdentifier CommunityGalleryIdentifier
+				err = json.Unmarshal(*v, &communityGalleryIdentifier)
+				if err != nil {
+					return err
+				}
+				cg.CommunityGalleryIdentifier = &communityGalleryIdentifier
+			}
+		}
+	}
+
+	return nil
+}
+
+// CommunityGalleryIdentifier the identifier information of community gallery.
+type CommunityGalleryIdentifier struct {
+	// UniqueID - The unique id of this community gallery.
+	UniqueID *string `json:"uniqueId,omitempty"`
+}
+
+// CommunityGalleryImage specifies information about the gallery image definition that you want to create
+// or update.
+type CommunityGalleryImage struct {
+	autorest.Response                `json:"-"`
+	*CommunityGalleryImageProperties `json:"properties,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Location - READ-ONLY; Resource location
+	Location *string `json:"location,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type                        *string `json:"type,omitempty"`
+	*CommunityGalleryIdentifier `json:"identifier,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CommunityGalleryImage.
+func (cgiVar CommunityGalleryImage) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cgiVar.CommunityGalleryImageProperties != nil {
+		objectMap["properties"] = cgiVar.CommunityGalleryImageProperties
+	}
+	if cgiVar.CommunityGalleryIdentifier != nil {
+		objectMap["identifier"] = cgiVar.CommunityGalleryIdentifier
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for CommunityGalleryImage struct.
+func (cgiVar *CommunityGalleryImage) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var communityGalleryImageProperties CommunityGalleryImageProperties
+				err = json.Unmarshal(*v, &communityGalleryImageProperties)
+				if err != nil {
+					return err
+				}
+				cgiVar.CommunityGalleryImageProperties = &communityGalleryImageProperties
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				cgiVar.Name = &name
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				cgiVar.Location = &location
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				cgiVar.Type = &typeVar
+			}
+		case "identifier":
+			if v != nil {
+				var communityGalleryIdentifier CommunityGalleryIdentifier
+				err = json.Unmarshal(*v, &communityGalleryIdentifier)
+				if err != nil {
+					return err
+				}
+				cgiVar.CommunityGalleryIdentifier = &communityGalleryIdentifier
+			}
+		}
+	}
+
+	return nil
+}
+
+// CommunityGalleryImageProperties describes the properties of a gallery image definition.
+type CommunityGalleryImageProperties struct {
+	// OsType - This property allows you to specify the type of the OS that is included in the disk when creating a VM from a managed image. <br><br> Possible values are: <br><br> **Windows** <br><br> **Linux**. Possible values include: 'OperatingSystemTypesWindows', 'OperatingSystemTypesLinux'
+	OsType OperatingSystemTypes `json:"osType,omitempty"`
+	// OsState - This property allows the user to specify whether the virtual machines created under this image are 'Generalized' or 'Specialized'. Possible values include: 'OperatingSystemStateTypesGeneralized', 'OperatingSystemStateTypesSpecialized'
+	OsState OperatingSystemStateTypes `json:"osState,omitempty"`
+	// EndOfLifeDate - The end of life date of the gallery image definition. This property can be used for decommissioning purposes. This property is updatable.
+	EndOfLifeDate *date.Time                       `json:"endOfLifeDate,omitempty"`
+	Identifier    *GalleryImageIdentifier          `json:"identifier,omitempty"`
+	Recommended   *RecommendedMachineConfiguration `json:"recommended,omitempty"`
+	Disallowed    *Disallowed                      `json:"disallowed,omitempty"`
+	// HyperVGeneration - The hypervisor generation of the Virtual Machine. Applicable to OS disks only. Possible values include: 'HyperVGenerationV1', 'HyperVGenerationV2'
+	HyperVGeneration HyperVGeneration `json:"hyperVGeneration,omitempty"`
+	// Features - A list of gallery image features.
+	Features     *[]GalleryImageFeature `json:"features,omitempty"`
+	PurchasePlan *ImagePurchasePlan     `json:"purchasePlan,omitempty"`
+}
+
+// CommunityGalleryImageVersion specifies information about the gallery image version that you want to
+// create or update.
+type CommunityGalleryImageVersion struct {
+	autorest.Response                       `json:"-"`
+	*CommunityGalleryImageVersionProperties `json:"properties,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Location - READ-ONLY; Resource location
+	Location *string `json:"location,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type                        *string `json:"type,omitempty"`
+	*CommunityGalleryIdentifier `json:"identifier,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CommunityGalleryImageVersion.
+func (cgiv CommunityGalleryImageVersion) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cgiv.CommunityGalleryImageVersionProperties != nil {
+		objectMap["properties"] = cgiv.CommunityGalleryImageVersionProperties
+	}
+	if cgiv.CommunityGalleryIdentifier != nil {
+		objectMap["identifier"] = cgiv.CommunityGalleryIdentifier
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for CommunityGalleryImageVersion struct.
+func (cgiv *CommunityGalleryImageVersion) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var communityGalleryImageVersionProperties CommunityGalleryImageVersionProperties
+				err = json.Unmarshal(*v, &communityGalleryImageVersionProperties)
+				if err != nil {
+					return err
+				}
+				cgiv.CommunityGalleryImageVersionProperties = &communityGalleryImageVersionProperties
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				cgiv.Name = &name
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				cgiv.Location = &location
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				cgiv.Type = &typeVar
+			}
+		case "identifier":
+			if v != nil {
+				var communityGalleryIdentifier CommunityGalleryIdentifier
+				err = json.Unmarshal(*v, &communityGalleryIdentifier)
+				if err != nil {
+					return err
+				}
+				cgiv.CommunityGalleryIdentifier = &communityGalleryIdentifier
+			}
+		}
+	}
+
+	return nil
+}
+
+// CommunityGalleryImageVersionProperties describes the properties of a gallery image version.
+type CommunityGalleryImageVersionProperties struct {
+	// PublishedDate - The published date of the gallery image version Definition. This property can be used for decommissioning purposes. This property is updatable.
+	PublishedDate *date.Time `json:"publishedDate,omitempty"`
+	// EndOfLifeDate - The end of life date of the gallery image version Definition. This property can be used for decommissioning purposes. This property is updatable.
+	EndOfLifeDate *date.Time `json:"endOfLifeDate,omitempty"`
+}
+
 // CreationData data used when creating a disk.
 type CreationData struct {
-	// CreateOption - This enumerates the possible sources of a disk's creation. Possible values include: 'DiskCreateOptionEmpty', 'DiskCreateOptionAttach', 'DiskCreateOptionFromImage', 'DiskCreateOptionImport', 'DiskCreateOptionCopy', 'DiskCreateOptionRestore', 'DiskCreateOptionUpload'
+	// CreateOption - This enumerates the possible sources of a disk's creation. Possible values include: 'DiskCreateOptionEmpty', 'DiskCreateOptionAttach', 'DiskCreateOptionFromImage', 'DiskCreateOptionImport', 'DiskCreateOptionCopy', 'DiskCreateOptionRestore', 'DiskCreateOptionUpload', 'DiskCreateOptionCopyStart'
 	CreateOption DiskCreateOption `json:"createOption,omitempty"`
 	// StorageAccountID - Required if createOption is Import. The Azure Resource Manager identifier of the storage account containing the blob to import as a disk.
 	StorageAccountID *string `json:"storageAccountId,omitempty"`
@@ -3867,6 +4143,8 @@ func (d *Disk) UnmarshalJSON(body []byte) error {
 type DiskAccess struct {
 	autorest.Response     `json:"-"`
 	*DiskAccessProperties `json:"properties,omitempty"`
+	// ExtendedLocation - The extended location where the disk access will be created. Extended location cannot be changed.
+	ExtendedLocation *ExtendedLocation `json:"extendedLocation,omitempty"`
 	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name
@@ -3884,6 +4162,9 @@ func (da DiskAccess) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if da.DiskAccessProperties != nil {
 		objectMap["properties"] = da.DiskAccessProperties
+	}
+	if da.ExtendedLocation != nil {
+		objectMap["extendedLocation"] = da.ExtendedLocation
 	}
 	if da.Location != nil {
 		objectMap["location"] = da.Location
@@ -3911,6 +4192,15 @@ func (da *DiskAccess) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				da.DiskAccessProperties = &diskAccessProperties
+			}
+		case "extendedLocation":
+			if v != nil {
+				var extendedLocation ExtendedLocation
+				err = json.Unmarshal(*v, &extendedLocation)
+				if err != nil {
+					return err
+				}
+				da.ExtendedLocation = &extendedLocation
 			}
 		case "id":
 			if v != nil {
@@ -5028,6 +5318,8 @@ type DiskProperties struct {
 	HyperVGeneration HyperVGeneration `json:"hyperVGeneration,omitempty"`
 	// PurchasePlan - Purchase plan information for the the image from which the OS disk was created. E.g. - {name: 2019-Datacenter, publisher: MicrosoftWindowsServer, product: WindowsServer}
 	PurchasePlan *PurchasePlan `json:"purchasePlan,omitempty"`
+	// SupportedCapabilities - List of supported capabilities for the image from which the OS disk was created.
+	SupportedCapabilities *SupportedCapabilities `json:"supportedCapabilities,omitempty"`
 	// CreationData - Disk source information. CreationData information cannot be changed after the disk has been created.
 	CreationData *CreationData `json:"creationData,omitempty"`
 	// DiskSizeGB - If creationData.createOption is Empty, this field is mandatory and it indicates the size of the disk to create. If this field is present for updates or creation with other options, it indicates a resize. Resizes are only allowed if the disk is not attached to a running VM, and can only increase the disk's size.
@@ -5048,7 +5340,7 @@ type DiskProperties struct {
 	DiskIOPSReadOnly *int64 `json:"diskIOPSReadOnly,omitempty"`
 	// DiskMBpsReadOnly - The total throughput (MBps) that will be allowed across all VMs mounting the shared disk as ReadOnly. MBps means millions of bytes per second - MB here uses the ISO notation, of powers of 10.
 	DiskMBpsReadOnly *int64 `json:"diskMBpsReadOnly,omitempty"`
-	// DiskState - The state of the disk. Possible values include: 'DiskStateUnattached', 'DiskStateAttached', 'DiskStateReserved', 'DiskStateActiveSAS', 'DiskStateReadyToUpload', 'DiskStateActiveUpload'
+	// DiskState - The state of the disk. Possible values include: 'DiskStateUnattached', 'DiskStateAttached', 'DiskStateReserved', 'DiskStateFrozen', 'DiskStateActiveSAS', 'DiskStateActiveSASFrozen', 'DiskStateReadyToUpload', 'DiskStateActiveUpload'
 	DiskState DiskState `json:"diskState,omitempty"`
 	// Encryption - Encryption property can be used to encrypt data at rest with customer managed keys or platform managed keys.
 	Encryption *Encryption `json:"encryption,omitempty"`
@@ -5070,6 +5362,10 @@ type DiskProperties struct {
 	SupportsHibernation *bool `json:"supportsHibernation,omitempty"`
 	// SecurityProfile - Contains the security related information for the resource.
 	SecurityProfile *DiskSecurityProfile `json:"securityProfile,omitempty"`
+	// CompletionPercent - Percentage complete for the background copy when a resource is created via the CopyStart operation.
+	CompletionPercent *float64 `json:"completionPercent,omitempty"`
+	// PublicNetworkAccess - Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for DiskProperties.
@@ -5083,6 +5379,9 @@ func (dp DiskProperties) MarshalJSON() ([]byte, error) {
 	}
 	if dp.PurchasePlan != nil {
 		objectMap["purchasePlan"] = dp.PurchasePlan
+	}
+	if dp.SupportedCapabilities != nil {
+		objectMap["supportedCapabilities"] = dp.SupportedCapabilities
 	}
 	if dp.CreationData != nil {
 		objectMap["creationData"] = dp.CreationData
@@ -5131,6 +5430,12 @@ func (dp DiskProperties) MarshalJSON() ([]byte, error) {
 	}
 	if dp.SecurityProfile != nil {
 		objectMap["securityProfile"] = dp.SecurityProfile
+	}
+	if dp.CompletionPercent != nil {
+		objectMap["completionPercent"] = dp.CompletionPercent
+	}
+	if dp.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = dp.PublicNetworkAccess
 	}
 	return json.Marshal(objectMap)
 }
@@ -5421,6 +5726,8 @@ type DiskRestorePointProperties struct {
 	HyperVGeneration HyperVGeneration `json:"hyperVGeneration,omitempty"`
 	// PurchasePlan - Purchase plan information for the the image from which the OS disk was created.
 	PurchasePlan *PurchasePlan `json:"purchasePlan,omitempty"`
+	// SupportedCapabilities - List of supported capabilities (like accelerated networking) for the image from which the OS disk was created.
+	SupportedCapabilities *SupportedCapabilities `json:"supportedCapabilities,omitempty"`
 	// FamilyID - READ-ONLY; id of the backing snapshot's MIS family
 	FamilyID *string `json:"familyId,omitempty"`
 	// SourceUniqueID - READ-ONLY; unique incarnation id of the source disk
@@ -5429,6 +5736,14 @@ type DiskRestorePointProperties struct {
 	Encryption *Encryption `json:"encryption,omitempty"`
 	// SupportsHibernation - Indicates the OS on a disk supports hibernation.
 	SupportsHibernation *bool `json:"supportsHibernation,omitempty"`
+	// NetworkAccessPolicy - Possible values include: 'NetworkAccessPolicyAllowAll', 'NetworkAccessPolicyAllowPrivate', 'NetworkAccessPolicyDenyAll'
+	NetworkAccessPolicy NetworkAccessPolicy `json:"networkAccessPolicy,omitempty"`
+	// PublicNetworkAccess - Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
+	// DiskAccessID - ARM id of the DiskAccess resource for using private endpoints on disks.
+	DiskAccessID *string `json:"diskAccessId,omitempty"`
+	// CompletionPercent - Percentage complete for the background copy when a resource is created via the CopyStart operation.
+	CompletionPercent *float64 `json:"completionPercent,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for DiskRestorePointProperties.
@@ -5440,8 +5755,23 @@ func (drpp DiskRestorePointProperties) MarshalJSON() ([]byte, error) {
 	if drpp.PurchasePlan != nil {
 		objectMap["purchasePlan"] = drpp.PurchasePlan
 	}
+	if drpp.SupportedCapabilities != nil {
+		objectMap["supportedCapabilities"] = drpp.SupportedCapabilities
+	}
 	if drpp.SupportsHibernation != nil {
 		objectMap["supportsHibernation"] = drpp.SupportsHibernation
+	}
+	if drpp.NetworkAccessPolicy != "" {
+		objectMap["networkAccessPolicy"] = drpp.NetworkAccessPolicy
+	}
+	if drpp.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = drpp.PublicNetworkAccess
+	}
+	if drpp.DiskAccessID != nil {
+		objectMap["diskAccessId"] = drpp.DiskAccessID
+	}
+	if drpp.CompletionPercent != nil {
+		objectMap["completionPercent"] = drpp.CompletionPercent
 	}
 	return json.Marshal(objectMap)
 }
@@ -5803,10 +6133,14 @@ type DiskUpdateProperties struct {
 	BurstingEnabled *bool `json:"burstingEnabled,omitempty"`
 	// PurchasePlan - Purchase plan information to be added on the OS disk
 	PurchasePlan *PurchasePlan `json:"purchasePlan,omitempty"`
+	// SupportedCapabilities - List of supported capabilities (like accelerated networking) to be added on the OS disk.
+	SupportedCapabilities *SupportedCapabilities `json:"supportedCapabilities,omitempty"`
 	// PropertyUpdatesInProgress - READ-ONLY; Properties of the disk for which update is pending.
 	PropertyUpdatesInProgress *PropertyUpdatesInProgress `json:"propertyUpdatesInProgress,omitempty"`
 	// SupportsHibernation - Indicates the OS on a disk supports hibernation.
 	SupportsHibernation *bool `json:"supportsHibernation,omitempty"`
+	// PublicNetworkAccess - Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for DiskUpdateProperties.
@@ -5854,8 +6188,14 @@ func (dup DiskUpdateProperties) MarshalJSON() ([]byte, error) {
 	if dup.PurchasePlan != nil {
 		objectMap["purchasePlan"] = dup.PurchasePlan
 	}
+	if dup.SupportedCapabilities != nil {
+		objectMap["supportedCapabilities"] = dup.SupportedCapabilities
+	}
 	if dup.SupportsHibernation != nil {
 		objectMap["supportsHibernation"] = dup.SupportsHibernation
+	}
+	if dup.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = dup.PublicNetworkAccess
 	}
 	return json.Marshal(objectMap)
 }
@@ -5910,6 +6250,8 @@ type EncryptionSetProperties struct {
 	RotationToLatestKeyVersionEnabled *bool `json:"rotationToLatestKeyVersionEnabled,omitempty"`
 	// LastKeyRotationTimestamp - READ-ONLY; The time when the active key of this disk encryption set was updated.
 	LastKeyRotationTimestamp *date.Time `json:"lastKeyRotationTimestamp,omitempty"`
+	// AutoKeyRotationError - READ-ONLY; The error that was encountered during auto-key rotation. If an error is present, then auto-key rotation will not be attempted until the error on this disk encryption set is fixed.
+	AutoKeyRotationError *APIError `json:"autoKeyRotationError,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for EncryptionSetProperties.
@@ -10608,6 +10950,77 @@ type PatchSettings struct {
 	AssessmentMode WindowsPatchAssessmentMode `json:"assessmentMode,omitempty"`
 }
 
+// PirCommunityGalleryResource base information about the community gallery resource in pir.
+type PirCommunityGalleryResource struct {
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Location - READ-ONLY; Resource location
+	Location *string `json:"location,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type                        *string `json:"type,omitempty"`
+	*CommunityGalleryIdentifier `json:"identifier,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PirCommunityGalleryResource.
+func (pcgr PirCommunityGalleryResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pcgr.CommunityGalleryIdentifier != nil {
+		objectMap["identifier"] = pcgr.CommunityGalleryIdentifier
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PirCommunityGalleryResource struct.
+func (pcgr *PirCommunityGalleryResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				pcgr.Name = &name
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				pcgr.Location = &location
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				pcgr.Type = &typeVar
+			}
+		case "identifier":
+			if v != nil {
+				var communityGalleryIdentifier CommunityGalleryIdentifier
+				err = json.Unmarshal(*v, &communityGalleryIdentifier)
+				if err != nil {
+					return err
+				}
+				pcgr.CommunityGalleryIdentifier = &communityGalleryIdentifier
+			}
+		}
+	}
+
+	return nil
+}
+
 // PirResource the Resource model definition.
 type PirResource struct {
 	// Name - READ-ONLY; Resource name
@@ -14451,13 +14864,15 @@ type SnapshotProperties struct {
 	HyperVGeneration HyperVGeneration `json:"hyperVGeneration,omitempty"`
 	// PurchasePlan - Purchase plan information for the image from which the source disk for the snapshot was originally created.
 	PurchasePlan *PurchasePlan `json:"purchasePlan,omitempty"`
+	// SupportedCapabilities - List of supported capabilities (like Accelerated Networking) for the image from which the source disk from the snapshot was originally created.
+	SupportedCapabilities *SupportedCapabilities `json:"supportedCapabilities,omitempty"`
 	// CreationData - Disk source information. CreationData information cannot be changed after the disk has been created.
 	CreationData *CreationData `json:"creationData,omitempty"`
 	// DiskSizeGB - If creationData.createOption is Empty, this field is mandatory and it indicates the size of the disk to create. If this field is present for updates or creation with other options, it indicates a resize. Resizes are only allowed if the disk is not attached to a running VM, and can only increase the disk's size.
 	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
 	// DiskSizeBytes - READ-ONLY; The size of the disk in bytes. This field is read only.
 	DiskSizeBytes *int64 `json:"diskSizeBytes,omitempty"`
-	// DiskState - The state of the snapshot. Possible values include: 'DiskStateUnattached', 'DiskStateAttached', 'DiskStateReserved', 'DiskStateActiveSAS', 'DiskStateReadyToUpload', 'DiskStateActiveUpload'
+	// DiskState - The state of the snapshot. Possible values include: 'DiskStateUnattached', 'DiskStateAttached', 'DiskStateReserved', 'DiskStateFrozen', 'DiskStateActiveSAS', 'DiskStateActiveSASFrozen', 'DiskStateReadyToUpload', 'DiskStateActiveUpload'
 	DiskState DiskState `json:"diskState,omitempty"`
 	// UniqueID - READ-ONLY; Unique Guid identifying the resource.
 	UniqueID *string `json:"uniqueId,omitempty"`
@@ -14475,6 +14890,10 @@ type SnapshotProperties struct {
 	DiskAccessID *string `json:"diskAccessId,omitempty"`
 	// SupportsHibernation - Indicates the OS on a snapshot supports hibernation.
 	SupportsHibernation *bool `json:"supportsHibernation,omitempty"`
+	// PublicNetworkAccess - Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
+	// CompletionPercent - Percentage complete for the background copy when a resource is created via the CopyStart operation.
+	CompletionPercent *float64 `json:"completionPercent,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SnapshotProperties.
@@ -14488,6 +14907,9 @@ func (sp SnapshotProperties) MarshalJSON() ([]byte, error) {
 	}
 	if sp.PurchasePlan != nil {
 		objectMap["purchasePlan"] = sp.PurchasePlan
+	}
+	if sp.SupportedCapabilities != nil {
+		objectMap["supportedCapabilities"] = sp.SupportedCapabilities
 	}
 	if sp.CreationData != nil {
 		objectMap["creationData"] = sp.CreationData
@@ -14515,6 +14937,12 @@ func (sp SnapshotProperties) MarshalJSON() ([]byte, error) {
 	}
 	if sp.SupportsHibernation != nil {
 		objectMap["supportsHibernation"] = sp.SupportsHibernation
+	}
+	if sp.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = sp.PublicNetworkAccess
+	}
+	if sp.CompletionPercent != nil {
+		objectMap["completionPercent"] = sp.CompletionPercent
 	}
 	return json.Marshal(objectMap)
 }
@@ -14822,6 +15250,8 @@ type SnapshotUpdateProperties struct {
 	DiskAccessID *string `json:"diskAccessId,omitempty"`
 	// SupportsHibernation - Indicates the OS on a snapshot supports hibernation.
 	SupportsHibernation *bool `json:"supportsHibernation,omitempty"`
+	// PublicNetworkAccess - Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 }
 
 // SoftDeletePolicy contains information about the soft deletion policy of the gallery.
@@ -15241,6 +15671,13 @@ type SubResourceWithColocationStatus struct {
 	ColocationStatus *InstanceViewStatus `json:"colocationStatus,omitempty"`
 	// ID - Resource Id
 	ID *string `json:"id,omitempty"`
+}
+
+// SupportedCapabilities list of supported capabilities (like accelerated networking) persisted on the disk
+// resource for VM use.
+type SupportedCapabilities struct {
+	// AcceleratedNetwork - True if the image from which the OS disk is created supports accelerated networking.
+	AcceleratedNetwork *bool `json:"acceleratedNetwork,omitempty"`
 }
 
 // TargetRegion describes the target region information.
