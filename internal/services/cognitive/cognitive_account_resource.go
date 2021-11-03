@@ -564,18 +564,27 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 				return fmt.Errorf("setting `network_acls` for Cognitive Account %q: %+v", id, err)
 			}
 			d.Set("fqdns", utils.FlattenStringSlice(props.AllowedFqdnList))
+
+			publicNetworkAccess := true
 			if props.PublicNetworkAccess != nil {
-				d.Set("public_network_access_enabled", *props.PublicNetworkAccess == cognitiveservicesaccounts.PublicNetworkAccessEnabled)
+				publicNetworkAccess = *props.PublicNetworkAccess == cognitiveservicesaccounts.PublicNetworkAccessEnabled
 			}
+			d.Set("public_network_access_enabled", publicNetworkAccess)
+
 			if err := d.Set("storage", flattenCognitiveAccountStorage(props.UserOwnedStorage)); err != nil {
 				return fmt.Errorf("setting `storages` for Cognitive Account %q: %+v", id, err)
 			}
+			outboundNetworkAccessRestricted := false
 			if props.RestrictOutboundNetworkAccess != nil {
-				d.Set("outbound_network_access_restrited", props.RestrictOutboundNetworkAccess)
+				outboundNetworkAccessRestricted = *props.RestrictOutboundNetworkAccess
 			}
+			d.Set("outbound_network_access_restrited", outboundNetworkAccessRestricted)
+
+			localAuthEnabled := true
 			if props.DisableLocalAuth != nil {
-				d.Set("local_auth_enabled", !*props.DisableLocalAuth)
+				localAuthEnabled = !*props.DisableLocalAuth
 			}
+			d.Set("local_auth_enabled", localAuthEnabled)
 		}
 
 		return tags.FlattenAndSet(d, flattenTags(model.Tags))
