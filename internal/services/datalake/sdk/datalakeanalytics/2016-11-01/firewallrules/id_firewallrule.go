@@ -1,0 +1,126 @@
+package firewallrules
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+)
+
+type FirewallRuleId struct {
+	SubscriptionId string
+	ResourceGroup  string
+	AccountName    string
+	Name           string
+}
+
+func NewFirewallRuleID(subscriptionId, resourceGroup, accountName, name string) FirewallRuleId {
+	return FirewallRuleId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		AccountName:    accountName,
+		Name:           name,
+	}
+}
+
+func (id FirewallRuleId) String() string {
+	segments := []string{
+		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Account Name %q", id.AccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Firewall Rule", segmentsStr)
+}
+
+func (id FirewallRuleId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataLakeAnalytics/accounts/%s/firewallRules/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AccountName, id.Name)
+}
+
+// ParseFirewallRuleID parses a FirewallRule ID into an FirewallRuleId struct
+func ParseFirewallRuleID(input string) (*FirewallRuleId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := FirewallRuleId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.AccountName, err = id.PopSegment("accounts"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("firewallRules"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
+
+// ParseFirewallRuleIDInsensitively parses an FirewallRule ID into an FirewallRuleId struct, insensitively
+// This should only be used to parse an ID for rewriting to a consistent casing,
+// the ParseFirewallRuleID method should be used instead for validation etc.
+func ParseFirewallRuleIDInsensitively(input string) (*FirewallRuleId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := FirewallRuleId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'accounts' segment
+	accountsKey := "accounts"
+	for key := range id.Path {
+		if strings.EqualFold(key, accountsKey) {
+			accountsKey = key
+			break
+		}
+	}
+	if resourceId.AccountName, err = id.PopSegment(accountsKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'firewallRules' segment
+	firewallRulesKey := "firewallRules"
+	for key := range id.Path {
+		if strings.EqualFold(key, firewallRulesKey) {
+			firewallRulesKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(firewallRulesKey); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
