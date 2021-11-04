@@ -12,10 +12,11 @@ const storageDiskPoolManagedDiskAttachmentIdSeparator = "/managedDisks|"
 var _ resourceid.Formatter = StorageDisksPoolManagedDiskAttachmentId{}
 
 type StorageDisksPoolManagedDiskAttachmentId struct {
-	DisksPoolId   string
+	DisksPoolId   string //TODO: use strong type id
 	ManagedDiskId string
 }
 
+// //TODO: use strong type id as parameter
 func NewStorageDisksPoolManagedDiskAttachmentId(diskPoolId, managedDiskId string) StorageDisksPoolManagedDiskAttachmentId {
 	return StorageDisksPoolManagedDiskAttachmentId{
 		DisksPoolId:   diskPoolId,

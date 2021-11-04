@@ -69,7 +69,7 @@ func (d DisksPoolManagedDiskAttachmentResource) Create() sdk.ResourceFunc {
 				return err
 			}
 			if poolId.SubscriptionId != subscriptionId {
-				return fmt.Errorf("Disks Pool subscription %q is different with provider's subscription", poolId.SubscriptionId)
+				return fmt.Errorf("Disks Pool subscription id %q is different from provider's subscription", poolId.SubscriptionId)
 			}
 			diskId, err := computeParse.ManagedDiskID(attachment.DiskId)
 			if err != nil {
@@ -77,30 +77,31 @@ func (d DisksPoolManagedDiskAttachmentResource) Create() sdk.ResourceFunc {
 			}
 			locks.ByID(attachment.DisksPoolId)
 			defer locks.UnlockByID(attachment.DisksPoolId)
+			id := parse.NewStorageDisksPoolManagedDiskAttachmentId(poolId.ID(), diskId.ID())
 
 			client := metadata.Client.Storage.DisksPoolsClient
-			pool, err := client.Get(ctx, poolId.ResourceGroup, poolId.DiskPoolName)
+			poolResp, err := client.Get(ctx, poolId.ResourceGroup, poolId.DiskPoolName)
 			if err != nil {
-				return fmt.Errorf("retrieving %q: %v", *poolId, err)
+				return fmt.Errorf("retrieving %q: %+v", *poolId, err)
 			}
 
-			if pool.Disks == nil {
-				pool.Disks = &[]storagepool.Disk{}
+			if poolResp.Disks == nil {
+				poolResp.Disks = &[]storagepool.Disk{}
 			}
-			for _, disk := range *pool.Disks {
+			for _, disk := range *poolResp.Disks {
 				if disk.ID == nil {
 					continue
 				}
 				existedDiskId, err := computeParse.ManagedDiskID(*disk.ID)
 				if err != nil {
-					return fmt.Errorf("error on parsing existing attached disk id %q", *disk.ID)
+					return fmt.Errorf("error on parsing existing attached disk id %q %+v", *disk.ID, err)
 				}
 				if existedDiskId == diskId {
-					return fmt.Errorf("disk %q already attached", *disk.ID)
+					return metadata.ResourceRequiresImport(d.ResourceType(), id)
 				}
 			}
 
-			disks := append(*pool.Disks, storagepool.Disk{
+			disks := append(*poolResp.Disks, storagepool.Disk{
 				ID: utils.String(diskId.ID()),
 			})
 
@@ -110,14 +111,13 @@ func (d DisksPoolManagedDiskAttachmentResource) Create() sdk.ResourceFunc {
 				},
 			})
 			if err != nil {
-				return err
+				return fmt.Errorf("creation of %q: %+v", id, err)
 			}
-			resourceId := parse.NewStorageDisksPoolManagedDiskAttachmentId(poolId.ID(), diskId.ID())
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of disks pool managed disk attatchment %q: %+v", resourceId, err)
+				return fmt.Errorf("waiting for creation of %q: %+v", id, err)
 			}
 
-			metadata.SetID(resourceId)
+			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -139,26 +139,23 @@ func (d DisksPoolManagedDiskAttachmentResource) Read() sdk.ResourceFunc {
 				if utils.ResponseWasNotFound(poolResp.Response) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving disks pool %q error: %v", id.DisksPoolId, err)
+				return fmt.Errorf("retrieving disks pool %q error: %+v", id.DisksPoolId, err)
 			}
-			if poolResp.Disks == nil || len(*poolResp.Disks) == 0 {
-				metadata.ResourceData.SetId("")
-				return nil
+			if poolResp.DiskPoolProperties == nil || poolResp.DiskPoolProperties.Disks == nil {
+				return metadata.MarkAsGone(id)
 			}
 
 			for _, disk := range *poolResp.Disks {
 				if disk.ID != nil && *disk.ID == id.ManagedDiskId {
-					m := &DisksPoolManagedDiskAttachmentModel{
+					m := DisksPoolManagedDiskAttachmentModel{
 						DisksPoolId: id.DisksPoolId,
 						DiskId:      id.ManagedDiskId,
 					}
-					err := metadata.Encode(m)
-					return err
+					return metadata.Encode(&m)
 				}
 			}
 
-			metadata.ResourceData.SetId("")
-			return nil
+			return metadata.MarkAsGone(id)
 		},
 	}
 }
@@ -188,20 +185,20 @@ func (d DisksPoolManagedDiskAttachmentResource) Delete() sdk.ResourceFunc {
 				return nil
 			}
 			attachedDisks := *pool.Disks
-			newDisks := []storagepool.Disk{}
+			remainingDisks := make([]storagepool.Disk, 0)
 			for _, attachedDisk := range attachedDisks {
 				if utils.NormalizeNilableString(attachedDisk.ID) != diskToDetach.DiskId {
-					newDisks = append(newDisks, attachedDisk)
+					remainingDisks = append(remainingDisks, attachedDisk)
 				}
 			}
 
 			future, err := client.Update(ctx, poolId.ResourceGroup, poolId.DiskPoolName, storagepool.DiskPoolUpdate{
 				DiskPoolUpdateProperties: &storagepool.DiskPoolUpdateProperties{
-					Disks: &newDisks,
+					Disks: &remainingDisks,
 				},
 			})
 			if err != nil {
-				return fmt.Errorf("error on deletion of disks pool managed disk attachment %q: %v", metadata.ResourceData.Id(), err)
+				return fmt.Errorf("error on deletion of disks pool managed disk attachment %q: %+v", metadata.ResourceData.Id(), err)
 			}
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting for deletion of disks pool managed disk attatchment %q: %+v", metadata.ResourceData.Id(), err)

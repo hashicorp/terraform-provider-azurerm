@@ -11,10 +11,8 @@ func StorageDisksPoolManagedDiskAttachment(input interface{}, key string) (warni
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
-
 	if _, err := parse.StorageDisksPoolManagedDiskAttachmentID(v); err != nil {
 		errors = append(errors, err)
 	}
-
 	return
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/Azure/azure-sdk-for-go/services/storagepool/mgmt/2021-08-01/storagepool"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -23,30 +22,19 @@ type DisksPoolIscsiTargetResource struct{}
 var _ sdk.ResourceWithUpdate = DisksPoolIscsiTargetResource{}
 
 type DiskPoolIscsiTargetModel struct {
-	ACLMode           string                    `tfschema:"acl_mode"`
-	DisksPoolId       string                    `tfschema:"disks_pool_id"`
-	Endpoints         []string                  `tfschema:"endpoints"` // List of private IPv4 addresses to connect to the iSCSI Target.
-	Luns              []DisksPoolIscsiLun       `tfschema:"luns"`
-	ManagedBy         string                    `tfschema:"managed_by"`
-	ManagedByExtended []string                  `tfschema:"managed_by_extended"`
-	Name              string                    `tfschema:"name"`
-	Port              int                       `tfschema:"port"` // The port used by iSCSI Target portal group.
-	StaticAcls        []DisksPoolISCSITargetAcl `tfschema:"static_acls"`
-	TargetIqn         string                    `tfschema:"target_iqn"` // iSCSI Target IQN (iSCSI Qualified Name); example: \"iqn.2005-03.org.iscsi:server\".
-
-	// TODO: Should we add this?
-	// Session []string //List of identifiers for active sessions on the iSCSI target
-}
-
-type DisksPoolISCSITargetAcl struct {
-	InitiatorIqn string   `tfschema:"initiator_iqn"` // iSCSI initiator IQN (iSCSI Qualified Name); example: \"iqn.2005-03.org.iscsi:client\".
-	MappedLuns   []string `tfschema:"mapped_luns"`   // List of LUN names mapped to the ACL.
+	ACLMode     string              `tfschema:"acl_mode"`
+	DisksPoolId string              `tfschema:"disks_pool_id"`
+	Endpoints   []string            `tfschema:"endpoints"` // List of private IPv4 addresses to connect to the iSCSI Target.
+	Luns        []DisksPoolIscsiLun `tfschema:"lun"`
+	Name        string              `tfschema:"name"`
+	Port        int                 `tfschema:"port"`       // The port used by iSCSI Target portal group.
+	TargetIqn   string              `tfschema:"target_iqn"` // iSCSI Target IQN (iSCSI Qualified Name); example: \"iqn.2005-03.org.iscsi:server\".
 }
 
 type DisksPoolIscsiLun struct {
-	Name                       string `tfschema:"name"`                           // User defined name for iSCSI LUN; example: \"lun0\" min:1 max:90
-	ManagedDiskAzureResourceId string `tfschema:"managed_disk_azure_resource_id"` // Azure Resource ID of the Managed Disk.
-	Lun                        int    `tfschema:"lun"`                            // Specifies the Logical Unit Number of the iSCSI LUN. readonly
+	Name          string `tfschema:"name"`            // User defined name for iSCSI LUN; example: \"lun0\" min:1 max:90
+	ManagedDiskId string `tfschema:"managed_disk_id"` // Azure Resource ID of the Managed Disk.
+	Number        int    `tfschema:"number"`          // Specifies the Logical Unit Number of the iSCSI LUN. readonly
 }
 
 func (d DisksPoolIscsiTargetResource) Arguments() map[string]*schema.Schema {
@@ -63,39 +51,6 @@ func (d DisksPoolIscsiTargetResource) Arguments() map[string]*schema.Schema {
 			ForceNew:     true,
 			ValidateFunc: validate.StorageDisksPoolID,
 		},
-		"luns": { // Allow empty slice!
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.All(
-							validation.StringIsNotEmpty,
-							validation.StringLenBetween(1, 90),
-						),
-					},
-					"managed_disk_azure_resource_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: computeValidate.ManagedDiskID,
-					},
-					"lun": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
-					},
-				},
-			},
-		},
-		"managed_by_extended": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-		},
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -108,23 +63,30 @@ func (d DisksPoolIscsiTargetResource) Arguments() map[string]*schema.Schema {
 				),
 			),
 		},
-		"static_acls": { // TODO: How to set static acl?
+
+		"lun": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Elem: &pluginsdk.Resource{
+			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
-					"initiator_iqn": {
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.All(
+							validation.StringMatch(
+								regexp.MustCompile("^[\\dA-Za-z-_.]+[\\dA-Za-z]$"),
+								"supported characters include [0-9A-Za-z-_.]; name should end with an alphanumeric character"),
+							validation.StringLenBetween(1, 90),
+						),
+					},
+					"managed_disk_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validate.IQN,
+						ValidateFunc: computeValidate.ManagedDiskID,
 					},
-					"mapped_luns": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						Elem: &schema.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+					"number": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
 					},
 				},
 			},
@@ -132,6 +94,7 @@ func (d DisksPoolIscsiTargetResource) Arguments() map[string]*schema.Schema {
 		"target_iqn": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			ForceNew:     true,
 			ValidateFunc: validate.IQN,
 		},
 	}
@@ -144,10 +107,6 @@ func (d DisksPoolIscsiTargetResource) Attributes() map[string]*schema.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Computed: true,
-		},
-		"managed_by": {
-			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 		"port": {
@@ -169,49 +128,46 @@ func (d DisksPoolIscsiTargetResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			targetModel := DiskPoolIscsiTargetModel{}
-			err := metadata.Decode(&targetModel)
+			m := DiskPoolIscsiTargetModel{}
+			err := metadata.Decode(&m)
 			if err != nil {
 				return err
 			}
-			poolId, err := parse.StorageDisksPoolID(targetModel.DisksPoolId)
+			poolId, err := parse.StorageDisksPoolID(m.DisksPoolId)
 			if err != nil {
 				return err
 			}
-			id := parse.NewStorageDisksPoolISCSITargetID(poolId.SubscriptionId, poolId.ResourceGroup, poolId.DiskPoolName, targetModel.Name)
-
+			if poolId.SubscriptionId != metadata.Client.Account.SubscriptionId {
+				return fmt.Errorf("Disks Pool subscription id %q is different from provider's subscription", poolId.SubscriptionId)
+			}
+			id := parse.NewStorageDisksPoolISCSITargetID(poolId.SubscriptionId, poolId.ResourceGroup, poolId.DiskPoolName, m.Name)
+			client := metadata.Client.Storage.DisksPoolIscsiTargetClient
+			// TODO: test attach disk while creating iscsi target
 			locks.ByID(poolId.ID())
 			defer locks.UnlockByID(poolId.ID())
 
-			client := metadata.Client.Storage.DisksPoolIscsiTargetClient
-
-			if metadata.ResourceData.IsNewResource() {
-				existing, err := client.Get(ctx, id.ResourceGroup, id.DiskPoolName, id.IscsiTargetName)
-				notExistingResp := utils.ResponseWasNotFound(existing.Response)
-				if err != nil && !notExistingResp {
-					return fmt.Errorf("checking for presence of existing %q: %+v", id, err)
-				}
-				if !notExistingResp {
-					return metadata.ResourceRequiresImport(d.ResourceType(), id)
-				}
+			existing, err := client.Get(ctx, id.ResourceGroup, id.DiskPoolName, id.IscsiTargetName)
+			notExistingResp := utils.ResponseWasNotFound(existing.Response)
+			if err != nil && !notExistingResp {
+				return fmt.Errorf("checking for presence of existing %q: %+v", id, err)
+			}
+			if !notExistingResp {
+				return metadata.ResourceRequiresImport(d.ResourceType(), id)
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.DiskPoolName, id.IscsiTargetName, storagepool.IscsiTargetCreate{
 				IscsiTargetCreateProperties: &storagepool.IscsiTargetCreateProperties{
-					ACLMode:    storagepool.IscsiTargetACLMode(targetModel.ACLMode),
-					TargetIqn:  &targetModel.TargetIqn,
-					StaticAcls: expandDisksPoolIscsiTargetStaticAcls(targetModel),
-					Luns:       expandDisksPoolIscsiTargetLuns(targetModel),
+					ACLMode:   storagepool.IscsiTargetACLMode(m.ACLMode),
+					TargetIqn: &m.TargetIqn,
+					Luns:      expandDisksPoolIscsiTargetLuns(m.Luns),
 				},
-				ManagedByExtended: &targetModel.ManagedByExtended,
-				Name:              utils.String(targetModel.Name),
+				Name: utils.String(m.Name),
 			})
-
 			if err != nil {
 				return err
 			}
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of DisksPool iscsi target %q : %+v", id.String(), err)
+				return fmt.Errorf("waiting for creation of DisksPool iscsi target %q : %+v", id.ID(), err)
 			}
 			metadata.SetID(id)
 			return nil
@@ -226,7 +182,6 @@ func (d DisksPoolIscsiTargetResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			poolID := parse.NewStorageDisksPoolID(id.SubscriptionId, id.ResourceGroup, id.DiskPoolName)
 			client := metadata.Client.Storage.DisksPoolIscsiTargetClient
 			resp, err := client.Get(ctx, id.ResourceGroup, id.DiskPoolName, id.IscsiTargetName)
 			if err != nil {
@@ -235,25 +190,25 @@ func (d DisksPoolIscsiTargetResource) Read() sdk.ResourceFunc {
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
-			model := DiskPoolIscsiTargetModel{
+			m := DiskPoolIscsiTargetModel{
 				ACLMode:     string(resp.ACLMode),
-				DisksPoolId: poolID.ID(),
-				ManagedBy:   utils.NormalizeNilableString(resp.ManagedBy),
-				Name:        *resp.Name,
-				TargetIqn:   utils.NormalizeNilableString(resp.TargetIqn),
+				DisksPoolId: id.ID(),
+				Name:        id.IscsiTargetName,
 			}
-			if resp.ManagedByExtended != nil {
-				model.ManagedByExtended = *resp.ManagedByExtended
+			if resp.IscsiTargetProperties == nil {
+				return metadata.Encode(&m)
 			}
-			model.StaticAcls = flattenDisksPoolIscsiTargetStaticAcls(resp)
-			model.Luns = flattenDisksPoolIscsiTargetLuns(resp)
-			if resp.Endpoints != nil {
-				model.Endpoints = *resp.Endpoints
+			if endpoints := resp.IscsiTargetProperties.Endpoints; endpoints != nil {
+				m.Endpoints = *endpoints
 			}
-			if resp.Port != nil {
-				model.Port = int(*resp.Port)
+			if luns := resp.IscsiTargetProperties.Luns; luns != nil {
+				m.Luns = flattenDisksPoolIscsiTargetLuns(resp.Luns)
 			}
-			return metadata.Encode(&model)
+			if port := resp.IscsiTargetProperties.Port; port != nil {
+				m.Port = int(*port)
+			}
+			m.TargetIqn = utils.NormalizeNilableString(resp.TargetIqn)
+			return metadata.Encode(&m)
 		},
 	}
 }
@@ -266,9 +221,8 @@ func (d DisksPoolIscsiTargetResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			poolID := parse.NewStorageDisksPoolID(id.SubscriptionId, id.ResourceGroup, id.DiskPoolName)
-			locks.ByID(poolID.ID())
-			defer locks.UnlockByID(poolID.ID())
+			locks.ByID(id.ID())
+			defer locks.UnlockByID(id.ID())
 
 			client := metadata.Client.Storage.DisksPoolIscsiTargetClient
 			future, err := client.Delete(ctx, id.ResourceGroup, id.DiskPoolName, id.IscsiTargetName)
@@ -297,29 +251,24 @@ func (d DisksPoolIscsiTargetResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			poolId := parse.NewStorageDisksPoolID(id.SubscriptionId, id.ResourceGroup, id.DiskPoolName)
-			locks.ByID(poolId.ID())
-			defer locks.UnlockByID(poolId.ID())
-			client := metadata.Client.Storage.DisksPoolIscsiTargetClient
-			patch := storagepool.IscsiTargetUpdate{
-				IscsiTargetUpdateProperties: &storagepool.IscsiTargetUpdateProperties{},
-			}
-			m := DiskPoolIscsiTargetModel{}
 
+			locks.ByID(id.ID())
+			defer locks.UnlockByID(id.ID())
+
+			client := metadata.Client.Storage.DisksPoolIscsiTargetClient
+			m := DiskPoolIscsiTargetModel{}
 			err = metadata.Decode(&m)
 			if err != nil {
 				return err
 			}
-			if r.HasChange("managed_by_extended") {
-				patch.ManagedByExtended = &m.ManagedByExtended
+
+			patch := storagepool.IscsiTargetUpdate{
+				IscsiTargetUpdateProperties: &storagepool.IscsiTargetUpdateProperties{},
 			}
-			if r.HasChange("static_acls") {
-				patch.StaticAcls = expandDisksPoolIscsiTargetStaticAcls(m)
+			if r.HasChange("lun") {
+				patch.IscsiTargetUpdateProperties.Luns = expandDisksPoolIscsiTargetLuns(m.Luns)
 			}
 
-			if r.HasChange("luns") {
-				patch.Luns = expandDisksPoolIscsiTargetLuns(m)
-			}
 			future, err := client.Update(ctx, id.ResourceGroup, id.DiskPoolName, id.IscsiTargetName, patch)
 			if err != nil {
 				return err
@@ -332,67 +281,37 @@ func (d DisksPoolIscsiTargetResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func expandDisksPoolIscsiTargetLuns(model DiskPoolIscsiTargetModel) *[]storagepool.IscsiLun {
-	var luns []storagepool.IscsiLun
-	for _, lun := range model.Luns {
+func expandDisksPoolIscsiTargetLuns(modelLuns []DisksPoolIscsiLun) *[]storagepool.IscsiLun {
+	luns := make([]storagepool.IscsiLun, 0)
+	for i := 0; i < len(modelLuns); i++ {
 		luns = append(luns, storagepool.IscsiLun{
-			Name:                       &lun.Name,
-			ManagedDiskAzureResourceID: &lun.ManagedDiskAzureResourceId,
-			Lun:                        utils.Int32(int32(lun.Lun)),
+			Name:                       &modelLuns[i].Name,
+			ManagedDiskAzureResourceID: &modelLuns[i].ManagedDiskId,
+			Lun:                        utils.Int32(int32(modelLuns[i].Number)),
 		})
-	}
-	if len(luns) == 0 {
-		return nil
 	}
 	return &luns
 }
 
-func flattenDisksPoolIscsiTargetLuns(resp storagepool.IscsiTarget) []DisksPoolIscsiLun {
+func flattenDisksPoolIscsiTargetLuns(respLuns *[]storagepool.IscsiLun) []DisksPoolIscsiLun {
 	var luns []DisksPoolIscsiLun
-	if resp.Luns != nil {
-		for _, lun := range *resp.Luns {
+	if respLuns != nil {
+		for i := 0; i < len(*respLuns); i++ {
+			lun := (*respLuns)[i]
 			l := DisksPoolIscsiLun{}
 			if lun.Name != nil {
 				l.Name = *lun.Name
 			}
 			if lun.ManagedDiskAzureResourceID != nil {
-				l.ManagedDiskAzureResourceId = *lun.ManagedDiskAzureResourceID
+				l.ManagedDiskId = *lun.ManagedDiskAzureResourceID
 			}
 			if lun.Lun != nil {
-				l.Lun = int(*lun.Lun)
+				l.Number = int(*lun.Lun)
 			}
 			luns = append(luns, l)
 		}
 	}
 	return luns
-}
-
-func expandDisksPoolIscsiTargetStaticAcls(model DiskPoolIscsiTargetModel) *[]storagepool.ACL {
-	var acls []storagepool.ACL
-	for _, acl := range model.StaticAcls {
-		acls = append(acls, storagepool.ACL{
-			InitiatorIqn: &acl.InitiatorIqn,
-			MappedLuns:   &acl.MappedLuns,
-		})
-	}
-	return &acls
-}
-
-func flattenDisksPoolIscsiTargetStaticAcls(resp storagepool.IscsiTarget) []DisksPoolISCSITargetAcl {
-	var acls []DisksPoolISCSITargetAcl
-	if resp.StaticAcls != nil {
-		for _, acl := range *resp.StaticAcls {
-			a := DisksPoolISCSITargetAcl{}
-			if acl.InitiatorIqn != nil {
-				a.InitiatorIqn = *acl.InitiatorIqn
-			}
-			if acl.MappedLuns != nil {
-				a.MappedLuns = *acl.MappedLuns
-			}
-			acls = append(acls, a)
-		}
-	}
-	return acls
 }
 
 func possibleIscsiTargetACLModeValues() []string {
