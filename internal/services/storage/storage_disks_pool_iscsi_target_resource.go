@@ -40,10 +40,13 @@ type DisksPoolIscsiLun struct {
 func (d DisksPoolIscsiTargetResource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"acl_mode": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(possibleIscsiTargetACLModeValues(), false),
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice(
+				[]string{string(storagepool.IscsiTargetACLModeDynamic)},
+				false,
+			),
 		},
 		"disks_pool_id": {
 			Type:         pluginsdk.TypeString,
@@ -312,12 +315,4 @@ func flattenDisksPoolIscsiTargetLuns(respLuns *[]storagepool.IscsiLun) []DisksPo
 		}
 	}
 	return luns
-}
-
-func possibleIscsiTargetACLModeValues() []string {
-	var values []string
-	for _, v := range storagepool.PossibleIscsiTargetACLModeValues() {
-		values = append(values, string(v))
-	}
-	return values
 }
