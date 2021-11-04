@@ -115,5 +115,5 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
   disk_count                     = 4
   sku_name                       = "Standard_DS14_v2"
 }
-`, data.RandomInteger, data.Locations.Primary, nodeCount)
+`, data.RandomInteger, data.Locations.Secondary, nodeCount)
 }

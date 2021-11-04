@@ -103,7 +103,7 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
   delegated_management_subnet_id = azurerm_subnet.test.id
   default_admin_password         = "Password1234"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Secondary)
 }
 
 func (CassandraClusterResource) requiresImport(data acceptance.TestData) string {
