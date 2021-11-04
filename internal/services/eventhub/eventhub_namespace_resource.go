@@ -137,7 +137,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 						},
 
 						// 128 limit per https://docs.microsoft.com/azure/event-hubs/event-hubs-quotas
-						// Returned value of the nested property subnet_id does not honor the input order,
+						// Returned value of the `virtual_network_rule` array does not honor the input order,
 						// possibly a service design, thus changed to TypeSet
 						"virtual_network_rule": {
 							Type:       pluginsdk.TypeSet,
