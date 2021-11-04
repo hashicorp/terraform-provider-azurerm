@@ -102,6 +102,10 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
+				DiffSuppressFunc: func(_, _, _ string, d *schema.ResourceData) bool {
+					isSpot := d.Get("priority").(string) == string(containerservice.ScaleSetPrioritySpot)
+					return isSpot && !d.HasChange("eviction_policy")
+				},
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerservice.ScaleSetEvictionPolicyDelete),
 					string(containerservice.ScaleSetEvictionPolicyDeallocate),
@@ -178,6 +182,10 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
+				DiffSuppressFunc: func(_, _, _ string, d *schema.ResourceData) bool {
+					isSpot := d.Get("priority").(string) == string(containerservice.ScaleSetPrioritySpot)
+					return isSpot && !d.HasChange("node_taints")
+				},
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
