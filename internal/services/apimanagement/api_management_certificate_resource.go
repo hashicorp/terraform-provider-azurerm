@@ -190,7 +190,7 @@ func resourceApiManagementCertificateRead(d *pluginsdk.ResourceData, meta interf
 			formatted := expiration.Format(time.RFC3339)
 			d.Set("expiration", formatted)
 		}
-		d.Set("subject", props.Thumbprint)
+		d.Set("subject", props.Subject)
 		d.Set("thumbprint", props.Thumbprint)
 
 		if keyvault := props.KeyVault; keyvault != nil {
