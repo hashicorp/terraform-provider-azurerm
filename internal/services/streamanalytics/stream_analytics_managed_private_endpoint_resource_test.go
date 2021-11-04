@@ -30,27 +30,6 @@ func TestAccStreamAnalyticsManagedPrivateEndpoint_basic(t *testing.T) {
 	})
 }
 
-func TestAccStreamAnalyticsManagedPrivateEndpoint_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_managed_private_endpoint", "test")
-	r := StreamAnalyticsManagedPrivateEndpointResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config: r.updated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccStreamAnalyticsManagedPrivateEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_managed_private_endpoint", "test")
 	r := StreamAnalyticsManagedPrivateEndpointResource{}
@@ -83,29 +62,14 @@ func (r StreamAnalyticsManagedPrivateEndpointResource) Exists(ctx context.Contex
 }
 
 func (r StreamAnalyticsManagedPrivateEndpointResource) basic(data acceptance.TestData) string {
-	//template := r.template(data)
 	return fmt.Sprintf(`
 
 resource "azurerm_stream_analytics_managed_private_endpoint" "test" {
   name                          = "acctestprivate_endpoint-%d"
   resource_group_name           = "acctest-sw-31121"
   stream_analytics_cluster_name = "acctestcluster-31121"
-  target_resource_id = "/subscriptions/1a6092a6-137e-4025-9a7c-ef77f76f2c02/resourceGroups/acctest-sw-31121/providers/Microsoft.Storage/storageAccounts/examplestorageacc31121"
-  subresource_name  = "blob"
-}
-
-`, data.RandomInteger)
-}
-
-func (r StreamAnalyticsManagedPrivateEndpointResource) updated(data acceptance.TestData) string {
-	//template := r.template(data)
-	return fmt.Sprintf(`
-resource "azurerm_stream_analytics_managed_private_endpoint" "test2" {
-  name                          = "acctestprivate_endpoint31121-%d"
-  resource_group_name           = "acctest-sw-31121"
-  stream_analytics_cluster_name = "acctestcluster-31121"
-  target_resource_id = "/subscriptions/1a6092a6-137e-4025-9a7c-ef77f76f2c02/resourceGroups/acctest-sw-31121/providers/Microsoft.EventHub/namespaces/acceptanceTestEventHubNamespace31121"
-  subresource_name  = "namespace"
+  target_resource_id            = azurerm_storage_account.test.id
+  subresource_name              = "blob"
 }
 
 `, data.RandomInteger)
@@ -117,10 +81,11 @@ func (r StreamAnalyticsManagedPrivateEndpointResource) requiresImport(data accep
 %s
 
 resource "azurerm_stream_analytics_managed_private_endpoint" "import" {
-  name                = azurerm_stream_analytics_managed_private_endpoint.test.name
-  resource_group_name = azurerm_stream_analytics_managed_private_endpoint.test.resource_group_name
-  location            = azurerm_stream_analytics_managed_private_endpoint.test.location
-  streaming_capacity  = azurerm_stream_analytics_managed_private_endpoint.test.streaming_capacity
+  name                          = azurerm_stream_analytics_managed_private_endpoint.test.name
+  resource_group_name           = azurerm_stream_analytics_managed_private_endpoint.test.resource_group_name
+  stream_analytics_cluster_name = azurerm_stream_analytics_managed_private_endpoint.test.stream_analytics_cluster_name
+  target_resource_id            = azurerm_stream_analytics_managed_private_endpoint.test.target_resource_id
+  subresource_name              = azurerm_stream_analytics_managed_private_endpoint.test.subresource_name
 }
 `, template)
 }
@@ -135,5 +100,23 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
 }
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accteststorageacc%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "StorageV2"
+  is_hns_enabled           = "true"
+}
+
+resource "azurerm_stream_analytics_cluster" "test" {
+  name                = "acctestcluster-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  streaming_capacity  = 36
+}
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
