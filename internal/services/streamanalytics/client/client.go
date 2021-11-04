@@ -44,6 +44,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		OutputsClient:         &outputsClient,
 		TransformationsClient: &transformationsClient,
 		ClustersClient:        &clustersClient,
-		EndpointsClient:	   &endpointsClient,
+		EndpointsClient:       &endpointsClient,
 	}
 }

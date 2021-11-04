@@ -19,11 +19,11 @@ import (
 type ManagedPrivateEndpointResource struct{}
 
 type ManagedPrivateEndpointModel struct {
-	Name                   string           `tfschema:"name"`
-	ResourceGroup          string           `tfschema:"resource_group_name"`
-	StreamAnalyticsCluster string           `tfschema:"stream_analytics_cluster_name"`
-	TargetResourceId	   string			`tfschema:"target_resource_id"`
-	SubResourceName        string 			`tfschema:"subresource_name"`
+	Name                   string `tfschema:"name"`
+	ResourceGroup          string `tfschema:"resource_group_name"`
+	StreamAnalyticsCluster string `tfschema:"stream_analytics_cluster_name"`
+	TargetResourceId       string `tfschema:"target_resource_id"`
+	SubResourceName        string `tfschema:"subresource_name"`
 }
 
 func (r ManagedPrivateEndpointResource) ModelObject() interface{} {
@@ -59,19 +59,18 @@ func (r ManagedPrivateEndpointResource) Arguments() map[string]*pluginsdk.Schema
 		"target_resource_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew: true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"subresource_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }
-
 
 func (r ManagedPrivateEndpointResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}

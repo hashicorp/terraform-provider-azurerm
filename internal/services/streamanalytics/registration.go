@@ -22,22 +22,26 @@ func (r Registration) Resources() []sdk.Resource {
 	}
 }
 
+// Name is the name of this Service
 func (r Registration) Name() string {
 	return "Stream Analytics"
 }
 
+// WebsiteCategories returns a list of categories which can be used for the sidebar
 func (r Registration) WebsiteCategories() []string {
 	return []string{
 		"Stream Analytics",
 	}
 }
 
+// SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_stream_analytics_job": dataSourceArmStreamAnalyticsJob(),
 	}
 }
 
+// SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_stream_analytics_job":                     resourceStreamAnalyticsJob(),

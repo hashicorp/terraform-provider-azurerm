@@ -310,7 +310,7 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 			d.Set("events_out_of_order_max_delay_in_seconds", int(*props.EventsOutOfOrderMaxDelayInSeconds))
 		}
 		if props.Cluster != nil {
-			d.Set("stream_analytics_cluster_id", *props.Cluster.ID)
+			d.Set("stream_analytics_cluster_id", props.Cluster.ID)
 		}
 		d.Set("events_out_of_order_policy", string(props.EventsOutOfOrderPolicy))
 		d.Set("output_error_policy", string(props.OutputErrorPolicy))
