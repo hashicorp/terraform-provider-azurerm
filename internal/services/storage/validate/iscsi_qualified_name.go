@@ -21,7 +21,7 @@ import (
 // #       name can assign everything after the reversed domain name as desired.
 
 // IQN should follow the format `iqn.yyyy-mm.<abc>.<pqr>[:xyz]`; supported characters include [0-9a-z-.:]
-
+// TODO: wait for regex from svc team
 var IQN = validation.StringMatch( //TODO: add unit test, re-write regex
 	regexp.MustCompile(`^iqn\.\d{4}-\d{2}.(.[a-zA-Z\d\-]+){1,63}:?[\da-z-.:]$`),
 	"IQN should follow the format `iqn.yyyy-mm.<abc>.<pqr>[:xyz]`; supported characters include [0-9a-z-.:]",

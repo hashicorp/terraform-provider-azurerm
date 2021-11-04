@@ -38,17 +38,6 @@ type DisksPoolJobModel struct {
 
 func (d DisksPoolResource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"availability_zones": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MinItems: 1,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-		},
-		"location": location.Schema(),
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -63,6 +52,17 @@ func (d DisksPoolResource) Arguments() map[string]*schema.Schema {
 			),
 		},
 		"resource_group_name": azure.SchemaResourceGroupName(),
+		"location": location.Schema(),
+		"availability_zones": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		},
 		"sku_name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -80,7 +80,6 @@ func (d DisksPoolResource) Arguments() map[string]*schema.Schema {
 			ForceNew:     true,
 			ValidateFunc: networkValidate.SubnetID,
 		},
-
 		"additional_capabilities": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,

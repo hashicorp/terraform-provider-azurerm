@@ -39,6 +39,18 @@ type DisksPoolIscsiLun struct {
 
 func (d DisksPoolIscsiTargetResource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.StringLenBetween(5, 223),
+				validation.StringMatch(
+					regexp.MustCompile("[a-z\\d.\\-]*[a-z\\d]$"),
+					"The iSCSI target name can only contain lowercase letters, numbers, periods, or hyphens.",
+				),
+			),
+		},
 		"acl_mode": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -54,19 +66,6 @@ func (d DisksPoolIscsiTargetResource) Arguments() map[string]*schema.Schema {
 			ForceNew:     true,
 			ValidateFunc: validate.StorageDisksPoolID,
 		},
-		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.All(
-				validation.StringLenBetween(5, 223),
-				validation.StringMatch(
-					regexp.MustCompile("[a-z\\d.\\-]*[a-z\\d]$"),
-					"The iSCSI target name can only contain lowercase letters, numbers, periods, or hyphens.",
-				),
-			),
-		},
-
 		"lun": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
