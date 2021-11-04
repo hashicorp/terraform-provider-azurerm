@@ -379,16 +379,14 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 	skuName := d.Get("sku_name").(string)
 
 	// SKU Cache Combo Validation
-	if skuName == "Standard_L4_5G" && cacheSize != 21623 {
+	switch {
+	case skuName == "Standard_L4_5G" && cacheSize != 21623:
 		return fmt.Errorf("The Standard_L4_5G SKU only supports a cache size of 21623")
-	} else if skuName == "Standard_L9G" && cacheSize != 43246 {
+	case skuName == "Standard_L9G" && cacheSize != 43246:
 		return fmt.Errorf("The Standard_L9G SKU only supports a cache size of 43246")
-	} else if skuName == "Standard_L16G" && cacheSize != 86491 {
+	case skuName == "Standard_L16G" && cacheSize != 86491:
 		return fmt.Errorf("The Standard_L16G SKU only supports a cache size of 86491")
-	}
-
-	// Read Only Cache Sizes
-	if (cacheSize == 21623 || cacheSize == 43246 || cacheSize == 86491) && (skuName == "Standard_2G" || skuName == "Standard_4G" || skuName == "Standard_8G") {
+	case (cacheSize == 21623 || cacheSize == 43246 || cacheSize == 86491) && (skuName == "Standard_2G" || skuName == "Standard_4G" || skuName == "Standard_8G"):
 		return fmt.Errorf("Incompatible cache size chosen. 21623, 43246 and 86491 are reserved for Read Only resources.")
 	}
 
