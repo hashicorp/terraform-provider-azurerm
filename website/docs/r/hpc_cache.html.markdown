@@ -56,11 +56,11 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure Region where the HPC Cache should be created. Changing this forces a new resource to be created.
 
-* `cache_size_in_gb` - (Required) The size of the HPC Cache, in GB. Possible values are `3072`, `6144`, `12288`, `24576`, and `49152`. Changing this forces a new resource to be created.
+* `cache_size_in_gb` - (Required) The size of the HPC Cache, in GB. Possible values are `3072`, `6144`, `12288`, `24576`, `49152` and `86491`. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The ID of the Subnet for the HPC Cache. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) The SKU of HPC Cache to use. Possible values are `Standard_2G`, `Standard_4G` and `Standard_8G`. Changing this forces a new resource to be created.
+* `sku_name` - (Required) The SKU of HPC Cache to use. Possible values are `Standard_2G`, `Standard_4G`, `Standard_8G` and `Standard_L16G`. Changing this forces a new resource to be created.
 
 ---
 

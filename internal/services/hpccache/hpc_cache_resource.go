@@ -59,6 +59,7 @@ func resourceHPCCache() *pluginsdk.Resource {
 					12288,
 					24576,
 					49152,
+					86491,
 				}),
 			},
 
@@ -77,6 +78,7 @@ func resourceHPCCache() *pluginsdk.Resource {
 					"Standard_2G",
 					"Standard_4G",
 					"Standard_8G",
+					"Standard_L16G",
 				}, false),
 			},
 
