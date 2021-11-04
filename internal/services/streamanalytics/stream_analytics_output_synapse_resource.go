@@ -22,10 +22,10 @@ func resourceStreamAnalyticsOutputSynapse() *pluginsdk.Resource {
 		Read:   resourceStreamAnalyticsOutputSynapseRead,
 		Update: resourceStreamAnalyticsOutputSynapseCreateUpdate,
 		Delete: resourceStreamAnalyticsOutputSynapseDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.OutputID(id)
 			return err
-		}),
+		}, importStreamAnalyticsOutput(streamanalytics.TypeMicrosoftSQLServerDataWarehouse)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -113,23 +113,17 @@ func resourceStreamAnalyticsOutputSynapseCreateUpdate(d *pluginsdk.ResourceData,
 		}
 	}
 
-	server := d.Get("server").(string)
-	databaseName := d.Get("database").(string)
-	tableName := d.Get("table").(string)
-	sqlUser := d.Get("user").(string)
-	sqlUserPassword := d.Get("password").(string)
-
 	props := streamanalytics.Output{
 		Name: utils.String(id.Name),
 		OutputProperties: &streamanalytics.OutputProperties{
 			Datasource: &streamanalytics.AzureSynapseOutputDataSource{
 				Type: streamanalytics.TypeMicrosoftSQLServerDataWarehouse,
 				AzureSynapseOutputDataSourceProperties: &streamanalytics.AzureSynapseOutputDataSourceProperties{
-					Server:   utils.String(server),
-					Database: utils.String(databaseName),
-					User:     utils.String(sqlUser),
-					Password: utils.String(sqlUserPassword),
-					Table:    utils.String(tableName),
+					Server:   utils.String(d.Get("server").(string)),
+					Database: utils.String(d.Get("database").(string)),
+					User:     utils.String(d.Get("user").(string)),
+					Password: utils.String(d.Get("password").(string)),
+					Table:    utils.String(d.Get("table").(string)),
 				},
 			},
 		},
@@ -161,7 +155,7 @@ func resourceStreamAnalyticsOutputSynapseRead(d *pluginsdk.ResourceData, meta in
 	resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] %s was not found - removing from state!", id)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}

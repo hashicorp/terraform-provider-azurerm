@@ -83,16 +83,16 @@ The following arguments are supported:
 
 The following attributes are exported in addition to the arguments listed above:
 
-* `id` - The ID of the Stream Analytics Output Microsoft SQL Server Database.
+* `id` - The ID of the Stream Analytics Output to an Azure Synapse Analytics Workspace.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Output Microsoft SQL Server Database.
-* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Output Microsoft SQL Server Database.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Output Microsoft SQL Server Database.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics Output Microsoft SQL Server Database.
+* `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Output to an Azure Synapse Analytics Workspace.
+* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Output to an Azure Synapse Analytics Workspace.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Output to an Azure Synapse Analytics Workspace.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics Output to an Azure Synapse Analytics Workspace.
 
 ## Import
 
