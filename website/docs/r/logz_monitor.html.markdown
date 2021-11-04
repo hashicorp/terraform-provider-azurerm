@@ -74,7 +74,7 @@ An `plan` block exports the following:
 
 * `plan_id` - (Required) Plan id as published by Logz. Possible values are `100gb14days`. Changing this forces a new logz Monitor to be created.
 
-* `usage_type` - (Required) Different usage type. Possible values are `PAYG` or `COMMITTED`. Changing this forces a new logz Monitor to be created.
+* `usage_type` - (Required) Different usage types. Possible values are `PAYG` or `COMMITTED`. Changing this forces a new logz Monitor to be created.
 
 ---
 

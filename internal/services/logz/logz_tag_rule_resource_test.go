@@ -3,7 +3,6 @@ package logz_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -18,11 +17,6 @@ import (
 type LogzTagRuleResource struct{}
 
 func TestAccLogzTagRule_basic(t *testing.T) {
-	if os.Getenv("ARM_RUN_TEST_LOGZ_MONITOR_EMAIL") == "" {
-		t.Skip("Skipping as `ARM_RUN_TEST_LOGZ_MONITOR_EMAIL` was not specified")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_logz_tag_rule", "test")
 	r := LogzTagRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -37,11 +31,6 @@ func TestAccLogzTagRule_basic(t *testing.T) {
 }
 
 func TestAccLogzTagRule_requiresImport(t *testing.T) {
-	if os.Getenv("ARM_RUN_TEST_LOGZ_MONITOR_EMAIL") == "" {
-		t.Skip("Skipping as `ARM_RUN_TEST_LOGZ_MONITOR_EMAIL` was not specified")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_logz_tag_rule", "test")
 	r := LogzTagRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -56,11 +45,6 @@ func TestAccLogzTagRule_requiresImport(t *testing.T) {
 }
 
 func TestAccLogzTagRule_complete(t *testing.T) {
-	if os.Getenv("ARM_RUN_TEST_LOGZ_MONITOR_EMAIL") == "" {
-		t.Skip("Skipping as `ARM_RUN_TEST_LOGZ_MONITOR_EMAIL` was not specified")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_logz_tag_rule", "test")
 	r := LogzTagRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -75,11 +59,6 @@ func TestAccLogzTagRule_complete(t *testing.T) {
 }
 
 func TestAccLogzTagRule_update(t *testing.T) {
-	if os.Getenv("ARM_RUN_TEST_LOGZ_MONITOR_EMAIL") == "" {
-		t.Skip("Skipping as `ARM_RUN_TEST_LOGZ_MONITOR_EMAIL` was not specified")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_logz_tag_rule", "test")
 	r := LogzTagRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -137,21 +116,21 @@ resource "azurerm_logz_monitor" "test" {
   name                = "acctest-lm-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  plan_data {
+  plan {
     billing_cycle  = "Monthly"
     effective_date = "%s"
     plan_id        = "100gb14days"
     usage_type     = "Committed"
   }
 
-  user_info {
-    email_address = "%s"
-    first_name    = "first"
-    last_name     = "last"
-    phone_number  = "123456"
+  user {
+    email        = "e081a27c-bc01-4159-bc06-7f9f711e3b3a@example.com"
+    first_name   = "first"
+    last_name    = "last"
+    phone_number = "123456"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, getEffectiveDate(), os.Getenv("ARM_RUN_TEST_LOGZ_MONITOR_EMAIL"))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, getEffectiveDate())
 }
 
 func (r LogzTagRuleResource) basic(data acceptance.TestData) string {

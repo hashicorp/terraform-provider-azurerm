@@ -22,18 +22,18 @@ resource "azurerm_logz_monitor" "example" {
   name                = "example-monitor"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  plan_data {
+  plan {
     billing_cycle  = "Monthly"
     effective_date = "2022-06-06T00:00:00Z"
     plan_id        = "100gb14days"
     usage_type     = "Committed"
   }
 
-  user_info {
-    email_address = "user@example.com"
-    first_name    = "Example"
-    last_name     = "User"
-    phone_number  = "+12313803556"
+  user {
+    email        = "user@example.com"
+    first_name   = "Example"
+    last_name    = "User"
+    phone_number = "+12313803556"
   }
 }
 
@@ -66,21 +66,21 @@ The following arguments are supported:
 
 * `filtering_tag` - (Optional) One or more (up to 10) `filtering_tag` blocks as defined below.
 
-* `send_aad_logs` - (Optional) Whether AAD logs should be sent for the Monitor resource?
+* `send_aad_logs` - (Optional) Whether AAD logs should be sent to the Monitor resource?
 
-* `send_activity_logs` - (Optional) Whether activity logs from Azure resources should be sent for the Monitor resource?
+* `send_activity_logs` - (Optional) Whether activity logs from Azure resources should be sent to the Monitor resource?
 
-* `send_subscription_logs` - (Optional) Whether subscription logs should be sent for the Monitor resource?
+* `send_subscription_logs` - (Optional) Whether subscription logs should be sent to the Monitor resource?
 
 ---
 
 An `filtering_tag` block exports the following:
 
-* `name` - (Optional) The name which should be used for this filtering_tag.
+* `name` - (Required) The name of this `filtering_tag`.
 
-* `action` - (Optional) The action for a filtering tag. Possible values are "Include" and "Exclude" is allowed. Note that the `Exclude` takes priority over the `Include`.
+* `action` - (Required) The action for a filtering tag. Possible values are "Include" and "Exclude" is allowed. Note that the `Exclude` takes priority over the `Include`.
 
-* `value` - (Optional) The value of the tag.
+* `value` - (Optional) The value of this `filtering_tag`.
 
 ## Attributes Reference
 

@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var tagRuleName = "default"
+const tagRuleName = "default"
 
 func resourceLogzTagRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -123,6 +123,7 @@ func resourceLogzTagRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			LogRules: expandTagRuleLogRules(d),
 		},
 	}
+
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName, &props); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -150,10 +151,17 @@ func resourceLogzTagRuleRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
 	d.Set("logz_monitor_id", parse.NewLogzMonitorID(id.SubscriptionId, id.ResourceGroup, id.MonitorName).ID())
-	if props := resp.Properties; props != nil {
-		flattenTagRuleLogRules(d, props.LogRules)
+	if props := resp.Properties; props != nil && props.LogRules != nil {
+		d.Set("send_aad_logs", props.LogRules.SendAadLogs)
+		d.Set("send_activity_logs", props.LogRules.SendActivityLogs)
+		d.Set("send_subscription_logs", props.LogRules.SendSubscriptionLogs)
+		if err := d.Set("filtering_tag", flattenTagRuleFilteringTagArray(props.LogRules.FilteringTags)); err != nil {
+			return fmt.Errorf("setting `filtering_tag`: %+v", err)
+		}
 	}
+
 	return nil
 }
 
@@ -170,6 +178,7 @@ func resourceLogzTagRuleDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
+
 	return nil
 }
 
@@ -192,18 +201,8 @@ func expandTagRuleFilteringTagArray(input []interface{}) *[]logz.FilteringTag {
 			Action: logz.TagAction(v["action"].(string)),
 		})
 	}
+
 	return &results
-}
-
-func flattenTagRuleLogRules(d *pluginsdk.ResourceData, input *logz.LogRules) {
-	if input == nil {
-		return
-	}
-
-	d.Set("send_aad_logs", input.SendAadLogs)
-	d.Set("send_activity_logs", input.SendActivityLogs)
-	d.Set("send_subscription_logs", input.SendSubscriptionLogs)
-	d.Set("filtering_tag", flattenTagRuleFilteringTagArray(input.FilteringTags))
 }
 
 func flattenTagRuleFilteringTagArray(input *[]logz.FilteringTag) []interface{} {
@@ -231,5 +230,6 @@ func flattenTagRuleFilteringTagArray(input *[]logz.FilteringTag) []interface{} {
 			"value":  value,
 		})
 	}
+
 	return results
 }
