@@ -31,6 +31,7 @@ BUG FIXES:
 
 * `azurerm_application_insights` - correct vlaidation for the `daily_data_cap_in_gb` property [GH-13971]
 * `azurerm_logic_app_standard` - will no longer error when working on private networks [GH-13964]
+* `azurerm_managed_disk_resource` - the validation for the `disk_iops_read_write` and `disk_mbps_read_write` properties ensures values greater then 0 [GH-14028]
 * `azurerm_purview_account` - deprecate the `sku_name` property [GH-13897]
 * `azurerm_synapse_workspace_key` - deprecated the `cusomter_managed_key_name` property in favour of the correctly spelled `customer_managed_key_name` one [GH-13881]
 
