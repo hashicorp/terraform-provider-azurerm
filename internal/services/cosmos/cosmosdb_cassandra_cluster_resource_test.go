@@ -93,7 +93,7 @@ resource "azurerm_subnet" "test" {
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_virtual_network.test.id
   role_definition_name = "Network Contributor"
-  principal_id         = "e5007d2c-4b13-4a74-9b6a-605d99f03501"
+  principal_id         = "255f3c8e-0c3d-4f06-ba9d-2fb68af0faed"
 }
 
 resource "azurerm_cosmosdb_cassandra_cluster" "test" {
