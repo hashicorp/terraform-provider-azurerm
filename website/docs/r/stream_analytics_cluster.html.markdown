@@ -3,7 +3,7 @@ subcategory: "Stream Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_stream_analytics_cluster"
 description: |-
-  Manages a Stream Analytics.
+  Manages a Stream Analytics Cluster.
 ---
 
 # azurerm_stream_analytics_cluster
@@ -15,15 +15,15 @@ Manages a Stream Analytics Cluster.
 ```hcl
 
 resource "azurerm_resource_group" "example" {
-  name = "example-resources"
+  name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_stream_analytics_cluster" "example" {
-  name = "examplestreamanalyticscluster"
+  name                = "examplestreamanalyticscluster"
   resource_group_name = azurerm_resource_group.example.name
-  location = azurerm_resource_group.example.location
-  streaming_capacity = 36
+  location            = azurerm_resource_group.example.location
+  streaming_capacity  = 36
 }
 ```
 
