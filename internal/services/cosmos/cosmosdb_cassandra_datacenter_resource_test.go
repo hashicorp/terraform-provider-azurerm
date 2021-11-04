@@ -99,11 +99,11 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_cosmosdb_cassandra_cluster" "test" {
-  name                             = "acctca-mi-cluster-%[1]d"
-  resource_group_name              = azurerm_resource_group.test.name
-  location                         = azurerm_resource_group.test.location
-  delegated_management_subnet_id   = azurerm_subnet.test.id
-  default_admin_password = "Password1234"
+  name                           = "acctca-mi-cluster-%[1]d"
+  resource_group_name            = azurerm_resource_group.test.name
+  location                       = azurerm_resource_group.test.location
+  delegated_management_subnet_id = azurerm_subnet.test.id
+  default_admin_password         = "Password1234"
 }
 
 resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
@@ -112,8 +112,8 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
   location                       = azurerm_cosmosdb_cassandra_cluster.test.location
   delegated_management_subnet_id = azurerm_subnet.test.id
   node_count                     = %[3]d
-  disk_count                  = 4
-  sku_name                      = "Standard_DS14_v2"  
+  disk_count                     = 4
+  sku_name                       = "Standard_DS14_v2"
 }
 `, data.RandomInteger, data.Locations.Primary, nodeCount)
 }

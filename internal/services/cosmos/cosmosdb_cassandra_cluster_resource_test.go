@@ -97,11 +97,11 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_cosmosdb_cassandra_cluster" "test" {
-  name                             = "acctca-mi-cluster-%[1]d"
-  resource_group_name              = azurerm_resource_group.test.name
-  location                         = azurerm_resource_group.test.location
-  delegated_management_subnet_id   = azurerm_subnet.test.id
-  default_admin_password = "Password1234"
+  name                           = "acctca-mi-cluster-%[1]d"
+  resource_group_name            = azurerm_resource_group.test.name
+  location                       = azurerm_resource_group.test.location
+  delegated_management_subnet_id = azurerm_subnet.test.id
+  default_admin_password         = "Password1234"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
