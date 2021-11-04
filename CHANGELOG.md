@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `logz_monitor` [GH-13874]
+* **New Resource:** `azurerm_stream_analytics_output_synapse` [GH-14013]
 
 IMPROVEMENTS:
 
