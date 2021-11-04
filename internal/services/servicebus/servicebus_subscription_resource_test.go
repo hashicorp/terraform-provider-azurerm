@@ -204,6 +204,21 @@ func TestAccServiceBusSubscription_status(t *testing.T) {
 	})
 }
 
+func TestAccServiceBusSubscription_DuplicateDetectionHistoryTimeWindow(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
+	r := ServiceBusSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.duplicate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t ServiceBusSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SubscriptionID(state.ID)
 	if err != nil {
@@ -263,6 +278,12 @@ resource "azurerm_servicebus_subscription" "import" {
   max_delivery_count  = azurerm_servicebus_subscription.test.max_delivery_count
 }
 `, r.basic(data))
+}
+
+func (r ServiceBusSubscriptionResource) duplicate(data acceptance.TestData) string {
+	return fmt.Sprint(data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
+		"duplicate_detection_history_time_window = \"PT1H\"",
+	)
 }
 
 func (ServiceBusSubscriptionResource) withDefaultTtl(data acceptance.TestData) string {

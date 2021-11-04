@@ -111,6 +111,11 @@ func resourceServiceBusSubscription() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"duplicate_detection_history_time_window": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+
 			"forward_dead_lettered_messages_to": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -160,6 +165,10 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 			RequiresSession:                           utils.Bool(d.Get("requires_session").(bool)),
 			Status:                                    servicebus.EntityStatus(d.Get("status").(string)),
 		},
+	}
+
+	if duplicate_detection_history_time_window := d.Get("duplicate_detection_history_time_window"); duplicate_detection_history_time_window != "" {
+		parameters.DuplicateDetectionHistoryTimeWindow = utils.String(d.Get("duplicate_detection_history_time_window").(string))
 	}
 
 	if autoDeleteOnIdle := d.Get("auto_delete_on_idle").(string); autoDeleteOnIdle != "" {
@@ -225,6 +234,7 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("forward_to", props.ForwardTo)
 		d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
 		d.Set("status", utils.String(string(props.Status)))
+		d.Set("duplicate_detection_history_time_window", props.DuplicateDetectionHistoryTimeWindow)
 
 		if count := props.MaxDeliveryCount; count != nil {
 			d.Set("max_delivery_count", int(*count))
