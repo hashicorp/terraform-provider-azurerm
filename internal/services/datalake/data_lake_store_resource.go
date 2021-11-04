@@ -306,7 +306,7 @@ func expandDataLakeStoreIdentity(input []interface{}) *identity.SystemAssignedId
 	v := input[0].(map[string]interface{})
 
 	return &identity.SystemAssignedIdentity{
-		Type: accounts.EncryptionConfigType(v["type"].(string)),
+		Type: identity.Type(v["type"].(string)),
 	}
 }
 
