@@ -55,6 +55,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications"
@@ -113,6 +114,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		mssql.Registration{},
 		policy.Registration{},
 		resource.Registration{},
+		storage.Registration{},
 		streamanalytics.Registration{},
 		web.Registration{},
 	}
@@ -171,6 +173,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		loadbalancer.Registration{},
 		loganalytics.Registration{},
 		logic.Registration{},
+		logz.Registration{},
 		machinelearning.Registration{},
 		maintenance.Registration{},
 		managedapplications.Registration{},
