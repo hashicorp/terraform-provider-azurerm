@@ -576,8 +576,11 @@ resource "azurerm_logic_app_workflow" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   identity {
-    type = "SystemAssigned"
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
+
+  depends_on = [azurerm_role_assignment.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }

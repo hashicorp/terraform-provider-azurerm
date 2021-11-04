@@ -12,20 +12,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	msiParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var logicAppResourceName = "azurerm_logic_app"
+
+type logicAppWorkflowIdentity = identity.IndependentSystemAssignedUserAssigned
 
 func resourceLogicAppWorkflow() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -198,44 +199,7 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(logic.ManagedServiceIdentityTypeSystemAssigned),
-								string(logic.ManagedServiceIdentityTypeUserAssigned),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-
-						"identity_ids": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MinItems: 1,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: msiValidate.UserAssignedIdentityID,
-							},
-						},
-
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": logicAppWorkflowIdentity{}.Schema(),
 
 			"logic_app_integration_account_id": {
 				Type:         pluginsdk.TypeString,
@@ -354,7 +318,13 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 		isEnabled = logic.WorkflowStateDisabled
 	}
 
+	identity, err := expandLogicAppWorkflowIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	properties := logic.Workflow{
+		Identity: identity,
 		Location: utils.String(location),
 		WorkflowProperties: &logic.WorkflowProperties{
 			Definition: &map[string]interface{}{
@@ -372,10 +342,6 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	if v, ok := d.GetOk("access_control"); ok {
 		properties.WorkflowProperties.AccessControl = expandLogicAppWorkflowAccessControl(v.([]interface{}))
-	}
-
-	if _, ok := d.GetOk("identity"); ok {
-		properties.Identity = expandLogicAppWorkflowIdentity(d.Get("identity").([]interface{}))
 	}
 
 	if iseID, ok := d.GetOk("integration_service_environment_id"); ok {
@@ -447,7 +413,13 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 		isEnabled = logic.WorkflowStateDisabled
 	}
 
+	identity, err := expandLogicAppWorkflowIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	properties := logic.Workflow{
+		Identity: identity,
 		Location: utils.String(location),
 		WorkflowProperties: &logic.WorkflowProperties{
 			Definition: definition,
@@ -459,14 +431,6 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if v, ok := d.GetOk("access_control"); ok {
 		properties.WorkflowProperties.AccessControl = expandLogicAppWorkflowAccessControl(v.([]interface{}))
-	}
-
-	if _, ok := d.GetOk("identity"); ok {
-		properties.Identity = expandLogicAppWorkflowIdentity(d.Get("identity").([]interface{}))
-	} else {
-		properties.Identity = &logic.ManagedServiceIdentity{
-			Type: logic.ManagedServiceIdentityTypeNone,
-		}
 	}
 
 	if v, ok := d.GetOk("logic_app_integration_account_id"); ok {
@@ -509,13 +473,11 @@ func resourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if resp.Identity != nil {
-		identity, err := flattenLogicAppWorkflowIdentity(resp.Identity)
-		if err != nil {
-			return err
-		}
-		d.Set("identity", identity)
+	identity, err := flattenLogicAppWorkflowIdentity(resp.Identity)
+	if err != nil {
+		return err
 	}
+	d.Set("identity", identity)
 
 	if props := resp.WorkflowProperties; props != nil {
 		d.Set("access_endpoint", props.AccessEndpoint)
@@ -884,27 +846,24 @@ func expandLogicAppWorkflowOpenAuthenticationPolicyClaim(input []interface{}) *[
 	return &results
 }
 
-func expandLogicAppWorkflowIdentity(input []interface{}) *logic.ManagedServiceIdentity {
-	if len(input) == 0 {
-		return nil
+func expandLogicAppWorkflowIdentity(input []interface{}) (*logic.ManagedServiceIdentity, error) {
+	config, err := logicAppWorkflowIdentity{}.Expand(input)
+	if err != nil {
+		return nil, err
 	}
 
-	identity := input[0].(map[string]interface{})
-
-	managedServiceIdentity := logic.ManagedServiceIdentity{
-		Type: logic.ManagedServiceIdentityType(identity["type"].(string)),
-	}
-
-	if managedServiceIdentity.Type == logic.ManagedServiceIdentityTypeUserAssigned {
-		identityIds := make(map[string]*logic.UserAssignedIdentity)
-		for _, id := range identity["identity_ids"].([]interface{}) {
-			identityIds[id.(string)] = &logic.UserAssignedIdentity{}
+	var identityIds map[string]*logic.UserAssignedIdentity
+	if len(config.UserAssignedIdentityIds) != 0 {
+		identityIds = map[string]*logic.UserAssignedIdentity{}
+		for _, id := range config.UserAssignedIdentityIds {
+			identityIds[id] = &logic.UserAssignedIdentity{}
 		}
-
-		managedServiceIdentity.UserAssignedIdentities = identityIds
 	}
 
-	return &managedServiceIdentity
+	return &logic.ManagedServiceIdentity{
+		Type:                   logic.ManagedServiceIdentityType(config.Type),
+		UserAssignedIdentities: identityIds,
+	}, nil
 }
 
 func flattenLogicAppWorkflowWorkflowParameters(input map[string]interface{}) (map[string]interface{}, error) {
@@ -1028,37 +987,34 @@ func flattenLogicAppWorkflowOpenAuthenticationPolicyClaim(input *[]logic.OpenAut
 }
 
 func flattenLogicAppWorkflowIdentity(input *logic.ManagedServiceIdentity) ([]interface{}, error) {
-	if input == nil {
-		return make([]interface{}, 0), nil
-	}
+	var config *identity.ExpandedConfig
 
-	principalId := ""
-	if input.PrincipalID != nil {
-		principalId = input.PrincipalID.String()
-	}
-
-	tenantId := ""
-	if input.TenantID != nil {
-		tenantId = input.TenantID.String()
-	}
-
-	identityIds := make([]string, 0)
-	if input.UserAssignedIdentities != nil {
-		for key := range input.UserAssignedIdentities {
-			parsedId, err := msiParser.UserAssignedIdentityID(key)
+	if input != nil {
+		var identityIds []string
+		for id := range input.UserAssignedIdentities {
+			parsedId, err := msiParser.UserAssignedIdentityIDInsensitively(id)
 			if err != nil {
 				return nil, err
 			}
 			identityIds = append(identityIds, parsedId.ID())
 		}
-	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"identity_ids": identityIds,
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-			"type":         string(input.Type),
-		},
-	}, nil
+		principalId := ""
+		if input.PrincipalID != nil {
+			principalId = input.PrincipalID.String()
+		}
+
+		tenantId := ""
+		if input.TenantID != nil {
+			tenantId = input.TenantID.String()
+		}
+
+		config = &identity.ExpandedConfig{
+			Type:                    identity.Type(string(input.Type)),
+			PrincipalId:             principalId,
+			TenantId:                tenantId,
+			UserAssignedIdentityIds: identityIds,
+		}
+	}
+	return logicAppWorkflowIdentity{}.Flatten(config), nil
 }
