@@ -52,9 +52,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 				ValidateFunc: validate.PoolName,
 			},
 
-			// TODO: make this case sensitive once this API bug has been fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/5574
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,
@@ -252,11 +250,6 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
-							// The ID returned for the certificate in the batch account and the certificate applied to the pool
-							// are not consistent in their casing which causes issues when referencing IDs across resources
-							// (as Terraform still sees differences to apply due to the casing)
-							// Handling by ignoring casing for now. Raised as an issue: https://github.com/Azure/azure-rest-api-specs/issues/5574
-							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"store_location": {
 							Type:     pluginsdk.TypeString,

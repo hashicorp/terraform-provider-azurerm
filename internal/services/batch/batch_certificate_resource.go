@@ -51,9 +51,7 @@ func resourceBatchCertificate() *pluginsdk.Resource {
 				ValidateFunc: validate.AccountName,
 			},
 
-			// TODO: make this case sensitive once this API bug has been fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/5574
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"certificate": {
 				Type:         pluginsdk.TypeString,

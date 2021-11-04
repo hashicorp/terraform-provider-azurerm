@@ -117,8 +117,6 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Batch pool. Changing this forces a new resource to be created.
 
-~> **NOTE:** To work around [a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/5574) this property is currently treated as case-insensitive. A future version of Terraform will require that the casing is correct.
-
 * `account_name` - (Required) Specifies the name of the Batch account in which the pool will be created. Changing this forces a new resource to be created.
 
 * `node_agent_sku_id` - (Required) Specifies the Sku of the node agents that will be created in the Batch pool.
