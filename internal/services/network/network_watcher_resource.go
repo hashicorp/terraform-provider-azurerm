@@ -22,9 +22,10 @@ func resourceNetworkWatcher() *pluginsdk.Resource {
 		Read:   resourceNetworkWatcherRead,
 		Update: resourceNetworkWatcherCreateUpdate,
 		Delete: resourceNetworkWatcherDelete,
-
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.NetworkWatcherID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -51,17 +52,17 @@ func resourceNetworkWatcher() *pluginsdk.Resource {
 
 func resourceNetworkWatcherCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.WatcherClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewNetworkWatcherID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Network Watcher %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -78,19 +79,11 @@ func resourceNetworkWatcherCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		Tags:     tags.Expand(t),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, watcher); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, watcher); err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Network Watcher %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceNetworkWatcherRead(d, meta)
 }
@@ -111,7 +104,7 @@ func resourceNetworkWatcherRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Network Watcher %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -136,12 +129,12 @@ func resourceNetworkWatcherDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("deleting Network Watcher %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of Network Watcher %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil

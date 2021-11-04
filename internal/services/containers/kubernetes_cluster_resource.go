@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-05-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -568,7 +568,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"private_fqdn": {
+			"private_fqdn": { // privateFqdn
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"portal_fqdn": { // azurePortalFqdn
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -780,7 +785,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}, false),
 			},
 
-			// Computed
 			"fqdn": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -1567,6 +1571,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("dns_prefix_private_cluster", props.FqdnSubdomain)
 		d.Set("fqdn", props.Fqdn)
 		d.Set("private_fqdn", props.PrivateFQDN)
+		d.Set("portal_fqdn", props.AzurePortalFQDN)
 		d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
 		d.Set("kubernetes_version", props.KubernetesVersion)
 		d.Set("node_resource_group", props.NodeResourceGroup)
@@ -1779,8 +1784,8 @@ func expandKubernetesClusterLinuxProfile(input []interface{}) *containerservice.
 	}
 }
 
-func expandKubernetesClusterIdentityProfile(input []interface{}) map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue {
-	identityProfile := make(map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue)
+func expandKubernetesClusterIdentityProfile(input []interface{}) map[string]*containerservice.UserAssignedIdentity {
+	identityProfile := make(map[string]*containerservice.UserAssignedIdentity)
 	if len(input) == 0 || input[0] == nil {
 		return identityProfile
 	}
@@ -1788,7 +1793,7 @@ func expandKubernetesClusterIdentityProfile(input []interface{}) map[string]*con
 	values := input[0].(map[string]interface{})
 
 	if containerservice.ResourceIdentityType(values["user_assigned_identity_id"].(string)) != "" {
-		identityProfile["kubeletidentity"] = &containerservice.ManagedClusterPropertiesIdentityProfileValue{
+		identityProfile["kubeletidentity"] = &containerservice.UserAssignedIdentity{
 			ResourceID: utils.String(values["user_assigned_identity_id"].(string)),
 			ClientID:   utils.String(values["client_id"].(string)),
 			ObjectID:   utils.String(values["object_id"].(string)),
@@ -1798,7 +1803,7 @@ func expandKubernetesClusterIdentityProfile(input []interface{}) map[string]*con
 	return identityProfile
 }
 
-func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue) ([]interface{}, error) {
+func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservice.UserAssignedIdentity) ([]interface{}, error) {
 	if profile == nil {
 		return []interface{}{}, nil
 	}

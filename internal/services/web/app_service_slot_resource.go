@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	webValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -68,6 +69,13 @@ func resourceAppServiceSlot() *pluginsdk.Resource {
 			"site_config": schemaAppServiceSiteConfig(),
 
 			"auth_settings": schemaAppServiceAuthSettings(),
+
+			"key_vault_reference_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: msivalidate.UserAssignedIdentityID,
+			},
 
 			"logs": schemaAppServiceLogsConfig(),
 
@@ -208,6 +216,10 @@ func resourceAppServiceSlotCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		},
 	}
 
+	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
+		siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(v.(string))
+	}
+
 	if _, ok := d.GetOk("identity"); ok {
 		appServiceIdentityRaw := d.Get("identity").([]interface{})
 		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
@@ -272,6 +284,11 @@ func resourceAppServiceSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		enabled := v.(bool)
 		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
 	}
+
+	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
+		siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(v.(string))
+	}
+
 	createFuture, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
 	if err != nil {
 		return fmt.Errorf("updating Slot %q (App Service %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
@@ -451,6 +468,10 @@ func resourceAppServiceSlotRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("default_site_hostname", props.DefaultHostName)
 		d.Set("enabled", props.Enabled)
 		d.Set("https_only", props.HTTPSOnly)
+
+		if props.KeyVaultReferenceIdentity != nil {
+			d.Set("key_vault_reference_identity_id", props.KeyVaultReferenceIdentity)
+		}
 	}
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)

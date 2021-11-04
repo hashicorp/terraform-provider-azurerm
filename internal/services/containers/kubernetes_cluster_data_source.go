@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-05-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
@@ -163,6 +163,19 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 												},
 											},
 										},
+									},
+								},
+							},
+						},
+
+						"open_service_mesh": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Computed: true,
 									},
 								},
 							},
@@ -925,6 +938,20 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 	}
 	values["ingress_application_gateway"] = ingressApplicationGateways
 
+	openServiceMeshes := make([]interface{}, 0)
+	if openServiceMesh := kubernetesAddonProfileLocate(profile, openServiceMeshKey); openServiceMesh != nil {
+		enabled := false
+		if enabledVal := openServiceMesh.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		output := map[string]interface{}{
+			"enabled": enabled,
+		}
+		openServiceMeshes = append(openServiceMeshes, output)
+	}
+	values["open_service_mesh"] = openServiceMeshes
+
 	return []interface{}{values}
 }
 
@@ -1072,7 +1099,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 	return agentPoolProfiles
 }
 
-func flattenKubernetesClusterDataSourceIdentityProfile(profile map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue) ([]interface{}, error) {
+func flattenKubernetesClusterDataSourceIdentityProfile(profile map[string]*containerservice.UserAssignedIdentity) ([]interface{}, error) {
 	if profile == nil {
 		return []interface{}{}, nil
 	}

@@ -22,18 +22,18 @@ resource "azurerm_logz_monitor" "example" {
   name                = "example-monitor"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  plan_data {
+  plan {
     billing_cycle  = "Monthly"
     effective_date = "2022-06-06T00:00:00Z"
     plan_id        = "100gb14days"
     usage_type     = "Committed"
   }
 
-  user_info {
-    email_address = "user@example.com"
-    first_name    = "Example"
-    last_name     = "User"
-    phone_number  = "+12313803556"
+  user {
+    email        = "user@example.com"
+    first_name   = "Example"
+    last_name    = "User"
+    phone_number = "+12313803556"
   }
 }
 ```
@@ -48,25 +48,25 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the logz Monitor should exist. Changing this forces a new logz Monitor to be created.
 
-* `plan_data` - (Required) A `plan_data` block as defined below.
+* `plan` - (Required) A `plan` block as defined below.
 
-* `user_info` - (Required) A `user_info` block as defined below.
+* `user` - (Required) A `user` block as defined below.
 
 ---
 
 * `company_name` - (Optional) Name of the Logz organization. Changing this forces a new logz Monitor to be created.
 
-* `enterprise_app_id` - (Optional) The ID of the enterprise_app. Changing this forces a new logz Monitor to be created.
+* `enterprise_app_id` - (Optional) The ID of the Enterprise App. Changing this forces a new logz Monitor to be created.
 
-~> **NOTE** Please follow [Set up Logz.io single sign-on](https://docs.microsoft.com/en-us/azure/partner-solutions/logzio/setup-sso) to create the ID of the enterprise_app.
+~> **NOTE** Please follow [Set up Logz.io single sign-on](https://docs.microsoft.com/en-us/azure/partner-solutions/logzio/setup-sso) to create the ID of the Enterprise App.
 
-* `enabled` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Possible values are "true" and "false" is allowed.
+* `enabled` - (Optional) Whether the resource monitoring is enabled?
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the logz Monitor.
 
 ---
 
-An `plan_data` block exports the following:
+An `plan` block exports the following:
 
 * `billing_cycle` - (Required) Different billing cycles. Possible values are `MONTHLY` or `WEEKLY`. Changing this forces a new logz Monitor to be created.
 
@@ -78,9 +78,9 @@ An `plan_data` block exports the following:
 
 ---
 
-An `user_info` block exports the following:
+An `user` block exports the following:
 
-* `email_address` - (Required) Email of the user used by Logz for contacting them if needed. Changing this forces a new logz Monitor to be created.
+* `email` - (Required) Email of the user used by Logz for contacting them if needed. Changing this forces a new logz Monitor to be created.
 
 ~> **NOTE** If you use the Azure CLI to authenticate to Azure, the Email of your Azure account needs to be granted the admin permission in your Logz.io account. Otherwise, you may not be able to delete this resource. There is no such limitation for the Service Principal authentication.
 
@@ -99,10 +99,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `single_sign_on_url` - The single sign on url associated with the logz organization of this logz Monitor.
 
 * `logz_organization_id` - The ID associated with the logz organization of this logz Monitor.
-
-* `liftr_resource_category` - The category of the resource.
-
-* `liftr_resource_preference` - The priority of the resource.
 
 ## Timeouts
 

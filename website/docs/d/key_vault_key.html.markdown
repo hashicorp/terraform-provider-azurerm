@@ -43,6 +43,8 @@ The following attributes are exported:
 
 * `id` - The ID of the Key Vault Key.
 
+* `curve` - The EC Curve name of this Key Vault Key.
+
 * `e` - The RSA public exponent of this Key Vault Key.
 
 * `key_type` - Specifies the Key Type of this Key Vault Key
@@ -53,11 +55,19 @@ The following attributes are exported:
 
 * `n` - The RSA modulus of this Key Vault Key.
 
+* `public_key_pem` - The PEM encoded public key of this Key Vault Key.
+
+* `public_key_openssh` - The OpenSSH encoded public key of this Key Vault Key.
+
 * `tags` - A mapping of tags assigned to this Key Vault Key.
 
 * `version` - The current version of the Key Vault Key.
 
 * `versionless_id` - The Base ID of the Key Vault Key.
+
+* `x` - The EC X component of this Key Vault Key.
+
+* `y` - The EC Y component of this Key Vault Key.
 
 
 ## Timeouts

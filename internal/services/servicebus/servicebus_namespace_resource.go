@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus"
+	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -71,9 +71,9 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(servicebus.Basic),
-					string(servicebus.Standard),
-					string(servicebus.Premium),
+					string(servicebus.SkuNameBasic),
+					string(servicebus.SkuNameStandard),
+					string(servicebus.SkuNamePremium),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -121,7 +121,7 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 }
 
 func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
+	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -159,10 +159,10 @@ func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if capacity := d.Get("capacity"); capacity != nil {
-		if !strings.EqualFold(sku, string(servicebus.Premium)) && capacity.(int) > 0 {
+		if !strings.EqualFold(sku, string(servicebus.SkuNamePremium)) && capacity.(int) > 0 {
 			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 0", sku)
 		}
-		if strings.EqualFold(sku, string(servicebus.Premium)) && capacity.(int) == 0 {
+		if strings.EqualFold(sku, string(servicebus.SkuNamePremium)) && capacity.(int) == 0 {
 			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 1, 2, 4, 8 or 16", sku)
 		}
 		parameters.Sku.Capacity = utils.Int32(int32(capacity.(int)))
@@ -182,7 +182,7 @@ func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 }
 
 func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
+	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	clientStable := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -228,7 +228,7 @@ func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceServiceBusNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
+	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

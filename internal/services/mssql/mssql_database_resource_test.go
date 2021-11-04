@@ -258,7 +258,17 @@ func TestAccMsSqlDatabase_createSecondaryMode(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.createSecondaryMode(data),
+			Config: r.createSecondaryMode(data, "test1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("collation").HasValue("SQL_AltDiction_CP850_CI_AI"),
+				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+			),
+		},
+		data.ImportStep("sample_name"),
+		{
+			Config: r.createSecondaryMode(data, "test2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("collation").HasValue("SQL_AltDiction_CP850_CI_AI"),
@@ -414,21 +424,13 @@ func TestAccMsSqlDatabase_storageAccountType(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.threatDetectionPolicy(data, "Enabled"),
+			Config: r.storageAccountTypeLRS(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue("LRS"),
 			),
 		},
-		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
-		{
-			Config: r.threatDetectionPolicy(data, "Disabled"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
-				check.That(data.ResourceName).Key("threat_detection_policy.0.state").HasValue("Disabled"),
-			),
-		},
-		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
+		data.ImportStep("sample_name"),
 	})
 }
 
@@ -953,7 +955,7 @@ resource "azurerm_mssql_database" "pitr" {
 `, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(7)*time.Minute).UTC().Format(time.RFC3339))
 }
 
-func (r MsSqlDatabaseResource) createSecondaryMode(data acceptance.TestData) string {
+func (r MsSqlDatabaseResource) createSecondaryMode(data acceptance.TestData, tag string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -977,8 +979,11 @@ resource "azurerm_mssql_database" "secondary" {
   create_mode                 = "Secondary"
   creation_source_database_id = azurerm_mssql_database.test.id
 
+  tags = {
+    tag = "%[4]s"
+  }
 }
-`, r.complete(data), data.RandomInteger, data.Locations.Secondary)
+`, r.complete(data), data.RandomInteger, data.Locations.Secondary, tag)
 }
 
 func (r MsSqlDatabaseResource) scaleReplicaSet(data acceptance.TestData, sku string) string {
@@ -1179,6 +1184,19 @@ resource "azurerm_mssql_database" "restore" {
 }
 
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r MsSqlDatabaseResource) storageAccountTypeLRS(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[2]d"
+  server_id = azurerm_mssql_server.test.id
+
+  storage_account_type = "LRS"
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r MsSqlDatabaseResource) threatDetectionPolicy(data acceptance.TestData, state string) string {

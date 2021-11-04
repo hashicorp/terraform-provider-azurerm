@@ -115,6 +115,36 @@ func TestAccVPNGateway_tags(t *testing.T) {
 	})
 }
 
+func TestAccVPNGateway_routingPreferenceMicrosoftNetwork(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway", "test")
+	r := VPNGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.routingPreference(data, "Microsoft Network"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVPNGateway_routingPreferenceInternet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway", "test")
+	r := VPNGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.routingPreference(data, "Internet"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t VPNGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VpnGatewayID(state.ID)
 	if err != nil {
@@ -128,7 +158,6 @@ func (t VPNGatewayResource) Exists(ctx context.Context, clients *clients.Client,
 
 	return utils.Bool(resp.ID != nil), nil
 }
-
 func (r VPNGatewayResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -140,6 +169,20 @@ resource "azurerm_vpn_gateway" "test" {
   virtual_hub_id      = azurerm_virtual_hub.test.id
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r VPNGatewayResource) routingPreference(data acceptance.TestData, routingPreference string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_vpn_gateway" "test" {
+  name                = "acctestVPNG-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  virtual_hub_id      = azurerm_virtual_hub.test.id
+  routing_preference  = "%s"
+}
+`, r.template(data), data.RandomInteger, routingPreference)
 }
 
 func (r VPNGatewayResource) requiresImport(data acceptance.TestData) string {

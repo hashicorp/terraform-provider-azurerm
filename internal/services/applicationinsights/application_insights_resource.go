@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,9 +26,15 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 		Read:   resourceApplicationInsightsRead,
 		Update: resourceApplicationInsightsCreateUpdate,
 		Delete: resourceApplicationInsightsDelete,
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ComponentID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ComponentUpgradeV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -105,7 +113,7 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.FloatBetween(0, 1000),
+				ValidateFunc: validation.FloatAtLeast(0),
 			},
 
 			"daily_data_cap_notifications_disabled": {
@@ -271,7 +279,16 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if props := resp.ApplicationInsightsComponentProperties; props != nil {
-		d.Set("application_type", string(props.ApplicationType))
+		// Accommodate application_type that only differs by case and so shouldn't cause a recreation
+		vals := map[string]string{
+			"web":   "web",
+			"other": "other",
+		}
+		if v, ok := vals[strings.ToLower(string(props.ApplicationType))]; ok {
+			d.Set("application_type", v)
+		} else {
+			d.Set("application_type", string(props.ApplicationType))
+		}
 		d.Set("app_id", props.AppID)
 		d.Set("instrumentation_key", props.InstrumentationKey)
 		d.Set("sampling_percentage", props.SamplingPercentage)

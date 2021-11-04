@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-05-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -563,7 +563,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.EnableNodePublicIP = utils.Bool(d.Get("enable_node_public_ip").(bool))
 	}
 
-	if d.HasChange("max_count") {
+	if d.HasChange("max_count") || d.Get("enable_auto_scaling").(bool) {
 		props.MaxCount = utils.Int32(int32(d.Get("max_count").(int)))
 	}
 
@@ -571,7 +571,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.Mode = containerservice.AgentPoolMode(d.Get("mode").(string))
 	}
 
-	if d.HasChange("min_count") {
+	if d.HasChange("min_count") || d.Get("enable_auto_scaling").(bool) {
 		props.MinCount = utils.Int32(int32(d.Get("min_count").(int)))
 	}
 

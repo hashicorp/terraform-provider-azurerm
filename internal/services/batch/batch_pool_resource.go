@@ -13,14 +13,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
+	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+type batchPoolIdentity = identity.UserAssigned
 
 func resourceBatchPool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -282,6 +286,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"identity": batchPoolIdentity{}.Schema(),
+
 			"start_task": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -545,6 +552,12 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		},
 	}
 
+	identity, err := expandBatchPoolIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf(`expanding "identity": %v`, err)
+	}
+	parameters.Identity = identity
+
 	scaleSettings, err := expandBatchPoolScaleSettings(d)
 	if err != nil {
 		return fmt.Errorf("expanding scale settings: %+v", err)
@@ -684,6 +697,12 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		PoolProperties: &batch.PoolProperties{},
 	}
 
+	identity, err := expandBatchPoolIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf(`expanding "identity": %v`, err)
+	}
+	parameters.Identity = identity
+
 	scaleSettings, err := expandBatchPoolScaleSettings(d)
 	if err != nil {
 		return fmt.Errorf("expanding scale settings: %+v", err)
@@ -761,6 +780,14 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("name", id.Name)
 	d.Set("account_name", id.BatchAccountName)
 	d.Set("resource_group_name", id.ResourceGroup)
+
+	identity, err := flattenBatchPoolIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
 
 	if props := resp.PoolProperties; props != nil {
 		d.Set("display_name", props.DisplayName)
@@ -955,4 +982,47 @@ func validateBatchPoolCrossFieldRules(pool *batch.Pool) error {
 	}
 
 	return nil
+}
+
+func expandBatchPoolIdentity(input []interface{}) (*batch.PoolIdentity, error) {
+	config, err := batchPoolIdentity{}.Expand(input)
+	if err != nil {
+		return nil, err
+	}
+
+	var identityMaps map[string]*batch.UserAssignedIdentities
+	if len(config.UserAssignedIdentityIds) != 0 {
+		identityMaps = make(map[string]*batch.UserAssignedIdentities, len(config.UserAssignedIdentityIds))
+		for _, id := range config.UserAssignedIdentityIds {
+			identityMaps[id] = &batch.UserAssignedIdentities{}
+		}
+	}
+
+	return &batch.PoolIdentity{
+		Type:                   batch.PoolIdentityType(config.Type),
+		UserAssignedIdentities: identityMaps,
+	}, nil
+}
+
+func flattenBatchPoolIdentity(input *batch.PoolIdentity) ([]interface{}, error) {
+	var config *identity.ExpandedConfig
+
+	if input == nil {
+		return []interface{}{}, nil
+	}
+
+	var identityIds []string
+	for id := range input.UserAssignedIdentities {
+		parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(id)
+		if err != nil {
+			return nil, err
+		}
+		identityIds = append(identityIds, parsedId.ID())
+	}
+
+	config = &identity.ExpandedConfig{
+		Type:                    identity.Type(string(input.Type)),
+		UserAssignedIdentityIds: identityIds,
+	}
+	return batchPoolIdentity{}.Flatten(config), nil
 }

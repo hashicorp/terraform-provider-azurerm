@@ -89,17 +89,17 @@ func (r BackendAddressPoolAddressResource) Create() sdk.ResourceFunc {
 			locks.ByName(poolId.BackendAddressPoolName, backendAddressPoolResourceName)
 			defer locks.UnlockByName(poolId.BackendAddressPoolName, backendAddressPoolResourceName)
 
-			// Backend Addresses can only be created for Standard LB's - not Basic, so we have to check
+			// Backend Addresses can not be created for Basic sku, so we have to check
 			lb, err := metadata.Client.LoadBalancers.LoadBalancersClient.Get(ctx, poolId.ResourceGroup, poolId.LoadBalancerName, "")
 			if err != nil {
 				return fmt.Errorf("retrieving Load Balancer %q (Resource Group %q): %+v", poolId.LoadBalancerName, poolId.ResourceGroup, err)
 			}
-			isStandardSku := false
-			if lb.Sku != nil && lb.Sku.Name == network.LoadBalancerSkuNameStandard {
-				isStandardSku = true
+			isBasicSku := true
+			if lb.Sku != nil && lb.Sku.Name != network.LoadBalancerSkuNameBasic {
+				isBasicSku = false
 			}
-			if !isStandardSku {
-				return fmt.Errorf("Backend Addresses are only supported on Standard SKU Load Balancers")
+			if isBasicSku {
+				return fmt.Errorf("Backend Addresses are not supported on Basic SKU Load Balancers")
 			}
 
 			id := parse.NewBackendAddressPoolAddressID(subscriptionId, poolId.ResourceGroup, poolId.LoadBalancerName, poolId.BackendAddressPoolName, model.Name)

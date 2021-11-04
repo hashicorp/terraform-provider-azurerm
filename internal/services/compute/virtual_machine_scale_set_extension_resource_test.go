@@ -59,12 +59,12 @@ func TestAccVirtualMachineScaleSetExtension_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccVirtualMachineScaleSetExtension_autoUpgradeDisabled(t *testing.T) {
+func TestAccVirtualMachineScaleSetExtension_autoUpgradeMinorVersionDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 	r := VirtualMachineScaleSetExtensionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.autoUpgradeDisabled(data),
+			Config: r.autoUpgradeMinorVersionDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -142,6 +142,20 @@ func TestAccVirtualMachineScaleSetExtension_protectedSettingsOnly(t *testing.T) 
 	})
 }
 
+func TestAccVirtualMachineScaleSetExtension_automaticUpgradeEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
+	r := VirtualMachineScaleSetExtensionResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.automaticUpgradeEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccVirtualMachineScaleSetExtension_updateVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 	r := VirtualMachineScaleSetExtensionResource{}
@@ -212,7 +226,7 @@ resource "azurerm_virtual_machine_scale_set_extension" "test" {
 `, r.templateWindows(data), data.RandomInteger)
 }
 
-func (r VirtualMachineScaleSetExtensionResource) autoUpgradeDisabled(data acceptance.TestData) string {
+func (r VirtualMachineScaleSetExtensionResource) autoUpgradeMinorVersionDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -468,4 +482,19 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
+}
+
+func (r VirtualMachineScaleSetExtensionResource) automaticUpgradeEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_machine_scale_set_extension" "test" {
+  name                         = "acctestExt-%d"
+  virtual_machine_scale_set_id = azurerm_linux_virtual_machine_scale_set.test.id
+  publisher                    = "Microsoft.GuestConfiguration"
+  type                         = "ConfigurationforLinux"
+  type_handler_version         = "1.0"
+  automatic_upgrade_enabled    = true
+}
+`, r.templateLinux(data), data.RandomInteger)
 }

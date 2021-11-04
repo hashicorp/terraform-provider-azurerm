@@ -55,6 +55,11 @@ func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"FailureAnomaliesDetector",
+					"RequestPerformanceDegradationDetector",
+					"DependencyPerformanceDegradationDetector",
+					"ExceptionVolumeChangedDetector",
+					"TraceSeverityDetector",
+					"MemoryLeakDetector",
 				}, false),
 			},
 

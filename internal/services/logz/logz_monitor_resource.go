@@ -79,7 +79,7 @@ func resourceLogzMonitor() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"plan_data": {
+			"plan": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
 				ForceNew: true,
@@ -129,14 +129,14 @@ func resourceLogzMonitor() *pluginsdk.Resource {
 				},
 			},
 
-			"user_info": {
+			"user": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
 				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"email_address": {
+						"email": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
@@ -173,16 +173,6 @@ func resourceLogzMonitor() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"liftr_resource_category": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"liftr_resource_preference": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
-			},
-
 			"tags": tags.Schema(),
 		},
 	}
@@ -201,6 +191,7 @@ func resourceLogzMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
+
 	if existing.ID != nil && *existing.ID != "" {
 		return tf.ImportAsExistsError("azurerm_logz_monitor", *existing.ID)
 	}
@@ -214,12 +205,13 @@ func resourceLogzMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &logz.MonitorProperties{
 			LogzOrganizationProperties: expandMonitorOrganizationProperties(d),
-			PlanData:                   expandMonitorPlanData(d.Get("plan_data").([]interface{})),
-			UserInfo:                   expandMonitorUserInfo(d.Get("user_info").([]interface{})),
+			PlanData:                   expandMonitorPlanData(d.Get("plan").([]interface{})),
+			UserInfo:                   expandMonitorUserInfo(d.Get("user").([]interface{})),
 			MonitoringStatus:           monitoringStatus,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
 	future, err := client.Create(ctx, id.ResourceGroup, id.MonitorName, &props)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -250,8 +242,10 @@ func resourceLogzMonitorRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.SetId("")
 			return nil
 		}
+
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
 	d.Set("name", id.MonitorName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
@@ -259,13 +253,13 @@ func resourceLogzMonitorRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	if props := resp.Properties; props != nil {
 		flattenMonitorOrganizationProperties(d, props.LogzOrganizationProperties)
 		d.Set("enabled", props.MonitoringStatus == logz.MonitoringStatusEnabled)
-		if err := d.Set("plan_data", flattenMonitorPlanData(props.PlanData)); err != nil {
-			return fmt.Errorf("setting `plan_data`: %+v", err)
+		if err := d.Set("plan", flattenMonitorPlanData(props.PlanData)); err != nil {
+			return fmt.Errorf("setting `plan`: %+v", err)
 		}
-		d.Set("user_info", d.Get("user_info"))
-		d.Set("liftr_resource_category", props.LiftrResourceCategory)
-		d.Set("liftr_resource_preference", props.LiftrResourcePreference)
+
+		d.Set("user", d.Get("user"))
 	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -282,6 +276,7 @@ func resourceLogzMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	body := logz.MonitorResourceUpdateParameters{
 		Properties: &logz.MonitorUpdateProperties{},
 	}
+
 	if d.HasChange("enabled") {
 		monitoringStatus := logz.MonitoringStatusDisabled
 		if d.Get("enabled").(bool) {
@@ -289,6 +284,7 @@ func resourceLogzMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 		body.Properties.MonitoringStatus = monitoringStatus
 	}
+
 	if d.HasChange("tags") {
 		body.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
@@ -296,6 +292,7 @@ func resourceLogzMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if _, err := client.Update(ctx, id.ResourceGroup, id.MonitorName, &body); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
+
 	return resourceLogzMonitorRead(d, meta)
 }
 
@@ -317,6 +314,7 @@ func resourceLogzMonitorDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for deletion of the %s: %+v", id, err)
 	}
+
 	return nil
 }
 
@@ -339,6 +337,7 @@ func expandMonitorPlanData(input []interface{}) *logz.PlanData {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
+
 	v := input[0].(map[string]interface{})
 	effectiveDate, _ := time.Parse(time.RFC3339, v["effective_date"].(string))
 	return &logz.PlanData{
@@ -353,11 +352,12 @@ func expandMonitorUserInfo(input []interface{}) *logz.UserInfo {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
+
 	v := input[0].(map[string]interface{})
 	return &logz.UserInfo{
 		FirstName:    utils.String(v["first_name"].(string)),
 		LastName:     utils.String(v["last_name"].(string)),
-		EmailAddress: utils.String(v["email_address"].(string)),
+		EmailAddress: utils.String(v["email"].(string)),
 		PhoneNumber:  utils.String(v["phone_number"].(string)),
 	}
 
@@ -383,18 +383,22 @@ func flattenMonitorPlanData(input *logz.PlanData) []interface{} {
 	if input.BillingCycle != nil {
 		billingCycle = *input.BillingCycle
 	}
+
 	var effectiveDate string
 	if input.EffectiveDate != nil {
 		effectiveDate = input.EffectiveDate.Format(time.RFC3339)
 	}
+
 	var planDetails string
 	if input.PlanDetails != nil {
 		planDetails = *input.PlanDetails
 	}
+
 	var usageType string
 	if input.UsageType != nil {
 		usageType = *input.UsageType
 	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"billing_cycle":  billingCycle,

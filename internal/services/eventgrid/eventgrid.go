@@ -49,6 +49,46 @@ func IdentitySchema() *schema.Schema {
 	}
 }
 
+func IdentitySchemaForDataSource() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Computed: true,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(eventgrid.IdentityTypeNone),
+						string(eventgrid.IdentityTypeSystemAssigned),
+						string(eventgrid.IdentityTypeUserAssigned),
+					}, false),
+				},
+
+				"identity_ids": {
+					Type:     schema.TypeSet,
+					Optional: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+
+				"principal_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"tenant_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 func eventSubscriptionPublicNetworkAccessEnabled() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeBool,

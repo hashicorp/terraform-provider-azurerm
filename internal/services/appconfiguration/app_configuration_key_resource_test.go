@@ -96,6 +96,20 @@ func TestAccAppConfigurationKey_KVToVault(t *testing.T) {
 	})
 }
 
+func TestAccAppConfigurationKey_slash(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration_key", "test")
+	r := AppConfigurationKeyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.slash(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAppConfigurationKey_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_key", "test")
 	r := AppConfigurationKeyResource{}
@@ -169,6 +183,34 @@ resource "azurerm_app_configuration" "test" {
 resource "azurerm_app_configuration_key" "test" {
   configuration_store_id = azurerm_app_configuration.test.id
   key                    = "acctest-ackey-%d"
+  content_type           = "test"
+  label                  = "acctest-ackeylabel-%d"
+  value                  = "a test"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (t AppConfigurationKeyResource) slash(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appconfig-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_configuration" "test" {
+  name                = "testacc-appconf%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+}
+
+resource "azurerm_app_configuration_key" "test" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  key                    = "/acctest/-ackey/-%d"
   content_type           = "test"
   label                  = "acctest-ackeylabel-%d"
   value                  = "a test"
