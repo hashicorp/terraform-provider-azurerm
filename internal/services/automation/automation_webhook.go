@@ -40,65 +40,62 @@ func resourceAutomationWebhook() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: resourceAutomationWebhookCommonSchema(),
-	}
-}
+		Schema: map[string]*pluginsdk.Schema{
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-func resourceAutomationWebhookCommonSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"resource_group_name": azure.SchemaResourceGroupName(),
-
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"automation_account_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.AutomationAccount(),
-		},
-
-		"expiry_time": {
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			ForceNew:         true,
-			DiffSuppressFunc: suppress.RFC3339Time,
-			ValidateFunc:     validation.IsRFC3339Time,
-		},
-
-		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-
-		"runbook_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validate.RunbookName(),
-		},
-		"run_on": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-		},
-		"parameters": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
-		},
-		"uri": {
-			Type:       pluginsdk.TypeString,
-			ConfigMode: schema.SchemaConfigModeAttr,
-			Optional:   true,
-			ForceNew:   true,
-			Computed:   true,
-			Sensitive:  true,
+
+			"automation_account_name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.AutomationAccount(),
+			},
+
+			"expiry_time": {
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.RFC3339Time,
+				ValidateFunc:     validation.IsRFC3339Time,
+			},
+
+			"enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"runbook_name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validate.RunbookName(),
+			},
+			"run_on_worker_group": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+			"parameters": {
+				Type:     pluginsdk.TypeMap,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+			"uri": {
+				Type:         pluginsdk.TypeString,
+				ConfigMode:   schema.SchemaConfigModeAttr,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+			},
 		},
 	}
 }
@@ -114,7 +111,7 @@ func resourceAutomationWebhookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	enabled := d.Get("enabled").(bool)
 	runbookName := d.Get("runbook_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	runOn := d.Get("run_on").(string)
+	runOn := d.Get("run_on_worker_group").(string)
 	webhookParameters := utils.ExpandMapStringPtrString(d.Get("parameters").(map[string]interface{}))
 
 	if d.IsNewResource() {
@@ -209,7 +206,7 @@ func resourceAutomationWebhookRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if resp.Runbook != nil {
 		d.Set("runbook_name", resp.Runbook.Name)
 	}
-	d.Set("run_on", resp.RunOn)
+	d.Set("run_on_worker_group", resp.RunOn)
 	if err = d.Set("parameters", utils.FlattenMapStringPtrString(resp.Parameters)); err != nil {
 		return err
 	}

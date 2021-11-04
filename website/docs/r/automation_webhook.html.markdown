@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `runbook_name` - (Required) Name of the Automation Runbook to execute by Webhook.
 
-* `run_on` - (Optional) Name of the hybrid worker group the Webhook job will run on.
+* `run_on_worker_group` - (Optional) Name of the hybrid worker group the Webhook job will run on.
 
 * `parameters` - (Optional) Map of input parameters passed to runbook.
 

@@ -3,6 +3,7 @@ package automation_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
@@ -98,24 +99,17 @@ func TestAccAutomationWebhook_ChangeUri(t *testing.T) {
 	})
 }
 
-/*
-// missing workergroup creation
 func TestAccAutomationWebhook_WithWorkerGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_webhook", "test")
 	r := AutomationWebhookResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.WebhookOnWorkerGroup(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("run_on").HasValue("workergroup"),
-			),
+			Config:      r.WebhookOnWorkerGroup(data),
+			ExpectError: regexp.MustCompile("The Hybrid Runbook Worker Group given in RunOn parameter does not exist"),
 		},
-		data.ImportStep("publish_content_link"),
 	})
 }
-*/
 
 func (t AutomationWebhookResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.WebhookID(state.ID)
@@ -232,7 +226,7 @@ resource "azurerm_automation_webhook" "test" {
   expiry_time             = timeadd(timestamp(), "10h")
   enabled                 = true
   runbook_name            = azurerm_automation_runbook.test.name
-  run_on                  = "workergroup"
+  run_on_worker_group     = "workergroup"
 }
 `, template)
 }
