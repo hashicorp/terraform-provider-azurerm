@@ -112,9 +112,11 @@ func (CassandraClusterResource) requiresImport(data acceptance.TestData) string 
 %s
 
 resource "azurerm_cosmosdb_cassandra_cluster" "import" {
-  name                = azurerm_cosmosdb_cassandra_cluster.test.name
-  resource_group_name = azurerm_cosmosdb_cassandra_cluster.test.resource_group_name
-  location            = azurerm_cosmosdb_cassandra_cluster.test.location
+  name                           = azurerm_cosmosdb_cassandra_cluster.test.name
+  resource_group_name            = azurerm_cosmosdb_cassandra_cluster.test.resource_group_name
+  location                       = azurerm_cosmosdb_cassandra_cluster.test.location
+  delegated_management_subnet_id = azurerm_subnet.test.id
+  default_admin_password         = "Password1234"
 }
 `, template)
 }
