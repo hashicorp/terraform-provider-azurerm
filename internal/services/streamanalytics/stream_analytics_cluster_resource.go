@@ -73,7 +73,7 @@ func (r ClusterResource) Attributes() map[string]*pluginsdk.Schema {
 
 func (r ClusterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 60 * time.Minute,
+		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model ClusterModel
 			if err := metadata.Decode(&model); err != nil {
@@ -150,7 +150,7 @@ func (r ClusterResource) Read() sdk.ResourceFunc {
 
 func (r ClusterResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 60 * time.Minute,
+		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.ClustersClient
 			id, err := parse.ClusterID(metadata.ResourceData.Id())
@@ -172,7 +172,7 @@ func (r ClusterResource) Delete() sdk.ResourceFunc {
 
 func (r ClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 60 * time.Minute,
+		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := parse.ClusterID(metadata.ResourceData.Id())
 			if err != nil {
