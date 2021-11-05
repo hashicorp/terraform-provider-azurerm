@@ -319,8 +319,9 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("disable_ip_masking", props.DisableIPMasking)
 		d.Set("connection_string", props.ConnectionString)
 		d.Set("local_authentication_disabled", props.DisableLocalAuth)
-		d.Set("internet_ingestion_enabled", props.PublicNetworkAccessForIngestion)
-		d.Set("internet_query_enabled", props.PublicNetworkAccessForQuery)
+
+		d.Set("internet_ingestion_enabled", resp.PublicNetworkAccessForIngestion == insights.PublicNetworkAccessTypeEnabled)
+		d.Set("internet_query_enabled", resp.PublicNetworkAccessForQuery == insights.PublicNetworkAccessTypeEnabled)
 
 		if v := props.WorkspaceResourceID; v != nil {
 			d.Set("workspace_id", v)
