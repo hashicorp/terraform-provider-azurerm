@@ -71,15 +71,6 @@ provider "azurerm" {
   features {}
 }
 
-provider "azuread" {}
-
-data "azuread_application_published_app_ids" "well_known" {}
-
-resource "azuread_service_principal" "azure_cosmos_db" {
-  application_id = data.azuread_application_published_app_ids.well_known.result.AzureCosmosDb
-  use_existing   = true
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctest-ca-%[1]d"
   location = "%[2]s"
@@ -104,7 +95,7 @@ resource "azurerm_role_assignment" "test" {
 
   scope                = azurerm_virtual_network.test.id
   role_definition_name = "Network Contributor"
-  principal_id         = azuread_service_principal.azure_cosmos_db.object_id
+  principal_id         = "e531a17d-006c-4736-9de9-d8d745730738"
 }
 
 resource "azurerm_cosmosdb_cassandra_cluster" "test" {
