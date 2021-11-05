@@ -34,41 +34,41 @@ func TestAccBatchApplication_basic(t *testing.T) {
 func (BatchApplicationDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "acctestsa%s"
-	resource_group_name      = azurerm_resource_group.test.name
-	location                 = azurerm_resource_group.test.location
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_batch_account" "test" {
-	name                 = "acctestba%s"
-	resource_group_name  = azurerm_resource_group.test.name
-	location             = azurerm_resource_group.test.location
-	pool_allocation_mode = "BatchService"
-	storage_account_id   = azurerm_storage_account.test.id
+  name                 = "acctestba%s"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  pool_allocation_mode = "BatchService"
+  storage_account_id   = azurerm_storage_account.test.id
 }
 
 resource "azurerm_batch_application" "test" {
-	name                = "acctestbatchapp-%d"
-	resource_group_name = azurerm_resource_group.test.name
-	account_name        = azurerm_batch_account.test.name
+  name                = "acctestbatchapp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
 	%s
 }
 
 data "azurerm_batch_application" "test" {
-	name                = azurerm_batch_application.test.name
-	resource_group_name = azurerm_resource_group.test.name
-	account_name        = azurerm_batch_account.test.name
+  name                = azurerm_batch_application.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, displayName)
 }
