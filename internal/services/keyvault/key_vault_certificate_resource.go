@@ -66,10 +66,11 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"contents": {
-							Type:      pluginsdk.TypeString,
-							Required:  true,
-							ForceNew:  true,
-							Sensitive: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"password": {
 							Type:      pluginsdk.TypeString,
