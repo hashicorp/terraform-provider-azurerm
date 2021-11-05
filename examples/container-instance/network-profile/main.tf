@@ -68,7 +68,7 @@ resource "azurerm_container_group" "example" {
 
   container {
     name   = "sidecar"
-    image  = "microsoft/aci-tutorial-sidecar"
+    image  = "mcr.microsoft.com/azuredocs/aci-tutorial-sidecar"
     cpu    = "0.5"
     memory = "1.5"
   }
