@@ -1,13 +1,13 @@
-package formatting
+package dates
 
 import (
 	"fmt"
 	"time"
 )
 
-// ParseAsDateFormat parses the given nilable string as a time.Time using the specified
+// ParseAsFormat parses the given nilable string as a time.Time using the specified
 // format (for example RFC3339)
-func ParseAsDateFormat(input *string, format string) (*time.Time, error) {
+func ParseAsFormat(input *string, format string) (*time.Time, error) {
 	if input == nil {
 		return nil, nil
 	}
