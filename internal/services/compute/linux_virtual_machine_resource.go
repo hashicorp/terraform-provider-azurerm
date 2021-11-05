@@ -662,8 +662,9 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 			if err := d.Set("admin_ssh_key", pluginsdk.NewSet(SSHKeySchemaHash, *flattenedSSHKeys)); err != nil {
 				return fmt.Errorf("setting `admin_ssh_key`: %+v", err)
 			}
-			if patchSettings := config.PatchSettings; patchSettings != nil {
-				d.Set("patch_mode", patchSettings.PatchMode)
+			patchSettings := config.PatchSettings
+			if patchSettings != nil && patchSettings.PatchMode != "" {
+				d.Set("patch_mode", compute.LinuxVMGuestPatchMode(patchSettings.PatchMode))
 			}
 		}
 
