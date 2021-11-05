@@ -1,62 +1,38 @@
 package location
 
 import (
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-// Schema returns the default Schema which should be used for Location fields
-// where these are Required and Cannot be Changed
 func Schema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:             pluginsdk.TypeString,
-		Required:         true,
-		ForceNew:         true,
-		ValidateFunc:     EnhancedValidate,
-		StateFunc:        StateFunc,
-		DiffSuppressFunc: DiffSuppressFunc,
-	}
+	return commonschema.LocationSchema()
 }
 
-// SchemaOptional returns the Schema for a Location field where this can be optionally specified
 func SchemaOptional() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:             pluginsdk.TypeString,
-		Optional:         true,
-		ForceNew:         true,
-		StateFunc:        StateFunc,
-		DiffSuppressFunc: DiffSuppressFunc,
-	}
+	return commonschema.LocationSchemaOptional()
 }
 
 func SchemaComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeString,
-		Computed: true,
-	}
+	return commonschema.LocationSchemaComputed()
 }
 
-// Schema returns the Schema which should be used for Location fields
-// where these are Required and can be changed
 func SchemaWithoutForceNew() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:             pluginsdk.TypeString,
-		Required:         true,
-		ValidateFunc:     EnhancedValidate,
-		StateFunc:        StateFunc,
-		DiffSuppressFunc: DiffSuppressFunc,
-	}
+	return commonschema.LocationSchemaWithoutForceNew()
 }
 
-func DiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
-	return Normalize(old) == Normalize(new)
+func DiffSuppressFunc(v, old, new string, d *pluginsdk.ResourceData) bool {
+	return location.DiffSuppressFunc(v, old, new, d)
 }
 
 func HashCode(location interface{}) int {
+	// NOTE: this is intentionally not present upstream as the only usage is deprecated
+	// and so this can be removed in 3.0
 	loc := location.(string)
 	return pluginsdk.HashString(Normalize(loc))
 }
 
-func StateFunc(location interface{}) string {
-	input := location.(string)
-	return Normalize(input)
+func StateFunc(input interface{}) string {
+	return location.StateFunc(input)
 }

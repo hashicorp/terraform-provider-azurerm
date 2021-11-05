@@ -9,10 +9,10 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 )
 
@@ -152,7 +152,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	}
 
 	if features.EnhancedValidationEnabled() {
-		location.CacheSupportedLocations(ctx, env)
+		location.CacheSupportedLocations(ctx, env.ResourceManagerEndpoint)
 		resourceproviders.CacheSupportedProviders(ctx, client.Resource.ProvidersClient)
 	}
 

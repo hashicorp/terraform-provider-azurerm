@@ -3,7 +3,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 )
 
 func RedisCacheLocation(input interface{}, key string) (warnings []string, errors []error) {
