@@ -17,7 +17,7 @@ data "azurerm_api_management_product" "example" {
   product_id          = "my-product"
   api_management_name = "example-apim"
   resource_group_name = "search-service"
-  description = "My Product description"
+  description         = "My Product description"
 }
 
 output "product_terms" {
