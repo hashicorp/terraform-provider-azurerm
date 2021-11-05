@@ -20,8 +20,10 @@ func resourceApiManagementGroupUser() *pluginsdk.Resource {
 		Create: resourceApiManagementGroupUserCreate,
 		Read:   resourceApiManagementGroupUserRead,
 		Delete: resourceApiManagementGroupUserDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.GroupUserID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -44,35 +46,28 @@ func resourceApiManagementGroupUser() *pluginsdk.Resource {
 
 func resourceApiManagementGroupUserCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.GroupUsersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("api_management_name").(string)
-	groupName := d.Get("group_name").(string)
-	userId := d.Get("user_id").(string)
+	id := parse.NewGroupUserID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("group_name").(string), d.Get("user_id").(string))
 
-	exists, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
+	exists, err := client.CheckEntityExists(ctx, id.ResourceGroup, id.ServiceName, id.GroupName, id.UserName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(exists) {
-			return fmt.Errorf("checking for present of existing User %q / Group %q (API Management Service %q / Resource Group %q): %+v", userId, groupName, serviceName, resourceGroup, err)
+			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 		}
 	}
 
 	if !utils.ResponseWasNotFound(exists) {
-		// TODO: can we not pull this from somewhere instead?
-		subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-		resourceId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/groups/%s/users/%s", subscriptionId, resourceGroup, serviceName, groupName, userId)
-		return tf.ImportAsExistsError("azurerm_api_management_group_user", resourceId)
+		return tf.ImportAsExistsError("azurerm_api_management_group_user", id.ID())
 	}
 
-	resp, err := client.Create(ctx, resourceGroup, serviceName, groupName, userId)
-	if err != nil {
-		return fmt.Errorf("adding User %q to Group %q (API Management Service %q / Resource Group %q): %+v", userId, groupName, serviceName, resourceGroup, err)
+	if _, err := client.Create(ctx, id.ResourceGroup, id.ServiceName, id.GroupName, id.UserName); err != nil {
+		return fmt.Errorf("adding User %q to Group %q (API Management Service %q / Resource Group %q): %+v", id.UserName, id.GroupName, id.ServiceName, id.ResourceGroup, err)
 	}
 
-	// there's no Read so this is best-effort
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceApiManagementGroupUserRead(d, meta)
 }
@@ -86,26 +81,22 @@ func resourceApiManagementGroupUserRead(d *pluginsdk.ResourceData, meta interfac
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	groupName := id.GroupName
-	userId := id.UserName
 
-	resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
+	resp, err := client.CheckEntityExists(ctx, id.ResourceGroup, id.ServiceName, id.GroupName, id.UserName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
-			log.Printf("[DEBUG] User %q was not found in Group %q (API Management Service %q / Resource Group %q) was not found - removing from state!", userId, groupName, serviceName, resourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving User %q / Group %q (API Management Service %q / Resource Group %q): %+v", userId, groupName, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("group_name", groupName)
-	d.Set("user_id", userId)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
+	d.Set("group_name", id.GroupName)
+	d.Set("user_id", id.UserName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("api_management_name", id.ServiceName)
 
 	return nil
 }
@@ -119,14 +110,10 @@ func resourceApiManagementGroupUserDelete(d *pluginsdk.ResourceData, meta interf
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	groupName := id.GroupName
-	userId := id.UserName
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, groupName, userId); err != nil {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.GroupName, id.UserName); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("removing User %q from Group %q (API Management Service %q / Resource Group %q): %+v", userId, groupName, serviceName, resourceGroup, err)
+			return fmt.Errorf("removing User %q from Group %q (API Management Service %q / Resource Group %q): %+v", id.UserName, id.GroupName, id.ServiceName, id.ResourceGroup, err)
 		}
 	}
 
