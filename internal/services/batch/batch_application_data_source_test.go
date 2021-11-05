@@ -11,7 +11,7 @@ import (
 type BatchApplicationDataSource struct {
 }
 
-func TestAccBatchApplication_basic(t *testing.T) {
+func TestAccBatchApplicationDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_application", "test")
 	r := BatchApplicationDataSource{}
 
