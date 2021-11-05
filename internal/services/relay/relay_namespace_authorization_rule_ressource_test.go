@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/namespaces"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"

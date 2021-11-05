@@ -4,12 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
-
-// this is only here to aid testing
-var enhancedEnabled = features.EnhancedValidationEnabled()
 
 // EnhancedValidate returns a validation function which attempts to validate the location
 // against the list of Locations supported by this Azure Location.
@@ -17,7 +13,7 @@ var enhancedEnabled = features.EnhancedValidationEnabled()
 // NOTE: this is best-effort - if the users offline, or the API doesn't return it we'll
 // fall back to the original approach
 func EnhancedValidate(i interface{}, k string) ([]string, []error) {
-	if !enhancedEnabled || supportedLocations == nil {
+	if supportedLocations == nil {
 		return validation.StringIsNotEmpty(i, k)
 	}
 

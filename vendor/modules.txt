@@ -255,14 +255,21 @@ github.com/googleapis/gax-go/v2
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.16.5
+# github.com/hashicorp/go-azure-helpers v0.17.0
 ## explicit
 github.com/hashicorp/go-azure-helpers/authentication
-github.com/hashicorp/go-azure-helpers/formatting
+github.com/hashicorp/go-azure-helpers/lang/dates
+github.com/hashicorp/go-azure-helpers/lang/pointer
+github.com/hashicorp/go-azure-helpers/lang/response
 github.com/hashicorp/go-azure-helpers/polling
+github.com/hashicorp/go-azure-helpers/resourcemanager/commonids
+github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema
+github.com/hashicorp/go-azure-helpers/resourcemanager/identity
+github.com/hashicorp/go-azure-helpers/resourcemanager/location
+github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups
 github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids
+github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourceproviders
-github.com/hashicorp/go-azure-helpers/response
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
 # github.com/hashicorp/go-checkpoint v0.5.0
@@ -311,20 +318,19 @@ github.com/hashicorp/terraform-exec/tfexec
 github.com/hashicorp/terraform-exec/tfinstall
 # github.com/hashicorp/terraform-json v0.12.0
 github.com/hashicorp/terraform-json
-# github.com/hashicorp/terraform-plugin-go v0.3.1
-## explicit
+# github.com/hashicorp/terraform-plugin-go v0.4.0
 github.com/hashicorp/terraform-plugin-go/tfprotov5
 github.com/hashicorp/terraform-plugin-go/tfprotov5/internal/fromproto
 github.com/hashicorp/terraform-plugin-go/tfprotov5/internal/tfplugin5
 github.com/hashicorp/terraform-plugin-go/tfprotov5/internal/toproto
-github.com/hashicorp/terraform-plugin-go/tfprotov5/server
+github.com/hashicorp/terraform-plugin-go/tfprotov5/tf5server
 github.com/hashicorp/terraform-plugin-go/tfprotov6
 github.com/hashicorp/terraform-plugin-go/tfprotov6/internal/fromproto
 github.com/hashicorp/terraform-plugin-go/tfprotov6/internal/tfplugin6
 github.com/hashicorp/terraform-plugin-go/tfprotov6/internal/toproto
-github.com/hashicorp/terraform-plugin-go/tfprotov6/server
+github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server
 github.com/hashicorp/terraform-plugin-go/tftypes
-# github.com/hashicorp/terraform-plugin-sdk/v2 v2.7.0
+# github.com/hashicorp/terraform-plugin-sdk/v2 v2.8.0
 ## explicit
 github.com/hashicorp/terraform-plugin-sdk/v2/diag
 github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest

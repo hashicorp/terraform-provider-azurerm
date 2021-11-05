@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-
-	"github.com/Azure/go-autorest/autorest/azure"
 )
 
 type SupportedLocations struct {
@@ -27,9 +25,9 @@ type metaDataResponse struct {
 }
 
 // availableAzureLocations returns a list of the Azure Locations which are available on the specified endpoint
-func availableAzureLocations(ctx context.Context, env *azure.Environment) (*SupportedLocations, error) {
+func availableAzureLocations(ctx context.Context, resourceManagerEndpoint string) (*SupportedLocations, error) {
 	// e.g. https://management.azure.com/ but we need management.azure.com
-	endpoint := strings.TrimPrefix(env.ResourceManagerEndpoint, "https://")
+	endpoint := strings.TrimPrefix(resourceManagerEndpoint, "https://")
 	endpoint = strings.TrimSuffix(endpoint, "/")
 
 	uri := fmt.Sprintf("https://%s//metadata/endpoints?api-version=2018-01-01", endpoint)
@@ -68,7 +66,7 @@ func availableAzureLocations(ctx context.Context, env *azure.Environment) (*Supp
 	//  Central India             centralindia         (Asia Pacific) Central India
 	//  South India               southindia           (Asia Pacific) South India
 	//  West India                westindia            (Asia Pacific) West India
-	if env.Name == azure.PublicCloud.Name && locations != nil {
+	if locations != nil {
 		out := *locations
 		out = switchLocationIfExists("indiacentral", "centralindia", out)
 		out = switchLocationIfExists("indiasouth", "southindia", out)
