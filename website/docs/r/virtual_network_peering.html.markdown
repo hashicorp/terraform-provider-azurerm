@@ -120,6 +120,11 @@ The following arguments are supported:
 * `virtual_network_name` - (Required) The name of the virtual network. Changing
     this forces a new resource to be created.
 
+* `virtual_network_address_space` - (Optional) A list of addresses that are configured
+    in the virtual network. Changes to this list force a resynchronization of the
+    local address spaces to the peered virtual network. It's recommended to reference
+    the `address_space` attribute of the local virtual network.
+
 * `remote_virtual_network_id` - (Required) The full Azure resource ID of the
     remote virtual network.  Changing this forces a new resource to be created.
 
