@@ -91,16 +91,12 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_role_assignment" "test" {
-  depends_on = [azuread_service_principal.azure_cosmos_db]
-
   scope                = azurerm_virtual_network.test.id
   role_definition_name = "Network Contributor"
   principal_id         = "e531a17d-006c-4736-9de9-d8d745730738"
 }
 
 resource "azurerm_cosmosdb_cassandra_cluster" "test" {
-  depends_on = [azurerm_role_assignment.test]
-
   name                           = "acctca-mi-cluster-%[1]d"
   resource_group_name            = azurerm_resource_group.test.name
   location                       = azurerm_resource_group.test.location
@@ -116,8 +112,6 @@ func (CassandraClusterResource) requiresImport(data acceptance.TestData) string 
 %s
 
 resource "azurerm_cosmosdb_cassandra_cluster" "import" {
-  depends_on = [azurerm_cosmosdb_cassandra_cluster.test]
-
   name                           = azurerm_cosmosdb_cassandra_cluster.test.name
   resource_group_name            = azurerm_cosmosdb_cassandra_cluster.test.resource_group_name
   location                       = azurerm_cosmosdb_cassandra_cluster.test.location
