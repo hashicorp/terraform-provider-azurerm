@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
@@ -148,7 +148,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 									"negate_condition": {
 										Type:     pluginsdk.TypeBool,
 										Optional: true,
-										Default:  true,
+										Default:  true, // TODO 3,0 change to false- needs to change https://github.com/hashicorp/terraform-provider-azurerm/pull/13605
 									},
 
 									"value": {

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -394,13 +394,18 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 									},
 									"translated_address": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.IsIPAddress,
 									},
 									"translated_port": {
 										Type:         pluginsdk.TypeInt,
 										Required:     true,
 										ValidateFunc: validation.IsPortNumber,
+									},
+									"translated_fqdn": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -447,7 +452,13 @@ func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.Resource
 	var rulesCollections []network.BasicFirewallPolicyRuleCollection
 	rulesCollections = append(rulesCollections, expandFirewallPolicyRuleCollectionApplication(d.Get("application_rule_collection").(*pluginsdk.Set).List())...)
 	rulesCollections = append(rulesCollections, expandFirewallPolicyRuleCollectionNetwork(d.Get("network_rule_collection").(*pluginsdk.Set).List())...)
-	rulesCollections = append(rulesCollections, expandFirewallPolicyRuleCollectionNat(d.Get("nat_rule_collection").(*pluginsdk.Set).List())...)
+
+	natRules, err := expandFirewallPolicyRuleCollectionNat(d.Get("nat_rule_collection").(*pluginsdk.Set).List())
+	if err != nil {
+		return fmt.Errorf("expanding NAT rule collection: %w", err)
+	}
+	rulesCollections = append(rulesCollections, natRules...)
+
 	param.FirewallPolicyRuleCollectionGroupProperties.RuleCollections = &rulesCollections
 
 	future, err := client.CreateOrUpdate(ctx, policyId.ResourceGroup, policyId.Name, name, param)
@@ -552,10 +563,14 @@ func expandFirewallPolicyRuleCollectionNetwork(input []interface{}) []network.Ba
 	return expandFirewallPolicyFilterRuleCollection(input, expandFirewallPolicyRuleNetwork)
 }
 
-func expandFirewallPolicyRuleCollectionNat(input []interface{}) []network.BasicFirewallPolicyRuleCollection {
+func expandFirewallPolicyRuleCollectionNat(input []interface{}) ([]network.BasicFirewallPolicyRuleCollection, error) {
 	result := make([]network.BasicFirewallPolicyRuleCollection, 0)
 	for _, e := range input {
 		rule := e.(map[string]interface{})
+		rules, err := expandFirewallPolicyRuleNat(rule["rule"].(*pluginsdk.Set).List())
+		if err != nil {
+			return nil, err
+		}
 		output := &network.FirewallPolicyNatRuleCollection{
 			RuleCollectionType: network.RuleCollectionTypeFirewallPolicyNatRuleCollection,
 			Name:               utils.String(rule["name"].(string)),
@@ -563,11 +578,11 @@ func expandFirewallPolicyRuleCollectionNat(input []interface{}) []network.BasicF
 			Action: &network.FirewallPolicyNatRuleCollectionAction{
 				Type: network.FirewallPolicyNatRuleCollectionActionType(rule["action"].(string)),
 			},
-			Rules: expandFirewallPolicyRuleNat(rule["rule"].(*pluginsdk.Set).List()),
+			Rules: rules,
 		}
 		result = append(result, output)
 	}
-	return result
+	return result, nil
 }
 
 func expandFirewallPolicyFilterRuleCollection(input []interface{}, f func(input []interface{}) *[]network.BasicFirewallPolicyRule) []network.BasicFirewallPolicyRuleCollection {
@@ -643,7 +658,7 @@ func expandFirewallPolicyRuleNetwork(input []interface{}) *[]network.BasicFirewa
 	return &result
 }
 
-func expandFirewallPolicyRuleNat(input []interface{}) *[]network.BasicFirewallPolicyRule {
+func expandFirewallPolicyRuleNat(input []interface{}) (*[]network.BasicFirewallPolicyRule, error) {
 	result := make([]network.BasicFirewallPolicyRule, 0)
 	for _, e := range input {
 		condition := e.(map[string]interface{})
@@ -652,6 +667,14 @@ func expandFirewallPolicyRuleNat(input []interface{}) *[]network.BasicFirewallPo
 			protocols = append(protocols, network.FirewallPolicyRuleNetworkProtocol(p.(string)))
 		}
 		destinationAddresses := []string{condition["destination_address"].(string)}
+
+		// Exactly one of `translated_address` and `translated_fqdn` should be set.
+		if condition["translated_address"].(string) != "" && condition["translated_fqdn"].(string) != "" {
+			return nil, fmt.Errorf("can't specify both `translated_address` and `translated_fqdn` in rule %s", condition["name"].(string))
+		}
+		if condition["translated_address"].(string) == "" && condition["translated_fqdn"].(string) == "" {
+			return nil, fmt.Errorf("should specify either `translated_address` or `translated_fqdn` in rule %s", condition["name"].(string))
+		}
 		output := &network.NatRule{
 			Name:                 utils.String(condition["name"].(string)),
 			RuleType:             network.RuleTypeNatRule,
@@ -660,12 +683,17 @@ func expandFirewallPolicyRuleNat(input []interface{}) *[]network.BasicFirewallPo
 			SourceIPGroups:       utils.ExpandStringSlice(condition["source_ip_groups"].(*pluginsdk.Set).List()),
 			DestinationAddresses: &destinationAddresses,
 			DestinationPorts:     utils.ExpandStringSlice(condition["destination_ports"].(*pluginsdk.Set).List()),
-			TranslatedAddress:    utils.String(condition["translated_address"].(string)),
 			TranslatedPort:       utils.String(strconv.Itoa(condition["translated_port"].(int))),
+		}
+		if condition["translated_address"].(string) != "" {
+			output.TranslatedAddress = utils.String(condition["translated_address"].(string))
+		}
+		if condition["translated_fqdn"].(string) != "" {
+			output.TranslatedFqdn = utils.String(condition["translated_fqdn"].(string))
 		}
 		result = append(result, output)
 	}
-	return &result
+	return &result, nil
 }
 
 func flattenFirewallPolicyRuleCollection(input *[]network.BasicFirewallPolicyRuleCollection) ([]interface{}, []interface{}, []interface{}, error) {
@@ -896,6 +924,16 @@ func flattenFirewallPolicyRuleNat(input *[]network.BasicFirewallPolicyRule) ([]i
 			translatedPort = port
 		}
 
+		translatedAddress := ""
+		if rule.TranslatedAddress != nil {
+			translatedAddress = *rule.TranslatedAddress
+		}
+
+		translatedFQDN := ""
+		if rule.TranslatedFqdn != nil {
+			translatedFQDN = *rule.TranslatedFqdn
+		}
+
 		output = append(output, map[string]interface{}{
 			"name":                name,
 			"protocols":           protocols,
@@ -903,8 +941,9 @@ func flattenFirewallPolicyRuleNat(input *[]network.BasicFirewallPolicyRule) ([]i
 			"source_ip_groups":    utils.FlattenStringSlice(rule.SourceIPGroups),
 			"destination_address": destinationAddr,
 			"destination_ports":   utils.FlattenStringSlice(rule.DestinationPorts),
-			"translated_address":  rule.TranslatedAddress,
-			"translated_port":     &translatedPort,
+			"translated_address":  translatedAddress,
+			"translated_port":     translatedPort,
+			"translated_fqdn":     translatedFQDN,
 		})
 	}
 	return output, nil

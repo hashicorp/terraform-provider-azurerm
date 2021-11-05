@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -2023,16 +2023,16 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoors.RouteConfigurat
 		}
 	}
 
-	forwardingProtcol := ""
+	forwardingProtocol := ""
 	if v.ForwardingProtocol != nil {
-		forwardingProtcol = string(*v.ForwardingProtocol)
+		forwardingProtocol = string(*v.ForwardingProtocol)
 	}
 
 	return &[]interface{}{
 		map[string]interface{}{
 			"backend_pool_name":                     name,
 			"custom_forwarding_path":                customForwardingPath,
-			"forwarding_protocol":                   forwardingProtcol,
+			"forwarding_protocol":                   forwardingProtocol,
 			"cache_enabled":                         cacheEnabled,
 			"cache_query_parameter_strip_directive": cacheQueryParameterStripDirective,
 			"cache_use_dynamic_compression":         cacheUseDynamicCompression,

@@ -59,6 +59,7 @@ import (
 	loadbalancers "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/client"
 	loganalytics "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/client"
 	logic "github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/client"
+	logz "github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/client"
 	machinelearning "github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/client"
 	maintenance "github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/client"
 	managedapplication "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/client"
@@ -164,6 +165,7 @@ type Client struct {
 	LoadBalancers         *loadbalancers.Client
 	LogAnalytics          *loganalytics.Client
 	Logic                 *logic.Client
+	Logz                  *logz.Client
 	MachineLearning       *machinelearning.Client
 	Maintenance           *maintenance.Client
 	ManagedApplication    *managedapplication.Client
@@ -271,6 +273,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.LogAnalytics = loganalytics.NewClient(o)
 	client.LoadBalancers = loadbalancers.NewClient(o)
 	client.Logic = logic.NewClient(o)
+	client.Logz = logz.NewClient(o)
 	client.MachineLearning = machinelearning.NewClient(o)
 	client.Maintenance = maintenance.NewClient(o)
 	client.ManagedApplication = managedapplication.NewClient(o)

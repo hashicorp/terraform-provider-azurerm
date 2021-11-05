@@ -106,13 +106,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				ConfigMode:    pluginsdk.SchemaConfigModeAttr, // TODO -- remove in 3.0, because this property is optional and computed, it has to be declared as empty array to remove existed values
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"location": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							ValidateFunc:     location.EnhancedValidate,
-							StateFunc:        location.StateFunc,
-							DiffSuppressFunc: location.DiffSuppressFunc,
-						},
+						"location": location.SchemaWithoutForceNew(),
 
 						"zone_redundancy_enabled": {
 							Type:     pluginsdk.TypeBool,
@@ -136,10 +130,13 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			// TODO 3.0 - Remove this property as all the Classic sku instances are now deprecated and out of support at the serice side.
 			"storage_account_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:       pluginsdk.TypeString,
+				Optional:   true,
+				Computed:   true,
+				ForceNew:   true,
+				Deprecated: "this attribute is no longer recognized by the API and is not functional anymore, thus this property will be removed in v3.0",
 			},
 
 			"login_server": {
@@ -485,18 +482,6 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 		Tags: tags.Expand(t),
 	}
 
-	if v, ok := d.GetOk("storage_account_id"); ok {
-		if !strings.EqualFold(sku, string(containerregistry.Classic)) {
-			return fmt.Errorf("`storage_account_id` can only be specified for a Classic (unmanaged) Sku.")
-		}
-
-		parameters.StorageAccount = &containerregistry.StorageAccountProperties{
-			ID: utils.String(v.(string)),
-		}
-	} else if strings.EqualFold(sku, string(containerregistry.Classic)) {
-		return fmt.Errorf("`storage_account_id` must be specified for a Classic (unmanaged) Sku.")
-	}
-
 	future, err := client.Create(ctx, resourceGroup, name, parameters)
 	if err != nil {
 		return fmt.Errorf("creating Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -782,10 +767,6 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("sku", string(sku.Tier))
 	}
 
-	if account := resp.StorageAccount; account != nil {
-		d.Set("storage_account_id", account.ID)
-	}
-
 	if *resp.AdminUserEnabled {
 		credsResp, errList := client.ListCredentials(ctx, id.ResourceGroup, id.Name)
 		if errList != nil {
@@ -826,6 +807,10 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	d.Set("georeplication_locations", geoReplicationLocations)
 	d.Set("georeplications", geoReplications)
+
+	// Deprecated as it is not returned by the API now.
+	d.Set("storage_account_id", "")
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
