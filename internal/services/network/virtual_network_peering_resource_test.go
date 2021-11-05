@@ -27,11 +27,15 @@ func TestAccVirtualNetworkPeering_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_address_space.0").Exists(),
+				check.That(data.ResourceName).Key("virtual_network_address_space.0").HasValue("10.0.1.0/24"),
 				check.That(data.ResourceName).Key("allow_virtual_network_access").HasValue("true"),
 				acceptance.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
 			),
 		},
-		data.ImportStep(),
+		// virtual_network_address_space is an arbitrary list(string) which
+		// is not returned from the API
+		data.ImportStep("virtual_network_address_space"),
 	})
 }
 
@@ -75,6 +79,8 @@ func TestAccVirtualNetworkPeering_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_address_space.0").Exists(),
+				check.That(data.ResourceName).Key("virtual_network_address_space.0").HasValue("10.0.1.0/24"),
 				check.That(data.ResourceName).Key("allow_virtual_network_access").HasValue("true"),
 				acceptance.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
 				check.That(data.ResourceName).Key("allow_forwarded_traffic").HasValue("false"),
@@ -87,6 +93,8 @@ func TestAccVirtualNetworkPeering_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_address_space.0").Exists(),
+				check.That(data.ResourceName).Key("virtual_network_address_space.0").HasValue("10.0.2.0/24"),
 				check.That(data.ResourceName).Key("allow_virtual_network_access").HasValue("true"),
 				acceptance.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
 				check.That(data.ResourceName).Key("allow_forwarded_traffic").HasValue("true"),
@@ -153,19 +161,21 @@ resource "azurerm_virtual_network" "test2" {
 }
 
 resource "azurerm_virtual_network_peering" "test1" {
-  name                         = "acctestpeer-1-%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  virtual_network_name         = azurerm_virtual_network.test1.name
-  remote_virtual_network_id    = azurerm_virtual_network.test2.id
-  allow_virtual_network_access = true
+  name                          = "acctestpeer-1-%d"
+  resource_group_name           = azurerm_resource_group.test.name
+  virtual_network_name          = azurerm_virtual_network.test1.name
+  virtual_network_address_space = azurerm_virtual_network.test1.address_space
+  remote_virtual_network_id     = azurerm_virtual_network.test2.id
+  allow_virtual_network_access  = true
 }
 
 resource "azurerm_virtual_network_peering" "test2" {
-  name                         = "acctestpeer-2-%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  virtual_network_name         = azurerm_virtual_network.test2.name
-  remote_virtual_network_id    = azurerm_virtual_network.test1.id
-  allow_virtual_network_access = true
+  name                          = "acctestpeer-2-%d"
+  resource_group_name           = azurerm_resource_group.test.name
+  virtual_network_name          = azurerm_virtual_network.test2.name
+  virtual_network_address_space = azurerm_virtual_network.test2.address_space
+  remote_virtual_network_id     = azurerm_virtual_network.test1.id
+  allow_virtual_network_access  = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -175,11 +185,12 @@ func (r VirtualNetworkPeeringResource) requiresImport(data acceptance.TestData) 
 %s
 
 resource "azurerm_virtual_network_peering" "import" {
-  name                         = azurerm_virtual_network_peering.test1.name
-  resource_group_name          = azurerm_virtual_network_peering.test1.resource_group_name
-  virtual_network_name         = azurerm_virtual_network_peering.test1.virtual_network_name
-  remote_virtual_network_id    = azurerm_virtual_network_peering.test1.remote_virtual_network_id
-  allow_virtual_network_access = azurerm_virtual_network_peering.test1.allow_virtual_network_access
+  name                          = azurerm_virtual_network_peering.test1.name
+  resource_group_name           = azurerm_virtual_network_peering.test1.resource_group_name
+  virtual_network_name          = azurerm_virtual_network_peering.test1.virtual_network_name
+  virtual_network_address_space = azurerm_virtual_network_peering.test1.virtual_network_address_space
+  remote_virtual_network_id     = azurerm_virtual_network_peering.test1.remote_virtual_network_id
+  allow_virtual_network_access  = azurerm_virtual_network_peering.test1.allow_virtual_network_access
 }
 `, r.basic(data))
 }
@@ -210,21 +221,23 @@ resource "azurerm_virtual_network" "test2" {
 }
 
 resource "azurerm_virtual_network_peering" "test1" {
-  name                         = "acctestpeer-1-%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  virtual_network_name         = azurerm_virtual_network.test1.name
-  remote_virtual_network_id    = azurerm_virtual_network.test2.id
-  allow_forwarded_traffic      = true
-  allow_virtual_network_access = true
+  name                          = "acctestpeer-1-%d"
+  resource_group_name           = azurerm_resource_group.test.name
+  virtual_network_name          = azurerm_virtual_network.test1.name
+  virtual_network_address_space = azurerm_virtual_network.test2.address_space
+  remote_virtual_network_id     = azurerm_virtual_network.test2.id
+  allow_forwarded_traffic       = true
+  allow_virtual_network_access  = true
 }
 
 resource "azurerm_virtual_network_peering" "test2" {
-  name                         = "acctestpeer-2-%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  virtual_network_name         = azurerm_virtual_network.test2.name
-  remote_virtual_network_id    = azurerm_virtual_network.test1.id
-  allow_forwarded_traffic      = true
-  allow_virtual_network_access = true
+  name                          = "acctestpeer-2-%d"
+  resource_group_name           = azurerm_resource_group.test.name
+  virtual_network_name          = azurerm_virtual_network.test2.name
+  virtual_network_address_space = azurerm_virtual_network.test1.address_space
+  remote_virtual_network_id     = azurerm_virtual_network.test1.id
+  allow_forwarded_traffic       = true
+  allow_virtual_network_access  = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
