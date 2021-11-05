@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -68,18 +68,14 @@ func TestAccApiManagementApiSchema_requiresImport(t *testing.T) {
 }
 
 func (ApiManagementApiSchemaResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ApiSchemaID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	apiName := id.Path["apis"]
-	schemaID := id.Path["schemas"]
 
-	resp, err := clients.ApiManagement.ApiSchemasClient.Get(ctx, resourceGroup, serviceName, apiName, schemaID)
+	resp, err := clients.ApiManagement.ApiSchemasClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.SchemaName)
 	if err != nil {
-		return nil, fmt.Errorf("reading ApiManagementApi Schema (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
