@@ -2,12 +2,15 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_cosmosdb_cassandra_cluster` [GH-14019]
+* **New Resource:** `azurerm_cosmosdb_cassandra_datacenter` [GH-14019]
 * **New Resource:** `logz_monitor` [GH-13874]
 * **New Resource:** `azurerm_stream_analytics_output_synapse` [GH-14013]
 
 IMPROVEMENTS:
 
-* upgrading `sdk` to API Version `2021-08-01` [GH-13465]
+* upgrading `cosmos` to API Version `2021-10-15` [GH-13785]
+* upgrading `aks` to API Version `2021-08-01` [GH-13465]
 * upgrading `purview` to API Version `2021-07-01` [GH-13785]
 * Data Source: `azurerm_key_vault_key` - export the `cureve`, `x`, `y`, `public_key_pem`, and `public_key_openssh` attributes [GH-13934]
 * `azurerm_app_service_slot` - support for the `key_vault_reference_identity_id` property  [GH-13988]
