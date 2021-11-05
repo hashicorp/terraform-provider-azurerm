@@ -83,6 +83,8 @@ The following arguments are supported:
 
 * `location` - (Required) The location/region where the virtual network is created. Changing this forces a new resource to be created.
 
+* `extended_location` - (Optional) Specifies the supported Azure extended location where the resource exists. It offers Azure capacity close to the customer to address the low latency and high throughput requirements and Data Residency requirements of the applications. Changing this forces a new resource to be created.
+
 * `bgp_community` - (Optional) The BGP community attribute in format `<as-number>:<community-value>`.
 
 -> **NOTE** The `as-number` segment is the Microsoft ASN, which is always `12076` for now.

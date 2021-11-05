@@ -73,6 +73,8 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 				}, true),
 			},
 
+			"extended_location": azure.SchemaExtendedLocation(),
+
 			"enable_bgp": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -430,6 +432,13 @@ func resourceVirtualNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta i
 		VirtualNetworkGatewayPropertiesFormat: properties,
 	}
 
+	if v, ok := d.GetOk("extended_location"); ok {
+		gateway.ExtendedLocation = &network.ExtendedLocation{
+			Name: utils.String(v.(string)),
+			Type: network.ExtendedLocationTypesEdgeZone,
+		}
+	}
+
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, gateway)
 	if err != nil {
 		return fmt.Errorf("Creating/Updating %s: %+v", id, err)
@@ -467,6 +476,10 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if resp.ExtendedLocation != nil && resp.ExtendedLocation.Name != nil {
+		d.Set("extended_location", resp.ExtendedLocation.Name)
 	}
 
 	if gw := resp.VirtualNetworkGatewayPropertiesFormat; gw != nil {

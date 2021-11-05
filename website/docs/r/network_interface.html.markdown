@@ -60,6 +60,8 @@ The following arguments are supported:
 
 ---
 
+* `extended_location` - (Optional) Specifies the supported Azure extended location where the resource exists. It offers Azure capacity close to the customer to address the low latency and high throughput requirements and Data Residency requirements of the applications. Changing this forces a new resource to be created.
+
 * `dns_servers` - (Optional) A list of IP Addresses defining the DNS Servers which should be used for this Network Interface.
 
 -> **Note:** Configuring DNS Servers on the Network Interface will override the DNS Servers defined on the Virtual Network.

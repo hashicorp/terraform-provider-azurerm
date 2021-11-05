@@ -83,6 +83,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
 			},
 
+			"extended_location": azure.SchemaExtendedLocation(),
+
 			"kubernetes_version": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -1080,6 +1082,13 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		Tags: tags.Expand(t),
 	}
 
+	if v, ok := d.GetOk("extended_location"); ok {
+		parameters.ExtendedLocation = &containerservice.ExtendedLocation{
+			Name: utils.String(v.(string)),
+			Type: containerservice.ExtendedLocationTypesEdgeZone,
+		}
+	}
+
 	if v := d.Get("automatic_channel_upgrade").(string); v != "" {
 		parameters.ManagedClusterProperties.AutoUpgradeProfile = &containerservice.ManagedClusterAutoUpgradeProfile{
 			UpgradeChannel: containerservice.UpgradeChannel(v),
@@ -1558,6 +1567,10 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if resp.ExtendedLocation != nil && resp.ExtendedLocation.Name != nil {
+		d.Set("extended_location", resp.ExtendedLocation.Name)
 	}
 
 	skuTier := string(containerservice.ManagedClusterSKUTierFree)

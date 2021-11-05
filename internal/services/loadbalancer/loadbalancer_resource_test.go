@@ -261,6 +261,21 @@ func TestAccAzureRMLoadBalancer_PointToGatewayLB(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLoadBalancer_extendedLocation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	r := LoadBalancer{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.extendedLocation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r LoadBalancer) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	loadBalancerName := state.Attributes["name"]
 	resourceGroup := state.Attributes["resource_group_name"]
@@ -802,4 +817,29 @@ resource "azurerm_lb" "consumer" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r LoadBalancer) extendedLocation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-lb-%d"
+  location = "westus"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctest-loadbalancer-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  extended_location   = "microsoftlosangeles1"
+
+  tags = {
+    Environment = "production"
+    Purpose     = "AcceptanceTests"
+  }
+}
+`, data.RandomInteger, data.RandomInteger)
 }

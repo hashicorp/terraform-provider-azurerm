@@ -77,6 +77,8 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"extended_location": azure.SchemaExtendedLocation(),
+
 			"frontend_ip_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -305,6 +307,13 @@ func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		LoadBalancerPropertiesFormat: &properties,
 	}
 
+	if v, ok := d.GetOk("extended_location"); ok {
+		loadBalancer.ExtendedLocation = &network.ExtendedLocation{
+			Name: utils.String(v.(string)),
+			Type: network.ExtendedLocationTypesEdgeZone,
+		}
+	}
+
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, loadBalancer)
 	if err != nil {
 		return fmt.Errorf("creating/updating Load Balancer %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -343,6 +352,10 @@ func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) er
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if resp.ExtendedLocation != nil && resp.ExtendedLocation.Name != nil {
+		d.Set("extended_location", resp.ExtendedLocation.Name)
 	}
 
 	if sku := resp.Sku; sku != nil {

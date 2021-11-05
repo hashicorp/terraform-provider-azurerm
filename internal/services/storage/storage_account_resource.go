@@ -213,6 +213,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"extended_location": azure.SchemaExtendedLocation(),
+
 			"min_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -947,6 +949,13 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		},
 	}
 
+	if v, ok := d.GetOk("extended_location"); ok {
+		parameters.ExtendedLocation = &storage.ExtendedLocation{
+			Name: utils.String(v.(string)),
+			Type: storage.EdgeZone,
+		}
+	}
+
 	// For all Clouds except Public, China, and USGovernmentCloud, don't specify "allow_blob_public_access" and "min_tls_version" in request body.
 	// https://github.com/hashicorp/terraform-provider-azurerm/issues/7812
 	// https://github.com/hashicorp/terraform-provider-azurerm/issues/8083
@@ -1563,6 +1572,9 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("resource_group_name", resourceGroupName)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+	if resp.ExtendedLocation != nil && resp.ExtendedLocation.Name != nil {
+		d.Set("extended_location", resp.ExtendedLocation.Name)
 	}
 	d.Set("account_kind", resp.Kind)
 

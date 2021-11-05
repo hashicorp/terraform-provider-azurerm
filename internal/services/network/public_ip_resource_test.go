@@ -431,6 +431,21 @@ func TestAccPublicIpStatic_regionalTier(t *testing.T) {
 	})
 }
 
+func TestAccPublicIpStatic_extendedLocation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	r := PublicIPResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.extendedLocation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t PublicIPResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PublicIpAddressID(state.ID)
 	if err != nil {
@@ -918,4 +933,29 @@ resource "azurerm_public_ip" "test" {
   sku_tier            = "Regional"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (PublicIPResource) extendedLocation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+
+  // There is no supported extended location in "West Europe"
+  location = "westus" 
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpublicip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  availability_zone   = "No-Zone"
+  extended_location   = "microsoftlosangeles1"
+}
+`, data.RandomInteger, data.RandomInteger)
 }

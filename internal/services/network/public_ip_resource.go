@@ -79,6 +79,8 @@ func resourcePublicIp() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"extended_location": azure.SchemaExtendedLocation(),
+
 			"ip_version": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
@@ -274,6 +276,13 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		Zones: zones,
 	}
 
+	if v, ok := d.GetOk("extended_location"); ok {
+		publicIp.ExtendedLocation = &network.ExtendedLocation{
+			Name: utils.String(v.(string)),
+			Type: network.ExtendedLocationTypesEdgeZone,
+		}
+	}
+
 	publicIpPrefixId, publicIpPrefixIdOk := d.GetOk("public_ip_prefix_id")
 
 	if publicIpPrefixIdOk {
@@ -366,6 +375,10 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("availability_zone", availabilityZones)
 	d.Set("zones", zonesDeprecated)
 	d.Set("location", location.NormalizeNilable(resp.Location))
+
+	if resp.ExtendedLocation != nil && resp.ExtendedLocation.Name != nil {
+		d.Set("extended_location", resp.ExtendedLocation.Name)
+	}
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))

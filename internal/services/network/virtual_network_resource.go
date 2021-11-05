@@ -64,6 +64,8 @@ func resourceVirtualNetwork() *pluginsdk.Resource {
 				},
 			},
 
+			"extended_location": azure.SchemaExtendedLocation(),
+
 			"bgp_community": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -186,6 +188,13 @@ func resourceVirtualNetworkCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		Tags:                           tags.Expand(t),
 	}
 
+	if v, ok := d.GetOk("extended_location"); ok {
+		vnet.ExtendedLocation = &network.ExtendedLocation{
+			Name: utils.String(v.(string)),
+			Type: network.ExtendedLocationTypesEdgeZone,
+		}
+	}
+
 	networkSecurityGroupNames := make([]string, 0)
 	for _, subnet := range *vnet.VirtualNetworkPropertiesFormat.Subnets {
 		if subnet.NetworkSecurityGroup != nil {
@@ -253,6 +262,10 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if resp.ExtendedLocation != nil && resp.ExtendedLocation.Name != nil {
+		d.Set("extended_location", resp.ExtendedLocation.Name)
 	}
 
 	if props := resp.VirtualNetworkPropertiesFormat; props != nil {

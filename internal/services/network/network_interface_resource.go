@@ -120,6 +120,8 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 				},
 			},
 
+			"extended_location": azure.SchemaExtendedLocation(),
+
 			"dns_servers": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -266,6 +268,13 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		Tags:                      tags.Expand(t),
 	}
 
+	if v, ok := d.GetOk("extended_location"); ok {
+		iface.ExtendedLocation = &network.ExtendedLocation{
+			Name: utils.String(v.(string)),
+			Type: network.ExtendedLocationTypesEdgeZone,
+		}
+	}
+
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, iface)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -307,8 +316,9 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	update := network.Interface{
-		Name:     utils.String(id.Name),
-		Location: utils.String(location),
+		Name:             utils.String(id.Name),
+		Location:         utils.String(location),
+		ExtendedLocation: existing.ExtendedLocation,
 		InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
 			EnableAcceleratedNetworking: utils.Bool(d.Get("enable_accelerated_networking").(bool)),
 			DNSSettings:                 &network.InterfaceDNSSettings{},
@@ -402,6 +412,10 @@ func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if resp.ExtendedLocation != nil && resp.ExtendedLocation.Name != nil {
+		d.Set("extended_location", resp.ExtendedLocation.Name)
 	}
 
 	if props := resp.InterfacePropertiesFormat; props != nil {

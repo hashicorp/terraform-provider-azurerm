@@ -44,6 +44,7 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of the Load Balancer.
 * `resource_group_name` - (Required) The name of the Resource Group in which to create the Load Balancer.
 * `location` - (Required) Specifies the supported Azure Region where the Load Balancer should be created.
+* `extended_location` - (Optional) Specifies the supported Azure extended location where the resource exists. It offers Azure capacity close to the customer to address the low latency and high throughput requirements and Data Residency requirements of the applications. Changing this forces a new resource to be created.
 * `frontend_ip_configuration` - (Optional) One or multiple `frontend_ip_configuration` blocks as documented below.
 * `sku` - (Optional) The SKU of the Azure Load Balancer. Accepted values are `Basic`, `Standard` and `Gateway`. Defaults to `Basic`.
 
