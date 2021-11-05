@@ -1462,10 +1462,11 @@ resource "azurerm_virtual_network_gateway" "test" {
   name                = "acctestvng-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  extended_location   = "microsoftlosangeles1"
 
   type     = "Vpn"
   vpn_type = "RouteBased"
-  sku      = "Basic"
+  sku      = "Standard"
 
   ip_configuration {
     public_ip_address_id          = azurerm_public_ip.test.id
