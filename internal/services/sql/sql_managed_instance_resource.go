@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -21,6 +22,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+type managedInstanceIdentity = identity.SystemAssigned
 
 func resourceArmSqlMiServer() *schema.Resource {
 	return &schema.Resource{
@@ -169,13 +172,22 @@ func resourceArmSqlMiServer() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"identity": managedInstanceIdentity{}.Schema(),
+
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: pluginsdk.ForceNewIfChange("dns_zone_partner_id", func(ctx context.Context, old, new, _ interface{}) bool {
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			// dns_zone_partner_id can only be set on init
-			return old.(string) == "" && new.(string) != ""
-		}),
+			pluginsdk.ForceNewIfChange("dns_zone_partner_id", func(ctx context.Context, old, new, _ interface{}) bool {
+				return old.(string) == "" && new.(string) != ""
+			}),
+
+			// identity.0.type can be set to SystemAssigned, but not removed or set to None in this SDK version
+			pluginsdk.ForceNewIfChange("identity.0.type", func(ctx context.Context, old, new, _ interface{}) bool {
+				return old.(string) == "SystemAssigned" && new.(string) != "SystemAssigned"
+			}),
+		),
 	}
 }
 
@@ -227,6 +239,12 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 		},
 	}
 
+	identity, err := expandManagedInstanceIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf(`expanding "identity": %v`, err)
+	}
+	parameters.Identity = identity
+
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
 	if err != nil {
 		return err
@@ -275,6 +293,10 @@ func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error 
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku_name", sku.Name)
+	}
+
+	if err := d.Set("identity", flattenManagedInstanceIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if props := resp.ManagedInstanceProperties; props != nil {
@@ -335,4 +357,44 @@ func expandManagedInstanceSkuName(skuName string) (*sql.Sku, error) {
 		Tier:   utils.String(tier),
 		Family: utils.String(parts[1]),
 	}, nil
+}
+
+func expandManagedInstanceIdentity(input []interface{}) (*sql.ResourceIdentity, error) {
+	config, err := managedInstanceIdentity{}.Expand(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if config.Type == identity.Type("None") {
+		return nil, nil
+	}
+
+	return &sql.ResourceIdentity{
+		Type: sql.IdentityType(config.Type),
+	}, nil
+}
+
+func flattenManagedInstanceIdentity(input *sql.ResourceIdentity) []interface{} {
+	var config *identity.ExpandedConfig
+
+	if input == nil {
+		return []interface{}{}
+	}
+
+	principalId := ""
+	if input.PrincipalID != nil {
+		principalId = input.PrincipalID.String()
+	}
+
+	tenantId := ""
+	if input.TenantID != nil {
+		tenantId = input.TenantID.String()
+	}
+
+	config = &identity.ExpandedConfig{
+		Type:        identity.Type(string(input.Type)),
+		PrincipalId: principalId,
+		TenantId:    tenantId,
+	}
+	return managedInstanceIdentity{}.Flatten(config)
 }
