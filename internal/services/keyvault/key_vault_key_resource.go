@@ -336,39 +336,13 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 }
 
 func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
-	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.ParseNestedItemID(d.Id())
 	if err != nil {
 		return err
-	}
-
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
-	if err != nil {
-		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
-	}
-	if keyVaultIdRaw == nil {
-		log.Printf("[DEBUG] Unable to determine the Resource ID for the Key Vault at URL %q - removing from state!", id.KeyVaultBaseUrl)
-		d.SetId("")
-		return nil
-	}
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
-	if err != nil {
-		return err
-	}
-
-	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
-	if err != nil {
-		return fmt.Errorf("checking if key vault %q for Key %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
-	}
-	if !ok {
-		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
-		d.SetId("")
-		return nil
 	}
 
 	resp, err := client.GetKey(ctx, id.KeyVaultBaseUrl, id.Name, "")

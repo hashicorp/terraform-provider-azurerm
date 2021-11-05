@@ -526,40 +526,13 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvaul
 }
 
 func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
-	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.ParseNestedItemID(d.Id())
 	if err != nil {
 		return err
-	}
-
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
-	if err != nil {
-		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
-	}
-	if keyVaultIdRaw == nil {
-		log.Printf("[DEBUG] Unable to determine the Resource ID for the Key Vault at URL %q - removing from state!", id.KeyVaultBaseUrl)
-		d.SetId("")
-		return nil
-	}
-
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
-	if err != nil {
-		return err
-	}
-
-	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
-	if err != nil {
-		return fmt.Errorf("checking if %s for Certificate %q exists: %v", *keyVaultId, id.Name, err)
-	}
-	if !ok {
-		log.Printf("[DEBUG] Certificate %q was not found in %s - removing from state", id.Name, *keyVaultId)
-		d.SetId("")
-		return nil
 	}
 
 	cert, err := client.GetCertificate(ctx, id.KeyVaultBaseUrl, id.Name, "")
