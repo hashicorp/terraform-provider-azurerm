@@ -4,6 +4,9 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: upgrading to `v0.17.0` of `github.com/hashicorp/go-azure-helpers` [GH-14060]
+* dependencies: upgrading to `v2.8.0` of `github.com/hashicorp/terraform-plugin-sdk` [GH-14060]
+
 BUG FIXES:
 
 * `azurerm_api_management_certificate` - set `subject` property from correct field [GH-14026]
