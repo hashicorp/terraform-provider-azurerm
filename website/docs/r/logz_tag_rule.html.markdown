@@ -39,13 +39,13 @@ resource "azurerm_logz_monitor" "example" {
 
 resource "azurerm_logz_tag_rule" "example" {
   logz_monitor_id = azurerm_logz_monitor.example.id
-  filtering_tag {
+  tag_filter {
     name   = "name1"
     action = "Include"
     value  = "value1"
   }
 
-  filtering_tag {
+  tag_filter {
     name   = "name2"
     action = "Exclude"
     value  = "value2"
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 ---
 
-* `filtering_tag` - (Optional) One or more (up to 10) `filtering_tag` blocks as defined below.
+* `tag_filter` - (Optional) One or more (up to 10) `tag_filter` blocks as defined below.
 
 * `send_aad_logs` - (Optional) Whether AAD logs should be sent to the Monitor resource?
 
@@ -74,13 +74,13 @@ The following arguments are supported:
 
 ---
 
-An `filtering_tag` block exports the following:
+An `tag_filter` block exports the following:
 
-* `name` - (Required) The name of this `filtering_tag`.
+* `name` - (Required) The name of this `tag_filter`.
 
 * `action` - (Required) The action for a filtering tag. Possible values are "Include" and "Exclude" is allowed. Note that the `Exclude` takes priority over the `Include`.
 
-* `value` - (Optional) The value of this `filtering_tag`.
+* `value` - (Optional) The value of this `tag_filter`.
 
 ## Attributes Reference
 

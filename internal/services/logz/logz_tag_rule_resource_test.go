@@ -162,19 +162,19 @@ func (r LogzTagRuleResource) complete(data acceptance.TestData) string {
 
 resource "azurerm_logz_tag_rule" "test" {
   logz_monitor_id = azurerm_logz_monitor.test.id
-  filtering_tag {
+  tag_filter {
     name   = "ccc"
     action = "Include"
     value  = "ccc"
   }
 
-  filtering_tag {
+  tag_filter {
     name   = "bbb"
     action = "Exclude"
     value  = ""
   }
 
-  filtering_tag {
+  tag_filter {
     name   = "ccc"
     action = "Include"
     value  = "ccc"

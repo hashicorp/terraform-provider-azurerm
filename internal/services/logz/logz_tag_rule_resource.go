@@ -45,7 +45,7 @@ func resourceLogzTagRule() *pluginsdk.Resource {
 				ValidateFunc: validate.LogzMonitorID,
 			},
 
-			"filtering_tag": {
+			"tag_filter": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 10,
@@ -157,8 +157,8 @@ func resourceLogzTagRuleRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("send_aad_logs", props.LogRules.SendAadLogs)
 		d.Set("send_activity_logs", props.LogRules.SendActivityLogs)
 		d.Set("send_subscription_logs", props.LogRules.SendSubscriptionLogs)
-		if err := d.Set("filtering_tag", flattenTagRuleFilteringTagArray(props.LogRules.FilteringTags)); err != nil {
-			return fmt.Errorf("setting `filtering_tag`: %+v", err)
+		if err := d.Set("tag_filter", flattenTagRuleFilteringTagArray(props.LogRules.FilteringTags)); err != nil {
+			return fmt.Errorf("setting `tag_filter`: %+v", err)
 		}
 	}
 
@@ -187,7 +187,7 @@ func expandTagRuleLogRules(d *pluginsdk.ResourceData) *logz.LogRules {
 		SendAadLogs:          utils.Bool(d.Get("send_aad_logs").(bool)),
 		SendSubscriptionLogs: utils.Bool(d.Get("send_subscription_logs").(bool)),
 		SendActivityLogs:     utils.Bool(d.Get("send_activity_logs").(bool)),
-		FilteringTags:        expandTagRuleFilteringTagArray(d.Get("filtering_tag").([]interface{})),
+		FilteringTags:        expandTagRuleFilteringTagArray(d.Get("tag_filter").([]interface{})),
 	}
 }
 
