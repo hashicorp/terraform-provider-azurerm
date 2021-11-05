@@ -68,8 +68,8 @@ func (r StreamAnalyticsManagedPrivateEndpointResource) basic(data acceptance.Tes
 
 resource "azurerm_stream_analytics_managed_private_endpoint" "test" {
   name                          = "acctestprivate_endpoint-%d"
-  resource_group_name           = "acctest-sw-31121"
-  stream_analytics_cluster_name = "acctestcluster-31121"
+  resource_group_name           = azurerm_resource_group.test.name
+  stream_analytics_cluster_name = azurerm_stream_analytics_cluster.test.name
   target_resource_id            = azurerm_storage_account.test.id
   subresource_name              = "blob"
 }
