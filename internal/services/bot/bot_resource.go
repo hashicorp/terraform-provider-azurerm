@@ -199,7 +199,7 @@ func resourceBotCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.Name, bot); err != nil {
-		return fmt.Errorf("creating Bot %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}
 
 	// TODO: in 3.0 we should remove the "Default Site" on the Directline resource at this point if we can
