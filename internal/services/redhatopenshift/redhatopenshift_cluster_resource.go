@@ -158,24 +158,28 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 						"vm_size": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
+							ForceNew:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validation.StringIsNotEmpty,
 						},
 						"disk_size_gb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
+							ForceNew:     true,
 							Computed:     true,
 							ValidateFunc: openShiftValidate.DiskSizeGB,
 						},
 						"node_count": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
+							ForceNew:     true,
 							Computed:     true,
 							ValidateFunc: validation.IntBetween(3, 20),
 						},
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
