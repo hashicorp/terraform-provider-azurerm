@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -63,6 +64,29 @@ func resourceRecoveryServicesBackupProtectedVM() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"disk_exclusion": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"disk_lun_list": {
+							Type:     pluginsdk.TypeSet,
+							Required: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeInt,
+								ValidateFunc: validation.IntAtLeast(0),
+							},
+						},
+
+						"is_inclusion_list": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -107,12 +131,13 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 	item := backup.ProtectedItemResource{
 		Tags: tags.Expand(t),
 		Properties: &backup.AzureIaaSComputeVMProtectedItem{
-			PolicyID:          &policyId,
-			ProtectedItemType: backup.ProtectedItemTypeMicrosoftClassicComputevirtualMachines,
-			WorkloadType:      backup.DataSourceTypeVM,
-			SourceResourceID:  utils.String(vmId),
-			FriendlyName:      utils.String(parsedVmId.Name),
-			VirtualMachineID:  utils.String(vmId),
+			PolicyID:           &policyId,
+			ProtectedItemType:  backup.ProtectedItemTypeMicrosoftClassicComputevirtualMachines,
+			WorkloadType:       backup.DataSourceTypeVM,
+			SourceResourceID:   utils.String(vmId),
+			FriendlyName:       utils.String(parsedVmId.Name),
+			ExtendedProperties: expandDiskExclusion(d),
+			VirtualMachineID:   utils.String(vmId),
 		},
 	}
 
@@ -162,6 +187,12 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 
 			if v := vm.PolicyID; v != nil {
 				d.Set("backup_policy_id", strings.Replace(*v, "Subscriptions", "subscriptions", 1))
+			}
+
+			if v := vm.ExtendedProperties; v != nil && v.DiskExclusionProperties != nil {
+				if err := d.Set("disk_exclusion", flattenDiskLunList(v.DiskExclusionProperties)); err != nil {
+					return fmt.Errorf("setting disk_exclusion: %+v", err)
+				}
 			}
 		}
 	}
@@ -266,5 +297,45 @@ func resourceRecoveryServicesBackupProtectedVMRefreshFunc(ctx context.Context, c
 			}
 		}
 		return resp, "Found", nil
+	}
+}
+
+func expandDiskExclusion(d *pluginsdk.ResourceData) *backup.ExtendedProperties {
+	if v, ok := d.GetOk("disk_exclusion"); ok {
+		if vs := v.([]interface{}); len(vs) > 0 {
+			vm := vs[0].(map[string]interface{})
+			var diskLun []interface{}
+			if diskLunList, ok := vm["disk_lun_list"]; ok {
+				diskLun = expandDiskLunList(diskLunList.(*pluginsdk.Set).List())
+			}
+
+			return &backup.ExtendedProperties{
+				DiskExclusionProperties: &backup.DiskExclusionProperties{
+					DiskLunList:     utils.ExpandInt32Slice(diskLun),
+					IsInclusionList: utils.Bool(vm["is_inclusion_list"].(bool)),
+				},
+			}
+		}
+	}
+	return nil
+}
+
+func expandDiskLunList(input []interface{}) []interface{} {
+	result := make([]interface{}, 0, len(input))
+	for _, v := range input {
+		result = append(result, v.(int))
+	}
+	return result
+}
+
+func flattenDiskLunList(input *backup.DiskExclusionProperties) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"disk_lun_list":     utils.FlattenInt32Slice(input.DiskLunList),
+			"is_inclusion_list": *input.IsInclusionList,
+		},
 	}
 }
