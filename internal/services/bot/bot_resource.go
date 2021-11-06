@@ -40,10 +40,10 @@ func resourceBot() *pluginsdk.Resource {
 			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
-					return nil, fmt.Errorf("Bot %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
+					return nil, fmt.Errorf("%s was not found", *id)
 				}
 
-				return nil, fmt.Errorf("retrieving Bot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			return []*pluginsdk.ResourceData{d}, nil
