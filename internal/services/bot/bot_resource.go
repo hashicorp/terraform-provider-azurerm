@@ -286,7 +286,7 @@ func resourceBotUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, bot); err != nil {
-		return fmt.Errorf("updating Bot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourceBotRead(d, meta)
