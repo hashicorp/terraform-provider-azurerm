@@ -80,7 +80,7 @@ func (t BotResource) Exists(ctx context.Context, clients *clients.Client, state 
 
 	resp, err := clients.Bot.BotClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
 	return utils.Bool(resp.Properties != nil), nil
