@@ -26,27 +26,9 @@ func resourceBot() *pluginsdk.Resource {
 		Read:   resourceBotRead,
 		Update: resourceBotUpdate,
 		Delete: resourceBotDelete,
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.BotServiceID(id)
 			return err
-		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
-			client := meta.(*clients.Client).Bot.BotClient
-
-			id, err := parse.BotServiceID(d.Id())
-			if err != nil {
-				return nil, err
-			}
-
-			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
-					return nil, fmt.Errorf("%s was not found", *id)
-				}
-
-				return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-
-			return []*pluginsdk.ResourceData{d}, nil
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
