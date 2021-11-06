@@ -166,7 +166,7 @@ func resourceBotCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of creating Bot %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of %s: %+v", resourceId, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
