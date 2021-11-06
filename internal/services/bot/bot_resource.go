@@ -226,7 +226,7 @@ func resourceBotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Bot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
