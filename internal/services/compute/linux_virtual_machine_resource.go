@@ -218,6 +218,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 					string(compute.LinuxVMGuestPatchModeAutomaticByPlatform),
 					string(compute.LinuxVMGuestPatchModeImageDefault),
 				}, false),
+				Default: string(compute.LinuxVMGuestPatchModeImageDefault),
 			},
 
 			"proximity_placement_group_id": {
@@ -664,7 +665,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 			patchSettings := config.PatchSettings
 			if patchSettings != nil && patchSettings.PatchMode != "" {
-				d.Set("patch_mode", compute.LinuxVMGuestPatchMode(patchSettings.PatchMode))
+				d.Set("patch_mode", patchSettings.PatchMode)
 			}
 		}
 
