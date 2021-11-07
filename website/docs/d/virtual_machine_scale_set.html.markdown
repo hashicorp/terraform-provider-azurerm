@@ -37,7 +37,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Virtual Machine Scale Set.
 
+* `location` - The Azure Region in which this Virtual Machine Scale Set exists.
+
 * `identity` - A `identity` block as defined below.
+
+* `instances` - A list of `instances` blocks as defined below.
 
 * `network_interface` - A list of `network_interface` blocks as defined below.
 
@@ -52,6 +56,22 @@ An `identity` block exports the following:
 * `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Virtual Machine Scale Set.
 
 * `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Virtual Machine Scale Set.
+
+---
+
+`instances` exports the following:
+
+* `computer_name` - The Hostname of this Virtual Machine.
+* `instance_id` - The Instance ID of this Virtual Machine.
+* `latest_model_applied` - Whether the latest model has been applied to this Virtual Machine.
+* `name` - The name of the this Virtual Machine.
+* `private_ip_address` - The Primary Private IP Address assigned to this Virtual Machine.
+* `private_ip_addresses` - A list of Private IP Addresses assigned to this Virtual Machine.
+* `public_ip_address` - The Primary Public IP Address assigned to this Virtual Machine.
+* `public_ip_addresses` - A list of the Public IP Addresses assigned to this Virtual Machine.
+* `provisioning_state` - The provisioning state of the virtual machine.
+* `virtual_machine_id` - The unique ID of the virtual machine.
+* `zone` - The zones of the virtual machine.
 
 ---
 
