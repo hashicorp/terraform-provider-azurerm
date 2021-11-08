@@ -59,7 +59,6 @@ The following arguments are supported:
 
 ~> **NOTE:** You can use Azure CLI to get a full list of the available topic types: `az eventgrid topic-type  list --output json | grep -w id`
 
-
 ---
 
 A `identity` block supports the following:
