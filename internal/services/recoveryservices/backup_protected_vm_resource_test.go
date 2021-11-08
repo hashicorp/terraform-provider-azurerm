@@ -131,8 +131,25 @@ func TestAccBackupProtectedVm_updateDiskExclusion(t *testing.T) {
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 			),
 		},
+		data.ImportStep(),
+		{
+			// vault cannot be deleted unless we unregister all backups
+			Config: r.base(data),
+		},
 		{
 			Config: r.updateDiskExclusion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			// vault cannot be deleted unless we unregister all backups
+			Config: r.base(data),
+		},
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
