@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -52,9 +52,10 @@ func resourceApiManagementService() *pluginsdk.Resource {
 		Read:   resourceApiManagementServiceRead,
 		Update: resourceApiManagementServiceCreateUpdate,
 		Delete: resourceApiManagementServiceDelete,
-
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ApiManagementID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(3 * time.Hour),
@@ -617,6 +618,7 @@ func resourceApiManagementService() *pluginsdk.Resource {
 
 func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -624,14 +626,13 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	log.Printf("[INFO] preparing arguments for API Management Service creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewApiManagementID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing API Management Service %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -729,25 +730,16 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		properties.Zones = azure.ExpandZones(v)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, properties)
 	if err != nil {
-		return fmt.Errorf("creating/updating API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID for API Management Service %q (Resource Group %q)", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	signInSettingsRaw := d.Get("sign_in").([]interface{})
 	if sku.Name == apimanagement.SkuTypeConsumption && len(signInSettingsRaw) > 0 {
@@ -756,8 +748,8 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	if sku.Name != apimanagement.SkuTypeConsumption {
 		signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
 		signInClient := meta.(*clients.Client).ApiManagement.SignInClient
-		if _, err := signInClient.CreateOrUpdate(ctx, resourceGroup, name, signInSettings, ""); err != nil {
-			return fmt.Errorf(" setting Sign In settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if _, err := signInClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, signInSettings, ""); err != nil {
+			return fmt.Errorf(" setting Sign In settings for %s: %+v", id, err)
 		}
 	}
 
@@ -768,8 +760,8 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	if sku.Name != apimanagement.SkuTypeConsumption {
 		signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
 		signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
-		if _, err := signUpClient.CreateOrUpdate(ctx, resourceGroup, name, signUpSettings, ""); err != nil {
-			return fmt.Errorf(" setting Sign Up settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if _, err := signUpClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, signUpSettings, ""); err != nil {
+			return fmt.Errorf(" setting Sign Up settings for %s: %+v", id, err)
 		}
 	}
 
@@ -782,16 +774,16 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	if d.HasChange("policy") {
 		// remove the existing policy
-		if resp, err := policyClient.Delete(ctx, resourceGroup, name, ""); err != nil {
+		if resp, err := policyClient.Delete(ctx, id.ResourceGroup, id.ServiceName, ""); err != nil {
 			if !utils.ResponseWasNotFound(resp) {
-				return fmt.Errorf("removing Policies from API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("removing Policies from %s: %+v", id, err)
 			}
 		}
 
 		// then add the new one, if it exists
 		if policy != nil {
-			if _, err := policyClient.CreateOrUpdate(ctx, resourceGroup, name, *policy, ""); err != nil {
-				return fmt.Errorf(" setting Policies for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+			if _, err := policyClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, *policy, ""); err != nil {
+				return fmt.Errorf(" setting Policies for %s: %+v", id, err)
 			}
 		}
 	}
@@ -804,8 +796,8 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		tenantAccessInformationParametersRaw := d.Get("tenant_access").([]interface{})
 		tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
 		tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
-		if _, err := tenantAccessClient.Update(ctx, resourceGroup, name, tenantAccessInformationParameters, "access", ""); err != nil {
-			return fmt.Errorf(" updating tenant access settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if _, err := tenantAccessClient.Update(ctx, id.ResourceGroup, id.ServiceName, tenantAccessInformationParameters, "access", ""); err != nil {
+			return fmt.Errorf(" updating tenant access settings for %s: %+v", id, err)
 		}
 	}
 
@@ -826,30 +818,27 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.ServiceName
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("API Management Service %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("%s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
 	policyClient := meta.(*clients.Client).ApiManagement.PolicyClient
-	policy, err := policyClient.Get(ctx, resourceGroup, name, apimanagement.PolicyExportFormatXML)
+	policy, err := policyClient.Get(ctx, id.ResourceGroup, id.ServiceName, apimanagement.PolicyExportFormatXML)
 	if err != nil {
 		if !utils.ResponseWasNotFound(policy.Response) {
-			return fmt.Errorf("retrieving Policy for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("retrieving Policy for %s: %+v", *id, err)
 		}
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.ServiceName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -892,7 +881,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		}
 
 		apimHostNameSuffix := environment.APIManagementHostNameSuffix
-		hostnameConfigs := flattenApiManagementHostnameConfigurations(props.HostnameConfigurations, d, name, apimHostNameSuffix)
+		hostnameConfigs := flattenApiManagementHostnameConfigurations(props.HostnameConfigurations, d, id.ServiceName, apimHostNameSuffix)
 		if err := d.Set("hostname_configuration", hostnameConfigs); err != nil {
 			return fmt.Errorf("setting `hostname_configuration`: %+v", err)
 		}
@@ -923,17 +912,17 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("zones", azure.FlattenZones(resp.Zones))
 
 	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
-		signInSettings, err := signInClient.Get(ctx, resourceGroup, name)
+		signInSettings, err := signInClient.Get(ctx, id.ResourceGroup, id.ServiceName)
 		if err != nil {
-			return fmt.Errorf("retrieving Sign In Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("retrieving Sign In Settings for %s: %+v", *id, err)
 		}
 		if err := d.Set("sign_in", flattenApiManagementSignInSettings(signInSettings)); err != nil {
 			return fmt.Errorf("setting `sign_in`: %+v", err)
 		}
 
-		signUpSettings, err := signUpClient.Get(ctx, resourceGroup, name)
+		signUpSettings, err := signUpClient.Get(ctx, id.ResourceGroup, id.ServiceName)
 		if err != nil {
-			return fmt.Errorf("retrieving Sign Up Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("retrieving Sign Up Settings for %s: %+v", *id, err)
 		}
 
 		if err := d.Set("sign_up", flattenApiManagementSignUpSettings(signUpSettings)); err != nil {
@@ -945,9 +934,9 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
-		tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, resourceGroup, name, "access")
+		tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, id.ResourceGroup, id.ServiceName, "access")
 		if err != nil {
-			return fmt.Errorf("retrieving tenant access properties for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("retrieving tenant access properties for %s: %+v", *id, err)
 		}
 		if err := d.Set("tenant_access", flattenApiManagementTenantAccessSettings(tenantAccessInformationContract)); err != nil {
 			return fmt.Errorf("setting `tenant_access`: %+v", err)
@@ -966,24 +955,22 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.ServiceName
 
-	log.Printf("[DEBUG] Deleting API Management Service %q (Resource Grouo %q)", name, resourceGroup)
-	future, err := client.Delete(ctx, resourceGroup, name)
+	log.Printf("[DEBUG] Deleting %s", *id)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName)
 	if err != nil {
-		return fmt.Errorf("deleting API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 		}
 	}
 
 	// Purge the soft deleted Api Management permanently if the feature flag is enabled
 	if meta.(*clients.Client).Features.ApiManagement.PurgeSoftDeleteOnDestroy {
-		log.Printf("[DEBUG] Api Management %q marked for purge - executing purge", id)
+		log.Printf("[DEBUG] %s marked for purge - executing purge", *id)
 		deletedServicesClient := meta.(*clients.Client).ApiManagement.DeletedServicesClient
 		_, err := deletedServicesClient.GetByName(ctx, id.ServiceName, azure.NormalizeLocation(d.Get("location").(string)))
 		if err != nil {
@@ -994,12 +981,12 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 			return err
 		}
 
-		log.Printf("[DEBUG] Waiting for purge of Api Management %q..", id)
+		log.Printf("[DEBUG] Waiting for purge of %s..", *id)
 		err = future.WaitForCompletionRef(ctx, deletedServicesClient.Client)
 		if err != nil {
 			return fmt.Errorf("purging %s: %+v", *id, err)
 		}
-		log.Printf("[DEBUG] Purged Api Management %q.", id)
+		log.Printf("[DEBUG] Purged %s.", *id)
 		return nil
 	}
 

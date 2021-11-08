@@ -12,7 +12,7 @@ var _ resourceid.Formatter = AnalyticsSharedItemId{}
 
 func TestAnalyticsSharedItemIDFormatter(t *testing.T) {
 	actual := NewAnalyticsSharedItemID("12345678-1234-9876-4563-123456789012", "group1", "component1", "item1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/components/component1/analyticsItems/item1"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/analyticsItems/item1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -57,31 +57,31 @@ func TestAnalyticsSharedItemID(t *testing.T) {
 
 		{
 			// missing ComponentName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/",
 			Error: true,
 		},
 
 		{
 			// missing value for ComponentName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/components/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/",
 			Error: true,
 		},
 
 		{
 			// missing AnalyticsItemName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/components/component1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/",
 			Error: true,
 		},
 
 		{
 			// missing value for AnalyticsItemName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/components/component1/analyticsItems/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/analyticsItems/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/components/component1/analyticsItems/item1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/analyticsItems/item1",
 			Expected: &AnalyticsSharedItemId{
 				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:     "group1",

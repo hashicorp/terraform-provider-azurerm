@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,9 +26,15 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 		Read:   resourceApplicationInsightsRead,
 		Update: resourceApplicationInsightsCreateUpdate,
 		Delete: resourceApplicationInsightsDelete,
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ComponentID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ComponentUpgradeV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -106,7 +113,7 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.FloatBetween(0, 1000),
+				ValidateFunc: validation.FloatAtLeast(0),
 			},
 
 			"daily_data_cap_notifications_disabled": {
@@ -136,6 +143,18 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"internet_ingestion_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"internet_query_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 		},
 	}
@@ -174,12 +193,24 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
+	internetIngestionEnabled := insights.PublicNetworkAccessTypeDisabled
+	if d.Get("internet_ingestion_enabled").(bool) {
+		internetIngestionEnabled = insights.PublicNetworkAccessTypeEnabled
+	}
+
+	internetQueryEnabled := insights.PublicNetworkAccessTypeDisabled
+	if d.Get("internet_query_enabled").(bool) {
+		internetQueryEnabled = insights.PublicNetworkAccessTypeEnabled
+	}
+
 	applicationInsightsComponentProperties := insights.ApplicationInsightsComponentProperties{
-		ApplicationID:      &name,
-		ApplicationType:    insights.ApplicationType(applicationType),
-		SamplingPercentage: samplingPercentage,
-		DisableIPMasking:   utils.Bool(disableIpMasking),
-		DisableLocalAuth:   utils.Bool(localAuthenticationDisabled),
+		ApplicationID:                   &name,
+		ApplicationType:                 insights.ApplicationType(applicationType),
+		SamplingPercentage:              samplingPercentage,
+		DisableIPMasking:                utils.Bool(disableIpMasking),
+		DisableLocalAuth:                utils.Bool(localAuthenticationDisabled),
+		PublicNetworkAccessForIngestion: internetIngestionEnabled,
+		PublicNetworkAccessForQuery:     internetQueryEnabled,
 	}
 
 	if workspaceRaw, hasWorkspaceId := d.GetOk("workspace_id"); hasWorkspaceId {
@@ -288,6 +319,9 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("disable_ip_masking", props.DisableIPMasking)
 		d.Set("connection_string", props.ConnectionString)
 		d.Set("local_authentication_disabled", props.DisableLocalAuth)
+
+		d.Set("internet_ingestion_enabled", resp.PublicNetworkAccessForIngestion == insights.PublicNetworkAccessTypeEnabled)
+		d.Set("internet_query_enabled", resp.PublicNetworkAccessForQuery == insights.PublicNetworkAccessTypeEnabled)
 
 		if v := props.WorkspaceResourceID; v != nil {
 			d.Set("workspace_id", v)

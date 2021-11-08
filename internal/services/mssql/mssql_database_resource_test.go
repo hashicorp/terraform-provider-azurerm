@@ -424,21 +424,13 @@ func TestAccMsSqlDatabase_storageAccountType(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.threatDetectionPolicy(data, "Enabled"),
+			Config: r.storageAccountTypeLRS(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue("LRS"),
 			),
 		},
-		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
-		{
-			Config: r.threatDetectionPolicy(data, "Disabled"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
-				check.That(data.ResourceName).Key("threat_detection_policy.0.state").HasValue("Disabled"),
-			),
-		},
-		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
+		data.ImportStep("sample_name"),
 	})
 }
 
@@ -1192,6 +1184,19 @@ resource "azurerm_mssql_database" "restore" {
 }
 
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r MsSqlDatabaseResource) storageAccountTypeLRS(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[2]d"
+  server_id = azurerm_mssql_server.test.id
+
+  storage_account_type = "LRS"
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r MsSqlDatabaseResource) threatDetectionPolicy(data acceptance.TestData, state string) string {

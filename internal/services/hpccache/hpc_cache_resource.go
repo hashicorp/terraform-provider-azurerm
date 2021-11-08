@@ -57,8 +57,11 @@ func resourceHPCCache() *pluginsdk.Resource {
 					3072,
 					6144,
 					12288,
+					21623,
 					24576,
+					43246,
 					49152,
+					86491,
 				}),
 			},
 
@@ -77,6 +80,9 @@ func resourceHPCCache() *pluginsdk.Resource {
 					"Standard_2G",
 					"Standard_4G",
 					"Standard_8G",
+					"Standard_L4_5G",
+					"Standard_L9G",
+					"Standard_L16G",
 				}, false),
 			},
 
@@ -371,6 +377,18 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 	cacheSize := d.Get("cache_size_in_gb").(int)
 	subnet := d.Get("subnet_id").(string)
 	skuName := d.Get("sku_name").(string)
+
+	// SKU Cache Combo Validation
+	switch {
+	case skuName == "Standard_L4_5G" && cacheSize != 21623:
+		return fmt.Errorf("The Standard_L4_5G SKU only supports a cache size of 21623")
+	case skuName == "Standard_L9G" && cacheSize != 43246:
+		return fmt.Errorf("The Standard_L9G SKU only supports a cache size of 43246")
+	case skuName == "Standard_L16G" && cacheSize != 86491:
+		return fmt.Errorf("The Standard_L16G SKU only supports a cache size of 86491")
+	case (cacheSize == 21623 || cacheSize == 43246 || cacheSize == 86491) && (skuName == "Standard_2G" || skuName == "Standard_4G" || skuName == "Standard_8G"):
+		return fmt.Errorf("Incompatible cache size chosen. 21623, 43246 and 86491 are reserved for Read Only resources.")
+	}
 
 	var accessPolicies []storagecache.NfsAccessPolicy
 	if !d.IsNewResource() {

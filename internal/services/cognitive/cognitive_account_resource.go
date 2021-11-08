@@ -403,7 +403,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"Creating"},
+		Pending:    []string{"Accepted", "Creating"},
 		Target:     []string{"Succeeded"},
 		Refresh:    cognitiveAccountStateRefreshFunc(ctx, client, id),
 		MinTimeout: 15 * time.Second,

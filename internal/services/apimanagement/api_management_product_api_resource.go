@@ -20,8 +20,10 @@ func resourceApiManagementProductApi() *pluginsdk.Resource {
 		Create: resourceApiManagementProductApiCreate,
 		Read:   resourceApiManagementProductApiRead,
 		Delete: resourceApiManagementProductApiDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ProductApiID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -44,34 +46,28 @@ func resourceApiManagementProductApi() *pluginsdk.Resource {
 
 func resourceApiManagementProductApiCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductApisClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("api_management_name").(string)
-	apiName := d.Get("api_name").(string)
-	productId := d.Get("product_id").(string)
+	id := parse.NewProductApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_id").(string), d.Get("api_name").(string))
 
-	exists, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiName)
+	exists, err := client.CheckEntityExists(ctx, id.ResourceGroup, id.ServiceName, id.ProductName, id.ApiName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(exists) {
-			return fmt.Errorf("checking for present of existing API %q / Product %q (API Management Service %q / Resource Group %q): %+v", apiName, productId, serviceName, resourceGroup, err)
+			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 		}
 	}
 
 	if !utils.ResponseWasNotFound(exists) {
-		// TODO: can we pull this from somewhere?
-		subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-		resourceId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/products/%s/apis/%s", subscriptionId, resourceGroup, serviceName, productId, apiName)
-		return tf.ImportAsExistsError("azurerm_api_management_product_api", resourceId)
+		return tf.ImportAsExistsError("azurerm_api_management_product_api", id.ID())
 	}
 
-	resp, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, productId, apiName)
-	if err != nil {
-		return fmt.Errorf("adding API %q to Product %q (API Management Service %q / Resource Group %q): %+v", apiName, productId, serviceName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.ProductName, id.ApiName); err != nil {
+		return fmt.Errorf("adding API %q to Product %q (API Management Service %q / Resource Group %q): %+v", id.ApiName, id.ProductName, id.ServiceName, id.ResourceGroup, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceApiManagementProductApiRead(d, meta)
 }
@@ -85,34 +81,30 @@ func resourceApiManagementProductApiRead(d *pluginsdk.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	productId := id.ProductName
-	apiName := id.ApiName
 
-	resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiName)
+	resp, err := client.CheckEntityExists(ctx, id.ResourceGroup, id.ServiceName, id.ProductName, id.ApiName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
-			log.Printf("[DEBUG] API %q was not found in Product  %q (API Management Service %q / Resource Group %q) was not found - removing from state!", apiName, productId, serviceName, resourceGroup)
+			log.Printf("[DEBUG] API %q was not found in Product  %q (API Management Service %q / Resource Group %q) was not found - removing from state!", id.ApiName, id.ProductName, id.ServiceName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving API %q / Product %q (API Management Service %q / Resource Group %q): %+v", apiName, productId, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	// This can be removed once updated to apimanagement API to 2019-01-01
 	// https://github.com/Azure/azure-sdk-for-go/blob/master/services/apimanagement/mgmt/2019-01-01/apimanagement/productapi.go#L134
 	if utils.ResponseWasNotFound(resp) {
-		log.Printf("[DEBUG] API %q was not found in Product  %q (API Management Service %q / Resource Group %q) was not found - removing from state!", apiName, productId, serviceName, resourceGroup)
+		log.Printf("[DEBUG] API %q was not found in Product  %q (API Management Service %q / Resource Group %q) was not found - removing from state!", id.ApiName, id.ResourceGroup, id.ServiceName, id.ResourceGroup)
 		d.SetId("")
 		return nil
 	}
 
-	d.Set("api_name", apiName)
-	d.Set("product_id", productId)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
+	d.Set("api_name", id.ApiName)
+	d.Set("product_id", id.ProductName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("api_management_name", id.ServiceName)
 
 	return nil
 }
@@ -126,14 +118,10 @@ func resourceApiManagementProductApiDelete(d *pluginsdk.ResourceData, meta inter
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	productId := id.ProductName
-	apiName := id.ApiName
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, productId, apiName); err != nil {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.ProductName, id.ApiName); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("removing API %q from Product %q (API Management Service %q / Resource Group %q): %+v", apiName, productId, serviceName, resourceGroup, err)
+			return fmt.Errorf("removing API %q from Product %q (API Management Service %q / Resource Group %q): %+v", id.ApiName, id.ProductName, id.ServiceName, id.ResourceGroup, err)
 		}
 	}
 

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -22,8 +23,11 @@ func resourceMariaDbDatabase() *pluginsdk.Resource {
 		Create: resourceMariaDbDatabaseCreateUpdate,
 		Read:   resourceMariaDbDatabaseRead,
 		Delete: resourceMariaDbDatabaseDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.MariaDBDatabaseID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -77,20 +81,19 @@ func resourceMariaDbDatabase() *pluginsdk.Resource {
 
 func resourceMariaDbDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.DatabasesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM MariaDB database creation")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	serverName := d.Get("server_name").(string)
+	id := parse.NewMariaDBDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serverName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.DatabaseName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Database %q (Server %q / Resource Group %q): %s", name, serverName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -109,24 +112,16 @@ func resourceMariaDbDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.DatabaseName, properties)
 	if err != nil {
-		return fmt.Errorf("creating MariaDB database %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of MariaDB database %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, serverName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving MariaDB database %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("cannot read MariaDB database %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceMariaDbDatabaseRead(d, meta)
 }
@@ -136,28 +131,25 @@ func resourceMariaDbDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.MariaDBDatabaseID(d.Id())
 	if err != nil {
 		return fmt.Errorf("cannot parse MariaDB database %q ID:\n%+v", d.Id(), err)
 	}
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-	name := id.Path["databases"]
 
-	resp, err := client.Get(ctx, resourceGroup, serverName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.DatabaseName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] MariaDB database %q was not found (Resource Group %q)", name, resourceGroup)
+			log.Printf("[WARN] %s was not found", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making read request on Azure MariaDB database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
+		return fmt.Errorf("making read request on %s:\n%+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("server_name", serverName)
+	d.Set("name", id.DatabaseName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("server_name", id.ServerName)
 
 	if properties := resp.DatabaseProperties; properties != nil {
 		d.Set("charset", properties.Charset)
@@ -172,22 +164,18 @@ func resourceMariaDbDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.MariaDBDatabaseID(d.Id())
 	if err != nil {
 		return fmt.Errorf("cannot parse MariaDB database %q ID:\n%+v", d.Id(), err)
 	}
 
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-	name := id.Path["databases"]
-
-	future, err := client.Delete(ctx, resourceGroup, serverName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.DatabaseName)
 	if err != nil {
-		return fmt.Errorf("making delete request on MariaDB database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
+		return fmt.Errorf("making delete request on %s:\n%+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of MariaDB database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s:\n%+v", *id, err)
 	}
 
 	return nil

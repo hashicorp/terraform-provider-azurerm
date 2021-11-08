@@ -36,7 +36,7 @@ func (id SmartDetectionRuleId) String() string {
 }
 
 func (id SmartDetectionRuleId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s/SmartDetectionRule/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Insights/components/%s/smartDetectionRule/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ComponentName, id.SmartDetectionRuleName)
 }
 
@@ -63,7 +63,7 @@ func SmartDetectionRuleID(input string) (*SmartDetectionRuleId, error) {
 	if resourceId.ComponentName, err = id.PopSegment("components"); err != nil {
 		return nil, err
 	}
-	if resourceId.SmartDetectionRuleName, err = id.PopSegment("SmartDetectionRule"); err != nil {
+	if resourceId.SmartDetectionRuleName, err = id.PopSegment("smartDetectionRule"); err != nil {
 		return nil, err
 	}
 

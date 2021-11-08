@@ -48,6 +48,8 @@ func withRequestLogging(providerName string) autorest.SendDecorator {
 					// fallback to basic message
 					log.Printf("[DEBUG] %s Response: %s for %s\n", providerName, resp.Status, r.URL)
 				}
+			} else if err != nil {
+				log.Printf("[DEBUG] %s Response Error: %s for %s\n", providerName, err, r.URL)
 			} else {
 				log.Printf("[DEBUG] Request to %s completed with no response", r.URL)
 			}

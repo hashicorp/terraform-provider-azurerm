@@ -23,7 +23,7 @@ resource "azurerm_frontdoor_rules_engine" "example_rules_engine" {
     priority = 1
 
     action {
-      response_header_actions {
+      response_header {
         header_action_type = "Append"
         header_name        = "X-TEST-HEADER"
         value              = "Append Header Rule"
@@ -118,12 +118,12 @@ The `match_condition` block supports the following:
 
 * `variable` can be set to `IsMobile`, `RemoteAddr`, `RequestMethod`, `QueryString`, `PostArgs`, `RequestURI`, `RequestPath`, `RequestFilename`, `RequestFilenameExtension`,`RequestHeader`,`RequestBody` or `RequestScheme`.
 
-* `selector`
+* `selector` match against a specific key when `variable` is set to `PostArgs` or `RequestHeader`. It cannot be used with `QueryString` and `RequestMethod`. Defaults to `null`.
 
 * `operator` can be set to `Any`, `IPMatch`, `GeoMatch`, `Equal`, `Contains`, `LessThan`, `GreaterThan`, `LessThanOrEqual`, `GreaterThanOrEqual`, `BeginsWith` or `EndsWith`
 
 * `transform` can be set to one or more values out of `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` and `UrlEncode`
 
-* `negate_condition` can be set to `true` or `false` to negate the given condition.
+* `negate_condition` can be set to `true` or `false` to negate the given condition. Defaults to `true`.
 
 * `value` (array) can contain one or more strings.

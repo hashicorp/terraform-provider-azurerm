@@ -98,6 +98,10 @@ The following arguments are supported:
 
 * `local_authentication_disabled` - (Optional) Disable Non-Azure AD based Auth. Defaults to `false`.
 
+* `internet_ingestion_enabled ` - (Optional) Should the Application Insights component support ingestion over the Public Internet? Defaults to `true`.
+
+* `internet_query_enabled` - (Optional) Should the Application Insights component support querying over the Public Internet? Defaults to `true`.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -124,5 +128,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Application Insights instances can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_application_insights.instance1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.insights/components/instance1
+terraform import azurerm_application_insights.instance1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Insights/components/instance1
 ```
