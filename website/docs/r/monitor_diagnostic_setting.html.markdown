@@ -3,8 +3,7 @@ subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_diagnostic_setting"
 description: |-
-Manages a Diagnostic Setting for an existing Resource.
-
+  Manages a Diagnostic Setting for an existing Resource.
 ---
 
 # azurerm_monitor_diagnostic_setting
