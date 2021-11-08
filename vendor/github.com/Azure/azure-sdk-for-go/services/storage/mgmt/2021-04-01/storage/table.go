@@ -98,7 +98,7 @@ func (client TableClient) CreatePreparer(ctx context.Context, resourceGroupName 
 		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -196,7 +196,7 @@ func (client TableClient) DeletePreparer(ctx context.Context, resourceGroupName 
 		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -293,7 +293,7 @@ func (client TableClient) GetPreparer(ctx context.Context, resourceGroupName str
 		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -389,7 +389,7 @@ func (client TableClient) ListPreparer(ctx context.Context, resourceGroupName st
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -524,7 +524,7 @@ func (client TableClient) UpdatePreparer(ctx context.Context, resourceGroupName 
 		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

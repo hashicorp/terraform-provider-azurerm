@@ -6,7 +6,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 )
 
@@ -35,7 +35,7 @@ func (ad *accountDetails) AccountKey(ctx context.Context, client Client) (*strin
 	}
 
 	log.Printf("[DEBUG] Cache Miss - looking up the account key for storage account %q..", ad.name)
-	props, err := client.AccountsClient.ListKeys(ctx, ad.ResourceGroup, ad.name, storage.Kerb)
+	props, err := client.AccountsClient.ListKeys(ctx, ad.ResourceGroup, ad.name, storage.ListKeyExpandKerb)
 	if err != nil {
 		return nil, fmt.Errorf("Listing Keys for Storage Account %q (Resource Group %q): %+v", ad.name, ad.ResourceGroup, err)
 	}

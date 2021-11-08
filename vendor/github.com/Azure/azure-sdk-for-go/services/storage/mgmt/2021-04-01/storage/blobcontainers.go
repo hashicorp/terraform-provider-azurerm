@@ -102,7 +102,7 @@ func (client BlobContainersClient) ClearLegalHoldPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -206,7 +206,7 @@ func (client BlobContainersClient) CreatePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -315,7 +315,7 @@ func (client BlobContainersClient) CreateOrUpdateImmutabilityPolicyPreparer(ctx 
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -422,7 +422,7 @@ func (client BlobContainersClient) DeletePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -526,7 +526,7 @@ func (client BlobContainersClient) DeleteImmutabilityPolicyPreparer(ctx context.
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -633,7 +633,7 @@ func (client BlobContainersClient) ExtendImmutabilityPolicyPreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -737,7 +737,7 @@ func (client BlobContainersClient) GetPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -840,7 +840,7 @@ func (client BlobContainersClient) GetImmutabilityPolicyPreparer(ctx context.Con
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -944,7 +944,7 @@ func (client BlobContainersClient) LeasePreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1049,7 +1049,7 @@ func (client BlobContainersClient) ListPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1197,7 +1197,7 @@ func (client BlobContainersClient) LockImmutabilityPolicyPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1226,6 +1226,108 @@ func (client BlobContainersClient) LockImmutabilityPolicyResponder(resp *http.Re
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// ObjectLevelWorm this operation migrates a blob container from container level WORM to object level immutability
+// enabled container. Prerequisites require a container level immutability policy either in locked or unlocked state,
+// Account level versioning must be enabled and there should be no Legal hold on the container.
+// Parameters:
+// resourceGroupName - the name of the resource group within the user's subscription. The name is case
+// insensitive.
+// accountName - the name of the storage account within the specified resource group. Storage account names
+// must be between 3 and 24 characters in length and use numbers and lower-case letters only.
+// containerName - the name of the blob container within the specified storage account. Blob container names
+// must be between 3 and 63 characters in length and use numbers, lower-case letters and dash (-) only. Every
+// dash (-) character must be immediately preceded and followed by a letter or number.
+func (client BlobContainersClient) ObjectLevelWorm(ctx context.Context, resourceGroupName string, accountName string, containerName string) (result BlobContainersObjectLevelWormFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BlobContainersClient.ObjectLevelWorm")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: accountName,
+			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
+				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
+		{TargetValue: containerName,
+			Constraints: []validation.Constraint{{Target: "containerName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "containerName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("storage.BlobContainersClient", "ObjectLevelWorm", err.Error())
+	}
+
+	req, err := client.ObjectLevelWormPreparer(ctx, resourceGroupName, accountName, containerName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "ObjectLevelWorm", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.ObjectLevelWormSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "ObjectLevelWorm", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// ObjectLevelWormPreparer prepares the ObjectLevelWorm request.
+func (client BlobContainersClient) ObjectLevelWormPreparer(ctx context.Context, resourceGroupName string, accountName string, containerName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"accountName":       autorest.Encode("path", accountName),
+		"containerName":     autorest.Encode("path", containerName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-04-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/blobServices/default/containers/{containerName}/migrate", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ObjectLevelWormSender sends the ObjectLevelWorm request. The method will close the
+// http.Response Body if it receives an error.
+func (client BlobContainersClient) ObjectLevelWormSender(req *http.Request) (future BlobContainersObjectLevelWormFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// ObjectLevelWormResponder handles the response to the ObjectLevelWorm request. The method always
+// closes the http.Response Body.
+func (client BlobContainersClient) ObjectLevelWormResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
 	return
 }
 
@@ -1300,7 +1402,7 @@ func (client BlobContainersClient) SetLegalHoldPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1403,7 +1505,7 @@ func (client BlobContainersClient) UpdatePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

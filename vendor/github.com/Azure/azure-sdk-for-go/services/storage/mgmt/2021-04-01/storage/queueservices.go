@@ -15,32 +15,32 @@ import (
 	"net/http"
 )
 
-// FileServicesClient is the the Azure Storage Management API.
-type FileServicesClient struct {
+// QueueServicesClient is the the Azure Storage Management API.
+type QueueServicesClient struct {
 	BaseClient
 }
 
-// NewFileServicesClient creates an instance of the FileServicesClient client.
-func NewFileServicesClient(subscriptionID string) FileServicesClient {
-	return NewFileServicesClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewQueueServicesClient creates an instance of the QueueServicesClient client.
+func NewQueueServicesClient(subscriptionID string) QueueServicesClient {
+	return NewQueueServicesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewFileServicesClientWithBaseURI creates an instance of the FileServicesClient client using a custom endpoint.  Use
-// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewFileServicesClientWithBaseURI(baseURI string, subscriptionID string) FileServicesClient {
-	return FileServicesClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewQueueServicesClientWithBaseURI creates an instance of the QueueServicesClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
+func NewQueueServicesClientWithBaseURI(baseURI string, subscriptionID string) QueueServicesClient {
+	return QueueServicesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// GetServiceProperties gets the properties of file services in storage accounts, including CORS (Cross-Origin Resource
-// Sharing) rules.
+// GetServiceProperties gets the properties of a storage account’s Queue service, including properties for Storage
+// Analytics and CORS (Cross-Origin Resource Sharing) rules.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // accountName - the name of the storage account within the specified resource group. Storage account names
 // must be between 3 and 24 characters in length and use numbers and lower-case letters only.
-func (client FileServicesClient) GetServiceProperties(ctx context.Context, resourceGroupName string, accountName string) (result FileServiceProperties, err error) {
+func (client QueueServicesClient) GetServiceProperties(ctx context.Context, resourceGroupName string, accountName string) (result QueueServiceProperties, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/FileServicesClient.GetServiceProperties")
+		ctx = tracing.StartSpan(ctx, fqdn+"/QueueServicesClient.GetServiceProperties")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -59,25 +59,25 @@ func (client FileServicesClient) GetServiceProperties(ctx context.Context, resou
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("storage.FileServicesClient", "GetServiceProperties", err.Error())
+		return result, validation.NewError("storage.QueueServicesClient", "GetServiceProperties", err.Error())
 	}
 
 	req, err := client.GetServicePropertiesPreparer(ctx, resourceGroupName, accountName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "GetServiceProperties", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.QueueServicesClient", "GetServiceProperties", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetServicePropertiesSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "GetServiceProperties", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.QueueServicesClient", "GetServiceProperties", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetServicePropertiesResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "GetServiceProperties", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.QueueServicesClient", "GetServiceProperties", resp, "Failure responding to request")
 		return
 	}
 
@@ -85,15 +85,15 @@ func (client FileServicesClient) GetServiceProperties(ctx context.Context, resou
 }
 
 // GetServicePropertiesPreparer prepares the GetServiceProperties request.
-func (client FileServicesClient) GetServicePropertiesPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
+func (client QueueServicesClient) GetServicePropertiesPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"FileServicesName":  autorest.Encode("path", "default"),
+		"queueServiceName":  autorest.Encode("path", "default"),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -101,20 +101,20 @@ func (client FileServicesClient) GetServicePropertiesPreparer(ctx context.Contex
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/fileServices/{FileServicesName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/queueServices/{queueServiceName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetServicePropertiesSender sends the GetServiceProperties request. The method will close the
 // http.Response Body if it receives an error.
-func (client FileServicesClient) GetServicePropertiesSender(req *http.Request) (*http.Response, error) {
+func (client QueueServicesClient) GetServicePropertiesSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetServicePropertiesResponder handles the response to the GetServiceProperties request. The method always
 // closes the http.Response Body.
-func (client FileServicesClient) GetServicePropertiesResponder(resp *http.Response) (result FileServiceProperties, err error) {
+func (client QueueServicesClient) GetServicePropertiesResponder(resp *http.Response) (result QueueServiceProperties, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -124,15 +124,15 @@ func (client FileServicesClient) GetServicePropertiesResponder(resp *http.Respon
 	return
 }
 
-// List list all file services in storage accounts
+// List list all queue services for the storage account
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // accountName - the name of the storage account within the specified resource group. Storage account names
 // must be between 3 and 24 characters in length and use numbers and lower-case letters only.
-func (client FileServicesClient) List(ctx context.Context, resourceGroupName string, accountName string) (result FileServiceItems, err error) {
+func (client QueueServicesClient) List(ctx context.Context, resourceGroupName string, accountName string) (result ListQueueServices, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/FileServicesClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/QueueServicesClient.List")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -151,25 +151,25 @@ func (client FileServicesClient) List(ctx context.Context, resourceGroupName str
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("storage.FileServicesClient", "List", err.Error())
+		return result, validation.NewError("storage.QueueServicesClient", "List", err.Error())
 	}
 
 	req, err := client.ListPreparer(ctx, resourceGroupName, accountName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.QueueServicesClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "List", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.QueueServicesClient", "List", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.QueueServicesClient", "List", resp, "Failure responding to request")
 		return
 	}
 
@@ -177,14 +177,14 @@ func (client FileServicesClient) List(ctx context.Context, resourceGroupName str
 }
 
 // ListPreparer prepares the List request.
-func (client FileServicesClient) ListPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
+func (client QueueServicesClient) ListPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -192,20 +192,20 @@ func (client FileServicesClient) ListPreparer(ctx context.Context, resourceGroup
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/fileServices", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/queueServices", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client FileServicesClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client QueueServicesClient) ListSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client FileServicesClient) ListResponder(resp *http.Response) (result FileServiceItems, err error) {
+func (client QueueServicesClient) ListResponder(resp *http.Response) (result ListQueueServices, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -215,18 +215,18 @@ func (client FileServicesClient) ListResponder(resp *http.Response) (result File
 	return
 }
 
-// SetServiceProperties sets the properties of file services in storage accounts, including CORS (Cross-Origin Resource
-// Sharing) rules.
+// SetServiceProperties sets the properties of a storage account’s Queue service, including properties for Storage
+// Analytics and CORS (Cross-Origin Resource Sharing) rules.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // accountName - the name of the storage account within the specified resource group. Storage account names
 // must be between 3 and 24 characters in length and use numbers and lower-case letters only.
-// parameters - the properties of file services in storage accounts, including CORS (Cross-Origin Resource
-// Sharing) rules.
-func (client FileServicesClient) SetServiceProperties(ctx context.Context, resourceGroupName string, accountName string, parameters FileServiceProperties) (result FileServiceProperties, err error) {
+// parameters - the properties of a storage account’s Queue service, only properties for Storage Analytics and
+// CORS (Cross-Origin Resource Sharing) rules can be specified.
+func (client QueueServicesClient) SetServiceProperties(ctx context.Context, resourceGroupName string, accountName string, parameters QueueServiceProperties) (result QueueServiceProperties, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/FileServicesClient.SetServiceProperties")
+		ctx = tracing.StartSpan(ctx, fqdn+"/QueueServicesClient.SetServiceProperties")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -244,35 +244,26 @@ func (client FileServicesClient) SetServiceProperties(ctx context.Context, resou
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.FileServicePropertiesProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "parameters.FileServicePropertiesProperties.ShareDeleteRetentionPolicy", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "parameters.FileServicePropertiesProperties.ShareDeleteRetentionPolicy.Days", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.FileServicePropertiesProperties.ShareDeleteRetentionPolicy.Days", Name: validation.InclusiveMaximum, Rule: int64(365), Chain: nil},
-							{Target: "parameters.FileServicePropertiesProperties.ShareDeleteRetentionPolicy.Days", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
-						}},
-					}},
-				}}}}}); err != nil {
-		return result, validation.NewError("storage.FileServicesClient", "SetServiceProperties", err.Error())
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("storage.QueueServicesClient", "SetServiceProperties", err.Error())
 	}
 
 	req, err := client.SetServicePropertiesPreparer(ctx, resourceGroupName, accountName, parameters)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "SetServiceProperties", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.QueueServicesClient", "SetServiceProperties", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.SetServicePropertiesSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "SetServiceProperties", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.QueueServicesClient", "SetServiceProperties", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.SetServicePropertiesResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "SetServiceProperties", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.QueueServicesClient", "SetServiceProperties", resp, "Failure responding to request")
 		return
 	}
 
@@ -280,25 +271,24 @@ func (client FileServicesClient) SetServiceProperties(ctx context.Context, resou
 }
 
 // SetServicePropertiesPreparer prepares the SetServiceProperties request.
-func (client FileServicesClient) SetServicePropertiesPreparer(ctx context.Context, resourceGroupName string, accountName string, parameters FileServiceProperties) (*http.Request, error) {
+func (client QueueServicesClient) SetServicePropertiesPreparer(ctx context.Context, resourceGroupName string, accountName string, parameters QueueServiceProperties) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"FileServicesName":  autorest.Encode("path", "default"),
+		"queueServiceName":  autorest.Encode("path", "default"),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
-	parameters.Sku = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/fileServices/{FileServicesName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/queueServices/{queueServiceName}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -306,13 +296,13 @@ func (client FileServicesClient) SetServicePropertiesPreparer(ctx context.Contex
 
 // SetServicePropertiesSender sends the SetServiceProperties request. The method will close the
 // http.Response Body if it receives an error.
-func (client FileServicesClient) SetServicePropertiesSender(req *http.Request) (*http.Response, error) {
+func (client QueueServicesClient) SetServicePropertiesSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // SetServicePropertiesResponder handles the response to the SetServiceProperties request. The method always
 // closes the http.Response Body.
-func (client FileServicesClient) SetServicePropertiesResponder(resp *http.Response) (result FileServiceProperties, err error) {
+func (client QueueServicesClient) SetServicePropertiesResponder(resp *http.Response) (result QueueServiceProperties, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

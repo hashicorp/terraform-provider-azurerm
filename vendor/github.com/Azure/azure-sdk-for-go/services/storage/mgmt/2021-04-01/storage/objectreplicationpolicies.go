@@ -15,33 +15,35 @@ import (
 	"net/http"
 )
 
-// BlobInventoryPoliciesClient is the the Azure Storage Management API.
-type BlobInventoryPoliciesClient struct {
+// ObjectReplicationPoliciesClient is the the Azure Storage Management API.
+type ObjectReplicationPoliciesClient struct {
 	BaseClient
 }
 
-// NewBlobInventoryPoliciesClient creates an instance of the BlobInventoryPoliciesClient client.
-func NewBlobInventoryPoliciesClient(subscriptionID string) BlobInventoryPoliciesClient {
-	return NewBlobInventoryPoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewObjectReplicationPoliciesClient creates an instance of the ObjectReplicationPoliciesClient client.
+func NewObjectReplicationPoliciesClient(subscriptionID string) ObjectReplicationPoliciesClient {
+	return NewObjectReplicationPoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewBlobInventoryPoliciesClientWithBaseURI creates an instance of the BlobInventoryPoliciesClient client using a
-// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
-// Azure stack).
-func NewBlobInventoryPoliciesClientWithBaseURI(baseURI string, subscriptionID string) BlobInventoryPoliciesClient {
-	return BlobInventoryPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewObjectReplicationPoliciesClientWithBaseURI creates an instance of the ObjectReplicationPoliciesClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
+func NewObjectReplicationPoliciesClientWithBaseURI(baseURI string, subscriptionID string) ObjectReplicationPoliciesClient {
+	return ObjectReplicationPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate sets the blob inventory policy to the specified storage account.
+// CreateOrUpdate create or update the object replication policy of the storage account.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // accountName - the name of the storage account within the specified resource group. Storage account names
 // must be between 3 and 24 characters in length and use numbers and lower-case letters only.
-// properties - the blob inventory policy set to a storage account.
-func (client BlobInventoryPoliciesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, accountName string, properties BlobInventoryPolicy) (result BlobInventoryPolicy, err error) {
+// objectReplicationPolicyID - the ID of object replication policy or 'default' if the policy ID is unknown.
+// properties - the object replication policy set to a storage account. A unique policy ID will be created if
+// absent.
+func (client ObjectReplicationPoliciesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, accountName string, objectReplicationPolicyID string, properties ObjectReplicationPolicy) (result ObjectReplicationPolicy, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BlobInventoryPoliciesClient.CreateOrUpdate")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ObjectReplicationPoliciesClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -60,34 +62,32 @@ func (client BlobInventoryPoliciesClient) CreateOrUpdate(ctx context.Context, re
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: objectReplicationPolicyID,
+			Constraints: []validation.Constraint{{Target: "objectReplicationPolicyID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: properties,
-			Constraints: []validation.Constraint{{Target: "properties.BlobInventoryPolicyProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "properties.BlobInventoryPolicyProperties.Policy", Name: validation.Null, Rule: true,
-					Chain: []validation.Constraint{{Target: "properties.BlobInventoryPolicyProperties.Policy.Enabled", Name: validation.Null, Rule: true, Chain: nil},
-						{Target: "properties.BlobInventoryPolicyProperties.Policy.Destination", Name: validation.Null, Rule: true, Chain: nil},
-						{Target: "properties.BlobInventoryPolicyProperties.Policy.Type", Name: validation.Null, Rule: true, Chain: nil},
-						{Target: "properties.BlobInventoryPolicyProperties.Policy.Rules", Name: validation.Null, Rule: true, Chain: nil},
-					}},
+			Constraints: []validation.Constraint{{Target: "properties.ObjectReplicationPolicyProperties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "properties.ObjectReplicationPolicyProperties.SourceAccount", Name: validation.Null, Rule: true, Chain: nil},
+					{Target: "properties.ObjectReplicationPolicyProperties.DestinationAccount", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
-		return result, validation.NewError("storage.BlobInventoryPoliciesClient", "CreateOrUpdate", err.Error())
+		return result, validation.NewError("storage.ObjectReplicationPoliciesClient", "CreateOrUpdate", err.Error())
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, accountName, properties)
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, accountName, objectReplicationPolicyID, properties)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.BlobInventoryPoliciesClient", "CreateOrUpdate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.ObjectReplicationPoliciesClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.CreateOrUpdateSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "storage.BlobInventoryPoliciesClient", "CreateOrUpdate", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.ObjectReplicationPoliciesClient", "CreateOrUpdate", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.BlobInventoryPoliciesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.ObjectReplicationPoliciesClient", "CreateOrUpdate", resp, "Failure responding to request")
 		return
 	}
 
@@ -95,15 +95,15 @@ func (client BlobInventoryPoliciesClient) CreateOrUpdate(ctx context.Context, re
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client BlobInventoryPoliciesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, accountName string, properties BlobInventoryPolicy) (*http.Request, error) {
+func (client ObjectReplicationPoliciesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, accountName string, objectReplicationPolicyID string, properties ObjectReplicationPolicy) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"accountName":             autorest.Encode("path", accountName),
-		"blobInventoryPolicyName": autorest.Encode("path", "default"),
-		"resourceGroupName":       autorest.Encode("path", resourceGroupName),
-		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
+		"accountName":               autorest.Encode("path", accountName),
+		"objectReplicationPolicyId": autorest.Encode("path", objectReplicationPolicyID),
+		"resourceGroupName":         autorest.Encode("path", resourceGroupName),
+		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -112,7 +112,7 @@ func (client BlobInventoryPoliciesClient) CreateOrUpdatePreparer(ctx context.Con
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/inventoryPolicies/{blobInventoryPolicyName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/objectReplicationPolicies/{objectReplicationPolicyId}", pathParameters),
 		autorest.WithJSON(properties),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -120,13 +120,13 @@ func (client BlobInventoryPoliciesClient) CreateOrUpdatePreparer(ctx context.Con
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client BlobInventoryPoliciesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
+func (client ObjectReplicationPoliciesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (client BlobInventoryPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result BlobInventoryPolicy, err error) {
+func (client ObjectReplicationPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ObjectReplicationPolicy, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -136,15 +136,16 @@ func (client BlobInventoryPoliciesClient) CreateOrUpdateResponder(resp *http.Res
 	return
 }
 
-// Delete deletes the blob inventory policy associated with the specified storage account.
+// Delete deletes the object replication policy associated with the specified storage account.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // accountName - the name of the storage account within the specified resource group. Storage account names
 // must be between 3 and 24 characters in length and use numbers and lower-case letters only.
-func (client BlobInventoryPoliciesClient) Delete(ctx context.Context, resourceGroupName string, accountName string) (result autorest.Response, err error) {
+// objectReplicationPolicyID - the ID of object replication policy or 'default' if the policy ID is unknown.
+func (client ObjectReplicationPoliciesClient) Delete(ctx context.Context, resourceGroupName string, accountName string, objectReplicationPolicyID string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BlobInventoryPoliciesClient.Delete")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ObjectReplicationPoliciesClient.Delete")
 		defer func() {
 			sc := -1
 			if result.Response != nil {
@@ -162,26 +163,28 @@ func (client BlobInventoryPoliciesClient) Delete(ctx context.Context, resourceGr
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("storage.BlobInventoryPoliciesClient", "Delete", err.Error())
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: objectReplicationPolicyID,
+			Constraints: []validation.Constraint{{Target: "objectReplicationPolicyID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("storage.ObjectReplicationPoliciesClient", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, accountName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, accountName, objectReplicationPolicyID)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.BlobInventoryPoliciesClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.ObjectReplicationPoliciesClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.DeleteSender(req)
 	if err != nil {
 		result.Response = resp
-		err = autorest.NewErrorWithError(err, "storage.BlobInventoryPoliciesClient", "Delete", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.ObjectReplicationPoliciesClient", "Delete", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.BlobInventoryPoliciesClient", "Delete", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.ObjectReplicationPoliciesClient", "Delete", resp, "Failure responding to request")
 		return
 	}
 
@@ -189,15 +192,15 @@ func (client BlobInventoryPoliciesClient) Delete(ctx context.Context, resourceGr
 }
 
 // DeletePreparer prepares the Delete request.
-func (client BlobInventoryPoliciesClient) DeletePreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
+func (client ObjectReplicationPoliciesClient) DeletePreparer(ctx context.Context, resourceGroupName string, accountName string, objectReplicationPolicyID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"accountName":             autorest.Encode("path", accountName),
-		"blobInventoryPolicyName": autorest.Encode("path", "default"),
-		"resourceGroupName":       autorest.Encode("path", resourceGroupName),
-		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
+		"accountName":               autorest.Encode("path", accountName),
+		"objectReplicationPolicyId": autorest.Encode("path", objectReplicationPolicyID),
+		"resourceGroupName":         autorest.Encode("path", resourceGroupName),
+		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -205,20 +208,20 @@ func (client BlobInventoryPoliciesClient) DeletePreparer(ctx context.Context, re
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/inventoryPolicies/{blobInventoryPolicyName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/objectReplicationPolicies/{objectReplicationPolicyId}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client BlobInventoryPoliciesClient) DeleteSender(req *http.Request) (*http.Response, error) {
+func (client ObjectReplicationPoliciesClient) DeleteSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client BlobInventoryPoliciesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client ObjectReplicationPoliciesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
@@ -227,15 +230,16 @@ func (client BlobInventoryPoliciesClient) DeleteResponder(resp *http.Response) (
 	return
 }
 
-// Get gets the blob inventory policy associated with the specified storage account.
+// Get get the object replication policy of the storage account by policy ID.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // accountName - the name of the storage account within the specified resource group. Storage account names
 // must be between 3 and 24 characters in length and use numbers and lower-case letters only.
-func (client BlobInventoryPoliciesClient) Get(ctx context.Context, resourceGroupName string, accountName string) (result BlobInventoryPolicy, err error) {
+// objectReplicationPolicyID - the ID of object replication policy or 'default' if the policy ID is unknown.
+func (client ObjectReplicationPoliciesClient) Get(ctx context.Context, resourceGroupName string, accountName string, objectReplicationPolicyID string) (result ObjectReplicationPolicy, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BlobInventoryPoliciesClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ObjectReplicationPoliciesClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -253,26 +257,28 @@ func (client BlobInventoryPoliciesClient) Get(ctx context.Context, resourceGroup
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("storage.BlobInventoryPoliciesClient", "Get", err.Error())
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: objectReplicationPolicyID,
+			Constraints: []validation.Constraint{{Target: "objectReplicationPolicyID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("storage.ObjectReplicationPoliciesClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, accountName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, accountName, objectReplicationPolicyID)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.BlobInventoryPoliciesClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.ObjectReplicationPoliciesClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "storage.BlobInventoryPoliciesClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.ObjectReplicationPoliciesClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.BlobInventoryPoliciesClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.ObjectReplicationPoliciesClient", "Get", resp, "Failure responding to request")
 		return
 	}
 
@@ -280,15 +286,15 @@ func (client BlobInventoryPoliciesClient) Get(ctx context.Context, resourceGroup
 }
 
 // GetPreparer prepares the Get request.
-func (client BlobInventoryPoliciesClient) GetPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
+func (client ObjectReplicationPoliciesClient) GetPreparer(ctx context.Context, resourceGroupName string, accountName string, objectReplicationPolicyID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"accountName":             autorest.Encode("path", accountName),
-		"blobInventoryPolicyName": autorest.Encode("path", "default"),
-		"resourceGroupName":       autorest.Encode("path", resourceGroupName),
-		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
+		"accountName":               autorest.Encode("path", accountName),
+		"objectReplicationPolicyId": autorest.Encode("path", objectReplicationPolicyID),
+		"resourceGroupName":         autorest.Encode("path", resourceGroupName),
+		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -296,20 +302,20 @@ func (client BlobInventoryPoliciesClient) GetPreparer(ctx context.Context, resou
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/inventoryPolicies/{blobInventoryPolicyName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/objectReplicationPolicies/{objectReplicationPolicyId}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client BlobInventoryPoliciesClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client ObjectReplicationPoliciesClient) GetSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client BlobInventoryPoliciesClient) GetResponder(resp *http.Response) (result BlobInventoryPolicy, err error) {
+func (client ObjectReplicationPoliciesClient) GetResponder(resp *http.Response) (result ObjectReplicationPolicy, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -319,15 +325,15 @@ func (client BlobInventoryPoliciesClient) GetResponder(resp *http.Response) (res
 	return
 }
 
-// List gets the blob inventory policy associated with the specified storage account.
+// List list the object replication policies associated with the storage account.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // accountName - the name of the storage account within the specified resource group. Storage account names
 // must be between 3 and 24 characters in length and use numbers and lower-case letters only.
-func (client BlobInventoryPoliciesClient) List(ctx context.Context, resourceGroupName string, accountName string) (result ListBlobInventoryPolicy, err error) {
+func (client ObjectReplicationPoliciesClient) List(ctx context.Context, resourceGroupName string, accountName string) (result ObjectReplicationPolicies, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BlobInventoryPoliciesClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ObjectReplicationPoliciesClient.List")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -346,25 +352,25 @@ func (client BlobInventoryPoliciesClient) List(ctx context.Context, resourceGrou
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("storage.BlobInventoryPoliciesClient", "List", err.Error())
+		return result, validation.NewError("storage.ObjectReplicationPoliciesClient", "List", err.Error())
 	}
 
 	req, err := client.ListPreparer(ctx, resourceGroupName, accountName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.BlobInventoryPoliciesClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.ObjectReplicationPoliciesClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "storage.BlobInventoryPoliciesClient", "List", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.ObjectReplicationPoliciesClient", "List", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.BlobInventoryPoliciesClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.ObjectReplicationPoliciesClient", "List", resp, "Failure responding to request")
 		return
 	}
 
@@ -372,14 +378,14 @@ func (client BlobInventoryPoliciesClient) List(ctx context.Context, resourceGrou
 }
 
 // ListPreparer prepares the List request.
-func (client BlobInventoryPoliciesClient) ListPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
+func (client ObjectReplicationPoliciesClient) ListPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -387,20 +393,20 @@ func (client BlobInventoryPoliciesClient) ListPreparer(ctx context.Context, reso
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/inventoryPolicies", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/objectReplicationPolicies", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client BlobInventoryPoliciesClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client ObjectReplicationPoliciesClient) ListSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client BlobInventoryPoliciesClient) ListResponder(resp *http.Response) (result ListBlobInventoryPolicy, err error) {
+func (client ObjectReplicationPoliciesClient) ListResponder(resp *http.Response) (result ObjectReplicationPolicies, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

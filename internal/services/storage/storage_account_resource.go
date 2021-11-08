@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -78,13 +78,13 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(storage.Storage),
-					string(storage.BlobStorage),
-					string(storage.BlockBlobStorage),
-					string(storage.FileStorage),
-					string(storage.StorageV2),
+					string(storage.KindStorage),
+					string(storage.KindBlobStorage),
+					string(storage.KindBlockBlobStorage),
+					string(storage.KindFileStorage),
+					string(storage.KindStorageV2),
 				}, true),
-				Default: string(storage.StorageV2),
+				Default: string(storage.KindStorageV2),
 			},
 
 			"account_tier": {
@@ -118,8 +118,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(storage.Cool),
-					string(storage.Hot),
+					string(storage.AccessTierCool),
+					string(storage.AccessTierHot),
 				}, true),
 			},
 
@@ -216,11 +216,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"min_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(storage.TLS10),
+				Default:  string(storage.MinimumTLSVersionTLS10),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(storage.TLS10),
-					string(storage.TLS11),
-					string(storage.TLS12),
+					string(storage.MinimumTLSVersionTLS10),
+					string(storage.MinimumTLSVersionTLS11),
+					string(storage.MinimumTLSVersionTLS12),
 				}, false),
 			},
 
@@ -265,10 +265,10 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(storage.AzureServices),
-									string(storage.Logging),
-									string(storage.Metrics),
-									string(storage.None),
+									string(storage.BypassAzureServices),
+									string(storage.BypassLogging),
+									string(storage.BypassMetrics),
+									string(storage.BypassNone),
 								}, true),
 							},
 							Set: pluginsdk.HashString,
@@ -552,10 +552,10 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(storage.MicrosoftRouting),
-								string(storage.InternetRouting),
+								string(storage.RoutingChoiceMicrosoftRouting),
+								string(storage.RoutingChoiceInternetRouting),
 							}, false),
-							Default: string(storage.MicrosoftRouting),
+							Default: string(storage.RoutingChoiceMicrosoftRouting),
 						},
 					},
 				},
@@ -855,7 +855,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				if d.HasChange("account_kind") {
 					accountKind, changedKind := d.GetChange("account_kind")
 
-					if accountKind != string(storage.Storage) && changedKind != string(storage.StorageV2) {
+					if accountKind != string(storage.KindStorage) && changedKind != string(storage.KindStorageV2) {
 						log.Printf("[DEBUG] recreate storage account, could't be migrated from %s to %s", accountKind, changedKind)
 						d.ForceNew("account_kind")
 					} else {
@@ -953,7 +953,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// USGovernmentCloud allow_blob_public_access and min_tls_version allowed as of issue 9128
 	// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
 	if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
-		if allowBlobPublicAccess || minimumTLSVersion != string(storage.TLS10) {
+		if allowBlobPublicAccess || minimumTLSVersion != string(storage.MinimumTLSVersionTLS10) {
 			return fmt.Errorf(`%q and "min_tls_version" are not supported for a Storage Account located in %q`, allowPublicNestedItemsName, envName)
 		}
 	} else {
@@ -980,30 +980,30 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	// BlobStorage does not support ZRS
-	if accountKind == string(storage.BlobStorage) {
-		if string(parameters.Sku.Name) == string(storage.StandardZRS) {
+	if accountKind == string(storage.KindBlobStorage) {
+		if string(parameters.Sku.Name) == string(storage.SkuNameStandardZRS) {
 			return fmt.Errorf("A `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts.")
 		}
 	}
 
 	// AccessTier is only valid for BlobStorage, StorageV2, and FileStorage accounts
-	if accountKind == string(storage.BlobStorage) || accountKind == string(storage.StorageV2) || accountKind == string(storage.FileStorage) {
+	if accountKind == string(storage.KindBlobStorage) || accountKind == string(storage.KindStorageV2) || accountKind == string(storage.KindFileStorage) {
 		accessTier, ok := d.GetOk("access_tier")
 		if !ok {
 			// default to "Hot"
-			accessTier = string(storage.Hot)
+			accessTier = string(storage.AccessTierHot)
 		}
 
 		parameters.AccountPropertiesCreateParameters.AccessTier = storage.AccessTier(accessTier.(string))
-	} else if isHnsEnabled && accountKind != string(storage.BlockBlobStorage) {
+	} else if isHnsEnabled && accountKind != string(storage.KindBlockBlobStorage) {
 		return fmt.Errorf("`is_hns_enabled` can only be used with account kinds `StorageV2`, `BlobStorage` and `BlockBlobStorage`")
 	}
 
 	// NFSv3 is supported for standard general-purpose v2 storage accounts and for premium block blob storage accounts.
 	// (https://docs.microsoft.com/en-us/azure/storage/blobs/network-file-system-protocol-support-how-to#step-5-create-and-configure-a-storage-account)
 	if nfsV3Enabled &&
-		!((accountTier == string(storage.Premium) && accountKind == string(storage.BlockBlobStorage)) ||
-			(accountTier == string(storage.Standard) && accountKind == string(storage.StorageV2))) {
+		!((accountTier == string(storage.SkuTierPremium) && accountKind == string(storage.KindBlockBlobStorage)) ||
+			(accountTier == string(storage.SkuTierStandard) && accountKind == string(storage.KindStorageV2))) {
 		return fmt.Errorf("`nfsv3_enabled` can only be used with account tier `Standard` and account kind `StorageV2`, or account tier `Premium` and account kind `BlockBlobStorage`")
 	}
 	if nfsV3Enabled && !isHnsEnabled {
@@ -1011,8 +1011,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	// AccountTier must be Premium for FileStorage
-	if accountKind == string(storage.FileStorage) {
-		if string(parameters.Sku.Tier) == string(storage.StandardLRS) {
+	if accountKind == string(storage.KindFileStorage) {
+		if string(parameters.Sku.Tier) == string(storage.SkuNameStandardLRS) {
 			return fmt.Errorf("A `account_tier` of `Standard` is not supported for FileStorage accounts.")
 		}
 	}
@@ -1044,7 +1044,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if val, ok := d.GetOk("blob_properties"); ok {
 		// FileStorage does not support blob settings
-		if accountKind != string(storage.FileStorage) {
+		if accountKind != string(storage.KindFileStorage) {
 			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
 
 			blobProperties := expandBlobProperties(val.([]interface{}))
@@ -1097,7 +1097,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	if val, ok := d.GetOk("share_properties"); ok {
 		// BlobStorage does not support file share settings
 		// FileStorage Premium is supported
-		if accountKind == string(storage.FileStorage) || accountKind != string(storage.BlobStorage) && accountKind != string(storage.BlockBlobStorage) && accountTier != string(storage.Premium) {
+		if accountKind == string(storage.KindFileStorage) || accountKind != string(storage.KindBlobStorage) && accountKind != string(storage.KindBlockBlobStorage) && accountTier != string(storage.SkuTierPremium) {
 			fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
 			if _, err = fileServiceClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, expandShareProperties(val.([]interface{}))); err != nil {
@@ -1110,7 +1110,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if val, ok := d.GetOk("static_website"); ok {
 		// static website only supported on StorageV2 and BlockBlobStorage
-		if accountKind != string(storage.StorageV2) && accountKind != string(storage.BlockBlobStorage) {
+		if accountKind != string(storage.KindStorageV2) && accountKind != string(storage.KindBlockBlobStorage) {
 			return fmt.Errorf("`static_website` is only supported for StorageV2 and BlockBlobStorage.")
 		}
 		storageClient := meta.(*clients.Client).Storage
@@ -1161,8 +1161,8 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
 	accountKind := d.Get("account_kind").(string)
 
-	if accountKind == string(storage.BlobStorage) {
-		if storageType == string(storage.StandardZRS) {
+	if accountKind == string(storage.KindBlobStorage) {
+		if storageType == string(storage.SkuNameStandardZRS) {
 			return fmt.Errorf("A `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts.")
 		}
 	}
@@ -1286,7 +1286,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		// USGovernmentCloud "min_tls_version" allowed as of issue 9128
 		// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
 		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
-			if minimumTLSVersion != string(storage.TLS10) {
+			if minimumTLSVersion != string(storage.MinimumTLSVersionTLS10) {
 				return fmt.Errorf(`"min_tls_version" is not supported for a Storage Account located in %q`, envName)
 			}
 		} else {
@@ -1415,7 +1415,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if d.HasChange("blob_properties") {
 		// FileStorage does not support blob settings
-		if accountKind != string(storage.FileStorage) {
+		if accountKind != string(storage.KindFileStorage) {
 			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
 			blobProperties := expandBlobProperties(d.Get("blob_properties").([]interface{}))
 
@@ -1471,7 +1471,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChange("share_properties") {
 		// BlobStorage, BlockBlobStorage does not support file share settings
 		// FileStorage Premium is supported
-		if accountKind == string(storage.FileStorage) || accountKind != string(storage.BlobStorage) && accountKind != string(storage.BlockBlobStorage) && accountTier != string(storage.Premium) {
+		if accountKind == string(storage.KindFileStorage) || accountKind != string(storage.KindBlobStorage) && accountKind != string(storage.KindBlockBlobStorage) && accountTier != string(storage.SkuTierPremium) {
 			fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
 			if _, err = fileServiceClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, expandShareProperties(d.Get("share_properties").([]interface{}))); err != nil {
@@ -1484,7 +1484,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if d.HasChange("static_website") {
 		// static website only supported on StorageV2 and BlockBlobStorage
-		if accountKind != string(storage.StorageV2) && accountKind != string(storage.BlockBlobStorage) {
+		if accountKind != string(storage.KindStorageV2) && accountKind != string(storage.KindBlockBlobStorage) {
 			return fmt.Errorf("`static_website` is only supported for StorageV2 and BlockBlobStorage.")
 		}
 		storageClient := meta.(*clients.Client).Storage
@@ -1542,7 +1542,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("primary_access_key", "")
 	d.Set("secondary_access_key", "")
 
-	keys, err := client.ListKeys(ctx, resourceGroupName, storageAccountName, storage.Kerb)
+	keys, err := client.ListKeys(ctx, resourceGroupName, storageAccountName, storage.ListKeyExpandKerb)
 	if err != nil {
 		// the API returns a 200 with an inner error of a 409..
 		var hasWriteLock bool
@@ -1606,10 +1606,10 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
 		envName := meta.(*clients.Client).Account.Environment.Name
 		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
-			d.Set("min_tls_version", string(storage.TLS10))
+			d.Set("min_tls_version", string(storage.MinimumTLSVersionTLS10))
 		} else {
 			// For storage account created using old API, the response of GET call will not return "min_tls_version", either.
-			minTlsVersion := string(storage.TLS10)
+			minTlsVersion := string(storage.MinimumTLSVersionTLS10)
 			if props.MinimumTLSVersion != "" {
 				minTlsVersion = string(props.MinimumTLSVersion)
 			}
@@ -1706,7 +1706,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	blobClient := storageClient.BlobServicesClient
 
 	// FileStorage does not support blob settings
-	if resp.Kind != storage.FileStorage {
+	if resp.Kind != storage.KindFileStorage {
 		blobProps, err := blobClient.GetServiceProperties(ctx, resourceGroupName, storageAccountName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(blobProps.Response) {
@@ -1722,7 +1722,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	fileServiceClient := storageClient.FileServicesClient
 
 	// FileStorage does not support blob kind, FileStorage Premium is supported
-	if resp.Kind == storage.FileStorage || resp.Kind != storage.BlobStorage && resp.Kind != storage.BlockBlobStorage && resp.Sku != nil && resp.Sku.Tier != storage.Premium {
+	if resp.Kind == storage.KindFileStorage || resp.Kind != storage.KindBlobStorage && resp.Kind != storage.KindBlockBlobStorage && resp.Sku != nil && resp.Sku.Tier != storage.SkuTierPremium {
 		shareProps, err := fileServiceClient.GetServiceProperties(ctx, resourceGroupName, storageAccountName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(shareProps.Response) {
@@ -1740,8 +1740,8 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving Storage Account %q (Resource Group %q): `sku` was nil", storageAccountName, resourceGroupName)
 	}
 
-	if resp.Sku.Tier == storage.Standard {
-		if resp.Kind == storage.Storage || resp.Kind == storage.StorageV2 {
+	if resp.Sku.Tier == storage.SkuTierStandard {
+		if resp.Kind == storage.KindStorage || resp.Kind == storage.KindStorageV2 {
 			queueClient, err := storageClient.QueuesClient(ctx, *account)
 			if err != nil {
 				return fmt.Errorf("building Queues Client: %s", err)
@@ -1761,7 +1761,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	var staticWebsite []interface{}
 
 	// static website only supported on StorageV2 and BlockBlobStorage
-	if resp.Kind == storage.StorageV2 || resp.Kind == storage.BlockBlobStorage {
+	if resp.Kind == storage.KindStorageV2 || resp.Kind == storage.KindBlockBlobStorage {
 		storageClient := meta.(*clients.Client).Storage
 
 		account, err := storageClient.FindAccount(ctx, storageAccountName)
@@ -1965,7 +1965,7 @@ func expandStorageAccountIPRules(networkRule map[string]interface{}) *[]storage.
 		attrs := ipRuleConfig.(string)
 		ipRule := storage.IPRule{
 			IPAddressOrRange: utils.String(attrs),
-			Action:           storage.Allow,
+			Action:           storage.ActionAllow,
 		}
 		ipRules[i] = ipRule
 	}
@@ -1981,7 +1981,7 @@ func expandStorageAccountVirtualNetworks(networkRule map[string]interface{}) *[]
 		attrs := virtualNetworkConfig.(string)
 		virtualNetwork := storage.VirtualNetworkRule{
 			VirtualNetworkResourceID: utils.String(attrs),
-			Action:                   storage.Allow,
+			Action:                   storage.ActionAllow,
 		}
 		virtualNetworks[i] = virtualNetwork
 	}

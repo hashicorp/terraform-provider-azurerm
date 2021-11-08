@@ -15,32 +15,32 @@ import (
 	"net/http"
 )
 
-// BlobServicesClient is the the Azure Storage Management API.
-type BlobServicesClient struct {
+// FileServicesClient is the the Azure Storage Management API.
+type FileServicesClient struct {
 	BaseClient
 }
 
-// NewBlobServicesClient creates an instance of the BlobServicesClient client.
-func NewBlobServicesClient(subscriptionID string) BlobServicesClient {
-	return NewBlobServicesClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewFileServicesClient creates an instance of the FileServicesClient client.
+func NewFileServicesClient(subscriptionID string) FileServicesClient {
+	return NewFileServicesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewBlobServicesClientWithBaseURI creates an instance of the BlobServicesClient client using a custom endpoint.  Use
+// NewFileServicesClientWithBaseURI creates an instance of the FileServicesClient client using a custom endpoint.  Use
 // this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewBlobServicesClientWithBaseURI(baseURI string, subscriptionID string) BlobServicesClient {
-	return BlobServicesClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewFileServicesClientWithBaseURI(baseURI string, subscriptionID string) FileServicesClient {
+	return FileServicesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// GetServiceProperties gets the properties of a storage account’s Blob service, including properties for Storage
-// Analytics and CORS (Cross-Origin Resource Sharing) rules.
+// GetServiceProperties gets the properties of file services in storage accounts, including CORS (Cross-Origin Resource
+// Sharing) rules.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // accountName - the name of the storage account within the specified resource group. Storage account names
 // must be between 3 and 24 characters in length and use numbers and lower-case letters only.
-func (client BlobServicesClient) GetServiceProperties(ctx context.Context, resourceGroupName string, accountName string) (result BlobServiceProperties, err error) {
+func (client FileServicesClient) GetServiceProperties(ctx context.Context, resourceGroupName string, accountName string) (result FileServiceProperties, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BlobServicesClient.GetServiceProperties")
+		ctx = tracing.StartSpan(ctx, fqdn+"/FileServicesClient.GetServiceProperties")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -59,25 +59,25 @@ func (client BlobServicesClient) GetServiceProperties(ctx context.Context, resou
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("storage.BlobServicesClient", "GetServiceProperties", err.Error())
+		return result, validation.NewError("storage.FileServicesClient", "GetServiceProperties", err.Error())
 	}
 
 	req, err := client.GetServicePropertiesPreparer(ctx, resourceGroupName, accountName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.BlobServicesClient", "GetServiceProperties", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "GetServiceProperties", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetServicePropertiesSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "storage.BlobServicesClient", "GetServiceProperties", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "GetServiceProperties", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetServicePropertiesResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.BlobServicesClient", "GetServiceProperties", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "GetServiceProperties", resp, "Failure responding to request")
 		return
 	}
 
@@ -85,15 +85,15 @@ func (client BlobServicesClient) GetServiceProperties(ctx context.Context, resou
 }
 
 // GetServicePropertiesPreparer prepares the GetServiceProperties request.
-func (client BlobServicesClient) GetServicePropertiesPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
+func (client FileServicesClient) GetServicePropertiesPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"BlobServicesName":  autorest.Encode("path", "default"),
+		"FileServicesName":  autorest.Encode("path", "default"),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -101,20 +101,20 @@ func (client BlobServicesClient) GetServicePropertiesPreparer(ctx context.Contex
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/blobServices/{BlobServicesName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/fileServices/{FileServicesName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetServicePropertiesSender sends the GetServiceProperties request. The method will close the
 // http.Response Body if it receives an error.
-func (client BlobServicesClient) GetServicePropertiesSender(req *http.Request) (*http.Response, error) {
+func (client FileServicesClient) GetServicePropertiesSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetServicePropertiesResponder handles the response to the GetServiceProperties request. The method always
 // closes the http.Response Body.
-func (client BlobServicesClient) GetServicePropertiesResponder(resp *http.Response) (result BlobServiceProperties, err error) {
+func (client FileServicesClient) GetServicePropertiesResponder(resp *http.Response) (result FileServiceProperties, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -124,15 +124,15 @@ func (client BlobServicesClient) GetServicePropertiesResponder(resp *http.Respon
 	return
 }
 
-// List list blob services of storage account. It returns a collection of one object named default.
+// List list all file services in storage accounts
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // accountName - the name of the storage account within the specified resource group. Storage account names
 // must be between 3 and 24 characters in length and use numbers and lower-case letters only.
-func (client BlobServicesClient) List(ctx context.Context, resourceGroupName string, accountName string) (result BlobServiceItems, err error) {
+func (client FileServicesClient) List(ctx context.Context, resourceGroupName string, accountName string) (result FileServiceItems, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BlobServicesClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/FileServicesClient.List")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -151,25 +151,25 @@ func (client BlobServicesClient) List(ctx context.Context, resourceGroupName str
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("storage.BlobServicesClient", "List", err.Error())
+		return result, validation.NewError("storage.FileServicesClient", "List", err.Error())
 	}
 
 	req, err := client.ListPreparer(ctx, resourceGroupName, accountName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.BlobServicesClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "storage.BlobServicesClient", "List", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "List", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.BlobServicesClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "List", resp, "Failure responding to request")
 		return
 	}
 
@@ -177,14 +177,14 @@ func (client BlobServicesClient) List(ctx context.Context, resourceGroupName str
 }
 
 // ListPreparer prepares the List request.
-func (client BlobServicesClient) ListPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
+func (client FileServicesClient) ListPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -192,20 +192,20 @@ func (client BlobServicesClient) ListPreparer(ctx context.Context, resourceGroup
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/blobServices", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/fileServices", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client BlobServicesClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client FileServicesClient) ListSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client BlobServicesClient) ListResponder(resp *http.Response) (result BlobServiceItems, err error) {
+func (client FileServicesClient) ListResponder(resp *http.Response) (result FileServiceItems, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -215,18 +215,18 @@ func (client BlobServicesClient) ListResponder(resp *http.Response) (result Blob
 	return
 }
 
-// SetServiceProperties sets the properties of a storage account’s Blob service, including properties for Storage
-// Analytics and CORS (Cross-Origin Resource Sharing) rules.
+// SetServiceProperties sets the properties of file services in storage accounts, including CORS (Cross-Origin Resource
+// Sharing) rules.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // accountName - the name of the storage account within the specified resource group. Storage account names
 // must be between 3 and 24 characters in length and use numbers and lower-case letters only.
-// parameters - the properties of a storage account’s Blob service, including properties for Storage Analytics
-// and CORS (Cross-Origin Resource Sharing) rules.
-func (client BlobServicesClient) SetServiceProperties(ctx context.Context, resourceGroupName string, accountName string, parameters BlobServiceProperties) (result BlobServiceProperties, err error) {
+// parameters - the properties of file services in storage accounts, including CORS (Cross-Origin Resource
+// Sharing) rules.
+func (client FileServicesClient) SetServiceProperties(ctx context.Context, resourceGroupName string, accountName string, parameters FileServiceProperties) (result FileServiceProperties, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BlobServicesClient.SetServiceProperties")
+		ctx = tracing.StartSpan(ctx, fqdn+"/FileServicesClient.SetServiceProperties")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -246,54 +246,33 @@ func (client BlobServicesClient) SetServiceProperties(ctx context.Context, resou
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.BlobServicePropertiesProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "parameters.BlobServicePropertiesProperties.DeleteRetentionPolicy", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "parameters.BlobServicePropertiesProperties.DeleteRetentionPolicy.Days", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.BlobServicePropertiesProperties.DeleteRetentionPolicy.Days", Name: validation.InclusiveMaximum, Rule: int64(365), Chain: nil},
-							{Target: "parameters.BlobServicePropertiesProperties.DeleteRetentionPolicy.Days", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+			Constraints: []validation.Constraint{{Target: "parameters.FileServicePropertiesProperties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "parameters.FileServicePropertiesProperties.ShareDeleteRetentionPolicy", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "parameters.FileServicePropertiesProperties.ShareDeleteRetentionPolicy.Days", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "parameters.FileServicePropertiesProperties.ShareDeleteRetentionPolicy.Days", Name: validation.InclusiveMaximum, Rule: int64(365), Chain: nil},
+							{Target: "parameters.FileServicePropertiesProperties.ShareDeleteRetentionPolicy.Days", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 						}},
 					}},
-					{Target: "parameters.BlobServicePropertiesProperties.ChangeFeed", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.BlobServicePropertiesProperties.ChangeFeed.RetentionInDays", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.BlobServicePropertiesProperties.ChangeFeed.RetentionInDays", Name: validation.InclusiveMaximum, Rule: int64(146000), Chain: nil},
-								{Target: "parameters.BlobServicePropertiesProperties.ChangeFeed.RetentionInDays", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
-							}},
-						}},
-					{Target: "parameters.BlobServicePropertiesProperties.RestorePolicy", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.BlobServicePropertiesProperties.RestorePolicy.Enabled", Name: validation.Null, Rule: true, Chain: nil},
-							{Target: "parameters.BlobServicePropertiesProperties.RestorePolicy.Days", Name: validation.Null, Rule: false,
-								Chain: []validation.Constraint{{Target: "parameters.BlobServicePropertiesProperties.RestorePolicy.Days", Name: validation.InclusiveMaximum, Rule: int64(365), Chain: nil},
-									{Target: "parameters.BlobServicePropertiesProperties.RestorePolicy.Days", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
-								}},
-						}},
-					{Target: "parameters.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy.Days", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy.Days", Name: validation.InclusiveMaximum, Rule: int64(365), Chain: nil},
-								{Target: "parameters.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy.Days", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
-							}},
-						}},
-					{Target: "parameters.BlobServicePropertiesProperties.LastAccessTimeTrackingPolicy", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.BlobServicePropertiesProperties.LastAccessTimeTrackingPolicy.Enable", Name: validation.Null, Rule: true, Chain: nil}}},
 				}}}}}); err != nil {
-		return result, validation.NewError("storage.BlobServicesClient", "SetServiceProperties", err.Error())
+		return result, validation.NewError("storage.FileServicesClient", "SetServiceProperties", err.Error())
 	}
 
 	req, err := client.SetServicePropertiesPreparer(ctx, resourceGroupName, accountName, parameters)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.BlobServicesClient", "SetServiceProperties", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "SetServiceProperties", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.SetServicePropertiesSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "storage.BlobServicesClient", "SetServiceProperties", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "SetServiceProperties", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.SetServicePropertiesResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.BlobServicesClient", "SetServiceProperties", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "SetServiceProperties", resp, "Failure responding to request")
 		return
 	}
 
@@ -301,15 +280,15 @@ func (client BlobServicesClient) SetServiceProperties(ctx context.Context, resou
 }
 
 // SetServicePropertiesPreparer prepares the SetServiceProperties request.
-func (client BlobServicesClient) SetServicePropertiesPreparer(ctx context.Context, resourceGroupName string, accountName string, parameters BlobServiceProperties) (*http.Request, error) {
+func (client FileServicesClient) SetServicePropertiesPreparer(ctx context.Context, resourceGroupName string, accountName string, parameters FileServiceProperties) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"BlobServicesName":  autorest.Encode("path", "default"),
+		"FileServicesName":  autorest.Encode("path", "default"),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -319,7 +298,7 @@ func (client BlobServicesClient) SetServicePropertiesPreparer(ctx context.Contex
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/blobServices/{BlobServicesName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/fileServices/{FileServicesName}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -327,13 +306,13 @@ func (client BlobServicesClient) SetServicePropertiesPreparer(ctx context.Contex
 
 // SetServicePropertiesSender sends the SetServiceProperties request. The method will close the
 // http.Response Body if it receives an error.
-func (client BlobServicesClient) SetServicePropertiesSender(req *http.Request) (*http.Response, error) {
+func (client FileServicesClient) SetServicePropertiesSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // SetServicePropertiesResponder handles the response to the SetServiceProperties request. The method always
 // closes the http.Response Body.
-func (client BlobServicesClient) SetServicePropertiesResponder(resp *http.Response) (result BlobServiceProperties, err error) {
+func (client FileServicesClient) SetServicePropertiesResponder(resp *http.Response) (result FileServiceProperties, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
