@@ -13,6 +13,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -31,6 +32,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 		Create: resourceKeyVaultCertificateCreate,
 		Read:   resourceKeyVaultCertificateRead,
 		Delete: resourceKeyVaultCertificateDelete,
+		Update: resourceKeyVaultCertificateUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.ParseNestedItemID(id)
@@ -41,6 +43,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -387,7 +390,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.ForceNewSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -500,6 +503,27 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 
 	d.SetId(*resp.ID)
 
+	return resourceKeyVaultCertificateRead(d, meta)
+}
+
+func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).KeyVault.ManagementClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.ParseNestedItemID(d.Id())
+	if err != nil {
+		return err
+	}
+	patch := keyvault.CertificateUpdateParameters{}
+	if t, ok := d.GetOk("tags"); ok {
+		patch.Tags = tags.Expand(t.(map[string]interface{}))
+	}
+
+	_, err = client.UpdateCertificate(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, patch)
+	if err != nil {
+		return err
+	}
 	return resourceKeyVaultCertificateRead(d, meta)
 }
 
