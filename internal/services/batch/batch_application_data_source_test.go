@@ -57,7 +57,6 @@ resource "azurerm_batch_application" "test" {
   name                = "acctestbatchapp-%d"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
-	%s
 }
 
 data "azurerm_batch_application" "test" {
