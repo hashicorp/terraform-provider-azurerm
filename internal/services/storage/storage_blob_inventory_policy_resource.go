@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -43,14 +43,11 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 				ValidateFunc: validate.StorageAccountID,
 			},
 
-			// TODO -3.0 remove this in favor of rules.*.storage_container_name
 			"storage_container_name": {
 				Type:         pluginsdk.TypeString,
+				Required:     true,
 				ForceNew:     true,
-				Optional:     true,
-				Computed:     true,
 				ValidateFunc: validate.StorageContainerName,
-				Deprecated:   "Deprecated in favor of `rules.*.storage_container_name`",
 			},
 
 			"rules": {
@@ -62,14 +59,6 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						// TODO - 3.0 change O+C to Required once the root level "storage_container_name" is deprecated
-						"storage_container_name": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validate.StorageContainerName,
 						},
 
 						"filter": {
@@ -145,37 +134,13 @@ func resourceStorageBlobInventoryPolicyCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	rules := expandBlobInventoryPolicyRules(d.Get("rules").(*pluginsdk.Set).List())
-
-	// Sanity check on the "storage_container_name"
-	var ruleDestinationUsed bool
-	for _, rule := range *rules {
-		if rule.Definition != nil {
-			ruleDestinationUsed = true
-			break
-		}
-	}
-	rootDestination := d.Get("storage_container_name").(string)
-	if rootDestination != "" && ruleDestinationUsed {
-		return fmt.Errorf("only allowed to use the root level or the rule level `storage_container_name`, but not both")
-	}
-	if rootDestination == "" && !ruleDestinationUsed {
-		return fmt.Errorf("either the root level or the rule level `storage_container_name` should be specified")
-	}
-	// For backward compatibility, we will apply the root level "storage_container_name" to each rule
-	if !ruleDestinationUsed {
-		for i, rule := range *rules {
-			rule.Destination = &rootDestination
-			(*rules)[i] = rule
-		}
-	}
-
 	props := storage.BlobInventoryPolicy{
 		BlobInventoryPolicyProperties: &storage.BlobInventoryPolicyProperties{
 			Policy: &storage.BlobInventoryPolicySchema{
-				Enabled: utils.Bool(true),
-				Type:    utils.String("Inventory"),
-				Rules:   rules,
+				Enabled:     utils.Bool(true),
+				Destination: utils.String(d.Get("storage_container_name").(string)),
+				Type:        utils.String("Inventory"),
+				Rules:       expandBlobInventoryPolicyRules(d.Get("rules").(*pluginsdk.Set).List()),
 			},
 		},
 	}
@@ -215,34 +180,7 @@ func resourceStorageBlobInventoryPolicyRead(d *pluginsdk.ResourceData, meta inte
 				d.SetId("")
 				return nil
 			}
-
-			if policy.Rules != nil {
-				var (
-					ruleDestination       string
-					ruleDestinationUnique bool
-				)
-				for _, rule := range *policy.Rules {
-					if rule.Definition != nil {
-						if ruleDestination == "" {
-							ruleDestination = *rule.Destination
-							ruleDestinationUnique = true
-							continue
-						}
-						if ruleDestination != *rule.Destination {
-							ruleDestinationUnique = false
-							break
-						}
-					}
-				}
-				// In case there is no rule destination or multiple rule destinations, set the root level "storage_container_name" to empty.
-				// This makes sense for the "no rule destination" case, but will show plan diff for the "multiple rule definitions" case if users
-				// have specified the root level "storage_container_name", which is an indication of the incorrect usage.
-				if ruleDestinationUnique {
-					d.Set("storage_container_name", ruleDestination)
-				} else {
-					d.Set("storage_container_name", "")
-				}
-			}
+			d.Set("storage_container_name", policy.Destination)
 			d.Set("rules", flattenBlobInventoryPolicyRules(policy.Rules))
 		}
 	}
@@ -269,17 +207,13 @@ func expandBlobInventoryPolicyRules(input []interface{}) *[]storage.BlobInventor
 	results := make([]storage.BlobInventoryPolicyRule, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		rule := storage.BlobInventoryPolicyRule{
+		results = append(results, storage.BlobInventoryPolicyRule{
 			Enabled: utils.Bool(true),
 			Name:    utils.String(v["name"].(string)),
 			Definition: &storage.BlobInventoryPolicyDefinition{
 				Filters: expandBlobInventoryPolicyFilter(v["filter"].([]interface{})),
 			},
-		}
-		if destination := v["storage_container_name"].(string); destination != "" {
-			rule.Destination = &destination
-		}
-		results = append(results, rule)
+		})
 	}
 	return &results
 }
@@ -308,17 +242,12 @@ func flattenBlobInventoryPolicyRules(input *[]storage.BlobInventoryPolicyRule) [
 		if item.Name != nil {
 			name = *item.Name
 		}
-		var destination string
-		if item.Destination != nil {
-			destination = *item.Destination
-		}
 		if item.Enabled == nil || !*item.Enabled || item.Definition == nil {
 			continue
 		}
 		results = append(results, map[string]interface{}{
-			"name":                 name,
-			"storage_account_name": destination,
-			"filter":               flattenBlobInventoryPolicyFilter(item.Definition.Filters),
+			"name":   name,
+			"filter": flattenBlobInventoryPolicyFilter(item.Definition.Filters),
 		})
 	}
 	return results

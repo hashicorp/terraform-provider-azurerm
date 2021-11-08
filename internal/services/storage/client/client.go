@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	legacystorage "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
 	"github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync"
 	"github.com/Azure/go-autorest/autorest"
@@ -29,7 +30,7 @@ type Client struct {
 	ADLSGen2PathsClient         *paths.Client
 	ManagementPoliciesClient    *storage.ManagementPoliciesClient
 	BlobServicesClient          *storage.BlobServicesClient
-	BlobInventoryPoliciesClient *storage.BlobInventoryPoliciesClient
+	BlobInventoryPoliciesClient *legacystorage.BlobInventoryPoliciesClient
 	CloudEndpointsClient        *storagesync.CloudEndpointsClient
 	EncryptionScopesClient      *storage.EncryptionScopesClient
 	Environment                 az.Environment
@@ -59,7 +60,7 @@ func NewClient(options *common.ClientOptions) *Client {
 	blobServicesClient := storage.NewBlobServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&blobServicesClient.Client, options.ResourceManagerAuthorizer)
 
-	blobInventoryPoliciesClient := storage.NewBlobInventoryPoliciesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	blobInventoryPoliciesClient := legacystorage.NewBlobInventoryPoliciesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&blobInventoryPoliciesClient.Client, options.ResourceManagerAuthorizer)
 
 	cloudEndpointsClient := storagesync.NewCloudEndpointsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
