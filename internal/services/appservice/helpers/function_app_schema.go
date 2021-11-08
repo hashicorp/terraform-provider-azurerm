@@ -32,7 +32,6 @@ type SiteConfigLinuxFunctionApp struct {
 	Http2Enabled                  bool                               `tfschema:"http2_enabled"`
 	IpRestriction                 []IpRestriction                    `tfschema:"ip_restriction"`
 	LoadBalancing                 string                             `tfschema:"load_balancing_mode"` // TODO - Valid for FunctionApps?
-	LocalMysql                    bool                               `tfschema:"local_mysql"`
 	ManagedPipelineMode           string                             `tfschema:"managed_pipeline_mode"`
 	PreWarmedInstanceCount        int                                `tfschema:"pre_warmed_instance_count"`
 	RemoteDebugging               bool                               `tfschema:"remote_debugging"`
@@ -170,13 +169,6 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
-
-				"local_mysql": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Default:     false,
-					Description: "Use Local MySQL. Defaults to `false`.",
-				},
 
 				"load_balancing_mode": { // Supported on Function Apps?
 					Type:     pluginsdk.TypeString,
@@ -659,8 +651,6 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 
 	expanded.HTTP20Enabled = utils.Bool(linuxSiteConfig.Http2Enabled)
 
-	expanded.LocalMySQLEnabled = utils.Bool(linuxSiteConfig.LocalMysql)
-
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
 		ipRestrictions, err := ExpandIpRestrictions(linuxSiteConfig.IpRestriction)
 		if err != nil {
@@ -851,10 +841,6 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*
 		appStack = decoded
 	}
 	result.ApplicationStack = appStack
-
-	if functionAppSiteConfig.LocalMySQLEnabled != nil {
-		result.LocalMysql = *functionAppSiteConfig.LocalMySQLEnabled
-	}
 
 	if functionAppSiteConfig.VnetRouteAllEnabled != nil {
 		result.VnetRouteAllEnabled = *functionAppSiteConfig.VnetRouteAllEnabled
