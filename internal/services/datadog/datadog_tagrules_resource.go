@@ -199,7 +199,6 @@ func resourceDatadogTagRulesRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.SetId("")
 			return nil
 		}
-		// return fmt.Errorf("retrieving Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
 	}
 
 	if props := resp.Properties; props != nil {
