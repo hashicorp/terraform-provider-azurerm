@@ -64,7 +64,7 @@ func resourceStorageEncryptionScope() *pluginsdk.Resource {
 			"key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: keyVaultValidate.KeyVaultChildID,
+				ValidateFunc: keyVaultValidate.KeyVaultChildIDWithOptionalVersion,
 			},
 
 			"infrastructure_encryption_required": {
