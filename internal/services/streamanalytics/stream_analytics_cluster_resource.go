@@ -100,6 +100,7 @@ func (r ClusterResource) Create() sdk.ResourceFunc {
 					Name:     streamanalytics.Default,
 					Capacity: utils.Int32(model.StreamingCapacity),
 				},
+				Tags: tags.Expand(model.Tags),
 			}
 
 			future, err := client.CreateOrUpdate(ctx, props, id.ResourceGroup, id.Name, "", "")
@@ -186,22 +187,22 @@ func (r ClusterResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
-			if err != nil {
-				return fmt.Errorf("reading %s: %+v", *id, err)
-			}
+			if metadata.ResourceData.HasChange("streaming_capacity") || metadata.ResourceData.HasChange("tags") {
+				props := streamanalytics.Cluster{
+					Sku: &streamanalytics.ClusterSku{
+						Capacity: utils.Int32(state.StreamingCapacity),
+					},
+					Tags: tags.Expand(state.Tags),
+				}
 
-			if metadata.ResourceData.HasChange("streaming_units") {
-				existing.Sku.Capacity = utils.Int32(state.StreamingCapacity)
-			}
+				future, err := client.Update(ctx, props, id.ResourceGroup, id.Name, "")
+				if err != nil {
+					return fmt.Errorf("updating %s: %+v", *id, err)
+				}
 
-			future, err := client.Update(ctx, existing, id.ResourceGroup, id.Name, "")
-			if err != nil {
-				return fmt.Errorf("updating %s: %+v", *id, err)
-			}
-
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for update to %s: %+v", *id, err)
+				if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return fmt.Errorf("waiting for update to %s: %+v", *id, err)
+				}
 			}
 
 			return nil
