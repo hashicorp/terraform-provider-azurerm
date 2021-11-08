@@ -52,6 +52,27 @@ func TestAccDataSourceStorageAccount_withWriteLock(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceStorageAccount_withEncryptionKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_account", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StorageAccountDataSource{}.encryptionKeyWithDataSource(data, "Service"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("table_encryption_key_type").HasValue("Service"),
+				check.That(data.ResourceName).Key("queue_encryption_key_type").HasValue("Service"),
+			),
+		},
+		{
+			Config: StorageAccountDataSource{}.encryptionKeyWithDataSource(data, "Account"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("table_encryption_key_type").HasValue("Account"),
+				check.That(data.ResourceName).Key("queue_encryption_key_type").HasValue("Account"),
+			),
+		},
+	})
+}
+
 func (d StorageAccountDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -113,4 +134,33 @@ data "azurerm_storage_account" "test" {
   resource_group_name = azurerm_storage_account.test.resource_group_name
 }
 `, config)
+}
+
+func (d StorageAccountDataSource) encryptionKeyWithDataSource(data acceptance.TestData, t string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                  = azurerm_resource_group.test.location
+  account_tier              = "Standard"
+  account_replication_type  = "LRS"
+  table_encryption_key_type = %q
+  queue_encryption_key_type = %q
+}
+
+data "azurerm_storage_account" "test" {
+  name                = azurerm_storage_account.test.name
+  resource_group_name = azurerm_storage_account.test.resource_group_name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, t, t)
 }
