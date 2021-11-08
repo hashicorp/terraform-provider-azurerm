@@ -669,6 +669,28 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
+			"queue_encryption_key_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(storage.KeyTypeService),
+					string(storage.KeyTypeAccount),
+				}, false),
+				Default: string(storage.KeyTypeService),
+			},
+
+			"table_encryption_key_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(storage.KeyTypeService),
+					string(storage.KeyTypeAccount),
+				}, false),
+				Default: string(storage.KeyTypeService),
+			},
+
 			"large_file_share_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1027,6 +1049,32 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("routing"); ok {
 		parameters.RoutingPreference = expandArmStorageAccountRouting(v.([]interface{}))
+	}
+
+	// By default (by leaving empty), the table and queue encryption key type is set to "Service". While users can change it to "Account" so that
+	// they can further use CMK to encrypt table/queue data. Only the StorageV2 account kind supports this.
+	// Also noted that the blob and file are always using the "Account" key type.
+	// See: https://docs.microsoft.com/en-gb/azure/storage/common/account-encryption-key-create?tabs=portal
+	queueEncryptionKeyType := d.Get("queue_encryption_key_type").(string)
+	tableEncryptionKeyType := d.Get("table_encryption_key_type").(string)
+	if queueEncryptionKeyType != "" || tableEncryptionKeyType != "" {
+		if accountKind != string(storage.StorageV2) {
+			return fmt.Errorf("`queue_encryption_key_type` and `table_encryption_key_type` can only be used with account kind `StorageV2`")
+		}
+		parameters.Encryption = &storage.Encryption{
+			KeySource: storage.KeySourceMicrosoftStorage,
+			Services:  &storage.EncryptionServices{},
+		}
+		if queueEncryptionKeyType != "" {
+			parameters.Encryption.Services.Queue = &storage.EncryptionService{
+				KeyType: storage.KeyType(queueEncryptionKeyType),
+			}
+		}
+		if tableEncryptionKeyType != "" {
+			parameters.Encryption.Services.Table = &storage.EncryptionService{
+				KeyType: storage.KeyType(tableEncryptionKeyType),
+			}
+		}
 	}
 
 	// Create
@@ -1678,6 +1726,23 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			allowSharedKeyAccess = *props.AllowSharedKeyAccess
 		}
 		d.Set("shared_access_key_enabled", allowSharedKeyAccess)
+
+		// Setting the encryption key type to "Service" in PUT. The following GET will not return the queue/table in the service list of its response.
+		// So defaults to setting the encryption key type to "Service" if it is absent in the GET response. Also, define the default value as "Service" in the schema.
+		var (
+			queueEncryptionKeyType = "Service"
+			tableEncryptionKeyType = "Service"
+		)
+		if encryption := props.Encryption; encryption != nil && encryption.Services != nil {
+			if encryption.Services.Queue != nil {
+				queueEncryptionKeyType = string(encryption.Services.Queue.KeyType)
+			}
+			if encryption.Services.Table != nil {
+				tableEncryptionKeyType = string(encryption.Services.Table.KeyType)
+			}
+		}
+		d.Set("table_encryption_key_type", tableEncryptionKeyType)
+		d.Set("queue_encryption_key_type", queueEncryptionKeyType)
 	}
 
 	if accessKeys := keys.Keys; accessKeys != nil {
