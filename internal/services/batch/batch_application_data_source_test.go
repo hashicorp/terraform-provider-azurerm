@@ -65,5 +65,5 @@ data "azurerm_batch_application" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, displayName)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger)
 }
