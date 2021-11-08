@@ -141,11 +141,9 @@ The following arguments are supported:
 
 * `queue_encryption_key_type` - (Optional) The encryption type of the queue service. Possible values are `Service` and `Account`. Default value is `Service`.
 
-~> **NOTE**: `queue_encryption_key_type` can only be set when the `acount_kind` is set to `StorageV2`.
-
 * `table_encryption_key_type` - (Optional) The encryption type of the table service. Possible values are `Service` and `Account`. Default value is `Service`.
 
-~> **NOTE**: `table_encryption_key_type` can only be set when the `acount_kind` is set to `StorageV2`.
+~> **NOTE**: For  the `queue_encryption_key_type` and `table_encryption_key_type`, the `Account` key type is only allowed when the `account_kind` is set to `StorageV2`
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

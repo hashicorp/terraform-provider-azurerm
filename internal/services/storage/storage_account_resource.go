@@ -1052,29 +1052,29 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	// By default (by leaving empty), the table and queue encryption key type is set to "Service". While users can change it to "Account" so that
-	// they can further use CMK to encrypt table/queue data. Only the StorageV2 account kind supports this.
+	// they can further use CMK to encrypt table/queue data. Only the StorageV2 account kind supports the Account key type.
 	// Also noted that the blob and file are always using the "Account" key type.
 	// See: https://docs.microsoft.com/en-gb/azure/storage/common/account-encryption-key-create?tabs=portal
 	queueEncryptionKeyType := d.Get("queue_encryption_key_type").(string)
 	tableEncryptionKeyType := d.Get("table_encryption_key_type").(string)
-	if queueEncryptionKeyType != "" || tableEncryptionKeyType != "" {
-		if accountKind != string(storage.StorageV2) {
-			return fmt.Errorf("`queue_encryption_key_type` and `table_encryption_key_type` can only be used with account kind `StorageV2`")
+	if accountKind != string(storage.StorageV2) {
+		if queueEncryptionKeyType == string(storage.KeyTypeAccount) {
+			return fmt.Errorf("`queue_encryption_key_type = \"Account\"` can only be used with account kind `StorageV2`")
 		}
-		parameters.Encryption = &storage.Encryption{
-			KeySource: storage.KeySourceMicrosoftStorage,
-			Services:  &storage.EncryptionServices{},
+		if tableEncryptionKeyType == string(storage.KeyTypeAccount) {
+			return fmt.Errorf("`table_encryption_key_type = \"Account\"` can only be used with account kind `StorageV2`")
 		}
-		if queueEncryptionKeyType != "" {
-			parameters.Encryption.Services.Queue = &storage.EncryptionService{
+	}
+	parameters.Encryption = &storage.Encryption{
+		KeySource: storage.KeySourceMicrosoftStorage,
+		Services: &storage.EncryptionServices{
+			Queue: &storage.EncryptionService{
 				KeyType: storage.KeyType(queueEncryptionKeyType),
-			}
-		}
-		if tableEncryptionKeyType != "" {
-			parameters.Encryption.Services.Table = &storage.EncryptionService{
+			},
+			Table: &storage.EncryptionService{
 				KeyType: storage.KeyType(tableEncryptionKeyType),
-			}
-		}
+			},
+		},
 	}
 
 	// Create
