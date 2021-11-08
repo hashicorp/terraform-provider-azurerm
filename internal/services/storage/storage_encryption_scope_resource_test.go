@@ -178,7 +178,7 @@ func (t StorageEncryptionScopeResource) Exists(ctx context.Context, clients *cli
 
 	enabled := false
 	if resp.EncryptionScopeProperties != nil {
-		enabled = strings.EqualFold(string(resp.EncryptionScopeProperties.State), string(storage.Enabled))
+		enabled = strings.EqualFold(string(resp.EncryptionScopeProperties.State), string(storage.EncryptionScopeStateEnabled))
 	}
 
 	return utils.Bool(enabled), nil
