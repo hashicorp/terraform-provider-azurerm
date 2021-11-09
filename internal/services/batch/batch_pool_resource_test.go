@@ -302,7 +302,7 @@ func TestAccBatchPool_applications(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.certificates(data),
+			Config: r.applications(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
