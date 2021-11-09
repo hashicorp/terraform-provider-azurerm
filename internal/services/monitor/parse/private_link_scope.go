@@ -33,7 +33,7 @@ func (id PrivateLinkScopeId) String() string {
 }
 
 func (id PrivateLinkScopeId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/privateLinkScopes/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Insights/privateLinkScopes/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 

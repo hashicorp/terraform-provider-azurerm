@@ -54,5 +54,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Azure Monitor Private Link Scopes can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_monitor_private_link_scope.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/microsoft.insights/privateLinkScopes/pls1
+terraform import azurerm_monitor_private_link_scope.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/privateLinkScopes/pls1
 ```
