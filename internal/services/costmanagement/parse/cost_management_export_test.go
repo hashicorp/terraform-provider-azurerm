@@ -4,12 +4,12 @@ import (
 	"testing"
 )
 
-func TestPolicyAssignmentID(t *testing.T) {
+func TestCostManagementExportID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
 		Error    bool
-		Expected *PolicyAssignmentId
+		Expected *CostManagementExportId
 	}{
 		{
 			Name:  "empty",
@@ -17,63 +17,42 @@ func TestPolicyAssignmentID(t *testing.T) {
 			Error: true,
 		},
 		{
-			Name:  "policy assignment in resource group",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Authorization/policyAssignments/assignment1",
-			Expected: &PolicyAssignmentId{
-				Name:  "assignment1",
+			Name:  "resource group cost management export",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.CostManagement/exports/export1",
+			Expected: &CostManagementExportId{
+				Name:  "export1",
 				Scope: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo",
 			},
 		},
 		{
-			Name:  "policy assignment in resource group but no name",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Authorization/policyAssignments/",
+			Name:  "resource group cost management export but no name",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.CostManagement/exports/",
 			Error: true,
 		},
 		{
-			Name:  "the returned value of policy assignment id may not keep its casing",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.authorization/policyassignments/assignment1",
-			Expected: &PolicyAssignmentId{
-				Name:  "assignment1",
-				Scope: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo",
-			},
-		},
-		{
-			Name:  "policy assignment in subscription",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policyAssignments/assignment1",
-			Expected: &PolicyAssignmentId{
-				Name:  "assignment1",
+			Name:  "subscription cost management export",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.CostManagement/exports/export1",
+			Expected: &CostManagementExportId{
+				Name:  "export1",
 				Scope: "/subscriptions/00000000-0000-0000-0000-000000000000",
 			},
 		},
 		{
-			Name:  "policy assignment in subscription but no name",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policyAssignments/",
+			Name:  "subscription cost management export but no name",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.CostManagement/exports/",
 			Error: true,
 		},
 		{
-			Name:  "policy assignment in management group",
-			Input: "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policyAssignments/assignment1",
-			Expected: &PolicyAssignmentId{
-				Name:  "assignment1",
+			Name:  "management group cost management export",
+			Input: "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.CostManagement/exports/export1",
+			Expected: &CostManagementExportId{
+				Name:  "export1",
 				Scope: "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
 			},
 		},
 		{
-			Name:  "policy assignment in management group but no name",
-			Input: "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policyAssignments/",
-			Error: true,
-		},
-		{
-			Name:  "policy assignment in resource",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.Authorization/policyAssignments/assignment1",
-			Expected: &PolicyAssignmentId{
-				Name:  "assignment1",
-				Scope: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Compute/virtualMachines/vm1",
-			},
-		},
-		{
-			Name:  "policy assignment in resource but no name",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.Authorization/policyAssignments/",
+			Name:  "management group cost management export but no name",
+			Input: "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.CostManagement/exports/",
 			Error: true,
 		},
 	}
@@ -81,7 +60,7 @@ func TestPolicyAssignmentID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := PolicyAssignmentID(v.Input)
+		actual, err := CostManagementExportID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
