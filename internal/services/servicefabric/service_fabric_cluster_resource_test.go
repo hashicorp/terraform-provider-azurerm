@@ -1402,7 +1402,7 @@ resource "azuread_service_principal" "cluster_explorer" {
 
 resource "azuread_application" "cluster_console" {
   display_name     = "${azurerm_resource_group.test.name}-console-AAD"
-  sign_in_audience = AzureADMyOrg
+  sign_in_audience = "AzureADMyOrg"
   web {
     redirect_uris = ["urn:ietf:wg:oauth:2.0:oob"]
 
