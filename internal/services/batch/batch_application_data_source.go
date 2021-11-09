@@ -69,7 +69,7 @@ func dataSourceBatchApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
