@@ -1381,7 +1381,7 @@ resource "azuread_application" "cluster_explorer" {
       access_token_issuance_enabled = true
     }
   }
-  sign_in_audience = "AzureADMultipleOrgs"
+  sign_in_audience = "AzureADMyOrg"
 
 
   # https://blogs.msdn.microsoft.com/aaddevsup/2018/06/06/guid-table-for-windows-azure-active-directory-permissions/
