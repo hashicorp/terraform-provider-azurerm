@@ -63,6 +63,7 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 					"VirtualMachines",
 					"Arm",
 					"Dns",
+					"OpenSourceRelationalDatabases",
 				}, false),
 			},
 		},
