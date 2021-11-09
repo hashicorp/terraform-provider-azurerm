@@ -165,6 +165,26 @@ func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 	return append(results, result)
 }
 
+// flattenBatchPoolApplicationReferences flattens a Batch pool application package reference
+func flattenBatchPoolApplicationReferences(armApplicationPackages *[]batch.ApplicationPackageReference) []interface{} {
+	if armApplicationPackages == nil {
+		return []interface{}{}
+	}
+	output := make([]interface{}, 0)
+
+	for _, armApplicationPackage := range *armApplicationPackages {
+		applicationPackage := map[string]interface{}{}
+		if armApplicationPackage.ID != nil {
+			applicationPackage["id"] = *armApplicationPackage.ID
+		}
+		if armApplicationPackage.Version != nil {
+			applicationPackage["version"] = *armApplicationPackage.Version
+		}
+		output = append(output, applicationPackage)
+	}
+	return output
+}
+
 // flattenBatchPoolCertificateReferences flattens a Batch pool certificate reference
 func flattenBatchPoolCertificateReferences(armCertificates *[]batch.CertificateReference) []interface{} {
 	if armCertificates == nil {
@@ -399,6 +419,42 @@ func expandBatchPoolCertificateReference(ref map[string]interface{}) (*batch.Cer
 		Visibility:    &visibility,
 	}
 	return certificateReference, nil
+}
+
+// ExpandBatchPoolApplicationReferences expands Batch pool application references
+func ExpandBatchPoolApplicationReferences(list []interface{}) (*[]batch.ApplicationPackageReference, error) {
+	var result []batch.ApplicationPackageReference
+
+	for _, tempItem := range list {
+		item := tempItem.(map[string]interface{})
+		applicationReference, err := expandBatchPoolApplicationReference(item)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, *applicationReference)
+	}
+	return &result, nil
+}
+
+func expandBatchPoolApplicationReference(ref map[string]interface{}) (*batch.ApplicationPackageReference, error) {
+	if len(ref) == 0 {
+		return nil, fmt.Errorf("Error: application package reference should be defined")
+	}
+
+	id := ref["id"].(string)
+	version := ref["version"].(string)
+
+	applicationReference := &batch.ApplicationPackageReference{
+		ID: &id,
+	}
+
+	// Resource Manager errors if the version is sent as an empty string,
+	// so it needs to be excluded when sent if version is not supplied.
+	if version != "" {
+		applicationReference.Version = &version
+	}
+
+	return applicationReference, nil
 }
 
 // ExpandBatchPoolStartTask expands Batch pool start task

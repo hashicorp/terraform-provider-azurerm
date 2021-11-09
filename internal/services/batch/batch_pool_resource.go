@@ -286,6 +286,30 @@ func resourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
+			"application_package": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 10,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+							// The ID returned for the application in the batch account and the application applied to the pool
+							// are not consistent in their casing which causes issues when referencing IDs across resources
+							// (as Terraform still sees differences to apply due to the casing)
+							// Handling by ignoring casing for now. Raised as an issue: https://github.com/Azure/azure-rest-api-specs/issues/16708.
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
+						"version": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
 
 			"identity": batchPoolIdentity{}.Schema(),
 
@@ -621,6 +645,13 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 	parameters.PoolProperties.Certificates = certificateReferences
 
+	applications := d.Get("application_package").([]interface{})
+	applicationReferences, err := ExpandBatchPoolApplicationReferences(applications)
+	if err != nil {
+		return fmt.Errorf("expanding `application_package`: %+v", err)
+	}
+	parameters.PoolProperties.ApplicationPackages = applicationReferences
+
 	if err := validateBatchPoolCrossFieldRules(&parameters); err != nil {
 		return err
 	}
@@ -733,6 +764,17 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 	parameters.PoolProperties.Certificates = certificateReferences
 
+	applications := d.Get("application_package").([]interface{})
+	applicationReferences, err := ExpandBatchPoolApplicationReferences(applications)
+	if err != nil {
+		return fmt.Errorf("expanding `application_package`: %+v", err)
+	}
+	parameters.PoolProperties.ApplicationPackages = applicationReferences
+
+	if err := validateBatchPoolCrossFieldRules(&parameters); err != nil {
+		return err
+	}
+
 	if err := validateBatchPoolCrossFieldRules(&parameters); err != nil {
 		return err
 	}
@@ -821,6 +863,10 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		if err := d.Set("certificate", flattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
 			return fmt.Errorf("flattening `certificate`: %+v", err)
+		}
+
+		if err := d.Set("application_package", flattenBatchPoolApplicationReferences(props.ApplicationPackages)); err != nil {
+			return fmt.Errorf("flattening `application_package`: %+v", err)
 		}
 
 		d.Set("start_task", flattenBatchPoolStartTask(props.StartTask))

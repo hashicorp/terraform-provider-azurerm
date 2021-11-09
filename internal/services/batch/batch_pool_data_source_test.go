@@ -43,6 +43,8 @@ func TestAccBatchPoolDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("certificate.0.store_location").HasValue("CurrentUser"),
 				check.That(data.ResourceName).Key("certificate.0.store_name").HasValue(""),
 				check.That(data.ResourceName).Key("certificate.0.visibility.#").HasValue("2"),
+				check.That(data.ResourceName).Key("application_package.#").HasValue("1"),
+				check.That(data.ResourceName).Key("application_package.0.id").Exists(),
 				check.That(data.ResourceName).Key("container_configuration.0.type").HasValue("DockerCompatible"),
 				check.That(data.ResourceName).Key("container_configuration.0.container_registries.#").HasValue("1"),
 				check.That(data.ResourceName).Key("container_configuration.0.container_registries.0.registry_server").HasValue("myContainerRegistry.azurecr.io"),
@@ -94,6 +96,12 @@ resource "azurerm_batch_certificate" "test" {
   thumbprint_algorithm = "SHA1"
 }
 
+resource "azurerm_batch_application" "test" {
+  name                = "test-application"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+}
+
 resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
   resource_group_name = azurerm_resource_group.test.name
@@ -119,6 +127,10 @@ resource "azurerm_batch_pool" "test" {
     id             = azurerm_batch_certificate.test.id
     store_location = "CurrentUser"
     visibility     = ["StartTask", "RemoteUser"]
+  }
+
+  application_package {
+    id = azurerm_batch_application.test.id
   }
 
   container_configuration {

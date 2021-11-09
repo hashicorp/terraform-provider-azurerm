@@ -139,6 +139,8 @@ The following arguments are supported:
 
 * `start_task` - (Optional) A `start_task` block that describes the start task settings for the Batch pool.
 
+* `application_package` - (Optional) One or more `application_package` blocks that describe the application packages to be installed on each compute node in the pool.
+
 * `certificate` - (Optional) One or more `certificate` blocks that describe the certificates to be installed on each compute node in the pool.
 
 * `container_configuration` - (Optional) The container configuration used in the pool's VMs.
@@ -229,6 +231,14 @@ A `auto_user` block supports the following:
 * `elevation_level` - (Optional) The elevation level of the user identity under which the start task runs. Possible values are `Admin` or `NonAdmin`. Defaults to `NonAdmin`.
 
 * `scope` - (Optional) The scope of the user identity under which the start task runs. Possible values are `Task` or `Pool`. Defaults to `Task`.
+
+---
+
+An `application_package` block supports the following:
+
+* `id` - (Required) The ID of the Application package to install on the Batch Pool, which must be inside the same Batch Account.
+
+* `version` - (Optional) Version of the Application package to install. If this is omitted and no default version is specified for this application, the request will fail.
 
 ---
 
