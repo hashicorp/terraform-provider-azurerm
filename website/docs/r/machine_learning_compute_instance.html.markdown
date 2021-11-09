@@ -113,7 +113,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the Machine Learning Compute Instance. Changing this forces a new Machine Learning Compute Instance to be created.
 
-* `identity` - (Optional) A `identity` block as defined below. Changing this forces a new Machine Learning Compute Instance to be created.
+* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Machine Learning Compute Instance to be created.
 
 * `local_auth_enabled` - (Optional) Whether local authentication methods is enabled. Defaults to `true`. Changing this forces a new Machine Learning Compute Instance to be created.
   

@@ -135,7 +135,7 @@ The following arguments are supported:
 
   ~> **NOTE:** `quarantine_policy_enabled`, `retention_policy`, `trust_policy` and `zone_redundancy_enabled` are only supported on resources with the `Premium` SKU.
 
-* `identity` - (Optional) An `identity` block as documented below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `encryption` - (Optional) An `encryption` block as documented below.
 
