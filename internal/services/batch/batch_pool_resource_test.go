@@ -298,7 +298,7 @@ func TestAccBatchPool_applications(t *testing.T) {
 	r := BatchPoolResource{}
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-  application0ID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/applications/test-application", subscriptionID, data.RandomInteger, data.RandomString)
+	application0ID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/applications/test-application", subscriptionID, data.RandomInteger, data.RandomString)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
