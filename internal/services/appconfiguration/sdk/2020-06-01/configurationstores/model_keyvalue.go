@@ -3,7 +3,7 @@ package configurationstores
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/formatting"
+	"github.com/hashicorp/go-azure-helpers/lang/dates"
 )
 
 type KeyValue struct {
@@ -18,7 +18,7 @@ type KeyValue struct {
 }
 
 func (o KeyValue) GetLastModifiedAsTime() (*time.Time, error) {
-	return formatting.ParseAsDateFormat(o.LastModified, "2006-01-02T15:04:05Z07:00")
+	return dates.ParseAsFormat(o.LastModified, "2006-01-02T15:04:05Z07:00")
 }
 
 func (o KeyValue) SetLastModifiedAsTime(input time.Time) {

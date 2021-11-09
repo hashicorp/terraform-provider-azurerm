@@ -24,8 +24,10 @@ func resourceApiManagementApiSchema() *pluginsdk.Resource {
 		Read:   resourceApiManagementApiSchemaRead,
 		Update: resourceApiManagementApiSchemaCreateUpdate,
 		Delete: resourceApiManagementApiSchemaDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ApiSchemaID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -132,26 +134,22 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	apiName := id.ApiName
-	schemaID := id.SchemaName
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, schemaID)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.SchemaName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] API Schema %q (API Management Service %q / API %q / Resource Group %q) was not found - removing from state!", schemaID, serviceName, apiName, resourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request for API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
+		return fmt.Errorf("making Read request for %s: %s", *id, err)
 	}
 
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
-	d.Set("api_name", apiName)
-	d.Set("schema_id", schemaID)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("api_management_name", id.ServiceName)
+	d.Set("api_name", id.ApiName)
+	d.Set("schema_id", id.SchemaName)
 
 	if properties := resp.SchemaContractProperties; properties != nil {
 		d.Set("content_type", properties.ContentType)
@@ -178,7 +176,7 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 			case "application/vnd.ms-azure-apim.xsd+xml", "application/vnd.ms-azure-apim.wadl.grammars+xml":
 				d.Set("value", documentProperties.Value)
 			default:
-				log.Printf("[WARN] Unknown content type %q for schema %q (API Management Service %q / API %q / Resource Group %q)", *properties.ContentType, schemaID, serviceName, apiName, resourceGroup)
+				log.Printf("[WARN] Unknown content type %q for %s", *properties.ContentType, *id)
 				d.Set("value", documentProperties.Value)
 			}
 		}
@@ -195,14 +193,10 @@ func resourceApiManagementApiSchemaDelete(d *pluginsdk.ResourceData, meta interf
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	apiName := id.ApiName
-	schemaID := id.SchemaName
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, apiName, schemaID, "", utils.Bool(false)); err != nil {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.SchemaName, "", utils.Bool(false)); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
+			return fmt.Errorf("deleting %s: %s", *id, err)
 		}
 	}
 

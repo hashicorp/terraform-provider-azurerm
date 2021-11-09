@@ -3,7 +3,7 @@ package configurationstores
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/formatting"
+	"github.com/hashicorp/go-azure-helpers/lang/dates"
 )
 
 type ApiKey struct {
@@ -16,7 +16,7 @@ type ApiKey struct {
 }
 
 func (o ApiKey) GetLastModifiedAsTime() (*time.Time, error) {
-	return formatting.ParseAsDateFormat(o.LastModified, "2006-01-02T15:04:05Z07:00")
+	return dates.ParseAsFormat(o.LastModified, "2006-01-02T15:04:05Z07:00")
 }
 
 func (o ApiKey) SetLastModifiedAsTime(input time.Time) {

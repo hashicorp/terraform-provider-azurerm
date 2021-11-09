@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-05-01/frontdoors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -111,12 +112,17 @@ func (FrontDoorCustomHttpsConfigurationResource) Exists(ctx context.Context, cli
 		return nil, err
 	}
 
-	resp, err := clients.Frontdoor.FrontDoorsFrontendClient.Get(ctx, id.ResourceGroup, id.FrontDoorName, id.CustomHttpsConfigurationName)
+	frontdoorId, err := frontdoors.ParseFrontendEndpointID(state.Attributes["frontend_endpoint_id"])
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Frontend Endpoint %q (Front Door %q / Resource Group %q): %v", id.CustomHttpsConfigurationName, id.FrontDoorName, id.ResourceGroup, err)
+		return nil, err
 	}
 
-	return utils.Bool(resp.FrontendEndpointProperties != nil), nil
+	resp, err := clients.Frontdoor.FrontDoorsClient.FrontendEndpointsGet(ctx, *frontdoorId)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
+	}
+
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r FrontDoorCustomHttpsConfigurationResource) Enabled(data acceptance.TestData) string {

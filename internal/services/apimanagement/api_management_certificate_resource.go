@@ -25,8 +25,10 @@ func resourceApiManagementCertificate() *pluginsdk.Resource {
 		Read:   resourceApiManagementCertificateRead,
 		Update: resourceApiManagementCertificateCreateUpdate,
 		Delete: resourceApiManagementCertificateDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.CertificateID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -93,22 +95,22 @@ func resourceApiManagementCertificate() *pluginsdk.Resource {
 
 func resourceApiManagementCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.CertificatesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("api_management_name").(string)
+	id := parse.NewCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
+
 	data := d.Get("data").(string)
 	password := d.Get("password").(string)
 	keyVaultSecretId := d.Get("key_vault_secret_id").(string)
 	keyVaultIdentity := d.Get("key_vault_identity_client_id").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Certificate %q (API Management Service %q / Resource Group %q): %s", name, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -141,18 +143,11 @@ func resourceApiManagementCertificateCreateUpdate(d *pluginsdk.ResourceData, met
 		parameters.Password = utils.String(password)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, ""); err != nil {
-		return fmt.Errorf("creating or updating Certificate %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.Name, parameters, ""); err != nil {
+		return fmt.Errorf("creating or updating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Certificate %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("cannot read ID for Certificate %q (Resource Group %q / API Management Service %q)", name, resourceGroup, serviceName)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceApiManagementCertificateRead(d, meta)
 }
@@ -166,31 +161,28 @@ func resourceApiManagementCertificateRead(d *pluginsdk.ResourceData, meta interf
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	name := id.Name
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Certificate %q (Resource Group %q / API Management Service %q) was not found - removing from state!", name, resourceGroup, serviceName)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request for Certificate %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+		return fmt.Errorf("making Read request for %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("api_management_name", id.ServiceName)
 
 	if props := resp.CertificateContractProperties; props != nil {
 		if expiration := props.ExpirationDate; expiration != nil {
 			formatted := expiration.Format(time.RFC3339)
 			d.Set("expiration", formatted)
 		}
-		d.Set("subject", props.Thumbprint)
+		d.Set("subject", props.Subject)
 		d.Set("thumbprint", props.Thumbprint)
 
 		if keyvault := props.KeyVault; keyvault != nil {
@@ -211,13 +203,10 @@ func resourceApiManagementCertificateDelete(d *pluginsdk.ResourceData, meta inte
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	name := id.Name
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting Certificate %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 
