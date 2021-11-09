@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `force_disable_content_share` - (Optional) Should the settings for linking the Function App to storage be suppressed. 
 
-* `functions_extension_version` - (Optional) The runtime version associated with the Function App. Defaults to `~3`.
+* `functions_extension_version` - (Optional) The runtime version associated with the Function App. Defaults to `~4`.
 
 * `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`.
 
@@ -123,8 +123,6 @@ A `application_stack` block supports the following:
 * `docker` - (Optional) One or more `docker` blocks as defined below.
 
 * `dotnet_version` - (Optional) The version of .Net to use. Possible values include `3.1` and `6`.
-
-~> **NOTE:** When using version `6`, `functions_extension_version` should be set to `~4`.
 
 * `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, and `11`.
 

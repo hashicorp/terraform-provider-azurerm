@@ -196,7 +196,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"functions_extension_version": {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Default:     "~3",
+			Default:     "~4",
 			Description: "The runtime version associated with the Function App.",
 		},
 
