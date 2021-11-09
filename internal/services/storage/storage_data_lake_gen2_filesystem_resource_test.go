@@ -258,7 +258,7 @@ resource "azurerm_role_assignment" "storageAccountRoleAssignment" {
 }
 
 resource "azuread_application" "test" {
-  name = "acctestspa%[2]d"
+  display_name = "acctestspa%[2]d"
 }
 
 resource "azuread_service_principal" "test" {

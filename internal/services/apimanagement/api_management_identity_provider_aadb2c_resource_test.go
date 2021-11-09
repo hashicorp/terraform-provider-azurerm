@@ -129,22 +129,25 @@ resource "azurerm_api_management" "test" {
 }
 
 resource "azuread_application" "test" {
-  name                       = "acctestAM-%[5]d"
-  oauth2_allow_implicit_flow = true
-  reply_urls                 = [azurerm_api_management.test.developer_portal_url]
+  display_name = "acctestAM-%[5]d"
+  web {
+    redirect_uris = [azurerm_api_management.test.developer_portal_url]
+
+    implicit_grant {
+      access_token_issuance_enabled = true
+    }
+  }
 }
 
 resource "azuread_application_password" "test" {
   application_object_id = azuread_application.test.object_id
-  end_date_relative     = "36h"
-  value                 = "P@55w0rD!%[7]s"
 }
 
 resource "azurerm_api_management_identity_provider_aadb2c" "test" {
   resource_group_name    = azurerm_resource_group.test.name
   api_management_name    = azurerm_api_management.test.name
   client_id              = azuread_application.test.application_id
-  client_secret          = "P@55w0rD!%[7]s"
+  client_secret          = azuread_application_password.test.value
   allowed_tenant         = "%[4]s.onmicrosoft.com"
   signin_tenant          = "%[4]s.onmicrosoft.com"
   authority              = "%[4]s.b2clogin.com"
@@ -155,7 +158,7 @@ resource "azurerm_api_management_identity_provider_aadb2c" "test" {
 
   depends_on = [azuread_application_password.test]
 }
-`, b2cConfig["tenant_id"], b2cConfig["client_id"], b2cConfig["client_secret"], b2cConfig["tenant_slug"], data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, b2cConfig["tenant_id"], b2cConfig["client_id"], b2cConfig["client_secret"], b2cConfig["tenant_slug"], data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ApiManagementIdentityProviderAADB2CResource) requiresImport(data acceptance.TestData, b2cConfig map[string]string) string {

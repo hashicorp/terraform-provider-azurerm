@@ -4,9 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -129,16 +127,10 @@ func TestAccMsSqlVirtualMachine_autoPatching(t *testing.T) {
 func TestAccMsSqlVirtualMachine_keyVault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
 	r := MsSqlVirtualMachineResource{}
-	value, err := uuid.GenerateUUID()
-	if err != nil {
-		t.Fatal(err)
-	}
-	loc, _ := time.LoadLocation("UTC")
-	keyVaultTime := time.Now().UTC().Add(time.Hour * 240).In(loc).Format("2006-01-02T15:04:00Z")
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withKeyVault(data, value, keyVaultTime),
+			Config: r.withKeyVault(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -146,7 +138,7 @@ func TestAccMsSqlVirtualMachine_keyVault(t *testing.T) {
 		data.ImportStep("key_vault_credential.0.key_vault_url", "key_vault_credential.0.service_principal_name", "key_vault_credential.0.service_principal_secret"),
 
 		{
-			Config: r.withKeyVaultUpdated(data, value, keyVaultTime),
+			Config: r.withKeyVaultUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -457,7 +449,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r MsSqlVirtualMachineResource) withKeyVault(data acceptance.TestData, value string, keyvaultTime string) string {
+func (r MsSqlVirtualMachineResource) withKeyVault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -511,7 +503,7 @@ resource "azurerm_key_vault_key" "generated" {
 }
 
 resource "azuread_application" "test" {
-  name = "acctestspa%[2]d"
+  display_name = "acctestspa%[2]d"
 }
 
 resource "azuread_service_principal" "test" {
@@ -520,8 +512,6 @@ resource "azuread_service_principal" "test" {
 
 resource "azuread_service_principal_password" "test" {
   service_principal_id = azuread_service_principal.test.id
-  value                = "%[3]s"
-  end_date             = "%[4]s"
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
@@ -534,10 +524,10 @@ resource "azurerm_mssql_virtual_machine" "test" {
     service_principal_secret = azuread_service_principal_password.test.value
   }
 }
-`, r.template(data), data.RandomInteger, value, keyvaultTime)
+`, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlVirtualMachineResource) withKeyVaultUpdated(data acceptance.TestData, value string, keyvaultTime string) string {
+func (r MsSqlVirtualMachineResource) withKeyVaultUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -591,7 +581,7 @@ resource "azurerm_key_vault_key" "generated" {
 }
 
 resource "azuread_application" "test" {
-  name = "acctestspa%[2]d"
+  display_name = "acctestspa%[2]d"
 }
 
 resource "azuread_service_principal" "test" {
@@ -600,8 +590,6 @@ resource "azuread_service_principal" "test" {
 
 resource "azuread_service_principal_password" "test" {
   service_principal_id = azuread_service_principal.test.id
-  value                = "%[3]s"
-  end_date             = "%[4]s"
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
@@ -614,7 +602,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     service_principal_secret = azuread_service_principal_password.test.value
   }
 }
-`, r.template(data), data.RandomInteger, value, keyvaultTime)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r MsSqlVirtualMachineResource) storageConfiguration(data acceptance.TestData) string {

@@ -1371,12 +1371,18 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azuread_application" "cluster_explorer" {
-  name                       = "${azurerm_resource_group.test.name}-explorer-AAD"
-  homepage                   = "https://example:19080/Explorer/index.html"
-  identifier_uris            = ["https://example%d:19080/Explorer/index.html"]
-  reply_urls                 = ["https://example:19080/Explorer/index.html"]
-  available_to_other_tenants = false
-  oauth2_allow_implicit_flow = true
+  display_name    = "${azurerm_resource_group.test.name}-explorer-AAD"
+  identifier_uris = ["https://example%d:19080/Explorer/index.html"]
+  web {
+    homepage_url  = "https://example:19080/Explorer/index.html"
+    redirect_uris = ["https://example:19080/Explorer/index.html"]
+
+    implicit_grant {
+      access_token_issuance_enabled = true
+    }
+  }
+  sign_in_audience = "AzureADMultipleOrgs"
+
 
   # https://blogs.msdn.microsoft.com/aaddevsup/2018/06/06/guid-table-for-windows-azure-active-directory-permissions/
   # https://shawntabrizi.com/aad/common-microsoft-resources-azure-active-directory/
@@ -1395,11 +1401,15 @@ resource "azuread_service_principal" "cluster_explorer" {
 }
 
 resource "azuread_application" "cluster_console" {
-  name                       = "${azurerm_resource_group.test.name}-console-AAD"
-  type                       = "native"
-  reply_urls                 = ["urn:ietf:wg:oauth:2.0:oob"]
-  available_to_other_tenants = false
-  oauth2_allow_implicit_flow = true
+  display_name     = "${azurerm_resource_group.test.name}-console-AAD"
+  sign_in_audience = AzureADMyOrg
+  web {
+    redirect_uris = ["urn:ietf:wg:oauth:2.0:oob"]
+
+    implicit_grant {
+      access_token_issuance_enabled = true
+    }
+  }
 
   # https://blogs.msdn.microsoft.com/aaddevsup/2018/06/06/guid-table-for-windows-azure-active-directory-permissions/
   # https://shawntabrizi.com/aad/common-microsoft-resources-azure-active-directory/

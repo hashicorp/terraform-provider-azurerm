@@ -297,8 +297,9 @@ resource "azuread_service_principal" "test" {
 }
 
 resource "azuread_group" "test" {
-  name        = "AAD DC Administrators"
-  description = "Delegated group to administer Azure AD Domain Services"
+  display_name     = "AAD DC Administrators"
+  description      = "Delegated group to administer Azure AD Domain Services"
+  security_enabled = true
 }
 
 resource "azuread_user" "test" {

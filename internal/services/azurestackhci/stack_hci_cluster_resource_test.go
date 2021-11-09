@@ -180,7 +180,7 @@ provider "azuread" {}
 data "azurerm_client_config" "current" {}
 
 resource "azuread_application" "test" {
-  name = "acctestspa-%d"
+  display_name = "acctestspa-%d"
 }
 
 resource "azurerm_resource_group" "test" {
