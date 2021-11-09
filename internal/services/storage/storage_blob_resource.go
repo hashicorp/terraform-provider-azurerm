@@ -259,13 +259,14 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		log.Printf("[DEBUG] Updated Access Tier for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
 	}
 
-	if d.HasChange("content_type") {
+	if d.HasChange("content_type") || d.HasChange("cache_control") {
 		log.Printf("[DEBUG] Updating Properties for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
-		// `content_md5` is `ForceNew` but must be included in the `SetPropertiesInput` update payload or it will be zeroed on the blob.
 		input := blobs.SetPropertiesInput{
-			ContentType: utils.String(d.Get("content_type").(string)),
+			ContentType:  utils.String(d.Get("content_type").(string)),
+			CacheControl: utils.String(d.Get("cache_control").(string)),
 		}
 
+		// `content_md5` is `ForceNew` but must be included in the `SetPropertiesInput` update payload or it will be zeroed on the blob.
 		if contentMD5 := d.Get("content_md5").(string); contentMD5 != "" {
 			data, err := convertHexToBase64Encoding(contentMD5)
 			if err != nil {
@@ -291,18 +292,6 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("updating MetaData for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
 		}
 		log.Printf("[DEBUG] Updated MetaData for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
-	}
-
-	if d.HasChange("cache_control") {
-		log.Printf("[DEBUG] Updating Cache Control for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
-		input := blobs.SetPropertiesInput{
-			CacheControl: utils.String(d.Get("cache_control").(string)),
-		}
-
-		if _, err := blobsClient.SetProperties(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
-			return fmt.Errorf("updating Cache Control for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
-		}
-		log.Printf("[DEBUG] Updated Cache Control for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
 	}
 
 	return resourceStorageBlobRead(d, meta)
