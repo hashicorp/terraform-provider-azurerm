@@ -167,7 +167,7 @@ func (t AppConfigurationResource) Exists(ctx context.Context, clients *clients.C
 
 	resp, err := clients.AppConfiguration.ConfigurationStoresClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving App Configuration %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.Model != nil), nil
