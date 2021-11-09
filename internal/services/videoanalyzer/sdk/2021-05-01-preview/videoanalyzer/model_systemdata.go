@@ -3,7 +3,7 @@ package videoanalyzer
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/formatting"
+	"github.com/hashicorp/go-azure-helpers/lang/dates"
 )
 
 type SystemData struct {
@@ -19,7 +19,7 @@ func (o SystemData) GetCreatedAtAsTime() (*time.Time, error) {
 	if o.CreatedAt == nil {
 		return nil, nil
 	}
-	return formatting.ParseAsDateFormat(o.CreatedAt, "2006-01-02T15:04:05Z07:00")
+	return dates.ParseAsFormat(o.CreatedAt, "2006-01-02T15:04:05Z07:00")
 }
 
 func (o SystemData) SetCreatedAtAsTime(input time.Time) {
@@ -31,7 +31,7 @@ func (o SystemData) GetLastModifiedAtAsTime() (*time.Time, error) {
 	if o.LastModifiedAt == nil {
 		return nil, nil
 	}
-	return formatting.ParseAsDateFormat(o.LastModifiedAt, "2006-01-02T15:04:05Z07:00")
+	return dates.ParseAsFormat(o.LastModifiedAt, "2006-01-02T15:04:05Z07:00")
 }
 
 func (o SystemData) SetLastModifiedAtAsTime(input time.Time) {

@@ -3,29 +3,29 @@ package frontdoor
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-05-01/frontdoor"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-04-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-05-01/frontdoors"
 )
 
-func isFrontDoorFrontendEndpointConfigurable(currentState frontdoor.CustomHTTPSProvisioningState, customHttpsProvisioningEnabled bool, frontendEndpointId parse.FrontendEndpointId) error {
+func isFrontDoorFrontendEndpointConfigurable(currentState frontdoors.CustomHttpsProvisioningState, customHttpsProvisioningEnabled bool, frontendEndpointId frontdoors.FrontendEndpointId) error {
 	action := "disable"
 	if customHttpsProvisioningEnabled {
 		action = "enable"
 	}
 
 	switch currentState {
-	case frontdoor.CustomHTTPSProvisioningStateDisabling, frontdoor.CustomHTTPSProvisioningStateEnabling, frontdoor.CustomHTTPSProvisioningStateFailed:
-		return fmt.Errorf("Unable to %s the Front Door Frontend Endpoint %q (Resource Group %q) Custom Domain HTTPS state because the Frontend Endpoint is currently in the %q state", action, frontendEndpointId.Name, frontendEndpointId.ResourceGroup, currentState)
+	case frontdoors.CustomHttpsProvisioningStateDisabling, frontdoors.CustomHttpsProvisioningStateEnabling, frontdoors.CustomHttpsProvisioningStateFailed:
+		return fmt.Errorf("unable to %s %s Custom Domain HTTPS state because the Frontend Endpoint is currently in the %q state", action, frontendEndpointId, currentState)
 	default:
 		return nil
 	}
 }
 
-func NormalizeCustomHTTPSProvisioningStateToBool(provisioningState frontdoor.CustomHTTPSProvisioningState) bool {
-	return provisioningState == frontdoor.CustomHTTPSProvisioningStateEnabled || provisioningState == frontdoor.CustomHTTPSProvisioningStateEnabling
+func NormalizeCustomHTTPSProvisioningStateToBool(provisioningState frontdoors.CustomHttpsProvisioningState) bool {
+	return provisioningState == frontdoors.CustomHttpsProvisioningStateEnabled || provisioningState == frontdoors.CustomHttpsProvisioningStateEnabling
 }
 
-func FlattenTransformSlice(input *[]frontdoor.TransformType) []interface{} {
+func FlattenTransformSlice(input *[]webapplicationfirewallpolicies.TransformType) []interface{} {
 	result := make([]interface{}, 0)
 
 	if input != nil {
@@ -36,16 +36,16 @@ func FlattenTransformSlice(input *[]frontdoor.TransformType) []interface{} {
 	return result
 }
 
-func FlattenFrontendEndpointLinkSlice(input *[]frontdoor.FrontendEndpointLink) []interface{} {
+func FlattenFrontendEndpointLinkSlice(input *[]webapplicationfirewallpolicies.FrontendEndpointLink) []interface{} {
 	result := make([]interface{}, 0)
 
 	if input != nil {
 		for _, item := range *input {
-			if item.ID == nil {
+			if item.Id == nil {
 				continue
 			}
 
-			result = append(result, *item.ID)
+			result = append(result, *item.Id)
 		}
 	}
 	return result

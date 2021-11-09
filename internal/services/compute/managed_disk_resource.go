@@ -134,15 +134,17 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			},
 
 			"disk_iops_read_write": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				Computed: true,
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"disk_mbps_read_write": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				Computed: true,
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"disk_encryption_set_id": {

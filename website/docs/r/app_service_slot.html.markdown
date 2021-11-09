@@ -172,6 +172,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) A Managed Service Identity block as defined below.
 
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity Id used for looking up KeyVault secrets. The identity must be assigned to the application. See [Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity) for more information.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---

@@ -22,8 +22,10 @@ func resourceApiManagementApiOperation() *pluginsdk.Resource {
 		Read:   resourceApiManagementApiOperationRead,
 		Update: resourceApiManagementApiOperationCreateUpdate,
 		Delete: resourceApiManagementApiOperationDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ApiOperationID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -111,19 +113,17 @@ func resourceApiManagementApiOperation() *pluginsdk.Resource {
 
 func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiOperationsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("api_management_name").(string)
-	apiId := d.Get("api_name").(string)
-	operationId := d.Get("operation_id").(string)
+	id := parse.NewApiOperationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("api_name").(string), d.Get("operation_id").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, apiId, operationId)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.OperationName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Operation %q (API %q / API Management Service %q / Resource Group %q): %s", operationId, apiId, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -164,16 +164,11 @@ func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, me
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, operationId, parameters, ""); err != nil {
-		return fmt.Errorf("creating/updating API Operation %q (API %q / API Management Service %q / Resource Group %q): %+v", operationId, apiId, serviceName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.OperationName, parameters, ""); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apiId, operationId)
-	if err != nil {
-		return fmt.Errorf("retrieving API Operation %q (API %q / API Management Service %q / Resource Group %q): %+v", operationId, apiId, serviceName, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceApiManagementApiOperationRead(d, meta)
 }
@@ -188,26 +183,21 @@ func resourceApiManagementApiOperationRead(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	apiId := id.ApiName
-	operationId := id.OperationName
-
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apiId, operationId)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.OperationName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] API Operation %q (API %q / API Management Service %q / Resource Group %q) was not found - removing from state!", operationId, apiId, serviceName, resourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving API Operation %q (API %q / API Management Service %q / Resource Group %q): %+v", operationId, apiId, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("operation_id", operationId)
-	d.Set("api_name", apiId)
-	d.Set("api_management_name", serviceName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("operation_id", id.OperationName)
+	d.Set("api_name", id.ApiName)
+	d.Set("api_management_name", id.ServiceName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.OperationContractProperties; props != nil {
 		d.Set("description", props.Description)
@@ -244,15 +234,10 @@ func resourceApiManagementApiOperationDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	apiId := id.ApiName
-	operationId := id.OperationName
-
-	resp, err := client.Delete(ctx, resourceGroup, serviceName, apiId, operationId, "")
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.OperationName, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting API Operation %q (API %q / API Management Service %q / Resource Group %q): %+v", operationId, apiId, serviceName, resourceGroup, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 
