@@ -3,7 +3,7 @@ subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_diagnostic_setting"
 description: |-
-Manages a Diagnostic Setting for an existing Resource.
+  Manages a Diagnostic Setting for an existing Resource.
 
 ---
 
@@ -52,67 +52,6 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
   }
 }
 ```
-If you are using the Event hub as the destination for the diagnostic setting, then you can refer to below example:
-```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example_rg_eventhub"
-  location = "West Europe"
-}
-
-resource "azurerm_eventhub_namespace" "example" {
-  name                = "example_eventhubns"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-
-  sku = "Standard"
-}
-
-resource "azurerm_eventhub" "example" {
-  name                = "example_eventhub"
-  namespace_name      = azurerm_eventhub_namespace.example.name
-  resource_group_name = azurerm_resource_group.example.name
-
-  partition_count   = 2
-  message_retention = 1
-}
-
-resource "azurerm_eventhub_namespace_authorization_rule" "example" {
-  name                = "example_eventhubns_auth_rule"
-  namespace_name      = azurerm_eventhub_namespace.example.name
-  resource_group_name = azurerm_resource_group.example.name
-
-  listen = true
-  send   = true
-  manage = true
-}
-
-data "azurerm_kusto_cluster" "example" {
-  name                = "example_kustocluster"
-  resource_group_name = "example_rg_kusto_cluster"
-}
-
-resource "azurerm_monitor_diagnostic_setting" "example" {
-  name                           = "example_monitor_diag_setting"
-  target_resource_id             = data.azurerm_kusto_cluster.example.id
-  eventhub_name                  = azurerm_eventhub.example.name
-  eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.example.id
-
-  log {
-    category = "Journal"
-    enabled  = false
-    retention_policy {
-      enabled = false
-    }
-  }
-  metric {
-    category = "AllMetrics"
-    retention_policy {
-      enabled = false
-    }
-  }
-}
-```
-!> **Note:** Azure Monitor (Diagnostic Settings) can't access Event Hubs resources when virtual networks are enabled. You have to enable the Allow trusted Microsoft services to bypass this firewall setting in Event Hub, so that Azure Monitor (Diagnostic Settings) service is granted access to your Event Hubs resources.
 
 ## Argument Reference
 
@@ -124,7 +63,7 @@ The following arguments are supported:
 
 * `eventhub_name` - (Optional) Specifies the name of the Event Hub where Diagnostics Data should be sent. Changing this forces a new resource to be created.
 
--> **NOTE:** If this isn't specified then the default Event Hub will be used. Specifically, if you don't specify a name, an event hub is created for each log category. If you are sending multiple categories, you may want to specify a name to limit the number of event hubs created
+-> **NOTE:** If this isn't specified then the default Event Hub will be used.
 
 * `eventhub_authorization_rule_id` - (Optional) Specifies the ID of an Event Hub Namespace Authorization Rule used to send Diagnostics Data. Changing this forces a new resource to be created.
 
