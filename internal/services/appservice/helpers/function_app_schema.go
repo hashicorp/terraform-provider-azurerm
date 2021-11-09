@@ -86,7 +86,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				"app_command_line": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The App command line to launch.",
+					Description: "The program and any arguments used to launch this app via the command line. (Example `node myapp.js`).",
 				},
 
 				"app_scale_limit": {
@@ -359,6 +359,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"3.1",
+						"6",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
