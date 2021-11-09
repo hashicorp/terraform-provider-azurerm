@@ -207,7 +207,6 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 						"pricing_tier": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  "Basic",
 							ValidateFunc: validation.StringInSlice([]string{
 								"Basic",
 								"S0", "S1", "S2", "S3", "S4", "S6", "S7", "S9", "S12",
