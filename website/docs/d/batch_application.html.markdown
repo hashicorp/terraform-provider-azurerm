@@ -28,7 +28,7 @@ output "batch_application_id" {
 
 * `name` - The name of the Application.
 
-* `resource_group_name` - The Name of the Resource Group where this Batch account exists.
+* `resource_group_name` - The name of the Resource Group where this Batch account exists.
 
 * `account_name` - The name of the Batch account.
 
