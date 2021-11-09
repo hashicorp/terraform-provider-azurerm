@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -71,9 +72,9 @@ func dataSourceBatchApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 
 	d.SetId(id.ID())
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("account_name", accountName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("account_name", id.BatchAccountName)
 
 	if applicationProperties := resp.ApplicationProperties; applicationProperties != nil {
 		d.Set("allow_updates", applicationProperties.AllowUpdates)
