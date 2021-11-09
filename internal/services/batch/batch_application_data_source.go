@@ -58,9 +58,8 @@ func dataSourceBatchApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-	accountName := d.Get("account_name").(string)
+        subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+        id := parse.NewApplicationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
 	resp, err := client.Get(ctx, resourceGroup, accountName, name)
 	if err != nil {
