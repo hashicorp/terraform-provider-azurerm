@@ -510,8 +510,8 @@ resource "azuread_service_principal" "test" {
   application_id = azuread_application.test.application_id
 }
 
-resource "azuread_service_principal_password" "test" {
-  service_principal_id = azuread_service_principal.test.id
+resource "azuread_application_password" "test" {
+  application_object_id = azuread_application.test.object_id
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
@@ -521,7 +521,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     name                     = "acctestkv"
     key_vault_url            = azurerm_key_vault_key.generated.id
     service_principal_name   = azuread_service_principal.test.display_name
-    service_principal_secret = azuread_service_principal_password.test.value
+    service_principal_secret = azuread_application_password.test.value
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -588,8 +588,8 @@ resource "azuread_service_principal" "test" {
   application_id = azuread_application.test.application_id
 }
 
-resource "azuread_service_principal_password" "test" {
-  service_principal_id = azuread_service_principal.test.id
+resource "azuread_application_password" "test" {
+  application_object_id = azuread_application.test.object_id
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
@@ -599,7 +599,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     name                     = "acctestkv2"
     key_vault_url            = azurerm_key_vault_key.generated.id
     service_principal_name   = azuread_service_principal.test.display_name
-    service_principal_secret = azuread_service_principal_password.test.value
+    service_principal_secret = azuread_application_password.test.value
   }
 }
 `, r.template(data), data.RandomInteger)
