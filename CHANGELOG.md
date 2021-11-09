@@ -12,6 +12,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_api_management_certificate` - set `subject` property from correct field [GH-14026]
+* `azurerm_app_service_virtual_network_swift_connection` - fixing a panic when checking for an existing resource during creation [GH-14070]
 * `azurerm_storage_blob` - ensuring that `cache_control` is sent during updates [GH-14100]
 
 ## 2.84.0 (November 05, 2021)
