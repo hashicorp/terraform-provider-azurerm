@@ -85,6 +85,7 @@ func resourceMonitorPrivateLinkScopeCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	d.SetId(id.ID())
+
 	return resourceMonitorPrivateLinkScopeRead(d, meta)
 }
 
