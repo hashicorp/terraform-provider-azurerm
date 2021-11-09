@@ -297,7 +297,8 @@ func TestAccBatchPool_applications(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
-	application0ID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/applications/test-application", subscriptionID, data.RandomInteger, data.RandomString)
+	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
+  application0ID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/applications/test-application", subscriptionID, data.RandomInteger, data.RandomString)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -307,7 +308,7 @@ func TestAccBatchPool_applications(t *testing.T) {
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
 				check.That(data.ResourceName).Key("application_package.#").HasValue("1"),
-				check.That(data.ResourceName).Key("application_package.0.id").HasValue(certificate0ID),
+				check.That(data.ResourceName).Key("application_package.0.id").HasValue(application0ID),
 			),
 		},
 		data.ImportStep("stop_pending_resize_operation"),
