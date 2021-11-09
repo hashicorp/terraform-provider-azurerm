@@ -66,7 +66,7 @@ func dataSourceBatchApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("making Read request on AzureRM Batch Application %q (Account Name %q / dataSource Group %q): %+v", name, accountName, resourceGroup, err)
+		return fmt.Errorf("reading %s: %+v", id, err)
 	}
 
 	d.SetId(*resp.ID)
