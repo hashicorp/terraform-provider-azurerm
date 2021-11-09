@@ -67,7 +67,7 @@ func (t CostManagementExportResourceGroupResource) Exists(ctx context.Context, c
 		return nil, err
 	}
 
-	resp, err := clients.CostManagement.ExportClient.Get(ctx, id.ResourceId, id.Name)
+	resp, err := clients.CostManagement.ExportClient.Get(ctx, id.ResourceId, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Cost Management Export ResourceGroup %q (resource group: %q) does not exist", id.Name, id.ResourceId)
 	}
