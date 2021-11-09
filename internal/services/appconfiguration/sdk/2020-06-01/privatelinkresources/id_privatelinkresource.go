@@ -1,4 +1,4 @@
-package configurationstores
+package privatelinkresources
 
 import (
 	"fmt"
@@ -7,34 +7,36 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = ConfigurationStoreId{}
+var _ resourceids.ResourceId = PrivateLinkResourceId{}
 
-// ConfigurationStoreId is a struct representing the Resource ID for a Configuration Store
-type ConfigurationStoreId struct {
+// PrivateLinkResourceId is a struct representing the Resource ID for a Private Link Resource
+type PrivateLinkResourceId struct {
 	SubscriptionId    string
 	ResourceGroupName string
 	ConfigStoreName   string
+	GroupName         string
 }
 
-// NewConfigurationStoreID returns a new ConfigurationStoreId struct
-func NewConfigurationStoreID(subscriptionId string, resourceGroupName string, configStoreName string) ConfigurationStoreId {
-	return ConfigurationStoreId{
+// NewPrivateLinkResourceID returns a new PrivateLinkResourceId struct
+func NewPrivateLinkResourceID(subscriptionId string, resourceGroupName string, configStoreName string, groupName string) PrivateLinkResourceId {
+	return PrivateLinkResourceId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
 		ConfigStoreName:   configStoreName,
+		GroupName:         groupName,
 	}
 }
 
-// ParseConfigurationStoreID parses 'input' into a ConfigurationStoreId
-func ParseConfigurationStoreID(input string) (*ConfigurationStoreId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConfigurationStoreId{})
+// ParsePrivateLinkResourceID parses 'input' into a PrivateLinkResourceId
+func ParsePrivateLinkResourceID(input string) (*PrivateLinkResourceId, error) {
+	parser := resourceids.NewParserFromResourceIdType(PrivateLinkResourceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	var ok bool
-	id := ConfigurationStoreId{}
+	id := PrivateLinkResourceId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
@@ -48,20 +50,24 @@ func ParseConfigurationStoreID(input string) (*ConfigurationStoreId, error) {
 		return nil, fmt.Errorf("the segment 'configStoreName' was not found in the resource id %q", input)
 	}
 
+	if id.GroupName, ok = parsed.Parsed["groupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'groupName' was not found in the resource id %q", input)
+	}
+
 	return &id, nil
 }
 
-// ParseConfigurationStoreIDInsensitively parses 'input' case-insensitively into a ConfigurationStoreId
+// ParsePrivateLinkResourceIDInsensitively parses 'input' case-insensitively into a PrivateLinkResourceId
 // note: this method should only be used for API response data and not user input
-func ParseConfigurationStoreIDInsensitively(input string) (*ConfigurationStoreId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConfigurationStoreId{})
+func ParsePrivateLinkResourceIDInsensitively(input string) (*PrivateLinkResourceId, error) {
+	parser := resourceids.NewParserFromResourceIdType(PrivateLinkResourceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	var ok bool
-	id := ConfigurationStoreId{}
+	id := PrivateLinkResourceId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
@@ -75,32 +81,36 @@ func ParseConfigurationStoreIDInsensitively(input string) (*ConfigurationStoreId
 		return nil, fmt.Errorf("the segment 'configStoreName' was not found in the resource id %q", input)
 	}
 
+	if id.GroupName, ok = parsed.Parsed["groupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'groupName' was not found in the resource id %q", input)
+	}
+
 	return &id, nil
 }
 
-// ValidateConfigurationStoreID checks that 'input' can be parsed as a Configuration Store ID
-func ValidateConfigurationStoreID(input interface{}, key string) (warnings []string, errors []error) {
+// ValidatePrivateLinkResourceID checks that 'input' can be parsed as a Private Link Resource ID
+func ValidatePrivateLinkResourceID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := ParseConfigurationStoreID(v); err != nil {
+	if _, err := ParsePrivateLinkResourceID(v); err != nil {
 		errors = append(errors, err)
 	}
 
 	return
 }
 
-// ID returns the formatted Configuration Store ID
-func (id ConfigurationStoreId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppConfiguration/configurationStores/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ConfigStoreName)
+// ID returns the formatted Private Link Resource ID
+func (id PrivateLinkResourceId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppConfiguration/configurationStores/%s/privateLinkResources/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ConfigStoreName, id.GroupName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Configuration Store ID
-func (id ConfigurationStoreId) Segments() []resourceids.Segment {
+// Segments returns a slice of Resource ID Segments which comprise this Private Link Resource ID
+func (id PrivateLinkResourceId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
@@ -110,15 +120,18 @@ func (id ConfigurationStoreId) Segments() []resourceids.Segment {
 		resourceids.ResourceProviderSegment("microsoftAppConfiguration", "Microsoft.AppConfiguration", "Microsoft.AppConfiguration"),
 		resourceids.StaticSegment("configurationStores", "configurationStores", "configurationStores"),
 		resourceids.UserSpecifiedSegment("configStoreName", "configStoreValue"),
+		resourceids.StaticSegment("privateLinkResources", "privateLinkResources", "privateLinkResources"),
+		resourceids.UserSpecifiedSegment("groupName", "groupValue"),
 	}
 }
 
-// String returns a human-readable description of this Configuration Store ID
-func (id ConfigurationStoreId) String() string {
+// String returns a human-readable description of this Private Link Resource ID
+func (id PrivateLinkResourceId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Config Store Name: %q", id.ConfigStoreName),
+		fmt.Sprintf("Group Name: %q", id.GroupName),
 	}
-	return fmt.Sprintf("Configuration Store (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Private Link Resource (%s)", strings.Join(components, "\n"))
 }

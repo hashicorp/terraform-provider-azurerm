@@ -1,4 +1,4 @@
-package configurationstores
+package privateendpointconnections
 
 import "strings"
 
@@ -107,35 +107,5 @@ func parseProvisioningState(input string) (*ProvisioningState, error) {
 	v := input
 
 	out := ProvisioningState(v)
-	return &out, nil
-}
-
-type PublicNetworkAccess string
-
-const (
-	PublicNetworkAccessDisabled PublicNetworkAccess = "Disabled"
-	PublicNetworkAccessEnabled  PublicNetworkAccess = "Enabled"
-)
-
-func PossibleValuesForPublicNetworkAccess() []string {
-	return []string{
-		"Disabled",
-		"Enabled",
-	}
-}
-
-func parsePublicNetworkAccess(input string) (*PublicNetworkAccess, error) {
-	vals := map[string]PublicNetworkAccess{
-		"disabled": "Disabled",
-		"enabled":  "Enabled",
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := PublicNetworkAccess(v)
 	return &out, nil
 }

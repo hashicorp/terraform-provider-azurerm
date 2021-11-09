@@ -1,4 +1,4 @@
-package configurationstores
+package privateendpointconnections
 
 import (
 	"testing"
@@ -6,10 +6,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = ConfigurationStoreId{}
+var _ resourceids.ResourceId = PrivateEndpointConnectionId{}
 
-func TestNewConfigurationStoreID(t *testing.T) {
-	id := NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configStoreValue")
+func TestNewPrivateEndpointConnectionID(t *testing.T) {
+	id := NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configStoreValue", "privateEndpointConnectionValue")
 
 	if id.SubscriptionId != "12345678-1234-9876-4563-123456789012" {
 		t.Fatalf("Expected %q but got %q for Segment 'SubscriptionId'", id.SubscriptionId, "12345678-1234-9876-4563-123456789012")
@@ -22,21 +22,25 @@ func TestNewConfigurationStoreID(t *testing.T) {
 	if id.ConfigStoreName != "configStoreValue" {
 		t.Fatalf("Expected %q but got %q for Segment 'ConfigStoreName'", id.ConfigStoreName, "configStoreValue")
 	}
+
+	if id.PrivateEndpointConnectionName != "privateEndpointConnectionValue" {
+		t.Fatalf("Expected %q but got %q for Segment 'PrivateEndpointConnectionName'", id.PrivateEndpointConnectionName, "privateEndpointConnectionValue")
+	}
 }
 
-func TestFormatConfigurationStoreID(t *testing.T) {
-	actual := NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configStoreValue").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue"
+func TestFormatPrivateEndpointConnectionID(t *testing.T) {
+	actual := NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configStoreValue", "privateEndpointConnectionValue").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue/privateEndpointConnections/privateEndpointConnectionValue"
 	if actual != expected {
 		t.Fatalf("Expected the Formatted ID to be %q but got %q", actual, expected)
 	}
 }
 
-func TestParseConfigurationStoreID(t *testing.T) {
+func TestParsePrivateEndpointConnectionID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *ConfigurationStoreId
+		Expected *PrivateEndpointConnectionId
 	}{
 		{
 			// Incomplete URI
@@ -79,24 +83,35 @@ func TestParseConfigurationStoreID(t *testing.T) {
 			Error: true,
 		},
 		{
-			// Valid URI
+			// Incomplete URI
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue",
-			Expected: &ConfigurationStoreId{
-				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
-				ResourceGroupName: "example-resource-group",
-				ConfigStoreName:   "configStoreValue",
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue/privateEndpointConnections",
+			Error: true,
+		},
+		{
+			// Valid URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue/privateEndpointConnections/privateEndpointConnectionValue",
+			Expected: &PrivateEndpointConnectionId{
+				SubscriptionId:                "12345678-1234-9876-4563-123456789012",
+				ResourceGroupName:             "example-resource-group",
+				ConfigStoreName:               "configStoreValue",
+				PrivateEndpointConnectionName: "privateEndpointConnectionValue",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment)
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue/extra",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue/privateEndpointConnections/privateEndpointConnectionValue/extra",
 			Error: true,
 		},
 	}
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseConfigurationStoreID(v.Input)
+		actual, err := ParsePrivateEndpointConnectionID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -120,14 +135,18 @@ func TestParseConfigurationStoreID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for ConfigStoreName", v.Expected.ConfigStoreName, actual.ConfigStoreName)
 		}
 
+		if actual.PrivateEndpointConnectionName != v.Expected.PrivateEndpointConnectionName {
+			t.Fatalf("Expected %q but got %q for PrivateEndpointConnectionName", v.Expected.PrivateEndpointConnectionName, actual.PrivateEndpointConnectionName)
+		}
+
 	}
 }
 
-func TestParseConfigurationStoreIDInsensitively(t *testing.T) {
+func TestParsePrivateEndpointConnectionIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *ConfigurationStoreId
+		Expected *PrivateEndpointConnectionId
 	}{
 		{
 			// Incomplete URI
@@ -205,38 +224,60 @@ func TestParseConfigurationStoreIDInsensitively(t *testing.T) {
 			Error: true,
 		},
 		{
-			// Valid URI
+			// Incomplete URI
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue",
-			Expected: &ConfigurationStoreId{
-				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
-				ResourceGroupName: "example-resource-group",
-				ConfigStoreName:   "configStoreValue",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aPpCoNfIgUrAtIoN/cOnFiGuRaTiOnStOrEs/cOnFiGsToReVaLuE",
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue/privateEndpointConnections",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aPpCoNfIgUrAtIoN/cOnFiGuRaTiOnStOrEs/cOnFiGsToReVaLuE/pRiVaTeEnDpOiNtCoNnEcTiOnS",
+			Error: true,
+		},
+		{
+			// Valid URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue/privateEndpointConnections/privateEndpointConnectionValue",
+			Expected: &PrivateEndpointConnectionId{
+				SubscriptionId:                "12345678-1234-9876-4563-123456789012",
+				ResourceGroupName:             "example-resource-group",
+				ConfigStoreName:               "configStoreValue",
+				PrivateEndpointConnectionName: "privateEndpointConnectionValue",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment)
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue/extra",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue/privateEndpointConnections/privateEndpointConnectionValue/extra",
 			Error: true,
 		},
 		{
 			// Valid URI (mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aPpCoNfIgUrAtIoN/cOnFiGuRaTiOnStOrEs/cOnFiGsToReVaLuE",
-			Expected: &ConfigurationStoreId{
-				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
-				ResourceGroupName: "eXaMpLe-rEsOuRcE-GrOuP",
-				ConfigStoreName:   "cOnFiGsToReVaLuE",
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aPpCoNfIgUrAtIoN/cOnFiGuRaTiOnStOrEs/cOnFiGsToReVaLuE/pRiVaTeEnDpOiNtCoNnEcTiOnS/pRiVaTeEnDpOiNtCoNnEcTiOnVaLuE",
+			Expected: &PrivateEndpointConnectionId{
+				SubscriptionId:                "12345678-1234-9876-4563-123456789012",
+				ResourceGroupName:             "eXaMpLe-rEsOuRcE-GrOuP",
+				ConfigStoreName:               "cOnFiGsToReVaLuE",
+				PrivateEndpointConnectionName: "pRiVaTeEnDpOiNtCoNnEcTiOnVaLuE",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment - mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aPpCoNfIgUrAtIoN/cOnFiGuRaTiOnStOrEs/cOnFiGsToReVaLuE/extra",
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aPpCoNfIgUrAtIoN/cOnFiGuRaTiOnStOrEs/cOnFiGsToReVaLuE/pRiVaTeEnDpOiNtCoNnEcTiOnS/pRiVaTeEnDpOiNtCoNnEcTiOnVaLuE/extra",
 			Error: true,
 		},
 	}
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseConfigurationStoreIDInsensitively(v.Input)
+		actual, err := ParsePrivateEndpointConnectionIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -258,6 +299,10 @@ func TestParseConfigurationStoreIDInsensitively(t *testing.T) {
 
 		if actual.ConfigStoreName != v.Expected.ConfigStoreName {
 			t.Fatalf("Expected %q but got %q for ConfigStoreName", v.Expected.ConfigStoreName, actual.ConfigStoreName)
+		}
+
+		if actual.PrivateEndpointConnectionName != v.Expected.PrivateEndpointConnectionName {
+			t.Fatalf("Expected %q but got %q for PrivateEndpointConnectionName", v.Expected.PrivateEndpointConnectionName, actual.PrivateEndpointConnectionName)
 		}
 
 	}
