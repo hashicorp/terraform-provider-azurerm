@@ -331,12 +331,12 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 
 type ApplicationStackLinuxFunctionApp struct {
 	// Note - Function Apps differ to Web Apps here. They do not use the named properties in the SiteConfig block and exclusively use the app_settings map
-	DotNetVersion string                   `tfschema:"dotnet_version"` // Supported values `3.1`. Version 6 is in preview on Windows Only
-	NodeVersion   string                   `tfschema:"node_version"`   // Supported values `12LTS`, `14LTS`
-	PythonVersion string                   `tfschema:"python_version"` // Supported values `3.9`, `3.8`, `3.7`, `3.6`
-	JavaVersion   string                   `tfschema:"java_version"`   // Supported values `8`, `11`
-	CustomHandler bool                     `tfschema:"use_custom"`     // Supported values `true`
-	Docker        []ApplicationStackDocker `tfschema:"docker"`         // Needs ElasticPremium or Basic (B1) Standard (S 1-3) or Premium(PxV2 or PxV3) LINUX Service Plan
+	DotNetVersion string                   `tfschema:"dotnet_version"`     // Supported values `3.1`. Version 6 is in preview on Windows Only
+	NodeVersion   string                   `tfschema:"node_version"`       // Supported values `12LTS`, `14LTS`
+	PythonVersion string                   `tfschema:"python_version"`     // Supported values `3.9`, `3.8`, `3.7`, `3.6`
+	JavaVersion   string                   `tfschema:"java_version"`       // Supported values `8`, `11`
+	CustomHandler bool                     `tfschema:"use_custom_runtime"` // Supported values `true`
+	Docker        []ApplicationStackDocker `tfschema:"docker"`             // Needs ElasticPremium or Basic (B1) Standard (S 1-3) or Premium(PxV2 or PxV3) LINUX Service Plan
 }
 
 type ApplicationStackDocker struct {
@@ -367,7 +367,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.docker",
-						"site_config.0.application_stack.0.use_custom",
+						"site_config.0.application_stack.0.use_custom_runtime",
 					},
 					Description: "The version of .Net. Possible values are `3.1`",
 				},
@@ -387,7 +387,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.docker",
-						"site_config.0.application_stack.0.use_custom",
+						"site_config.0.application_stack.0.use_custom_runtime",
 					},
 					Description: "The version of Python to use. Possible values include `3.9`, `3.8`, `3.7`, and `3.6`, ",
 				},
@@ -405,7 +405,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.docker",
-						"site_config.0.application_stack.0.use_custom",
+						"site_config.0.application_stack.0.use_custom_runtime",
 					},
 					Description: "The version of Node to use. Possible values include `12`, and `14`",
 				},
@@ -423,7 +423,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.docker",
-						"site_config.0.application_stack.0.use_custom",
+						"site_config.0.application_stack.0.use_custom_runtime",
 					},
 					Description: "The version of Java to use. Possible values are `8`, and `11`",
 				},
@@ -476,12 +476,12 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.docker",
-						"site_config.0.application_stack.0.use_custom",
+						"site_config.0.application_stack.0.use_custom_runtime",
 					},
 					Description: "A docker block",
 				},
 
-				"use_custom": {
+				"use_custom_runtime": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					ExactlyOneOf: []string{
@@ -490,7 +490,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.docker",
-						"site_config.0.application_stack.0.use_custom",
+						"site_config.0.application_stack.0.use_custom_runtime",
 					},
 				},
 			},
