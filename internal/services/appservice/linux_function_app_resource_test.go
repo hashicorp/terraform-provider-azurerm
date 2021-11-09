@@ -481,7 +481,7 @@ func TestAccLinuxFunctionApp_appStackDotNet31(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNet(data, SkuBasicPlan, "3.1"),
+			Config: r.appStackDotNet(data, SkuBasicPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -497,7 +497,7 @@ func TestAccLinuxFunctionApp_appStackDotNet6(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNet(data, SkuBasicPlan, "6"),
+			Config: r.appStackDotNet6(data, SkuBasicPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -956,7 +956,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) appStackDotNet(data acceptance.TestData, planSku string, version string) string {
+func (r LinuxFunctionAppResource) appStackDotNet(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -975,11 +975,39 @@ resource "azurerm_linux_function_app" "test" {
 
   site_config {
     application_stack {
-      dotnet_version = "%s"
+      dotnet_version = "3.1"
     }
   }
 }
-`, r.template(data, planSku), data.RandomInteger, version)
+`, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) appStackDotNet6(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-FA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  functions_extension_version = "~4"
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    application_stack {
+      dotnet_version = "6"
+    }
+  }
+}
+`, r.template(data, planSku), data.RandomInteger)
 }
 
 func (r LinuxFunctionAppResource) appStackPython(data acceptance.TestData, planSku string, pythonVersion string) string {

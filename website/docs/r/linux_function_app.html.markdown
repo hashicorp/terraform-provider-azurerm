@@ -122,7 +122,9 @@ A `application_stack` block supports the following:
 
 * `docker` - (Optional) One or more `docker` blocks as defined below.
 
-* `dotnet_version` - (Optional) The version of .Net to use. Possible values include `3.1`.
+* `dotnet_version` - (Optional) The version of .Net to use. Possible values include `3.1` and `6`.
+
+~> **NOTE:** When using version `6`, `functions_extension_version` should be set to `~4`.
 
 * `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, and `11`.
 
