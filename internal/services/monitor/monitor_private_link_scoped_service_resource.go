@@ -3,7 +3,6 @@ package monitor
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
@@ -129,12 +128,6 @@ func resourceMonitorPrivateLinkScopedServiceRead(d *pluginsdk.ResourceData, meta
 	d.Set("name", id.ScopedResourceName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("scope_name", id.PrivateLinkScopeName)
-
-	if props := resp.ScopedResourceProperties; props != nil {
-		// API returns the value with incorrect format. Will remove the replacement once the issue is fixed
-		// https://github.com/Azure/azure-rest-api-specs/issues/16729
-		d.Set("linked_resource_id", strings.Replace(strings.Replace(*props.LinkedResourceID, "/resourcegroups/", "/resourceGroups/", 1), "/microsoft.insights/", "/Microsoft.Insights/", 1))
-	}
 
 	return nil
 }

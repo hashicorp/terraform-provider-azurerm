@@ -1,69 +1,71 @@
 package monitor_test
 
 import (
-    "context"
-    "fmt"
-    "testing"
+	"context"
+	"fmt"
+	"testing"
 
-    "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-    "github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MonitorPrivateLinkScopedServiceResource struct{}
 
 func TestAccMonitorPrivateLinkScopedService_basic(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_monitor_private_link_scoped_service", "test")
-    r := MonitorPrivateLinkScopedServiceResource{}
+	data := acceptance.BuildTestData(t, "azurerm_monitor_private_link_scoped_service", "test")
+	r := MonitorPrivateLinkScopedServiceResource{}
 
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config: r.basic(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-            ),
-        },
-        data.ImportStep(),
-    })
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// API returns the value of `linked_resource_id` with incorrect format. Will remove the ignore once the issue is fixed
+		// https://github.com/Azure/azure-rest-api-specs/issues/16729
+		data.ImportStep("linked_resource_id"),
+	})
 }
 
 func TestAccMonitorPrivateLinkScopedService_requiresImport(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_monitor_private_link_scoped_service", "test")
-    r := MonitorPrivateLinkScopedServiceResource{}
+	data := acceptance.BuildTestData(t, "azurerm_monitor_private_link_scoped_service", "test")
+	r := MonitorPrivateLinkScopedServiceResource{}
 
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config: r.basic(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-            ),
-        },
-        data.RequiresImportErrorStep(r.requiresImport),
-    })
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
 }
 
 func (r MonitorPrivateLinkScopedServiceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-    id, err := parse.PrivateLinkScopedServiceID(state.ID)
-    if err != nil {
-        return nil, err
-    }
+	id, err := parse.PrivateLinkScopedServiceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
 
-    resp, err := client.Monitor.PrivateLinkScopedResourcesClient.Get(ctx, id.ResourceGroup, id.PrivateLinkScopeName, id.ScopedResourceName)
-    if err != nil {
-        if utils.ResponseWasNotFound(resp.Response) {
-            return utils.Bool(false), nil
-        }
-        return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
-    }
+	resp, err := client.Monitor.PrivateLinkScopedResourcesClient.Get(ctx, id.ResourceGroup, id.PrivateLinkScopeName, id.ScopedResourceName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
 
-    return utils.Bool(resp.ScopedResourceProperties != nil), nil
+	return utils.Bool(resp.ScopedResourceProperties != nil), nil
 }
 
 func (r MonitorPrivateLinkScopedServiceResource) basic(data acceptance.TestData) string {
-    return fmt.Sprintf(`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -91,11 +93,11 @@ resource "azurerm_monitor_private_link_scoped_service" "test" {
   scope_name          = azurerm_monitor_private_link_scope.test.name
   linked_resource_id  = azurerm_application_insights.test.id
 }
-`, data.RandomInteger,data.Locations.Primary,data.RandomInteger,data.RandomInteger,data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r MonitorPrivateLinkScopedServiceResource) requiresImport(data acceptance.TestData) string {
-    return fmt.Sprintf(`
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_insights_private_link_scoped_resource" "import" {
