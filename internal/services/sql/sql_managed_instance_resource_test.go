@@ -53,6 +53,14 @@ func TestAccAzureRMSqlMiServer_identity(t *testing.T) {
 			),
 		},
 		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("0"),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
@@ -150,7 +158,7 @@ func (r SqlManagedInstanceResource) Exists(ctx context.Context, client *clients.
 		return nil, err
 	}
 
-	resp, err := client.Sql.ManagedInstancesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Sql.ManagedInstancesClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil

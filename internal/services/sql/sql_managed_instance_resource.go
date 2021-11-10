@@ -7,7 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2018-06-01-preview/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -182,11 +183,6 @@ func resourceArmSqlMiServer() *schema.Resource {
 			pluginsdk.ForceNewIfChange("dns_zone_partner_id", func(ctx context.Context, old, new, _ interface{}) bool {
 				return old.(string) == "" && new.(string) != ""
 			}),
-
-			// identity.0.type can be set to SystemAssigned, but not removed or set to None in this SDK version
-			pluginsdk.ForceNewIfChange("identity.0.type", func(ctx context.Context, old, new, _ interface{}) bool {
-				return old.(string) == "SystemAssigned" && new.(string) != "SystemAssigned"
-			}),
 		),
 	}
 }
@@ -202,7 +198,7 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 	id := parse.NewManagedInstanceID(subscriptionId, resGroup, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing Managed Instance %q: %s", id.ID(), err)
@@ -273,7 +269,7 @@ func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading SQL Managed Instance %q - removing from state", d.Id())
@@ -363,10 +359,6 @@ func expandManagedInstanceIdentity(input []interface{}) (*sql.ResourceIdentity, 
 	config, err := managedInstanceIdentity{}.Expand(input)
 	if err != nil {
 		return nil, err
-	}
-
-	if config.Type == identity.Type("None") {
-		return nil, nil
 	}
 
 	return &sql.ResourceIdentity{
