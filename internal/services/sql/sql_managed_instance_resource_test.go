@@ -31,6 +31,21 @@ func TestAccAzureRMSqlMiServer_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlMiServer_backupRedundancyLRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sql_managed_instance", "test")
+	r := SqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.storageType(data, "LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
 func TestAccAzureRMSqlMiServer_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_managed_instance", "test")
 	r := SqlManagedInstanceResource{}
@@ -195,6 +210,36 @@ resource "azurerm_sql_managed_instance" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r SqlManagedInstanceResource) storageType(data acceptance.TestData, storageAccountType string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sql_managed_instance" "test" {
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+  license_type                 = "BasePrice"
+  subnet_id                    = azurerm_subnet.test.id
+  sku_name                     = "GP_Gen5"
+  vcores                       = 4
+  storage_size_in_gb           = 32
+  storage_account_type         = "%s"
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+}
+`, r.template(data), data.RandomInteger, storageAccountType)
 }
 
 func (r SqlManagedInstanceResource) identity(data acceptance.TestData) string {

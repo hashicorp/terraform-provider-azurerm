@@ -175,6 +175,18 @@ func resourceArmSqlMiServer() *schema.Resource {
 
 			"identity": managedInstanceIdentity{}.Schema(),
 
+			"storage_account_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(sql.StorageAccountTypeGRS),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(sql.StorageAccountTypeGRS),
+					string(sql.StorageAccountTypeLRS),
+					string(sql.StorageAccountTypeZRS),
+				}, false),
+			},
+
 			"tags": tags.Schema(),
 		},
 
@@ -232,6 +244,7 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 			ProxyOverride:              sql.ManagedInstanceProxyOverride(d.Get("proxy_override").(string)),
 			TimezoneID:                 utils.String(d.Get("timezone_id").(string)),
 			DNSZonePartner:             utils.String(d.Get("dns_zone_partner_id").(string)),
+			StorageAccountType:         sql.StorageAccountType(d.Get("storage_account_type").(string)),
 		},
 	}
 
@@ -307,6 +320,7 @@ func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("minimum_tls_version", props.MinimalTLSVersion)
 		d.Set("proxy_override", props.ProxyOverride)
 		d.Set("timezone_id", props.TimezoneID)
+		d.Set("storage_account_type", props.StorageAccountType)
 		// This value is not returned from the api so we'll just set whatever is in the config
 		d.Set("administrator_login_password", d.Get("administrator_login_password").(string))
 	}
