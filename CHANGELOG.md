@@ -13,6 +13,8 @@ BUG FIXES:
 
 * Data Source: `azurerm_redis_cache` - parsing the `subnet_id` response value case-insensitively [GH-14108]
 * Data Source: `azurerm_redis_cache` - ensuring that `shard_count` always has a value set [GH-14108]
+* Data Source: `azurerm_consumption_budget_resource_group` - add missing `threshold_type` property in the schema [GH-14125]
+* Data Source: `azurerm_consumption_budget_subscription` - add missing `threshold_type` property in the schema [GH-14125]
 * `azurerm_api_management_certificate` - set `subject` property from correct field [GH-14026]
 * `azurerm_app_service_virtual_network_swift_connection` - fixing a panic when checking for an existing resource during creation [GH-14070]
 * `azurerm_redis_cache` - parsing the `subnet_id` response value case-insensitively [GH-14108]
