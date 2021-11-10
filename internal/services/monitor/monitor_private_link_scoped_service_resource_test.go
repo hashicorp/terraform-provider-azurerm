@@ -100,11 +100,11 @@ func (r MonitorPrivateLinkScopedServiceResource) requiresImport(data acceptance.
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_insights_private_link_scoped_resource" "import" {
-  name                = azurerm_insights_private_link_scoped_resource.test.name
-  resource_group_name = azurerm_insights_private_link_scoped_resource.test.resource_group_name
-  scope_name          = azurerm_insights_private_link_scoped_resource.test.scope_name
-  linked_resource_id  = azurerm_insights_private_link_scoped_resource.test.linked_resource_id
+resource "azurerm_monitor_private_link_scoped_service" "import" {
+  name                = azurerm_monitor_private_link_scoped_service.test.name
+  resource_group_name = azurerm_monitor_private_link_scoped_service.test.resource_group_name
+  scope_name          = azurerm_monitor_private_link_scoped_service.test.scope_name
+  linked_resource_id  = azurerm_monitor_private_link_scoped_service.test.linked_resource_id
 }
 `, r.basic(data))
 }
