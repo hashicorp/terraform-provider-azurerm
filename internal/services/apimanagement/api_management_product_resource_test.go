@@ -400,13 +400,13 @@ resource "azurerm_api_management" "test" {
 }
 
 resource "azurerm_api_management_product" "test" {
-  product_id            = "test-product"
-  api_management_name   = azurerm_api_management.test.name
-  resource_group_name   = azurerm_resource_group.test.name
-  display_name          = "Test Product"
-  approval_required     = true
-  subscriptions_limit   = 1
-  published             = true
+  product_id          = "test-product"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  display_name        = "Test Product"
+  approval_required   = true
+  subscriptions_limit = 1
+  published           = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
