@@ -26,9 +26,7 @@ func TestAccMonitorPrivateLinkScopedService_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// API returns the value of `linked_resource_id` with incorrect format. Will remove the ignore once the issue is fixed
-		// https://github.com/Azure/azure-rest-api-specs/issues/16729
-		data.ImportStep("linked_resource_id"),
+		data.ImportStep(),
 	})
 }
 

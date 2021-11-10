@@ -13,6 +13,7 @@ import (
 	loganalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -54,9 +55,10 @@ func resourceMonitorPrivateLinkScopedService() *pluginsdk.Resource {
 			},
 
 			"linked_resource_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.Any(
 					applicationinsightsvalidate.ComponentID,
 					loganalyticsValidate.LogAnalyticsWorkspaceID,
@@ -128,6 +130,10 @@ func resourceMonitorPrivateLinkScopedServiceRead(d *pluginsdk.ResourceData, meta
 	d.Set("name", id.ScopedResourceName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("scope_name", id.PrivateLinkScopeName)
+
+	if props := resp.ScopedResourceProperties; props != nil {
+		d.Set("linked_resource_id", props.LinkedResourceID)
+	}
 
 	return nil
 }
