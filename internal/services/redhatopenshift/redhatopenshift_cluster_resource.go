@@ -589,7 +589,6 @@ func flattenOpenShiftWorkerProfiles(profiles *[]redhatopenshift.WorkerProfile) [
 
 	result := make(map[string]interface{})
 	result["node_count"] = int32(len(*profiles))
-	//profile := make([]redhatopenshift.WorkerProfile, node_count)[0]
 
 	for _, profile := range *profiles {
 		if result["disk_size_gb"] == nil && profile.DiskSizeGB != nil {
