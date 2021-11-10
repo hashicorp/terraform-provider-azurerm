@@ -68,8 +68,8 @@ func dataSourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.WorkspaceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("sku", resp.Model.Sku.Name)
 	if model := resp.Model; model != nil {
 		d.Set("workspace_id", model.Properties.WorkspaceId)

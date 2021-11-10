@@ -1,4 +1,4 @@
-package put
+package privateendpointconnections
 
 import "strings"
 
