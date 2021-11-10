@@ -1,4 +1,4 @@
-package configurationstores
+package privatelinkresources
 
 import (
 	"testing"

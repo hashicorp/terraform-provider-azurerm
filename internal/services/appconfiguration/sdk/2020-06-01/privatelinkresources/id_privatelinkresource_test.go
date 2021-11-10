@@ -1,4 +1,4 @@
-package configurationstores
+package privatelinkresources
 
 import (
 	"testing"
@@ -6,10 +6,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = ConfigurationStoreId{}
+var _ resourceids.ResourceId = PrivateLinkResourceId{}
 
-func TestNewConfigurationStoreID(t *testing.T) {
-	id := NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configStoreValue")
+func TestNewPrivateLinkResourceID(t *testing.T) {
+	id := NewPrivateLinkResourceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configStoreValue", "groupValue")
 
 	if id.SubscriptionId != "12345678-1234-9876-4563-123456789012" {
 		t.Fatalf("Expected %q but got %q for Segment 'SubscriptionId'", id.SubscriptionId, "12345678-1234-9876-4563-123456789012")
@@ -22,21 +22,25 @@ func TestNewConfigurationStoreID(t *testing.T) {
 	if id.ConfigStoreName != "configStoreValue" {
 		t.Fatalf("Expected %q but got %q for Segment 'ConfigStoreName'", id.ConfigStoreName, "configStoreValue")
 	}
+
+	if id.GroupName != "groupValue" {
+		t.Fatalf("Expected %q but got %q for Segment 'GroupName'", id.GroupName, "groupValue")
+	}
 }
 
-func TestFormatConfigurationStoreID(t *testing.T) {
-	actual := NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configStoreValue").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue"
+func TestFormatPrivateLinkResourceID(t *testing.T) {
+	actual := NewPrivateLinkResourceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configStoreValue", "groupValue").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue/privateLinkResources/groupValue"
 	if actual != expected {
 		t.Fatalf("Expected the Formatted ID to be %q but got %q", actual, expected)
 	}
 }
 
-func TestParseConfigurationStoreID(t *testing.T) {
+func TestParsePrivateLinkResourceID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *ConfigurationStoreId
+		Expected *PrivateLinkResourceId
 	}{
 		{
 			// Incomplete URI
@@ -79,24 +83,35 @@ func TestParseConfigurationStoreID(t *testing.T) {
 			Error: true,
 		},
 		{
-			// Valid URI
+			// Incomplete URI
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue",
-			Expected: &ConfigurationStoreId{
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue/privateLinkResources",
+			Error: true,
+		},
+		{
+			// Valid URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue/privateLinkResources/groupValue",
+			Expected: &PrivateLinkResourceId{
 				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
 				ResourceGroupName: "example-resource-group",
 				ConfigStoreName:   "configStoreValue",
+				GroupName:         "groupValue",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment)
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue/extra",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue/privateLinkResources/groupValue/extra",
 			Error: true,
 		},
 	}
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseConfigurationStoreID(v.Input)
+		actual, err := ParsePrivateLinkResourceID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -120,14 +135,18 @@ func TestParseConfigurationStoreID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for ConfigStoreName", v.Expected.ConfigStoreName, actual.ConfigStoreName)
 		}
 
+		if actual.GroupName != v.Expected.GroupName {
+			t.Fatalf("Expected %q but got %q for GroupName", v.Expected.GroupName, actual.GroupName)
+		}
+
 	}
 }
 
-func TestParseConfigurationStoreIDInsensitively(t *testing.T) {
+func TestParsePrivateLinkResourceIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *ConfigurationStoreId
+		Expected *PrivateLinkResourceId
 	}{
 		{
 			// Incomplete URI
@@ -205,38 +224,60 @@ func TestParseConfigurationStoreIDInsensitively(t *testing.T) {
 			Error: true,
 		},
 		{
-			// Valid URI
+			// Incomplete URI
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue",
-			Expected: &ConfigurationStoreId{
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aPpCoNfIgUrAtIoN/cOnFiGuRaTiOnStOrEs/cOnFiGsToReVaLuE",
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue/privateLinkResources",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aPpCoNfIgUrAtIoN/cOnFiGuRaTiOnStOrEs/cOnFiGsToReVaLuE/pRiVaTeLiNkReSoUrCeS",
+			Error: true,
+		},
+		{
+			// Valid URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue/privateLinkResources/groupValue",
+			Expected: &PrivateLinkResourceId{
 				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
 				ResourceGroupName: "example-resource-group",
 				ConfigStoreName:   "configStoreValue",
+				GroupName:         "groupValue",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment)
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue/extra",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AppConfiguration/configurationStores/configStoreValue/privateLinkResources/groupValue/extra",
 			Error: true,
 		},
 		{
 			// Valid URI (mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aPpCoNfIgUrAtIoN/cOnFiGuRaTiOnStOrEs/cOnFiGsToReVaLuE",
-			Expected: &ConfigurationStoreId{
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aPpCoNfIgUrAtIoN/cOnFiGuRaTiOnStOrEs/cOnFiGsToReVaLuE/pRiVaTeLiNkReSoUrCeS/gRoUpVaLuE",
+			Expected: &PrivateLinkResourceId{
 				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
 				ResourceGroupName: "eXaMpLe-rEsOuRcE-GrOuP",
 				ConfigStoreName:   "cOnFiGsToReVaLuE",
+				GroupName:         "gRoUpVaLuE",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment - mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aPpCoNfIgUrAtIoN/cOnFiGuRaTiOnStOrEs/cOnFiGsToReVaLuE/extra",
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aPpCoNfIgUrAtIoN/cOnFiGuRaTiOnStOrEs/cOnFiGsToReVaLuE/pRiVaTeLiNkReSoUrCeS/gRoUpVaLuE/extra",
 			Error: true,
 		},
 	}
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseConfigurationStoreIDInsensitively(v.Input)
+		actual, err := ParsePrivateLinkResourceIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -258,6 +299,10 @@ func TestParseConfigurationStoreIDInsensitively(t *testing.T) {
 
 		if actual.ConfigStoreName != v.Expected.ConfigStoreName {
 			t.Fatalf("Expected %q but got %q for ConfigStoreName", v.Expected.ConfigStoreName, actual.ConfigStoreName)
+		}
+
+		if actual.GroupName != v.Expected.GroupName {
+			t.Fatalf("Expected %q but got %q for GroupName", v.Expected.GroupName, actual.GroupName)
 		}
 
 	}

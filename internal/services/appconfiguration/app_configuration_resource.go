@@ -274,8 +274,8 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving access keys for %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ConfigStoreName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
