@@ -64,26 +64,23 @@ func resourceRecoveryServicesBackupProtectedVM() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"disk_exclusion": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"disk_lun_list": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeInt,
-								ValidateFunc: validation.IntAtLeast(0),
-							},
-						},
+			"exclude_disk_luns": {
+				Type:          pluginsdk.TypeSet,
+				ConflictsWith: []string{"include_disk_luns"},
+				Optional:      true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeInt,
+					ValidateFunc: validation.IntAtLeast(0),
+				},
+			},
 
-						"is_inclusion_list": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
-					},
+			"include_disk_luns": {
+				Type:          pluginsdk.TypeSet,
+				ConflictsWith: []string{"exclude_disk_luns"},
+				Optional:      true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeInt,
+					ValidateFunc: validation.IntAtLeast(0),
 				},
 			},
 
@@ -190,8 +187,14 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 			}
 
 			if v := vm.ExtendedProperties; v != nil && v.DiskExclusionProperties != nil {
-				if err := d.Set("disk_exclusion", flattenDiskLunList(v.DiskExclusionProperties)); err != nil {
-					return fmt.Errorf("setting disk_exclusion: %+v", err)
+				if *v.DiskExclusionProperties.IsInclusionList {
+					if err := d.Set("include_disk_luns", utils.FlattenInt32Slice(v.DiskExclusionProperties.DiskLunList)); err != nil {
+						return fmt.Errorf("setting include_disk_luns: %+v", err)
+					}
+				} else {
+					if err := d.Set("exclude_disk_luns", utils.FlattenInt32Slice(v.DiskExclusionProperties.DiskLunList)); err != nil {
+						return fmt.Errorf("setting exclude_disk_luns: %+v", err)
+					}
 				}
 			}
 		}
@@ -301,20 +304,25 @@ func resourceRecoveryServicesBackupProtectedVMRefreshFunc(ctx context.Context, c
 }
 
 func expandDiskExclusion(d *pluginsdk.ResourceData) *backup.ExtendedProperties {
-	if v, ok := d.GetOk("disk_exclusion"); ok {
-		if vs := v.([]interface{}); len(vs) > 0 {
-			vm := vs[0].(map[string]interface{})
-			var diskLun []interface{}
-			if diskLunList, ok := vm["disk_lun_list"]; ok {
-				diskLun = expandDiskLunList(diskLunList.(*pluginsdk.Set).List())
-			}
+	if v, ok := d.GetOk("include_disk_luns"); ok {
+		var diskLun = expandDiskLunList(v.(*pluginsdk.Set).List())
 
-			return &backup.ExtendedProperties{
-				DiskExclusionProperties: &backup.DiskExclusionProperties{
-					DiskLunList:     utils.ExpandInt32Slice(diskLun),
-					IsInclusionList: utils.Bool(vm["is_inclusion_list"].(bool)),
-				},
-			}
+		return &backup.ExtendedProperties{
+			DiskExclusionProperties: &backup.DiskExclusionProperties{
+				DiskLunList:     utils.ExpandInt32Slice(diskLun),
+				IsInclusionList: utils.Bool(true),
+			},
+		}
+	}
+
+	if v, ok := d.GetOk("exclude_disk_luns"); ok {
+		var diskLun = expandDiskLunList(v.(*pluginsdk.Set).List())
+
+		return &backup.ExtendedProperties{
+			DiskExclusionProperties: &backup.DiskExclusionProperties{
+				DiskLunList:     utils.ExpandInt32Slice(diskLun),
+				IsInclusionList: utils.Bool(false),
+			},
 		}
 	}
 	return nil
@@ -326,16 +334,4 @@ func expandDiskLunList(input []interface{}) []interface{} {
 		result = append(result, v.(int))
 	}
 	return result
-}
-
-func flattenDiskLunList(input *backup.DiskExclusionProperties) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"disk_lun_list":     utils.FlattenInt32Slice(input.DiskLunList),
-			"is_inclusion_list": *input.IsInclusionList,
-		},
-	}
 }

@@ -318,10 +318,7 @@ resource "azurerm_backup_protected_vm" "test" {
   source_vm_id        = azurerm_virtual_machine.test.id
   backup_policy_id    = azurerm_backup_policy_vm.test.id
 
-  disk_exclusion {
-    disk_lun_list     = [0]
-    is_inclusion_list = true
-  }
+  include_disk_luns = [0]
 }
 `, r.base(data))
 }
@@ -336,10 +333,7 @@ resource "azurerm_backup_protected_vm" "test" {
   source_vm_id        = azurerm_virtual_machine.test.id
   backup_policy_id    = azurerm_backup_policy_vm.test.id
 
-  disk_exclusion {
-    disk_lun_list     = [0, 1]
-    is_inclusion_list = false
-  }
+  exclude_disk_luns = [0, 1]
 }
 `, r.base(data))
 }

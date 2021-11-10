@@ -56,19 +56,11 @@ The following arguments are supported:
 
 * `backup_policy_id` - (Required) Specifies the id of the backup policy to use.
 
-* `disk_exclusion` - (Optional) A `disk_exclusion` block as defined below.
-* 
+* `exclude_disk_luns` - (Optional) A list of Disks' Logical Unit Numbers(LUN) to be excluded for VM Protection.
+
+* `include_disk_luns` - (Optional) A list of Disks' Logical Unit Numbers(LUN) to be included for VM Protection.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
----
-
-The `disk_exclusion` block supports the following:
-
-* `disk_lun_list` - (Required) A list of Disks' Logical Unit Numbers(LUN) to be used for VM Protection.
-
-* `is_inclusion_list` - (Optional) The flag to indicate whether the `disk_lun_list` is to be included/excluded from backup.
-
----
 
 ## Attributes Reference
 
