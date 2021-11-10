@@ -1,13 +1,13 @@
-package accounts
+package creators
 
-type MapsAccountPredicate struct {
+type CreatorPredicate struct {
 	Id       *string
 	Location *string
 	Name     *string
 	Type     *string
 }
 
-func (p MapsAccountPredicate) Matches(input MapsAccount) bool {
+func (p CreatorPredicate) Matches(input Creator) bool {
 
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false
