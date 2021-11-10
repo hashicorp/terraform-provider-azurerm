@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_batch_application` [GH-14043]
+
 IMPROVEMENTS:
 
 * dependencies: upgrading to `v0.17.0` of `github.com/hashicorp/go-azure-helpers` [GH-14060]
