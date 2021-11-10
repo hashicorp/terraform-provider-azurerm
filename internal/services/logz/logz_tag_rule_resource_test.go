@@ -113,7 +113,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_logz_monitor" "test" {
-  name                = "acctest-lm-%d"
+  name                = "%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   plan {
@@ -130,7 +130,7 @@ resource "azurerm_logz_monitor" "test" {
     phone_number = "123456"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, getEffectiveDate())
+`, data.RandomInteger, data.Locations.Primary, getLogzInstanceName(data.RandomInteger), getEffectiveDate())
 }
 
 func (r LogzTagRuleResource) basic(data acceptance.TestData) string {
