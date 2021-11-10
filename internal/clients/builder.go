@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
+	"github.com/manicminer/hamilton/environments"
 )
 
 type ClientBuilder struct {
@@ -78,22 +79,35 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 
 	sender := sender.BuildSender("AzureRM")
 
+	// Get Hamilton environment to discover API endpoint
+	environment, err := environments.EnvironmentFromString(builder.AuthConfig.Environment)
+	if err != nil {
+		return nil, fmt.Errorf("hamilton environment config error: %+v", err)
+	}
+
 	// Resource Manager endpoints
-	endpoint := env.ResourceManagerEndpoint
-	auth, err := builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, env.TokenAudience)
+	//endpoint := env.ResourceManagerEndpoint
+	endpoint := string(environment.ResourceManager.Endpoint)
+
+	//auth, err := builder.AuthConfig.GetAuthorizationToken(ctx, sender, oauthConfig, env.TokenAudience)
+	auth, err := builder.AuthConfig.GetAuthorizationTokenV2(ctx, sender, oauthConfig, endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get authorization token for resource manager: %+v", err)
 	}
 
 	// Graph Endpoints
-	graphEndpoint := env.GraphEndpoint
-	graphAuth, err := builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, graphEndpoint)
+	//graphEndpoint := env.GraphEndpoint
+	graphEndpoint := string(environment.AadGraph.Endpoint)
+
+	//graphAuth, err := builder.AuthConfig.GetAuthorizationToken(ctx, sender, oauthConfig, graphEndpoint)
+	graphAuth, err := builder.AuthConfig.GetAuthorizationTokenV2(ctx, sender, oauthConfig, graphEndpoint)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get authorization token for graph endpoints: %+v", err)
 	}
 
 	// Storage Endpoints
-	storageAuth, err := builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, env.ResourceIdentifiers.Storage)
+	storageAuth, err := builder.AuthConfig.GetAuthorizationToken(ctx, sender, oauthConfig, env.ResourceIdentifiers.Storage)
+	//storageAuth, err := builder.AuthConfig.GetAuthorizationTokenV2(ctx, hamiltonEnvironment, builder.AuthConfig.TenantID, env.ResourceIdentifiers.Storage)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get authorization token for storage endpoints: %+v", err)
 	}
@@ -101,7 +115,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	// Synapse Endpoints
 	var synapseAuth autorest.Authorizer = nil
 	if env.ResourceIdentifiers.Synapse != azure.NotAvailable {
-		synapseAuth, err = builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, env.ResourceIdentifiers.Synapse)
+		synapseAuth, err = builder.AuthConfig.GetAuthorizationToken(ctx, sender, oauthConfig, env.ResourceIdentifiers.Synapse)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get authorization token for synapse endpoints: %+v", err)
 		}
@@ -110,10 +124,10 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	}
 
 	// Key Vault Endpoints
-	keyVaultAuth := builder.AuthConfig.BearerAuthorizerCallback(sender, oauthConfig)
+	keyVaultAuth := builder.AuthConfig.BearerAuthorizerCallback(ctx, sender, oauthConfig)
 
 	// Batch Management Endpoints
-	batchManagementAuth, err := builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, env.BatchManagementEndpoint)
+	batchManagementAuth, err := builder.AuthConfig.GetAuthorizationToken(ctx, sender, oauthConfig, env.BatchManagementEndpoint)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get authorization token for batch management endpoint: %+v", err)
 	}
@@ -139,7 +153,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		Features:                    builder.Features,
 		StorageUseAzureAD:           builder.StorageUseAzureAD,
 		TokenFunc: func(endpoint string) (autorest.Authorizer, error) {
-			authorizer, err := builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, endpoint)
+			authorizer, err := builder.AuthConfig.GetAuthorizationToken(ctx, sender, oauthConfig, endpoint)
 			if err != nil {
 				return nil, fmt.Errorf("getting authorization token for endpoint %s: %+v", endpoint, err)
 			}

@@ -291,6 +291,10 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 
 			// Doc Links
 			ClientSecretDocsLink: "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret",
+
+			// TODO: make this configurable
+			// TODO: v3.0 remove this
+			UseMicrosoftGraph: true,
 		}
 
 		config, err := builder.Build()

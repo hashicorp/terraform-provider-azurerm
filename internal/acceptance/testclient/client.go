@@ -36,6 +36,9 @@ func Build() (*clients.Client, error) {
 
 			// we intentionally only support Client Secret auth for tests (since those variables are used all over)
 			SupportsClientSecretAuth: true,
+
+			// TODO: v3.0 remove this
+			UseMicrosoftGraph: true,
 		}
 		config, err := builder.Build()
 		if err != nil {
