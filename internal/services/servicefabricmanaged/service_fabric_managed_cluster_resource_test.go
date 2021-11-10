@@ -117,19 +117,19 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
 
 func (r ClusterResource) nodeType(name string, primary bool, diskSize int, instanceCount int) string {
 	return fmt.Sprintf(`
-  node_type {
-    data_disk_size = %[1]d
-    name = "%[2]s"
-    primary = %[3]t
-    application_port_range = "7000-9000"
-    ephemeral_port_range = "10000-20000"
+node_type {
+  data_disk_size         = %[1]d
+  name                   = "%[2]s"
+  primary                = %[3]t
+  application_port_range = "7000-9000"
+  ephemeral_port_range   = "10000-20000"
 
-    vm_size = "Standard_DS2_v2"
-    vm_image_publisher = "MicrosoftWindowsServer"
-    vm_image_sku = "2016-Datacenter"
-    vm_image_offer = "WindowsServer"
-    vm_image_version = "latest"
-    vm_instance_count = %[4]d
-  }
+  vm_size            = "Standard_DS2_v2"
+  vm_image_publisher = "MicrosoftWindowsServer"
+  vm_image_sku       = "2016-Datacenter"
+  vm_image_offer     = "WindowsServer"
+  vm_image_version   = "latest"
+  vm_instance_count  = %[4]d
+}
 `, diskSize, name, primary, instanceCount)
 }
