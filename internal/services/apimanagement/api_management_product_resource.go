@@ -50,7 +50,8 @@ func resourceApiManagementProduct() *pluginsdk.Resource {
 
 			"subscription_required": {
 				Type:     pluginsdk.TypeBool,
-				Required: true,
+				Optional: true,
+				Default:  true,
 			},
 
 			"published": {
