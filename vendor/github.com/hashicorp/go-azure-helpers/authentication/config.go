@@ -20,12 +20,15 @@ type Config struct {
 	Environment        string
 	MetadataHost       string
 
-	GetAuthenticatedObjectID         func(context.Context) (string, error)
+	GetAuthenticatedObjectID         func(context.Context) (*string, error)
 	AuthenticatedAsAServicePrincipal bool
 
 	// A Custom Resource Manager Endpoint
 	// at this time this should only be applicable for Azure Stack.
 	CustomResourceManagerEndpoint string
+
+	// Beta opt-in for Microsoft Graph
+	UseMicrosoftGraph bool
 
 	authMethod authMethod
 }
@@ -54,7 +57,7 @@ func (c Config) GetOAuthConfig(activeDirectoryEndpoint string) (*adal.OAuthConfi
 
 	// OAuthConfigForTenant returns a pointer, which can be nil.
 	if oauth == nil {
-		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s", c.TenantID)
+		return nil, fmt.Errorf("unable to configure OAuthConfig for tenant %s", c.TenantID)
 	}
 
 	return oauth, nil
@@ -70,7 +73,7 @@ func (c Config) GetMultiTenantOAuthConfig(activeDirectoryEndpoint string) (*adal
 
 	// OAuthConfigForTenant returns a pointer, which can be nil.
 	if oauth == nil {
-		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s (auxiliary tenants %v)", c.TenantID, c.AuxiliaryTenantIDs)
+		return nil, fmt.Errorf("unable to configure OAuthConfig for tenant %s (auxiliary tenants %v)", c.TenantID, c.AuxiliaryTenantIDs)
 	}
 
 	return &oauth, nil
@@ -98,28 +101,33 @@ func (c Config) BuildOAuthConfig(activeDirectoryEndpoint string) (*OAuthConfig, 
 
 // BearerAuthorizerCallback returns a BearerAuthorizer valid only for the Primary Tenant
 // this signs a request using the AccessToken returned from the primary Resource Manager authorizer
-func (c Config) BearerAuthorizerCallback(sender autorest.Sender, oauthConfig *OAuthConfig) *autorest.BearerAuthorizerCallback {
+func (c Config) BearerAuthorizerCallback(ctx context.Context, sender autorest.Sender, oauthConfig *OAuthConfig) *autorest.BearerAuthorizerCallback {
 	return autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
 		// a BearerAuthorizer is only valid for the primary tenant
 		newAuthConfig := &OAuthConfig{
 			OAuth: oauthConfig.OAuth,
 		}
 
-		storageSpt, err := c.GetAuthorizationToken(sender, newAuthConfig, resource)
+		storageSpt, err := c.GetAuthorizationToken(ctx, sender, newAuthConfig, resource)
 		if err != nil {
 			return nil, err
 		}
 
 		cast, ok := storageSpt.(*autorest.BearerAuthorizer)
 		if !ok {
-			return nil, fmt.Errorf("Error converting %+v to a BearerAuthorizer", storageSpt)
+			return nil, fmt.Errorf("converting %+v to a BearerAuthorizer", storageSpt)
 		}
 
 		return cast, nil
 	})
 }
 
-// GetAuthorizationToken returns an authorization token for the authentication method defined in the Config
-func (c Config) GetAuthorizationToken(sender autorest.Sender, oauth *OAuthConfig, endpoint string) (autorest.Authorizer, error) {
-	return c.authMethod.getAuthorizationToken(sender, oauth, endpoint)
+// GetAuthorizationToken returns an autorest.Authorizer for the authentication method defined in the Config
+func (c Config) GetAuthorizationToken(ctx context.Context, sender autorest.Sender, oauth *OAuthConfig, endpoint string) (autorest.Authorizer, error) {
+	return c.authMethod.getADALToken(ctx, sender, oauth, endpoint)
+}
+
+// GetAuthorizationTokenV2 returns an autorest.Authorizer sourced from hamilton/auth
+func (c Config) GetAuthorizationTokenV2(ctx context.Context, sender autorest.Sender, oauth *OAuthConfig, endpoint string) (autorest.Authorizer, error) {
+	return c.authMethod.getMSALToken(ctx, sender, oauth, endpoint)
 }

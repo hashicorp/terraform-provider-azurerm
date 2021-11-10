@@ -3,7 +3,7 @@ module github.com/hashicorp/terraform-provider-azurerm
 require (
 	cloud.google.com/go/storage v1.16.0 // indirect
 	github.com/Azure/azure-sdk-for-go v59.0.0+incompatible
-	github.com/Azure/go-autorest/autorest v0.11.19
+	github.com/Azure/go-autorest/autorest v0.11.21
 	github.com/Azure/go-autorest/autorest/date v0.3.0
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/Azure/go-autorest/autorest/validation v0.3.1
@@ -19,7 +19,7 @@ require (
 	github.com/google/go-cmp v0.5.6
 	github.com/google/uuid v1.1.2
 	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/hashicorp/go-azure-helpers v0.17.0
+	github.com/hashicorp/go-azure-helpers v0.17.1-0.20211110184150-77aeb30ed843
 	github.com/hashicorp/go-getter v1.5.4
 	github.com/hashicorp/go-hclog v0.16.1 // indirect
 	github.com/hashicorp/go-multierror v1.1.1
@@ -30,6 +30,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.8.0
 	github.com/hashicorp/yamux v0.0.0-20210316155119-a95892c5f864 // indirect
 	github.com/klauspost/compress v1.13.1 // indirect
+	github.com/manicminer/hamilton v0.33.1-0.20211110173531-e696b643b804
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect

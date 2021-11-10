@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -46,10 +47,10 @@ func (a managedServiceIdentityAuth) name() string {
 	return "Managed Service Identity"
 }
 
-func (a managedServiceIdentityAuth) getAuthorizationToken(sender autorest.Sender, oauth *OAuthConfig, endpoint string) (autorest.Authorizer, error) {
-	log.Printf("[DEBUG] getAuthorizationToken with MSI msiEndpoint %q, ClientID %q for msiEndpoint %q", a.msiEndpoint, a.clientID, endpoint)
+func (a managedServiceIdentityAuth) getADALToken(_ context.Context, sender autorest.Sender, oauthConfig *OAuthConfig, endpoint string) (autorest.Authorizer, error) {
+	log.Printf("[DEBUG] getADALToken with MSI msiEndpoint %q, ClientID %q for msiEndpoint %q", a.msiEndpoint, a.clientID, endpoint)
 
-	if oauth.OAuth == nil {
+	if oauthConfig.OAuth == nil {
 		return nil, fmt.Errorf("getting Authorization Token for MSI auth: an OAuth token wasn't configured correctly; please file a bug with more details")
 	}
 
@@ -72,6 +73,11 @@ func (a managedServiceIdentityAuth) getAuthorizationToken(sender autorest.Sender
 	spt.SetSender(sender)
 	auth := autorest.NewBearerAuthorizer(spt)
 	return auth, nil
+}
+
+func (a managedServiceIdentityAuth) getMSALToken(ctx context.Context, sender autorest.Sender, oauthConfig *OAuthConfig, endpoint string) (autorest.Authorizer, error) {
+	// v2 tokens not supported, so we'll pass through to the existing method for continuity
+	return a.getADALToken(ctx, sender, oauthConfig, endpoint)
 }
 
 func (a managedServiceIdentityAuth) populateConfig(c *Config) error {

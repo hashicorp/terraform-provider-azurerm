@@ -125,7 +125,7 @@ github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web
 github.com/Azure/azure-sdk-for-go/version
 # github.com/Azure/go-autorest v14.2.0+incompatible
 github.com/Azure/go-autorest
-# github.com/Azure/go-autorest/autorest v0.11.19
+# github.com/Azure/go-autorest/autorest v0.11.21
 ## explicit
 github.com/Azure/go-autorest/autorest
 github.com/Azure/go-autorest/autorest/azure
@@ -254,7 +254,7 @@ github.com/googleapis/gax-go/v2
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.17.0
+# github.com/hashicorp/go-azure-helpers v0.17.1-0.20211110184150-77aeb30ed843
 ## explicit
 github.com/hashicorp/go-azure-helpers/authentication
 github.com/hashicorp/go-azure-helpers/lang/dates
@@ -296,6 +296,8 @@ github.com/hashicorp/go-multierror
 ## explicit
 github.com/hashicorp/go-plugin
 github.com/hashicorp/go-plugin/internal/plugin
+# github.com/hashicorp/go-retryablehttp v0.7.0
+github.com/hashicorp/go-retryablehttp
 # github.com/hashicorp/go-safetemp v1.0.0
 github.com/hashicorp/go-safetemp
 # github.com/hashicorp/go-uuid v1.0.2
@@ -365,6 +367,14 @@ github.com/klauspost/compress/fse
 github.com/klauspost/compress/huff0
 github.com/klauspost/compress/zstd
 github.com/klauspost/compress/zstd/internal/xxhash
+# github.com/manicminer/hamilton v0.33.1-0.20211110173531-e696b643b804
+## explicit
+github.com/manicminer/hamilton/auth
+github.com/manicminer/hamilton/environments
+github.com/manicminer/hamilton/errors
+github.com/manicminer/hamilton/internal/utils
+github.com/manicminer/hamilton/msgraph
+github.com/manicminer/hamilton/odata
 # github.com/mattn/go-colorable v0.1.8
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.13
