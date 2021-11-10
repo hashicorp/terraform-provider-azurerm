@@ -11,24 +11,22 @@ const (
 
 func PossibleValuesForQuotaEnabled() []string {
 	return []string{
-		"Disabled",
-		"Enabled",
+		string(QuotaEnabledDisabled),
+		string(QuotaEnabledEnabled),
 	}
 }
 
 func parseQuotaEnabled(input string) (*QuotaEnabled, error) {
 	vals := map[string]QuotaEnabled{
-		"disabled": "Disabled",
-		"enabled":  "Enabled",
+		"disabled": QuotaEnabledDisabled,
+		"enabled":  QuotaEnabledEnabled,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := QuotaEnabled(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := QuotaEnabled(input)
 	return &out, nil
 }
 
@@ -42,25 +40,23 @@ const (
 
 func PossibleValuesForTrialStatus() []string {
 	return []string{
-		"TrialAvailable",
-		"TrialDisabled",
-		"TrialUsed",
+		string(TrialStatusTrialAvailable),
+		string(TrialStatusTrialDisabled),
+		string(TrialStatusTrialUsed),
 	}
 }
 
 func parseTrialStatus(input string) (*TrialStatus, error) {
 	vals := map[string]TrialStatus{
-		"trialavailable": "TrialAvailable",
-		"trialdisabled":  "TrialDisabled",
-		"trialused":      "TrialUsed",
+		"trialavailable": TrialStatusTrialAvailable,
+		"trialdisabled":  TrialStatusTrialDisabled,
+		"trialused":      TrialStatusTrialUsed,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := TrialStatus(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := TrialStatus(input)
 	return &out, nil
 }

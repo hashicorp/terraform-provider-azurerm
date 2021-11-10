@@ -14,30 +14,28 @@ const (
 
 func PossibleValuesForClusterProvisioningState() []string {
 	return []string{
-		"Cancelled",
-		"Deleting",
-		"Failed",
-		"Succeeded",
-		"Updating",
+		string(ClusterProvisioningStateCancelled),
+		string(ClusterProvisioningStateDeleting),
+		string(ClusterProvisioningStateFailed),
+		string(ClusterProvisioningStateSucceeded),
+		string(ClusterProvisioningStateUpdating),
 	}
 }
 
 func parseClusterProvisioningState(input string) (*ClusterProvisioningState, error) {
 	vals := map[string]ClusterProvisioningState{
-		"cancelled": "Cancelled",
-		"deleting":  "Deleting",
-		"failed":    "Failed",
-		"succeeded": "Succeeded",
-		"updating":  "Updating",
+		"cancelled": ClusterProvisioningStateCancelled,
+		"deleting":  ClusterProvisioningStateDeleting,
+		"failed":    ClusterProvisioningStateFailed,
+		"succeeded": ClusterProvisioningStateSucceeded,
+		"updating":  ClusterProvisioningStateUpdating,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := ClusterProvisioningState(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := ClusterProvisioningState(input)
 	return &out, nil
 }
 
@@ -50,24 +48,22 @@ const (
 
 func PossibleValuesForInternetEnum() []string {
 	return []string{
-		"Disabled",
-		"Enabled",
+		string(InternetEnumDisabled),
+		string(InternetEnumEnabled),
 	}
 }
 
 func parseInternetEnum(input string) (*InternetEnum, error) {
 	vals := map[string]InternetEnum{
-		"disabled": "Disabled",
-		"enabled":  "Enabled",
+		"disabled": InternetEnumDisabled,
+		"enabled":  InternetEnumEnabled,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := InternetEnum(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := InternetEnum(input)
 	return &out, nil
 }
 
@@ -85,34 +81,32 @@ const (
 
 func PossibleValuesForPrivateCloudProvisioningState() []string {
 	return []string{
-		"Building",
-		"Cancelled",
-		"Deleting",
-		"Failed",
-		"Pending",
-		"Succeeded",
-		"Updating",
+		string(PrivateCloudProvisioningStateBuilding),
+		string(PrivateCloudProvisioningStateCancelled),
+		string(PrivateCloudProvisioningStateDeleting),
+		string(PrivateCloudProvisioningStateFailed),
+		string(PrivateCloudProvisioningStatePending),
+		string(PrivateCloudProvisioningStateSucceeded),
+		string(PrivateCloudProvisioningStateUpdating),
 	}
 }
 
 func parsePrivateCloudProvisioningState(input string) (*PrivateCloudProvisioningState, error) {
 	vals := map[string]PrivateCloudProvisioningState{
-		"building":  "Building",
-		"cancelled": "Cancelled",
-		"deleting":  "Deleting",
-		"failed":    "Failed",
-		"pending":   "Pending",
-		"succeeded": "Succeeded",
-		"updating":  "Updating",
+		"building":  PrivateCloudProvisioningStateBuilding,
+		"cancelled": PrivateCloudProvisioningStateCancelled,
+		"deleting":  PrivateCloudProvisioningStateDeleting,
+		"failed":    PrivateCloudProvisioningStateFailed,
+		"pending":   PrivateCloudProvisioningStatePending,
+		"succeeded": PrivateCloudProvisioningStateSucceeded,
+		"updating":  PrivateCloudProvisioningStateUpdating,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := PrivateCloudProvisioningState(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := PrivateCloudProvisioningState(input)
 	return &out, nil
 }
 
@@ -125,23 +119,21 @@ const (
 
 func PossibleValuesForSslEnum() []string {
 	return []string{
-		"Disabled",
-		"Enabled",
+		string(SslEnumDisabled),
+		string(SslEnumEnabled),
 	}
 }
 
 func parseSslEnum(input string) (*SslEnum, error) {
 	vals := map[string]SslEnum{
-		"disabled": "Disabled",
-		"enabled":  "Enabled",
+		"disabled": SslEnumDisabled,
+		"enabled":  SslEnumEnabled,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := SslEnum(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := SslEnum(input)
 	return &out, nil
 }

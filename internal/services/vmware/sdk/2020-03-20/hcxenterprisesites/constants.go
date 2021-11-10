@@ -13,27 +13,25 @@ const (
 
 func PossibleValuesForHcxEnterpriseSiteStatus() []string {
 	return []string{
-		"Available",
-		"Consumed",
-		"Deactivated",
-		"Deleted",
+		string(HcxEnterpriseSiteStatusAvailable),
+		string(HcxEnterpriseSiteStatusConsumed),
+		string(HcxEnterpriseSiteStatusDeactivated),
+		string(HcxEnterpriseSiteStatusDeleted),
 	}
 }
 
 func parseHcxEnterpriseSiteStatus(input string) (*HcxEnterpriseSiteStatus, error) {
 	vals := map[string]HcxEnterpriseSiteStatus{
-		"available":   "Available",
-		"consumed":    "Consumed",
-		"deactivated": "Deactivated",
-		"deleted":     "Deleted",
+		"available":   HcxEnterpriseSiteStatusAvailable,
+		"consumed":    HcxEnterpriseSiteStatusConsumed,
+		"deactivated": HcxEnterpriseSiteStatusDeactivated,
+		"deleted":     HcxEnterpriseSiteStatusDeleted,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := HcxEnterpriseSiteStatus(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := HcxEnterpriseSiteStatus(input)
 	return &out, nil
 }

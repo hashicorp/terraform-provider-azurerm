@@ -14,29 +14,27 @@ const (
 
 func PossibleValuesForClusterProvisioningState() []string {
 	return []string{
-		"Cancelled",
-		"Deleting",
-		"Failed",
-		"Succeeded",
-		"Updating",
+		string(ClusterProvisioningStateCancelled),
+		string(ClusterProvisioningStateDeleting),
+		string(ClusterProvisioningStateFailed),
+		string(ClusterProvisioningStateSucceeded),
+		string(ClusterProvisioningStateUpdating),
 	}
 }
 
 func parseClusterProvisioningState(input string) (*ClusterProvisioningState, error) {
 	vals := map[string]ClusterProvisioningState{
-		"cancelled": "Cancelled",
-		"deleting":  "Deleting",
-		"failed":    "Failed",
-		"succeeded": "Succeeded",
-		"updating":  "Updating",
+		"cancelled": ClusterProvisioningStateCancelled,
+		"deleting":  ClusterProvisioningStateDeleting,
+		"failed":    ClusterProvisioningStateFailed,
+		"succeeded": ClusterProvisioningStateSucceeded,
+		"updating":  ClusterProvisioningStateUpdating,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := ClusterProvisioningState(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := ClusterProvisioningState(input)
 	return &out, nil
 }

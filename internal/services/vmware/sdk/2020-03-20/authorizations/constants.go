@@ -12,25 +12,23 @@ const (
 
 func PossibleValuesForExpressRouteAuthorizationProvisioningState() []string {
 	return []string{
-		"Failed",
-		"Succeeded",
-		"Updating",
+		string(ExpressRouteAuthorizationProvisioningStateFailed),
+		string(ExpressRouteAuthorizationProvisioningStateSucceeded),
+		string(ExpressRouteAuthorizationProvisioningStateUpdating),
 	}
 }
 
 func parseExpressRouteAuthorizationProvisioningState(input string) (*ExpressRouteAuthorizationProvisioningState, error) {
 	vals := map[string]ExpressRouteAuthorizationProvisioningState{
-		"failed":    "Failed",
-		"succeeded": "Succeeded",
-		"updating":  "Updating",
+		"failed":    ExpressRouteAuthorizationProvisioningStateFailed,
+		"succeeded": ExpressRouteAuthorizationProvisioningStateSucceeded,
+		"updating":  ExpressRouteAuthorizationProvisioningStateUpdating,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := ExpressRouteAuthorizationProvisioningState(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := ExpressRouteAuthorizationProvisioningState(input)
 	return &out, nil
 }
