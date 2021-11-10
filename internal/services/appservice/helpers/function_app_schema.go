@@ -50,7 +50,6 @@ type SiteConfigLinuxFunctionApp struct {
 	ApplicationStack              []ApplicationStackLinuxFunctionApp `tfschema:"application_stack"`
 	MinTlsVersion                 string                             `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion              string                             `tfschema:"scm_minimum_tls_version"`
-	AutoSwapSlotName              string                             `tfschema:"auto_swap_slot_name"`
 	Cors                          []CorsSetting                      `tfschema:"cors"`
 	DetailedErrorLogging          bool                               `tfschema:"detailed_error_logging"`
 	LinuxFxVersion                string                             `tfschema:"linux_fx_version"`
@@ -308,13 +307,6 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				},
 
 				"cors": CorsSettingsSchema(),
-
-				"auto_swap_slot_name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					// TODO - Add slot name validation here when the resource is added
-					Description: "The Linux Function App Slot Name to automatically swap to when deployment to that slot is successfully completed.",
-				},
 
 				"vnet_route_all_enabled": {
 					Type:        pluginsdk.TypeBool,
@@ -729,10 +721,6 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.ScmMinTLSVersion = web.SupportedTLSVersions(linuxSiteConfig.ScmMinTlsVersion)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.auto_swap_slot_name") {
-		expanded.AutoSwapSlotName = utils.String(linuxSiteConfig.AutoSwapSlotName)
-	}
-
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
 		cors := ExpandCorsSettings(linuxSiteConfig.Cors)
 		if cors == nil {
@@ -764,7 +752,6 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*
 	result := &SiteConfigLinuxFunctionApp{
 		AppCommandLine:         utils.NormalizeNilableString(functionAppSiteConfig.AppCommandLine),
 		AppScaleLimit:          int(utils.NormaliseNilableInt32(functionAppSiteConfig.FunctionAppScaleLimit)),
-		AutoSwapSlotName:       utils.NormalizeNilableString(functionAppSiteConfig.AutoSwapSlotName),
 		ContainerRegistryMSI:   utils.NormalizeNilableString(functionAppSiteConfig.AcrUserManagedIdentityID),
 		HealthCheckPath:        utils.NormalizeNilableString(functionAppSiteConfig.HealthCheckPath),
 		LinuxFxVersion:         utils.NormalizeNilableString(functionAppSiteConfig.LinuxFxVersion),
