@@ -7,120 +7,131 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+var _ resourceids.ResourceId = ClusterId{}
+
+// ClusterId is a struct representing the Resource ID for a Cluster
 type ClusterId struct {
-	SubscriptionId   string
-	ResourceGroup    string
-	PrivateCloudName string
-	Name             string
+	SubscriptionId    string
+	ResourceGroupName string
+	PrivateCloudName  string
+	ClusterName       string
 }
 
-func NewClusterID(subscriptionId, resourceGroup, privateCloudName, name string) ClusterId {
+// NewClusterID returns a new ClusterId struct
+func NewClusterID(subscriptionId string, resourceGroupName string, privateCloudName string, clusterName string) ClusterId {
 	return ClusterId{
-		SubscriptionId:   subscriptionId,
-		ResourceGroup:    resourceGroup,
-		PrivateCloudName: privateCloudName,
-		Name:             name,
+		SubscriptionId:    subscriptionId,
+		ResourceGroupName: resourceGroupName,
+		PrivateCloudName:  privateCloudName,
+		ClusterName:       clusterName,
 	}
 }
 
-func (id ClusterId) String() string {
-	segments := []string{
-		fmt.Sprintf("Name %q", id.Name),
-		fmt.Sprintf("Private Cloud Name %q", id.PrivateCloudName),
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+// ParseClusterID parses 'input' into a ClusterId
+func ParseClusterID(input string) (*ClusterId, error) {
+	parser := resourceids.NewParserFromResourceIdType(ClusterId{})
+	parsed, err := parser.Parse(input, false)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
-	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Cluster", segmentsStr)
+
+	var ok bool
+	id := ClusterId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.PrivateCloudName, ok = parsed.Parsed["privateCloudName"]; !ok {
+		return nil, fmt.Errorf("the segment 'privateCloudName' was not found in the resource id %q", input)
+	}
+
+	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
+		return nil, fmt.Errorf("the segment 'clusterName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
 }
 
+// ParseClusterIDInsensitively parses 'input' case-insensitively into a ClusterId
+// note: this method should only be used for API response data and not user input
+func ParseClusterIDInsensitively(input string) (*ClusterId, error) {
+	parser := resourceids.NewParserFromResourceIdType(ClusterId{})
+	parsed, err := parser.Parse(input, true)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	var ok bool
+	id := ClusterId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.PrivateCloudName, ok = parsed.Parsed["privateCloudName"]; !ok {
+		return nil, fmt.Errorf("the segment 'privateCloudName' was not found in the resource id %q", input)
+	}
+
+	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
+		return nil, fmt.Errorf("the segment 'clusterName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
+}
+
+// ValidateClusterID checks that 'input' can be parsed as a Cluster ID
+func ValidateClusterID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	if _, err := ParseClusterID(v); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
+}
+
+// ID returns the formatted Cluster ID
 func (id ClusterId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AVS/privateClouds/%s/clusters/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.PrivateCloudName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.PrivateCloudName, id.ClusterName)
 }
 
-// ParseClusterID parses a Cluster ID into an ClusterId struct
-func ParseClusterID(input string) (*ClusterId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// Segments returns a slice of Resource ID Segments which comprise this Cluster ID
+func (id ClusterId) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
+		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
+		resourceids.StaticSegment("resourceGroups", "resourceGroups", "resourceGroups"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
+		resourceids.StaticSegment("providers", "providers", "providers"),
+		resourceids.ResourceProviderSegment("microsoftAVS", "Microsoft.AVS", "Microsoft.AVS"),
+		resourceids.StaticSegment("privateClouds", "privateClouds", "privateClouds"),
+		resourceids.UserSpecifiedSegment("privateCloudName", "privateCloudValue"),
+		resourceids.StaticSegment("clusters", "clusters", "clusters"),
+		resourceids.UserSpecifiedSegment("clusterName", "clusterValue"),
 	}
-
-	resourceId := ClusterId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	if resourceId.PrivateCloudName, err = id.PopSegment("privateClouds"); err != nil {
-		return nil, err
-	}
-	if resourceId.Name, err = id.PopSegment("clusters"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
 }
 
-// ParseClusterIDInsensitively parses an Cluster ID into an ClusterId struct, insensitively
-// This should only be used to parse an ID for rewriting to a consistent casing,
-// the ParseClusterID method should be used instead for validation etc.
-func ParseClusterIDInsensitively(input string) (*ClusterId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// String returns a human-readable description of this Cluster ID
+func (id ClusterId) String() string {
+	components := []string{
+		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
+		fmt.Sprintf("Private Cloud Name: %q", id.PrivateCloudName),
+		fmt.Sprintf("Cluster Name: %q", id.ClusterName),
 	}
-
-	resourceId := ClusterId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	// find the correct casing for the 'privateClouds' segment
-	privateCloudsKey := "privateClouds"
-	for key := range id.Path {
-		if strings.EqualFold(key, privateCloudsKey) {
-			privateCloudsKey = key
-			break
-		}
-	}
-	if resourceId.PrivateCloudName, err = id.PopSegment(privateCloudsKey); err != nil {
-		return nil, err
-	}
-
-	// find the correct casing for the 'clusters' segment
-	clustersKey := "clusters"
-	for key := range id.Path {
-		if strings.EqualFold(key, clustersKey) {
-			clustersKey = key
-			break
-		}
-	}
-	if resourceId.Name, err = id.PopSegment(clustersKey); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
+	return fmt.Sprintf("Cluster (%s)", strings.Join(components, "\n"))
 }

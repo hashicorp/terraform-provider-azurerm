@@ -1,4 +1,4 @@
-package authorizations
+package hcxenterprisesites
 
 import (
 	"testing"
@@ -6,10 +6,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = AuthorizationId{}
+var _ resourceids.ResourceId = HcxEnterpriseSiteId{}
 
-func TestNewAuthorizationID(t *testing.T) {
-	id := NewAuthorizationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateCloudValue", "authorizationValue")
+func TestNewHcxEnterpriseSiteID(t *testing.T) {
+	id := NewHcxEnterpriseSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateCloudValue", "hcxEnterpriseSiteValue")
 
 	if id.SubscriptionId != "12345678-1234-9876-4563-123456789012" {
 		t.Fatalf("Expected %q but got %q for Segment 'SubscriptionId'", id.SubscriptionId, "12345678-1234-9876-4563-123456789012")
@@ -23,24 +23,24 @@ func TestNewAuthorizationID(t *testing.T) {
 		t.Fatalf("Expected %q but got %q for Segment 'PrivateCloudName'", id.PrivateCloudName, "privateCloudValue")
 	}
 
-	if id.AuthorizationName != "authorizationValue" {
-		t.Fatalf("Expected %q but got %q for Segment 'AuthorizationName'", id.AuthorizationName, "authorizationValue")
+	if id.HcxEnterpriseSiteName != "hcxEnterpriseSiteValue" {
+		t.Fatalf("Expected %q but got %q for Segment 'HcxEnterpriseSiteName'", id.HcxEnterpriseSiteName, "hcxEnterpriseSiteValue")
 	}
 }
 
-func TestFormatAuthorizationID(t *testing.T) {
-	actual := NewAuthorizationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateCloudValue", "authorizationValue").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/authorizations/authorizationValue"
+func TestFormatHcxEnterpriseSiteID(t *testing.T) {
+	actual := NewHcxEnterpriseSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateCloudValue", "hcxEnterpriseSiteValue").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/hcxEnterpriseSites/hcxEnterpriseSiteValue"
 	if actual != expected {
 		t.Fatalf("Expected the Formatted ID to be %q but got %q", actual, expected)
 	}
 }
 
-func TestParseAuthorizationID(t *testing.T) {
+func TestParseHcxEnterpriseSiteID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *AuthorizationId
+		Expected *HcxEnterpriseSiteId
 	}{
 		{
 			// Incomplete URI
@@ -89,29 +89,29 @@ func TestParseAuthorizationID(t *testing.T) {
 		},
 		{
 			// Incomplete URI
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/authorizations",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/hcxEnterpriseSites",
 			Error: true,
 		},
 		{
 			// Valid URI
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/authorizations/authorizationValue",
-			Expected: &AuthorizationId{
-				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
-				ResourceGroupName: "example-resource-group",
-				PrivateCloudName:  "privateCloudValue",
-				AuthorizationName: "authorizationValue",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/hcxEnterpriseSites/hcxEnterpriseSiteValue",
+			Expected: &HcxEnterpriseSiteId{
+				SubscriptionId:        "12345678-1234-9876-4563-123456789012",
+				ResourceGroupName:     "example-resource-group",
+				PrivateCloudName:      "privateCloudValue",
+				HcxEnterpriseSiteName: "hcxEnterpriseSiteValue",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment)
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/authorizations/authorizationValue/extra",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/hcxEnterpriseSites/hcxEnterpriseSiteValue/extra",
 			Error: true,
 		},
 	}
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseAuthorizationID(v.Input)
+		actual, err := ParseHcxEnterpriseSiteID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -135,18 +135,18 @@ func TestParseAuthorizationID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for PrivateCloudName", v.Expected.PrivateCloudName, actual.PrivateCloudName)
 		}
 
-		if actual.AuthorizationName != v.Expected.AuthorizationName {
-			t.Fatalf("Expected %q but got %q for AuthorizationName", v.Expected.AuthorizationName, actual.AuthorizationName)
+		if actual.HcxEnterpriseSiteName != v.Expected.HcxEnterpriseSiteName {
+			t.Fatalf("Expected %q but got %q for HcxEnterpriseSiteName", v.Expected.HcxEnterpriseSiteName, actual.HcxEnterpriseSiteName)
 		}
 
 	}
 }
 
-func TestParseAuthorizationIDInsensitively(t *testing.T) {
+func TestParseHcxEnterpriseSiteIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *AuthorizationId
+		Expected *HcxEnterpriseSiteId
 	}{
 		{
 			// Incomplete URI
@@ -235,49 +235,49 @@ func TestParseAuthorizationIDInsensitively(t *testing.T) {
 		},
 		{
 			// Incomplete URI
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/authorizations",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/hcxEnterpriseSites",
 			Error: true,
 		},
 		{
 			// Incomplete URI (mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aVs/pRiVaTeClOuDs/pRiVaTeClOuDvAlUe/aUtHoRiZaTiOnS",
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aVs/pRiVaTeClOuDs/pRiVaTeClOuDvAlUe/hCxEnTeRpRiSeSiTeS",
 			Error: true,
 		},
 		{
 			// Valid URI
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/authorizations/authorizationValue",
-			Expected: &AuthorizationId{
-				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
-				ResourceGroupName: "example-resource-group",
-				PrivateCloudName:  "privateCloudValue",
-				AuthorizationName: "authorizationValue",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/hcxEnterpriseSites/hcxEnterpriseSiteValue",
+			Expected: &HcxEnterpriseSiteId{
+				SubscriptionId:        "12345678-1234-9876-4563-123456789012",
+				ResourceGroupName:     "example-resource-group",
+				PrivateCloudName:      "privateCloudValue",
+				HcxEnterpriseSiteName: "hcxEnterpriseSiteValue",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment)
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/authorizations/authorizationValue/extra",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/hcxEnterpriseSites/hcxEnterpriseSiteValue/extra",
 			Error: true,
 		},
 		{
 			// Valid URI (mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aVs/pRiVaTeClOuDs/pRiVaTeClOuDvAlUe/aUtHoRiZaTiOnS/aUtHoRiZaTiOnVaLuE",
-			Expected: &AuthorizationId{
-				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
-				ResourceGroupName: "eXaMpLe-rEsOuRcE-GrOuP",
-				PrivateCloudName:  "pRiVaTeClOuDvAlUe",
-				AuthorizationName: "aUtHoRiZaTiOnVaLuE",
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aVs/pRiVaTeClOuDs/pRiVaTeClOuDvAlUe/hCxEnTeRpRiSeSiTeS/hCxEnTeRpRiSeSiTeVaLuE",
+			Expected: &HcxEnterpriseSiteId{
+				SubscriptionId:        "12345678-1234-9876-4563-123456789012",
+				ResourceGroupName:     "eXaMpLe-rEsOuRcE-GrOuP",
+				PrivateCloudName:      "pRiVaTeClOuDvAlUe",
+				HcxEnterpriseSiteName: "hCxEnTeRpRiSeSiTeVaLuE",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment - mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aVs/pRiVaTeClOuDs/pRiVaTeClOuDvAlUe/aUtHoRiZaTiOnS/aUtHoRiZaTiOnVaLuE/extra",
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aVs/pRiVaTeClOuDs/pRiVaTeClOuDvAlUe/hCxEnTeRpRiSeSiTeS/hCxEnTeRpRiSeSiTeVaLuE/extra",
 			Error: true,
 		},
 	}
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseAuthorizationIDInsensitively(v.Input)
+		actual, err := ParseHcxEnterpriseSiteIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -301,8 +301,8 @@ func TestParseAuthorizationIDInsensitively(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for PrivateCloudName", v.Expected.PrivateCloudName, actual.PrivateCloudName)
 		}
 
-		if actual.AuthorizationName != v.Expected.AuthorizationName {
-			t.Fatalf("Expected %q but got %q for AuthorizationName", v.Expected.AuthorizationName, actual.AuthorizationName)
+		if actual.HcxEnterpriseSiteName != v.Expected.HcxEnterpriseSiteName {
+			t.Fatalf("Expected %q but got %q for HcxEnterpriseSiteName", v.Expected.HcxEnterpriseSiteName, actual.HcxEnterpriseSiteName)
 		}
 
 	}

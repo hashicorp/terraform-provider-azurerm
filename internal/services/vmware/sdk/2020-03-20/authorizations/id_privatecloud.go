@@ -7,102 +7,118 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+var _ resourceids.ResourceId = PrivateCloudId{}
+
+// PrivateCloudId is a struct representing the Resource ID for a Private Cloud
 type PrivateCloudId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	Name           string
+	SubscriptionId    string
+	ResourceGroupName string
+	PrivateCloudName  string
 }
 
-func NewPrivateCloudID(subscriptionId, resourceGroup, name string) PrivateCloudId {
+// NewPrivateCloudID returns a new PrivateCloudId struct
+func NewPrivateCloudID(subscriptionId string, resourceGroupName string, privateCloudName string) PrivateCloudId {
 	return PrivateCloudId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourceGroup,
-		Name:           name,
+		SubscriptionId:    subscriptionId,
+		ResourceGroupName: resourceGroupName,
+		PrivateCloudName:  privateCloudName,
 	}
 }
 
-func (id PrivateCloudId) String() string {
-	segments := []string{
-		fmt.Sprintf("Name %q", id.Name),
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+// ParsePrivateCloudID parses 'input' into a PrivateCloudId
+func ParsePrivateCloudID(input string) (*PrivateCloudId, error) {
+	parser := resourceids.NewParserFromResourceIdType(PrivateCloudId{})
+	parsed, err := parser.Parse(input, false)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
-	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Private Cloud", segmentsStr)
+
+	var ok bool
+	id := PrivateCloudId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.PrivateCloudName, ok = parsed.Parsed["privateCloudName"]; !ok {
+		return nil, fmt.Errorf("the segment 'privateCloudName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
 }
 
+// ParsePrivateCloudIDInsensitively parses 'input' case-insensitively into a PrivateCloudId
+// note: this method should only be used for API response data and not user input
+func ParsePrivateCloudIDInsensitively(input string) (*PrivateCloudId, error) {
+	parser := resourceids.NewParserFromResourceIdType(PrivateCloudId{})
+	parsed, err := parser.Parse(input, true)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	var ok bool
+	id := PrivateCloudId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.PrivateCloudName, ok = parsed.Parsed["privateCloudName"]; !ok {
+		return nil, fmt.Errorf("the segment 'privateCloudName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
+}
+
+// ValidatePrivateCloudID checks that 'input' can be parsed as a Private Cloud ID
+func ValidatePrivateCloudID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	if _, err := ParsePrivateCloudID(v); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
+}
+
+// ID returns the formatted Private Cloud ID
 func (id PrivateCloudId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AVS/privateClouds/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.PrivateCloudName)
 }
 
-// ParsePrivateCloudID parses a PrivateCloud ID into an PrivateCloudId struct
-func ParsePrivateCloudID(input string) (*PrivateCloudId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// Segments returns a slice of Resource ID Segments which comprise this Private Cloud ID
+func (id PrivateCloudId) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
+		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
+		resourceids.StaticSegment("resourceGroups", "resourceGroups", "resourceGroups"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
+		resourceids.StaticSegment("providers", "providers", "providers"),
+		resourceids.ResourceProviderSegment("microsoftAVS", "Microsoft.AVS", "Microsoft.AVS"),
+		resourceids.StaticSegment("privateClouds", "privateClouds", "privateClouds"),
+		resourceids.UserSpecifiedSegment("privateCloudName", "privateCloudValue"),
 	}
-
-	resourceId := PrivateCloudId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	if resourceId.Name, err = id.PopSegment("privateClouds"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
 }
 
-// ParsePrivateCloudIDInsensitively parses an PrivateCloud ID into an PrivateCloudId struct, insensitively
-// This should only be used to parse an ID for rewriting to a consistent casing,
-// the ParsePrivateCloudID method should be used instead for validation etc.
-func ParsePrivateCloudIDInsensitively(input string) (*PrivateCloudId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// String returns a human-readable description of this Private Cloud ID
+func (id PrivateCloudId) String() string {
+	components := []string{
+		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
+		fmt.Sprintf("Private Cloud Name: %q", id.PrivateCloudName),
 	}
-
-	resourceId := PrivateCloudId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	// find the correct casing for the 'privateClouds' segment
-	privateCloudsKey := "privateClouds"
-	for key := range id.Path {
-		if strings.EqualFold(key, privateCloudsKey) {
-			privateCloudsKey = key
-			break
-		}
-	}
-	if resourceId.Name, err = id.PopSegment(privateCloudsKey); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
+	return fmt.Sprintf("Private Cloud (%s)", strings.Join(components, "\n"))
 }

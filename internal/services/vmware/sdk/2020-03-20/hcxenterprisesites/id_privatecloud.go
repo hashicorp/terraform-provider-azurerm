@@ -1,4 +1,4 @@
-package privateclouds
+package hcxenterprisesites
 
 import (
 	"fmt"

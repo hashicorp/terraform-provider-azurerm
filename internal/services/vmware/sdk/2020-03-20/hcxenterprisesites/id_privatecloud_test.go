@@ -1,4 +1,4 @@
-package authorizations
+package hcxenterprisesites
 
 import (
 	"testing"
@@ -6,10 +6,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = AuthorizationId{}
+var _ resourceids.ResourceId = PrivateCloudId{}
 
-func TestNewAuthorizationID(t *testing.T) {
-	id := NewAuthorizationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateCloudValue", "authorizationValue")
+func TestNewPrivateCloudID(t *testing.T) {
+	id := NewPrivateCloudID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateCloudValue")
 
 	if id.SubscriptionId != "12345678-1234-9876-4563-123456789012" {
 		t.Fatalf("Expected %q but got %q for Segment 'SubscriptionId'", id.SubscriptionId, "12345678-1234-9876-4563-123456789012")
@@ -22,25 +22,21 @@ func TestNewAuthorizationID(t *testing.T) {
 	if id.PrivateCloudName != "privateCloudValue" {
 		t.Fatalf("Expected %q but got %q for Segment 'PrivateCloudName'", id.PrivateCloudName, "privateCloudValue")
 	}
-
-	if id.AuthorizationName != "authorizationValue" {
-		t.Fatalf("Expected %q but got %q for Segment 'AuthorizationName'", id.AuthorizationName, "authorizationValue")
-	}
 }
 
-func TestFormatAuthorizationID(t *testing.T) {
-	actual := NewAuthorizationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateCloudValue", "authorizationValue").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/authorizations/authorizationValue"
+func TestFormatPrivateCloudID(t *testing.T) {
+	actual := NewPrivateCloudID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateCloudValue").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue"
 	if actual != expected {
 		t.Fatalf("Expected the Formatted ID to be %q but got %q", actual, expected)
 	}
 }
 
-func TestParseAuthorizationID(t *testing.T) {
+func TestParsePrivateCloudID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *AuthorizationId
+		Expected *PrivateCloudId
 	}{
 		{
 			// Incomplete URI
@@ -83,35 +79,24 @@ func TestParseAuthorizationID(t *testing.T) {
 			Error: true,
 		},
 		{
-			// Incomplete URI
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue",
-			Error: true,
-		},
-		{
-			// Incomplete URI
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/authorizations",
-			Error: true,
-		},
-		{
 			// Valid URI
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/authorizations/authorizationValue",
-			Expected: &AuthorizationId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue",
+			Expected: &PrivateCloudId{
 				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
 				ResourceGroupName: "example-resource-group",
 				PrivateCloudName:  "privateCloudValue",
-				AuthorizationName: "authorizationValue",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment)
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/authorizations/authorizationValue/extra",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/extra",
 			Error: true,
 		},
 	}
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseAuthorizationID(v.Input)
+		actual, err := ParsePrivateCloudID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -135,18 +120,14 @@ func TestParseAuthorizationID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for PrivateCloudName", v.Expected.PrivateCloudName, actual.PrivateCloudName)
 		}
 
-		if actual.AuthorizationName != v.Expected.AuthorizationName {
-			t.Fatalf("Expected %q but got %q for AuthorizationName", v.Expected.AuthorizationName, actual.AuthorizationName)
-		}
-
 	}
 }
 
-func TestParseAuthorizationIDInsensitively(t *testing.T) {
+func TestParsePrivateCloudIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *AuthorizationId
+		Expected *PrivateCloudId
 	}{
 		{
 			// Incomplete URI
@@ -224,60 +205,38 @@ func TestParseAuthorizationIDInsensitively(t *testing.T) {
 			Error: true,
 		},
 		{
-			// Incomplete URI
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue",
-			Error: true,
-		},
-		{
-			// Incomplete URI (mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aVs/pRiVaTeClOuDs/pRiVaTeClOuDvAlUe",
-			Error: true,
-		},
-		{
-			// Incomplete URI
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/authorizations",
-			Error: true,
-		},
-		{
-			// Incomplete URI (mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aVs/pRiVaTeClOuDs/pRiVaTeClOuDvAlUe/aUtHoRiZaTiOnS",
-			Error: true,
-		},
-		{
 			// Valid URI
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/authorizations/authorizationValue",
-			Expected: &AuthorizationId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue",
+			Expected: &PrivateCloudId{
 				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
 				ResourceGroupName: "example-resource-group",
 				PrivateCloudName:  "privateCloudValue",
-				AuthorizationName: "authorizationValue",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment)
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/authorizations/authorizationValue/extra",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.AVS/privateClouds/privateCloudValue/extra",
 			Error: true,
 		},
 		{
 			// Valid URI (mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aVs/pRiVaTeClOuDs/pRiVaTeClOuDvAlUe/aUtHoRiZaTiOnS/aUtHoRiZaTiOnVaLuE",
-			Expected: &AuthorizationId{
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aVs/pRiVaTeClOuDs/pRiVaTeClOuDvAlUe",
+			Expected: &PrivateCloudId{
 				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
 				ResourceGroupName: "eXaMpLe-rEsOuRcE-GrOuP",
 				PrivateCloudName:  "pRiVaTeClOuDvAlUe",
-				AuthorizationName: "aUtHoRiZaTiOnVaLuE",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment - mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aVs/pRiVaTeClOuDs/pRiVaTeClOuDvAlUe/aUtHoRiZaTiOnS/aUtHoRiZaTiOnVaLuE/extra",
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.aVs/pRiVaTeClOuDs/pRiVaTeClOuDvAlUe/extra",
 			Error: true,
 		},
 	}
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseAuthorizationIDInsensitively(v.Input)
+		actual, err := ParsePrivateCloudIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -299,10 +258,6 @@ func TestParseAuthorizationIDInsensitively(t *testing.T) {
 
 		if actual.PrivateCloudName != v.Expected.PrivateCloudName {
 			t.Fatalf("Expected %q but got %q for PrivateCloudName", v.Expected.PrivateCloudName, actual.PrivateCloudName)
-		}
-
-		if actual.AuthorizationName != v.Expected.AuthorizationName {
-			t.Fatalf("Expected %q but got %q for AuthorizationName", v.Expected.AuthorizationName, actual.AuthorizationName)
 		}
 
 	}

@@ -1,12 +1,12 @@
-package authorizations
+package hcxenterprisesites
 
-type ExpressRouteAuthorizationPredicate struct {
+type HcxEnterpriseSitePredicate struct {
 	Id   *string
 	Name *string
 	Type *string
 }
 
-func (p ExpressRouteAuthorizationPredicate) Matches(input ExpressRouteAuthorization) bool {
+func (p HcxEnterpriseSitePredicate) Matches(input HcxEnterpriseSite) bool {
 
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false
