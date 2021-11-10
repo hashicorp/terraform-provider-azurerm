@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
@@ -44,6 +45,7 @@ type SiteConfigLinuxFunctionApp struct {
 	WebSockets                    bool                               `tfschema:"websockets_enabled"`
 	FtpsState                     string                             `tfschema:"ftps_state"`
 	HealthCheckPath               string                             `tfschema:"health_check_path"`
+	HealthCheckEvictionTime       int                                `tfschema:"health_check_eviction_time"`
 	NumberOfWorkers               int                                `tfschema:"number_of_workers"`
 	ApplicationStack              []ApplicationStackLinuxFunctionApp `tfschema:"application_stack"`
 	MinTlsVersion                 string                             `tfschema:"minimum_tls_version"`
@@ -263,6 +265,14 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
 					Description: "The path to be checked for this function app health.",
+				},
+
+				"health_check_eviction_time": { // NOTE: Will evict the only node in single node configurations.
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntBetween(2, 10),
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"number_of_workers": {
@@ -529,6 +539,16 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	}
 
 	linuxSiteConfig := siteConfig[0]
+
+	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
+		if linuxSiteConfig.HealthCheckPath != "" && metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time") {
+			v := strconv.Itoa(linuxSiteConfig.HealthCheckEvictionTime)
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("WEBSITE_HEALTHCHECK_MAXPINGFAILURES"),
+				Value: utils.String(v),
+			})
+		}
+	}
 
 	expanded.AlwaysOn = utils.Bool(linuxSiteConfig.AlwaysOn)
 

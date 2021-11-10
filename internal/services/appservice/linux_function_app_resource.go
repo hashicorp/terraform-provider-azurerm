@@ -3,6 +3,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -854,6 +855,11 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input web.StringD
 
 		case "AzureWebJobsDashboard":
 			m.BuiltinLogging = true
+
+		case "WEBSITE_HEALTHCHECK_MAXPINGFAILURES":
+			i, _ := strconv.Atoi(utils.NormalizeNilableString(v))
+			m.SiteConfig[0].HealthCheckEvictionTime = utils.NormaliseNilableInt(&i)
+
 		default:
 			appSettings[k] = utils.NormalizeNilableString(v)
 		}

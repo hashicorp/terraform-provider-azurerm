@@ -473,6 +473,65 @@ func TestAccLinuxFunctionApp_dailyTimeQuotaElasticPremiumPlan(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionApp_healthCheckPath(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.healthCheckPath(data, "S1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionApp_healthCheckPathWithEviction(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.healthCheckPathWithEviction(data, "S1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionApp_healthCheckPathWithEvictionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, "S1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.healthCheckPathWithEviction(data, "S1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, "S1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // App Stacks
 
 func TestAccLinuxFunctionApp_appStackDotNet31(t *testing.T) {
@@ -740,6 +799,55 @@ resource "azurerm_linux_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) healthCheckPath(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-FA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    health_check_path = "/health"
+  }
+}
+`, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) healthCheckPathWithEviction(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-FA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    health_check_path          = "/health"
+    health_check_eviction_time = 3
+  }
 }
 `, r.template(data, planSku), data.RandomInteger)
 }
