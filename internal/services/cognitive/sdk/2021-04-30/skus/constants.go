@@ -11,24 +11,22 @@ const (
 
 func PossibleValuesForResourceSkuRestrictionsReasonCode() []string {
 	return []string{
-		"NotAvailableForSubscription",
-		"QuotaId",
+		string(ResourceSkuRestrictionsReasonCodeNotAvailableForSubscription),
+		string(ResourceSkuRestrictionsReasonCodeQuotaId),
 	}
 }
 
 func parseResourceSkuRestrictionsReasonCode(input string) (*ResourceSkuRestrictionsReasonCode, error) {
 	vals := map[string]ResourceSkuRestrictionsReasonCode{
-		"notavailableforsubscription": "NotAvailableForSubscription",
-		"quotaid":                     "QuotaId",
+		"notavailableforsubscription": ResourceSkuRestrictionsReasonCodeNotAvailableForSubscription,
+		"quotaid":                     ResourceSkuRestrictionsReasonCodeQuotaId,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := ResourceSkuRestrictionsReasonCode(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := ResourceSkuRestrictionsReasonCode(input)
 	return &out, nil
 }
 
@@ -41,23 +39,21 @@ const (
 
 func PossibleValuesForResourceSkuRestrictionsType() []string {
 	return []string{
-		"Location",
-		"Zone",
+		string(ResourceSkuRestrictionsTypeLocation),
+		string(ResourceSkuRestrictionsTypeZone),
 	}
 }
 
 func parseResourceSkuRestrictionsType(input string) (*ResourceSkuRestrictionsType, error) {
 	vals := map[string]ResourceSkuRestrictionsType{
-		"location": "Location",
-		"zone":     "Zone",
+		"location": ResourceSkuRestrictionsTypeLocation,
+		"zone":     ResourceSkuRestrictionsTypeZone,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := ResourceSkuRestrictionsType(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := ResourceSkuRestrictionsType(input)
 	return &out, nil
 }
