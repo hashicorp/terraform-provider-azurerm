@@ -22,7 +22,6 @@ func TestAccBatchApplicationDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("allow_updates").HasValue("true"),
 			),
 		},
-		data.ImportStep(),
 	})
 }
 
