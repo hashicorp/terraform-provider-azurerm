@@ -92,7 +92,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				}, false),
 			},
 
-			// Due to bug in RP extensions cannot curretntly be supported in Terraform
+			// Due to bug in RP extensions cannot curretntly be supported in Terraform ETA for full support is mid Jan 2022
 			// "extension": OrchestratedVirtualMachineScaleSetExtensionsSchema(),
 
 			// "extensions_time_budget": {
