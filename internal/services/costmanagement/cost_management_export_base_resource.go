@@ -3,6 +3,7 @@ package costmanagement
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2020-06-01/costmanagement"
@@ -128,10 +129,13 @@ func (br costManagementExportBaseResource) createFunc(resourceName, scopeFieldNa
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.CostManagement.ExportClient
+			log.Printf("[DEBUG] cm_export scopefield %s", metadata.ResourceData.Get(scopeFieldName).(string))
 			id := parse.NewCostManagementExportId(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("name").(string))
-			existing, err := client.Get(ctx, id.Scope, id.Name, "")
+			log.Printf("[DEBUG] cm_export id %s", id.ID())
+			scope := id.Scope[1:]
+			existing, err := client.Get(ctx, scope, id.Name, "")
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !utils.ResponseWasNotFound(existing.Response) || !utils.ResponseWasStatusCode(existing.Response, 204) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
