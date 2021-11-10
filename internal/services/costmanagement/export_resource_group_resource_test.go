@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CostManagementExportSubscription struct {
+type ResourceGroupCostManagementExport struct {
 }
 
-func TestAccCostManagementExportSubscription_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cost_management_export_subscription", "test")
-	r := CostManagementExportSubscription{}
+func TestAccResourceGroupCostManagementExport_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_cost_management_export", "test")
+	r := ResourceGroupCostManagementExport{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -32,9 +32,9 @@ func TestAccCostManagementExportSubscription_basic(t *testing.T) {
 	})
 }
 
-func TestAccCostManagementExportSubscription_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cost_management_export_subscription", "test")
-	r := CostManagementExportSubscription{}
+func TestAccResourceGroupCostManagementExport_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_cost_management_export", "test")
+	r := ResourceGroupCostManagementExport{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccCostManagementExportSubscription_update(t *testing.T) {
 	})
 }
 
-func (t CostManagementExportSubscription) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t ResourceGroupCostManagementExport) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CostManagementExportID(state.ID)
 	if err != nil {
 		return nil, err
@@ -75,7 +75,7 @@ func (t CostManagementExportSubscription) Exists(ctx context.Context, clients *c
 	return utils.Bool(resp.ExportProperties != nil), nil
 }
 
-func (CostManagementExportSubscription) basic(data acceptance.TestData) string {
+func (ResourceGroupCostManagementExport) basic(data acceptance.TestData) string {
 	start := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
 	end := time.Now().AddDate(0, 0, 2).Format("2006-01-02")
 
@@ -83,8 +83,6 @@ func (CostManagementExportSubscription) basic(data acceptance.TestData) string {
 provider "azurerm" {
   features {}
 }
-
-data "azurerm_subscription" "test" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cm-%d"
@@ -100,9 +98,9 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_cost_management_export_subscription" "test" {
+resource "azurerm_resource_group_cost_management_export" "test" {
   name                    = "accrg%d"
-  subscription_id         = data.azurerm_subscription.test.id
+  resource_group_id       = azurerm_resource_group.test.id
   recurrence_type         = "Monthly"
   recurrence_period_start = "%sT00:00:00Z"
   recurrence_period_end   = "%sT00:00:00Z"
@@ -121,7 +119,7 @@ resource "azurerm_cost_management_export_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, start, end)
 }
 
-func (CostManagementExportSubscription) update(data acceptance.TestData) string {
+func (ResourceGroupCostManagementExport) update(data acceptance.TestData) string {
 	start := time.Now().AddDate(0, 3, 0).Format("2006-01-02")
 	end := time.Now().AddDate(0, 4, 0).Format("2006-01-02")
 
@@ -129,8 +127,6 @@ func (CostManagementExportSubscription) update(data acceptance.TestData) string 
 provider "azurerm" {
   features {}
 }
-
-data "azurerm_subscription" "test" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cm-%d"
@@ -146,9 +142,9 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_cost_management_export_subscription" "test" {
+resource "azurerm_resource_group_cost_management_export" "test" {
   name                    = "accrg%d"
-  subscription_id         = data.azurerm_subscription.test.id
+  resource_group_id       = azurerm_resource_group.test.id
   recurrence_type         = "Monthly"
   recurrence_period_start = "%sT00:00:00Z"
   recurrence_period_end   = "%sT00:00:00Z"
@@ -166,4 +162,3 @@ resource "azurerm_cost_management_export_subscription" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, start, end)
 }
-

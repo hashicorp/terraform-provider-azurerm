@@ -3,7 +3,6 @@ package costmanagement
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2020-06-01/costmanagement"
@@ -129,18 +128,15 @@ func (br costManagementExportBaseResource) createFunc(resourceName, scopeFieldNa
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.CostManagement.ExportClient
-			log.Printf("[DEBUG] cm_export scopefield %s", metadata.ResourceData.Get(scopeFieldName).(string))
 			id := parse.NewCostManagementExportId(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("name").(string))
-			log.Printf("[DEBUG] cm_export id %s", id.ID())
-			scope := id.Scope[1:]
-			existing, err := client.Get(ctx, scope, id.Name, "")
+			existing, err := client.Get(ctx, id.Scope, id.Name, "")
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) || !utils.ResponseWasStatusCode(existing.Response, 204) {
+				if !utils.ResponseWasNotFound(existing.Response) && !utils.ResponseWasStatusCode(existing.Response, 204) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !utils.ResponseWasNotFound(existing.Response) && !utils.ResponseWasStatusCode(existing.Response, 204) {
 				return tf.ImportAsExistsError(resourceName, id.ID())
 			}
 
@@ -167,7 +163,7 @@ func (br costManagementExportBaseResource) readFunc(scopeFieldName string) sdk.R
 
 			resp, err := client.Get(ctx, id.Scope, id.Name, "")
 			if err != nil {
-				if !utils.ResponseWasNotFound(resp.Response){
+				if !utils.ResponseWasNotFound(resp.Response) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading %s: %+v", *id, err)
@@ -196,7 +192,6 @@ func (br costManagementExportBaseResource) readFunc(scopeFieldName string) sdk.R
 			if err := metadata.ResourceData.Set("export_data_definition", flattenExportDefinition(resp.Definition)); err != nil {
 				return fmt.Errorf("setting `export_data_definition`: %+v", err)
 			}
-
 
 			return nil
 		},
@@ -258,13 +253,13 @@ func createOrUpdateCostManagementExport(ctx context.Context, client *costmanagem
 				Recurrence: costmanagement.RecurrenceType(metadata.ResourceData.Get("recurrence_type").(string)),
 				RecurrencePeriod: &costmanagement.ExportRecurrencePeriod{
 					From: &date.Time{Time: from},
-					To: &date.Time{Time: to},
+					To:   &date.Time{Time: to},
 				},
 				Status: status,
 			},
 			DeliveryInfo: expandExportDeliveryInfo(metadata.ResourceData.Get("export_data_storage_location").([]interface{})),
-			Format:	costmanagement.Csv,
-			Definition: expandExportDefinition(metadata.ResourceData.Get("export_data_definition").([]interface{})),
+			Format:       costmanagement.Csv,
+			Definition:   expandExportDefinition(metadata.ResourceData.Get("export_data_definition").([]interface{})),
 		},
 	}
 
@@ -290,7 +285,6 @@ func expandExportDeliveryInfo(input []interface{}) *costmanagement.ExportDeliver
 
 	return deliveryInfo
 }
-
 
 func expandExportDefinition(input []interface{}) *costmanagement.ExportDefinition {
 	if len(input) == 0 || input[0] == nil {

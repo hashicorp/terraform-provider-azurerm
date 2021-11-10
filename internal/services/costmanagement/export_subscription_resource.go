@@ -40,8 +40,8 @@ func (r SubscriptionCostManagementExportResource) ModelObject() interface{} {
 	return nil
 }
 
-func (r SubscriptionCostManagementExportResource) ResourceType() string{
-	return "azurerm_cost_management_export_subscription"
+func (r SubscriptionCostManagementExportResource) ResourceType() string {
+	return "azurerm_subscription_cost_management_export"
 }
 
 func (r SubscriptionCostManagementExportResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
