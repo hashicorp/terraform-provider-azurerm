@@ -12,26 +12,24 @@ const (
 
 func PossibleValuesForAccessPolicyEccAlgo() []string {
 	return []string{
-		"ES512",
-		"ES384",
-		"ES256",
+		string(AccessPolicyEccAlgoESFiveOneTwo),
+		string(AccessPolicyEccAlgoESThreeEightFour),
+		string(AccessPolicyEccAlgoESTwoFiveSix),
 	}
 }
 
 func parseAccessPolicyEccAlgo(input string) (*AccessPolicyEccAlgo, error) {
 	vals := map[string]AccessPolicyEccAlgo{
-		"esfiveonetwo":     "ES512",
-		"esthreeeightfour": "ES384",
-		"estwofivesix":     "ES256",
+		"es512": AccessPolicyEccAlgoESFiveOneTwo,
+		"es384": AccessPolicyEccAlgoESThreeEightFour,
+		"es256": AccessPolicyEccAlgoESTwoFiveSix,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := AccessPolicyEccAlgo(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := AccessPolicyEccAlgo(input)
 	return &out, nil
 }
 
@@ -43,22 +41,20 @@ const (
 
 func PossibleValuesForAccessPolicyRole() []string {
 	return []string{
-		"Reader",
+		string(AccessPolicyRoleReader),
 	}
 }
 
 func parseAccessPolicyRole(input string) (*AccessPolicyRole, error) {
 	vals := map[string]AccessPolicyRole{
-		"reader": "Reader",
+		"reader": AccessPolicyRoleReader,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := AccessPolicyRole(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := AccessPolicyRole(input)
 	return &out, nil
 }
 
@@ -72,26 +68,24 @@ const (
 
 func PossibleValuesForAccessPolicyRsaAlgo() []string {
 	return []string{
-		"RS512",
-		"RS384",
-		"RS256",
+		string(AccessPolicyRsaAlgoRSFiveOneTwo),
+		string(AccessPolicyRsaAlgoRSThreeEightFour),
+		string(AccessPolicyRsaAlgoRSTwoFiveSix),
 	}
 }
 
 func parseAccessPolicyRsaAlgo(input string) (*AccessPolicyRsaAlgo, error) {
 	vals := map[string]AccessPolicyRsaAlgo{
-		"rsfiveonetwo":     "RS512",
-		"rsthreeeightfour": "RS384",
-		"rstwofivesix":     "RS256",
+		"rs512": AccessPolicyRsaAlgoRSFiveOneTwo,
+		"rs384": AccessPolicyRsaAlgoRSThreeEightFour,
+		"rs256": AccessPolicyRsaAlgoRSTwoFiveSix,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := AccessPolicyRsaAlgo(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := AccessPolicyRsaAlgo(input)
 	return &out, nil
 }
 
@@ -104,24 +98,22 @@ const (
 
 func PossibleValuesForAccountEncryptionKeyType() []string {
 	return []string{
-		"CustomerKey",
-		"SystemKey",
+		string(AccountEncryptionKeyTypeCustomerKey),
+		string(AccountEncryptionKeyTypeSystemKey),
 	}
 }
 
 func parseAccountEncryptionKeyType(input string) (*AccountEncryptionKeyType, error) {
 	vals := map[string]AccountEncryptionKeyType{
-		"customerkey": "CustomerKey",
-		"systemkey":   "SystemKey",
+		"customerkey": AccountEncryptionKeyTypeCustomerKey,
+		"systemkey":   AccountEncryptionKeyTypeSystemKey,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := AccountEncryptionKeyType(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := AccountEncryptionKeyType(input)
 	return &out, nil
 }
 
@@ -134,24 +126,22 @@ const (
 
 func PossibleValuesForCheckNameAvailabilityReason() []string {
 	return []string{
-		"AlreadyExists",
-		"Invalid",
+		string(CheckNameAvailabilityReasonAlreadyExists),
+		string(CheckNameAvailabilityReasonInvalid),
 	}
 }
 
 func parseCheckNameAvailabilityReason(input string) (*CheckNameAvailabilityReason, error) {
 	vals := map[string]CheckNameAvailabilityReason{
-		"alreadyexists": "AlreadyExists",
-		"invalid":       "Invalid",
+		"alreadyexists": CheckNameAvailabilityReasonAlreadyExists,
+		"invalid":       CheckNameAvailabilityReasonInvalid,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := CheckNameAvailabilityReason(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := CheckNameAvailabilityReason(input)
 	return &out, nil
 }
 
@@ -166,28 +156,26 @@ const (
 
 func PossibleValuesForCreatedByType() []string {
 	return []string{
-		"Application",
-		"Key",
-		"ManagedIdentity",
-		"User",
+		string(CreatedByTypeApplication),
+		string(CreatedByTypeKey),
+		string(CreatedByTypeManagedIdentity),
+		string(CreatedByTypeUser),
 	}
 }
 
 func parseCreatedByType(input string) (*CreatedByType, error) {
 	vals := map[string]CreatedByType{
-		"application":     "Application",
-		"key":             "Key",
-		"managedidentity": "ManagedIdentity",
-		"user":            "User",
+		"application":     CreatedByTypeApplication,
+		"key":             CreatedByTypeKey,
+		"managedidentity": CreatedByTypeManagedIdentity,
+		"user":            CreatedByTypeUser,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := CreatedByType(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := CreatedByType(input)
 	return &out, nil
 }
 
@@ -199,22 +187,20 @@ const (
 
 func PossibleValuesForVideoAnalyzerEndpointType() []string {
 	return []string{
-		"ClientApi",
+		string(VideoAnalyzerEndpointTypeClientApi),
 	}
 }
 
 func parseVideoAnalyzerEndpointType(input string) (*VideoAnalyzerEndpointType, error) {
 	vals := map[string]VideoAnalyzerEndpointType{
-		"clientapi": "ClientApi",
+		"clientapi": VideoAnalyzerEndpointTypeClientApi,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := VideoAnalyzerEndpointType(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := VideoAnalyzerEndpointType(input)
 	return &out, nil
 }
 
@@ -226,21 +212,19 @@ const (
 
 func PossibleValuesForVideoType() []string {
 	return []string{
-		"Archive",
+		string(VideoTypeArchive),
 	}
 }
 
 func parseVideoType(input string) (*VideoType, error) {
 	vals := map[string]VideoType{
-		"archive": "Archive",
+		"archive": VideoTypeArchive,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := VideoType(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := VideoType(input)
 	return &out, nil
 }
