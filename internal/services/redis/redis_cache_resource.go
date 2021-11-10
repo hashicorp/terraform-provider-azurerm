@@ -412,7 +412,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("subnet_id"); ok {
-		parsed, parseErr := networkParse.SubnetID(v.(string))
+		parsed, parseErr := networkParse.SubnetIDInsensitively(v.(string))
 		if parseErr != nil {
 			return err
 		}
@@ -631,14 +631,16 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("minimum_tls_version", string(props.MinimumTLSVersion))
 		d.Set("port", props.Port)
 		d.Set("enable_non_ssl_port", props.EnableNonSslPort)
+		shardCount := 0
 		if props.ShardCount != nil {
-			d.Set("shard_count", props.ShardCount)
+			shardCount = int(*props.ShardCount)
 		}
+		d.Set("shard_count", shardCount)
 		d.Set("private_static_ip_address", props.StaticIP)
 
 		subnetId := ""
 		if props.SubnetID != nil {
-			parsed, err := networkParse.SubnetID(*props.SubnetID)
+			parsed, err := networkParse.SubnetIDInsensitively(*props.SubnetID)
 			if err != nil {
 				return err
 			}
@@ -691,9 +693,8 @@ func resourceRedisCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	if read.Properties == nil {
 		return fmt.Errorf("retrieving Redis Cache %q (Resource Group %q): `properties` was nil", id.RediName, id.ResourceGroup)
 	}
-	props := *read.Properties
-	if subnetID := props.SubnetID; subnetID != nil {
-		parsed, parseErr := networkParse.SubnetID(*subnetID)
+	if subnetID := read.Properties.SubnetID; subnetID != nil {
+		parsed, parseErr := networkParse.SubnetIDInsensitively(*subnetID)
 		if parseErr != nil {
 			return err
 		}
