@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,8 +26,10 @@ func resourceNetworkProfile() *pluginsdk.Resource {
 		Read:   resourceNetworkProfileRead,
 		Update: resourceNetworkProfileCreateUpdate,
 		Delete: resourceNetworkProfileDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.NetworkProfileID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -96,18 +99,18 @@ func resourceNetworkProfile() *pluginsdk.Resource {
 func resourceNetworkProfileCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ProfileClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Network Profile creation")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewNetworkProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Network Profile %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -124,8 +127,8 @@ func resourceNetworkProfileCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("extracting names of Subnet and Virtual Network: %+v", err)
 	}
 
-	locks.ByName(name, azureNetworkProfileResourceName)
-	defer locks.UnlockByName(name, azureNetworkProfileResourceName)
+	locks.ByName(id.Name, azureNetworkProfileResourceName)
+	defer locks.UnlockByName(id.Name, azureNetworkProfileResourceName)
 
 	locks.MultipleByName(vnetsToLock, VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(vnetsToLock, VirtualNetworkResourceName)
@@ -141,20 +144,11 @@ func resourceNetworkProfileCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("creating/updating Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	profile, err := client.Get(ctx, resourceGroup, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if profile.ID == nil {
-		return fmt.Errorf("Cannot read Network Profile %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*profile.ID)
+	d.SetId(id.ID())
 
 	return resourceNetworkProfileRead(d, meta)
 }
@@ -164,26 +158,24 @@ func resourceNetworkProfileRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NetworkProfileID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["networkProfiles"]
 
-	profile, err := client.Get(ctx, resourceGroup, name, "")
+	profile, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(profile.Response) {
-			log.Printf("[DEBUG] Network Profile %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("requesting %s: %+v", *id, err)
 	}
 
-	d.Set("name", profile.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := profile.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -208,22 +200,20 @@ func resourceNetworkProfileDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NetworkProfileID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["networkProfiles"]
 
-	read, err := client.Get(ctx, resourceGroup, name, "")
+	read, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
 			// deleted outside of TF
-			log.Printf("[DEBUG] Network Profile %q was not found in Resource Group %q - assuming removed!", name, resourceGroup)
+			log.Printf("[DEBUG] %s was not found - assuming removed!", *id)
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(d)
@@ -231,8 +221,8 @@ func resourceNetworkProfileDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("extracting names of Subnet and Virtual Network: %+v", err)
 	}
 
-	locks.ByName(name, azureNetworkProfileResourceName)
-	defer locks.UnlockByName(name, azureNetworkProfileResourceName)
+	locks.ByName(id.Name, azureNetworkProfileResourceName)
+	defer locks.UnlockByName(id.Name, azureNetworkProfileResourceName)
 
 	locks.MultipleByName(vnetsToLock, VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(vnetsToLock, VirtualNetworkResourceName)
@@ -240,8 +230,8 @@ func resourceNetworkProfileDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	locks.MultipleByName(subnetsToLock, SubnetResourceName)
 	defer locks.UnlockMultipleByName(subnetsToLock, SubnetResourceName)
 
-	if _, err = client.Delete(ctx, resourceGroup, name); err != nil {
-		return fmt.Errorf("deleting Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return err
@@ -300,20 +290,17 @@ func expandNetworkProfileVirtualNetworkSubnetNames(d *pluginsdk.ResourceData) (*
 			ipData := ipConfig.(map[string]interface{})
 			subnetID := ipData["subnet_id"].(string)
 
-			subnetResourceID, err := azure.ParseAzureResourceID(subnetID)
+			subnetResourceID, err := parse.SubnetID(subnetID)
 			if err != nil {
 				return nil, nil, err
 			}
 
-			subnetName := subnetResourceID.Path["subnets"]
-			vnetName := subnetResourceID.Path["virtualNetworks"]
-
-			if !utils.SliceContainsValue(subnetNames, subnetName) {
-				subnetNames = append(subnetNames, subnetName)
+			if !utils.SliceContainsValue(subnetNames, subnetResourceID.Name) {
+				subnetNames = append(subnetNames, subnetResourceID.Name)
 			}
 
-			if !utils.SliceContainsValue(vnetNames, vnetName) {
-				vnetNames = append(vnetNames, vnetName)
+			if !utils.SliceContainsValue(vnetNames, subnetResourceID.VirtualNetworkName) {
+				vnetNames = append(vnetNames, subnetResourceID.VirtualNetworkName)
 			}
 		}
 	}

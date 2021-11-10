@@ -94,6 +94,20 @@ func TestAccServiceBusQueue_enablePartitioningStandard(t *testing.T) {
 	})
 }
 
+func TestAccServiceBusQueue_maxMessageSizePremium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
+	r := ServiceBusQueueResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.Premium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueResource{}
@@ -417,6 +431,8 @@ resource "azurerm_servicebus_queue" "test" {
   namespace_name      = azurerm_servicebus_namespace.test.name
   enable_partitioning = false
   enable_express      = false
+
+  max_message_size_in_kilobytes = 102400
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

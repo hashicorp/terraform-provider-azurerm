@@ -100,6 +100,8 @@ A `addon_profile` block exports the following:
 
 * `ingress_application_gateway` - An `ingress_application_gateway` block.
 
+* `open_service_mesh` - An `open_service_mesh` block.
+
 ---
 
 A `agent_pool_profile` block exports the following:
@@ -287,6 +289,12 @@ The `ingress_application_gateway_identity` block exports the following:
 * `object_id` - The Object ID of the user-defined Managed Identity used by the Application Gateway.
 
 * `user_assigned_identity_id` - The ID of the User Assigned Identity used by the Application Gateway.
+
+---
+
+An `open_service_mesh` block supports the following:
+
+* `enabled` - Is Open Service Mesh enabled?
 
 ---
 

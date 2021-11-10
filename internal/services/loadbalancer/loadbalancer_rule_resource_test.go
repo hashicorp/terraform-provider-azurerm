@@ -180,6 +180,36 @@ func TestAccAzureRMLoadBalancerRule_vmssBackendPoolUpdateRemoveLBRule(t *testing
 	})
 }
 
+func TestAccAzureRMLoadBalancerRule_gatewayLBRule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
+	r := LoadBalancerRule{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.gatewayLBRule(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancerRule_gatewayLBRuleMultiple(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
+	r := LoadBalancerRule{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.gatewayLBRuleMultiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r LoadBalancerRule) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LoadBalancingRuleID(state.ID)
 	if err != nil {
@@ -512,4 +542,163 @@ resource "azurerm_lb_rule" "test" {
   disable_outbound_snat          = false
 }
 `, template, lbRuleName)
+}
+
+func (r LoadBalancerRule) gatewayLBRuleTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet-%[1]d"
+  resource_group_name  = azurerm_virtual_network.test.resource_group_name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Gateway"
+
+  frontend_ip_configuration {
+    name      = "feip"
+    subnet_id = azurerm_subnet.test.id
+  }
+}
+
+resource "azurerm_public_ip" "c1" {
+  name                = "acctestpip1-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_lb" "c1" {
+  name                = "acctestlb-consumer1-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  frontend_ip_configuration {
+    name                                               = "gateway"
+    public_ip_address_id                               = azurerm_public_ip.c1.id
+    gateway_load_balancer_frontend_ip_configuration_id = azurerm_lb.test.frontend_ip_configuration.0.id
+  }
+}
+
+resource "azurerm_public_ip" "c2" {
+  name                = "acctestpip2-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_lb" "c2" {
+  name                = "acctestlb-consumer2-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  frontend_ip_configuration {
+    name                                               = "gateway"
+    public_ip_address_id                               = azurerm_public_ip.c2.id
+    gateway_load_balancer_frontend_ip_configuration_id = azurerm_lb.test.frontend_ip_configuration.0.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r LoadBalancerRule) gatewayLBRule(data acceptance.TestData) string {
+	template := r.gatewayLBRuleTemplate(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name            = "acctestbap-%[2]d"
+  loadbalancer_id = azurerm_lb.test.id
+  tunnel_interface {
+    identifier = 900
+    type       = "Internal"
+    protocol   = "VXLAN"
+    port       = 15000
+  }
+  tunnel_interface {
+    identifier = 901
+    type       = "External"
+    protocol   = "VXLAN"
+    port       = 15001
+  }
+}
+
+resource "azurerm_lb_rule" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
+  name                = "abababa"
+  protocol            = "Tcp"
+  frontend_port       = 3389
+  backend_port        = 3389
+  backend_address_pool_ids = [
+    azurerm_lb_backend_address_pool.test.id,
+  ]
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+}
+`, template, data.RandomInteger)
+}
+
+func (r LoadBalancerRule) gatewayLBRuleMultiple(data acceptance.TestData) string {
+	template := r.gatewayLBRuleTemplate(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_lb_backend_address_pool" "test1" {
+  name            = "acctestbap1-%[2]d"
+  loadbalancer_id = azurerm_lb.test.id
+  tunnel_interface {
+    identifier = 900
+    type       = "Internal"
+    protocol   = "VXLAN"
+    port       = 15000
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "test2" {
+  name            = "acctestbap2-%[2]d"
+  loadbalancer_id = azurerm_lb.test.id
+  tunnel_interface {
+    identifier = 901
+    type       = "External"
+    protocol   = "VXLAN"
+    port       = 15001
+  }
+}
+
+resource "azurerm_lb_rule" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
+  name                = "abababa"
+  protocol            = "Tcp"
+  frontend_port       = 3389
+  backend_port        = 3389
+  backend_address_pool_ids = [
+    azurerm_lb_backend_address_pool.test1.id,
+    azurerm_lb_backend_address_pool.test2.id,
+  ]
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+}
+`, template, data.RandomInteger)
 }

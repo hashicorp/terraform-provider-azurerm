@@ -59,37 +59,30 @@ func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta i
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Subnet <-> NAT Gateway Association creation.")
-	subnetId := d.Get("subnet_id").(string)
 	natGatewayId := d.Get("nat_gateway_id").(string)
-	parsedSubnetId, err := parse.SubnetID(subnetId)
+	parsedSubnetId, err := parse.SubnetID(d.Get("subnet_id").(string))
 	if err != nil {
 		return err
 	}
 
-	subnetName := parsedSubnetId.Name
-	virtualNetworkName := parsedSubnetId.VirtualNetworkName
-	resourceGroup := parsedSubnetId.ResourceGroup
-
-	parsedGatewayId, err := parse.NatGatewayID(natGatewayId)
+	parsedGatewayId, err := parse.NatGatewayID(d.Get("nat_gateway_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing NAT gateway id '%s': %+v", natGatewayId, err)
 	}
 
-	gatewayName := parsedGatewayId.Name
+	locks.ByName(parsedGatewayId.Name, natGatewayResourceName)
+	defer locks.UnlockByName(parsedGatewayId.Name, natGatewayResourceName)
+	locks.ByName(parsedSubnetId.VirtualNetworkName, VirtualNetworkResourceName)
+	defer locks.UnlockByName(parsedSubnetId.VirtualNetworkName, VirtualNetworkResourceName)
+	locks.ByName(parsedSubnetId.Name, SubnetResourceName)
+	defer locks.UnlockByName(parsedSubnetId.Name, SubnetResourceName)
 
-	locks.ByName(gatewayName, natGatewayResourceName)
-	defer locks.UnlockByName(gatewayName, natGatewayResourceName)
-	locks.ByName(virtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(virtualNetworkName, VirtualNetworkResourceName)
-	locks.ByName(subnetName, SubnetResourceName)
-	defer locks.UnlockByName(subnetName, SubnetResourceName)
-
-	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
+	subnet, err := client.Get(ctx, parsedSubnetId.ResourceGroup, parsedSubnetId.VirtualNetworkName, parsedSubnetId.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(subnet.Response) {
-			return fmt.Errorf("Subnet %q (Virtual Network %q / Resource Group %q) was not found!", subnetName, virtualNetworkName, resourceGroup)
+			return fmt.Errorf("%s was not found!", *parsedSubnetId)
 		}
-		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *parsedSubnetId, err)
 	}
 
 	if props := subnet.SubnetPropertiesFormat; props != nil {
@@ -104,13 +97,13 @@ func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualNetworkName, subnetName, subnet)
+	future, err := client.CreateOrUpdate(ctx, parsedSubnetId.ResourceGroup, parsedSubnetId.VirtualNetworkName, parsedSubnetId.Name, subnet)
 	if err != nil {
-		return fmt.Errorf("updating NAT Gateway Association for Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("updating NAT Gateway Association for %s: %+v", *parsedSubnetId, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of NAT Gateway Association for Subnet %q (VN %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of NAT Gateway Association for %s: %+v", *parsedSubnetId, err)
 	}
 
 	timeout, _ := ctx.Deadline()
@@ -123,7 +116,7 @@ func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta i
 		Timeout:    time.Until(timeout),
 	}
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for provisioning state of subnet for NAT Gateway Association for Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("waiting for provisioning state of subnet for NAT Gateway Association for %s: %+v", *parsedSubnetId, err)
 	}
 
 	vnetId := parse.NewVirtualNetworkID(parsedSubnetId.SubscriptionId, parsedSubnetId.ResourceGroup, parsedSubnetId.VirtualNetworkName)
@@ -135,14 +128,10 @@ func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta i
 		Timeout:    time.Until(timeout),
 	}
 	if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for provisioning state of virtual network for NAT Gateway Association for Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("waiting for provisioning state of virtual network for NAT Gateway Association for %s: %+v", *parsedSubnetId, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
-	}
-	d.SetId(*read.ID)
+	d.SetId(parsedSubnetId.ID())
 
 	return resourceSubnetNatGatewayAssociationRead(d, meta)
 }
@@ -157,27 +146,23 @@ func resourceSubnetNatGatewayAssociationRead(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	virtualNetworkName := id.VirtualNetworkName
-	subnetName := id.Name
-
-	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
+	subnet, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(subnet.Response) {
-			log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) could not be found - removing from state!", subnetName, virtualNetworkName, resourceGroup)
+			log.Printf("[DEBUG] %s could not be found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	props := subnet.SubnetPropertiesFormat
 	if props == nil {
-		return fmt.Errorf("Error: `properties` was nil for Subnet %q (Virtual Network %q / Resource Group %q)", subnetName, virtualNetworkName, resourceGroup)
+		return fmt.Errorf("Error: `properties` was nil for %s", *id)
 	}
 	natGateway := props.NatGateway
 	if natGateway == nil {
-		log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) doesn't have a NAT Gateway - removing from state!", subnetName, virtualNetworkName, resourceGroup)
+		log.Printf("[DEBUG] %s doesn't have a NAT Gateway - removing from state!", *id)
 		d.SetId("")
 		return nil
 	}
@@ -198,57 +183,52 @@ func resourceSubnetNatGatewayAssociationDelete(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	virtualNetworkName := id.VirtualNetworkName
-	subnetName := id.Name
-
-	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
+	subnet, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(subnet.Response) {
-			log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) could not be found - removing from state!", subnetName, virtualNetworkName, resourceGroup)
+			log.Printf("[DEBUG] %s could not be found - removing from state!", *id)
 			return nil
 		}
-		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	props := subnet.SubnetPropertiesFormat
 	if props == nil {
-		return fmt.Errorf("`Properties` was nil for Subnet %q (Virtual Network %q / Resource Group %q)", subnetName, virtualNetworkName, resourceGroup)
+		return fmt.Errorf("`Properties` was nil for %s ", *id)
 	}
 	if props.NatGateway == nil || props.NatGateway.ID == nil {
-		log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) has no NAT Gateway - removing from state!", subnetName, virtualNetworkName, resourceGroup)
+		log.Printf("[DEBUG] %s has no NAT Gateway - removing from state!", *id)
 		return nil
 	}
-	parsedGatewayId, err := azure.ParseAzureResourceID(*props.NatGateway.ID)
+	parsedGatewayId, err := parse.NatGatewayID(*props.NatGateway.ID)
 	if err != nil {
 		return err
 	}
 
-	gatewayName := parsedGatewayId.Path["natGateways"]
-	locks.ByName(gatewayName, natGatewayResourceName)
-	defer locks.UnlockByName(gatewayName, natGatewayResourceName)
-	locks.ByName(virtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(virtualNetworkName, VirtualNetworkResourceName)
+	locks.ByName(parsedGatewayId.Name, natGatewayResourceName)
+	defer locks.UnlockByName(parsedGatewayId.Name, natGatewayResourceName)
+	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
 
 	// ensure we get the latest state
-	subnet, err = client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
+	subnet, err = client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(subnet.Response) {
-			log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) could not be found - removing from state!", subnetName, virtualNetworkName, resourceGroup)
+			log.Printf("[DEBUG] %s could not be found - removing from state!", *id)
 			return nil
 		}
-		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	subnet.SubnetPropertiesFormat.NatGateway = nil // remove the nat gateway from subnet
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualNetworkName, subnetName, subnet)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, subnet)
 	if err != nil {
-		return fmt.Errorf("removing NAT Gateway Association from Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("removing %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for removal of NAT Gateway Association from Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("waiting for removal of %s: %+v", *id, err)
 	}
 
 	return nil

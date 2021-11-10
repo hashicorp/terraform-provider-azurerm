@@ -46,6 +46,7 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		MaxItems: 1,
 		Computed: computed,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -595,6 +596,12 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"priority": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 20000),
 						},
 
 						"backend_address_pool_id": {
@@ -2863,6 +2870,7 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 func expandApplicationGatewayRequestRoutingRules(d *pluginsdk.ResourceData, gatewayID string) (*[]network.ApplicationGatewayRequestRoutingRule, error) {
 	vs := d.Get("request_routing_rule").(*pluginsdk.Set).List()
 	results := make([]network.ApplicationGatewayRequestRoutingRule, 0)
+	priorityset := false
 
 	for _, raw := range vs {
 		v := raw.(map[string]interface{})
@@ -2874,6 +2882,7 @@ func expandApplicationGatewayRequestRoutingRules(d *pluginsdk.ResourceData, gate
 		backendAddressPoolName := v["backend_address_pool_name"].(string)
 		backendHTTPSettingsName := v["backend_http_settings_name"].(string)
 		redirectConfigName := v["redirect_configuration_name"].(string)
+		priority := int32(v["priority"].(int))
 
 		rule := network.ApplicationGatewayRequestRoutingRule{
 			Name: utils.String(name),
@@ -2928,7 +2937,20 @@ func expandApplicationGatewayRequestRoutingRules(d *pluginsdk.ResourceData, gate
 			}
 		}
 
+		if priority != 0 {
+			rule.ApplicationGatewayRequestRoutingRulePropertiesFormat.Priority = &priority
+			priorityset = true
+		}
+
 		results = append(results, rule)
+	}
+
+	if priorityset {
+		for _, rule := range results {
+			if rule.ApplicationGatewayRequestRoutingRulePropertiesFormat.Priority == nil {
+				return nil, fmt.Errorf("If you wish to use rule priority, you will have to specify rule-priority field values for all the existing request routing rules.")
+			}
+		}
 	}
 
 	return &results, nil
@@ -2952,6 +2974,10 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if config.Name != nil {
 				output["name"] = *config.Name
+			}
+
+			if config.Priority != nil {
+				output["priority"] = *config.Priority
 			}
 
 			if pool := props.BackendAddressPool; pool != nil {

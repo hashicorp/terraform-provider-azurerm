@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,6 +31,11 @@ func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.WebTestID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.WebTestUpgradeV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -135,18 +141,18 @@ func resourceApplicationInsightsWebTestsCreateUpdate(d *pluginsdk.ResourceData, 
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights WebTest creation.")
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
 	appInsightsId, err := parse.ComponentID(d.Get("application_insights_id").(string))
 	if err != nil {
 		return err
 	}
 
+	id := parse.NewWebTestID(appInsightsId.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Application Insights WebTests %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Application Insights %s: %+v", id, err)
 			}
 		}
 
@@ -171,12 +177,12 @@ func resourceApplicationInsightsWebTestsCreateUpdate(d *pluginsdk.ResourceData, 
 	t[tagKey] = "Resource"
 
 	webTest := insights.WebTest{
-		Name:     &name,
+		Name:     &id.Name,
 		Location: &location,
 		Kind:     insights.WebTestKind(kind),
 		WebTestProperties: &insights.WebTestProperties{
-			SyntheticMonitorID: &name,
-			WebTestName:        &name,
+			SyntheticMonitorID: &id.Name,
+			WebTestName:        &id.Name,
 			Description:        &description,
 			Enabled:            &isEnabled,
 			Frequency:          &frequency,
@@ -191,12 +197,12 @@ func resourceApplicationInsightsWebTestsCreateUpdate(d *pluginsdk.ResourceData, 
 		Tags: tags.Expand(t),
 	}
 
-	resp, err := client.CreateOrUpdate(ctx, resGroup, name, webTest)
+	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, webTest)
 	if err != nil {
-		return fmt.Errorf("creating/updating Application Insights WebTest %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating/updating Application Insights %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceApplicationInsightsWebTestsRead(d, meta)
 }
@@ -211,16 +217,16 @@ func resourceApplicationInsightsWebTestsRead(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	log.Printf("[DEBUG] Reading AzureRM Application Insights WebTests %q", id)
+	log.Printf("[DEBUG] Reading AzureRM Application Insights %q", *id)
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Application Insights WebTest %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Application Insights %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Application Insights WebTests %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Application Insights %s: %+v", *id, err)
 	}
 
 	appInsightsId := ""
@@ -272,14 +278,14 @@ func resourceApplicationInsightsWebTestsDelete(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting AzureRM Application Insights WebTest '%s' (resource group '%s')", id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Deleting AzureRM Application Insights %s", *id)
 
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
-		return fmt.Errorf("issuing AzureRM delete request for Application Insights WebTest '%s': %+v", id.Name, err)
+		return fmt.Errorf("issuing AzureRM delete request for Application Insights '%s': %+v", *id, err)
 	}
 
 	return err

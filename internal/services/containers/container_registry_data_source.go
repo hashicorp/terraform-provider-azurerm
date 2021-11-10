@@ -57,9 +57,11 @@ func dataSourceContainerRegistry() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			// TODO 3.0 - remove this attribute
 			"storage_account_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Type:       pluginsdk.TypeString,
+				Computed:   true,
+				Deprecated: "this attribute is no longer recognized by the API and is not functional anymore, thus this property will be removed in v3.0",
 			},
 
 			"tags": tags.SchemaDataSource(),
@@ -97,9 +99,8 @@ func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("sku", string(sku.Tier))
 	}
 
-	if account := resp.StorageAccount; account != nil {
-		d.Set("storage_account_id", account.ID)
-	}
+	// Deprecated as it is not returned by the API now.
+	d.Set("storage_account_id", "")
 
 	if *resp.AdminUserEnabled {
 		credsResp, err := client.ListCredentials(ctx, resourceGroup, name)

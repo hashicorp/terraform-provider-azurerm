@@ -77,6 +77,10 @@ The following arguments are supported:
 
 -> **NOTE:** Partitioning is available at entity creation for all queues and topics in Basic or Standard SKUs. It is not available for the Premium messaging SKU, but any previously existing partitioned entities in Premium namespaces continue to work as expected. Please [see the documentation](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-partitioning) for more information.
 
+* `max_message_size_in_kilobytes` - (Optional) Integer value which controls the maximum size of
+    a message allowed on the topic for Premium SKU. For supported values see the "Large messages support"
+    section of [this document](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-premium-messaging#large-messages-support-preview).
+
 * `max_size_in_megabytes` - (Optional) Integer value which controls the size of
     memory allocated for the topic. For supported values see the "Queue/topic size"
     section of [this document](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-quotas).

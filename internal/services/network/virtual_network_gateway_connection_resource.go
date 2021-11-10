@@ -25,8 +25,10 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 		Update: resourceVirtualNetworkGatewayConnectionCreateUpdate,
 		Delete: resourceVirtualNetworkGatewayConnectionDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.NetworkGatewayConnectionID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -604,14 +606,12 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData) (*n
 }
 
 func resourceGroupAndVirtualNetworkGatewayConnectionFromId(virtualNetworkGatewayConnectionId string) (string, string, error) {
-	id, err := azure.ParseAzureResourceID(virtualNetworkGatewayConnectionId)
+	id, err := parse.NetworkGatewayConnectionID(virtualNetworkGatewayConnectionId)
 	if err != nil {
 		return "", "", err
 	}
-	name := id.Path["connections"]
-	resGroup := id.ResourceGroup
 
-	return resGroup, name, nil
+	return id.ResourceGroup, id.ConnectionName, nil
 }
 
 func expandVirtualNetworkGatewayConnectionIpsecPolicies(schemaIpsecPolicies []interface{}) *[]network.IpsecPolicy {

@@ -1,7 +1,7 @@
 ---
 subcategory: "Synapse"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_synapse_workspace_keys"
+page_title: "Azure Resource Manager: azurerm_synapse_workspace_key"
 description: |-
   Manages Synapse Workspace Keys
 ---
@@ -116,7 +116,7 @@ resource "azurerm_synapse_workspace_key" "example" {
 
 The following arguments are supported:
 
-* `key_name` - (Required) Specifies the name of the workspace key. Should match the name of the key in the synapse workspace.
+* `customer_managed_key_name` - (Required) Specifies the name of the workspace key. Should match the name of the key in the synapse workspace.
 
 * `customer_managed_key_versionless_id` - (Required) The Azure Key Vault Key Versionless ID to be used as the Customer Managed Key (CMK) for double encryption 
 

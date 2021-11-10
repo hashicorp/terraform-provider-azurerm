@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -89,31 +89,27 @@ func TestAccNetworkProfile_disappears(t *testing.T) {
 }
 
 func (t NetworkProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.NetworkProfileID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["networkProfiles"]
 
-	resp, err := clients.Network.ProfileClient.Get(ctx, resourceGroup, name, "")
+	resp, err := clients.Network.ProfileClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Network Profile (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
 }
 
 func (NetworkProfileResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.NetworkProfileID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["networkProfiles"]
 
-	if _, err = client.Network.ProfileClient.Delete(ctx, resourceGroup, name); err != nil {
-		return nil, fmt.Errorf("deleting on Network Profile %q: %+v", id, err)
+	if _, err = client.Network.ProfileClient.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+		return nil, fmt.Errorf("deleting on %s: %+v", *id, err)
 	}
 
 	return utils.Bool(true), nil

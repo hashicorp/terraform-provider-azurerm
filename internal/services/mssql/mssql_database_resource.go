@@ -470,15 +470,15 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		Name:     &name,
 		Location: &location,
 		DatabaseProperties: &sql.DatabaseProperties{
-			AutoPauseDelay:                 utils.Int32(int32(d.Get("auto_pause_delay_in_minutes").(int))),
-			Collation:                      utils.String(d.Get("collation").(string)),
-			ElasticPoolID:                  utils.String(d.Get("elastic_pool_id").(string)),
-			LicenseType:                    sql.DatabaseLicenseType(d.Get("license_type").(string)),
-			MinCapacity:                    utils.Float(d.Get("min_capacity").(float64)),
-			HighAvailabilityReplicaCount:   utils.Int32(int32(d.Get("read_replica_count").(int))),
-			SampleName:                     sql.SampleName(d.Get("sample_name").(string)),
-			CurrentBackupStorageRedundancy: expandMsSqlBackupStorageRedundancy(d.Get("storage_account_type").(string)),
-			ZoneRedundant:                  utils.Bool(d.Get("zone_redundant").(bool)),
+			AutoPauseDelay:                   utils.Int32(int32(d.Get("auto_pause_delay_in_minutes").(int))),
+			Collation:                        utils.String(d.Get("collation").(string)),
+			ElasticPoolID:                    utils.String(d.Get("elastic_pool_id").(string)),
+			LicenseType:                      sql.DatabaseLicenseType(d.Get("license_type").(string)),
+			MinCapacity:                      utils.Float(d.Get("min_capacity").(float64)),
+			HighAvailabilityReplicaCount:     utils.Int32(int32(d.Get("read_replica_count").(int))),
+			SampleName:                       sql.SampleName(d.Get("sample_name").(string)),
+			RequestedBackupStorageRedundancy: expandMsSqlBackupStorageRedundancy(d.Get("storage_account_type").(string)),
+			ZoneRedundant:                    utils.Bool(d.Get("zone_redundant").(bool)),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -705,14 +705,16 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving Blob Auditing Policies for %s: %+v", id, err)
-	}
+	extendedAuditingPolicy := []interface{}{}
+	if createMode, ok := d.GetOk("create_mode"); !ok || createMode.(string) != "Secondary" {
+		auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		if err != nil {
+			return fmt.Errorf("retrieving Blob Auditing Policies for %s: %+v", id, err)
+		}
 
-	if err := d.Set("extended_auditing_policy", helper.FlattenMsSqlDBBlobAuditingPolicies(&auditingResp, d)); err != nil {
-		return fmt.Errorf("setting `extended_auditing_policy`: %+v", err)
+		extendedAuditingPolicy = helper.FlattenMsSqlDBBlobAuditingPolicies(&auditingResp, d)
 	}
+	d.Set("extended_auditing_policy", extendedAuditingPolicy)
 
 	geoBackupPolicy := true
 
@@ -746,7 +748,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				d.SetId("")
 				return nil
 			}
-			return fmt.Errorf("retrieving Geo Backuip Policies for %s: %+v", id, err)
+			return fmt.Errorf("retrieving Geo Backup Policies for %s: %+v", id, err)
 		}
 
 		// For Datawarehouse SKUs, set the geo-backup policy setting
@@ -795,6 +797,8 @@ func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy sql
 	securityAlertPolicy := make(map[string]interface{})
 
 	securityAlertPolicy["state"] = string(properties.State)
+	securityAlertPolicy["use_server_default"] = "Disabled"
+
 	securityAlertPolicy["email_account_admins"] = "Disabled"
 	if properties.EmailAccountAdmins != nil && *properties.EmailAccountAdmins {
 		securityAlertPolicy["email_account_admins"] = "Enabled"
@@ -803,14 +807,18 @@ func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy sql
 	if disabledAlerts := properties.DisabledAlerts; disabledAlerts != nil {
 		flattenedAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
 		for _, a := range *disabledAlerts {
-			flattenedAlerts.Add(a)
+			if a != "" {
+				flattenedAlerts.Add(a)
+			}
 		}
 		securityAlertPolicy["disabled_alerts"] = flattenedAlerts
 	}
 	if emailAddresses := properties.EmailAddresses; emailAddresses != nil {
 		flattenedEmails := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
 		for _, e := range *emailAddresses {
-			flattenedEmails.Add(e)
+			if e != "" {
+				flattenedEmails.Add(e)
+			}
 		}
 		securityAlertPolicy["email_addresses"] = flattenedEmails
 	}
@@ -892,14 +900,14 @@ func flattenMsSqlBackupStorageRedundancy(currentBackupStorageRedundancy sql.Curr
 	}
 }
 
-// TODO - 3.0: change input to sql.CurrentBackupStorageRedundancy enums
-func expandMsSqlBackupStorageRedundancy(storageAccountType string) sql.CurrentBackupStorageRedundancy {
+// TODO - 3.0: change input to sql.RequestedBackupStorageRedundancy enums
+func expandMsSqlBackupStorageRedundancy(storageAccountType string) sql.RequestedBackupStorageRedundancy {
 	switch storageAccountType {
 	case "LRS":
-		return sql.CurrentBackupStorageRedundancyLocal
+		return sql.RequestedBackupStorageRedundancyLocal
 	case "ZRS":
-		return sql.CurrentBackupStorageRedundancyZone
+		return sql.RequestedBackupStorageRedundancyZone
 	default:
-		return sql.CurrentBackupStorageRedundancyGeo
+		return sql.RequestedBackupStorageRedundancyGeo
 	}
 }

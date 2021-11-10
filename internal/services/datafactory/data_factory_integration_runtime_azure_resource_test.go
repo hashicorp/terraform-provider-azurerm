@@ -282,7 +282,7 @@ resource "azurerm_data_factory_integration_runtime_azure" "test" {
   name                    = "azure-integration-runtime"
   data_factory_name       = azurerm_data_factory.test.name
   resource_group_name     = azurerm_resource_group.test.name
-  location                = azurerm_resource_group.test.location
+  location                = "AutoResolve"
   virtual_network_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

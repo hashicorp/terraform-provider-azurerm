@@ -87,9 +87,10 @@ func (w DataPlaneStorageShareWrapper) Get(ctx context.Context, _, accountName, s
 	}
 
 	return &StorageShareProperties{
-		MetaData: props.MetaData,
-		QuotaGB:  props.ShareQuota,
-		ACLs:     acls.SignedIdentifiers,
+		MetaData:        props.MetaData,
+		QuotaGB:         props.ShareQuota,
+		ACLs:            acls.SignedIdentifiers,
+		EnabledProtocol: props.EnabledProtocol,
 	}, nil
 }
 

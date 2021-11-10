@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
+	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
@@ -138,7 +138,7 @@ func dataSourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) 
 					return err
 				}
 
-				if namespace.Sku.Name != servicebus.Premium {
+				if namespace.Sku.Name != servicebus.SkuNamePremium {
 					const partitionCount = 16
 					maxSize = int(*props.MaxSizeInMegabytes / partitionCount)
 				}

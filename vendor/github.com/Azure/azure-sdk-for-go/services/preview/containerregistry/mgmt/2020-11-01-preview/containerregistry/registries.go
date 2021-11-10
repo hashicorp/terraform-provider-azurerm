@@ -142,11 +142,7 @@ func (client RegistriesClient) Create(ctx context.Context, resourceGroupName str
 				{Target: "registryName", Name: validation.MinLength, Rule: 5, Chain: nil},
 				{Target: "registryName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]*$`, Chain: nil}}},
 		{TargetValue: registry,
-			Constraints: []validation.Constraint{{Target: "registry.Sku", Name: validation.Null, Rule: true, Chain: nil},
-				{Target: "registry.RegistryProperties", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "registry.RegistryProperties.StorageAccount", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "registry.RegistryProperties.StorageAccount.ID", Name: validation.Null, Rule: true, Chain: nil}}},
-					}}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "registry.Sku", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("containerregistry.RegistriesClient", "Create", err.Error())
 	}
 

@@ -36,7 +36,7 @@ func (id ApiKeyId) String() string {
 }
 
 func (id ApiKeyId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s/apikeys/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Insights/components/%s/apiKeys/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ComponentName, id.Name)
 }
 
@@ -63,7 +63,7 @@ func ApiKeyID(input string) (*ApiKeyId, error) {
 	if resourceId.ComponentName, err = id.PopSegment("components"); err != nil {
 		return nil, err
 	}
-	if resourceId.Name, err = id.PopSegment("apikeys"); err != nil {
+	if resourceId.Name, err = id.PopSegment("apiKeys"); err != nil {
 		return nil, err
 	}
 

@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/sdk/2021-05-01-preview/videoanalyzer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -47,17 +47,17 @@ func TestAccVideoAnalyzerEdgeModule_requiresImport(t *testing.T) {
 }
 
 func (VideoAnalyzerEdgeModuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.EdgeModuleID(state.ID)
+	id, err := videoanalyzer.ParseEdgeModuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.VideoAnalyzer.EdgeModulesClient.Get(ctx, id.ResourceGroup, id.VideoAnalyzerName, id.Name)
+	resp, err := clients.VideoAnalyzer.VideoAnalyzersClient.EdgeModulesGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Video Analyzer Edge module %s (resource group: %s): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.EdgeModuleProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r VideoAnalyzerEdgeModuleResource) basic(data acceptance.TestData) string {

@@ -61,12 +61,37 @@ func dataSourceVirtualMachine() *pluginsdk.Resource {
 					},
 				},
 			},
+			"private_ip_address": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"private_ip_addresses": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+			"public_ip_address": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"public_ip_addresses": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
 		},
 	}
 }
 
 func dataSourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
+	networkInterfacesClient := meta.(*clients.Client).Network.InterfacesClient
+	publicIPAddressesClient := meta.(*clients.Client).Network.PublicIPsClient
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -82,6 +107,23 @@ func dataSourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("making Read request on Virtual Machine %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
+	connectionInfo := retrieveConnectionInformation(ctx, networkInterfacesClient, publicIPAddressesClient, resp.VirtualMachineProperties)
+	err = d.Set("private_ip_address", connectionInfo.primaryPrivateAddress)
+	if err != nil {
+		return err
+	}
+	err = d.Set("private_ip_addresses", connectionInfo.privateAddresses)
+	if err != nil {
+		return err
+	}
+	err = d.Set("public_ip_address", connectionInfo.primaryPublicAddress)
+	if err != nil {
+		return err
+	}
+	err = d.Set("public_ip_addresses", connectionInfo.publicAddresses)
+	if err != nil {
+		return err
+	}
 	d.SetId(*resp.ID)
 
 	identity, err := flattenVirtualMachineIdentity(resp.Identity)

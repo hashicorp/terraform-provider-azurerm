@@ -202,6 +202,35 @@ func TestAccPostgresqlflexibleServer_pitr(t *testing.T) {
 	})
 }
 
+func TestAccPostgresqlflexibleServer_failover(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.failover(data, "1", "2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.failover(data, "2", "1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.failover(data, "1", "2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
 func (PostgresqlFlexibleServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FlexibleServerID(state.ID)
 	if err != nil {
@@ -319,7 +348,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
 
   high_availability {
     mode                      = "ZoneRedundant"
-    standby_availability_zone = "1"
+    standby_availability_zone = "2"
   }
 
   maintenance_window {
@@ -482,4 +511,34 @@ resource "azurerm_postgresql_flexible_server" "pitr" {
   point_in_time_restore_time_in_utc = "%s"
 }
 `, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
+}
+
+func (r PostgresqlFlexibleServerResource) failover(data acceptance.TestData, parimaryZone string, standbyZone string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  version                = "12"
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  zone                   = "%s"
+  backup_retention_days  = 10
+  storage_mb             = 131072
+  sku_name               = "GP_Standard_D2s_v3"
+
+  maintenance_window {
+    day_of_week  = 0
+    start_hour   = 0
+    start_minute = 0
+  }
+
+  high_availability {
+    mode                      = "ZoneRedundant"
+    standby_availability_zone = "%s"
+  }
+}
+`, r.template(data), data.RandomInteger, parimaryZone, standbyZone)
 }

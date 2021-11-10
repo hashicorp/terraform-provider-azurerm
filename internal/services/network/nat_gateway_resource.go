@@ -35,8 +35,10 @@ func resourceNatGateway() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.NatGatewayID(id)
+			return err
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -66,7 +68,7 @@ func resourceNatGateway() *pluginsdk.Resource {
 					ValidateFunc: azure.ValidateResourceID,
 				},
 				// TODO: remove in 3.0
-				Deprecated: "Inline Public IP Address ID Associations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_association` pluginsdk. This field will be removed in the next major version of the Azure Provider.",
+				Deprecated: "Inline Public IP Address ID Associations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_association` resource. This field will be removed in the next major version of the Azure Provider.",
 			},
 
 			"public_ip_prefix_ids": {
@@ -78,7 +80,7 @@ func resourceNatGateway() *pluginsdk.Resource {
 					ValidateFunc: azure.ValidateResourceID,
 				},
 				// TODO: remove in 3.0
-				Deprecated: "Inline Public IP Prefix ID Associations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_prefix_association` pluginsdk. This field will be removed in the next major version of the Azure Provider.",
+				Deprecated: "Inline Public IP Prefix ID Associations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_prefix_association` resource. This field will be removed in the next major version of the Azure Provider.",
 			},
 
 			"sku_name": {
@@ -104,19 +106,19 @@ func resourceNatGateway() *pluginsdk.Resource {
 
 func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewNatGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(name, natGatewayResourceName)
-	defer locks.UnlockByName(name, natGatewayResourceName)
+	locks.ByName(id.Name, natGatewayResourceName)
+	defer locks.UnlockByName(id.Name, natGatewayResourceName)
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("checking for present of existing NAT Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 		}
 	}
 	if resp.ID != nil && *resp.ID != "" {
@@ -145,22 +147,15 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		Zones: utils.ExpandStringSlice(zones),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("creating NAT Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of NAT Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	resp, err = client.Get(ctx, resourceGroup, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving NAT Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read NAT Gateway %q (Resource Group %q) ID", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceNatGatewayRead(d, meta)
 }
@@ -181,13 +176,13 @@ func resourceNatGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("NAT Gateway %q (Resource Group %q) was not found!", id.Name, id.ResourceGroup)
+			return fmt.Errorf("%s was not found!", *id)
 		}
 
-		return fmt.Errorf("retrieving NAT Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	if existing.NatGatewayPropertiesFormat == nil {
-		return fmt.Errorf("retrieving NAT Gateway %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 	props := *existing.NatGatewayPropertiesFormat
 
@@ -233,10 +228,10 @@ func resourceNatGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("updating NAT Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of NAT Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
 	return resourceNatGatewayRead(d, meta)
@@ -259,10 +254,10 @@ func resourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading NAT Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if sku := resp.Sku; sku != nil {

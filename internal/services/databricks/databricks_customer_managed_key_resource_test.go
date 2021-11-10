@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/databricks/mgmt/2021-04-01-preview/databricks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/sdk/2021-04-01-preview/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -105,19 +104,19 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_noIp(t *testing.T) {
 }
 
 func (DatabricksWorkspaceCustomerManagedKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.WorkspaceID(state.ID)
+	id, err := workspaces.ParseWorkspaceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DataBricks.WorkspacesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.DataBricks.WorkspacesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Databricks Workspace Customer Mangaged Key %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	// This is the only way we can tell if the CMK has actually been provisioned or not...
-	if resp.WorkspaceProperties.Parameters != nil && resp.WorkspaceProperties.Parameters.Encryption != nil {
-		if resp.WorkspaceProperties.Parameters.Encryption.Value.KeySource == databricks.KeySourceMicrosoftKeyvault {
+	if resp.Model != nil && resp.Model.Properties.Parameters != nil && resp.Model.Properties.Parameters.Encryption != nil && resp.Model.Properties.Parameters.Encryption.Value != nil && resp.Model.Properties.Parameters.Encryption.Value.KeySource != nil {
+		if *resp.Model.Properties.Parameters.Encryption.Value.KeySource == workspaces.KeySourceMicrosoftPointKeyvault {
 			return utils.Bool(true), nil
 		}
 	}

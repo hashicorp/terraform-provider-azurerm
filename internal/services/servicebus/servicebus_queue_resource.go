@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
+	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -127,6 +127,13 @@ func resourceServiceBusQueue() *pluginsdk.Resource {
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
+			"max_message_size_in_kilobytes": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: azValidate.ServiceBusMaxMessageSizeInKilobytes(),
+			},
+
 			"max_size_in_megabytes": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -151,16 +158,16 @@ func resourceServiceBusQueue() *pluginsdk.Resource {
 			"status": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(servicebus.Active),
+				Default:  string(servicebus.EntityStatusActive),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(servicebus.Active),
-					string(servicebus.Creating),
-					string(servicebus.Deleting),
-					string(servicebus.Disabled),
-					string(servicebus.ReceiveDisabled),
-					string(servicebus.Renaming),
-					string(servicebus.SendDisabled),
-					string(servicebus.Unknown),
+					string(servicebus.EntityStatusActive),
+					string(servicebus.EntityStatusCreating),
+					string(servicebus.EntityStatusDeleting),
+					string(servicebus.EntityStatusDisabled),
+					string(servicebus.EntityStatusReceiveDisabled),
+					string(servicebus.EntityStatusRenaming),
+					string(servicebus.EntityStatusSendDisabled),
+					string(servicebus.EntityStatusUnknown),
 				}, false),
 			},
 		},
@@ -247,8 +254,16 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	// Enforce Premium namespace to have Express Entities disabled in Terraform since they are not supported for
 	// Premium SKU.
-	if namespace.Sku.Name == servicebus.Premium && d.Get("enable_express").(bool) {
+	if namespace.Sku.Name == servicebus.SkuNamePremium && d.Get("enable_express").(bool) {
 		return fmt.Errorf("ServiceBus Queue %q does not support Express Entities in Premium SKU and must be disabled", resourceId.Name)
+	}
+
+	// output of `max_message_size_in_kilobytes` is also set in non-Premium namespaces, with a value of 256
+	if v, ok := d.GetOk("max_message_size_in_kilobytes"); ok && v.(int) != 256 {
+		if namespace.Sku.Name != servicebus.SkuNamePremium {
+			return fmt.Errorf("ServiceBus Queue %q does not support input on `max_message_size_in_kilobytes` in %s SKU and should be removed", resourceId.Name, namespace.Sku.Name)
+		}
+		parameters.SBQueueProperties.MaxMessageSizeInKilobytes = utils.Int64(int64(v.(int)))
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.Name, parameters); err != nil {
@@ -294,6 +309,7 @@ func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("forward_to", props.ForwardTo)
 		d.Set("lock_duration", props.LockDuration)
 		d.Set("max_delivery_count", props.MaxDeliveryCount)
+		d.Set("max_message_size_in_kilobytes", props.MaxMessageSizeInKilobytes)
 		d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 		d.Set("requires_session", props.RequiresSession)
 		d.Set("status", props.Status)
@@ -310,7 +326,7 @@ func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) er
 					return err
 				}
 
-				if namespace.Sku.Name != servicebus.Premium {
+				if namespace.Sku.Name != servicebus.SkuNamePremium {
 					const partitionCount = 16
 					maxSizeInMegabytes = int(*apiMaxSizeInMegabytes / partitionCount)
 				}

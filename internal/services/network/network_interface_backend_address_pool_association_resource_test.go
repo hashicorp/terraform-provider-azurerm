@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -98,29 +97,26 @@ func (t NetworkInterfaceBackendAddressPoolResource) Exists(ctx context.Context, 
 		return nil, fmt.Errorf("expected ID to be in the format {networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{backendAddressPoolId} but got %q", state.ID)
 	}
 
-	id, err := azure.ParseAzureResourceID(splitId[0])
+	id, err := parse.NetworkInterfaceIpConfigurationID(splitId[0])
 	if err != nil {
 		return nil, err
 	}
 
-	ipConfigurationName := id.Path["ipConfigurations"]
-	networkInterfaceName := id.Path["networkInterfaces"]
-	resourceGroup := id.ResourceGroup
 	backendAddressPoolId := splitId[1]
 
-	read, err := clients.Network.InterfacesClient.Get(ctx, resourceGroup, networkInterfaceName, "")
+	read, err := clients.Network.InterfacesClient.Get(ctx, id.ResourceGroup, id.NetworkInterfaceName, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading NetworkInterfaceApplicationGatewayBackendAddressPoolAssociation (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	nicProps := read.InterfacePropertiesFormat
 	if nicProps == nil {
-		return nil, fmt.Errorf("`properties` was nil for Network Interface (%s): %+v", id, err)
+		return nil, fmt.Errorf("`properties` was nil for %s: %+v", *id, err)
 	}
 
-	c := network2.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
+	c := network2.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, id.IpConfigurationName)
 	if c == nil {
-		return nil, fmt.Errorf("IP Configuration %q wasn't found for Network Interface %q", ipConfigurationName, id)
+		return nil, fmt.Errorf("IP Configuration %q wasn't found for %s", id.IpConfigurationName, *id)
 	}
 	config := *c
 

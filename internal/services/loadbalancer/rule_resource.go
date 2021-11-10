@@ -72,10 +72,26 @@ func resourceArmLoadBalancerRule() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			// TODO 3.0 - Remove this property
 			"backend_address_pool_id": {
-				Type:     pluginsdk.TypeString,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				Deprecated:    "This property has been deprecated by `backend_address_pool_ids` and will be removed in the next major version of the provider",
+				ConflictsWith: []string{"backend_address_pool_ids"},
+			},
+
+			"backend_address_pool_ids": {
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
+				MinItems: 1,
+				MaxItems: 2, // Only Gateway SKU LB can have 2 backend address pools
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: loadBalancerValidate.LoadBalancerBackendAddressPoolID,
+				},
+				ConflictsWith: []string{"backend_address_pool_id"},
 			},
 
 			"protocol": {
@@ -244,11 +260,38 @@ func resourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		d.Set("backend_port", backendPort)
 
-		backendAddressPoolId := ""
-		if props.BackendAddressPool != nil && props.BackendAddressPool.ID != nil {
-			backendAddressPoolId = *props.BackendAddressPool.ID
+		// The backendAddressPools is designed for Gateway LB, while the backendAddressPool is designed for other skus.
+		// Thought currently the API returns both, but for the sake of stability, we do use different fields here depending on the LB sku.
+		var isGateway bool
+		if loadBalancer.Sku != nil && loadBalancer.Sku.Name == network.LoadBalancerSkuNameGateway {
+			isGateway = true
+		}
+		var (
+			backendAddressPoolId  string
+			backendAddressPoolIds []interface{}
+		)
+		if isGateway {
+			// The gateway LB rule can have up to 2 backend address pools.
+			// In case there is only one BAP, we set it to both "backendAddressPoolId" and "backendAddressPoolIds".
+			// Otherwise, we leave the "backendAddressPoolId" as empty.
+			if props.BackendAddressPools != nil {
+				for _, p := range *props.BackendAddressPools {
+					if p.ID != nil {
+						backendAddressPoolIds = append(backendAddressPoolIds, *p.ID)
+					}
+				}
+				if len(backendAddressPoolIds) == 1 {
+					backendAddressPoolId = backendAddressPoolIds[0].(string)
+				}
+			}
+		} else {
+			if props.BackendAddressPool != nil && props.BackendAddressPool.ID != nil {
+				backendAddressPoolId = *props.BackendAddressPool.ID
+				backendAddressPoolIds = []interface{}{backendAddressPoolId}
+			}
 		}
 		d.Set("backend_address_pool_id", backendAddressPoolId)
+		d.Set("backend_address_pool_ids", backendAddressPoolIds)
 
 		frontendIPConfigName := ""
 		frontendIPConfigID := ""
@@ -367,9 +410,40 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *network.LoadBa
 		}
 	}
 
+	var isGateway bool
+	if lb.Sku != nil && lb.Sku.Name == network.LoadBalancerSkuNameGateway {
+		isGateway = true
+	}
 	if v := d.Get("backend_address_pool_id").(string); v != "" {
-		properties.BackendAddressPool = &network.SubResource{
-			ID: &v,
+		if isGateway {
+			properties.BackendAddressPools = &[]network.SubResource{
+				{
+					ID: &v,
+				},
+			}
+		} else {
+			properties.BackendAddressPool = &network.SubResource{
+				ID: &v,
+			}
+		}
+	}
+	if l := d.Get("backend_address_pool_ids").([]interface{}); len(l) != 0 {
+		if isGateway {
+			var baps []network.SubResource
+			for _, p := range l {
+				p := p.(string)
+				baps = append(baps, network.SubResource{
+					ID: &p,
+				})
+			}
+			properties.BackendAddressPools = &baps
+		} else {
+			if len(l) > 1 {
+				return nil, fmt.Errorf(`only Gateway SKU Load Balancer can have more than one "backend_address_pool_ids"`)
+			}
+			properties.BackendAddressPool = &network.SubResource{
+				ID: utils.String(l[0].(string)),
+			}
 		}
 	}
 

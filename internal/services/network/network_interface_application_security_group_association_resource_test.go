@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -106,17 +106,15 @@ func (t NetworkInterfaceApplicationSecurityGroupAssociationResource) Exists(ctx 
 		return nil, fmt.Errorf("expected ID to be in the format {networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{backendAddressPoolId} but got %q", state.ID)
 	}
 
-	id, err := azure.ParseAzureResourceID(splitId[0])
+	id, err := parse.NetworkInterfaceID(splitId[0])
 	if err != nil {
 		return nil, err
 	}
-	networkInterfaceName := id.Path["networkInterfaces"]
-	resourceGroup := id.ResourceGroup
 	applicationSecurityGroupId := splitId[1]
 
-	read, err := clients.Network.InterfacesClient.Get(ctx, resourceGroup, networkInterfaceName, "")
+	read, err := clients.Network.InterfacesClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Network Interface (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
 	}
 
 	found := false
@@ -135,18 +133,16 @@ func (t NetworkInterfaceApplicationSecurityGroupAssociationResource) Exists(ctx 
 }
 
 func (NetworkInterfaceApplicationSecurityGroupAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	nicID, err := azure.ParseAzureResourceID(state.Attributes["network_interface_id"])
+	nicID, err := parse.NetworkInterfaceID(state.Attributes["network_interface_id"])
 	if err != nil {
 		return err
 	}
 
-	nicName := nicID.Path["networkInterfaces"]
-	resourceGroup := nicID.ResourceGroup
 	applicationSecurityGroupId := state.Attributes["application_security_group_id"]
 
-	read, err := client.Network.InterfacesClient.Get(ctx, resourceGroup, nicName, "")
+	read, err := client.Network.InterfacesClient.Get(ctx, nicID.ResourceGroup, nicID.Name, "")
 	if err != nil {
-		return fmt.Errorf("retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *nicID, err)
 	}
 
 	configs := *read.InterfacePropertiesFormat.IPConfigurations
@@ -164,13 +160,13 @@ func (NetworkInterfaceApplicationSecurityGroupAssociationResource) destroy(ctx c
 
 	read.InterfacePropertiesFormat.IPConfigurations = &configs
 
-	future, err := client.Network.InterfacesClient.CreateOrUpdate(ctx, resourceGroup, nicName, read)
+	future, err := client.Network.InterfacesClient.CreateOrUpdate(ctx, nicID.ResourceGroup, nicID.Name, read)
 	if err != nil {
-		return fmt.Errorf("removing Application Security Group Association for Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+		return fmt.Errorf("removing Application Security Group Association for %s: %+v", *nicID, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Network.InterfacesClient.Client); err != nil {
-		return fmt.Errorf("waiting for removal of Application Security Group Association for NIC %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+		return fmt.Errorf("waiting for removal of Application Security Group Association for %s: %+v", *nicID, err)
 	}
 
 	return nil

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	lbvalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -107,6 +108,13 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Computed: true,
+						},
+
+						"gateway_load_balancer_frontend_ip_configuration_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: lbvalidate.LoadBalancerFrontendIpConfigurationID,
 						},
 					},
 				},
@@ -555,6 +563,10 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]network.Int
 			properties.Primary = utils.Bool(v.(bool))
 		}
 
+		if v := data["gateway_load_balancer_frontend_ip_configuration_id"].(string); v != "" {
+			properties.GatewayLoadBalancer = &network.SubResource{ID: &v}
+		}
+
 		name := data["name"].(string)
 		ipConfigs = append(ipConfigs, network.InterfaceIPConfiguration{
 			Name:                                     &name,
@@ -619,6 +631,11 @@ func flattenNetworkInterfaceIPConfigurations(input *[]network.InterfaceIPConfigu
 			primary = *props.Primary
 		}
 
+		gatewayLBFrontendIPConfigId := ""
+		if props.GatewayLoadBalancer != nil && props.GatewayLoadBalancer.ID != nil {
+			gatewayLBFrontendIPConfigId = *props.GatewayLoadBalancer.ID
+		}
+
 		result = append(result, map[string]interface{}{
 			"name":                          name,
 			"primary":                       primary,
@@ -627,6 +644,7 @@ func flattenNetworkInterfaceIPConfigurations(input *[]network.InterfaceIPConfigu
 			"private_ip_address_version":    privateIPAddressVersion,
 			"public_ip_address_id":          publicIPAddressId,
 			"subnet_id":                     subnetId,
+			"gateway_load_balancer_frontend_ip_configuration_id": gatewayLBFrontendIPConfigId,
 		})
 	}
 	return result

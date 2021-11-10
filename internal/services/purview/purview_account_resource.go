@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/purview/mgmt/2020-12-01-preview/purview"
+	"github.com/Azure/azure-sdk-for-go/services/purview/mgmt/2021-07-01/purview"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -51,13 +51,12 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
+			// TODO 3.0 - Remove sku_name property.
+			//            https://github.com/Azure/azure-rest-api-specs/issues/15675
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Standard_4",
-					"Standard_16",
-				}, false),
+				Type:       pluginsdk.TypeString,
+				Optional:   true,
+				Deprecated: "This property can no longer be specified on create/update, it can only be updated by creating a support ticket at Azure",
 			},
 
 			"public_network_enabled": {
@@ -145,17 +144,16 @@ func resourcePurviewAccountCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	account := purview.Account{
 		AccountProperties: &purview.AccountProperties{},
 		Identity: &purview.Identity{
-			Type: purview.SystemAssigned,
+			Type: purview.TypeSystemAssigned,
 		},
 		Location: &location,
-		Sku:      expandPurviewSkuName(d),
 		Tags:     tags.Expand(t),
 	}
 
 	if d.Get("public_network_enabled").(bool) {
-		account.AccountProperties.PublicNetworkAccess = purview.Enabled
+		account.AccountProperties.PublicNetworkAccess = purview.PublicNetworkAccessEnabled
 	} else {
-		account.AccountProperties.PublicNetworkAccess = purview.Disabled
+		account.AccountProperties.PublicNetworkAccess = purview.PublicNetworkAccessDisabled
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, account)
@@ -194,14 +192,13 @@ func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("sku_name", flattenPurviewSkuName(resp.Sku))
 
 	if err := d.Set("identity", flattenPurviewAccountIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 
 	if props := resp.AccountProperties; props != nil {
-		d.Set("public_network_enabled", props.PublicNetworkAccess == purview.Enabled)
+		d.Set("public_network_enabled", props.PublicNetworkAccess == purview.PublicNetworkAccessEnabled)
 
 		if endpoints := resp.Endpoints; endpoints != nil {
 			d.Set("catalog_endpoint", endpoints.Catalog)
@@ -240,31 +237,6 @@ func resourcePurviewAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	return nil
-}
-
-func expandPurviewSkuName(d *pluginsdk.ResourceData) *purview.AccountSku {
-	sku := d.Get("sku_name").(string)
-
-	if len(sku) == 0 {
-		return nil
-	}
-
-	name, capacity, err := azure.SplitSku(sku)
-	if err != nil {
-		return nil
-	}
-	return &purview.AccountSku{
-		Name:     purview.Name(name),
-		Capacity: utils.Int32(capacity),
-	}
-}
-
-func flattenPurviewSkuName(input *purview.AccountSku) string {
-	if input == nil || input.Capacity == nil {
-		return ""
-	}
-
-	return fmt.Sprintf("%s_%d", string(input.Name), *input.Capacity)
 }
 
 func flattenPurviewAccountIdentity(identity *purview.Identity) interface{} {

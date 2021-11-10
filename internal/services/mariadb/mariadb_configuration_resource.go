@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -20,9 +21,10 @@ func resourceMariaDbConfiguration() *pluginsdk.Resource {
 		Create: resourceMariaDbConfigurationCreateUpdate,
 		Read:   resourceMariaDbConfigurationRead,
 		Delete: resourceMariaDbConfigurationDelete,
-
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.MariaDBConfigurationID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -59,14 +61,12 @@ func resourceMariaDbConfiguration() *pluginsdk.Resource {
 
 func resourceMariaDbConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ConfigurationsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM MariaDb Configuration creation.")
-
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	serverName := d.Get("server_name").(string)
+	id := parse.NewMariaDBConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 	value := d.Get("value").(string)
 
 	properties := mariadb.Configuration{
@@ -75,24 +75,16 @@ func resourceMariaDbConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta in
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.ConfigurationName, properties)
 	if err != nil {
-		return fmt.Errorf("issuing create/update request for MariaDb Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("issuing create/update request for %s: %v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of MariaDb Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("waiting for create/update of %s: %v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, serverName, name)
-	if err != nil {
-		return fmt.Errorf("issuing get request for MariaDb Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read MariaDb Configuration %s (resource group %s, server name %s) ID", name, resourceGroup, serverName)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceMariaDbConfigurationRead(d, meta)
 }
@@ -102,28 +94,25 @@ func resourceMariaDbConfigurationRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.MariaDBConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-	name := id.Path["configurations"]
 
-	resp, err := client.Get(ctx, resourceGroup, serverName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.ConfigurationName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] MariaDb Configuration %q was not found (resource group %q)", name, resourceGroup)
+			log.Printf("[WARN] %s was not found", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure MariaDb Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("server_name", serverName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.ConfigurationName)
+	d.Set("server_name", id.ServerName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("value", resp.ConfigurationProperties.Value)
 
 	return nil
@@ -134,18 +123,15 @@ func resourceMariaDbConfigurationDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.MariaDBConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-	name := id.Path["configurations"]
 
 	// "delete" = resetting this to the default value
-	resp, err := client.Get(ctx, resourceGroup, serverName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.ConfigurationName)
 	if err != nil {
-		return fmt.Errorf("retrieving MariaDb Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	properties := mariadb.Configuration{
@@ -155,7 +141,7 @@ func resourceMariaDbConfigurationDelete(d *pluginsdk.ResourceData, meta interfac
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.ConfigurationName, properties)
 	if err != nil {
 		return err
 	}

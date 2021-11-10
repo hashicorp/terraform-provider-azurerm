@@ -2,9 +2,15 @@ package keyvault
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/base64"
+	"encoding/pem"
 	"fmt"
 	"log"
+	"math/big"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
@@ -19,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"golang.org/x/crypto/ssh"
 )
 
 func resourceKeyVaultKey() *pluginsdk.Resource {
@@ -152,6 +159,16 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 			},
 
 			"y": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"public_key_pem": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"public_key_openssh": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -420,6 +437,54 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	// Computed
 	d.Set("version", id.Version)
 	d.Set("versionless_id", id.VersionlessID())
+	if key := resp.Key; key != nil {
+		if key.Kty == keyvault.RSA || key.Kty == keyvault.RSAHSM {
+			nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
+			if err != nil {
+				return fmt.Errorf("failed to decode N: %+v", err)
+			}
+			eBytes, err := base64.RawURLEncoding.DecodeString(*key.E)
+			if err != nil {
+				return fmt.Errorf("failed to decode E: %+v", err)
+			}
+			publicKey := &rsa.PublicKey{
+				N: big.NewInt(0).SetBytes(nBytes),
+				E: int(big.NewInt(0).SetBytes(eBytes).Uint64()),
+			}
+			err = readPublicKey(d, publicKey)
+			if err != nil {
+				return fmt.Errorf("failed to read public key: %+v", err)
+			}
+		} else if key.Kty == keyvault.EC || key.Kty == keyvault.ECHSM {
+			// do ec keys
+			xBytes, err := base64.RawURLEncoding.DecodeString(*key.X)
+			if err != nil {
+				return fmt.Errorf("failed to decode X: %+v", err)
+			}
+			yBytes, err := base64.RawURLEncoding.DecodeString(*key.Y)
+			if err != nil {
+				return fmt.Errorf("failed to decode Y: %+v", err)
+			}
+			publicKey := &ecdsa.PublicKey{
+				X: big.NewInt(0).SetBytes(xBytes),
+				Y: big.NewInt(0).SetBytes(yBytes),
+			}
+			switch key.Crv {
+			case keyvault.P256:
+				publicKey.Curve = elliptic.P256()
+			case keyvault.P384:
+				publicKey.Curve = elliptic.P384()
+			case keyvault.P521:
+				publicKey.Curve = elliptic.P521()
+			}
+			if publicKey.Curve != nil {
+				err = readPublicKey(d, publicKey)
+				if err != nil {
+					return fmt.Errorf("failed to read public key: %+v", err)
+				}
+			}
+		}
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -518,4 +583,29 @@ func flattenKeyVaultKeyOptions(input *[]string) []interface{} {
 	}
 
 	return results
+}
+
+// Credit to Hashicorp modified from https://github.com/hashicorp/terraform-provider-tls/blob/v3.1.0/internal/provider/util.go#L79-L105
+func readPublicKey(d *pluginsdk.ResourceData, pubKey interface{}) error {
+	pubKeyBytes, err := x509.MarshalPKIXPublicKey(pubKey)
+	if err != nil {
+		return fmt.Errorf("failed to marshal public key error: %s", err)
+	}
+	pubKeyPemBlock := &pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: pubKeyBytes,
+	}
+
+	d.Set("public_key_pem", string(pem.EncodeToMemory(pubKeyPemBlock)))
+
+	sshPubKey, err := ssh.NewPublicKey(pubKey)
+	if err == nil {
+		// Not all EC types can be SSH keys, so we'll produce this only
+		// if an appropriate type was selected.
+		sshPubKeyBytes := ssh.MarshalAuthorizedKey(sshPubKey)
+		d.Set("public_key_openssh", string(sshPubKeyBytes))
+	} else {
+		d.Set("public_key_openssh", "")
+	}
+	return nil
 }

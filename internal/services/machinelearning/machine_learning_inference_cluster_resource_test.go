@@ -31,6 +31,21 @@ func TestAccInferenceCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccInferenceCluster_privateBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_inference_cluster", "test")
+	r := InferenceClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccInferenceCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_inference_cluster", "test")
 	r := InferenceClusterResource{}
@@ -168,6 +183,25 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
 `, r.templateDevTest(data), data.RandomIntOfLength(8))
 }
 
+func (r InferenceClusterResource) privateBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_machine_learning_inference_cluster" "test" {
+  name                          = "AIC-%d"
+  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
+  location                      = azurerm_resource_group.test.location
+  kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
+  cluster_purpose               = "DevTest"
+
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, r.templatePrivateDevTest(data), data.RandomIntOfLength(8))
+}
+
 func (r InferenceClusterResource) completeCustomSSL(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -257,6 +291,10 @@ func (r InferenceClusterResource) templateFastProd(data acceptance.TestData) str
 }
 func (r InferenceClusterResource) templateDevTest(data acceptance.TestData) string {
 	return r.template(data, "Standard_DS2_v2", 1)
+}
+
+func (r InferenceClusterResource) templatePrivateDevTest(data acceptance.TestData) string {
+	return r.privateTemplate(data, "Standard_DS2_v2", 1)
 }
 
 func (r InferenceClusterResource) identitySystemAssigned(data acceptance.TestData) string {
@@ -406,6 +444,101 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = join("", ["acctestaks", azurerm_resource_group.test.location])
   node_resource_group = "acctestRGAKS-%d"
+
+  default_node_pool {
+    name           = "default"
+    node_count     = %d
+    vm_size        = "%s"
+    vnet_subnet_id = azurerm_subnet.test.id
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary,
+		data.RandomIntOfLength(17), data.RandomIntOfLength(17), data.RandomIntOfLength(16),
+		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, nodeCount, vmSize)
+}
+
+func (r InferenceClusterResource) privateTemplate(data acceptance.TestData, vmSize string, nodeCount int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-ml-%[1]d"
+  location = "%[2]s"
+  tags = {
+    "stage" = "test"
+  }
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestai-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctest%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+
+  sku_name = "standard"
+
+  purge_protection_enabled = true
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[4]d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                    = "acctest-MLW%[5]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[6]d"
+  address_space       = ["10.1.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                                           = "acctestsubnet%[7]d"
+  resource_group_name                            = azurerm_resource_group.test.name
+  virtual_network_name                           = azurerm_virtual_network.test.name
+  enforce_private_link_endpoint_network_policies = true
+  address_prefix                                 = "10.1.0.0/24"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                    = "acctestprivateaks%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  dns_prefix              = join("", ["acctestprivateaks", azurerm_resource_group.test.location])
+  node_resource_group     = "acctestRGAKS-%d"
+  private_cluster_enabled = true
+  private_dns_zone_id     = "System"
 
   default_node_pool {
     name           = "default"

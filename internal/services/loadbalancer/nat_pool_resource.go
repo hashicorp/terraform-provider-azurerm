@@ -98,6 +98,23 @@ func resourceArmLoadBalancerNatPool() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"floating_ip_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"tcp_reset_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"idle_timeout_in_minutes": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      4,
+				ValidateFunc: validation.IntBetween(4, 30),
+			},
+
 			"frontend_ip_configuration_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -203,6 +220,8 @@ func resourceArmLoadBalancerNatPoolRead(d *pluginsdk.ResourceData, meta interfac
 			backendPort = int(*props.BackendPort)
 		}
 		d.Set("backend_port", backendPort)
+		d.Set("floating_ip_enabled", props.EnableFloatingIP)
+		d.Set("tcp_reset_enabled", props.EnableTCPReset)
 
 		frontendIPConfigName := ""
 		frontendIPConfigID := ""
@@ -229,6 +248,7 @@ func resourceArmLoadBalancerNatPoolRead(d *pluginsdk.ResourceData, meta interfac
 			frontendPortRangeStart = int(*props.FrontendPortRangeStart)
 		}
 		d.Set("frontend_port_start", frontendPortRangeStart)
+		d.Set("idle_timeout_in_minutes", int(*props.IdleTimeoutInMinutes))
 		d.Set("protocol", string(props.Protocol))
 	}
 
@@ -287,6 +307,16 @@ func expandAzureRmLoadBalancerNatPool(d *pluginsdk.ResourceData, lb *network.Loa
 		FrontendPortRangeEnd:   utils.Int32(int32(d.Get("frontend_port_end").(int))),
 		BackendPort:            utils.Int32(int32(d.Get("backend_port").(int))),
 	}
+
+	if v, ok := d.GetOk("floating_ip_enabled"); ok {
+		properties.EnableFloatingIP = utils.Bool(v.(bool))
+	}
+
+	if v, ok := d.GetOk("tcp_reset_enabled"); ok {
+		properties.EnableTCPReset = utils.Bool(v.(bool))
+	}
+
+	properties.IdleTimeoutInMinutes = utils.Int32(int32(d.Get("idle_timeout_in_minutes").(int)))
 
 	if v := d.Get("frontend_ip_configuration_name").(string); v != "" {
 		rule, exists := FindLoadBalancerFrontEndIpConfigurationByName(lb, v)

@@ -103,6 +103,50 @@ func TestAccBackendAddressPoolStandardSkuRequiresImport(t *testing.T) {
 	})
 }
 
+func TestAccBackendAddressPool_GatewaySkuBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
+	r := LoadBalancerBackendAddressPool{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.gatewaySkuBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackendAddressPool_GatewaySkuUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
+	r := LoadBalancerBackendAddressPool{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.gatewaySkuBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.gatewaySkuComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.gatewaySkuBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r LoadBalancerBackendAddressPool) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LoadBalancerBackendAddressPoolID(state.ID)
 	if err != nil {
@@ -268,4 +312,84 @@ resource "azurerm_lb" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, sku)
+}
+
+func (r LoadBalancerBackendAddressPool) gatewaySkuBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name            = "acctest-bap-${local.number}"
+  loadbalancer_id = azurerm_lb.test.id
+  tunnel_interface {
+    identifier = 900
+    type       = "Internal"
+    protocol   = "VXLAN"
+    port       = 15000
+  }
+}
+`, r.templateGateway(data))
+}
+
+func (r LoadBalancerBackendAddressPool) gatewaySkuComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name            = "acctest-bap-${local.number}"
+  loadbalancer_id = azurerm_lb.test.id
+  tunnel_interface {
+    identifier = 900
+    type       = "Internal"
+    protocol   = "VXLAN"
+    port       = 15000
+  }
+  tunnel_interface {
+    identifier = 901
+    type       = "External"
+    protocol   = "VXLAN"
+    port       = 15001
+  }
+}
+`, r.templateGateway(data))
+}
+
+func (LoadBalancerBackendAddressPool) templateGateway(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+locals {
+  number   = %d
+  location = %q
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-${local.number}"
+  location = local.location
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-${local.number}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet-${local.number}"
+  resource_group_name  = azurerm_virtual_network.test.resource_group_name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-${local.number}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Gateway"
+
+  frontend_ip_configuration {
+    name      = "feip"
+    subnet_id = azurerm_subnet.test.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

@@ -43,13 +43,7 @@ func dataSourceDedicatedHostGroup() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"zones": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
+			"zones": azure.SchemaZonesComputed(),
 
 			"tags": tags.SchemaDataSource(),
 		},

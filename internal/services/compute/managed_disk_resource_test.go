@@ -460,6 +460,21 @@ func TestAccAzureRMManagedDisk_create_withLogicalSectorSize(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMManagedDisk_create_withTrustedLaunchEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.create_withTrustedLaunchEnabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ManagedDiskResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ManagedDiskID(state.ID)
 	if err != nil {
@@ -1421,4 +1436,36 @@ resource "azurerm_managed_disk" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ManagedDiskResource) create_withTrustedLaunchEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_platform_image" "test" {
+  location  = "%s"
+  publisher = "Canonical"
+  offer     = "UbuntuServer"
+  sku       = "18_04-LTS-gen2"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+
+resource "azurerm_managed_disk" "test" {
+  name                   = "acctestd-%d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  os_type                = "Linux"
+  create_option          = "FromImage"
+  image_reference_id     = data.azurerm_platform_image.test.id
+  storage_account_type   = "Standard_LRS"
+  trusted_launch_enabled = true
+}
+`, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

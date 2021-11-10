@@ -89,7 +89,7 @@ An `identity` block supports the following:
 
 `threat_detection_policy` supports the following:
 
-* `state` - (Required) The State of the Policy. Possible values are `Enabled`, `Disabled` or `New`.
+* `state` - (Required) The State of the Policy. Possible values are `Enabled` or `Disabled`.
 * `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Data_Exfiltration`, `Sql_Injection`, `Sql_Injection_Vulnerability` and `Unsafe_Action"`,.
 * `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered?
 * `email_addresses` - (Optional) A list of email addresses which alerts should be sent to.

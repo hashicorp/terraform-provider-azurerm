@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
@@ -86,17 +85,14 @@ func TestAccMariaDbConfiguration_logSlowAdminStatements(t *testing.T) {
 }
 
 func (MariaDbConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.MariaDBConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	serverName := id.Path["servers"]
-	name := id.Path["configurations"]
-
-	resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx, id.ResourceGroup, serverName, name)
+	resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.ServerName, id.ConfigurationName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving MariaDB Configuration %q (Server %q / Resource Group %q): %v", name, serverName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
 	return utils.Bool(resp.ConfigurationProperties != nil), nil
@@ -104,27 +100,24 @@ func (MariaDbConfigurationResource) Exists(ctx context.Context, clients *clients
 
 func checkValueIs(value string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := azure.ParseAzureResourceID(state.ID)
+		id, err := parse.MariaDBConfigurationID(state.ID)
 		if err != nil {
 			return err
 		}
 
-		serverName := id.Path["servers"]
-		name := id.Path["configurations"]
-
-		resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx, id.ResourceGroup, serverName, name)
+		resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.ServerName, id.ConfigurationName)
 		if err != nil {
-			return fmt.Errorf("retrieving MariaDB Configuration %q (Server %q / Resource Group %q): %v", name, serverName, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving %s: %v", *id, err)
 		}
 
 		if resp.Value == nil {
-			return fmt.Errorf("MariaDB Configuration %q (Server %q / Resource Group %q) Value is nil", name, serverName, id.ResourceGroup)
+			return fmt.Errorf("%s Value is nil", *id)
 		}
 
 		actualValue := *resp.Value
 
 		if value != actualValue {
-			return fmt.Errorf("MariaDB Configuration %q (Server %q / Resource Group %q) Value (%s) != expected (%s)", name, serverName, id.ResourceGroup, actualValue, value)
+			return fmt.Errorf("%s Value (%s) != expected (%s)", *id, actualValue, value)
 		}
 
 		return nil

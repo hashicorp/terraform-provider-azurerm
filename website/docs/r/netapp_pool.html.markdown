@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `service_level` - (Required) The service level of the file system. Valid values include `Premium`, `Standard`, or `Ultra`.
+* `service_level` - (Required) The service level of the file system. Valid values include `Premium`, `Standard`, or `Ultra`. Changing this forces a new resource to be created.
 
 * `size_in_tb` - (Required) Provisioned size of the pool in TB. Value must be between `4` and `500`.
 

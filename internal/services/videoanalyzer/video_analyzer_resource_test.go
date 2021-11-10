@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/sdk/2021-05-01-preview/videoanalyzer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -68,17 +68,17 @@ func TestAccVideoAnalyzer_complete(t *testing.T) {
 }
 
 func (VideoAnalyzerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VideoAnalyzerID(state.ID)
+	id, err := videoanalyzer.ParseVideoAnalyzerID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.VideoAnalyzer.VideoAnalyzersClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.VideoAnalyzer.VideoAnalyzersClient.VideoAnalyzersGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Video Analyzer %s (resource group: %s): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.PropertiesType != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r VideoAnalyzerResource) basic(data acceptance.TestData) string {

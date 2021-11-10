@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -43,6 +44,11 @@ func dataSourceVirtualHub() *pluginsdk.Resource {
 			},
 
 			"tags": tags.SchemaDataSource(),
+
+			"default_route_table_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -79,6 +85,14 @@ func dataSourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 		d.Set("virtual_wan_id", virtualWanId)
 	}
+
+	virtualHub, err := parse.VirtualHubID(*resp.ID)
+	if err != nil {
+		return err
+	}
+
+	defaultRouteTable := parse.NewHubRouteTableID(virtualHub.SubscriptionId, virtualHub.ResourceGroup, virtualHub.Name, "defaultRouteTable")
+	d.Set("default_route_table_id", defaultRouteTable.ID())
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

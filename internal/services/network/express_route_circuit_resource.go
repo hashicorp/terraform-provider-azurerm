@@ -29,8 +29,10 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 		Read:   resourceExpressRouteCircuitRead,
 		Update: resourceExpressRouteCircuitCreateUpdate,
 		Delete: resourceExpressRouteCircuitDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ExpressRouteCircuitID(id)
+			return err
+		}),
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			// If bandwidth is reduced force a new resource
@@ -154,21 +156,21 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM ExpressRoute Circuit creation.")
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	id := parse.NewExpressRouteCircuitID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(name, expressRouteCircuitResourceName)
-	defer locks.UnlockByName(name, expressRouteCircuitResourceName)
+	locks.ByName(id.Name, expressRouteCircuitResourceName)
+	defer locks.UnlockByName(id.Name, expressRouteCircuitResourceName)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing ExpressRoute Circuit %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s : %s", id, err)
 			}
 		}
 
@@ -189,25 +191,25 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 	// managed by Terraform.
 	erc := network.ExpressRouteCircuit{}
 	if !d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(erc.Response) {
-				return fmt.Errorf("checking for presence of existing ExpressRoute Circuit %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s : %s", id, err)
 			}
 		}
 
-		future, err := client.CreateOrUpdate(ctx, resGroup, name, existing)
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, existing)
 		if err != nil {
-			return fmt.Errorf("Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
+			return fmt.Errorf("Creating/Updating %s : %+v", id, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
+			return fmt.Errorf("Creating/Updating %s: %+v", id, err)
 		}
 		erc = existing
 	}
 
-	erc.Name = &name
+	erc.Name = &id.Name
 	erc.Location = &location
 	erc.Sku = sku
 	erc.Tags = expandedTags
@@ -234,39 +236,31 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 		erc.ExpressRouteCircuitPropertiesFormat.BandwidthInGbps = utils.Float(d.Get("bandwidth_in_gbps").(float64))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, erc)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, erc)
 	if err != nil {
-		return fmt.Errorf("Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Creating/Updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Creating/Updating %s: %+v", id, err)
 	}
 
 	// API has bug, which appears to be eventually consistent on creation. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/10148
-	log.Printf("[DEBUG] Waiting for Express Route Circuit %q (Resource Group %q) to be able to be queried", name, resGroup)
+	log.Printf("[DEBUG] Waiting for %s to be able to be queried", id)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"NotFound"},
 		Target:                    []string{"Exists"},
-		Refresh:                   expressRouteCircuitCreationRefreshFunc(ctx, client, resGroup, name),
+		Refresh:                   expressRouteCircuitCreationRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
 		PollInterval:              3 * time.Second,
 		ContinuousTargetOccurence: 3,
 		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("for Express Route Circuit %q (Resource Group %q) to be able to be queried: %+v", name, resGroup, err)
+		return fmt.Errorf("for %s to be able to be queried: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("Retrieving ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read ExpressRouteCircuit %q (resource group %q) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceExpressRouteCircuitRead(d, meta)
 }
@@ -276,27 +270,24 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ExpressRouteCircuitID(d.Id())
 	if err != nil {
 		return fmt.Errorf("Parsing Azure Resource ID -: %+v", err)
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["expressRouteCircuits"]
-
-	resp, err := ercClient.Get(ctx, resourceGroup, name)
+	resp, err := ercClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Express Route Circuit %q (Resource Group %q) was not found - removing from state", name, resourceGroup)
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Express Route Circuit %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -338,23 +329,24 @@ func resourceExpressRouteCircuitDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ExpressRouteCircuitID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Parsing Azure Resource ID -: %+v", err)
+		return fmt.Errorf("parsing Azure Resource ID -: %+v", err)
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["expressRouteCircuits"]
+	locks.ByName(id.Name, expressRouteCircuitResourceName)
+	defer locks.UnlockByName(id.Name, expressRouteCircuitResourceName)
 
-	locks.ByName(name, expressRouteCircuitResourceName)
-	defer locks.UnlockByName(name, expressRouteCircuitResourceName)
-
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return err
+		return fmt.Errorf("deleting %s : %+v", *id, err)
 	}
 
-	return future.WaitForCompletionRef(ctx, client.Client)
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
+	}
+
+	return err
 }
 
 func expandExpressRouteCircuitSku(d *pluginsdk.ResourceData) *network.ExpressRouteCircuitSku {

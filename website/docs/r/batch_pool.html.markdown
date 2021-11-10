@@ -129,6 +129,8 @@ The following arguments are supported:
 
 * `display_name` - (Optional) Specifies the display name of the Batch pool.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `max_tasks_per_node` - (Optional) Specifies the maximum number of tasks that can run concurrently on a single compute node in the pool. Defaults to `1`. Changing this forces a new resource to be created.
 
 * `fixed_scale` - (Optional) A `fixed_scale` block that describes the scale settings when using fixed scale.
@@ -150,6 +152,15 @@ The following arguments are supported:
 ~> **Please Note:** `fixed_scale` and `auto_scale` blocks cannot be used both at the same time.
 
 ---
+
+An `identity` block supports the following:
+
+* `type` - (Required) The identity type of the Batch Account. Only possible values is `UserAssigned`.
+
+ * `identity_ids` - (Required) Specifies a list of user assigned identity ids.
+
+---
+
 A `storage_image_reference` block supports the following:
 
 This block provisions virtual machines in the Batch Pool from one of two sources: an Azure Platform Image (e.g. Ubuntu/Windows Server) or a Custom Image.

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -26,8 +27,10 @@ func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 		Read:   resourceVirtualNetworkPeeringRead,
 		Update: resourceVirtualNetworkPeeringCreateUpdate,
 		Delete: resourceVirtualNetworkPeeringDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.VirtualNetworkPeeringID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -138,27 +141,24 @@ func resourceVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VirtualNetworkPeeringID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	vnetName := id.Path["virtualNetworks"]
-	name := id.Path["virtualNetworkPeerings"]
 
-	resp, err := client.Get(ctx, resGroup, vnetName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Azure virtual network peering %q: %+v", name, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
 	// update appropriate values
-	d.Set("resource_group_name", resGroup)
-	d.Set("name", resp.Name)
-	d.Set("virtual_network_name", vnetName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.Name)
+	d.Set("virtual_network_name", id.VirtualNetworkName)
 
 	if peer := resp.VirtualNetworkPeeringPropertiesFormat; peer != nil {
 		d.Set("allow_virtual_network_access", peer.AllowVirtualNetworkAccess)
@@ -178,24 +178,21 @@ func resourceVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VirtualNetworkPeeringID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	vnetName := id.Path["virtualNetworks"]
-	name := id.Path["virtualNetworkPeerings"]
 
 	peerMutex.Lock()
 	defer peerMutex.Unlock()
 
-	future, err := client.Delete(ctx, resGroup, vnetName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Virtual Network Peering %q (Network %q / RG %q): %+v", name, vnetName, resGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Virtual Network Peering %q (Network %q / RG %q): %+v", name, vnetName, resGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return err

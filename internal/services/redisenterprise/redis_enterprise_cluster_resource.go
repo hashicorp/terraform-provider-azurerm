@@ -65,20 +65,7 @@ func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 				ValidateFunc: validate.RedisEnterpriseClusterSkuName,
 			},
 
-			"zones": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				ForceNew: true,
-				MinItems: 1,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						"1",
-						"2",
-						"3",
-					}, false),
-				},
-			},
+			"zones": azure.SchemaMultipleZones(),
 
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,

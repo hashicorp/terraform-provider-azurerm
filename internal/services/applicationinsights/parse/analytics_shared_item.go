@@ -36,7 +36,7 @@ func (id AnalyticsSharedItemId) String() string {
 }
 
 func (id AnalyticsSharedItemId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s/analyticsItems/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Insights/components/%s/analyticsItems/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ComponentName, id.AnalyticsItemName)
 }
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-05-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-07-01/machinelearningservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -273,9 +273,15 @@ func resourceAksInferenceClusterDelete(d *pluginsdk.ResourceData, meta interface
 }
 
 func expandAksComputeProperties(aks *containerservice.ManagedCluster, d *pluginsdk.ResourceData) machinelearningservices.AKS {
+
+	fqdn := aks.PrivateFQDN
+	if fqdn == nil {
+		fqdn = aks.Fqdn
+	}
+
 	return machinelearningservices.AKS{
 		Properties: &machinelearningservices.AKSProperties{
-			ClusterFqdn:      utils.String(*aks.Fqdn),
+			ClusterFqdn:      utils.String(*fqdn),
 			SslConfiguration: expandSSLConfig(d.Get("ssl").([]interface{})),
 			ClusterPurpose:   machinelearningservices.ClusterPurpose(d.Get("cluster_purpose").(string)),
 		},

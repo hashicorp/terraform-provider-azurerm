@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
+	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -58,10 +58,10 @@ func resourceServiceBusTopic() *pluginsdk.Resource {
 			"status": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(servicebus.Active),
+				Default:  string(servicebus.EntityStatusActive),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(servicebus.Active),
-					string(servicebus.Disabled),
+					string(servicebus.EntityStatusActive),
+					string(servicebus.EntityStatusDisabled),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -101,6 +101,13 @@ func resourceServiceBusTopic() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
+			},
+
+			"max_message_size_in_kilobytes": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: azValidate.ServiceBusMaxMessageSizeInKilobytes(),
 			},
 
 			"max_size_in_megabytes": {
@@ -179,6 +186,21 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		parameters.SBTopicProperties.DuplicateDetectionHistoryTimeWindow = utils.String(duplicateWindow)
 	}
 
+	// We need to retrieve the namespace because Premium namespace works differently from Basic and Standard
+	namespacesClient := meta.(*clients.Client).ServiceBus.NamespacesClient
+	namespace, err := namespacesClient.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName)
+	if err != nil {
+		return fmt.Errorf("retrieving ServiceBus Namespace %q (Resource Group %q): %+v", resourceId.NamespaceName, resourceId.ResourceGroup, err)
+	}
+
+	// output of `max_message_size_in_kilobytes` is also set in non-Premium namespaces, with a value of 256
+	if v, ok := d.GetOk("max_message_size_in_kilobytes"); ok && v.(int) != 256 {
+		if namespace.Sku.Name != servicebus.SkuNamePremium {
+			return fmt.Errorf("ServiceBus Topic %q does not support input on `max_message_size_in_kilobytes` in %s SKU and should be removed", resourceId.Name, namespace.Sku.Name)
+		}
+		parameters.SBTopicProperties.MaxMessageSizeInKilobytes = utils.Int64(int64(v.(int)))
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.Name, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %v", resourceId, err)
 	}
@@ -222,6 +244,7 @@ func resourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("enable_batched_operations", props.EnableBatchedOperations)
 		d.Set("enable_express", props.EnableExpress)
 		d.Set("enable_partitioning", props.EnablePartitioning)
+		d.Set("max_message_size_in_kilobytes", props.MaxMessageSizeInKilobytes)
 		d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 		d.Set("support_ordering", props.SupportOrdering)
 
@@ -237,7 +260,7 @@ func resourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) er
 					return err
 				}
 
-				if namespace.Sku.Name != servicebus.Premium {
+				if namespace.Sku.Name != servicebus.SkuNamePremium {
 					const partitionCount = 16
 					maxSize = int(*props.MaxSizeInMegabytes / partitionCount)
 				}

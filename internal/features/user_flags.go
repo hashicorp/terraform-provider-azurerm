@@ -25,6 +25,7 @@ type VirtualMachineFeatures struct {
 type VirtualMachineScaleSetFeatures struct {
 	ForceDelete               bool
 	RollInstancesWhenRequired bool
+	ScaleToZeroOnDelete       bool
 }
 
 type KeyVaultFeatures struct {
