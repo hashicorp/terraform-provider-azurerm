@@ -335,7 +335,7 @@ type ApplicationStackLinuxFunctionApp struct {
 	// Note - Function Apps differ to Web Apps here. They do not use the named properties in the SiteConfig block and exclusively use the app_settings map
 	DotNetVersion string                   `tfschema:"dotnet_version"`     // Supported values `3.1`. Version 6 is in preview on Windows Only
 	NodeVersion   string                   `tfschema:"node_version"`       // Supported values `12LTS`, `14LTS`
-	PythonVersion string                   `tfschema:"python_version"`     // Supported values `3.9`, `3.8`, `3.7`, `3.6`
+	PythonVersion string                   `tfschema:"python_version"`     // Supported values `3.9`, `3.8`, `3.7`
 	JavaVersion   string                   `tfschema:"java_version"`       // Supported values `8`, `11`
 	CustomHandler bool                     `tfschema:"use_custom_runtime"` // Supported values `true`
 	Docker        []ApplicationStackDocker `tfschema:"docker"`             // Needs ElasticPremium or Basic (B1) Standard (S 1-3) or Premium(PxV2 or PxV3) LINUX Service Plan
@@ -381,7 +381,6 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"3.9",
 						"3.8",
 						"3.7",
-						"3.6", // EOL Soon, just remove it now?
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -391,7 +390,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Python to use. Possible values include `3.9`, `3.8`, `3.7`, and `3.6`, ",
+					Description: "The version of Python to use. Possible values include `3.9`, `3.8`, and `3.7`.",
 				},
 
 				"node_version": {
@@ -444,7 +443,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 
 							"registry_username": {
 								Type:         pluginsdk.TypeString,
-								Required:     true,
+								Optional:     true,
 								Sensitive:    true,
 								ValidateFunc: validation.StringIsNotEmpty,
 								Description:  "The username to use for connections to the registry.",
@@ -452,7 +451,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 
 							"registry_password": {
 								Type:        pluginsdk.TypeString,
-								Required:    true,
+								Optional:    true,
 								Sensitive:   true, // Note: whilst it's not a good idea, this _can_ be blank...
 								Description: "The password for the account to use to connect to the registry.",
 							},

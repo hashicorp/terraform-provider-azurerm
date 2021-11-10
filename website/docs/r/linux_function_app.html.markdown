@@ -211,9 +211,13 @@ A `docker` block supports the following:
 
 * `image_tag` - (Required) The image tag of the image to use.
 
-* `registry_username` - (Required) The username to use for connections to the registry.
+* `registry_username` - (Optional) The username to use for connections to the registry.
 
-* `registry_password` - (Required) The password for the account to use to connect to the registry.
+~> **NOTE:** This value is required if `container_registry_use_managed_identity` is not set to `true`.
+
+* `registry_password` - (Optional) The password for the account to use to connect to the registry.
+
+~> **NOTE:** This value is required if `container_registry_use_managed_identity` is not set to `true`.
 
 ---
 

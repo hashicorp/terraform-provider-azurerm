@@ -116,18 +116,40 @@ func DecodeFunctionAppLinuxFxVersion(input string) ([]ApplicationStackLinuxFunct
 		result = append(result, appStack)
 
 	case "docker":
-		docker, err := decodeFunctionAppDockerFxString(parts[1])
-		if err != nil {
-			return nil, err
-		}
-		appStack := ApplicationStackLinuxFunctionApp{Docker: docker}
-		result = append(result, appStack)
+		// This is handled as part of unpacking the app_settings using DecodeFunctionAppDockerFxString
+		// docker, err := decodeFunctionAppDockerFxString(parts[1])
+		// if err != nil {
+		//	return nil, err
+		// }
+		// appStack := ApplicationStackLinuxFunctionApp{Docker: docker}
+		// result = append(result, appStack)
 	}
 
 	return result, nil
 }
 
-func decodeFunctionAppDockerFxString(input string) ([]ApplicationStackDocker, error) {
+func DecodeFunctionAppDockerFxString(input string, partial ApplicationStackDocker) ([]ApplicationStackDocker, error) {
+	if input == "" {
+		// This is a valid string for "Custom" stack which we picked up earlier, so we can skip here
+		return nil, nil
+	}
 
-	return nil, nil // TODO - implement this
+	parts := strings.Split(input, "|")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("unrecognised LinuxFxVersion format received, got %s", input)
+	}
+
+	if !strings.EqualFold(parts[0], "docker") {
+		return nil, fmt.Errorf("expected a docker FX version, got %q", parts[0])
+	}
+
+	dockerParts := strings.Split(strings.TrimPrefix(parts[1], partial.RegistryURL), ":")
+	if len(dockerParts) != 2 {
+		return nil, fmt.Errorf("invalid docker image reference %q", parts[1])
+	}
+
+	partial.ImageName = strings.TrimPrefix(dockerParts[0], "/")
+	partial.ImageTag = dockerParts[1]
+
+	return []ApplicationStackDocker{partial}, nil
 }

@@ -560,7 +560,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 
 func (r LinuxFunctionAppResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 			id, err := parse.FunctionAppID(metadata.ResourceData.Id())
@@ -864,5 +864,13 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input web.StringD
 			appSettings[k] = utils.NormalizeNilableString(v)
 		}
 	}
+
+	if dockerSettings.RegistryURL != "" {
+		appStack := make([]helpers.ApplicationStackLinuxFunctionApp, 0)
+		docker, _ := helpers.DecodeFunctionAppDockerFxString(m.SiteConfig[0].LinuxFxVersion, dockerSettings)
+		appStack = append(appStack, helpers.ApplicationStackLinuxFunctionApp{Docker: docker})
+		m.SiteConfig[0].ApplicationStack = appStack
+	}
+
 	m.AppSettings = appSettings
 }
