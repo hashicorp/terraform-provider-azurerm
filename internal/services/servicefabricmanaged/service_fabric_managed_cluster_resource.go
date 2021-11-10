@@ -239,9 +239,7 @@ func (k ClusterResource) ResourceType() string {
 
 func (k ClusterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			return createOrUpdate(ctx, metadata)
-		},
+		Func:    createOrUpdate,
 		Timeout: 90 * time.Minute,
 	}
 }
@@ -293,9 +291,7 @@ func (k ClusterResource) Read() sdk.ResourceFunc {
 
 func (k ClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			return createOrUpdate(ctx, metadata)
-		},
+		Func:    createOrUpdate,
 		Timeout: 90 * time.Minute,
 	}
 }
@@ -349,7 +345,7 @@ func createOrUpdate(ctx context.Context, metadata sdk.ResourceMetaData) error {
 	if err := metadata.Decode(&model); err != nil {
 		return fmt.Errorf("decoding %+v", err)
 	}
-	ctx, cancel := timeouts.ForCreate(metadata.Client.StopContext, metadata.ResourceData)
+	ctx, cancel := timeouts.ForCreate(ctx, metadata.ResourceData)
 	defer cancel()
 
 	clusterClient := metadata.Client.ServiceFabricManaged.ManagedClusterClient
@@ -363,8 +359,13 @@ func createOrUpdate(ctx context.Context, metadata sdk.ResourceMetaData) error {
 		Name:       utils.String(model.Name),
 		Properties: expandClusterProperties(&model),
 		Sku:        &managedcluster.Sku{Name: model.Sku},
-		Tags:       expandTags(metadata.ResourceData.Get("tags").(map[string]interface{})),
 	}
+
+	tagsMap := make(map[string]string)
+	for k, v := range model.Tags {
+		tagsMap[k] = v.(string)
+	}
+	cluster.Tags = &tagsMap
 
 	resp, err := clusterClient.CreateOrUpdate(ctx, managedClusterId, cluster)
 	if err != nil {
@@ -537,6 +538,7 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 				})
 			}
 		}
+		model.CustomFabricSettings = cfs
 	}
 
 	model.ClientConnectionPort = utils.NormaliseNilableInt64(properties.ClientConnectionPort)
@@ -575,7 +577,6 @@ func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 		return NodeType{Name: utils.NormalizeNilableString(nt.Name)}
 	}
 
-	//from, to, err := parsePortRange(n)
 	out := NodeType{
 		DataDiskSize:     nt.Properties.DataDiskSizeGB,
 		Name:             utils.NormalizeNilableString(nt.Name),
@@ -694,11 +695,7 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 				Name:  cs.Parameter,
 				Value: cs.Value,
 			}
-			if v, ok := fsMap[cs.Section]; ok {
-				v = append(v, spd)
-			} else {
-				fsMap[cs.Section] = []managedcluster.SettingsParameterDescription{spd}
-			}
+			fsMap[cs.Section] = append(fsMap[cs.Section], spd)
 		}
 
 		// Then we update the properties struct
