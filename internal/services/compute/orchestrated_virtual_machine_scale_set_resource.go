@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
@@ -93,14 +92,15 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"extension": OrchestratedVirtualMachineScaleSetExtensionsSchema(),
+			// Due to bug in RP extensions cannot curretntly be supported in Terraform
+			// "extension": OrchestratedVirtualMachineScaleSetExtensionsSchema(),
 
-			"extensions_time_budget": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      "PT1H30M",
-				ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
-			},
+			// "extensions_time_budget": {
+			// 	Type:         pluginsdk.TypeString,
+			// 	Optional:     true,
+			// 	Default:      "PT1H30M",
+			// 	ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
+			// },
 
 			"identity": OrchestratedVirtualMachineScaleSetIdentitySchema(),
 
@@ -346,20 +346,20 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.NetworkProfile = networkProfile
 	}
 
-	if v, ok := d.GetOk("extension"); ok {
-		extensionProfile, err := expandOrchestratedVirtualMachineScaleSetExtensions(v.(*pluginsdk.Set).List())
-		if err != nil {
-			return err
-		}
-		virtualMachineProfile.ExtensionProfile = extensionProfile
-	}
+	// if v, ok := d.GetOk("extension"); ok {
+	// extensionProfile, err := expandOrchestratedVirtualMachineScaleSetExtensions(v.(*pluginsdk.Set).List())
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	virtualMachineProfile.ExtensionProfile = extensionProfile
+	// }
 
-	if v, ok := d.GetOk("extensions_time_budget"); ok {
-		if virtualMachineProfile.ExtensionProfile == nil {
-			virtualMachineProfile.ExtensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
-		}
-		virtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(v.(string))
-	}
+	// if v, ok := d.GetOk("extensions_time_budget"); ok {
+	// 	if virtualMachineProfile.ExtensionProfile == nil {
+	// 		virtualMachineProfile.ExtensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
+	// 	}
+	// 	virtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(v.(string))
+	// }
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
 		if virtualMachineProfile.Priority != compute.VirtualMachinePriorityTypesSpot {
@@ -724,16 +724,16 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			update.Sku = sku
 		}
 
-		if d.HasChanges("extension", "extensions_time_budget") {
-			updateInstances = true
+		// if d.HasChanges("extension", "extensions_time_budget") {
+		// 	updateInstances = true
 
-			extensionProfile, err := expandOrchestratedVirtualMachineScaleSetExtensions(d.Get("extension").(*pluginsdk.Set).List())
-			if err != nil {
-				return err
-			}
-			updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
-			updateProps.VirtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
-		}
+		// 	extensionProfile, err := expandOrchestratedVirtualMachineScaleSetExtensions(d.Get("extension").(*pluginsdk.Set).List())
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
+		// 	updateProps.VirtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
+		// }
 	}
 
 	// Only two fields that can change in legacy mode
@@ -904,17 +904,17 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 			}
 		}
 
-		extensionProfile, err := flattenOrchestratedVirtualMachineScaleSetExtensions(profile.ExtensionProfile, d)
-		if err != nil {
-			return fmt.Errorf("failed flattening `extension`: %+v", err)
-		}
-		d.Set("extension", extensionProfile)
+		// extensionProfile, err := flattenOrchestratedVirtualMachineScaleSetExtensions(profile.ExtensionProfile, d)
+		// if err != nil {
+		// 	return fmt.Errorf("failed flattening `extension`: %+v", err)
+		// }
+		// d.Set("extension", extensionProfile)
 
-		extensionsTimeBudget := "PT1H30M"
-		if profile.ExtensionProfile != nil && profile.ExtensionProfile.ExtensionsTimeBudget != nil {
-			extensionsTimeBudget = *profile.ExtensionProfile.ExtensionsTimeBudget
-		}
-		d.Set("extensions_time_budget", extensionsTimeBudget)
+		// extensionsTimeBudget := "PT1H30M"
+		// if profile.ExtensionProfile != nil && profile.ExtensionProfile.ExtensionsTimeBudget != nil {
+		// 	extensionsTimeBudget = *profile.ExtensionProfile.ExtensionsTimeBudget
+		// }
+		// d.Set("extensions_time_budget", extensionsTimeBudget)
 
 		encryptionAtHostEnabled := false
 		if profile.SecurityProfile != nil && profile.SecurityProfile.EncryptionAtHost != nil {
