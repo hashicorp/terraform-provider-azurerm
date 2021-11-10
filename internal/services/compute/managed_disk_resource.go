@@ -117,6 +117,14 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"image_reference_lun": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      -1,
+				ValidateFunc: validation.IntAtLeast(0),
+			},
+
 			"os_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -350,11 +358,24 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if createOption == compute.DiskCreateOptionFromImage {
 		imageReferenceId := d.Get("image_reference_id").(string)
 		if imageReferenceId == "" {
-			return fmt.Errorf("`image_reference_id` must be specified when `create_option` is set to `Import`")
+			return fmt.Errorf("`image_reference_id` must be specified when `create_option` is set to `FromImage`")
 		}
 
-		props.CreationData.ImageReference = &compute.ImageDiskReference{
+		imageDiskReference := &compute.ImageDiskReference{
 			ID: utils.String(imageReferenceId),
+		}
+
+		imageReferenceLun := d.Get("image_reference_lun").(int)
+		if imageReferenceLun != -1 {
+			imageDiskReference.Lun = utils.Int32(int32(imageReferenceLun))
+		}
+
+		if _, err := parse.SharedImageVersionID(imageReferenceId); err == nil {
+			log.Printf("[INFO] image_reference_id is a gallery image version id, copying the disk from gallery image.")
+			props.CreationData.GalleryImageReference = imageDiskReference
+		} else {
+			log.Printf("[INFO] image_reference_id is not recognized as a galley image version id, copying the disk from platform/marketplace image.")
+			props.CreationData.ImageReference = imageDiskReference
 		}
 	}
 
@@ -807,11 +828,13 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				d.Set("logical_sector_size", creationData.LogicalSectorSize)
 			}
 
-			imageReferenceID := ""
-			if creationData.ImageReference != nil && creationData.ImageReference.ID != nil {
-				imageReferenceID = *creationData.ImageReference.ID
+			if galleryImageReference := creationData.GalleryImageReference; galleryImageReference != nil {
+				setImageReference(d, *galleryImageReference)
+			} else if imageReference := creationData.ImageReference; imageReference != nil {
+				setImageReference(d, *imageReference)
+			} else {
+				setImageReference(d, compute.ImageDiskReference{})
 			}
-			d.Set("image_reference_id", imageReferenceID)
 
 			d.Set("source_resource_id", creationData.SourceResourceID)
 			d.Set("source_uri", creationData.SourceURI)
@@ -883,4 +906,18 @@ func resourceManagedDiskDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	return nil
+}
+
+func setImageReference(d *pluginsdk.ResourceData, imageReference compute.ImageDiskReference) {
+	if imageReference.ID != nil {
+		d.Set("image_reference_id", imageReference.ID)
+	} else {
+		d.Set("image_reference_id", "")
+	}
+
+	if imageReference.Lun != nil {
+		d.Set("image_reference_lun", imageReference.Lun)
+	} else {
+		d.Set("image_reference_lun", -1)
+	}
 }
