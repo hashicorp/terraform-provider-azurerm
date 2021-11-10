@@ -52,7 +52,7 @@ func TestAccRelayHybridConnectionAuthorizationRule_requiresImport(t *testing.T) 
 }
 
 func (t RelayHybridConnectionAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := hybridconnections.ParseAuthorizationRuleID(state.ID)
+	id, err := hybridconnections.ParseHybridConnectionAuthorizationRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}

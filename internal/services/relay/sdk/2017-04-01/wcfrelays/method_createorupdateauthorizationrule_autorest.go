@@ -1,4 +1,4 @@
-package hybridconnections
+package wcfrelays
 
 import (
 	"context"
@@ -14,22 +14,22 @@ type CreateOrUpdateAuthorizationRuleResponse struct {
 }
 
 // CreateOrUpdateAuthorizationRule ...
-func (c HybridConnectionsClient) CreateOrUpdateAuthorizationRule(ctx context.Context, id HybridConnectionAuthorizationRuleId, input AuthorizationRule) (result CreateOrUpdateAuthorizationRuleResponse, err error) {
+func (c WCFRelaysClient) CreateOrUpdateAuthorizationRule(ctx context.Context, id WcfRelayAuthorizationRuleId, input AuthorizationRule) (result CreateOrUpdateAuthorizationRuleResponse, err error) {
 	req, err := c.preparerForCreateOrUpdateAuthorizationRule(ctx, id, input)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hybridconnections.HybridConnectionsClient", "CreateOrUpdateAuthorizationRule", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "wcfrelays.WCFRelaysClient", "CreateOrUpdateAuthorizationRule", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hybridconnections.HybridConnectionsClient", "CreateOrUpdateAuthorizationRule", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "wcfrelays.WCFRelaysClient", "CreateOrUpdateAuthorizationRule", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForCreateOrUpdateAuthorizationRule(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hybridconnections.HybridConnectionsClient", "CreateOrUpdateAuthorizationRule", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "wcfrelays.WCFRelaysClient", "CreateOrUpdateAuthorizationRule", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -37,7 +37,7 @@ func (c HybridConnectionsClient) CreateOrUpdateAuthorizationRule(ctx context.Con
 }
 
 // preparerForCreateOrUpdateAuthorizationRule prepares the CreateOrUpdateAuthorizationRule request.
-func (c HybridConnectionsClient) preparerForCreateOrUpdateAuthorizationRule(ctx context.Context, id HybridConnectionAuthorizationRuleId, input AuthorizationRule) (*http.Request, error) {
+func (c WCFRelaysClient) preparerForCreateOrUpdateAuthorizationRule(ctx context.Context, id WcfRelayAuthorizationRuleId, input AuthorizationRule) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -54,7 +54,7 @@ func (c HybridConnectionsClient) preparerForCreateOrUpdateAuthorizationRule(ctx 
 
 // responderForCreateOrUpdateAuthorizationRule handles the response to the CreateOrUpdateAuthorizationRule request. The method always
 // closes the http.Response Body.
-func (c HybridConnectionsClient) responderForCreateOrUpdateAuthorizationRule(resp *http.Response) (result CreateOrUpdateAuthorizationRuleResponse, err error) {
+func (c WCFRelaysClient) responderForCreateOrUpdateAuthorizationRule(resp *http.Response) (result CreateOrUpdateAuthorizationRuleResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

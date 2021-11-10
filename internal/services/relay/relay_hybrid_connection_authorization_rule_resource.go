@@ -23,7 +23,7 @@ func resourceRelayHybridConnectionAuthorizationRule() *pluginsdk.Resource {
 		Delete: resourceRelayHybridConnectionAuthorizationRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := hybridconnections.ParseAuthorizationRuleID(id)
+			_, err := hybridconnections.ParseHybridConnectionAuthorizationRuleID(id)
 			return err
 		}),
 
@@ -69,7 +69,7 @@ func resourceRelayHybridConnectionAuthorizationRuleCreateUpdate(d *pluginsdk.Res
 
 	log.Printf("[INFO] preparing arguments for Relay HybridConnection Authorization Rule creation.")
 
-	resourceId := hybridconnections.NewAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("hybrid_connection_name").(string), d.Get("name").(string))
+	resourceId := hybridconnections.NewHybridConnectionAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("hybrid_connection_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.GetAuthorizationRule(ctx, resourceId)
 		if err != nil {
@@ -83,7 +83,7 @@ func resourceRelayHybridConnectionAuthorizationRuleCreateUpdate(d *pluginsdk.Res
 	}
 
 	parameters := hybridconnections.AuthorizationRule{
-		Name: utils.String(resourceId.Name),
+		Name: utils.String(resourceId.AuthorizationRuleName),
 		Properties: hybridconnections.AuthorizationRuleProperties{
 			Rights: expandHybridConnectionAuthorizationRuleRights(d),
 		},
@@ -103,7 +103,7 @@ func resourceRelayHybridConnectionAuthorizationRuleRead(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := hybridconnections.ParseAuthorizationRuleID(d.Id())
+	id, err := hybridconnections.ParseHybridConnectionAuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -122,10 +122,10 @@ func resourceRelayHybridConnectionAuthorizationRuleRead(d *pluginsdk.ResourceDat
 		return fmt.Errorf("listing keys for %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.AuthorizationRuleName)
 	d.Set("hybrid_connection_name", id.HybridConnectionName)
 	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		listen, send, manage := flattenHybridConnectionAuthorizationRuleRights(model.Properties.Rights)
@@ -147,7 +147,7 @@ func resourceRelayHybridConnectionAuthorizationRuleDelete(d *pluginsdk.ResourceD
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := hybridconnections.ParseAuthorizationRuleID(d.Id())
+	id, err := hybridconnections.ParseHybridConnectionAuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}

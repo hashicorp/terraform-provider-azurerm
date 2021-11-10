@@ -1,4 +1,4 @@
-package namespaces
+package wcfrelays
 
 import (
 	"fmt"
@@ -7,36 +7,38 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = AuthorizationRuleId{}
+var _ resourceids.ResourceId = WcfRelayAuthorizationRuleId{}
 
-// AuthorizationRuleId is a struct representing the Resource ID for a Authorization Rule
-type AuthorizationRuleId struct {
+// WcfRelayAuthorizationRuleId is a struct representing the Resource ID for a Wcf Relay Authorization Rule
+type WcfRelayAuthorizationRuleId struct {
 	SubscriptionId        string
 	ResourceGroupName     string
 	NamespaceName         string
+	RelayName             string
 	AuthorizationRuleName string
 }
 
-// NewAuthorizationRuleID returns a new AuthorizationRuleId struct
-func NewAuthorizationRuleID(subscriptionId string, resourceGroupName string, namespaceName string, authorizationRuleName string) AuthorizationRuleId {
-	return AuthorizationRuleId{
+// NewWcfRelayAuthorizationRuleID returns a new WcfRelayAuthorizationRuleId struct
+func NewWcfRelayAuthorizationRuleID(subscriptionId string, resourceGroupName string, namespaceName string, relayName string, authorizationRuleName string) WcfRelayAuthorizationRuleId {
+	return WcfRelayAuthorizationRuleId{
 		SubscriptionId:        subscriptionId,
 		ResourceGroupName:     resourceGroupName,
 		NamespaceName:         namespaceName,
+		RelayName:             relayName,
 		AuthorizationRuleName: authorizationRuleName,
 	}
 }
 
-// ParseAuthorizationRuleID parses 'input' into a AuthorizationRuleId
-func ParseAuthorizationRuleID(input string) (*AuthorizationRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AuthorizationRuleId{})
+// ParseWcfRelayAuthorizationRuleID parses 'input' into a WcfRelayAuthorizationRuleId
+func ParseWcfRelayAuthorizationRuleID(input string) (*WcfRelayAuthorizationRuleId, error) {
+	parser := resourceids.NewParserFromResourceIdType(WcfRelayAuthorizationRuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	var ok bool
-	id := AuthorizationRuleId{}
+	id := WcfRelayAuthorizationRuleId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
@@ -50,6 +52,10 @@ func ParseAuthorizationRuleID(input string) (*AuthorizationRuleId, error) {
 		return nil, fmt.Errorf("the segment 'namespaceName' was not found in the resource id %q", input)
 	}
 
+	if id.RelayName, ok = parsed.Parsed["relayName"]; !ok {
+		return nil, fmt.Errorf("the segment 'relayName' was not found in the resource id %q", input)
+	}
+
 	if id.AuthorizationRuleName, ok = parsed.Parsed["authorizationRuleName"]; !ok {
 		return nil, fmt.Errorf("the segment 'authorizationRuleName' was not found in the resource id %q", input)
 	}
@@ -57,17 +63,17 @@ func ParseAuthorizationRuleID(input string) (*AuthorizationRuleId, error) {
 	return &id, nil
 }
 
-// ParseAuthorizationRuleIDInsensitively parses 'input' case-insensitively into a AuthorizationRuleId
+// ParseWcfRelayAuthorizationRuleIDInsensitively parses 'input' case-insensitively into a WcfRelayAuthorizationRuleId
 // note: this method should only be used for API response data and not user input
-func ParseAuthorizationRuleIDInsensitively(input string) (*AuthorizationRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AuthorizationRuleId{})
+func ParseWcfRelayAuthorizationRuleIDInsensitively(input string) (*WcfRelayAuthorizationRuleId, error) {
+	parser := resourceids.NewParserFromResourceIdType(WcfRelayAuthorizationRuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	var ok bool
-	id := AuthorizationRuleId{}
+	id := WcfRelayAuthorizationRuleId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
@@ -81,6 +87,10 @@ func ParseAuthorizationRuleIDInsensitively(input string) (*AuthorizationRuleId, 
 		return nil, fmt.Errorf("the segment 'namespaceName' was not found in the resource id %q", input)
 	}
 
+	if id.RelayName, ok = parsed.Parsed["relayName"]; !ok {
+		return nil, fmt.Errorf("the segment 'relayName' was not found in the resource id %q", input)
+	}
+
 	if id.AuthorizationRuleName, ok = parsed.Parsed["authorizationRuleName"]; !ok {
 		return nil, fmt.Errorf("the segment 'authorizationRuleName' was not found in the resource id %q", input)
 	}
@@ -88,29 +98,29 @@ func ParseAuthorizationRuleIDInsensitively(input string) (*AuthorizationRuleId, 
 	return &id, nil
 }
 
-// ValidateAuthorizationRuleID checks that 'input' can be parsed as a Authorization Rule ID
-func ValidateAuthorizationRuleID(input interface{}, key string) (warnings []string, errors []error) {
+// ValidateWcfRelayAuthorizationRuleID checks that 'input' can be parsed as a Wcf Relay Authorization Rule ID
+func ValidateWcfRelayAuthorizationRuleID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := ParseAuthorizationRuleID(v); err != nil {
+	if _, err := ParseWcfRelayAuthorizationRuleID(v); err != nil {
 		errors = append(errors, err)
 	}
 
 	return
 }
 
-// ID returns the formatted Authorization Rule ID
-func (id AuthorizationRuleId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Relay/namespaces/%s/authorizationRules/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.AuthorizationRuleName)
+// ID returns the formatted Wcf Relay Authorization Rule ID
+func (id WcfRelayAuthorizationRuleId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Relay/namespaces/%s/wcfRelays/%s/authorizationRules/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.RelayName, id.AuthorizationRuleName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Authorization Rule ID
-func (id AuthorizationRuleId) Segments() []resourceids.Segment {
+// Segments returns a slice of Resource ID Segments which comprise this Wcf Relay Authorization Rule ID
+func (id WcfRelayAuthorizationRuleId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
@@ -120,18 +130,21 @@ func (id AuthorizationRuleId) Segments() []resourceids.Segment {
 		resourceids.ResourceProviderSegment("microsoftRelay", "Microsoft.Relay", "Microsoft.Relay"),
 		resourceids.StaticSegment("namespaces", "namespaces", "namespaces"),
 		resourceids.UserSpecifiedSegment("namespaceName", "namespaceValue"),
+		resourceids.StaticSegment("wcfRelays", "wcfRelays", "wcfRelays"),
+		resourceids.UserSpecifiedSegment("relayName", "relayValue"),
 		resourceids.StaticSegment("authorizationRules", "authorizationRules", "authorizationRules"),
 		resourceids.UserSpecifiedSegment("authorizationRuleName", "authorizationRuleValue"),
 	}
 }
 
-// String returns a human-readable description of this Authorization Rule ID
-func (id AuthorizationRuleId) String() string {
+// String returns a human-readable description of this Wcf Relay Authorization Rule ID
+func (id WcfRelayAuthorizationRuleId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Namespace Name: %q", id.NamespaceName),
+		fmt.Sprintf("Relay Name: %q", id.RelayName),
 		fmt.Sprintf("Authorization Rule Name: %q", id.AuthorizationRuleName),
 	}
-	return fmt.Sprintf("Authorization Rule (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Wcf Relay Authorization Rule (%s)", strings.Join(components, "\n"))
 }

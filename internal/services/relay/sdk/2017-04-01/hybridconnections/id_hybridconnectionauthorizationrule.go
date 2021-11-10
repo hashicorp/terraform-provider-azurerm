@@ -1,4 +1,4 @@
-package namespaces
+package hybridconnections
 
 import (
 	"fmt"
@@ -7,36 +7,38 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = AuthorizationRuleId{}
+var _ resourceids.ResourceId = HybridConnectionAuthorizationRuleId{}
 
-// AuthorizationRuleId is a struct representing the Resource ID for a Authorization Rule
-type AuthorizationRuleId struct {
+// HybridConnectionAuthorizationRuleId is a struct representing the Resource ID for a Hybrid Connection Authorization Rule
+type HybridConnectionAuthorizationRuleId struct {
 	SubscriptionId        string
 	ResourceGroupName     string
 	NamespaceName         string
+	HybridConnectionName  string
 	AuthorizationRuleName string
 }
 
-// NewAuthorizationRuleID returns a new AuthorizationRuleId struct
-func NewAuthorizationRuleID(subscriptionId string, resourceGroupName string, namespaceName string, authorizationRuleName string) AuthorizationRuleId {
-	return AuthorizationRuleId{
+// NewHybridConnectionAuthorizationRuleID returns a new HybridConnectionAuthorizationRuleId struct
+func NewHybridConnectionAuthorizationRuleID(subscriptionId string, resourceGroupName string, namespaceName string, hybridConnectionName string, authorizationRuleName string) HybridConnectionAuthorizationRuleId {
+	return HybridConnectionAuthorizationRuleId{
 		SubscriptionId:        subscriptionId,
 		ResourceGroupName:     resourceGroupName,
 		NamespaceName:         namespaceName,
+		HybridConnectionName:  hybridConnectionName,
 		AuthorizationRuleName: authorizationRuleName,
 	}
 }
 
-// ParseAuthorizationRuleID parses 'input' into a AuthorizationRuleId
-func ParseAuthorizationRuleID(input string) (*AuthorizationRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AuthorizationRuleId{})
+// ParseHybridConnectionAuthorizationRuleID parses 'input' into a HybridConnectionAuthorizationRuleId
+func ParseHybridConnectionAuthorizationRuleID(input string) (*HybridConnectionAuthorizationRuleId, error) {
+	parser := resourceids.NewParserFromResourceIdType(HybridConnectionAuthorizationRuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	var ok bool
-	id := AuthorizationRuleId{}
+	id := HybridConnectionAuthorizationRuleId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
@@ -50,6 +52,10 @@ func ParseAuthorizationRuleID(input string) (*AuthorizationRuleId, error) {
 		return nil, fmt.Errorf("the segment 'namespaceName' was not found in the resource id %q", input)
 	}
 
+	if id.HybridConnectionName, ok = parsed.Parsed["hybridConnectionName"]; !ok {
+		return nil, fmt.Errorf("the segment 'hybridConnectionName' was not found in the resource id %q", input)
+	}
+
 	if id.AuthorizationRuleName, ok = parsed.Parsed["authorizationRuleName"]; !ok {
 		return nil, fmt.Errorf("the segment 'authorizationRuleName' was not found in the resource id %q", input)
 	}
@@ -57,17 +63,17 @@ func ParseAuthorizationRuleID(input string) (*AuthorizationRuleId, error) {
 	return &id, nil
 }
 
-// ParseAuthorizationRuleIDInsensitively parses 'input' case-insensitively into a AuthorizationRuleId
+// ParseHybridConnectionAuthorizationRuleIDInsensitively parses 'input' case-insensitively into a HybridConnectionAuthorizationRuleId
 // note: this method should only be used for API response data and not user input
-func ParseAuthorizationRuleIDInsensitively(input string) (*AuthorizationRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AuthorizationRuleId{})
+func ParseHybridConnectionAuthorizationRuleIDInsensitively(input string) (*HybridConnectionAuthorizationRuleId, error) {
+	parser := resourceids.NewParserFromResourceIdType(HybridConnectionAuthorizationRuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	var ok bool
-	id := AuthorizationRuleId{}
+	id := HybridConnectionAuthorizationRuleId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
@@ -81,6 +87,10 @@ func ParseAuthorizationRuleIDInsensitively(input string) (*AuthorizationRuleId, 
 		return nil, fmt.Errorf("the segment 'namespaceName' was not found in the resource id %q", input)
 	}
 
+	if id.HybridConnectionName, ok = parsed.Parsed["hybridConnectionName"]; !ok {
+		return nil, fmt.Errorf("the segment 'hybridConnectionName' was not found in the resource id %q", input)
+	}
+
 	if id.AuthorizationRuleName, ok = parsed.Parsed["authorizationRuleName"]; !ok {
 		return nil, fmt.Errorf("the segment 'authorizationRuleName' was not found in the resource id %q", input)
 	}
@@ -88,29 +98,29 @@ func ParseAuthorizationRuleIDInsensitively(input string) (*AuthorizationRuleId, 
 	return &id, nil
 }
 
-// ValidateAuthorizationRuleID checks that 'input' can be parsed as a Authorization Rule ID
-func ValidateAuthorizationRuleID(input interface{}, key string) (warnings []string, errors []error) {
+// ValidateHybridConnectionAuthorizationRuleID checks that 'input' can be parsed as a Hybrid Connection Authorization Rule ID
+func ValidateHybridConnectionAuthorizationRuleID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := ParseAuthorizationRuleID(v); err != nil {
+	if _, err := ParseHybridConnectionAuthorizationRuleID(v); err != nil {
 		errors = append(errors, err)
 	}
 
 	return
 }
 
-// ID returns the formatted Authorization Rule ID
-func (id AuthorizationRuleId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Relay/namespaces/%s/authorizationRules/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.AuthorizationRuleName)
+// ID returns the formatted Hybrid Connection Authorization Rule ID
+func (id HybridConnectionAuthorizationRuleId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Relay/namespaces/%s/hybridConnections/%s/authorizationRules/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.HybridConnectionName, id.AuthorizationRuleName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Authorization Rule ID
-func (id AuthorizationRuleId) Segments() []resourceids.Segment {
+// Segments returns a slice of Resource ID Segments which comprise this Hybrid Connection Authorization Rule ID
+func (id HybridConnectionAuthorizationRuleId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
@@ -120,18 +130,21 @@ func (id AuthorizationRuleId) Segments() []resourceids.Segment {
 		resourceids.ResourceProviderSegment("microsoftRelay", "Microsoft.Relay", "Microsoft.Relay"),
 		resourceids.StaticSegment("namespaces", "namespaces", "namespaces"),
 		resourceids.UserSpecifiedSegment("namespaceName", "namespaceValue"),
+		resourceids.StaticSegment("hybridConnections", "hybridConnections", "hybridConnections"),
+		resourceids.UserSpecifiedSegment("hybridConnectionName", "hybridConnectionValue"),
 		resourceids.StaticSegment("authorizationRules", "authorizationRules", "authorizationRules"),
 		resourceids.UserSpecifiedSegment("authorizationRuleName", "authorizationRuleValue"),
 	}
 }
 
-// String returns a human-readable description of this Authorization Rule ID
-func (id AuthorizationRuleId) String() string {
+// String returns a human-readable description of this Hybrid Connection Authorization Rule ID
+func (id HybridConnectionAuthorizationRuleId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Namespace Name: %q", id.NamespaceName),
+		fmt.Sprintf("Hybrid Connection Name: %q", id.HybridConnectionName),
 		fmt.Sprintf("Authorization Rule Name: %q", id.AuthorizationRuleName),
 	}
-	return fmt.Sprintf("Authorization Rule (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Hybrid Connection Authorization Rule (%s)", strings.Join(components, "\n"))
 }

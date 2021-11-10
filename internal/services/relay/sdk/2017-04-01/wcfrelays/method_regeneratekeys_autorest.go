@@ -1,4 +1,4 @@
-package hybridconnections
+package wcfrelays
 
 import (
 	"context"
@@ -15,22 +15,22 @@ type RegenerateKeysResponse struct {
 }
 
 // RegenerateKeys ...
-func (c HybridConnectionsClient) RegenerateKeys(ctx context.Context, id HybridConnectionAuthorizationRuleId, input RegenerateAccessKeyParameters) (result RegenerateKeysResponse, err error) {
+func (c WCFRelaysClient) RegenerateKeys(ctx context.Context, id WcfRelayAuthorizationRuleId, input RegenerateAccessKeyParameters) (result RegenerateKeysResponse, err error) {
 	req, err := c.preparerForRegenerateKeys(ctx, id, input)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hybridconnections.HybridConnectionsClient", "RegenerateKeys", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "wcfrelays.WCFRelaysClient", "RegenerateKeys", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hybridconnections.HybridConnectionsClient", "RegenerateKeys", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "wcfrelays.WCFRelaysClient", "RegenerateKeys", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForRegenerateKeys(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hybridconnections.HybridConnectionsClient", "RegenerateKeys", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "wcfrelays.WCFRelaysClient", "RegenerateKeys", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -38,7 +38,7 @@ func (c HybridConnectionsClient) RegenerateKeys(ctx context.Context, id HybridCo
 }
 
 // preparerForRegenerateKeys prepares the RegenerateKeys request.
-func (c HybridConnectionsClient) preparerForRegenerateKeys(ctx context.Context, id HybridConnectionAuthorizationRuleId, input RegenerateAccessKeyParameters) (*http.Request, error) {
+func (c WCFRelaysClient) preparerForRegenerateKeys(ctx context.Context, id WcfRelayAuthorizationRuleId, input RegenerateAccessKeyParameters) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -55,7 +55,7 @@ func (c HybridConnectionsClient) preparerForRegenerateKeys(ctx context.Context, 
 
 // responderForRegenerateKeys handles the response to the RegenerateKeys request. The method always
 // closes the http.Response Body.
-func (c HybridConnectionsClient) responderForRegenerateKeys(resp *http.Response) (result RegenerateKeysResponse, err error) {
+func (c WCFRelaysClient) responderForRegenerateKeys(resp *http.Response) (result RegenerateKeysResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

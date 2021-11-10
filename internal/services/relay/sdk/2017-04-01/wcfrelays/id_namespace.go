@@ -1,4 +1,4 @@
-package hybridconnections
+package wcfrelays
 
 import (
 	"fmt"

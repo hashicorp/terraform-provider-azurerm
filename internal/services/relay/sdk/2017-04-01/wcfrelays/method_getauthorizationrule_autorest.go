@@ -1,4 +1,4 @@
-package hybridconnections
+package wcfrelays
 
 import (
 	"context"
@@ -14,22 +14,22 @@ type GetAuthorizationRuleResponse struct {
 }
 
 // GetAuthorizationRule ...
-func (c HybridConnectionsClient) GetAuthorizationRule(ctx context.Context, id HybridConnectionAuthorizationRuleId) (result GetAuthorizationRuleResponse, err error) {
+func (c WCFRelaysClient) GetAuthorizationRule(ctx context.Context, id WcfRelayAuthorizationRuleId) (result GetAuthorizationRuleResponse, err error) {
 	req, err := c.preparerForGetAuthorizationRule(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hybridconnections.HybridConnectionsClient", "GetAuthorizationRule", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "wcfrelays.WCFRelaysClient", "GetAuthorizationRule", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hybridconnections.HybridConnectionsClient", "GetAuthorizationRule", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "wcfrelays.WCFRelaysClient", "GetAuthorizationRule", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForGetAuthorizationRule(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hybridconnections.HybridConnectionsClient", "GetAuthorizationRule", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "wcfrelays.WCFRelaysClient", "GetAuthorizationRule", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -37,7 +37,7 @@ func (c HybridConnectionsClient) GetAuthorizationRule(ctx context.Context, id Hy
 }
 
 // preparerForGetAuthorizationRule prepares the GetAuthorizationRule request.
-func (c HybridConnectionsClient) preparerForGetAuthorizationRule(ctx context.Context, id HybridConnectionAuthorizationRuleId) (*http.Request, error) {
+func (c WCFRelaysClient) preparerForGetAuthorizationRule(ctx context.Context, id WcfRelayAuthorizationRuleId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -53,7 +53,7 @@ func (c HybridConnectionsClient) preparerForGetAuthorizationRule(ctx context.Con
 
 // responderForGetAuthorizationRule handles the response to the GetAuthorizationRule request. The method always
 // closes the http.Response Body.
-func (c HybridConnectionsClient) responderForGetAuthorizationRule(resp *http.Response) (result GetAuthorizationRuleResponse, err error) {
+func (c WCFRelaysClient) responderForGetAuthorizationRule(resp *http.Response) (result GetAuthorizationRuleResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

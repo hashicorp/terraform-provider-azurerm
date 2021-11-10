@@ -1,4 +1,4 @@
-package namespaces
+package wcfrelays
 
 import (
 	"testing"
