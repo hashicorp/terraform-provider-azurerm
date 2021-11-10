@@ -10,6 +10,8 @@ description: |-
 
 Manages an Azure Cost Management Export for a Resource Group.
 
+!> **Note:** The `azurerm_cost_management_export_resource_group` resource has been deprecated in favour of the `azurerm_resource_group_cost_management_export` resource and will be removed in v3.0 of the Azure Provider.
+
 ## Example Usage
 
 ```hcl

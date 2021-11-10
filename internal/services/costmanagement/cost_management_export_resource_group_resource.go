@@ -30,6 +30,11 @@ func resourceCostManagementExportResourceGroup() *pluginsdk.Resource {
 			return err
 		}),
 
+		DeprecationMessage: func() string {
+			msg := `The 'azurerm_cost_management_export_resource_group' resource is deprecated in favour of the 'azurerm_resource_group_cost_management_export' resource and will be removed in version 3.0 of the Azure Provider.`
+			return strings.ReplaceAll(msg, "'", "`")
+		}(),
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
