@@ -7,121 +7,131 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+var _ resourceids.ResourceId = DeletedAccountId{}
+
+// DeletedAccountId is a struct representing the Resource ID for a Deleted Account
 type DeletedAccountId struct {
-	SubscriptionId string
-	LocationName   string
-	ResourceGroup  string
-	Name           string
+	SubscriptionId    string
+	Location          string
+	ResourceGroupName string
+	AccountName       string
 }
 
-func NewDeletedAccountID(subscriptionId, locationName, resourceGroup, name string) DeletedAccountId {
+// NewDeletedAccountID returns a new DeletedAccountId struct
+func NewDeletedAccountID(subscriptionId string, location string, resourceGroupName string, accountName string) DeletedAccountId {
 	return DeletedAccountId{
-		SubscriptionId: subscriptionId,
-		LocationName:   locationName,
-		ResourceGroup:  resourceGroup,
-		Name:           name,
+		SubscriptionId:    subscriptionId,
+		Location:          location,
+		ResourceGroupName: resourceGroupName,
+		AccountName:       accountName,
 	}
 }
 
-func (id DeletedAccountId) String() string {
-	segments := []string{
-		fmt.Sprintf("Name %q", id.Name),
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Location Name %q", id.LocationName),
+// ParseDeletedAccountID parses 'input' into a DeletedAccountId
+func ParseDeletedAccountID(input string) (*DeletedAccountId, error) {
+	parser := resourceids.NewParserFromResourceIdType(DeletedAccountId{})
+	parsed, err := parser.Parse(input, false)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
-	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Deleted Account", segmentsStr)
+
+	var ok bool
+	id := DeletedAccountId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.Location, ok = parsed.Parsed["location"]; !ok {
+		return nil, fmt.Errorf("the segment 'location' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
 }
 
+// ParseDeletedAccountIDInsensitively parses 'input' case-insensitively into a DeletedAccountId
+// note: this method should only be used for API response data and not user input
+func ParseDeletedAccountIDInsensitively(input string) (*DeletedAccountId, error) {
+	parser := resourceids.NewParserFromResourceIdType(DeletedAccountId{})
+	parsed, err := parser.Parse(input, true)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	var ok bool
+	id := DeletedAccountId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.Location, ok = parsed.Parsed["location"]; !ok {
+		return nil, fmt.Errorf("the segment 'location' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
+}
+
+// ValidateDeletedAccountID checks that 'input' can be parsed as a Deleted Account ID
+func ValidateDeletedAccountID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	if _, err := ParseDeletedAccountID(v); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
+}
+
+// ID returns the formatted Deleted Account ID
 func (id DeletedAccountId) ID() string {
 	fmtString := "/subscriptions/%s/providers/Microsoft.CognitiveServices/locations/%s/resourceGroups/%s/deletedAccounts/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.LocationName, id.ResourceGroup, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.Location, id.ResourceGroupName, id.AccountName)
 }
 
-// ParseDeletedAccountID parses a DeletedAccount ID into an DeletedAccountId struct
-func ParseDeletedAccountID(input string) (*DeletedAccountId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// Segments returns a slice of Resource ID Segments which comprise this Deleted Account ID
+func (id DeletedAccountId) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
+		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
+		resourceids.StaticSegment("providers", "providers", "providers"),
+		resourceids.ResourceProviderSegment("microsoftCognitiveServices", "Microsoft.CognitiveServices", "Microsoft.CognitiveServices"),
+		resourceids.StaticSegment("locations", "locations", "locations"),
+		resourceids.UserSpecifiedSegment("location", "locationValue"),
+		resourceids.StaticSegment("resourceGroups", "resourceGroups", "resourceGroups"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
+		resourceids.StaticSegment("deletedAccounts", "deletedAccounts", "deletedAccounts"),
+		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
 	}
-
-	resourceId := DeletedAccountId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.LocationName, err = id.PopSegment("locations"); err != nil {
-		return nil, err
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	if resourceId.Name, err = id.PopSegment("deletedAccounts"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
 }
 
-// ParseDeletedAccountIDInsensitively parses an DeletedAccount ID into an DeletedAccountId struct, insensitively
-// This should only be used to parse an ID for rewriting to a consistent casing,
-// the ParseDeletedAccountID method should be used instead for validation etc.
-func ParseDeletedAccountIDInsensitively(input string) (*DeletedAccountId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// String returns a human-readable description of this Deleted Account ID
+func (id DeletedAccountId) String() string {
+	components := []string{
+		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
+		fmt.Sprintf("Location: %q", id.Location),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
+		fmt.Sprintf("Account Name: %q", id.AccountName),
 	}
-
-	resourceId := DeletedAccountId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	// find the correct casing for the 'locations' segment
-	locationsKey := "locations"
-	for key := range id.Path {
-		if strings.EqualFold(key, locationsKey) {
-			locationsKey = key
-			break
-		}
-	}
-	if resourceId.LocationName, err = id.PopSegment(locationsKey); err != nil {
-		return nil, err
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	// find the correct casing for the 'deletedAccounts' segment
-	deletedAccountsKey := "deletedAccounts"
-	for key := range id.Path {
-		if strings.EqualFold(key, deletedAccountsKey) {
-			deletedAccountsKey = key
-			break
-		}
-	}
-	if resourceId.Name, err = id.PopSegment(deletedAccountsKey); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
+	return fmt.Sprintf("Deleted Account (%s)", strings.Join(components, "\n"))
 }
