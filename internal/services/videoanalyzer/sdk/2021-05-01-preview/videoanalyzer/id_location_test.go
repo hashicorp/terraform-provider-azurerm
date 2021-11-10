@@ -6,13 +6,25 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = LocationId{}
+var _ resourceids.ResourceId = LocationId{}
 
-func TestLocationIDFormatter(t *testing.T) {
-	actual := NewLocationID("{subscriptionId}", "{locationName}").ID()
-	expected := "/subscriptions/{subscriptionId}/providers/Microsoft.Media/locations/{locationName}"
+func TestNewLocationID(t *testing.T) {
+	id := NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+
+	if id.SubscriptionId != "12345678-1234-9876-4563-123456789012" {
+		t.Fatalf("Expected %q but got %q for Segment 'SubscriptionId'", id.SubscriptionId, "12345678-1234-9876-4563-123456789012")
+	}
+
+	if id.LocationName != "locationValue" {
+		t.Fatalf("Expected %q but got %q for Segment 'LocationName'", id.LocationName, "locationValue")
+	}
+}
+
+func TestFormatLocationID(t *testing.T) {
+	actual := NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Media/locations/locationValue"
 	if actual != expected {
-		t.Fatalf("Expected %q but got %q", expected, actual)
+		t.Fatalf("Expected the Formatted ID to be %q but got %q", actual, expected)
 	}
 }
 
@@ -22,53 +34,50 @@ func TestParseLocationID(t *testing.T) {
 		Error    bool
 		Expected *LocationId
 	}{
-
 		{
-			// empty
+			// Incomplete URI
 			Input: "",
 			Error: true,
 		},
-
 		{
-			// missing SubscriptionId
-			Input: "/",
+			// Incomplete URI
+			Input: "/subscriptions",
 			Error: true,
 		},
-
 		{
-			// missing value for SubscriptionId
-			Input: "/subscriptions/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012",
 			Error: true,
 		},
-
 		{
-			// missing Name
-			Input: "/subscriptions/{subscriptionId}/providers/Microsoft.Media/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers",
 			Error: true,
 		},
-
 		{
-			// missing value for Name
-			Input: "/subscriptions/{subscriptionId}/providers/Microsoft.Media/locations/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Media",
 			Error: true,
 		},
-
 		{
-			// valid
-			Input: "/subscriptions/{subscriptionId}/providers/Microsoft.Media/locations/{locationName}",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Media/locations",
+			Error: true,
+		},
+		{
+			// Valid URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Media/locations/locationValue",
 			Expected: &LocationId{
-				SubscriptionId: "{subscriptionId}",
-				Name:           "{locationName}",
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				LocationName:   "locationValue",
 			},
 		},
-
 		{
-			// upper-cased
-			Input: "/SUBSCRIPTIONS/{SUBSCRIPTIONID}/PROVIDERS/MICROSOFT.MEDIA/LOCATIONS/{LOCATIONNAME}",
+			// Invalid (Valid Uri with Extra segment)
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Media/locations/locationValue/extra",
 			Error: true,
 		},
 	}
-
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
@@ -78,7 +87,7 @@ func TestParseLocationID(t *testing.T) {
 				continue
 			}
 
-			t.Fatalf("Expect a value but got an error: %s", err)
+			t.Fatalf("Expect a value but got an error: %+v", err)
 		}
 		if v.Error {
 			t.Fatal("Expect an error but didn't get one")
@@ -87,9 +96,11 @@ func TestParseLocationID(t *testing.T) {
 		if actual.SubscriptionId != v.Expected.SubscriptionId {
 			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+
+		if actual.LocationName != v.Expected.LocationName {
+			t.Fatalf("Expected %q but got %q for LocationName", v.Expected.LocationName, actual.LocationName)
 		}
+
 	}
 }
 
@@ -99,74 +110,88 @@ func TestParseLocationIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *LocationId
 	}{
-
 		{
-			// empty
+			// Incomplete URI
 			Input: "",
 			Error: true,
 		},
-
 		{
-			// missing SubscriptionId
-			Input: "/",
+			// Incomplete URI
+			Input: "/subscriptions",
 			Error: true,
 		},
-
 		{
-			// missing value for SubscriptionId
-			Input: "/subscriptions/",
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs",
 			Error: true,
 		},
-
 		{
-			// missing Name
-			Input: "/subscriptions/{subscriptionId}/providers/Microsoft.Media/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012",
 			Error: true,
 		},
-
 		{
-			// missing value for Name
-			Input: "/subscriptions/{subscriptionId}/providers/Microsoft.Media/locations/",
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012",
 			Error: true,
 		},
-
 		{
-			// valid
-			Input: "/subscriptions/{subscriptionId}/providers/Microsoft.Media/locations/{locationName}",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/pRoViDeRs",
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Media",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/pRoViDeRs/mIcRoSoFt.mEdIa",
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Media/locations",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/pRoViDeRs/mIcRoSoFt.mEdIa/lOcAtIoNs",
+			Error: true,
+		},
+		{
+			// Valid URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Media/locations/locationValue",
 			Expected: &LocationId{
-				SubscriptionId: "{subscriptionId}",
-				Name:           "{locationName}",
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				LocationName:   "locationValue",
 			},
 		},
-
 		{
-			// lower-cased segment names
-			Input: "/subscriptions/{subscriptionId}/providers/Microsoft.Media/locations/{locationName}",
+			// Invalid (Valid Uri with Extra segment)
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Media/locations/locationValue/extra",
+			Error: true,
+		},
+		{
+			// Valid URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/pRoViDeRs/mIcRoSoFt.mEdIa/lOcAtIoNs/lOcAtIoNvAlUe",
 			Expected: &LocationId{
-				SubscriptionId: "{subscriptionId}",
-				Name:           "{locationName}",
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				LocationName:   "lOcAtIoNvAlUe",
 			},
 		},
-
 		{
-			// upper-cased segment names
-			Input: "/subscriptions/{subscriptionId}/providers/Microsoft.Media/LOCATIONS/{locationName}",
-			Expected: &LocationId{
-				SubscriptionId: "{subscriptionId}",
-				Name:           "{locationName}",
-			},
-		},
-
-		{
-			// mixed-cased segment names
-			Input: "/subscriptions/{subscriptionId}/providers/Microsoft.Media/LoCaTiOnS/{locationName}",
-			Expected: &LocationId{
-				SubscriptionId: "{subscriptionId}",
-				Name:           "{locationName}",
-			},
+			// Invalid (Valid Uri with Extra segment - mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/pRoViDeRs/mIcRoSoFt.mEdIa/lOcAtIoNs/lOcAtIoNvAlUe/extra",
+			Error: true,
 		},
 	}
-
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
@@ -176,7 +201,7 @@ func TestParseLocationIDInsensitively(t *testing.T) {
 				continue
 			}
 
-			t.Fatalf("Expect a value but got an error: %s", err)
+			t.Fatalf("Expect a value but got an error: %+v", err)
 		}
 		if v.Error {
 			t.Fatal("Expect an error but didn't get one")
@@ -185,8 +210,10 @@ func TestParseLocationIDInsensitively(t *testing.T) {
 		if actual.SubscriptionId != v.Expected.SubscriptionId {
 			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+
+		if actual.LocationName != v.Expected.LocationName {
+			t.Fatalf("Expected %q but got %q for LocationName", v.Expected.LocationName, actual.LocationName)
 		}
+
 	}
 }

@@ -7,120 +7,131 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+var _ resourceids.ResourceId = EdgeModuleId{}
+
+// EdgeModuleId is a struct representing the Resource ID for a Edge Module
 type EdgeModuleId struct {
 	SubscriptionId    string
-	ResourceGroup     string
-	VideoAnalyzerName string
-	Name              string
+	ResourceGroupName string
+	AccountName       string
+	EdgeModuleName    string
 }
 
-func NewEdgeModuleID(subscriptionId, resourceGroup, videoAnalyzerName, name string) EdgeModuleId {
+// NewEdgeModuleID returns a new EdgeModuleId struct
+func NewEdgeModuleID(subscriptionId string, resourceGroupName string, accountName string, edgeModuleName string) EdgeModuleId {
 	return EdgeModuleId{
 		SubscriptionId:    subscriptionId,
-		ResourceGroup:     resourceGroup,
-		VideoAnalyzerName: videoAnalyzerName,
-		Name:              name,
+		ResourceGroupName: resourceGroupName,
+		AccountName:       accountName,
+		EdgeModuleName:    edgeModuleName,
 	}
 }
 
-func (id EdgeModuleId) String() string {
-	segments := []string{
-		fmt.Sprintf("Name %q", id.Name),
-		fmt.Sprintf("Video Analyzer Name %q", id.VideoAnalyzerName),
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+// ParseEdgeModuleID parses 'input' into a EdgeModuleId
+func ParseEdgeModuleID(input string) (*EdgeModuleId, error) {
+	parser := resourceids.NewParserFromResourceIdType(EdgeModuleId{})
+	parsed, err := parser.Parse(input, false)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
-	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Edge Module", segmentsStr)
+
+	var ok bool
+	id := EdgeModuleId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	}
+
+	if id.EdgeModuleName, ok = parsed.Parsed["edgeModuleName"]; !ok {
+		return nil, fmt.Errorf("the segment 'edgeModuleName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
 }
 
+// ParseEdgeModuleIDInsensitively parses 'input' case-insensitively into a EdgeModuleId
+// note: this method should only be used for API response data and not user input
+func ParseEdgeModuleIDInsensitively(input string) (*EdgeModuleId, error) {
+	parser := resourceids.NewParserFromResourceIdType(EdgeModuleId{})
+	parsed, err := parser.Parse(input, true)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	var ok bool
+	id := EdgeModuleId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	}
+
+	if id.EdgeModuleName, ok = parsed.Parsed["edgeModuleName"]; !ok {
+		return nil, fmt.Errorf("the segment 'edgeModuleName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
+}
+
+// ValidateEdgeModuleID checks that 'input' can be parsed as a Edge Module ID
+func ValidateEdgeModuleID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	if _, err := ParseEdgeModuleID(v); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
+}
+
+// ID returns the formatted Edge Module ID
 func (id EdgeModuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Media/videoAnalyzers/%s/edgeModules/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VideoAnalyzerName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.EdgeModuleName)
 }
 
-// ParseEdgeModuleID parses a EdgeModule ID into an EdgeModuleId struct
-func ParseEdgeModuleID(input string) (*EdgeModuleId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// Segments returns a slice of Resource ID Segments which comprise this Edge Module ID
+func (id EdgeModuleId) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
+		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
+		resourceids.StaticSegment("resourceGroups", "resourceGroups", "resourceGroups"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
+		resourceids.StaticSegment("providers", "providers", "providers"),
+		resourceids.ResourceProviderSegment("microsoftMedia", "Microsoft.Media", "Microsoft.Media"),
+		resourceids.StaticSegment("videoAnalyzers", "videoAnalyzers", "videoAnalyzers"),
+		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.StaticSegment("edgeModules", "edgeModules", "edgeModules"),
+		resourceids.UserSpecifiedSegment("edgeModuleName", "edgeModuleValue"),
 	}
-
-	resourceId := EdgeModuleId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	if resourceId.VideoAnalyzerName, err = id.PopSegment("videoAnalyzers"); err != nil {
-		return nil, err
-	}
-	if resourceId.Name, err = id.PopSegment("edgeModules"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
 }
 
-// ParseEdgeModuleIDInsensitively parses an EdgeModule ID into an EdgeModuleId struct, insensitively
-// This should only be used to parse an ID for rewriting to a consistent casing,
-// the ParseEdgeModuleID method should be used instead for validation etc.
-func ParseEdgeModuleIDInsensitively(input string) (*EdgeModuleId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// String returns a human-readable description of this Edge Module ID
+func (id EdgeModuleId) String() string {
+	components := []string{
+		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
+		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Edge Module Name: %q", id.EdgeModuleName),
 	}
-
-	resourceId := EdgeModuleId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	// find the correct casing for the 'videoAnalyzers' segment
-	videoAnalyzersKey := "videoAnalyzers"
-	for key := range id.Path {
-		if strings.EqualFold(key, videoAnalyzersKey) {
-			videoAnalyzersKey = key
-			break
-		}
-	}
-	if resourceId.VideoAnalyzerName, err = id.PopSegment(videoAnalyzersKey); err != nil {
-		return nil, err
-	}
-
-	// find the correct casing for the 'edgeModules' segment
-	edgeModulesKey := "edgeModules"
-	for key := range id.Path {
-		if strings.EqualFold(key, edgeModulesKey) {
-			edgeModulesKey = key
-			break
-		}
-	}
-	if resourceId.Name, err = id.PopSegment(edgeModulesKey); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
+	return fmt.Sprintf("Edge Module (%s)", strings.Join(components, "\n"))
 }

@@ -1,0 +1,36 @@
+package videoanalyzer
+
+import (
+	"encoding/json"
+	"fmt"
+)
+
+type RsaTokenKey struct {
+	Alg AccessPolicyRsaAlgo `json:"alg"`
+	E   string              `json:"e"`
+	N   string              `json:"n"`
+}
+
+var _ json.Marshaler = RsaTokenKey{}
+
+func (s RsaTokenKey) MarshalJSON() ([]byte, error) {
+	type wrapper RsaTokenKey
+	wrapped := wrapper(s)
+	encoded, err := json.Marshal(wrapped)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling RsaTokenKey: %+v", err)
+	}
+
+	var decoded map[string]interface{}
+	if err := json.Unmarshal(encoded, &decoded); err != nil {
+		return nil, fmt.Errorf("unmarshaling RsaTokenKey: %+v", err)
+	}
+	decoded["@type"] = "#Microsoft.VideoAnalyzer.RsaTokenKey"
+
+	encoded, err = json.Marshal(decoded)
+	if err != nil {
+		return nil, fmt.Errorf("re-marshaling RsaTokenKey: %+v", err)
+	}
+
+	return encoded, nil
+}
