@@ -179,7 +179,6 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
@@ -431,6 +430,11 @@ func resourceOpenShiftClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("setting `master_profile`: %+v", err)
 		}
 
+		workerProfiles := flattenOpenShiftWorkerProfiles(props.WorkerProfiles)
+		if err := d.Set("worker_profile", workerProfiles); err != nil {
+			return fmt.Errorf("setting `worker_profile`: %+v", err)
+		}
+
 		apiServerProfile := flattenOpenShiftAPIServerProfile(props.ApiserverProfile)
 		if err := d.Set("api_server_profile", apiServerProfile); err != nil {
 			return fmt.Errorf("setting `api_server_profile`: %+v", err)
@@ -574,6 +578,38 @@ func flattenOpenShiftMasterProfile(profile *redhatopenshift.MasterProfile) []int
 			"subnet_id": subnetId,
 		},
 	}
+}
+
+func flattenOpenShiftWorkerProfiles(profiles *[]redhatopenshift.WorkerProfile) []interface{} {
+	if profiles == nil {
+		return []interface{}{}
+	}
+
+	results := make([]interface{}, 0)
+
+	result := make(map[string]interface{})
+	result["node_count"] = int32(len(*profiles))
+	//profile := make([]redhatopenshift.WorkerProfile, node_count)[0]
+
+	for _, profile := range *profiles {
+		if result["disk_size_gb"] == nil && profile.DiskSizeGB != nil {
+			result["disk_size_gb"] = profile.DiskSizeGB
+		}
+
+		vmSize := string(profile.VMSize)
+
+		if result["vm_size"] == nil && vmSize != "" {
+			result["vm_size"] = vmSize
+		}
+
+		if result["subnet_id"] == nil && profile.SubnetID != nil {
+			result["subnet_id"] = profile.SubnetID
+		}
+	}
+
+	results = append(results, result)
+
+	return results
 }
 
 func flattenOpenShiftAPIServerProfile(profile *redhatopenshift.APIServerProfile) []interface{} {
