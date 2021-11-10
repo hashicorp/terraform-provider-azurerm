@@ -183,9 +183,9 @@ func resourceEventHubNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceDa
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.Alias)
 	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil && model.Properties != nil {
 		d.Set("partner_namespace_id", model.Properties.PartnerNamespace)
@@ -250,7 +250,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 
 	// it can take some time for the name to become available again
 	// this is mainly here	to enable updating the resource in place
-	parentNamespaceId := checknameavailabilitydisasterrecoveryconfigs.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName)
+	parentNamespaceId := checknameavailabilitydisasterrecoveryconfigs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 	availabilityClient := meta.(*clients.Client).Eventhub.DisasterRecoveryNameAvailabilityClient
 	nameFreeWait := &pluginsdk.StateChangeConf{
 		Pending:    []string{"NameInUse"},
@@ -259,7 +259,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 		Refresh: func() (interface{}, string, error) {
 			input := checknameavailabilitydisasterrecoveryconfigs.CheckNameAvailabilityParameter{
-				Name: id.Name,
+				Name: id.Alias,
 			}
 			resp, err := availabilityClient.DisasterRecoveryConfigsCheckNameAvailability(ctx, parentNamespaceId, input)
 			if err != nil {

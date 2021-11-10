@@ -88,7 +88,7 @@ func resourceEventHubNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.Resourc
 	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
 
 	parameters := authorizationrulesnamespaces.AuthorizationRule{
-		Name: &id.Name,
+		Name: &id.AuthorizationRuleName,
 		Properties: &authorizationrulesnamespaces.AuthorizationRuleProperties{
 			Rights: expandEventHubNamespaceAuthorizationRuleRights(d),
 		},
@@ -121,9 +121,9 @@ func resourceEventHubNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.AuthorizationRuleName)
 	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

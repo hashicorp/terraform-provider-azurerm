@@ -83,7 +83,7 @@ func (r ConsumerGroupResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Eventhub.ConsumerGroupClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := consumergroups.NewConsumergroupID(subscriptionId, state.ResourceGroupName, state.NamespaceName, state.EventHubName, state.Name)
+			id := consumergroups.NewConsumerGroupID(subscriptionId, state.ResourceGroupName, state.NamespaceName, state.EventHubName, state.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
@@ -113,7 +113,7 @@ func (r ConsumerGroupResource) Create() sdk.ResourceFunc {
 func (r ConsumerGroupResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := consumergroups.ParseConsumergroupID(metadata.ResourceData.Id())
+			id, err := consumergroups.ParseConsumerGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -128,7 +128,7 @@ func (r ConsumerGroupResource) Update() sdk.ResourceFunc {
 			client := metadata.Client.Eventhub.ConsumerGroupClient
 
 			parameters := consumergroups.ConsumerGroup{
-				Name: utils.String(id.Name),
+				Name: utils.String(id.ConsumerGroupName),
 				Properties: &consumergroups.ConsumerGroupProperties{
 					UserMetadata: utils.String(state.UserMetadata),
 				},
@@ -148,12 +148,12 @@ func (r ConsumerGroupResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Eventhub.ConsumerGroupClient
-			id, err := consumergroups.ParseConsumergroupID(metadata.ResourceData.Id())
+			id, err := consumergroups.ParseConsumerGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			metadata.Logger.Infof("retrieving Consumer Group %q..", id.Name)
+			metadata.Logger.Infof("retrieving Consumer Group %q..", id.ConsumerGroupName)
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -163,10 +163,10 @@ func (r ConsumerGroupResource) Read() sdk.ResourceFunc {
 			}
 
 			state := ConsumerGroupObject{
-				Name:              id.Name,
+				Name:              id.ConsumerGroupName,
 				NamespaceName:     id.NamespaceName,
-				EventHubName:      id.EventhubName,
-				ResourceGroupName: id.ResourceGroup,
+				EventHubName:      id.EventHubName,
+				ResourceGroupName: id.ResourceGroupName,
 			}
 
 			if model := resp.Model; model != nil && model.Properties != nil {
@@ -183,12 +183,12 @@ func (r ConsumerGroupResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Eventhub.ConsumerGroupClient
-			id, err := consumergroups.ParseConsumergroupID(metadata.ResourceData.Id())
+			id, err := consumergroups.ParseConsumerGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting Consumer Group %q..", id.Name)
+			metadata.Logger.Infof("deleting Consumer Group %q..", id.ConsumerGroupName)
 			if resp, err := client.Delete(ctx, *id); err != nil {
 				if !response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("deleting %s: %+v", id, err)

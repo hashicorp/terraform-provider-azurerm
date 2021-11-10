@@ -63,8 +63,8 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 		return err
 	}
 
-	locks.ByName(id.Name, "azurerm_eventhub_namespace")
-	defer locks.UnlockByName(id.Name, "azurerm_eventhub_namespace")
+	locks.ByName(id.NamespaceName, "azurerm_eventhub_namespace")
+	defer locks.UnlockByName(id.NamespaceName, "azurerm_eventhub_namespace")
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
@@ -152,8 +152,8 @@ func resourceEventHubNamespaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData
 		return err
 	}
 
-	locks.ByName(id.Name, "azurerm_eventhub_namespace")
-	defer locks.UnlockByName(id.Name, "azurerm_eventhub_namespace")
+	locks.ByName(id.NamespaceName, "azurerm_eventhub_namespace")
+	defer locks.UnlockByName(id.NamespaceName, "azurerm_eventhub_namespace")
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {

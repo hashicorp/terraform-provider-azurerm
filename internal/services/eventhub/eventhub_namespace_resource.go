@@ -329,7 +329,7 @@ func resourceEventHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		// cannot use network rulesets with the basic SKU
 		if parameters.Sku.Name != namespaces.SkuNameBasic {
 			ruleSetsClient := meta.(*clients.Client).Eventhub.NetworkRuleSetsClient
-			namespaceId := networkrulesets.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.Name)
+			namespaceId := networkrulesets.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 			if _, err := ruleSetsClient.NamespacesCreateOrUpdateNetworkRuleSet(ctx, namespaceId, rulesets); err != nil {
 				return fmt.Errorf("setting network ruleset properties for %s: %+v", id, err)
 			}
@@ -368,8 +368,8 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.NamespaceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
@@ -395,20 +395,20 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	namespaceId := networkrulesets.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.Name)
+	namespaceId := networkrulesets.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 	ruleset, err := ruleSetsClient.NamespacesGetNetworkRuleSet(ctx, namespaceId)
 	if err != nil {
 		return fmt.Errorf("retrieving Network Rule Sets for %s: %+v", *id, err)
 	}
 
 	if err := d.Set("network_rulesets", flattenEventHubNamespaceNetworkRuleset(ruleset)); err != nil {
-		return fmt.Errorf("setting `network_ruleset` for Evenhub Namespace %s: %v", id.Name, err)
+		return fmt.Errorf("setting `network_ruleset` for Evenhub Namespace %s: %v", id.NamespaceName, err)
 	}
 
-	authorizationRuleId := authorizationrulesnamespaces.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.Name, eventHubNamespaceDefaultAuthorizationRule)
+	authorizationRuleId := authorizationrulesnamespaces.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, eventHubNamespaceDefaultAuthorizationRule)
 	keys, err := authorizationKeysClient.NamespacesListKeys(ctx, authorizationRuleId)
 	if err != nil {
-		log.Printf("[WARN] Unable to List default keys for EventHub Namespace %q: %+v", id.Name, err)
+		log.Printf("[WARN] Unable to List default keys for EventHub Namespace %q: %+v", id.NamespaceName, err)
 	}
 
 	if model := keys.Model; model != nil {
