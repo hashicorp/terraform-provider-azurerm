@@ -158,6 +158,10 @@ func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
+						"threshold_type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
 						"operator": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
