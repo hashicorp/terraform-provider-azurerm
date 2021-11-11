@@ -14,37 +14,25 @@ Manages a Hostname Binding within an App Service Slot.
 ## Example Usage
 
 ```hcl
-resource "random_id" "server" {
-  keepers = {
-    azi_id = 1
-  }
-
-  byte_length = 8
-}
-
 resource "azurerm_resource_group" "example" {
   name     = "some-resource-group"
   location = "West Europe"
 }
-
 resource "azurerm_app_service_plan" "example" {
   name                = "some-app-service-plan"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-
   sku {
     tier = "Standard"
     size = "S1"
   }
 }
-
 resource "azurerm_app_service" "example" {
-  name                = random_id.server.hex
+  name                = "some-app-service"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   app_service_plan_id = azurerm_app_service_plan.example.id
 }
-
 resource "azurerm_app_service_slot" "example" {
   name                = "staging"
   location            = azurerm_resource_group.example.location
@@ -52,7 +40,6 @@ resource "azurerm_app_service_slot" "example" {
   app_service_name    = azurerm_app_service.example.name
   app_service_plan_id = azurerm_app_service_plan.example.id
 }
-
 resource "azurerm_app_service_slot_custom_hostname_binding" "example" {
   app_service_slot_id = azurerm_app_service_slot.example.id
   hostname            = "www.mywebsite.com"
@@ -88,7 +75,6 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Service Custom Hostname Binding.
-* `update` - (Defaults to 30 minutes) Used when updating the App Service Custom Hostname Binding.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Service Custom Hostname Binding.
 * `delete` - (Defaults to 30 minutes) Used when deleting the App Service Custom Hostname Binding.
 
