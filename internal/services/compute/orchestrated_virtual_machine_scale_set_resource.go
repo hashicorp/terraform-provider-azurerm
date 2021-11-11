@@ -3,6 +3,7 @@ package compute
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
@@ -438,11 +439,39 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	log.Printf("[DEBUG] Waiting for Orchestrated Virtual Machine Scale Set %q (Resource Group %q) to be created..", name, resourceGroup)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	log.Printf("[DEBUG] Virtual Machine Scale Set %q (Resource Group %q) was created", name, resourceGroup)
+		// If it is a Retryable Error re-issue the PUT for 10 loops until either the error goes away or the limit has been reached
+		if strings.Contains(err.Error(), "RetryableError") {
+			log.Printf("[DEBUG] Retryable error hit for Orchestrated Virtual Machine Scale Set %q (Resource Group %q) to be created..", name, resourceGroup)
+			errCount := 1
 
-	log.Printf("[DEBUG] Retrieving Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
+			for {
+				log.Printf("[DEBUG] Retrying PUT %d for Orchestrated Virtual Machine Scale Set %q (Resource Group %q)..", errCount, name, resourceGroup)
+
+				future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props)
+				if err != nil {
+					return fmt.Errorf("creating Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+				}
+
+				err = future.WaitForCompletionRef(ctx, client.Client)
+				if err != nil {
+					if errCount == 10 {
+						return fmt.Errorf("waiting for creation of Orchestrated Virtual Machine Scale Set %q (Resource Group %q) after %d attempts: %+v", name, resourceGroup, err, errCount)
+					}
+					errCount++
+				} else {
+					// err came back nil and finally succeeded continue with the rest of the create function...
+					break
+				}
+			}
+		} else {
+			// Not a retryable error...
+			return fmt.Errorf("waiting for creation of Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
+	log.Printf("[DEBUG] Orchestrated Virtual Machine Scale Set %q (Resource Group %q) was created", name, resourceGroup)
+	log.Printf("[DEBUG] Retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
+
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
 	resp, err := client.Get(ctx, resourceGroup, name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
