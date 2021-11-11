@@ -153,7 +153,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: keyVaultValidate.VaultID,
 						},
-						"identifier": {
+						"key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
@@ -430,7 +430,7 @@ func expandMachineLearningWorkspaceEncryption(input []interface{}) *machinelearn
 
 	encryption.KeyVaultProperties = &machinelearningservices.KeyVaultProperties{
 		KeyVaultArmID: utils.String(raw["key_vault_id"].(string)),
-		KeyIdentifier: utils.String(raw["identifier"].(string)),
+		KeyIdentifier: utils.String(raw["key_id"].(string)),
 	}
 
 	return encryption
@@ -444,7 +444,7 @@ func flattenMachineLearningWorkspaceEncryption(encryption *machinelearningservic
 	return []interface{}{
 		map[string]interface{}{
 			"key_vault_id": *encryption.KeyVaultProperties.KeyVaultArmID,
-			"identifier":   *encryption.KeyVaultProperties.KeyIdentifier,
+			"key_id":       *encryption.KeyVaultProperties.KeyIdentifier,
 		},
 	}
 }

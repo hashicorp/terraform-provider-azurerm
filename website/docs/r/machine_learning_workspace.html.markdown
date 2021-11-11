@@ -148,7 +148,7 @@ resource "azurerm_machine_learning_workspace" "example" {
 
   encryption {
     key_vault_id = azurerm_key_vault.example.id
-    identifier   = azurerm_key_vault_key.example.id
+    key_id       = azurerm_key_vault_key.example.id
   }
 }
 ```
@@ -207,7 +207,7 @@ An `encryption` block supports the following:
 
 * `key_vault_id` - (Required) The ID of the keyVault where the customer owned encryption key is present.
 
-* `identifier` - (Required) The Key Vault URI to access the encryption key.
+* `key_id` - (Required) The Key Vault URI to access the encryption key.
 
 ## Attributes Reference
 
