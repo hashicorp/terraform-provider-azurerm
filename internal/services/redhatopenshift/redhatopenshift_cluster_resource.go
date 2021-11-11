@@ -215,11 +215,6 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  "default",
-						},
 						"visibility": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
@@ -631,6 +626,7 @@ func flattenOpenShiftIngressProfiles(profiles *[]redhatopenshift.IngressProfile)
 	}
 
 	results := make([]interface{}, 0)
+
 	for _, profile := range *profiles {
 		result := make(map[string]interface{})
 		result["visibility"] = string(profile.Visibility)
