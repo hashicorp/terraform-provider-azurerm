@@ -134,8 +134,8 @@ A `worker_profile` block supports the following:
 
 * `subnet_id` - (Required) The ID of the subnet where worker nodes will be hosted.
 * `vm_size` - (Optional) The size of the Virtual Machines for the worker nodes. Currently supported values are `Standard_D2s_v3`, `Standard_D4s_v3` and `Standard_D8s_v3`. Defaults to `Standard_D4s_v3`. Changing this forces a new resource to be created.
-* `disk_size_gb` - (Optional) The internal OS disk size of the worker Virtual Machines in GB. Must be `128` or greater. Defaults to `128`.
-* `node_count` - (Optional) The initial number of worker nodes which should exist in the cluster. If specified this must be between `3` and `20`. Defaults to `3`.
+* `disk_size_gb` - (Optional) The internal OS disk size of the worker Virtual Machines in GB. Must be `128` or greater. Defaults to `128`. Changing this forces a new resource to be created.
+* `node_count` - (Optional) The initial number of worker nodes which should exist in the cluster. If specified this must be between `3` and `20`. Defaults to `3`. Changing this forces a new resource to be created.
 
 -> **NOTE** The subnet which worker nodes will be associated must have private subnet access granted to `Microsoft.ContainerRegistry` service endpoint.
 
