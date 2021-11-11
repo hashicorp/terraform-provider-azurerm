@@ -4,7 +4,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_eventhub_namespace" "example" {
-  name                = "example_eventhubns"
+  name                = "exampleEventhubns"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
@@ -31,7 +31,7 @@ resource "azurerm_eventhub_namespace_authorization_rule" "example" {
 }
 
 data "azurerm_kusto_cluster" "example" {
-  name                = "example_kustocluster"
+  name                = "examplekustocluster"
   resource_group_name = "example_rg_kusto_cluster"
 }
 
