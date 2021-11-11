@@ -780,30 +780,20 @@ func expandOpenshiftApiServerProfile(input []interface{}) *redhatopenshift.APISe
 func expandOpenshiftIngressProfiles(inputs []interface{}) *[]redhatopenshift.IngressProfile {
 	profiles := make([]redhatopenshift.IngressProfile, 0)
 
-	if len(inputs) == 0 {
-		profile := redhatopenshift.IngressProfile{
-			Name:       utils.String("default"),
-			Visibility: redhatopenshift.Visibility1Public,
-		}
+	name := utils.String("default")
+	visibility := string(redhatopenshift.Visibility1Public)
 
-		profiles = append(profiles, profile)
-
-		return &profiles
+	if len(inputs) > 0 {
+		input := inputs[0].(map[string]interface{})
+		visibility = input["visibility"].(string)
 	}
 
-	for index := range inputs {
-		config := inputs[index].(map[string]interface{})
-
-		name := config["name"].(string)
-		visibility := config["visibility"].(string)
-
-		profile := redhatopenshift.IngressProfile{
-			Name:       utils.String(name),
-			Visibility: redhatopenshift.Visibility1(visibility),
-		}
-
-		profiles = append(profiles, profile)
+	profile := redhatopenshift.IngressProfile{
+		Name:       name,
+		Visibility: redhatopenshift.Visibility1(visibility),
 	}
+
+	profiles = append(profiles, profile)
 
 	return &profiles
 }
