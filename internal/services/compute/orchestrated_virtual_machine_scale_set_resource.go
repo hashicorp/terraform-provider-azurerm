@@ -452,14 +452,19 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 				}
 
 				err = future.WaitForCompletionRef(ctx, client.Client)
-				if err != nil {
+				if err != nil && strings.Contains(err.Error(), "RetryableError") {
 					if errCount == 10 {
 						return fmt.Errorf("waiting for creation of Orchestrated Virtual Machine Scale Set %q (Resource Group %q) after %d retries: %+v", name, resourceGroup, err, errCount)
 					}
 					errCount++
 				} else {
-					// err came back nil and finally succeeded continue with the rest of the create function...
-					break
+					if err != nil {
+						// Hit an error while retying that is not retryable anymore...
+						return fmt.Errorf("hit unretryable error waiting for creation of Orchestrated Virtual Machine Scale Set %q (Resource Group %q) after %d retries: %+v", name, resourceGroup, err, errCount)
+					} else {
+						// err is nil and finally succeeded continue with the rest of the create function...
+						break
+					}
 				}
 			}
 		} else {
