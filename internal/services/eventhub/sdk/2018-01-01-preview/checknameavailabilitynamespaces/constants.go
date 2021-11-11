@@ -15,31 +15,29 @@ const (
 
 func PossibleValuesForUnavailableReason() []string {
 	return []string{
-		"InvalidName",
-		"NameInLockdown",
-		"NameInUse",
-		"None",
-		"SubscriptionIsDisabled",
-		"TooManyNamespaceInCurrentSubscription",
+		string(UnavailableReasonInvalidName),
+		string(UnavailableReasonNameInLockdown),
+		string(UnavailableReasonNameInUse),
+		string(UnavailableReasonNone),
+		string(UnavailableReasonSubscriptionIsDisabled),
+		string(UnavailableReasonTooManyNamespaceInCurrentSubscription),
 	}
 }
 
 func parseUnavailableReason(input string) (*UnavailableReason, error) {
 	vals := map[string]UnavailableReason{
-		"invalidname":                           "InvalidName",
-		"nameinlockdown":                        "NameInLockdown",
-		"nameinuse":                             "NameInUse",
-		"none":                                  "None",
-		"subscriptionisdisabled":                "SubscriptionIsDisabled",
-		"toomanynamespaceincurrentsubscription": "TooManyNamespaceInCurrentSubscription",
+		"invalidname":                           UnavailableReasonInvalidName,
+		"nameinlockdown":                        UnavailableReasonNameInLockdown,
+		"nameinuse":                             UnavailableReasonNameInUse,
+		"none":                                  UnavailableReasonNone,
+		"subscriptionisdisabled":                UnavailableReasonSubscriptionIsDisabled,
+		"toomanynamespaceincurrentsubscription": UnavailableReasonTooManyNamespaceInCurrentSubscription,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := UnavailableReason(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := UnavailableReason(input)
 	return &out, nil
 }

@@ -13,27 +13,25 @@ const (
 
 func PossibleValuesForCreatedByType() []string {
 	return []string{
-		"Application",
-		"Key",
-		"ManagedIdentity",
-		"User",
+		string(CreatedByTypeApplication),
+		string(CreatedByTypeKey),
+		string(CreatedByTypeManagedIdentity),
+		string(CreatedByTypeUser),
 	}
 }
 
 func parseCreatedByType(input string) (*CreatedByType, error) {
 	vals := map[string]CreatedByType{
-		"application":     "Application",
-		"key":             "Key",
-		"managedidentity": "ManagedIdentity",
-		"user":            "User",
+		"application":     CreatedByTypeApplication,
+		"key":             CreatedByTypeKey,
+		"managedidentity": CreatedByTypeManagedIdentity,
+		"user":            CreatedByTypeUser,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := CreatedByType(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := CreatedByType(input)
 	return &out, nil
 }

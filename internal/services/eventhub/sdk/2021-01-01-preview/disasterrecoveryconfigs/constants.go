@@ -13,28 +13,26 @@ const (
 
 func PossibleValuesForCreatedByType() []string {
 	return []string{
-		"Application",
-		"Key",
-		"ManagedIdentity",
-		"User",
+		string(CreatedByTypeApplication),
+		string(CreatedByTypeKey),
+		string(CreatedByTypeManagedIdentity),
+		string(CreatedByTypeUser),
 	}
 }
 
 func parseCreatedByType(input string) (*CreatedByType, error) {
 	vals := map[string]CreatedByType{
-		"application":     "Application",
-		"key":             "Key",
-		"managedidentity": "ManagedIdentity",
-		"user":            "User",
+		"application":     CreatedByTypeApplication,
+		"key":             CreatedByTypeKey,
+		"managedidentity": CreatedByTypeManagedIdentity,
+		"user":            CreatedByTypeUser,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := CreatedByType(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := CreatedByType(input)
 	return &out, nil
 }
 
@@ -48,26 +46,24 @@ const (
 
 func PossibleValuesForProvisioningStateDR() []string {
 	return []string{
-		"Accepted",
-		"Failed",
-		"Succeeded",
+		string(ProvisioningStateDRAccepted),
+		string(ProvisioningStateDRFailed),
+		string(ProvisioningStateDRSucceeded),
 	}
 }
 
 func parseProvisioningStateDR(input string) (*ProvisioningStateDR, error) {
 	vals := map[string]ProvisioningStateDR{
-		"accepted":  "Accepted",
-		"failed":    "Failed",
-		"succeeded": "Succeeded",
+		"accepted":  ProvisioningStateDRAccepted,
+		"failed":    ProvisioningStateDRFailed,
+		"succeeded": ProvisioningStateDRSucceeded,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := ProvisioningStateDR(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := ProvisioningStateDR(input)
 	return &out, nil
 }
 
@@ -81,25 +77,23 @@ const (
 
 func PossibleValuesForRoleDisasterRecovery() []string {
 	return []string{
-		"Primary",
-		"PrimaryNotReplicating",
-		"Secondary",
+		string(RoleDisasterRecoveryPrimary),
+		string(RoleDisasterRecoveryPrimaryNotReplicating),
+		string(RoleDisasterRecoverySecondary),
 	}
 }
 
 func parseRoleDisasterRecovery(input string) (*RoleDisasterRecovery, error) {
 	vals := map[string]RoleDisasterRecovery{
-		"primary":               "Primary",
-		"primarynotreplicating": "PrimaryNotReplicating",
-		"secondary":             "Secondary",
+		"primary":               RoleDisasterRecoveryPrimary,
+		"primarynotreplicating": RoleDisasterRecoveryPrimaryNotReplicating,
+		"secondary":             RoleDisasterRecoverySecondary,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := RoleDisasterRecovery(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := RoleDisasterRecovery(input)
 	return &out, nil
 }

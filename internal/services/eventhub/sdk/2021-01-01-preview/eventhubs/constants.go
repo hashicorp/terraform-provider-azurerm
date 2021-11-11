@@ -12,26 +12,24 @@ const (
 
 func PossibleValuesForAccessRights() []string {
 	return []string{
-		"Listen",
-		"Manage",
-		"Send",
+		string(AccessRightsListen),
+		string(AccessRightsManage),
+		string(AccessRightsSend),
 	}
 }
 
 func parseAccessRights(input string) (*AccessRights, error) {
 	vals := map[string]AccessRights{
-		"listen": "Listen",
-		"manage": "Manage",
-		"send":   "Send",
+		"listen": AccessRightsListen,
+		"manage": AccessRightsManage,
+		"send":   AccessRightsSend,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := AccessRights(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := AccessRights(input)
 	return &out, nil
 }
 
@@ -46,28 +44,26 @@ const (
 
 func PossibleValuesForCreatedByType() []string {
 	return []string{
-		"Application",
-		"Key",
-		"ManagedIdentity",
-		"User",
+		string(CreatedByTypeApplication),
+		string(CreatedByTypeKey),
+		string(CreatedByTypeManagedIdentity),
+		string(CreatedByTypeUser),
 	}
 }
 
 func parseCreatedByType(input string) (*CreatedByType, error) {
 	vals := map[string]CreatedByType{
-		"application":     "Application",
-		"key":             "Key",
-		"managedidentity": "ManagedIdentity",
-		"user":            "User",
+		"application":     CreatedByTypeApplication,
+		"key":             CreatedByTypeKey,
+		"managedidentity": CreatedByTypeManagedIdentity,
+		"user":            CreatedByTypeUser,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := CreatedByType(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := CreatedByType(input)
 	return &out, nil
 }
 
@@ -80,24 +76,22 @@ const (
 
 func PossibleValuesForEncodingCaptureDescription() []string {
 	return []string{
-		"Avro",
-		"AvroDeflate",
+		string(EncodingCaptureDescriptionAvro),
+		string(EncodingCaptureDescriptionAvroDeflate),
 	}
 }
 
 func parseEncodingCaptureDescription(input string) (*EncodingCaptureDescription, error) {
 	vals := map[string]EncodingCaptureDescription{
-		"avro":        "Avro",
-		"avrodeflate": "AvroDeflate",
+		"avro":        EncodingCaptureDescriptionAvro,
+		"avrodeflate": EncodingCaptureDescriptionAvroDeflate,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := EncodingCaptureDescription(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := EncodingCaptureDescription(input)
 	return &out, nil
 }
 
@@ -117,37 +111,35 @@ const (
 
 func PossibleValuesForEntityStatus() []string {
 	return []string{
-		"Active",
-		"Creating",
-		"Deleting",
-		"Disabled",
-		"ReceiveDisabled",
-		"Renaming",
-		"Restoring",
-		"SendDisabled",
-		"Unknown",
+		string(EntityStatusActive),
+		string(EntityStatusCreating),
+		string(EntityStatusDeleting),
+		string(EntityStatusDisabled),
+		string(EntityStatusReceiveDisabled),
+		string(EntityStatusRenaming),
+		string(EntityStatusRestoring),
+		string(EntityStatusSendDisabled),
+		string(EntityStatusUnknown),
 	}
 }
 
 func parseEntityStatus(input string) (*EntityStatus, error) {
 	vals := map[string]EntityStatus{
-		"active":          "Active",
-		"creating":        "Creating",
-		"deleting":        "Deleting",
-		"disabled":        "Disabled",
-		"receivedisabled": "ReceiveDisabled",
-		"renaming":        "Renaming",
-		"restoring":       "Restoring",
-		"senddisabled":    "SendDisabled",
-		"unknown":         "Unknown",
+		"active":          EntityStatusActive,
+		"creating":        EntityStatusCreating,
+		"deleting":        EntityStatusDeleting,
+		"disabled":        EntityStatusDisabled,
+		"receivedisabled": EntityStatusReceiveDisabled,
+		"renaming":        EntityStatusRenaming,
+		"restoring":       EntityStatusRestoring,
+		"senddisabled":    EntityStatusSendDisabled,
+		"unknown":         EntityStatusUnknown,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := EntityStatus(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := EntityStatus(input)
 	return &out, nil
 }

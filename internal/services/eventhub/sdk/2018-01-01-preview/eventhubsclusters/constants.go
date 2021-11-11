@@ -10,21 +10,19 @@ const (
 
 func PossibleValuesForClusterSkuName() []string {
 	return []string{
-		"Dedicated",
+		string(ClusterSkuNameDedicated),
 	}
 }
 
 func parseClusterSkuName(input string) (*ClusterSkuName, error) {
 	vals := map[string]ClusterSkuName{
-		"dedicated": "Dedicated",
+		"dedicated": ClusterSkuNameDedicated,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := ClusterSkuName(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := ClusterSkuName(input)
 	return &out, nil
 }

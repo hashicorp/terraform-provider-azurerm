@@ -11,23 +11,21 @@ const (
 
 func PossibleValuesForIPAction() []string {
 	return []string{
-		"Accept",
-		"Reject",
+		string(IPActionAccept),
+		string(IPActionReject),
 	}
 }
 
 func parseIPAction(input string) (*IPAction, error) {
 	vals := map[string]IPAction{
-		"accept": "Accept",
-		"reject": "Reject",
+		"accept": IPActionAccept,
+		"reject": IPActionReject,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := IPAction(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := IPAction(input)
 	return &out, nil
 }

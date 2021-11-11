@@ -11,24 +11,22 @@ const (
 
 func PossibleValuesForDefaultAction() []string {
 	return []string{
-		"Allow",
-		"Deny",
+		string(DefaultActionAllow),
+		string(DefaultActionDeny),
 	}
 }
 
 func parseDefaultAction(input string) (*DefaultAction, error) {
 	vals := map[string]DefaultAction{
-		"allow": "Allow",
-		"deny":  "Deny",
+		"allow": DefaultActionAllow,
+		"deny":  DefaultActionDeny,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := DefaultAction(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := DefaultAction(input)
 	return &out, nil
 }
 
@@ -40,21 +38,19 @@ const (
 
 func PossibleValuesForNetworkRuleIPAction() []string {
 	return []string{
-		"Allow",
+		string(NetworkRuleIPActionAllow),
 	}
 }
 
 func parseNetworkRuleIPAction(input string) (*NetworkRuleIPAction, error) {
 	vals := map[string]NetworkRuleIPAction{
-		"allow": "Allow",
+		"allow": NetworkRuleIPActionAllow,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := NetworkRuleIPAction(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := NetworkRuleIPAction(input)
 	return &out, nil
 }

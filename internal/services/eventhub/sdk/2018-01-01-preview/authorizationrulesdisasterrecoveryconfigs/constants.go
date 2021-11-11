@@ -12,25 +12,23 @@ const (
 
 func PossibleValuesForAccessRights() []string {
 	return []string{
-		"Listen",
-		"Manage",
-		"Send",
+		string(AccessRightsListen),
+		string(AccessRightsManage),
+		string(AccessRightsSend),
 	}
 }
 
 func parseAccessRights(input string) (*AccessRights, error) {
 	vals := map[string]AccessRights{
-		"listen": "Listen",
-		"manage": "Manage",
-		"send":   "Send",
+		"listen": AccessRightsListen,
+		"manage": AccessRightsManage,
+		"send":   AccessRightsSend,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := AccessRights(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := AccessRights(input)
 	return &out, nil
 }
