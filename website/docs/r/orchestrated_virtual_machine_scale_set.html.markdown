@@ -143,7 +143,7 @@ A `linux_configuration` block supports the following:
 
 * `admin_password` - (Optional) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
 
-*	`admin_ssh_key` - (Optional) A `admin_ssh_key` block as documented below.
+* `admin_ssh_key` - (Optional) A `admin_ssh_key` block as documented below.
 
 * `disable_password_authentication` - (Optional) When an `admin_password` is specified `disable_password_authentication` must be set to `false`. Defaults to `true`.
 
