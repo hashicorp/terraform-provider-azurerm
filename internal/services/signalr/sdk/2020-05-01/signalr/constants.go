@@ -11,24 +11,22 @@ const (
 
 func PossibleValuesForACLAction() []string {
 	return []string{
-		"Allow",
-		"Deny",
+		string(ACLActionAllow),
+		string(ACLActionDeny),
 	}
 }
 
 func parseACLAction(input string) (*ACLAction, error) {
 	vals := map[string]ACLAction{
-		"allow": "Allow",
-		"deny":  "Deny",
+		"allow": ACLActionAllow,
+		"deny":  ACLActionDeny,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := ACLAction(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := ACLAction(input)
 	return &out, nil
 }
 
@@ -42,26 +40,24 @@ const (
 
 func PossibleValuesForFeatureFlags() []string {
 	return []string{
-		"EnableConnectivityLogs",
-		"EnableMessagingLogs",
-		"ServiceMode",
+		string(FeatureFlagsEnableConnectivityLogs),
+		string(FeatureFlagsEnableMessagingLogs),
+		string(FeatureFlagsServiceMode),
 	}
 }
 
 func parseFeatureFlags(input string) (*FeatureFlags, error) {
 	vals := map[string]FeatureFlags{
-		"enableconnectivitylogs": "EnableConnectivityLogs",
-		"enablemessaginglogs":    "EnableMessagingLogs",
-		"servicemode":            "ServiceMode",
+		"enableconnectivitylogs": FeatureFlagsEnableConnectivityLogs,
+		"enablemessaginglogs":    FeatureFlagsEnableMessagingLogs,
+		"servicemode":            FeatureFlagsServiceMode,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := FeatureFlags(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := FeatureFlags(input)
 	return &out, nil
 }
 
@@ -74,24 +70,22 @@ const (
 
 func PossibleValuesForKeyType() []string {
 	return []string{
-		"Primary",
-		"Secondary",
+		string(KeyTypePrimary),
+		string(KeyTypeSecondary),
 	}
 }
 
 func parseKeyType(input string) (*KeyType, error) {
 	vals := map[string]KeyType{
-		"primary":   "Primary",
-		"secondary": "Secondary",
+		"primary":   KeyTypePrimary,
+		"secondary": KeyTypeSecondary,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := KeyType(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := KeyType(input)
 	return &out, nil
 }
 
@@ -106,28 +100,26 @@ const (
 
 func PossibleValuesForPrivateLinkServiceConnectionStatus() []string {
 	return []string{
-		"Approved",
-		"Disconnected",
-		"Pending",
-		"Rejected",
+		string(PrivateLinkServiceConnectionStatusApproved),
+		string(PrivateLinkServiceConnectionStatusDisconnected),
+		string(PrivateLinkServiceConnectionStatusPending),
+		string(PrivateLinkServiceConnectionStatusRejected),
 	}
 }
 
 func parsePrivateLinkServiceConnectionStatus(input string) (*PrivateLinkServiceConnectionStatus, error) {
 	vals := map[string]PrivateLinkServiceConnectionStatus{
-		"approved":     "Approved",
-		"disconnected": "Disconnected",
-		"pending":      "Pending",
-		"rejected":     "Rejected",
+		"approved":     PrivateLinkServiceConnectionStatusApproved,
+		"disconnected": PrivateLinkServiceConnectionStatusDisconnected,
+		"pending":      PrivateLinkServiceConnectionStatusPending,
+		"rejected":     PrivateLinkServiceConnectionStatusRejected,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := PrivateLinkServiceConnectionStatus(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := PrivateLinkServiceConnectionStatus(input)
 	return &out, nil
 }
 
@@ -147,38 +139,36 @@ const (
 
 func PossibleValuesForProvisioningState() []string {
 	return []string{
-		"Canceled",
-		"Creating",
-		"Deleting",
-		"Failed",
-		"Moving",
-		"Running",
-		"Succeeded",
-		"Unknown",
-		"Updating",
+		string(ProvisioningStateCanceled),
+		string(ProvisioningStateCreating),
+		string(ProvisioningStateDeleting),
+		string(ProvisioningStateFailed),
+		string(ProvisioningStateMoving),
+		string(ProvisioningStateRunning),
+		string(ProvisioningStateSucceeded),
+		string(ProvisioningStateUnknown),
+		string(ProvisioningStateUpdating),
 	}
 }
 
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
-		"canceled":  "Canceled",
-		"creating":  "Creating",
-		"deleting":  "Deleting",
-		"failed":    "Failed",
-		"moving":    "Moving",
-		"running":   "Running",
-		"succeeded": "Succeeded",
-		"unknown":   "Unknown",
-		"updating":  "Updating",
+		"canceled":  ProvisioningStateCanceled,
+		"creating":  ProvisioningStateCreating,
+		"deleting":  ProvisioningStateDeleting,
+		"failed":    ProvisioningStateFailed,
+		"moving":    ProvisioningStateMoving,
+		"running":   ProvisioningStateRunning,
+		"succeeded": ProvisioningStateSucceeded,
+		"unknown":   ProvisioningStateUnknown,
+		"updating":  ProvisioningStateUpdating,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := ProvisioningState(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := ProvisioningState(input)
 	return &out, nil
 }
 
@@ -191,24 +181,22 @@ const (
 
 func PossibleValuesForServiceKind() []string {
 	return []string{
-		"RawWebSockets",
-		"SignalR",
+		string(ServiceKindRawWebSockets),
+		string(ServiceKindSignalR),
 	}
 }
 
 func parseServiceKind(input string) (*ServiceKind, error) {
 	vals := map[string]ServiceKind{
-		"rawwebsockets": "RawWebSockets",
-		"signalr":       "SignalR",
+		"rawwebsockets": ServiceKindRawWebSockets,
+		"signalr":       ServiceKindSignalR,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := ServiceKind(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := ServiceKind(input)
 	return &out, nil
 }
 
@@ -223,28 +211,26 @@ const (
 
 func PossibleValuesForSignalRRequestType() []string {
 	return []string{
-		"ClientConnection",
-		"RESTAPI",
-		"ServerConnection",
-		"Trace",
+		string(SignalRRequestTypeClientConnection),
+		string(SignalRRequestTypeRESTAPI),
+		string(SignalRRequestTypeServerConnection),
+		string(SignalRRequestTypeTrace),
 	}
 }
 
 func parseSignalRRequestType(input string) (*SignalRRequestType, error) {
 	vals := map[string]SignalRRequestType{
-		"clientconnection": "ClientConnection",
-		"restapi":          "RESTAPI",
-		"serverconnection": "ServerConnection",
-		"trace":            "Trace",
+		"clientconnection": SignalRRequestTypeClientConnection,
+		"restapi":          SignalRRequestTypeRESTAPI,
+		"serverconnection": SignalRRequestTypeServerConnection,
+		"trace":            SignalRRequestTypeTrace,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := SignalRRequestType(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := SignalRRequestType(input)
 	return &out, nil
 }
 
@@ -259,27 +245,25 @@ const (
 
 func PossibleValuesForSignalRSkuTier() []string {
 	return []string{
-		"Basic",
-		"Free",
-		"Premium",
-		"Standard",
+		string(SignalRSkuTierBasic),
+		string(SignalRSkuTierFree),
+		string(SignalRSkuTierPremium),
+		string(SignalRSkuTierStandard),
 	}
 }
 
 func parseSignalRSkuTier(input string) (*SignalRSkuTier, error) {
 	vals := map[string]SignalRSkuTier{
-		"basic":    "Basic",
-		"free":     "Free",
-		"premium":  "Premium",
-		"standard": "Standard",
+		"basic":    SignalRSkuTierBasic,
+		"free":     SignalRSkuTierFree,
+		"premium":  SignalRSkuTierPremium,
+		"standard": SignalRSkuTierStandard,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := SignalRSkuTier(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := SignalRSkuTier(input)
 	return &out, nil
 }
