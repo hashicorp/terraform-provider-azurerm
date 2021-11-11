@@ -31,11 +31,8 @@ func ExpandOrchestratedVirtualMachineScaleSetSku(input string, capacity int) (*c
 		return nil, fmt.Errorf("'sku_name'(%q) is not formatted properly.", input)
 	}
 
-	index := (len(skuParts) - 1)
-	skuName := input[:len(input)-(len(skuParts[index])+1)]
-
 	sku := &compute.Sku{
-		Name:     utils.String(skuName),
+		Name:     utils.String(input),
 		Capacity: utils.Int64(int64(capacity)),
 		Tier:     utils.String("Standard"),
 	}
@@ -44,15 +41,15 @@ func ExpandOrchestratedVirtualMachineScaleSetSku(input string, capacity int) (*c
 }
 
 func FlattenOrchestratedVirtualMachineScaleSetSku(input *compute.Sku) (*string, error) {
-	if input != nil {
-		if input.Name != nil {
-			skuName := fmt.Sprintf("Standard_%s", *input.Name)
-			if strings.HasPrefix(strings.ToLower(*input.Name), "standard") {
-				skuName = fmt.Sprintf("%s", *input.Name)
-			}
-
-			return &skuName, nil
+	var skuName string
+	if input != nil && input.Name != nil {
+		if strings.HasPrefix(strings.ToLower(*input.Name), "standard") {
+			skuName = *input.Name
+		} else {
+			skuName = fmt.Sprintf("Standard_%s", *input.Name)
 		}
+
+		return &skuName, nil
 	}
 
 	return nil, fmt.Errorf("Sku struct 'name' is nil")
