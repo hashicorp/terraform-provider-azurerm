@@ -198,11 +198,10 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"visibility": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							Default:      redhatopenshift.Public,
-							ValidateFunc: validate.CIDR,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
+							Default:  redhatopenshift.Public,
 						},
 					},
 				},
@@ -222,11 +221,10 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 							Default:  "default",
 						},
 						"visibility": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							Default:      redhatopenshift.Visibility1Public,
-							ValidateFunc: validate.CIDR,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
+							Default:  redhatopenshift.Visibility1Public,
 						},
 					},
 				},
