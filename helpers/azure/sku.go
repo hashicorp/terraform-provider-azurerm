@@ -24,21 +24,14 @@ func SplitSku(sku string) (string, int32, error) {
 	return skuParts[0], int32(capacity), nil
 }
 
-func ExpandOrchestratedVirtualMachineScaleSetSku(input string) (*compute.Sku, error) {
+func ExpandOrchestratedVirtualMachineScaleSetSku(input string, capacity int) (*compute.Sku, error) {
 	skuParts := strings.Split(input, "_")
 
-	if len(skuParts) < 3 || strings.Contains(input, "__") || strings.Contains(input, " ") {
+	if len(skuParts) < 2 || strings.Contains(input, "__") || strings.Contains(input, " ") {
 		return nil, fmt.Errorf("'sku_name'(%q) is not formatted properly.", input)
 	}
 
-	// capacity is always the last argument in the string
 	index := (len(skuParts) - 1)
-
-	capacity, err := strconv.Atoi(skuParts[index])
-	if err != nil || capacity < 0 || capacity > 1000 {
-		return nil, fmt.Errorf("%q in 'sku_name' is not a valid value for capacity.", skuParts[index])
-	}
-
 	skuName := input[:len(input)-(len(skuParts[index])+1)]
 
 	sku := &compute.Sku{
@@ -52,17 +45,17 @@ func ExpandOrchestratedVirtualMachineScaleSetSku(input string) (*compute.Sku, er
 
 func FlattenOrchestratedVirtualMachineScaleSetSku(input *compute.Sku) (*string, error) {
 	if input != nil {
-		if input.Name != nil && input.Capacity != nil {
-			skuName := fmt.Sprintf("Standard_%s_%d", *input.Name, *input.Capacity)
+		if input.Name != nil {
+			skuName := fmt.Sprintf("Standard_%s", *input.Name)
 			if strings.HasPrefix(strings.ToLower(*input.Name), "standard") {
-				skuName = fmt.Sprintf("%s_%d", *input.Name, *input.Capacity)
+				skuName = fmt.Sprintf("%s", *input.Name)
 			}
 
 			return &skuName, nil
 		}
 	}
 
-	return nil, fmt.Errorf("Sku struct 'name' or 'capacity' are nil")
+	return nil, fmt.Errorf("Sku struct 'name' is nil")
 }
 
 func ValidateOrchestratedVirtualMachineScaleSetSku(input interface{}, key string) (warnings []string, errors []error) {
@@ -74,15 +67,8 @@ func ValidateOrchestratedVirtualMachineScaleSetSku(input interface{}, key string
 
 	skuParts := strings.Split(v, "_")
 
-	if len(skuParts) < 3 || strings.Contains(v, "__") || strings.Contains(v, " ") {
+	if len(skuParts) < 2 || strings.Contains(v, "__") || strings.Contains(v, " ") {
 		errors = append(errors, fmt.Errorf("%q(%q) is not formatted properly.", key, v))
-	}
-
-	index := (len(skuParts) - 1)
-
-	capacity, err := strconv.Atoi(skuParts[index])
-	if err != nil || capacity < 0 || capacity > 1000 {
-		errors = append(errors, fmt.Errorf("%q in %q is not a valid value for capacity.", skuParts[index], key))
 	}
 
 	return

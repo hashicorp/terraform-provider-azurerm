@@ -58,7 +58,13 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"os_disk": OrchestratedVirtualMachineScaleSetOSDiskSchema(),
 
-			// For sku I will create a format like: tier_sku name_capacity. Capacity can be from 0 to 1000
+			"instances": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 1000),
+			},
+
+			// For sku I will create a format like: tier_sku name.
 			// NOTE: all of the exposed vm sku tier's are Standard so this will continue to be hardcoded
 			// Examples: Standard_HC44rs_4, Standard_D48_v3_6, Standard_M64s_20, Standard_HB120-96rs_v3_8
 			"sku_name": {
@@ -243,9 +249,11 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 	}
 
+	//utils.Int64(int64(d.Get("instances").(int)))
+	instances := d.Get("instances").(int)
 	if v, ok := d.GetOk("sku_name"); ok {
 		isLegacy = false
-		sku, err := azure.ExpandOrchestratedVirtualMachineScaleSetSku(v.(string))
+		sku, err := azure.ExpandOrchestratedVirtualMachineScaleSetSku(v.(string), instances)
 		if err != nil {
 			return fmt.Errorf("expanding 'sku_name': %+v", err)
 		}
@@ -708,14 +716,20 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			update.Plan = expandPlan(planRaw)
 		}
 
-		if d.HasChange("sku_name") {
+		if d.HasChange("sku") || d.HasChange("instances") {
 			// in-case ignore_changes is being used, since both fields are required
 			// look up the current values and override them as needed
 			sku := existing.Sku
+			instances := int(*sku.Capacity)
+
+			if d.HasChange("instances") {
+				instances = d.Get("instances").(int)
+			}
 
 			if d.HasChange("sku_name") {
 				updateInstances = true
-				sku, err = azure.ExpandOrchestratedVirtualMachineScaleSetSku(d.Get("sku").(string))
+
+				sku, err = azure.ExpandOrchestratedVirtualMachineScaleSetSku(d.Get("sku_name").(string), instances)
 				if err != nil {
 					return err
 				}
@@ -803,13 +817,19 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	var skuName *string
+	var instances int
 	if resp.Sku != nil {
 		skuName, err = azure.FlattenOrchestratedVirtualMachineScaleSetSku(resp.Sku)
 		if err != nil || skuName == nil {
 			return fmt.Errorf("setting `sku_name`: %+v", err)
 		}
 
+		if resp.Sku.Capacity != nil {
+			instances = int(*resp.Sku.Capacity)
+		}
+
 		d.Set("sku_name", skuName)
+		d.Set("instances", instances)
 	}
 
 	identity, err := FlattenOrchestratedVirtualMachineScaleSetIdentity(resp.Identity)
