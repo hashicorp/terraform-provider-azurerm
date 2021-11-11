@@ -137,6 +137,8 @@ The following arguments are supported:
 
 -> **Note:** Trusted Launch can only be enabled when `create_option` is `FromImage` or `Import`.
 
+* `bursting_enabled` (Optional) Specifies if the disk-level bursting is enabled for the Managed Disk. Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `zones` - (Optional) A collection containing the availability zone to allocate the Managed Disk in.
