@@ -24,8 +24,10 @@ func resourceApiManagementNamedValue() *pluginsdk.Resource {
 		Read:   resourceApiManagementNamedValueRead,
 		Update: resourceApiManagementNamedValueCreateUpdate,
 		Delete: resourceApiManagementNamedValueDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.NamedValueID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -95,18 +97,17 @@ func resourceApiManagementNamedValue() *pluginsdk.Resource {
 
 func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("api_management_name").(string)
+	id := parse.NewNamedValueID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf(" checking for presence of existing Property %q (API Management Service %q / Resource Group %q): %s", name, serviceName, resourceGroup, err)
+				return fmt.Errorf(" checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -131,23 +132,16 @@ func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta
 		parameters.NamedValueCreateContractProperties.Tags = utils.ExpandStringSlice(tags.([]interface{}))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, "")
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.Name, parameters, "")
 	if err != nil {
-		return fmt.Errorf(" creating or updating Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+		return fmt.Errorf(" creating or updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating/updating Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+		return fmt.Errorf("waiting on creating/updating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
-	if err != nil {
-		return fmt.Errorf(" retrieving Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Property %q (Resource Group %q / API Management Service %q)", name, resourceGroup, serviceName)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceApiManagementNamedValueRead(d, meta)
 }
@@ -161,24 +155,21 @@ func resourceApiManagementNamedValueRead(d *pluginsdk.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	name := id.Name
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Property %q (Resource Group %q / API Management Service %q) was not found - removing from state!", name, resourceGroup, serviceName)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf(" making Read request for Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+		return fmt.Errorf(" making Read request for %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("api_management_name", id.ServiceName)
 
 	if properties := resp.NamedValueContractProperties; properties != nil {
 		d.Set("display_name", properties.DisplayName)
@@ -205,13 +196,10 @@ func resourceApiManagementNamedValueDelete(d *pluginsdk.ResourceData, meta inter
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	name := id.Name
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf(" deleting Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+			return fmt.Errorf(" deleting %s: %+v", *id, err)
 		}
 	}
 
