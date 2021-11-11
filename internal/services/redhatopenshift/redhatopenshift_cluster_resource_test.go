@@ -95,14 +95,10 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   
   master_profile {
-		vm_size 	= "Standard_D8s_v3"
     subnet_id = azurerm_subnet.master_subnet.id
   }
   
   worker_profile {
-		vm_size   = "Standard_D4s_v3"
-		disk_size_gb = 128
-		node_count = 3
     subnet_id = azurerm_subnet.worker_subnet.id
   }
 
