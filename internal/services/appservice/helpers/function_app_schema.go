@@ -649,9 +649,13 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		}
 	}
 
-	expanded.AcrUseManagedIdentityCreds = utils.Bool(linuxSiteConfig.UseManagedIdentityACR)
+	if metadata.ResourceData.HasChange("site_config.0.container_registry_use_managed_identity") {
+		expanded.AcrUseManagedIdentityCreds = utils.Bool(linuxSiteConfig.UseManagedIdentityACR)
+	}
 
-	expanded.VnetRouteAllEnabled = utils.Bool(linuxSiteConfig.VnetRouteAllEnabled)
+	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+		expanded.VnetRouteAllEnabled = utils.Bool(linuxSiteConfig.VnetRouteAllEnabled)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
 		expanded.AcrUserManagedIdentityID = utils.String(linuxSiteConfig.ContainerRegistryMSI)
@@ -661,7 +665,9 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.DefaultDocuments = &linuxSiteConfig.DefaultDocuments
 	}
 
-	expanded.HTTP20Enabled = utils.Bool(linuxSiteConfig.Http2Enabled)
+	if metadata.ResourceData.HasChange("site_config.0.http2_enabled") {
+		expanded.HTTP20Enabled = utils.Bool(linuxSiteConfig.Http2Enabled)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
 		ipRestrictions, err := ExpandIpRestrictions(linuxSiteConfig.IpRestriction)
@@ -671,7 +677,9 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
-	expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(linuxSiteConfig.ScmUseMainIpRestriction)
+	if metadata.ResourceData.HasChange("site_config.0.scm_use_main_ip_restriction") {
+		expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(linuxSiteConfig.ScmUseMainIpRestriction)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
 		scmIpRestrictions, err := ExpandIpRestrictions(linuxSiteConfig.ScmIpRestriction)
@@ -681,7 +689,6 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
 
-	// TODO - Supported for Function Apps?
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
 		expanded.LoadBalancing = web.SiteLoadBalancing(linuxSiteConfig.LoadBalancing)
 	}
@@ -690,15 +697,21 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.ManagedPipelineMode = web.ManagedPipelineMode(linuxSiteConfig.ManagedPipelineMode)
 	}
 
-	expanded.RemoteDebuggingEnabled = utils.Bool(linuxSiteConfig.RemoteDebugging)
+	if metadata.ResourceData.HasChange("site_config.0.remote_debugging") {
+		expanded.RemoteDebuggingEnabled = utils.Bool(linuxSiteConfig.RemoteDebugging)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
 		expanded.RemoteDebuggingVersion = utils.String(linuxSiteConfig.RemoteDebuggingVersion)
 	}
 
-	expanded.Use32BitWorkerProcess = utils.Bool(linuxSiteConfig.Use32BitWorker)
+	if metadata.ResourceData.HasChange("site_config.0.use_32_bit_worker") {
+		expanded.Use32BitWorkerProcess = utils.Bool(linuxSiteConfig.Use32BitWorker)
+	}
 
-	expanded.WebSocketsEnabled = utils.Bool(linuxSiteConfig.WebSockets)
+	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
+		expanded.WebSocketsEnabled = utils.Bool(linuxSiteConfig.WebSockets)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
 		expanded.FtpsState = web.FtpsState(linuxSiteConfig.FtpsState)
@@ -722,11 +735,6 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
 		cors := ExpandCorsSettings(linuxSiteConfig.Cors)
-		if cors == nil {
-			cors = &web.CorsSettings{
-				AllowedOrigins: &[]string{},
-			}
-		}
 		expanded.Cors = cors
 	}
 

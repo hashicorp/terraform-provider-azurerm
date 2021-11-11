@@ -389,6 +389,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				Location: utils.String(functionApp.Location),
 				Tags:     tags.FromTypedObject(functionApp.Tags),
 				Kind:     utils.String("functionapp,linux"),
+				Identity: helpers.ExpandIdentity(functionApp.Identity),
 				SiteProperties: &web.SiteProperties{
 					ServerFarmID:         utils.String(functionApp.ServicePlanId),
 					Enabled:              utils.Bool(functionApp.Enabled),
@@ -398,10 +399,6 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					ClientCertMode:       web.ClientCertMode(functionApp.ClientCertMode),
 					DailyMemoryTimeQuota: utils.Int32(int32(functionApp.DailyMemoryTimeQuota)), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
 				},
-			}
-
-			if identity := helpers.ExpandIdentity(functionApp.Identity); identity != nil {
-				siteEnvelope.Identity = identity
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
@@ -615,13 +612,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				identity := helpers.ExpandIdentity(state.Identity)
-				if identity == nil {
-					identity = &web.ManagedServiceIdentity{
-						Type: web.ManagedServiceIdentityTypeNone,
-					}
-				}
-				existing.Identity = identity
+				existing.Identity = helpers.ExpandIdentity(state.Identity)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {

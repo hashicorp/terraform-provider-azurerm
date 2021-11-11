@@ -269,6 +269,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			siteEnvelope := web.Site{
 				Location: utils.String(webApp.Location),
 				Tags:     tags.FromTypedObject(webApp.Tags),
+				Identity: helpers.ExpandIdentity(webApp.Identity),
 				SiteProperties: &web.SiteProperties{
 					ServerFarmID:          utils.String(webApp.ServicePlanId),
 					Enabled:               utils.Bool(webApp.Enabled),
@@ -278,10 +279,6 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:     utils.Bool(webApp.ClientCertEnabled),
 					ClientCertMode:        web.ClientCertMode(webApp.ClientCertMode),
 				},
-			}
-
-			if identity := helpers.ExpandIdentity(webApp.Identity); identity != nil {
-				siteEnvelope.Identity = identity
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)

@@ -14,7 +14,7 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 		return result
 	}
 
-	switch parts[0] {
+	switch strings.ToUpper(parts[0]) {
 	case "DOTNETCORE", "DOTNET":
 		result.NetFrameworkVersion = parts[1]
 
@@ -116,13 +116,7 @@ func DecodeFunctionAppLinuxFxVersion(input string) ([]ApplicationStackLinuxFunct
 		result = append(result, appStack)
 
 	case "docker":
-		// This is handled as part of unpacking the app_settings using DecodeFunctionAppDockerFxString
-		// docker, err := decodeFunctionAppDockerFxString(parts[1])
-		// if err != nil {
-		//	return nil, err
-		// }
-		// appStack := ApplicationStackLinuxFunctionApp{Docker: docker}
-		// result = append(result, appStack)
+		// This is handled as part of unpacking the app_settings using DecodeFunctionAppDockerFxString but included here for signposting as this is not intuitive.
 	}
 
 	return result, nil
