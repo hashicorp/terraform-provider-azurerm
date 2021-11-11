@@ -142,7 +142,9 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 						},
 						"vm_size": {
 							Type:             pluginsdk.TypeString,
-							Required:         true,
+							Optional:         true,
+							ForceNew:         true,
+							Default:          redhatopenshift.StandardD8sV3,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validation.StringIsNotEmpty,
 						},
@@ -153,12 +155,14 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 			"worker_profile": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"vm_size": {
 							Type:             pluginsdk.TypeString,
-							Required:         true,
+							Optional:         true,
 							ForceNew:         true,
+							Default:          redhatopenshift.VMSize1StandardD4sV3,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validation.StringIsNotEmpty,
 						},
@@ -166,14 +170,14 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ForceNew:     true,
-							Computed:     true,
+							Default:      128,
 							ValidateFunc: openShiftValidate.DiskSizeGB,
 						},
 						"node_count": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ForceNew:     true,
-							Computed:     true,
+							Default:      3,
 							ValidateFunc: validation.IntBetween(3, 20),
 						},
 						"subnet_id": {
