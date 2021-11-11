@@ -1,0 +1,25 @@
+---
+name: Link Milestone Upload PR Number
+on:
+  pull_request:
+    branches: [main]
+    types: ['closed']
+
+jobs:
+  link-milestone:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/nr
+      - uses: actions/upload-artifact@v2
+        with:
+          name: pr
+          path: pr/

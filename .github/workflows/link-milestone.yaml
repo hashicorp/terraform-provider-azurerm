@@ -1,14 +1,17 @@
 ---
 name: Link Milestone
 on:
-  pull_request:
-    branches: [main]
-    types: ['closed']
+  workflow_run:
+    workflows: ['Link Milestone Upload PR Number']
+    types:
+      - completed
 
 jobs:
   link-milestone:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    if: >
+      ${{ github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success' }}
     strategy:
       fail-fast: true
     permissions:
@@ -17,6 +20,28 @@ jobs:
       issues: write
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/github-script@v3.1.0
+        with:
+          script: |
+            var artifacts = await github.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: ${{github.event.workflow_run.id }},
+            });
+            var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "pr"
+            })[0];
+            var download = await github.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            var fs = require('fs');
+            fs.writeFileSync('${{github.workspace}}/pr.zip', Buffer.from(download.data));
+      - run: |
+          unzip pr.zip
+          echo "PR_NUMBER=$(cat nr)" >> $GITHUB_ENV
       - uses: actions/setup-go@v2
         with:
           go-version: '1.16.7'
@@ -24,6 +49,5 @@ jobs:
           go install github.com/stephybun/link-milestone@latest
           link-milestone
         env:
-          PR_NUMBER: ${{ github.event.number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPO: ${{ github.repository }}
