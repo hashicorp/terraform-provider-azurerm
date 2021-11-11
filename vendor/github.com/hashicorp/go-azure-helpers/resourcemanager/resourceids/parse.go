@@ -167,6 +167,12 @@ func (p Parser) Parse(input string, insensitively bool) (*ParseResult, error) {
 		return nil, fmt.Errorf("expected %d segments but got %d for %q", len(p.segments), len(parsed), input)
 	}
 
+	for k, v := range parsed {
+		if v == "" {
+			return nil, fmt.Errorf("segment %q is required but got an empty value", k)
+		}
+	}
+
 	return &ParseResult{
 		Parsed: parsed,
 	}, nil
