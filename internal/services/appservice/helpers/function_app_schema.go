@@ -749,24 +749,31 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*
 	}
 
 	result := &SiteConfigLinuxFunctionApp{
-		AppCommandLine:         utils.NormalizeNilableString(functionAppSiteConfig.AppCommandLine),
-		AppScaleLimit:          int(utils.NormaliseNilableInt32(functionAppSiteConfig.FunctionAppScaleLimit)),
-		ContainerRegistryMSI:   utils.NormalizeNilableString(functionAppSiteConfig.AcrUserManagedIdentityID),
-		HealthCheckPath:        utils.NormalizeNilableString(functionAppSiteConfig.HealthCheckPath),
-		LinuxFxVersion:         utils.NormalizeNilableString(functionAppSiteConfig.LinuxFxVersion),
-		LoadBalancing:          string(functionAppSiteConfig.LoadBalancing),
-		ManagedPipelineMode:    string(functionAppSiteConfig.ManagedPipelineMode),
-		NumberOfWorkers:        int(utils.NormaliseNilableInt32(functionAppSiteConfig.NumberOfWorkers)),
-		ScmType:                string(functionAppSiteConfig.ScmType),
-		FtpsState:              string(functionAppSiteConfig.FtpsState),
-		MinTlsVersion:          string(functionAppSiteConfig.MinTLSVersion),
-		ScmMinTlsVersion:       string(functionAppSiteConfig.ScmMinTLSVersion),
-		PreWarmedInstanceCount: int(utils.NormaliseNilableInt32(functionAppSiteConfig.PreWarmedInstanceCount)),
-		ElasticInstanceMinimum: int(utils.NormaliseNilableInt32(functionAppSiteConfig.MinimumElasticInstanceCount)),
-	}
-
-	if functionAppSiteConfig.AlwaysOn != nil {
-		result.AlwaysOn = *functionAppSiteConfig.AlwaysOn
+		AlwaysOn:                utils.NormaliseNilableBool(functionAppSiteConfig.AlwaysOn),
+		AppCommandLine:          utils.NormalizeNilableString(functionAppSiteConfig.AppCommandLine),
+		AppScaleLimit:           int(utils.NormaliseNilableInt32(functionAppSiteConfig.FunctionAppScaleLimit)),
+		ContainerRegistryMSI:    utils.NormalizeNilableString(functionAppSiteConfig.AcrUserManagedIdentityID),
+		DetailedErrorLogging:    utils.NormaliseNilableBool(functionAppSiteConfig.DetailedErrorLoggingEnabled),
+		HealthCheckPath:         utils.NormalizeNilableString(functionAppSiteConfig.HealthCheckPath),
+		Http2Enabled:            utils.NormaliseNilableBool(functionAppSiteConfig.HTTP20Enabled),
+		LinuxFxVersion:          utils.NormalizeNilableString(functionAppSiteConfig.LinuxFxVersion),
+		LoadBalancing:           string(functionAppSiteConfig.LoadBalancing),
+		ManagedPipelineMode:     string(functionAppSiteConfig.ManagedPipelineMode),
+		NumberOfWorkers:         int(utils.NormaliseNilableInt32(functionAppSiteConfig.NumberOfWorkers)),
+		ScmType:                 string(functionAppSiteConfig.ScmType),
+		FtpsState:               string(functionAppSiteConfig.FtpsState),
+		RuntimeScaleMonitoring:  utils.NormaliseNilableBool(functionAppSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
+		MinTlsVersion:           string(functionAppSiteConfig.MinTLSVersion),
+		ScmMinTlsVersion:        string(functionAppSiteConfig.ScmMinTLSVersion),
+		PreWarmedInstanceCount:  int(utils.NormaliseNilableInt32(functionAppSiteConfig.PreWarmedInstanceCount)),
+		ElasticInstanceMinimum:  int(utils.NormaliseNilableInt32(functionAppSiteConfig.MinimumElasticInstanceCount)),
+		Use32BitWorker:          utils.NormaliseNilableBool(functionAppSiteConfig.Use32BitWorkerProcess),
+		WebSockets:              utils.NormaliseNilableBool(functionAppSiteConfig.WebSocketsEnabled),
+		ScmUseMainIpRestriction: utils.NormaliseNilableBool(functionAppSiteConfig.ScmIPSecurityRestrictionsUseMain),
+		UseManagedIdentityACR:   utils.NormaliseNilableBool(functionAppSiteConfig.AcrUseManagedIdentityCreds),
+		RemoteDebugging:         utils.NormaliseNilableBool(functionAppSiteConfig.RemoteDebuggingEnabled),
+		RemoteDebuggingVersion:  strings.ToUpper(utils.NormalizeNilableString(functionAppSiteConfig.RemoteDebuggingVersion)),
+		VnetRouteAllEnabled:     utils.NormaliseNilableBool(functionAppSiteConfig.VnetRouteAllEnabled),
 	}
 
 	if v := functionAppSiteConfig.APIDefinition; v != nil && v.URL != nil {
@@ -777,53 +784,16 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*
 		result.ApiManagementConfigId = *v.ID
 	}
 
-	if v := functionAppSiteConfig.Use32BitWorkerProcess; v != nil {
-		result.Use32BitWorker = *v
-	}
-
-	if v := functionAppSiteConfig.WebSocketsEnabled; v != nil {
-		result.WebSockets = *v
-	}
-
-	if v := functionAppSiteConfig.HTTP20Enabled; v != nil {
-		result.Http2Enabled = *v
-	}
-
 	if functionAppSiteConfig.IPSecurityRestrictions != nil {
 		result.IpRestriction = FlattenIpRestrictions(functionAppSiteConfig.IPSecurityRestrictions)
-	}
-
-	if v := functionAppSiteConfig.ScmIPSecurityRestrictionsUseMain; v != nil {
-		result.ScmUseMainIpRestriction = *v
 	}
 
 	if functionAppSiteConfig.ScmIPSecurityRestrictions != nil {
 		result.ScmIpRestriction = FlattenIpRestrictions(functionAppSiteConfig.ScmIPSecurityRestrictions)
 	}
 
-	if v := functionAppSiteConfig.AcrUseManagedIdentityCreds; v != nil {
-		result.UseManagedIdentityACR = *v
-	}
-
 	if v := functionAppSiteConfig.DefaultDocuments; v != nil {
 		result.DefaultDocuments = *v
-	}
-
-	if v := functionAppSiteConfig.DetailedErrorLoggingEnabled; v != nil {
-		result.DetailedErrorLogging = *v
-	}
-
-	if functionAppSiteConfig.RemoteDebuggingEnabled != nil {
-		result.RemoteDebugging = *functionAppSiteConfig.RemoteDebuggingEnabled
-	}
-
-	if functionAppSiteConfig.RemoteDebuggingVersion != nil {
-		// Note - This is sometimes returned in lower case, so we ToUpper it to avoid the need for a diff suppression
-		result.RemoteDebuggingVersion = strings.ToUpper(*functionAppSiteConfig.RemoteDebuggingVersion)
-	}
-
-	if v := functionAppSiteConfig.FunctionsRuntimeScaleMonitoringEnabled; v != nil {
-		result.RuntimeScaleMonitoring = *v
 	}
 
 	if functionAppSiteConfig.Cors != nil {
@@ -848,10 +818,6 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*
 		appStack = decoded
 	}
 	result.ApplicationStack = appStack
-
-	if functionAppSiteConfig.VnetRouteAllEnabled != nil {
-		result.VnetRouteAllEnabled = *functionAppSiteConfig.VnetRouteAllEnabled
-	}
 
 	return result, nil
 }

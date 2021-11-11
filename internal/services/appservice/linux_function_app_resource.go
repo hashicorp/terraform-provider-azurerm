@@ -510,14 +510,11 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				ResourceGroup:        id.ResourceGroup,
 				ServicePlanId:        utils.NormalizeNilableString(props.ServerFarmID),
 				Location:             location.NormalizeNilable(functionApp.Location),
+				Enabled:              utils.NormaliseNilableBool(functionApp.Enabled),
 				ClientCertMode:       string(functionApp.ClientCertMode),
 				DailyMemoryTimeQuota: int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
 				Tags:                 tags.ToTypedObject(functionApp.Tags),
 				Kind:                 utils.NormalizeNilableString(functionApp.Kind),
-			}
-
-			if functionApp.Enabled != nil {
-				state.Enabled = *functionApp.Enabled
 			}
 
 			if identity := helpers.FlattenIdentity(functionApp.Identity); identity != nil {
@@ -545,13 +542,8 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 
 			state.Backup = helpers.FlattenBackupConfig(backup)
 
-			if functionApp.HTTPSOnly != nil {
-				state.HttpsOnly = *functionApp.HTTPSOnly
-			}
-
-			if functionApp.ClientCertEnabled != nil {
-				state.ClientCertEnabled = *functionApp.ClientCertEnabled
-			}
+			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
+			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
 
 			return metadata.Encode(&state)
 		},
