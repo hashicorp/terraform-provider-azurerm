@@ -247,8 +247,8 @@ resource "azurerm_machine_learning_workspace" "test" {
   }
 
   encryption {
-     key_vault_id       = azurerm_key_vault.test.id
-     identifier         = azurerm_key_vault_key.test.id
+    key_vault_id = azurerm_key_vault.test.id
+    identifier   = azurerm_key_vault_key.test.id
   }
 
 
@@ -310,8 +310,8 @@ resource "azurerm_machine_learning_workspace" "test" {
   }
 
   encryption {
-    key_vault_id       = azurerm_key_vault.test.id
-    identifier         = azurerm_key_vault_key.test.id
+    key_vault_id = azurerm_key_vault.test.id
+    identifier   = azurerm_key_vault_key.test.id
   }
 
   tags = {
