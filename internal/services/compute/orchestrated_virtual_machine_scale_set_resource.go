@@ -446,16 +446,15 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 			for {
 				log.Printf("[DEBUG] Retrying PUT %d for Orchestrated Virtual Machine Scale Set %q (Resource Group %q)..", errCount, name, resourceGroup)
-
 				future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props)
 				if err != nil {
-					return fmt.Errorf("creating Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+					return fmt.Errorf("creating Orchestrated Virtual Machine Scale Set %q (Resource Group %q) after %d retries: %+v", name, resourceGroup, errCount, err)
 				}
 
 				err = future.WaitForCompletionRef(ctx, client.Client)
 				if err != nil {
 					if errCount == 10 {
-						return fmt.Errorf("waiting for creation of Orchestrated Virtual Machine Scale Set %q (Resource Group %q) after %d attempts: %+v", name, resourceGroup, err, errCount)
+						return fmt.Errorf("waiting for creation of Orchestrated Virtual Machine Scale Set %q (Resource Group %q) after %d retries: %+v", name, resourceGroup, err, errCount)
 					}
 					errCount++
 				} else {
