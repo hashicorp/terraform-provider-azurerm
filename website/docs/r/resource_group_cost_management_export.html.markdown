@@ -28,7 +28,7 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_resource_group_cost_management_export" "example" {
-  name = "example"
+  name                    = "example"
   resource_group_id       = azurerm_resource_group.example.id
   recurrence_type         = "Monthly"
   recurrence_period_start = "2020-08-18T00:00:00Z"
@@ -37,12 +37,12 @@ resource "azurerm_resource_group_cost_management_export" "example" {
   export_data_storage_location {
     storage_account_id = azurerm_storage_account.example.id
     container_name     = "examplecontainer"
-    root_folder_path   = "/root/updated"    
+    root_folder_path   = "/root/updated"
   }
 
   export_data_definition {
     type       = "Usage"
-    time_frame = "WeekToDate"   
+    time_frame = "WeekToDate"
   }
 }
 ```

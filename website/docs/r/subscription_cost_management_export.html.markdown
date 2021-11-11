@@ -30,8 +30,8 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_resource_group_cost_management_export" "example" {
-  name = "example"
-  subscription_id       = azurerm_subscription.example.id
+  name                    = "example"
+  subscription_id         = azurerm_subscription.example.id
   recurrence_type         = "Monthly"
   recurrence_period_start = "2020-08-18T00:00:00Z"
   recurrence_period_end   = "2020-09-18T00:00:00Z"
