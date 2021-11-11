@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/redhatopenshift/mgmt/2020-04-30/redhatopenshift"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -46,15 +47,21 @@ func testAccOpenShiftCluster_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.version(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("master_profile.0.vm_size").HasValue(string(redhatopenshift.StandardD8sV3)),
+				check.That(data.ResourceName).Key("worker_profile.0.vm_size").HasValue(string(redhatopenshift.VMSize1StandardD4sV3)),
+				check.That(data.ResourceName).Key("worker_profile.0.disk_size_gb").HasValue("128"),
+				check.That(data.ResourceName).Key("worker_profile.0.node_count").HasValue("3"),
+				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(redhatopenshift.Public)),
+				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(redhatopenshift.Visibility1Public)),
 			),
 		},
 	})
 }
 
-func (OpenShiftClusterResource) version(data acceptance.TestData) string {
+func (OpenShiftClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
