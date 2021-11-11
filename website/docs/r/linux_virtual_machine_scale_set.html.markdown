@@ -144,6 +144,8 @@ The following arguments are supported:
 
 * `encryption_at_host_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?
 
+* `extended_location` - (Optional) Specifies the supported Azure extended location where the resource exists. It offers Azure capacity close to the customer to address the low latency and high throughput requirements and Data Residency requirements of the applications. Changing this forces a new resource to be created.
+
 * `extension` - (Optional) One or more `extension` blocks as defined below
 
 * `extensions_time_budget` - (Optional) Specifies the duration allocated for all extensions to start. The time duration should be between `15` minutes and `120` minutes (inclusive) and should be specified in ISO 8601 format. Defaults to `90` minutes (`PT1H30M`).

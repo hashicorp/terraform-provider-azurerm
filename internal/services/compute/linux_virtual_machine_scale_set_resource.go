@@ -141,6 +141,8 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"extended_location": azure.SchemaExtendedLocation(),
+
 			"extension": VirtualMachineScaleSetExtensionsSchema(),
 
 			"extensions_time_budget": {
@@ -506,6 +508,13 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 			},
 		},
 		Zones: zones,
+	}
+
+	if v, ok := d.GetOk("extended_location"); ok {
+		props.ExtendedLocation = &compute.ExtendedLocation{
+			Name: utils.String(v.(string)),
+			Type: compute.ExtendedLocationTypesEdgeZone,
+		}
 	}
 
 	if v, ok := d.GetOk("platform_fault_domain_count"); ok {
@@ -882,6 +891,10 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if resp.ExtendedLocation != nil && resp.ExtendedLocation.Name != nil {
+		d.Set("extended_location", resp.ExtendedLocation.Name)
 	}
 
 	var skuName *string

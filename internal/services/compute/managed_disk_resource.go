@@ -158,6 +158,8 @@ func resourceManagedDisk() *pluginsdk.Resource {
 
 			"encryption_settings": encryptionSettingsSchema(),
 
+			"extended_location": azure.SchemaExtendedLocation(),
+
 			"network_access_policy": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -365,6 +367,13 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		},
 		Tags:  tags.Expand(t),
 		Zones: zones,
+	}
+
+	if v, ok := d.GetOk("extended_location"); ok {
+		createDisk.ExtendedLocation = &compute.ExtendedLocation{
+			Name: utils.String(v.(string)),
+			Type: compute.ExtendedLocationTypesEdgeZone,
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, createDisk)
@@ -660,6 +669,10 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if resp.ExtendedLocation != nil && resp.ExtendedLocation.Name != nil {
+		d.Set("extended_location", resp.ExtendedLocation.Name)
 	}
 
 	if sku := resp.Sku; sku != nil {

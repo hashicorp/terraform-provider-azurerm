@@ -166,6 +166,8 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"extended_location": azure.SchemaExtendedLocation(),
+
 			"extensions_time_budget": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -425,6 +427,13 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		Tags: tags.Expand(t),
 	}
 
+	if v, ok := d.GetOk("extended_location"); ok {
+		params.ExtendedLocation = &compute.ExtendedLocation{
+			Name: utils.String(v.(string)),
+			Type: compute.ExtendedLocationTypesEdgeZone,
+		}
+	}
+
 	if v, ok := d.GetOk("patch_mode"); ok {
 		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{
 			PatchMode: compute.LinuxVMGuestPatchMode(v.(string)),
@@ -566,6 +575,10 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if resp.ExtendedLocation != nil && resp.ExtendedLocation.Name != nil {
+		d.Set("extended_location", resp.ExtendedLocation.Name)
 	}
 
 	identity, err := flattenVirtualMachineIdentity(resp.Identity)

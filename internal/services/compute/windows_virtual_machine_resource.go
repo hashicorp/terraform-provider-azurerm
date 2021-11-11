@@ -167,6 +167,8 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"extended_location": azure.SchemaExtendedLocation(),
+
 			"extensions_time_budget": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -448,6 +450,13 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		Tags: tags.Expand(t),
 	}
 
+	if v, ok := d.GetOk("extended_location"); ok {
+		params.ExtendedLocation = &compute.ExtendedLocation{
+			Name: utils.String(v.(string)),
+			Type: compute.ExtendedLocationTypesEdgeZone,
+		}
+	}
+
 	if !provisionVMAgent && allowExtensionOperations {
 		return fmt.Errorf("`allow_extension_operations` cannot be set to `true` when `provision_vm_agent` is set to `false`")
 	}
@@ -586,6 +595,10 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if resp.ExtendedLocation != nil && resp.ExtendedLocation.Name != nil {
+		d.Set("extended_location", resp.ExtendedLocation.Name)
 	}
 
 	identity, err := flattenVirtualMachineIdentity(resp.Identity)
