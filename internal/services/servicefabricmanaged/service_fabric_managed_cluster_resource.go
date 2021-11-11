@@ -114,7 +114,7 @@ type ClusterResourceModel struct {
 
 	Authentication       []Authentication                     `tfschema:"authentication"`
 	CustomFabricSettings []CustomFabricSetting                `tfschema:"custom_fabric_setting"`
-	LBRules              []LBRule                             `tfschema:"lb_rules"`
+	LBRules              []LBRule                             `tfschema:"lb_rule"`
 	NodeTypes            []NodeType                           `tfschema:"node_type"`
 	Sku                  managedcluster.SkuName               `tfschema:"sku"`
 	Tags                 map[string]interface{}               `tfschema:"tags"`
@@ -201,7 +201,7 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ValidateFunc: validation.IntBetween(1500, 65535),
 		},
-		"lb_rules": lbRulesSchema(),
+		"lb_rule": lbRulesSchema(),
 		"sku": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -320,6 +320,36 @@ func (k ClusterResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			rd := metadata.ResourceDiff
+			sku := rd.Get("sku").(string)
+			var primary bool
+			for _, nti := range rd.Get("node_type").([]interface{}) {
+				nt := nti.(map[string]interface{})
+				vmCount := nt["vm_instance_count"].(int)
+				if sku == string(managedcluster.SkuNameBasic) && vmCount < 3 {
+					return fmt.Errorf("basic SKU requires at least 3 instances in a node type")
+				} else if sku == string(managedcluster.SkuNameStandard) && vmCount < 5 {
+					return fmt.Errorf("standard SKU requires at least 5 instances in a node type")
+				}
+				isPrimary := nt["primary"].(bool)
+				if isPrimary && !primary {
+					primary = true
+				} else {
+					return fmt.Errorf("only one node type can be primary at any given time. ")
+				}
+
+			}
+
+			for _, lbi := range rd.Get("lb_rule").([]interface{}) {
+				lb := lbi.(map[string]interface{})
+				probeProto := lb["probe_protocol"].(string)
+				if probeProto == string(managedcluster.ProbeProtocolHttp) || probeProto == string(managedcluster.ProbeProtocolHttps) {
+					probePath := lb["probe_protocol_path"]
+					if probePath == nil || probePath.(string) == "" {
+						return fmt.Errorf("probe_request_path needs to be set if probe protocol is %q", probeProto)
+					}
+				}
+			}
+
 			if rd.HasChange("node_type") {
 				for idx := range rd.Get("node_type").([]interface{}) {
 					for _, k := range []string{"name", "vm_size", "primary", "stateless"} {
@@ -330,6 +360,7 @@ func (k ClusterResource) CustomizeDiff() sdk.ResourceFunc {
 					}
 				}
 			}
+
 			return nil
 		},
 		Timeout: 30 * time.Minute,
@@ -804,6 +835,9 @@ func expandNodeTypeProperties(nt *NodeType) (*nodetype.NodeTypeProperties, error
 }
 
 func parsePortRange(input string) (int64, int64, error) {
+	if len(input) == 0 {
+		return 0, 0, fmt.Errorf("port range is an empty string")
+	}
 	toks := strings.Split(input, "-")
 	if len(toks) != 2 {
 		return 0, 0, fmt.Errorf("invalid port range format in string %q", input)
@@ -878,7 +912,15 @@ func nodeTypeSchema() *pluginsdk.Schema {
 				"application_port_range": {
 					Type:     pluginsdk.TypeString,
 					Required: true,
-					//TODO: Add validation
+					ValidateFunc: func(i interface{}, s string) ([]string, []error) {
+						input := i.(string)
+						errors := make([]error, 0)
+						_, _, err := parsePortRange(input)
+						if err != nil {
+							errors = append(errors, err)
+						}
+						return nil, errors
+					},
 				},
 				"capacities": {
 					Type:     pluginsdk.TypeMap,
@@ -1030,7 +1072,7 @@ func lbRulesSchema() *pluginsdk.Schema {
 				},
 				"probe_request_path": {
 					Type:         pluginsdk.TypeString,
-					Required:     true,
+					Optional:     true,
 					ValidateFunc: validation.StringIsNotWhiteSpace,
 				},
 				"protocol": {

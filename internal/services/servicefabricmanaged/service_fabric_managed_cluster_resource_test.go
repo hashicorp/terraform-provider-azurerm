@@ -98,7 +98,7 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
   client_connection_port = 12345
   http_gateway_port      = 23456
 
-  lb_rules {
+  lb_rule {
     backend_port       = 8000
     frontend_port      = 443
     probe_protocol     = "http"
