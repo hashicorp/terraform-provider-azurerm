@@ -1375,7 +1375,7 @@ data "azuread_domains" "test" {
 
 resource "azuread_application" "cluster_explorer" {
   display_name    = "${azurerm_resource_group.test.name}-explorer-AAD"
-  identifier_uris = ["https://${data.azuread_domains.test.domains[0].domain_name}:19080/Explorer/index.html"]
+  identifier_uris = ["https://test-%s.${data.azuread_domains.test.domains[0].domain_name}:19080/Explorer/index.html"]
   web {
     homepage_url  = "https://example:19080/Explorer/index.html"
     redirect_uris = ["https://example:19080/Explorer/index.html"]
@@ -1475,7 +1475,7 @@ resource "azurerm_service_fabric_cluster" "test" {
     http_endpoint_port   = 19080
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func (r ServiceFabricClusterResource) azureActiveDirectoryDelete(data acceptance.TestData) string {
