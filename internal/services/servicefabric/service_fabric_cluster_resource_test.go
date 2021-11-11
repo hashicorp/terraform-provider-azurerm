@@ -1475,7 +1475,7 @@ resource "azurerm_service_fabric_cluster" "test" {
     http_endpoint_port   = 19080
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (r ServiceFabricClusterResource) azureActiveDirectoryDelete(data acceptance.TestData) string {
