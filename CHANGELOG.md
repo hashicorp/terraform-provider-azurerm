@@ -2,11 +2,28 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_batch_application` [GH-14043]
+
 IMPROVEMENTS:
+
+* dependencies: upgrading to `v0.17.1` of `github.com/hashicorp/go-azure-helpers` [GH-14141]
+* dependencies: upgrading to `v2.8.0` of `github.com/hashicorp/terraform-plugin-sdk` [GH-14060]
+* `azurerm_application_insights` - support for the `internet_ingestion_enabled` and `internet_query_enabled` properties [GH-14035]
+* `azurerm_security_center_subscription_pricing` - `resource_type` can now be set to `OpenSourceRelationalDatabases` [GH-14103]
+* `azurerm_virtual_network_gateway` - enable configuration of an active-active zone redundant gateway with P2S [GH-14124]
 
 BUG FIXES:
 
+* Data Source: `azurerm_redis_cache` - parsing the `subnet_id` response value case-insensitively [GH-14108]
+* Data Source: `azurerm_redis_cache` - ensuring that `shard_count` always has a value set [GH-14108]
+* Data Source: `azurerm_consumption_budget_resource_group` - add missing `threshold_type` property in the schema [GH-14125]
+* Data Source: `azurerm_consumption_budget_subscription` - add missing `threshold_type` property in the schema [GH-14125]
 * `azurerm_api_management_certificate` - set `subject` property from correct field [GH-14026]
+* `azurerm_app_service_virtual_network_swift_connection` - fixing a panic when checking for an existing resource during creation [GH-14070]
+* `azurerm_frontdoor_resource` - route engines are no longer removed on update [GH-14093]
+* `azurerm_redis_cache` - parsing the `subnet_id` response value case-insensitively [GH-14108]
+* `azurerm_redis_cache` - ensuring that `shard_count` always has a value set [GH-14108]
+* `azurerm_storage_blob` - ensuring that `cache_control` is sent during updates [GH-14100]
 
 ## 2.84.0 (November 05, 2021)
 

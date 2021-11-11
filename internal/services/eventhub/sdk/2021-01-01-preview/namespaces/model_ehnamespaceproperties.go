@@ -3,7 +3,7 @@ package namespaces
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/formatting"
+	"github.com/hashicorp/go-azure-helpers/lang/dates"
 )
 
 type EHNamespaceProperties struct {
@@ -23,7 +23,7 @@ type EHNamespaceProperties struct {
 }
 
 func (o EHNamespaceProperties) GetCreatedAtAsTime() (*time.Time, error) {
-	return formatting.ParseAsDateFormat(o.CreatedAt, "2006-01-02T15:04:05Z07:00")
+	return dates.ParseAsFormat(o.CreatedAt, "2006-01-02T15:04:05Z07:00")
 }
 
 func (o EHNamespaceProperties) SetCreatedAtAsTime(input time.Time) {
@@ -32,7 +32,7 @@ func (o EHNamespaceProperties) SetCreatedAtAsTime(input time.Time) {
 }
 
 func (o EHNamespaceProperties) GetUpdatedAtAsTime() (*time.Time, error) {
-	return formatting.ParseAsDateFormat(o.UpdatedAt, "2006-01-02T15:04:05Z07:00")
+	return dates.ParseAsFormat(o.UpdatedAt, "2006-01-02T15:04:05Z07:00")
 }
 
 func (o EHNamespaceProperties) SetUpdatedAtAsTime(input time.Time) {

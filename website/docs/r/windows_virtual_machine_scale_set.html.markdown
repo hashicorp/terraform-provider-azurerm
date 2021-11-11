@@ -142,7 +142,7 @@ The following arguments are supported:
 
 * `health_probe_id` - (Optional) The ID of a Load Balancer Probe which should be used to determine the health of an instance. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`.
 
-* `identity` - (Optional) A `identity` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `license_type` - (Optional) Specifies the type of on-premise license (also known as [Azure Hybrid Use Benefit](https://docs.microsoft.com/azure/virtual-machines/virtual-machines-windows-hybrid-use-benefit-licensing)) which should be used for this Virtual Machine Scale Set. Possible values are `None`, `Windows_Client` and `Windows_Server`.
 

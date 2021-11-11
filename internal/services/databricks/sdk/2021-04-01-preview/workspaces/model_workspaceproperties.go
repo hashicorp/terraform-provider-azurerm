@@ -3,7 +3,7 @@ package workspaces
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/formatting"
+	"github.com/hashicorp/go-azure-helpers/lang/dates"
 )
 
 type WorkspaceProperties struct {
@@ -28,7 +28,7 @@ func (o WorkspaceProperties) GetCreatedDateTimeAsTime() (*time.Time, error) {
 	if o.CreatedDateTime == nil {
 		return nil, nil
 	}
-	return formatting.ParseAsDateFormat(o.CreatedDateTime, "2006-01-02T15:04:05Z07:00")
+	return dates.ParseAsFormat(o.CreatedDateTime, "2006-01-02T15:04:05Z07:00")
 }
 
 func (o WorkspaceProperties) SetCreatedDateTimeAsTime(input time.Time) {

@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/eventhubsclusters"
 
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"

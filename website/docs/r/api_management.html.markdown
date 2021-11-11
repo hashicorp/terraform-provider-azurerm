@@ -63,7 +63,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) A list of availability zones.
 
-* `identity` - (Optional) An `identity` block is documented below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `hostname_configuration` - (Optional) A `hostname_configuration` block as defined below.
 
