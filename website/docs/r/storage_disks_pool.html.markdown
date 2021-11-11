@@ -27,7 +27,7 @@ resource "azurerm_virtual_network" "example" {
 
 resource "azurerm_subnet" "example" {
   name                 = "example-subnet"
-  resource_group_name  = azurerm_resource_group.example.name
+  resource_group_name  = azurerm_virtual_network.example.resource_group_name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.0.0/24"]
   delegation {
@@ -69,8 +69,6 @@ The following arguments are supported:
 * `subnet_id` - (Required) The ID of the Subnet for the Disk Pool. Changing this forces a new Disks Pool to be created.
 
 ---
-
-* `additional_capabilities` - (Optional) Specifies a list of additional capabilities for a Disk Pool. Changing this forces a new Disks Pool to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Disks Pool.
 

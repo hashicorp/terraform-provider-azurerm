@@ -19,7 +19,7 @@ func TestAccStorageDisksPool_basic(t *testing.T) {
 	r := StorageDisksPoolResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic_b1(data),
+			Config: r.diskPool(data, "Basic_B1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -33,7 +33,7 @@ func TestAccStorageDisksPool_standard(t *testing.T) {
 	r := StorageDisksPoolResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standard_s1(data),
+			Config: r.diskPool(data, "Standard_S1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -47,7 +47,7 @@ func TestAccStorageDisksPool_premium(t *testing.T) {
 	r := StorageDisksPoolResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.premium_p1(data),
+			Config: r.diskPool(data, "Premium_P1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -61,7 +61,7 @@ func TestAccStorageDisksPool_requiresImport(t *testing.T) {
 	r := StorageDisksPoolResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic_b1(data),
+			Config: r.diskPool(data, "Basic_B1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -86,7 +86,7 @@ func (s StorageDisksPoolResource) Exists(ctx context.Context, clients *clients.C
 	return utils.Bool(true), nil
 }
 
-func (r StorageDisksPoolResource) basic_b1(data acceptance.TestData) string {
+func (r StorageDisksPoolResource) diskPool(data acceptance.TestData, skuName string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -95,50 +95,15 @@ resource "azurerm_storage_disks_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   availability_zones  = ["1"]
-  sku_name            = "Basic_B1"
+  sku_name            = "%s"
   subnet_id           = azurerm_subnet.test.id
   tags = {
-    "env" = "qa"
+    foo = "bar"
   }
 }
-`, r.template(data), data.RandomString)
+`, r.template(data), data.RandomString, skuName)
 }
 
-func (r StorageDisksPoolResource) standard_s1(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_disks_pool" "test" {
-  name                = "acctest-diskspool-%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  availability_zones  = ["1"]
-  sku_name            = "Standard_S1"
-  subnet_id           = azurerm_subnet.test.id
-  tags = {
-    "env" = "qa"
-  }
-}
-`, r.template(data), data.RandomString)
-}
-
-func (r StorageDisksPoolResource) premium_p1(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_disks_pool" "test" {
-  name                = "acctest-diskspool-%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  availability_zones  = ["1"]
-  sku_name            = "Premium_P1"
-  subnet_id           = azurerm_subnet.test.id
-  tags = {
-    "env" = "qa"
-  }
-}
-`, r.template(data), data.RandomString)
-}
 func (r StorageDisksPoolResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -188,5 +153,5 @@ resource "azurerm_storage_disks_pool" "import" {
     foo = "bar"
   }
 }
-`, r.basic_b1(data), data.RandomString)
+`, r.diskPool(data, "Basic_B1"), data.RandomString)
 }

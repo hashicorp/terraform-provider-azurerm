@@ -34,7 +34,6 @@ type Client struct {
 	BlobInventoryPoliciesClient *legacystorage.BlobInventoryPoliciesClient
 	CloudEndpointsClient        *storagesync.CloudEndpointsClient
 	DisksPoolsClient            *storagepool.DiskPoolsClient
-	DisksPoolIscsiTargetClient  *storagepool.IscsiTargetsClient
 	EncryptionScopesClient      *storage.EncryptionScopesClient
 	Environment                 az.Environment
 	FileServicesClient          *storage.FileServicesClient
@@ -75,9 +74,6 @@ func NewClient(options *common.ClientOptions) *Client {
 	disksPoolsClient := storagepool.NewDiskPoolsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&disksPoolsClient.Client, options.ResourceManagerAuthorizer)
 
-	disksPoolIscsiTargetClient := storagepool.NewIscsiTargetsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&disksPoolIscsiTargetClient.Client, options.ResourceManagerAuthorizer)
-
 	fileServicesClient := storage.NewFileServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&fileServicesClient.Client, options.ResourceManagerAuthorizer)
 
@@ -104,7 +100,6 @@ func NewClient(options *common.ClientOptions) *Client {
 		EncryptionScopesClient:      &encryptionScopesClient,
 		Environment:                 options.Environment,
 		FileServicesClient:          &fileServicesClient,
-		DisksPoolIscsiTargetClient:  &disksPoolIscsiTargetClient,
 		ObjectReplicationClient:     &objectReplicationPolicyClient,
 		SubscriptionId:              options.SubscriptionId,
 		SyncServiceClient:           &syncServiceClient,

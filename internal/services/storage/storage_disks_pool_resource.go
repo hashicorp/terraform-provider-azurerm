@@ -26,14 +26,13 @@ type DisksPoolResource struct{}
 var _ sdk.ResourceWithUpdate = DisksPoolResource{}
 
 type DisksPoolJobModel struct {
-	Name                   string                 `tfschema:"name"`                    // The name of the Disk Pool.
-	ResourceGroupName      string                 `tfschema:"resource_group_name"`     // The name of the resource group. The name is case insensitive.
-	Location               string                 `tfschema:"location"`                // The geo-location where the resource lives.
-	AvailabilityZones      []string               `tfschema:"availability_zones"`      // Logical zone for Disk Pool resource; example: [\"1\"].
-	Sku                    string                 `tfschema:"sku_name"`                // Determines the SKU of the Disk Pool
-	SubnetId               string                 `tfschema:"subnet_id"`               // Azure Resource ID of a Subnet for the Disk Pool.
-	AdditionalCapabilities []string               `tfschema:"additional_capabilities"` // List of additional capabilities for a Disk Pool.
-	Tags                   map[string]interface{} `tfschema:"tags"`                    // Resource tags.
+	Name              string                 `tfschema:"name"`
+	ResourceGroupName string                 `tfschema:"resource_group_name"`
+	Location          string                 `tfschema:"location"`
+	AvailabilityZones []string               `tfschema:"availability_zones"`
+	Sku               string                 `tfschema:"sku_name"`
+	SubnetId          string                 `tfschema:"subnet_id"`
+	Tags              map[string]interface{} `tfschema:"tags"`
 }
 
 func (d DisksPoolResource) Arguments() map[string]*schema.Schema {
@@ -80,15 +79,6 @@ func (d DisksPoolResource) Arguments() map[string]*schema.Schema {
 			ForceNew:     true,
 			ValidateFunc: networkValidate.SubnetID,
 		},
-		"additional_capabilities": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-		},
 		"tags": tags.Schema(),
 	}
 }
@@ -122,9 +112,8 @@ func (d DisksPoolResource) Create() sdk.ResourceFunc {
 
 			createParameter := storagepool.DiskPoolCreate{
 				DiskPoolCreateProperties: &storagepool.DiskPoolCreateProperties{
-					AvailabilityZones:      &m.AvailabilityZones,
-					SubnetID:               &m.SubnetId,
-					AdditionalCapabilities: &m.AdditionalCapabilities,
+					AvailabilityZones: &m.AvailabilityZones,
+					SubnetID:          &m.SubnetId,
 				},
 				Location: utils.String(m.Location),
 				Name:     utils.String(m.Name),
@@ -165,9 +154,6 @@ func (d DisksPoolResource) Read() sdk.ResourceFunc {
 				Name:              id.DiskPoolName,
 				ResourceGroupName: id.ResourceGroup,
 				Tags:              tags.Flatten(resp.Tags),
-			}
-			if resp.AdditionalCapabilities != nil {
-				m.AdditionalCapabilities = *resp.AdditionalCapabilities
 			}
 			if resp.AvailabilityZones != nil {
 				m.AvailabilityZones = *resp.AvailabilityZones
