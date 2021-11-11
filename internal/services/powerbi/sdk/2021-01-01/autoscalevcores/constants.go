@@ -13,28 +13,26 @@ const (
 
 func PossibleValuesForIdentityType() []string {
 	return []string{
-		"Application",
-		"Key",
-		"ManagedIdentity",
-		"User",
+		string(IdentityTypeApplication),
+		string(IdentityTypeKey),
+		string(IdentityTypeManagedIdentity),
+		string(IdentityTypeUser),
 	}
 }
 
 func parseIdentityType(input string) (*IdentityType, error) {
 	vals := map[string]IdentityType{
-		"application":     "Application",
-		"key":             "Key",
-		"managedidentity": "ManagedIdentity",
-		"user":            "User",
+		"application":     IdentityTypeApplication,
+		"key":             IdentityTypeKey,
+		"managedidentity": IdentityTypeManagedIdentity,
+		"user":            IdentityTypeUser,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := IdentityType(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := IdentityType(input)
 	return &out, nil
 }
 
@@ -46,22 +44,20 @@ const (
 
 func PossibleValuesForVCoreProvisioningState() []string {
 	return []string{
-		"Succeeded",
+		string(VCoreProvisioningStateSucceeded),
 	}
 }
 
 func parseVCoreProvisioningState(input string) (*VCoreProvisioningState, error) {
 	vals := map[string]VCoreProvisioningState{
-		"succeeded": "Succeeded",
+		"succeeded": VCoreProvisioningStateSucceeded,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := VCoreProvisioningState(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := VCoreProvisioningState(input)
 	return &out, nil
 }
 
@@ -73,21 +69,19 @@ const (
 
 func PossibleValuesForVCoreSkuTier() []string {
 	return []string{
-		"AutoScale",
+		string(VCoreSkuTierAutoScale),
 	}
 }
 
 func parseVCoreSkuTier(input string) (*VCoreSkuTier, error) {
 	vals := map[string]VCoreSkuTier{
-		"autoscale": "AutoScale",
+		"autoscale": VCoreSkuTierAutoScale,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := VCoreSkuTier(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := VCoreSkuTier(input)
 	return &out, nil
 }

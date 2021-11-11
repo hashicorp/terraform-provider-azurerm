@@ -12,25 +12,23 @@ const (
 
 func PossibleValuesForCapacitySkuTier() []string {
 	return []string{
-		"AutoPremiumHost",
-		"PBIE_Azure",
-		"Premium",
+		string(CapacitySkuTierAutoPremiumHost),
+		string(CapacitySkuTierPBIEAzure),
+		string(CapacitySkuTierPremium),
 	}
 }
 
 func parseCapacitySkuTier(input string) (*CapacitySkuTier, error) {
 	vals := map[string]CapacitySkuTier{
-		"autopremiumhost": "AutoPremiumHost",
-		"pbieazure":       "PBIE_Azure",
-		"premium":         "Premium",
+		"autopremiumhost": CapacitySkuTierAutoPremiumHost,
+		"pbie_azure":      CapacitySkuTierPBIEAzure,
+		"premium":         CapacitySkuTierPremium,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := CapacitySkuTier(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := CapacitySkuTier(input)
 	return &out, nil
 }

@@ -21,44 +21,42 @@ const (
 
 func PossibleValuesForCapacityProvisioningState() []string {
 	return []string{
-		"Deleting",
-		"Failed",
-		"Paused",
-		"Pausing",
-		"Preparing",
-		"Provisioning",
-		"Resuming",
-		"Scaling",
-		"Succeeded",
-		"Suspended",
-		"Suspending",
-		"Updating",
+		string(CapacityProvisioningStateDeleting),
+		string(CapacityProvisioningStateFailed),
+		string(CapacityProvisioningStatePaused),
+		string(CapacityProvisioningStatePausing),
+		string(CapacityProvisioningStatePreparing),
+		string(CapacityProvisioningStateProvisioning),
+		string(CapacityProvisioningStateResuming),
+		string(CapacityProvisioningStateScaling),
+		string(CapacityProvisioningStateSucceeded),
+		string(CapacityProvisioningStateSuspended),
+		string(CapacityProvisioningStateSuspending),
+		string(CapacityProvisioningStateUpdating),
 	}
 }
 
 func parseCapacityProvisioningState(input string) (*CapacityProvisioningState, error) {
 	vals := map[string]CapacityProvisioningState{
-		"deleting":     "Deleting",
-		"failed":       "Failed",
-		"paused":       "Paused",
-		"pausing":      "Pausing",
-		"preparing":    "Preparing",
-		"provisioning": "Provisioning",
-		"resuming":     "Resuming",
-		"scaling":      "Scaling",
-		"succeeded":    "Succeeded",
-		"suspended":    "Suspended",
-		"suspending":   "Suspending",
-		"updating":     "Updating",
+		"deleting":     CapacityProvisioningStateDeleting,
+		"failed":       CapacityProvisioningStateFailed,
+		"paused":       CapacityProvisioningStatePaused,
+		"pausing":      CapacityProvisioningStatePausing,
+		"preparing":    CapacityProvisioningStatePreparing,
+		"provisioning": CapacityProvisioningStateProvisioning,
+		"resuming":     CapacityProvisioningStateResuming,
+		"scaling":      CapacityProvisioningStateScaling,
+		"succeeded":    CapacityProvisioningStateSucceeded,
+		"suspended":    CapacityProvisioningStateSuspended,
+		"suspending":   CapacityProvisioningStateSuspending,
+		"updating":     CapacityProvisioningStateUpdating,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := CapacityProvisioningState(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := CapacityProvisioningState(input)
 	return &out, nil
 }
 
@@ -72,26 +70,24 @@ const (
 
 func PossibleValuesForCapacitySkuTier() []string {
 	return []string{
-		"AutoPremiumHost",
-		"PBIE_Azure",
-		"Premium",
+		string(CapacitySkuTierAutoPremiumHost),
+		string(CapacitySkuTierPBIEAzure),
+		string(CapacitySkuTierPremium),
 	}
 }
 
 func parseCapacitySkuTier(input string) (*CapacitySkuTier, error) {
 	vals := map[string]CapacitySkuTier{
-		"autopremiumhost": "AutoPremiumHost",
-		"pbieazure":       "PBIE_Azure",
-		"premium":         "Premium",
+		"autopremiumhost": CapacitySkuTierAutoPremiumHost,
+		"pbie_azure":      CapacitySkuTierPBIEAzure,
+		"premium":         CapacitySkuTierPremium,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := CapacitySkuTier(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := CapacitySkuTier(input)
 	return &out, nil
 }
 
@@ -106,28 +102,26 @@ const (
 
 func PossibleValuesForIdentityType() []string {
 	return []string{
-		"Application",
-		"Key",
-		"ManagedIdentity",
-		"User",
+		string(IdentityTypeApplication),
+		string(IdentityTypeKey),
+		string(IdentityTypeManagedIdentity),
+		string(IdentityTypeUser),
 	}
 }
 
 func parseIdentityType(input string) (*IdentityType, error) {
 	vals := map[string]IdentityType{
-		"application":     "Application",
-		"key":             "Key",
-		"managedidentity": "ManagedIdentity",
-		"user":            "User",
+		"application":     IdentityTypeApplication,
+		"key":             IdentityTypeKey,
+		"managedidentity": IdentityTypeManagedIdentity,
+		"user":            IdentityTypeUser,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := IdentityType(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := IdentityType(input)
 	return &out, nil
 }
 
@@ -140,24 +134,22 @@ const (
 
 func PossibleValuesForMode() []string {
 	return []string{
-		"Gen1",
-		"Gen2",
+		string(ModeGenOne),
+		string(ModeGenTwo),
 	}
 }
 
 func parseMode(input string) (*Mode, error) {
 	vals := map[string]Mode{
-		"genone": "Gen1",
-		"gentwo": "Gen2",
+		"gen1": ModeGenOne,
+		"gen2": ModeGenTwo,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := Mode(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := Mode(input)
 	return &out, nil
 }
 
@@ -180,43 +172,41 @@ const (
 
 func PossibleValuesForState() []string {
 	return []string{
-		"Deleting",
-		"Failed",
-		"Paused",
-		"Pausing",
-		"Preparing",
-		"Provisioning",
-		"Resuming",
-		"Scaling",
-		"Succeeded",
-		"Suspended",
-		"Suspending",
-		"Updating",
+		string(StateDeleting),
+		string(StateFailed),
+		string(StatePaused),
+		string(StatePausing),
+		string(StatePreparing),
+		string(StateProvisioning),
+		string(StateResuming),
+		string(StateScaling),
+		string(StateSucceeded),
+		string(StateSuspended),
+		string(StateSuspending),
+		string(StateUpdating),
 	}
 }
 
 func parseState(input string) (*State, error) {
 	vals := map[string]State{
-		"deleting":     "Deleting",
-		"failed":       "Failed",
-		"paused":       "Paused",
-		"pausing":      "Pausing",
-		"preparing":    "Preparing",
-		"provisioning": "Provisioning",
-		"resuming":     "Resuming",
-		"scaling":      "Scaling",
-		"succeeded":    "Succeeded",
-		"suspended":    "Suspended",
-		"suspending":   "Suspending",
-		"updating":     "Updating",
+		"deleting":     StateDeleting,
+		"failed":       StateFailed,
+		"paused":       StatePaused,
+		"pausing":      StatePausing,
+		"preparing":    StatePreparing,
+		"provisioning": StateProvisioning,
+		"resuming":     StateResuming,
+		"scaling":      StateScaling,
+		"succeeded":    StateSucceeded,
+		"suspended":    StateSuspended,
+		"suspending":   StateSuspending,
+		"updating":     StateUpdating,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := State(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := State(input)
 	return &out, nil
 }
