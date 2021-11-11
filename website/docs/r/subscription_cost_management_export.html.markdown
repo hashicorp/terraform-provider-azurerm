@@ -3,7 +3,7 @@ subcategory: "Cost Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subscription_cost_management_export"
 description: |-
-Manages an Azure Cost Management Export for a Subscription.
+  Manages an Azure Cost Management Export for a Subscription.
 ---
 
 # azurerm_subscription_cost_management_export
