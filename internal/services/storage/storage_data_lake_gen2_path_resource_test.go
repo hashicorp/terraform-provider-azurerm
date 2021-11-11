@@ -226,7 +226,7 @@ func (r StorageDataLakeGen2PathResource) withACLWithSpecificUserAndDefaults(data
 provider "azuread" {}
 
 resource "azuread_application" "test" {
-  name = "acctestspa%[2]d"
+  display_name = "acctestspa%[2]d"
 }
 
 resource "azuread_service_principal" "test" {
@@ -303,7 +303,7 @@ resource "azurerm_role_assignment" "storage_blob_owner" {
 }
 
 resource "azuread_application" "test" {
-  name = "acctestspa%[2]d"
+  display_name = "acctestspa%[2]d"
 }
 
 resource "azuread_service_principal" "test" {
