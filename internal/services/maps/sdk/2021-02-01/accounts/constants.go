@@ -13,28 +13,26 @@ const (
 
 func PossibleValuesForCreatedByType() []string {
 	return []string{
-		"Application",
-		"Key",
-		"ManagedIdentity",
-		"User",
+		string(CreatedByTypeApplication),
+		string(CreatedByTypeKey),
+		string(CreatedByTypeManagedIdentity),
+		string(CreatedByTypeUser),
 	}
 }
 
 func parseCreatedByType(input string) (*CreatedByType, error) {
 	vals := map[string]CreatedByType{
-		"application":     "Application",
-		"key":             "Key",
-		"managedidentity": "ManagedIdentity",
-		"user":            "User",
+		"application":     CreatedByTypeApplication,
+		"key":             CreatedByTypeKey,
+		"managedidentity": CreatedByTypeManagedIdentity,
+		"user":            CreatedByTypeUser,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := CreatedByType(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := CreatedByType(input)
 	return &out, nil
 }
 
@@ -47,24 +45,22 @@ const (
 
 func PossibleValuesForKeyType() []string {
 	return []string{
-		"primary",
-		"secondary",
+		string(KeyTypePrimary),
+		string(KeyTypeSecondary),
 	}
 }
 
 func parseKeyType(input string) (*KeyType, error) {
 	vals := map[string]KeyType{
-		"primary":   "primary",
-		"secondary": "secondary",
+		"primary":   KeyTypePrimary,
+		"secondary": KeyTypeSecondary,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := KeyType(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := KeyType(input)
 	return &out, nil
 }
 
@@ -77,24 +73,22 @@ const (
 
 func PossibleValuesForKind() []string {
 	return []string{
-		"Gen1",
-		"Gen2",
+		string(KindGenOne),
+		string(KindGenTwo),
 	}
 }
 
 func parseKind(input string) (*Kind, error) {
 	vals := map[string]Kind{
-		"genone": "Gen1",
-		"gentwo": "Gen2",
+		"gen1": KindGenOne,
+		"gen2": KindGenTwo,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := Kind(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := Kind(input)
 	return &out, nil
 }
 
@@ -108,25 +102,23 @@ const (
 
 func PossibleValuesForName() []string {
 	return []string{
-		"G2",
-		"S1",
-		"S0",
+		string(NameGTwo),
+		string(NameSOne),
+		string(NameSZero),
 	}
 }
 
 func parseName(input string) (*Name, error) {
 	vals := map[string]Name{
-		"gtwo":  "G2",
-		"sone":  "S1",
-		"szero": "S0",
+		"g2": NameGTwo,
+		"s1": NameSOne,
+		"s0": NameSZero,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := Name(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := Name(input)
 	return &out, nil
 }
