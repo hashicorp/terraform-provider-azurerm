@@ -1370,9 +1370,12 @@ resource "azurerm_resource_group" "test" {
 data "azurerm_client_config" "current" {
 }
 
+data "azuread_domains" "test" {
+}
+
 resource "azuread_application" "cluster_explorer" {
   display_name    = "${azurerm_resource_group.test.name}-explorer-AAD"
-  identifier_uris = ["https://example%d:19080/Explorer/index.html"]
+  identifier_uris = ["https://${data.azuread_domains.test.domains[0].domain_name}:19080/Explorer/index.html"]
   web {
     homepage_url  = "https://example:19080/Explorer/index.html"
     redirect_uris = ["https://example:19080/Explorer/index.html"]
