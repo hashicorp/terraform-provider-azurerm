@@ -55,8 +55,6 @@ The following arguments are supported:
 
 * `instances`- (Optional) The number of Virtual Machines in the Orcestrated Virtual Machine Scale Set.
 
--> **Note:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to this field.
-
 * `network_interface` - (Optional) One or more `network_interface` blocks as defined below.
 
 * `os_profile` - (Optional) An `os_profile` block as defined below.
@@ -387,7 +385,6 @@ A `source_image_reference` block supports the following:
 * `version` - (Optional) Specifies the version of the image used to create the virtual machines. 
 
 ---
-
 
 ## Attributes Reference
 
