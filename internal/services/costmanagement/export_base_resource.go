@@ -101,7 +101,6 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 							string(costmanagement.Custom),
 							string(costmanagement.BillingMonthToDate),
 							string(costmanagement.TheLastBillingMonth),
-							string(costmanagement.MonthToDate),
 							string(costmanagement.TheLastMonth),
 							string(costmanagement.WeekToDate),
 							string(costmanagement.MonthToDate),
@@ -131,12 +130,12 @@ func (br costManagementExportBaseResource) createFunc(resourceName, scopeFieldNa
 			id := parse.NewCostManagementExportId(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("name").(string))
 			existing, err := client.Get(ctx, id.Scope, id.Name, "")
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) && !utils.ResponseWasStatusCode(existing.Response, 204) {
+				if !utils.ResponseWasNotFound(existing.Response) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) && !utils.ResponseWasStatusCode(existing.Response, 204) {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return tf.ImportAsExistsError(resourceName, id.ID())
 			}
 
