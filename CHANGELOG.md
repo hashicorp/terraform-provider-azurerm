@@ -10,6 +10,7 @@ IMPROVEMENTS:
 * dependencies: upgrading to `v2.8.0` of `github.com/hashicorp/terraform-plugin-sdk` [GH-14060]
 * `azurerm_application_insights` - support for the `internet_ingestion_enabled` and `internet_query_enabled` properties [GH-14035]
 * `azurerm_security_center_subscription_pricing` - `resource_type` can now be set to `OpenSourceRelationalDatabases` [GH-14103]
+* `azurerm_virtual_network_gateway`: Enable configuration of an active-active zone redundant gateway with P2S [GH-14124]
 
 BUG FIXES:
 
