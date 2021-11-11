@@ -5,7 +5,11 @@ import (
 	"fmt"
 )
 
+var _ Partition = SingletonPartitionScheme{}
+
 type SingletonPartitionScheme struct {
+
+	// Fields inherited from Partition
 }
 
 var _ json.Marshaler = SingletonPartitionScheme{}

@@ -5,10 +5,14 @@ import (
 	"fmt"
 )
 
+var _ ScalingMechanism = AddRemoveIncrementalNamedPartitionScalingMechanism{}
+
 type AddRemoveIncrementalNamedPartitionScalingMechanism struct {
 	MaxPartitionCount int64 `json:"maxPartitionCount"`
 	MinPartitionCount int64 `json:"minPartitionCount"`
 	ScaleIncrement    int64 `json:"scaleIncrement"`
+
+	// Fields inherited from ScalingMechanism
 }
 
 var _ json.Marshaler = AddRemoveIncrementalNamedPartitionScalingMechanism{}

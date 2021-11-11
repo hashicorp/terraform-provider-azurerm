@@ -5,10 +5,14 @@ import (
 	"fmt"
 )
 
+var _ Partition = UniformInt64RangePartitionScheme{}
+
 type UniformInt64RangePartitionScheme struct {
 	Count   int64 `json:"count"`
 	HighKey int64 `json:"highKey"`
 	LowKey  int64 `json:"lowKey"`
+
+	// Fields inherited from Partition
 }
 
 var _ json.Marshaler = UniformInt64RangePartitionScheme{}

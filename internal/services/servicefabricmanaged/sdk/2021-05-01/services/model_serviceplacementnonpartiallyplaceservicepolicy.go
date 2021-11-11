@@ -5,7 +5,11 @@ import (
 	"fmt"
 )
 
+var _ ServicePlacementPolicy = ServicePlacementNonPartiallyPlaceServicePolicy{}
+
 type ServicePlacementNonPartiallyPlaceServicePolicy struct {
+
+	// Fields inherited from ServicePlacementPolicy
 }
 
 var _ json.Marshaler = ServicePlacementNonPartiallyPlaceServicePolicy{}

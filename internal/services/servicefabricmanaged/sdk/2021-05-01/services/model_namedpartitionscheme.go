@@ -5,8 +5,12 @@ import (
 	"fmt"
 )
 
+var _ Partition = NamedPartitionScheme{}
+
 type NamedPartitionScheme struct {
 	Names []string `json:"names"`
+
+	// Fields inherited from Partition
 }
 
 var _ json.Marshaler = NamedPartitionScheme{}

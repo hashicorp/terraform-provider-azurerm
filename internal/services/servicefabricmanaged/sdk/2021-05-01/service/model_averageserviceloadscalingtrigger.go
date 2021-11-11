@@ -5,12 +5,16 @@ import (
 	"fmt"
 )
 
+var _ ScalingTrigger = AverageServiceLoadScalingTrigger{}
+
 type AverageServiceLoadScalingTrigger struct {
 	LowerLoadThreshold float64 `json:"lowerLoadThreshold"`
 	MetricName         string  `json:"metricName"`
 	ScaleInterval      string  `json:"scaleInterval"`
 	UpperLoadThreshold float64 `json:"upperLoadThreshold"`
 	UseOnlyPrimaryLoad bool    `json:"useOnlyPrimaryLoad"`
+
+	// Fields inherited from ScalingTrigger
 }
 
 var _ json.Marshaler = AverageServiceLoadScalingTrigger{}

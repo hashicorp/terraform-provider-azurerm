@@ -5,10 +5,14 @@ import (
 	"fmt"
 )
 
+var _ ScalingMechanism = PartitionInstanceCountScaleMechanism{}
+
 type PartitionInstanceCountScaleMechanism struct {
 	MaxInstanceCount int64 `json:"maxInstanceCount"`
 	MinInstanceCount int64 `json:"minInstanceCount"`
 	ScaleIncrement   int64 `json:"scaleIncrement"`
+
+	// Fields inherited from ScalingMechanism
 }
 
 var _ json.Marshaler = PartitionInstanceCountScaleMechanism{}

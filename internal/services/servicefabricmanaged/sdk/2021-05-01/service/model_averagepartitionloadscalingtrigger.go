@@ -5,11 +5,15 @@ import (
 	"fmt"
 )
 
+var _ ScalingTrigger = AveragePartitionLoadScalingTrigger{}
+
 type AveragePartitionLoadScalingTrigger struct {
 	LowerLoadThreshold float64 `json:"lowerLoadThreshold"`
 	MetricName         string  `json:"metricName"`
 	ScaleInterval      string  `json:"scaleInterval"`
 	UpperLoadThreshold float64 `json:"upperLoadThreshold"`
+
+	// Fields inherited from ScalingTrigger
 }
 
 var _ json.Marshaler = AveragePartitionLoadScalingTrigger{}

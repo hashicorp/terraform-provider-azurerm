@@ -5,8 +5,12 @@ import (
 	"fmt"
 )
 
+var _ ServicePlacementPolicy = ServicePlacementInvalidDomainPolicy{}
+
 type ServicePlacementInvalidDomainPolicy struct {
 	DomainName string `json:"domainName"`
+
+	// Fields inherited from ServicePlacementPolicy
 }
 
 var _ json.Marshaler = ServicePlacementInvalidDomainPolicy{}

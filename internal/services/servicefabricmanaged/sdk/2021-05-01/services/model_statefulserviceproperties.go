@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+var _ ServiceResourceProperties = StatefulServiceProperties{}
+
 type StatefulServiceProperties struct {
 	HasPersistedState          *bool   `json:"hasPersistedState,omitempty"`
 	MinReplicaSetSize          *int64  `json:"minReplicaSetSize,omitempty"`
@@ -13,6 +15,18 @@ type StatefulServiceProperties struct {
 	ServicePlacementTimeLimit  *string `json:"servicePlacementTimeLimit,omitempty"`
 	StandByReplicaKeepDuration *string `json:"standByReplicaKeepDuration,omitempty"`
 	TargetReplicaSetSize       *int64  `json:"targetReplicaSetSize,omitempty"`
+
+	// Fields inherited from ServiceResourceProperties
+	CorrelationScheme            *[]ServiceCorrelation         `json:"correlationScheme,omitempty"`
+	DefaultMoveCost              *MoveCost                     `json:"defaultMoveCost,omitempty"`
+	PartitionDescription         Partition                     `json:"partitionDescription"`
+	PlacementConstraints         *string                       `json:"placementConstraints,omitempty"`
+	ProvisioningState            *string                       `json:"provisioningState,omitempty"`
+	ScalingPolicies              *[]ScalingPolicy              `json:"scalingPolicies,omitempty"`
+	ServiceLoadMetrics           *[]ServiceLoadMetric          `json:"serviceLoadMetrics,omitempty"`
+	ServicePackageActivationMode *ServicePackageActivationMode `json:"servicePackageActivationMode,omitempty"`
+	ServicePlacementPolicies     *[]ServicePlacementPolicy     `json:"servicePlacementPolicies,omitempty"`
+	ServiceTypeName              string                        `json:"serviceTypeName"`
 }
 
 var _ json.Marshaler = StatefulServiceProperties{}
