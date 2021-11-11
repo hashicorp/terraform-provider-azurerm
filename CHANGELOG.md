@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_batch_application` [GH-14043]
 * **New Resource:** `azurerm_monitor_private_link_scope` [GH-14098]
+* **New Resource:** `azurerm_synapse_workspace_aad_admin` [GH-13600]
 
 IMPROVEMENTS:
 
