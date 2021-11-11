@@ -12,6 +12,7 @@ IMPROVEMENTS:
 * `azurerm_application_insights` - support for the `internet_ingestion_enabled` and `internet_query_enabled` properties [GH-14035]
 * `azurerm_backup_protected_vm` - support for the `exclude_disk_luns` and `include_disk_luns` properties [GH-14097]
 * `azurerm_security_center_subscription_pricing` - `resource_type` can now be set to `OpenSourceRelationalDatabases` [GH-14103]
+* `azurerm_storage_encryption_scope` - allow versionless `key_vault_key_id` [GH-14085]
 * `azurerm_virtual_network_gateway` - enable configuration of an active-active zone redundant gateway with P2S [GH-14124]
 
 BUG FIXES:
