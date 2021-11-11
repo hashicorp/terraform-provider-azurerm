@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A map of key-value pairs of App Settings.
 
-* `auth_settings` - (Optional) A `auth_settings` block as defined below.
+* `auth_settings` - (Optional) An `auth_settings` block as defined below.
 
 * `backup` - (Optional) A `backup` block as defined below.
 
@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Should the Windows Web App require HTTPS connections.
 
-* `identity` - (Optional) A `identity` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `logs` - (Optional) A `logs` block as defined below.
 
@@ -111,7 +111,7 @@ A `active_directory` block supports the following:
 
 A `application_logs` block supports the following:
 
-* `azure_blob_storage` - (Optional) A `azure_blob_storage` block as defined below.
+* `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
 
 * `file_system_level` - (Optional) Log level. Possible values include: `Verbose`, `Information`, `Warning`, and `Error`.
 
@@ -189,7 +189,7 @@ A `auth_settings` block supports the following:
 
 A `auto_heal_setting` block supports the following:
 
-* `action` - (Required) A `action` block as defined above.
+* `action` - (Required) An `action` block as defined above.
 
 * `trigger` - (Required) A `trigger` block as defined below.
 

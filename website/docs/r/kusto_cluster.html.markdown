@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `double_encryption_enabled` - (Optional) Is the cluster's double encryption enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) An identity block.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `enable_disk_encryption` - (Optional) Specifies if the cluster's disks are encrypted.
 

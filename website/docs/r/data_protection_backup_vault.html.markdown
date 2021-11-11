@@ -43,7 +43,7 @@ The following arguments are supported:
 
 ---
 
-* `identity` - (Optional) A `identity` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Backup Vault.
 

@@ -106,13 +106,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				ConfigMode:    pluginsdk.SchemaConfigModeAttr, // TODO -- remove in 3.0, because this property is optional and computed, it has to be declared as empty array to remove existed values
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"location": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							ValidateFunc:     location.EnhancedValidate,
-							StateFunc:        location.StateFunc,
-							DiffSuppressFunc: location.DiffSuppressFunc,
-						},
+						"location": location.SchemaWithoutForceNew(),
 
 						"zone_redundancy_enabled": {
 							Type:     pluginsdk.TypeBool,
