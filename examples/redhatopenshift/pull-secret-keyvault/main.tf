@@ -58,12 +58,10 @@ resource "azurerm_redhatopenshift_cluster" "example" {
   }
 
   master_profile {
-    vm_size   = "Standard_D8s_v3"
     subnet_id = azurerm_subnet.master_subnet.id
   }
   
   worker_profile {
-    vm_size   = "Standard_D4s_v3"
     subnet_id = azurerm_subnet.worker_subnet.id
   }
 }
