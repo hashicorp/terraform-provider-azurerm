@@ -249,7 +249,6 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 	}
 
-	//utils.Int64(int64(d.Get("instances").(int)))
 	instances := d.Get("instances").(int)
 	if v, ok := d.GetOk("sku_name"); ok {
 		isLegacy = false
