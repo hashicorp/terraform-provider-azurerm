@@ -1,4 +1,4 @@
-package accounts
+package creators
 
 import (
 	"testing"
@@ -6,10 +6,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = AccountId{}
+var _ resourceids.ResourceId = CreatorId{}
 
-func TestNewAccountID(t *testing.T) {
-	id := NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+func TestNewCreatorID(t *testing.T) {
+	id := NewCreatorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "creatorValue")
 
 	if id.SubscriptionId != "12345678-1234-9876-4563-123456789012" {
 		t.Fatalf("Expected %q but got %q for Segment 'SubscriptionId'", id.SubscriptionId, "12345678-1234-9876-4563-123456789012")
@@ -22,21 +22,25 @@ func TestNewAccountID(t *testing.T) {
 	if id.AccountName != "accountValue" {
 		t.Fatalf("Expected %q but got %q for Segment 'AccountName'", id.AccountName, "accountValue")
 	}
+
+	if id.CreatorName != "creatorValue" {
+		t.Fatalf("Expected %q but got %q for Segment 'CreatorName'", id.CreatorName, "creatorValue")
+	}
 }
 
-func TestFormatAccountID(t *testing.T) {
-	actual := NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Maps/accounts/accountValue"
+func TestFormatCreatorID(t *testing.T) {
+	actual := NewCreatorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "creatorValue").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Maps/accounts/accountValue/creators/creatorValue"
 	if actual != expected {
 		t.Fatalf("Expected the Formatted ID to be %q but got %q", actual, expected)
 	}
 }
 
-func TestParseAccountID(t *testing.T) {
+func TestParseCreatorID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *AccountId
+		Expected *CreatorId
 	}{
 		{
 			// Incomplete URI
@@ -79,24 +83,35 @@ func TestParseAccountID(t *testing.T) {
 			Error: true,
 		},
 		{
-			// Valid URI
+			// Incomplete URI
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Maps/accounts/accountValue",
-			Expected: &AccountId{
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Maps/accounts/accountValue/creators",
+			Error: true,
+		},
+		{
+			// Valid URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Maps/accounts/accountValue/creators/creatorValue",
+			Expected: &CreatorId{
 				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
 				ResourceGroupName: "example-resource-group",
 				AccountName:       "accountValue",
+				CreatorName:       "creatorValue",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment)
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Maps/accounts/accountValue/extra",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Maps/accounts/accountValue/creators/creatorValue/extra",
 			Error: true,
 		},
 	}
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseAccountID(v.Input)
+		actual, err := ParseCreatorID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -120,14 +135,18 @@ func TestParseAccountID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for AccountName", v.Expected.AccountName, actual.AccountName)
 		}
 
+		if actual.CreatorName != v.Expected.CreatorName {
+			t.Fatalf("Expected %q but got %q for CreatorName", v.Expected.CreatorName, actual.CreatorName)
+		}
+
 	}
 }
 
-func TestParseAccountIDInsensitively(t *testing.T) {
+func TestParseCreatorIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *AccountId
+		Expected *CreatorId
 	}{
 		{
 			// Incomplete URI
@@ -205,38 +224,60 @@ func TestParseAccountIDInsensitively(t *testing.T) {
 			Error: true,
 		},
 		{
-			// Valid URI
+			// Incomplete URI
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Maps/accounts/accountValue",
-			Expected: &AccountId{
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.mApS/aCcOuNtS/aCcOuNtVaLuE",
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Maps/accounts/accountValue/creators",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.mApS/aCcOuNtS/aCcOuNtVaLuE/cReAtOrS",
+			Error: true,
+		},
+		{
+			// Valid URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Maps/accounts/accountValue/creators/creatorValue",
+			Expected: &CreatorId{
 				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
 				ResourceGroupName: "example-resource-group",
 				AccountName:       "accountValue",
+				CreatorName:       "creatorValue",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment)
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Maps/accounts/accountValue/extra",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Maps/accounts/accountValue/creators/creatorValue/extra",
 			Error: true,
 		},
 		{
 			// Valid URI (mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.mApS/aCcOuNtS/aCcOuNtVaLuE",
-			Expected: &AccountId{
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.mApS/aCcOuNtS/aCcOuNtVaLuE/cReAtOrS/cReAtOrVaLuE",
+			Expected: &CreatorId{
 				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
 				ResourceGroupName: "eXaMpLe-rEsOuRcE-GrOuP",
 				AccountName:       "aCcOuNtVaLuE",
+				CreatorName:       "cReAtOrVaLuE",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment - mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.mApS/aCcOuNtS/aCcOuNtVaLuE/extra",
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.mApS/aCcOuNtS/aCcOuNtVaLuE/cReAtOrS/cReAtOrVaLuE/extra",
 			Error: true,
 		},
 	}
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseAccountIDInsensitively(v.Input)
+		actual, err := ParseCreatorIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -258,6 +299,10 @@ func TestParseAccountIDInsensitively(t *testing.T) {
 
 		if actual.AccountName != v.Expected.AccountName {
 			t.Fatalf("Expected %q but got %q for AccountName", v.Expected.AccountName, actual.AccountName)
+		}
+
+		if actual.CreatorName != v.Expected.CreatorName {
+			t.Fatalf("Expected %q but got %q for CreatorName", v.Expected.CreatorName, actual.CreatorName)
 		}
 
 	}
