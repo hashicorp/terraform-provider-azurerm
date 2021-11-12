@@ -5,18 +5,19 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/sdk/datalakestore/2016-11-01/accounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataLakeStore() *pluginsdk.Resource {
@@ -53,27 +54,27 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 			"tier": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Default:          string(account.Consumption),
+				Default:          string(accounts.TierTypeConsumption),
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(account.Consumption),
-					string(account.Commitment1TB),
-					string(account.Commitment10TB),
-					string(account.Commitment100TB),
-					string(account.Commitment500TB),
-					string(account.Commitment1PB),
-					string(account.Commitment5PB),
+					string(accounts.TierTypeConsumption),
+					string(accounts.TierTypeCommitmentOneTB),
+					string(accounts.TierTypeCommitmentOneZeroTB),
+					string(accounts.TierTypeCommitmentOneZeroZeroTB),
+					string(accounts.TierTypeCommitmentFiveZeroZeroTB),
+					string(accounts.TierTypeCommitmentOnePB),
+					string(accounts.TierTypeCommitmentFivePB),
 				}, true),
 			},
 
 			"encryption_state": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(account.Enabled),
+				Default:  string(accounts.EncryptionStateEnabled),
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(account.Enabled),
-					string(account.Disabled),
+					string(accounts.EncryptionStateEnabled),
+					string(accounts.EncryptionStateDisabled),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -84,7 +85,7 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(account.ServiceManaged),
+					string(accounts.EncryptionConfigTypeServiceManaged),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -92,10 +93,10 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 			"firewall_state": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(account.FirewallStateEnabled),
+				Default:  string(accounts.FirewallStateEnabled),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(account.FirewallStateEnabled),
-					string(account.FirewallStateDisabled),
+					string(accounts.FirewallStateEnabled),
+					string(accounts.FirewallStateDisabled),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -103,10 +104,10 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 			"firewall_allow_azure_ips": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(account.FirewallAllowAzureIpsStateEnabled),
+				Default:  string(accounts.FirewallAllowAzureIpsStateEnabled),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(account.FirewallAllowAzureIpsStateEnabled),
-					string(account.FirewallAllowAzureIpsStateDisabled),
+					string(accounts.FirewallAllowAzureIpsStateEnabled),
+					string(accounts.FirewallAllowAzureIpsStateDisabled),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -116,30 +117,7 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": identity.SystemAssigned{}.Schema(),
 
 			"tags": tags.Schema(),
 		},
@@ -148,61 +126,55 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 
 func resourceArmDateLakeStoreCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreAccountsClient
-	subscriptionId := meta.(*clients.Client).Datalake.StoreAccountsClient.SubscriptionID
+	subscriptionId := meta.(*clients.Client).Datalake.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := accounts.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Lake Store %s: %+v", id, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_lake_store", *existing.ID)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_data_lake_store", id.ID())
 		}
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tier := d.Get("tier").(string)
+	tier := accounts.TierType(d.Get("tier").(string))
 
-	encryptionState := account.EncryptionState(d.Get("encryption_state").(string))
-	encryptionType := account.EncryptionConfigType(d.Get("encryption_type").(string))
-	firewallState := account.FirewallState(d.Get("firewall_state").(string))
-	firewallAllowAzureIPs := account.FirewallAllowAzureIpsState(d.Get("firewall_allow_azure_ips").(string))
+	encryptionState := accounts.EncryptionState(d.Get("encryption_state").(string))
+	encryptionType := accounts.EncryptionConfigType(d.Get("encryption_type").(string))
+	firewallState := accounts.FirewallState(d.Get("firewall_state").(string))
+	firewallAllowAzureIPs := accounts.FirewallAllowAzureIpsState(d.Get("firewall_allow_azure_ips").(string))
 	t := d.Get("tags").(map[string]interface{})
 
 	log.Printf("[INFO] preparing arguments for Data Lake Store creation %s", id)
 
-	dateLakeStore := account.CreateDataLakeStoreAccountParameters{
-		Location: &location,
-		Tags:     tags.Expand(t),
+	dateLakeStore := accounts.CreateDataLakeStoreAccountParameters{
+		Location: location,
+		Tags:     expandTags(t),
 		Identity: expandDataLakeStoreIdentity(d.Get("identity").([]interface{})),
-		CreateDataLakeStoreAccountProperties: &account.CreateDataLakeStoreAccountProperties{
-			NewTier:               account.TierType(tier),
-			FirewallState:         firewallState,
-			FirewallAllowAzureIps: firewallAllowAzureIPs,
-			EncryptionState:       encryptionState,
+		Properties: &accounts.CreateDataLakeStoreAccountProperties{
+			NewTier:               &tier,
+			FirewallState:         &firewallState,
+			FirewallAllowAzureIps: &firewallAllowAzureIPs,
+			EncryptionState:       &encryptionState,
 
-			EncryptionConfig: &account.EncryptionConfig{
+			EncryptionConfig: &accounts.EncryptionConfig{
 				Type: encryptionType,
 			},
 		},
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.Name, dateLakeStore)
-	if err != nil {
-		return fmt.Errorf("issuing create request for Data Lake Store %s: %+v", id, err)
+	if err := client.CreateThenPoll(ctx, id, dateLakeStore); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("creating Data Lake Store %s: %+v", id, err)
-	}
-
 	d.SetId(id.ID())
 
 	return resourceArmDateLakeStoreRead(d, meta)
@@ -213,32 +185,27 @@ func resourceArmDateLakeStoreUpdate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AccountID(d.Id())
+	id, err := accounts.ParseAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	tier := d.Get("tier").(string)
-	firewallState := account.FirewallState(d.Get("firewall_state").(string))
-	firewallAllowAzureIPs := account.FirewallAllowAzureIpsState(d.Get("firewall_allow_azure_ips").(string))
+	tier := accounts.TierType(d.Get("tier").(string))
+	firewallState := accounts.FirewallState(d.Get("firewall_state").(string))
+	firewallAllowAzureIPs := accounts.FirewallAllowAzureIpsState(d.Get("firewall_allow_azure_ips").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	props := account.UpdateDataLakeStoreAccountParameters{
-		UpdateDataLakeStoreAccountProperties: &account.UpdateDataLakeStoreAccountProperties{
-			NewTier:               account.TierType(tier),
-			FirewallState:         firewallState,
-			FirewallAllowAzureIps: firewallAllowAzureIPs,
+	props := accounts.UpdateDataLakeStoreAccountParameters{
+		Properties: &accounts.UpdateDataLakeStoreAccountProperties{
+			NewTier:               &tier,
+			FirewallState:         &firewallState,
+			FirewallAllowAzureIps: &firewallAllowAzureIPs,
 		},
-		Tags: tags.Expand(t),
+		Tags: expandTags(t),
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.Name, props)
-	if err != nil {
-		return fmt.Errorf("issuing update request for Data Lake Store %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the update of Data Lake Store %s to complete: %+v", id, err)
+	if err := client.UpdateThenPoll(ctx, *id, props); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceArmDateLakeStoreRead(d, meta)
@@ -249,47 +216,69 @@ func resourceArmDateLakeStoreRead(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AccountID(d.Id())
+	id, err := accounts.ParseAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[WARN] Data Lake Store Account %s was not found", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure Data Lake Store %s: %+v", id, err)
+		return fmt.Errorf("retreiving %s: %+v", id, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
 
-	if err := d.Set("identity", flattenDataLakeStoreIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("flattening identity on Data Lake Store %s: %+v", id, err)
-	}
-
-	if properties := resp.DataLakeStoreAccountProperties; properties != nil {
-		d.Set("tier", string(properties.CurrentTier))
-
-		d.Set("encryption_state", string(properties.EncryptionState))
-		d.Set("firewall_state", string(properties.FirewallState))
-		d.Set("firewall_allow_azure_ips", string(properties.FirewallAllowAzureIps))
-
-		if config := properties.EncryptionConfig; config != nil {
-			d.Set("encryption_type", string(config.Type))
+	if model := resp.Model; model != nil {
+		if location := model.Location; location != nil {
+			d.Set("location", azure.NormalizeLocation(*location))
 		}
 
-		d.Set("endpoint", properties.Endpoint)
-	}
+		if err := d.Set("identity", flattenDataLakeStoreIdentity(model.Identity)); err != nil {
+			return fmt.Errorf("flattening identity on Data Lake Store %s: %+v", id, err)
+		}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+		if properties := model.Properties; properties != nil {
+			tier := ""
+			if properties.CurrentTier != nil {
+				tier = string(*properties.CurrentTier)
+			}
+			d.Set("tier", tier)
+
+			encryptionState := ""
+			if properties.EncryptionState != nil {
+				encryptionState = string(*properties.EncryptionState)
+			}
+			d.Set("encryption_state", encryptionState)
+
+			firewallState := ""
+			if properties.FirewallState != nil {
+				firewallState = string(*properties.FirewallState)
+			}
+			d.Set("firewall_state", firewallState)
+
+			firewallAllowAzureIps := ""
+			if properties.FirewallAllowAzureIps != nil {
+				firewallAllowAzureIps = string(*properties.FirewallAllowAzureIps)
+			}
+			d.Set("firewall_allow_azure_ips", firewallAllowAzureIps)
+
+			if config := properties.EncryptionConfig; config != nil {
+				d.Set("encryption_type", string(config.Type))
+			}
+
+			d.Set("endpoint", properties.Endpoint)
+		}
+
+		return tags.FlattenAndSet(d, flattenTags(model.Tags))
+	}
+	return nil
 }
 
 func resourceArmDateLakeStoreDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -297,48 +286,43 @@ func resourceArmDateLakeStoreDelete(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AccountID(d.Id())
+	id, err := accounts.ParseAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("deleting Data Lake Store %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Data Lake Store %s: %+v", id, err)
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandDataLakeStoreIdentity(input []interface{}) *account.EncryptionIdentity {
+func expandDataLakeStoreIdentity(input []interface{}) *identity.SystemAssignedIdentity {
 	if len(input) == 0 {
 		return nil
 	}
 
 	v := input[0].(map[string]interface{})
 
-	return &account.EncryptionIdentity{
-		Type: utils.String(v["type"].(string)),
+	return &identity.SystemAssignedIdentity{
+		Type: identity.Type(v["type"].(string)),
 	}
 }
 
-func flattenDataLakeStoreIdentity(identity *account.EncryptionIdentity) []interface{} {
+func flattenDataLakeStoreIdentity(identity *identity.SystemAssignedIdentity) []interface{} {
 	if identity == nil {
 		return []interface{}{}
 	}
 
 	principalID := ""
-	if identity.PrincipalID != nil {
-		principalID = identity.PrincipalID.String()
+	if identity.PrincipalId != nil {
+		principalID = *identity.PrincipalId
 	}
 
 	tenantID := ""
-	if identity.TenantID != nil {
-		tenantID = identity.TenantID.String()
+	if identity.TenantId != nil {
+		tenantID = *identity.TenantId
 	}
 
 	return []interface{}{
