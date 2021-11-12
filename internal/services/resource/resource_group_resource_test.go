@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 

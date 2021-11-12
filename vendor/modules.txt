@@ -53,7 +53,7 @@ github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2020-10-01/insights
 github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql
 github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2021-05-01/mysqlflexibleservers
 github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-06-01/netapp
-github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network
+github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network
 github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs
 github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights
 github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql
