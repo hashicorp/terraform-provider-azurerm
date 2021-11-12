@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_subscription_cost_management_export
 
-Manages an Azure Cost Management Export for a Subscription.
+Manages a Cost Management Export for a Subscription.
 
 ## Example Usage
 
@@ -77,9 +77,11 @@ The following arguments are supported:
 
 A `export_data_storage_location` block supports the following:
 
-* `container_id` - (Required) The name of the container where exports will be uploaded.
+* `container_id` - (Required) The Resource Manager ID of the container where exports will be uploaded.
 
 * `root_folder_path` - (Required) The path of the directory where exports will be uploaded.
+
+**Note:** The Resource Manager ID of a Storage Container is exposed via the `resource_manager_id` attribute of the `azurerm_storage_container` resource.
 
 ---
 
