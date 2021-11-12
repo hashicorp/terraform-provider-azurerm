@@ -77,6 +77,27 @@ func TestAccOpenShiftCluster_private(t *testing.T) {
 	})
 }
 
+func TestAccOpenShiftCluster_customDomain(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redhatopenshift_cluster", "test")
+	r := OpenShiftClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customDomain(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("master_profile.0.vm_size").HasValue(string(redhatopenshift.StandardD8sV3)),
+				check.That(data.ResourceName).Key("worker_profile.0.vm_size").HasValue(string(redhatopenshift.VMSize1StandardD4sV3)),
+				check.That(data.ResourceName).Key("worker_profile.0.disk_size_gb").HasValue("128"),
+				check.That(data.ResourceName).Key("worker_profile.0.node_count").HasValue("3"),
+				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(redhatopenshift.Public)),
+				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(redhatopenshift.Visibility1Public)),
+				check.That(data.ResourceName).Key("cluster_profile.0.domain").HasValue("foo.example.com"),
+			),
+		},
+	})
+}
+
 func (OpenShiftClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -248,10 +269,11 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   cluster_profile {
     domain = "foo.example.com"
   }
+
 	service_principal {
     client_id     = %q
     client_secret = %q
   }
-}
+ }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
 }
