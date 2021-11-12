@@ -374,7 +374,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of .Net. Possible values are `3.1`",
+					Description: "The version of .Net. Possible values are `3.1` and `6`",
 				},
 
 				"python_version": {
