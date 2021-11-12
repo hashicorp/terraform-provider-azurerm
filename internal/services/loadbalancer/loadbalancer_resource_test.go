@@ -833,7 +833,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-lb-%d"
+  name = "acctestRG-lb-%d"
 
   // There is no supported extended location in "West Europe"
   location = "westus"

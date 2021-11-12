@@ -949,10 +949,10 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name = "acctestRG-%d"
 
   // There is no supported extended location in "West Europe"
-  location = "westus" 
+  location = "westus"
 }
 
 resource "azurerm_public_ip" "test" {
