@@ -2,7 +2,8 @@
 
 IMPROVEMENTS:
 
-* databricks: updating the embedded sdk [GH-14157]
+* databricks: updating the embedded SDK to use the new Resource ID Parsers [GH-14157]
+* maps: updating the embedded SDK to use the new Resource ID Parsers [GH-14155]
 
 ## 2.85.0 (November 12, 2021)
 
