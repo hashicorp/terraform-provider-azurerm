@@ -16,6 +16,7 @@ IMPROVEMENTS:
 * `azurerm_managed_disk_resource` - support for the `disk_iops_read_only` and `disk_mbps_read_only` properties [GH-14025]
 * `azurerm_security_center_subscription_pricing` - `resource_type` can now be set to `OpenSourceRelationalDatabases` [GH-14103]
 * `azurerm_storage_encryption_scope` - allow versionless `key_vault_key_id` [GH-14085]
+* `azurerm_sql_managed_instance` - support for the `identity` block [GH-14052]
 * `azurerm_virtual_network_gateway` - enable configuration of an active-active zone redundant gateway with P2S [GH-14124]
 
 BUG FIXES:
