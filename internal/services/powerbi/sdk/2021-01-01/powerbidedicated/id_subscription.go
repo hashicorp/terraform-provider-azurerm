@@ -1,4 +1,4 @@
-package capacities
+package powerbidedicated
 
 import (
 	"fmt"

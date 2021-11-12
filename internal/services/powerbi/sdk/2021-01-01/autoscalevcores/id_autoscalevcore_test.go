@@ -1,4 +1,4 @@
-package capacities
+package autoscalevcores
 
 import (
 	"testing"
@@ -6,10 +6,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = CapacitiesId{}
+var _ resourceids.ResourceId = AutoScaleVCoreId{}
 
-func TestNewCapacitiesID(t *testing.T) {
-	id := NewCapacitiesID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityValue")
+func TestNewAutoScaleVCoreID(t *testing.T) {
+	id := NewAutoScaleVCoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vcoreValue")
 
 	if id.SubscriptionId != "12345678-1234-9876-4563-123456789012" {
 		t.Fatalf("Expected %q but got %q for Segment 'SubscriptionId'", id.SubscriptionId, "12345678-1234-9876-4563-123456789012")
@@ -19,24 +19,24 @@ func TestNewCapacitiesID(t *testing.T) {
 		t.Fatalf("Expected %q but got %q for Segment 'ResourceGroupName'", id.ResourceGroupName, "example-resource-group")
 	}
 
-	if id.DedicatedCapacityName != "dedicatedCapacityValue" {
-		t.Fatalf("Expected %q but got %q for Segment 'DedicatedCapacityName'", id.DedicatedCapacityName, "dedicatedCapacityValue")
+	if id.VcoreName != "vcoreValue" {
+		t.Fatalf("Expected %q but got %q for Segment 'VcoreName'", id.VcoreName, "vcoreValue")
 	}
 }
 
-func TestFormatCapacitiesID(t *testing.T) {
-	actual := NewCapacitiesID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityValue").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.PowerBIDedicated/capacities/dedicatedCapacityValue"
+func TestFormatAutoScaleVCoreID(t *testing.T) {
+	actual := NewAutoScaleVCoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vcoreValue").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.PowerBIDedicated/autoScaleVCores/vcoreValue"
 	if actual != expected {
 		t.Fatalf("Expected the Formatted ID to be %q but got %q", actual, expected)
 	}
 }
 
-func TestParseCapacitiesID(t *testing.T) {
+func TestParseAutoScaleVCoreID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *CapacitiesId
+		Expected *AutoScaleVCoreId
 	}{
 		{
 			// Incomplete URI
@@ -75,28 +75,28 @@ func TestParseCapacitiesID(t *testing.T) {
 		},
 		{
 			// Incomplete URI
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.PowerBIDedicated/capacities",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.PowerBIDedicated/autoScaleVCores",
 			Error: true,
 		},
 		{
 			// Valid URI
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.PowerBIDedicated/capacities/dedicatedCapacityValue",
-			Expected: &CapacitiesId{
-				SubscriptionId:        "12345678-1234-9876-4563-123456789012",
-				ResourceGroupName:     "example-resource-group",
-				DedicatedCapacityName: "dedicatedCapacityValue",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.PowerBIDedicated/autoScaleVCores/vcoreValue",
+			Expected: &AutoScaleVCoreId{
+				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
+				ResourceGroupName: "example-resource-group",
+				VcoreName:         "vcoreValue",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment)
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.PowerBIDedicated/capacities/dedicatedCapacityValue/extra",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.PowerBIDedicated/autoScaleVCores/vcoreValue/extra",
 			Error: true,
 		},
 	}
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseCapacitiesID(v.Input)
+		actual, err := ParseAutoScaleVCoreID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -116,18 +116,18 @@ func TestParseCapacitiesID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for ResourceGroupName", v.Expected.ResourceGroupName, actual.ResourceGroupName)
 		}
 
-		if actual.DedicatedCapacityName != v.Expected.DedicatedCapacityName {
-			t.Fatalf("Expected %q but got %q for DedicatedCapacityName", v.Expected.DedicatedCapacityName, actual.DedicatedCapacityName)
+		if actual.VcoreName != v.Expected.VcoreName {
+			t.Fatalf("Expected %q but got %q for VcoreName", v.Expected.VcoreName, actual.VcoreName)
 		}
 
 	}
 }
 
-func TestParseCapacitiesIDInsensitively(t *testing.T) {
+func TestParseAutoScaleVCoreIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *CapacitiesId
+		Expected *AutoScaleVCoreId
 	}{
 		{
 			// Incomplete URI
@@ -196,47 +196,47 @@ func TestParseCapacitiesIDInsensitively(t *testing.T) {
 		},
 		{
 			// Incomplete URI
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.PowerBIDedicated/capacities",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.PowerBIDedicated/autoScaleVCores",
 			Error: true,
 		},
 		{
 			// Incomplete URI (mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.pOwErBiDeDiCaTeD/cApAcItIeS",
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.pOwErBiDeDiCaTeD/aUtOsCaLeVcOrEs",
 			Error: true,
 		},
 		{
 			// Valid URI
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.PowerBIDedicated/capacities/dedicatedCapacityValue",
-			Expected: &CapacitiesId{
-				SubscriptionId:        "12345678-1234-9876-4563-123456789012",
-				ResourceGroupName:     "example-resource-group",
-				DedicatedCapacityName: "dedicatedCapacityValue",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.PowerBIDedicated/autoScaleVCores/vcoreValue",
+			Expected: &AutoScaleVCoreId{
+				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
+				ResourceGroupName: "example-resource-group",
+				VcoreName:         "vcoreValue",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment)
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.PowerBIDedicated/capacities/dedicatedCapacityValue/extra",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.PowerBIDedicated/autoScaleVCores/vcoreValue/extra",
 			Error: true,
 		},
 		{
 			// Valid URI (mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.pOwErBiDeDiCaTeD/cApAcItIeS/dEdIcAtEdCaPaCiTyVaLuE",
-			Expected: &CapacitiesId{
-				SubscriptionId:        "12345678-1234-9876-4563-123456789012",
-				ResourceGroupName:     "eXaMpLe-rEsOuRcE-GrOuP",
-				DedicatedCapacityName: "dEdIcAtEdCaPaCiTyVaLuE",
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.pOwErBiDeDiCaTeD/aUtOsCaLeVcOrEs/vCoReVaLuE",
+			Expected: &AutoScaleVCoreId{
+				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
+				ResourceGroupName: "eXaMpLe-rEsOuRcE-GrOuP",
+				VcoreName:         "vCoReVaLuE",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment - mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.pOwErBiDeDiCaTeD/cApAcItIeS/dEdIcAtEdCaPaCiTyVaLuE/extra",
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.pOwErBiDeDiCaTeD/aUtOsCaLeVcOrEs/vCoReVaLuE/extra",
 			Error: true,
 		},
 	}
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseCapacitiesIDInsensitively(v.Input)
+		actual, err := ParseAutoScaleVCoreIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -256,8 +256,8 @@ func TestParseCapacitiesIDInsensitively(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for ResourceGroupName", v.Expected.ResourceGroupName, actual.ResourceGroupName)
 		}
 
-		if actual.DedicatedCapacityName != v.Expected.DedicatedCapacityName {
-			t.Fatalf("Expected %q but got %q for DedicatedCapacityName", v.Expected.DedicatedCapacityName, actual.DedicatedCapacityName)
+		if actual.VcoreName != v.Expected.VcoreName {
+			t.Fatalf("Expected %q but got %q for VcoreName", v.Expected.VcoreName, actual.VcoreName)
 		}
 
 	}

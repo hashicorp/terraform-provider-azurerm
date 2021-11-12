@@ -1,4 +1,4 @@
-package capacities
+package autoscalevcores
 
 type SystemData struct {
 	CreatedAt          *string       `json:"createdAt,omitempty"`
