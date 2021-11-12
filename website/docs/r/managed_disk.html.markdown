@@ -137,7 +137,9 @@ The following arguments are supported:
 
 -> **Note:** Trusted Launch can only be enabled when `create_option` is `FromImage` or `Import`.
 
-* `bursting_enabled` (Optional) Specifies if the disk-level bursting is enabled for the Managed Disk. Defaults to `false`.
+* `on_demand_bursting_enabled` (Optional) Specifies if On-Demand Bursting is enabled for the Managed Disk. Defaults to `false`.
+
+-> **Note:** Credit-Based Bursting is enabled by default on all eligible disks. More information on [Credit-Based and On-Demand Bursting can be found in the documentation](https://docs.microsoft.com/azure/virtual-machines/disk-bursting#disk-level-bursting).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

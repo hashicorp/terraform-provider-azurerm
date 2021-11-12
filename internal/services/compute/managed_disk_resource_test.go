@@ -502,14 +502,14 @@ func TestAccAzureRMManagedDisk_update_withBurstingEnabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.empty(data),
+			Config: r.create_withOnDemandBursting(data),
 			Check: resource.ComposeTestCheckFunc(
-			check.That(data.ResourceName).ExistsInAzure(r),
-		),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.update_withBurstingEnabled(data),
+			Config: r.update_withOnDemandBursting(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1575,7 +1575,8 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ManagedDiskResource) update_withBurstingEnabled(data acceptance.TestData) string {
+
+func (ManagedDiskResource) create_withOnDemandBursting(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1585,13 +1586,39 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_managed_disk" "test" {
-  name                 = "acctestd-%d"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_type = "Premium_LRS"
-  create_option        = "Empty"
-  disk_size_gb         = "1024"
-  bursting_enabled     = true
+  name                       = "acctestd-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  storage_account_type       = "Premium_LRS"
+  create_option              = "Empty"
+  disk_size_gb               = "1024"
+  on_demand_bursting_enabled = false
+  tags = {
+    environment = "acctest"
+    cost-center = "ops"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+
+func (ManagedDiskResource) update_withOnDemandBursting(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_managed_disk" "test" {
+  name                       = "acctestd-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  storage_account_type       = "Premium_LRS"
+  create_option              = "Empty"
+  disk_size_gb               = "1024"
+  on_demand_bursting_enabled = true
   tags = {
     environment = "acctest"
     cost-center = "ops"

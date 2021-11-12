@@ -209,7 +209,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"bursting_enabled": {
+			"on_demand_bursting_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
@@ -392,16 +392,16 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if d.Get("bursting_enabled").(bool) {
+	if d.Get("on_demand_bursting_enabled").(bool) {
 		switch storageAccountType {
 		case string(compute.StorageAccountTypesPremiumLRS):
 		case string(compute.StorageAccountTypesPremiumZRS):
 		default:
-			return fmt.Errorf("`bursting_enabled` can only be set to true when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
+			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
 		}
 
 		if diskSizeGB != 0 && diskSizeGB <= 512 {
-			return fmt.Errorf("`bursting_enabled` can only be set to true when `disk_size_gb` is larger than 512")
+			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `disk_size_gb` is larger than 512GB")
 		}
 
 		props.BurstingEnabled = utils.Bool(true)
@@ -452,7 +452,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	maxShares := d.Get("max_shares").(int)
 	storageAccountType := d.Get("storage_account_type").(string)
 	diskSizeGB := d.Get("disk_size_gb").(int)
-	burstingEnabled := d.Get("bursting_enabled").(bool)
+	onDemandBurstingEnabled := d.Get("on_demand_bursting_enabled").(bool)
 	shouldShutDown := false
 
 	disk, err := client.Get(ctx, resourceGroup, name)
@@ -585,22 +585,22 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if burstingEnabled {
+	if onDemandBurstingEnabled {
 		switch storageAccountType {
 		case string(compute.StorageAccountTypesPremiumLRS):
 		case string(compute.StorageAccountTypesPremiumZRS):
 		default:
-			return fmt.Errorf("`bursting_enabled` can only be set to true when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
+			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
 		}
 
 		if diskSizeGB != 0 && diskSizeGB <= 512 {
-			return fmt.Errorf("`bursting_enabled` can only be set to true when `disk_size_gb` is larger than 512")
+			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `disk_size_gb` is larger than 512GB")
 		}
 	}
 
-	if d.HasChange("bursting_enabled") {
+	if d.HasChange("on_demand_bursting_enabled") {
 		shouldShutDown = true
-		diskUpdate.BurstingEnabled = utils.Bool(burstingEnabled)
+		diskUpdate.BurstingEnabled = utils.Bool(onDemandBurstingEnabled)
 	}
 
 	// whilst we need to shut this down, if we're not attached to anything there's no point
@@ -804,7 +804,12 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			}
 		}
 		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
-		d.Set("bursting_enabled", props.BurstingEnabled)
+
+		onDemandBurstingEnabled := false
+		if props.BurstingEnabled != nil {
+			onDemandBurstingEnabled = *props.BurstingEnabled
+		}
+		d.Set("on_demand_bursting_enabled", onDemandBurstingEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
