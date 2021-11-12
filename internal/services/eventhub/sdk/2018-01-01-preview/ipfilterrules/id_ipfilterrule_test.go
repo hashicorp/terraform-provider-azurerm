@@ -307,3 +307,18 @@ func TestParseIpfilterruleIDInsensitively(t *testing.T) {
 
 	}
 }
+
+func TestSegmentsForIpfilterruleId(t *testing.T) {
+	segments := IpfilterruleId{}.Segments()
+	if len(segments) == 0 {
+		t.Fatalf("IpfilterruleId has no segments")
+	}
+
+	uniqueNames := make(map[string]struct{}, 0)
+	for _, segment := range segments {
+		uniqueNames[segment.Name] = struct{}{}
+	}
+	if len(uniqueNames) != len(segments) {
+		t.Fatalf("Expected the Segments to be unique but got %q unique segments and %d total segments", len(uniqueNames), len(segments))
+	}
+}

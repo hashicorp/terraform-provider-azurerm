@@ -92,11 +92,11 @@ func (id SkuId) ID() string {
 // Segments returns a slice of Resource ID Segments which comprise this Sku ID
 func (id SkuId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
+		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
-		resourceids.StaticSegment("providers", "providers", "providers"),
-		resourceids.ResourceProviderSegment("microsoftEventHub", "Microsoft.EventHub", "Microsoft.EventHub"),
-		resourceids.StaticSegment("sku", "sku", "sku"),
+		resourceids.StaticSegment("staticProviders", "providers", "providers"),
+		resourceids.ResourceProviderSegment("staticMicrosoftEventHub", "Microsoft.EventHub", "Microsoft.EventHub"),
+		resourceids.StaticSegment("staticSku", "sku", "sku"),
 		resourceids.UserSpecifiedSegment("sku", "skuValue"),
 	}
 }

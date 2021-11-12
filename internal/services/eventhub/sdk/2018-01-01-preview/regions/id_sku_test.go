@@ -217,3 +217,18 @@ func TestParseSkuIDInsensitively(t *testing.T) {
 
 	}
 }
+
+func TestSegmentsForSkuId(t *testing.T) {
+	segments := SkuId{}.Segments()
+	if len(segments) == 0 {
+		t.Fatalf("SkuId has no segments")
+	}
+
+	uniqueNames := make(map[string]struct{}, 0)
+	for _, segment := range segments {
+		uniqueNames[segment.Name] = struct{}{}
+	}
+	if len(uniqueNames) != len(segments) {
+		t.Fatalf("Expected the Segments to be unique but got %q unique segments and %d total segments", len(uniqueNames), len(segments))
+	}
+}

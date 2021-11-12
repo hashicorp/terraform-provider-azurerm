@@ -122,17 +122,17 @@ func (id EventhubAuthorizationRuleId) ID() string {
 // Segments returns a slice of Resource ID Segments which comprise this Eventhub Authorization Rule ID
 func (id EventhubAuthorizationRuleId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
+		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
-		resourceids.StaticSegment("resourceGroups", "resourceGroups", "resourceGroups"),
+		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
 		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
-		resourceids.StaticSegment("providers", "providers", "providers"),
-		resourceids.ResourceProviderSegment("microsoftEventHub", "Microsoft.EventHub", "Microsoft.EventHub"),
-		resourceids.StaticSegment("namespaces", "namespaces", "namespaces"),
+		resourceids.StaticSegment("staticProviders", "providers", "providers"),
+		resourceids.ResourceProviderSegment("staticMicrosoftEventHub", "Microsoft.EventHub", "Microsoft.EventHub"),
+		resourceids.StaticSegment("staticNamespaces", "namespaces", "namespaces"),
 		resourceids.UserSpecifiedSegment("namespaceName", "namespaceValue"),
-		resourceids.StaticSegment("eventhubs", "eventhubs", "eventhubs"),
+		resourceids.StaticSegment("staticEventhubs", "eventhubs", "eventhubs"),
 		resourceids.UserSpecifiedSegment("eventHubName", "eventHubValue"),
-		resourceids.StaticSegment("authorizationRules", "authorizationRules", "authorizationRules"),
+		resourceids.StaticSegment("staticAuthorizationRules", "authorizationRules", "authorizationRules"),
 		resourceids.UserSpecifiedSegment("authorizationRuleName", "authorizationRuleValue"),
 	}
 }
