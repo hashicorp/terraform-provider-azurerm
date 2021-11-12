@@ -96,7 +96,7 @@ func (t OrchestratedVirtualMachineScaleSetResource) Exists(ctx context.Context, 
 		return nil, err
 	}
 
-	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Marketplace Agreement %q", id.String())
 	}
