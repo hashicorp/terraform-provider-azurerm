@@ -1,4 +1,4 @@
-package hybridconnections
+package wcfrelays
 
 import "strings"
 
@@ -58,5 +58,33 @@ func parseKeyType(input string) (*KeyType, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := KeyType(input)
+	return &out, nil
+}
+
+type Relaytype string
+
+const (
+	RelaytypeHttp   Relaytype = "Http"
+	RelaytypeNetTcp Relaytype = "NetTcp"
+)
+
+func PossibleValuesForRelaytype() []string {
+	return []string{
+		string(RelaytypeHttp),
+		string(RelaytypeNetTcp),
+	}
+}
+
+func parseRelaytype(input string) (*Relaytype, error) {
+	vals := map[string]Relaytype{
+		"http":   RelaytypeHttp,
+		"nettcp": RelaytypeNetTcp,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := Relaytype(input)
 	return &out, nil
 }

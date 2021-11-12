@@ -1,4 +1,4 @@
-package hybridconnections
+package wcfrelays
 
 import (
 	"testing"
@@ -6,10 +6,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = HybridConnectionId{}
+var _ resourceids.ResourceId = WcfRelayAuthorizationRuleId{}
 
-func TestNewHybridConnectionID(t *testing.T) {
-	id := NewHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "hybridConnectionValue")
+func TestNewWcfRelayAuthorizationRuleID(t *testing.T) {
+	id := NewWcfRelayAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "relayValue", "authorizationRuleValue")
 
 	if id.SubscriptionId != "12345678-1234-9876-4563-123456789012" {
 		t.Fatalf("Expected %q but got %q for Segment 'SubscriptionId'", id.SubscriptionId, "12345678-1234-9876-4563-123456789012")
@@ -23,24 +23,28 @@ func TestNewHybridConnectionID(t *testing.T) {
 		t.Fatalf("Expected %q but got %q for Segment 'NamespaceName'", id.NamespaceName, "namespaceValue")
 	}
 
-	if id.HybridConnectionName != "hybridConnectionValue" {
-		t.Fatalf("Expected %q but got %q for Segment 'HybridConnectionName'", id.HybridConnectionName, "hybridConnectionValue")
+	if id.RelayName != "relayValue" {
+		t.Fatalf("Expected %q but got %q for Segment 'RelayName'", id.RelayName, "relayValue")
+	}
+
+	if id.AuthorizationRuleName != "authorizationRuleValue" {
+		t.Fatalf("Expected %q but got %q for Segment 'AuthorizationRuleName'", id.AuthorizationRuleName, "authorizationRuleValue")
 	}
 }
 
-func TestFormatHybridConnectionID(t *testing.T) {
-	actual := NewHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "hybridConnectionValue").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Relay/namespaces/namespaceValue/hybridConnections/hybridConnectionValue"
+func TestFormatWcfRelayAuthorizationRuleID(t *testing.T) {
+	actual := NewWcfRelayAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "relayValue", "authorizationRuleValue").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Relay/namespaces/namespaceValue/wcfRelays/relayValue/authorizationRules/authorizationRuleValue"
 	if actual != expected {
 		t.Fatalf("Expected the Formatted ID to be %q but got %q", actual, expected)
 	}
 }
 
-func TestParseHybridConnectionID(t *testing.T) {
+func TestParseWcfRelayAuthorizationRuleID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *HybridConnectionId
+		Expected *WcfRelayAuthorizationRuleId
 	}{
 		{
 			// Incomplete URI
@@ -89,29 +93,40 @@ func TestParseHybridConnectionID(t *testing.T) {
 		},
 		{
 			// Incomplete URI
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Relay/namespaces/namespaceValue/hybridConnections",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Relay/namespaces/namespaceValue/wcfRelays",
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Relay/namespaces/namespaceValue/wcfRelays/relayValue",
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Relay/namespaces/namespaceValue/wcfRelays/relayValue/authorizationRules",
 			Error: true,
 		},
 		{
 			// Valid URI
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Relay/namespaces/namespaceValue/hybridConnections/hybridConnectionValue",
-			Expected: &HybridConnectionId{
-				SubscriptionId:       "12345678-1234-9876-4563-123456789012",
-				ResourceGroupName:    "example-resource-group",
-				NamespaceName:        "namespaceValue",
-				HybridConnectionName: "hybridConnectionValue",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Relay/namespaces/namespaceValue/wcfRelays/relayValue/authorizationRules/authorizationRuleValue",
+			Expected: &WcfRelayAuthorizationRuleId{
+				SubscriptionId:        "12345678-1234-9876-4563-123456789012",
+				ResourceGroupName:     "example-resource-group",
+				NamespaceName:         "namespaceValue",
+				RelayName:             "relayValue",
+				AuthorizationRuleName: "authorizationRuleValue",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment)
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Relay/namespaces/namespaceValue/hybridConnections/hybridConnectionValue/extra",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Relay/namespaces/namespaceValue/wcfRelays/relayValue/authorizationRules/authorizationRuleValue/extra",
 			Error: true,
 		},
 	}
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseHybridConnectionID(v.Input)
+		actual, err := ParseWcfRelayAuthorizationRuleID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -135,18 +150,22 @@ func TestParseHybridConnectionID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for NamespaceName", v.Expected.NamespaceName, actual.NamespaceName)
 		}
 
-		if actual.HybridConnectionName != v.Expected.HybridConnectionName {
-			t.Fatalf("Expected %q but got %q for HybridConnectionName", v.Expected.HybridConnectionName, actual.HybridConnectionName)
+		if actual.RelayName != v.Expected.RelayName {
+			t.Fatalf("Expected %q but got %q for RelayName", v.Expected.RelayName, actual.RelayName)
+		}
+
+		if actual.AuthorizationRuleName != v.Expected.AuthorizationRuleName {
+			t.Fatalf("Expected %q but got %q for AuthorizationRuleName", v.Expected.AuthorizationRuleName, actual.AuthorizationRuleName)
 		}
 
 	}
 }
 
-func TestParseHybridConnectionIDInsensitively(t *testing.T) {
+func TestParseWcfRelayAuthorizationRuleIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *HybridConnectionId
+		Expected *WcfRelayAuthorizationRuleId
 	}{
 		{
 			// Incomplete URI
@@ -235,49 +254,71 @@ func TestParseHybridConnectionIDInsensitively(t *testing.T) {
 		},
 		{
 			// Incomplete URI
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Relay/namespaces/namespaceValue/hybridConnections",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Relay/namespaces/namespaceValue/wcfRelays",
 			Error: true,
 		},
 		{
 			// Incomplete URI (mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.rElAy/nAmEsPaCeS/nAmEsPaCeVaLuE/hYbRiDcOnNeCtIoNs",
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.rElAy/nAmEsPaCeS/nAmEsPaCeVaLuE/wCfReLaYs",
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Relay/namespaces/namespaceValue/wcfRelays/relayValue",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.rElAy/nAmEsPaCeS/nAmEsPaCeVaLuE/wCfReLaYs/rElAyVaLuE",
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Relay/namespaces/namespaceValue/wcfRelays/relayValue/authorizationRules",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.rElAy/nAmEsPaCeS/nAmEsPaCeVaLuE/wCfReLaYs/rElAyVaLuE/aUtHoRiZaTiOnRuLeS",
 			Error: true,
 		},
 		{
 			// Valid URI
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Relay/namespaces/namespaceValue/hybridConnections/hybridConnectionValue",
-			Expected: &HybridConnectionId{
-				SubscriptionId:       "12345678-1234-9876-4563-123456789012",
-				ResourceGroupName:    "example-resource-group",
-				NamespaceName:        "namespaceValue",
-				HybridConnectionName: "hybridConnectionValue",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Relay/namespaces/namespaceValue/wcfRelays/relayValue/authorizationRules/authorizationRuleValue",
+			Expected: &WcfRelayAuthorizationRuleId{
+				SubscriptionId:        "12345678-1234-9876-4563-123456789012",
+				ResourceGroupName:     "example-resource-group",
+				NamespaceName:         "namespaceValue",
+				RelayName:             "relayValue",
+				AuthorizationRuleName: "authorizationRuleValue",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment)
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Relay/namespaces/namespaceValue/hybridConnections/hybridConnectionValue/extra",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Relay/namespaces/namespaceValue/wcfRelays/relayValue/authorizationRules/authorizationRuleValue/extra",
 			Error: true,
 		},
 		{
 			// Valid URI (mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.rElAy/nAmEsPaCeS/nAmEsPaCeVaLuE/hYbRiDcOnNeCtIoNs/hYbRiDcOnNeCtIoNvAlUe",
-			Expected: &HybridConnectionId{
-				SubscriptionId:       "12345678-1234-9876-4563-123456789012",
-				ResourceGroupName:    "eXaMpLe-rEsOuRcE-GrOuP",
-				NamespaceName:        "nAmEsPaCeVaLuE",
-				HybridConnectionName: "hYbRiDcOnNeCtIoNvAlUe",
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.rElAy/nAmEsPaCeS/nAmEsPaCeVaLuE/wCfReLaYs/rElAyVaLuE/aUtHoRiZaTiOnRuLeS/aUtHoRiZaTiOnRuLeVaLuE",
+			Expected: &WcfRelayAuthorizationRuleId{
+				SubscriptionId:        "12345678-1234-9876-4563-123456789012",
+				ResourceGroupName:     "eXaMpLe-rEsOuRcE-GrOuP",
+				NamespaceName:         "nAmEsPaCeVaLuE",
+				RelayName:             "rElAyVaLuE",
+				AuthorizationRuleName: "aUtHoRiZaTiOnRuLeVaLuE",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment - mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.rElAy/nAmEsPaCeS/nAmEsPaCeVaLuE/hYbRiDcOnNeCtIoNs/hYbRiDcOnNeCtIoNvAlUe/extra",
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.rElAy/nAmEsPaCeS/nAmEsPaCeVaLuE/wCfReLaYs/rElAyVaLuE/aUtHoRiZaTiOnRuLeS/aUtHoRiZaTiOnRuLeVaLuE/extra",
 			Error: true,
 		},
 	}
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseHybridConnectionIDInsensitively(v.Input)
+		actual, err := ParseWcfRelayAuthorizationRuleIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -301,8 +342,12 @@ func TestParseHybridConnectionIDInsensitively(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for NamespaceName", v.Expected.NamespaceName, actual.NamespaceName)
 		}
 
-		if actual.HybridConnectionName != v.Expected.HybridConnectionName {
-			t.Fatalf("Expected %q but got %q for HybridConnectionName", v.Expected.HybridConnectionName, actual.HybridConnectionName)
+		if actual.RelayName != v.Expected.RelayName {
+			t.Fatalf("Expected %q but got %q for RelayName", v.Expected.RelayName, actual.RelayName)
+		}
+
+		if actual.AuthorizationRuleName != v.Expected.AuthorizationRuleName {
+			t.Fatalf("Expected %q but got %q for AuthorizationRuleName", v.Expected.AuthorizationRuleName, actual.AuthorizationRuleName)
 		}
 
 	}

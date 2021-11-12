@@ -77,7 +77,7 @@ func resourceRelayNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	parameters := namespaces.AuthorizationRule{
-		Name: utils.String(resourceId.Name),
+		Name: utils.String(resourceId.AuthorizationRuleName),
 		Properties: namespaces.AuthorizationRuleProperties{
 			Rights: expandAuthorizationRuleRights(d),
 		},
@@ -116,9 +116,9 @@ func resourceRelayNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("listing keys for %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.AuthorizationRuleName)
 	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		listen, send, manage := flattenAuthorizationRuleRights(model.Properties.Rights)

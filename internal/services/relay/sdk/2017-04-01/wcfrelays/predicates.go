@@ -1,4 +1,4 @@
-package namespaces
+package wcfrelays
 
 type AuthorizationRulePredicate struct {
 	Id   *string
@@ -23,20 +23,15 @@ func (p AuthorizationRulePredicate) Matches(input AuthorizationRule) bool {
 	return true
 }
 
-type RelayNamespacePredicate struct {
-	Id       *string
-	Location *string
-	Name     *string
-	Type     *string
+type WcfRelayPredicate struct {
+	Id   *string
+	Name *string
+	Type *string
 }
 
-func (p RelayNamespacePredicate) Matches(input RelayNamespace) bool {
+func (p WcfRelayPredicate) Matches(input WcfRelay) bool {
 
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
-		return false
-	}
-
-	if p.Location != nil && *p.Location != input.Location {
 		return false
 	}
 

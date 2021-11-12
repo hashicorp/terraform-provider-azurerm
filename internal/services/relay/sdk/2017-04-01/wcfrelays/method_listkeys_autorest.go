@@ -1,4 +1,4 @@
-package hybridconnections
+package wcfrelays
 
 import (
 	"context"
@@ -15,22 +15,22 @@ type ListKeysResponse struct {
 }
 
 // ListKeys ...
-func (c HybridConnectionsClient) ListKeys(ctx context.Context, id HybridConnectionAuthorizationRuleId) (result ListKeysResponse, err error) {
+func (c WCFRelaysClient) ListKeys(ctx context.Context, id WcfRelayAuthorizationRuleId) (result ListKeysResponse, err error) {
 	req, err := c.preparerForListKeys(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hybridconnections.HybridConnectionsClient", "ListKeys", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "wcfrelays.WCFRelaysClient", "ListKeys", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hybridconnections.HybridConnectionsClient", "ListKeys", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "wcfrelays.WCFRelaysClient", "ListKeys", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForListKeys(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hybridconnections.HybridConnectionsClient", "ListKeys", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "wcfrelays.WCFRelaysClient", "ListKeys", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -38,7 +38,7 @@ func (c HybridConnectionsClient) ListKeys(ctx context.Context, id HybridConnecti
 }
 
 // preparerForListKeys prepares the ListKeys request.
-func (c HybridConnectionsClient) preparerForListKeys(ctx context.Context, id HybridConnectionAuthorizationRuleId) (*http.Request, error) {
+func (c WCFRelaysClient) preparerForListKeys(ctx context.Context, id WcfRelayAuthorizationRuleId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -54,7 +54,7 @@ func (c HybridConnectionsClient) preparerForListKeys(ctx context.Context, id Hyb
 
 // responderForListKeys handles the response to the ListKeys request. The method always
 // closes the http.Response Body.
-func (c HybridConnectionsClient) responderForListKeys(resp *http.Response) (result ListKeysResponse, err error) {
+func (c WCFRelaysClient) responderForListKeys(resp *http.Response) (result ListKeysResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

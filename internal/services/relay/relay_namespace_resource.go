@@ -151,14 +151,14 @@ func resourceRelayNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	authRuleId := namespaces.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.Name, "RootManageSharedAccessKey")
+	authRuleId := namespaces.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, "RootManageSharedAccessKey")
 	keysResp, err := client.ListKeys(ctx, authRuleId)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.NamespaceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
@@ -201,7 +201,7 @@ func resourceRelayNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	// we can't make use of the Future here due to a bug where 404 isn't tracked as Successful
-	log.Printf("[DEBUG] Waiting for Relay Namespace %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Waiting for %s to be deleted", *id)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Pending"},
 		Target:     []string{"Deleted"},
