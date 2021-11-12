@@ -343,7 +343,7 @@ func (k ClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				lb := lbi.(map[string]interface{})
 				probeProto := lb["probe_protocol"].(string)
 				if probeProto == string(managedcluster.ProbeProtocolHttp) || probeProto == string(managedcluster.ProbeProtocolHttps) {
-					probePath := lb["probe_protocol_path"]
+					probePath := lb["probe_request_path"]
 					if probePath == nil || probePath.(string) == "" {
 						return fmt.Errorf("probe_request_path needs to be set if probe protocol is %q", probeProto)
 					}
