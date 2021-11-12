@@ -72,12 +72,6 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						"resource_group_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
 					},
 				},
 			},
@@ -486,16 +480,10 @@ func flattenOpenShiftClusterProfile(profile *redhatopenshift.ClusterProfile) []i
 		clusterDomain = *profile.Domain
 	}
 
-	clusterResourceGroupId := ""
-	if profile.ResourceGroupID != nil {
-		clusterResourceGroupId = *profile.ResourceGroupID
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"pull_secret":       pullSecret,
-			"domain":            clusterDomain,
-			"resource_group_id": clusterResourceGroupId,
+			"pull_secret": pullSecret,
+			"domain":      clusterDomain,
 		},
 	}
 }
@@ -638,12 +626,12 @@ func flattenOpenShiftIngressProfiles(profiles *[]redhatopenshift.IngressProfile)
 }
 
 func expandOpenshiftClusterProfile(input []interface{}, subscriptionId string) *redhatopenshift.ClusterProfile {
-	if len(input) == 0 {
-		randomClusterResourceGroupName := fmt.Sprintf("aro-%s", randomDomainName)
-		randomClusterResourceGroupId := ResourceGroupID(subscriptionId, randomClusterResourceGroupName)
+	resourceGroupName := fmt.Sprintf("aro-%s", randomDomainName)
+	resourceGroupId := ResourceGroupID(subscriptionId, resourceGroupName)
 
+	if len(input) == 0 {
 		return &redhatopenshift.ClusterProfile{
-			ResourceGroupID: utils.String(randomClusterResourceGroupId),
+			ResourceGroupID: utils.String(resourceGroupId),
 			Domain:          utils.String(randomDomainName),
 		}
 	}
@@ -655,12 +643,6 @@ func expandOpenshiftClusterProfile(input []interface{}, subscriptionId string) *
 	domain := config["domain"].(string)
 	if domain == "" {
 		domain = randomDomainName
-	}
-
-	resourceGroupId := config["resource_group_id"].(string)
-	if resourceGroupId == "" {
-		randomClusterResourceGroupName := fmt.Sprintf("aro-%s", randomDomainName)
-		resourceGroupId = ResourceGroupID(subscriptionId, randomClusterResourceGroupName)
 	}
 
 	return &redhatopenshift.ClusterProfile{
