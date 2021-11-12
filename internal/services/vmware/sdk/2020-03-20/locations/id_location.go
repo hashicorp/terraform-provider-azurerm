@@ -92,11 +92,11 @@ func (id LocationId) ID() string {
 // Segments returns a slice of Resource ID Segments which comprise this Location ID
 func (id LocationId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
+		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
-		resourceids.StaticSegment("providers", "providers", "providers"),
-		resourceids.ResourceProviderSegment("microsoftAVS", "Microsoft.AVS", "Microsoft.AVS"),
-		resourceids.StaticSegment("locations", "locations", "locations"),
+		resourceids.StaticSegment("staticProviders", "providers", "providers"),
+		resourceids.ResourceProviderSegment("staticMicrosoftAVS", "Microsoft.AVS", "Microsoft.AVS"),
+		resourceids.StaticSegment("staticLocations", "locations", "locations"),
 		resourceids.UserSpecifiedSegment("location", "locationValue"),
 	}
 }

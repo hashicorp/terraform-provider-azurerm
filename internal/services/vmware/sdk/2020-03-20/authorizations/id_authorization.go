@@ -112,15 +112,15 @@ func (id AuthorizationId) ID() string {
 // Segments returns a slice of Resource ID Segments which comprise this Authorization ID
 func (id AuthorizationId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
+		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
-		resourceids.StaticSegment("resourceGroups", "resourceGroups", "resourceGroups"),
+		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
 		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
-		resourceids.StaticSegment("providers", "providers", "providers"),
-		resourceids.ResourceProviderSegment("microsoftAVS", "Microsoft.AVS", "Microsoft.AVS"),
-		resourceids.StaticSegment("privateClouds", "privateClouds", "privateClouds"),
+		resourceids.StaticSegment("staticProviders", "providers", "providers"),
+		resourceids.ResourceProviderSegment("staticMicrosoftAVS", "Microsoft.AVS", "Microsoft.AVS"),
+		resourceids.StaticSegment("staticPrivateClouds", "privateClouds", "privateClouds"),
 		resourceids.UserSpecifiedSegment("privateCloudName", "privateCloudValue"),
-		resourceids.StaticSegment("authorizations", "authorizations", "authorizations"),
+		resourceids.StaticSegment("staticAuthorizations", "authorizations", "authorizations"),
 		resourceids.UserSpecifiedSegment("authorizationName", "authorizationValue"),
 	}
 }
