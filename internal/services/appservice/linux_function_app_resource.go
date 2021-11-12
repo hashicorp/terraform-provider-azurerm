@@ -439,6 +439,13 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if _, ok := metadata.ResourceData.GetOk("site_config.0.app_service_logs"); ok {
+				appServiceLogs := helpers.ExpandFunctionAppAppServiceLogs(functionApp.SiteConfig[0].AppServiceLogs)
+				if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, appServiceLogs); err != nil {
+					return fmt.Errorf("updating App Service Log Settings for %s: %+v", id, err)
+				}
+			}
+
 			metadata.SetID(id)
 			return nil
 		},
@@ -502,6 +509,11 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			logs, err := client.GetDiagnosticLogsConfiguration(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading logs configuration for Linux %s: %+v", id, err)
+			}
+
 			state := LinuxFunctionAppModel{
 				Name:                 id.SiteName,
 				ResourceGroup:        id.ResourceGroup,
@@ -538,6 +550,8 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 			state.AuthSettings = helpers.FlattenAuthSettings(auth)
 
 			state.Backup = helpers.FlattenBackupConfig(backup)
+
+			state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs)
 
 			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
 			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
@@ -688,6 +702,13 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if metadata.ResourceData.HasChange("site_config.0.app_service_logs") {
+				appServiceLogs := helpers.ExpandFunctionAppAppServiceLogs(state.SiteConfig[0].AppServiceLogs)
+				if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, appServiceLogs); err != nil {
+					return fmt.Errorf("updating App Service Log Settings for %s: %+v", id, err)
+				}
+			}
+
 			return nil
 		},
 	}
@@ -811,6 +832,7 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input web.StringD
 		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from LinuxFxVersion so can discard it here
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
 		case "WEBSITE_CONTENTSHARE":
+		case "WEBSITE_HTTPLOGGING_RETENTION_DAYS":
 		case "FUNCTIONS_WORKER_RUNTIME":
 			if m.SiteConfig[0].ApplicationStack != nil {
 				m.SiteConfig[0].ApplicationStack[0].CustomHandler = strings.EqualFold(*v, "custom")

@@ -130,11 +130,21 @@ A `application_stack` block supports the following:
 
 * `python_version` - (Optional) The version of Python to run. Possible values include `3.6`, `3.7`, `3.8`, and `3.9`.
 
-* `use_custom` - (Optional) Should the Linux Function App use a custom runtime?
+* `use_custom_runtime` - (Optional) Should the Linux Function App use a custom runtime?
 
 ---
 
-A `auth_settings` block supports the following:
+An `app_service_logs` block supports the following:
+
+* `disk_quota_mb` - (Required) The amount of disk space to use for logs. Valid values are between `25` and `100`. 
+
+* `retention_period_days` - (Optional) The retention period for logs in days. Valid values are between `0` and `99999`. Defaults to `0` (never delete). 
+
+~> **NOTE:** This block is not supported on Consumption plans.
+
+---
+
+An `auth_settings` block supports the following:
 
 * `enabled` - (Required) Should the Authentication / Authorization feature be enabled for the Linux Web App?
 
@@ -363,7 +373,9 @@ A `site_config` block supports the following:
 
 * `application_insights_key` - (Optional) The Instrumentation Key for connecting the Linux Function App to Application Insights.
 
-* `application_stack` - (Optional) A `application_stack` block as defined above.
+* `application_stack` - (Optional) An `application_stack` block as defined above.
+
+* `app_service_logs` - (Optional) An `app_service_logs` block as defined above.
 
 * `auto_swap_slot_name` - (Optional) The Linux Function App Slot Name to automatically swap to when deployment to that slot is successfully completed.
 
@@ -388,8 +400,6 @@ A `site_config` block supports the following:
 * `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined above.
 
 * `load_balancing_mode` - (Optional) The Site load balancing mode. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.
-
-* `local_mysql` - (Optional) Use Local MySQL. Defaults to `false`.
 
 * `managed_pipeline_mode` - (Optional) Managed pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.
 

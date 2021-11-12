@@ -26,6 +26,7 @@ type SiteConfigLinuxFunctionApp struct {
 	AppInsightsInstrumentationKey string                             `tfschema:"application_insights_key"` // App Insights Instrumentation Key
 	AppInsightsConnectionString   string                             `tfschema:"application_insights_connection_string"`
 	AppScaleLimit                 int                                `tfschema:"app_scale_limit"`
+	AppServiceLogs                []FunctionAppAppServiceLogs        `tfschema:"app_service_logs"`
 	UseManagedIdentityACR         bool                               `tfschema:"container_registry_use_managed_identity"`
 	ContainerRegistryMSI          string                             `tfschema:"container_registry_managed_identity_client_id"`
 	DefaultDocuments              []string                           `tfschema:"default_documents"`
@@ -121,6 +122,8 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				},
 
 				"application_stack": linuxFunctionAppStackSchema(),
+
+				"app_service_logs": FunctionAppAppServiceLogsSchema(),
 
 				"container_registry_use_managed_identity": {
 					Type:        pluginsdk.TypeBool,
@@ -499,6 +502,34 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 	}
 }
 
+type FunctionAppAppServiceLogs struct {
+	DiskQuotaMB         int `tfschema:"disk_quota_mb"`
+	RetentionPeriodDays int `tfschema:"retention_period_days"`
+}
+
+func FunctionAppAppServiceLogsSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*schema.Schema{
+				"disk_quota_mb": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      35,
+					ValidateFunc: validation.IntBetween(25, 100),
+				},
+				"retention_period_days": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(0, 99999),
+				},
+			},
+		},
+	}
+}
+
 func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, existing *web.SiteConfig, metadata sdk.ResourceMetaData, version string, storageString string, storageUsesMSI bool) (*web.SiteConfig, error) {
 	if len(siteConfig) == 0 {
 		return nil, nil
@@ -868,4 +899,42 @@ func MergeUserAppSettings(systemSettings *[]web.NameValuePair, userSettings map[
 		})
 	}
 	return &combined
+}
+
+func ExpandFunctionAppAppServiceLogs(input []FunctionAppAppServiceLogs) web.SiteLogsConfig {
+	if len(input) == 0 {
+		return web.SiteLogsConfig{
+			SiteLogsConfigProperties: &web.SiteLogsConfigProperties{
+				HTTPLogs: &web.HTTPLogsConfig{
+					FileSystem: &web.FileSystemHTTPLogsConfig{
+						Enabled: utils.Bool(false),
+					},
+				},
+			},
+		}
+	}
+
+	config := input[0]
+	return web.SiteLogsConfig{
+		SiteLogsConfigProperties: &web.SiteLogsConfigProperties{
+			HTTPLogs: &web.HTTPLogsConfig{
+				FileSystem: &web.FileSystemHTTPLogsConfig{
+					RetentionInDays: utils.Int32(int32(config.RetentionPeriodDays)),
+					RetentionInMb:   utils.Int32(int32(config.DiskQuotaMB)),
+					Enabled:         utils.Bool(true),
+				},
+			},
+		},
+	}
+}
+
+func FlattenFunctionAppAppServiceLogs(input web.SiteLogsConfig) []FunctionAppAppServiceLogs {
+	if props := input.SiteLogsConfigProperties; props != nil && props.HTTPLogs != nil && props.HTTPLogs.FileSystem != nil && utils.NormaliseNilableBool(props.HTTPLogs.FileSystem.Enabled) {
+		return []FunctionAppAppServiceLogs{{
+			DiskQuotaMB:         int(utils.NormaliseNilableInt32(props.HTTPLogs.FileSystem.RetentionInMb)),
+			RetentionPeriodDays: int(utils.NormaliseNilableInt32(props.HTTPLogs.FileSystem.RetentionInDays)),
+		}}
+	}
+
+	return []FunctionAppAppServiceLogs{}
 }
