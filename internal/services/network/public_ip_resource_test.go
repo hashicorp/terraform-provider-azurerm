@@ -437,7 +437,14 @@ func TestAccPublicIpStatic_extendedLocation(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.extendedLocation(data),
+			Config: r.extendedLocation(data, "Test1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.extendedLocation(data, "Test2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -935,7 +942,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PublicIPResource) extendedLocation(data acceptance.TestData) string {
+func (PublicIPResource) extendedLocation(data acceptance.TestData, tag string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -956,6 +963,10 @@ resource "azurerm_public_ip" "test" {
   sku                 = "Standard"
   availability_zone   = "No-Zone"
   extended_location   = "microsoftlosangeles1"
+
+  tags = {
+    ENV = "%s"
+  }
 }
-`, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.RandomInteger, tag)
 }

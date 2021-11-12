@@ -350,7 +350,14 @@ func TestAccVirtualNetworkGateway_extendedLocation(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.extendedLocation(data),
+			Config: r.extendedLocation(data, "Test1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.extendedLocation(data, "Test2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1426,7 +1433,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Client().TenantID, data.Client().TenantID)
 }
 
-func (VirtualNetworkGatewayResource) extendedLocation(data acceptance.TestData) string {
+func (VirtualNetworkGatewayResource) extendedLocation(data acceptance.TestData, tag string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1434,6 +1441,8 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
+
+  // There is no supported extended location in "West Europe"
   location = "westus"
 }
 
@@ -1473,6 +1482,10 @@ resource "azurerm_virtual_network_gateway" "test" {
     private_ip_address_allocation = "Dynamic"
     subnet_id                     = azurerm_subnet.test.id
   }
+
+  tags = {
+    ENV = "%s"
+  }
 }
-`, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, tag)
 }

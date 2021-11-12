@@ -267,7 +267,14 @@ func TestAccAzureRMLoadBalancer_extendedLocation(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.extendedLocation(data),
+			Config: r.extendedLocation(data, "Test1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.extendedLocation(data, "Test2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -819,7 +826,7 @@ resource "azurerm_lb" "consumer" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LoadBalancer) extendedLocation(data acceptance.TestData) string {
+func (r LoadBalancer) extendedLocation(data acceptance.TestData, tag string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -827,6 +834,8 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-lb-%d"
+
+  // There is no supported extended location in "West Europe"
   location = "westus"
 }
 
@@ -837,9 +846,8 @@ resource "azurerm_lb" "test" {
   extended_location   = "microsoftlosangeles1"
 
   tags = {
-    Environment = "production"
-    Purpose     = "AcceptanceTests"
+    ENV = "%s"
   }
 }
-`, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.RandomInteger, tag)
 }

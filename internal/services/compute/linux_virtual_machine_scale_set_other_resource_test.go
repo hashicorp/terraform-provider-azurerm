@@ -644,14 +644,19 @@ func TestAccLinuxVirtualMachineScaleSet_otherExtendedLocation(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherExtendedLocation(data),
+			Config: r.otherExtendedLocation(data, "Test1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherExtendedLocation(data, "Test2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -2483,7 +2488,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherExtendedLocation(data acceptance.TestData) string {
+func (r LinuxVirtualMachineScaleSetResource) otherExtendedLocation(data acceptance.TestData, tag string) string {
 	return fmt.Sprintf(`
 # note: whilst these aren't used in all tests, it saves us redefining these everywhere
 locals {
@@ -2493,6 +2498,8 @@ locals {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
+
+  // There is no supported extended location in "West Europe"
   location = "westus"
 }
 
@@ -2544,6 +2551,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
     }
   }
+
+  tags = {
+    ENV = "%s"
+  }
 }
-`, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.RandomInteger, data.RandomInteger, tag)
 }

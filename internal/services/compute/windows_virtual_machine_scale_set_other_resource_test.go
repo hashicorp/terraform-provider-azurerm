@@ -788,14 +788,19 @@ func TestAccWindowsVirtualMachineScaleSet_otherExtendedLocation(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherExtendedLocation(data),
+			Config: r.otherExtendedLocation(data, "Test1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherExtendedLocation(data, "Test2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -2985,7 +2990,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data), licenseType)
 }
 
-func (r WindowsVirtualMachineScaleSetResource) otherExtendedLocation(data acceptance.TestData) string {
+func (r WindowsVirtualMachineScaleSetResource) otherExtendedLocation(data acceptance.TestData, tag string) string {
 	return fmt.Sprintf(`
 locals {
   vm_name = "%s"
@@ -2993,6 +2998,8 @@ locals {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
+
+  // There is no supported extended location in "West Europe"
   location = "westus"
 }
 
@@ -3041,6 +3048,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
     }
   }
+
+  tags = {
+    ENV = "%s"
+  }
 }
-`, r.vmName(data), data.RandomInteger, data.RandomInteger)
+`, r.vmName(data), data.RandomInteger, data.RandomInteger, tag)
 }

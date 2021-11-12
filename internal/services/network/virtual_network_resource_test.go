@@ -208,7 +208,14 @@ func TestAccVirtualNetwork_extendedLocation(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.extendedLocation(data),
+			Config: r.extendedLocation(data, "Test1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.extendedLocation(data, "Test2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -466,7 +473,7 @@ resource "azurerm_virtual_network" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (VirtualNetworkResource) extendedLocation(data acceptance.TestData) string {
+func (VirtualNetworkResource) extendedLocation(data acceptance.TestData, tag string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -490,6 +497,10 @@ resource "azurerm_virtual_network" "test" {
     name           = "subnet1"
     address_prefix = "10.0.1.0/24"
   }
+
+  tags = {
+    ENV = "%s"
+  }
 }
-`, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.RandomInteger, tag)
 }

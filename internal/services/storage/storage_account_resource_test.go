@@ -3079,6 +3079,8 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
+
+  // There is no supported extended location in "West Europe"
   location = "westus"
 }
 

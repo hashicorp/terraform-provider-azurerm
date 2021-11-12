@@ -1022,14 +1022,19 @@ func TestAccWindowsVirtualMachine_otherExtendedLocation(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherExtendedLocation(data),
+			Config: r.otherExtendedLocation(data, "Test1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherExtendedLocation(data, "Test2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -2520,7 +2525,7 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, data.RandomString, gracefulShutdown, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r WindowsVirtualMachineResource) otherExtendedLocation(data acceptance.TestData) string {
+func (r WindowsVirtualMachineResource) otherExtendedLocation(data acceptance.TestData, tag string) string {
 	return fmt.Sprintf(`
 locals {
   vm_name = "acctestvm%s"
@@ -2528,6 +2533,8 @@ locals {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
+
+  // There is no supported extended location in "West Europe"
   location = "westus"
 }
 
@@ -2584,6 +2591,10 @@ resource "azurerm_windows_virtual_machine" "test" {
 
   enable_automatic_updates = false
   patch_mode               = "Manual"
+
+  tags = {
+    ENV = "%s"
+  }
 }
-`, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, tag)
 }

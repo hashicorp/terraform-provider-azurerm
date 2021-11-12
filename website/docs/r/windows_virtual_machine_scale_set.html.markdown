@@ -132,7 +132,7 @@ The following arguments are supported:
 
 * `encryption_at_host_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?
 
-* `extended_location` - (Optional) Specifies the supported Azure extended location where the resource exists. It offers Azure capacity close to the customer to address the low latency and high throughput requirements and Data Residency requirements of the applications. Changing this forces a new resource to be created.
+* `extended_location` - (Optional) Specifies the supported Azure extended location where the resource exists. It allows customers to take advantage of more granular locations. Changing this forces a new resource to be created.
 
 * `extension` - (Optional) One or more `extension` blocks as defined below
 
