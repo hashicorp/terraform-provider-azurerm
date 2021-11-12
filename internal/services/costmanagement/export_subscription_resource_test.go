@@ -61,6 +61,24 @@ func TestAccSubscriptionCostManagementExport_update(t *testing.T) {
 	})
 }
 
+func TestAccSubscriptionCostManagementExport_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_cost_management_export", "test")
+	r := SubscriptionCostManagementExport{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_subscription_cost_management_export"),
+		},
+	})
+}
+
 func (t SubscriptionCostManagementExport) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CostManagementExportID(state.ID)
 	if err != nil {
@@ -100,25 +118,29 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
+resource "azurerm_storage_container" "test" {
+  name                 = "acctestcontainer%s"
+  storage_account_name = azurerm_storage_account.test.name
+}
+
 resource "azurerm_subscription_cost_management_export" "test" {
-  name                    = "accrg%d"
-  subscription_id         = data.azurerm_subscription.test.id
-  recurrence_type         = "Monthly"
-  recurrence_period_start = "%sT00:00:00Z"
-  recurrence_period_end   = "%sT00:00:00Z"
+  name                         = "accs%d"
+  subscription_id              = data.azurerm_subscription.test.id
+  recurrence_type              = "Monthly"
+  recurrence_period_start_date = "%sT00:00:00Z"
+  recurrence_period_end_date   = "%sT00:00:00Z"
 
   export_data_storage_location {
-    storage_account_id = azurerm_storage_account.test.id
-    container_name     = "acctestcontainer"
-    root_folder_path   = "/root"
+    container_id     = azurerm_storage_container.test.resource_manager_id
+    root_folder_path = "/root"
   }
 
-  export_data_definition {
+  export_data_options {
     type       = "Usage"
     time_frame = "TheLastMonth"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, start, end)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, start, end)
 }
 
 func (SubscriptionCostManagementExport) update(data acceptance.TestData) string {
@@ -146,23 +168,52 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
+resource "azurerm_storage_container" "test" {
+  name                 = "acctestcontainer%s"
+  storage_account_name = azurerm_storage_account.test.name
+}
+
 resource "azurerm_subscription_cost_management_export" "test" {
-  name                    = "accrg%d"
-  subscription_id         = data.azurerm_subscription.test.id
-  recurrence_type         = "Monthly"
-  recurrence_period_start = "%sT00:00:00Z"
-  recurrence_period_end   = "%sT00:00:00Z"
+  name                         = "accrg%d"
+  subscription_id              = data.azurerm_subscription.test.id
+  recurrence_type              = "Monthly"
+  recurrence_period_start_date = "%sT00:00:00Z"
+  recurrence_period_end_date   = "%sT00:00:00Z"
 
   export_data_storage_location {
-    storage_account_id = azurerm_storage_account.test.id
-    container_name     = "acctestcontainer"
-    root_folder_path   = "/root/updated"
+    container_id     = azurerm_storage_container.test.resource_manager_id
+    root_folder_path = "/root/updated"
   }
 
-  export_data_definition {
+  export_data_options {
     type       = "Usage"
     time_frame = "WeekToDate"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, start, end)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, start, end)
+}
+
+func (SubscriptionCostManagementExport) requiresImport(data acceptance.TestData) string {
+	template := SubscriptionCostManagementExport{}.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subscription_cost_management_export" "import" {
+  name                         = azurerm_subscription_cost_management_export.test.name
+  subscription_id              = azurerm_subscription_cost_management_export.test.subscription_id
+  recurrence_type              = azurerm_subscription_cost_management_export.test.recurrence_type
+  recurrence_period_start_date = azurerm_subscription_cost_management_export.test.recurrence_period_start_date
+  recurrence_period_end_date   = azurerm_subscription_cost_management_export.test.recurrence_period_start_date
+
+  export_data_storage_location {
+    container_id     = azurerm_storage_container.test.resource_manager_id
+    root_folder_path = "/root"
+  }
+
+  export_data_options {
+    type       = "Usage"
+    time_frame = "TheLastMonth"
+  }
+}
+`, template)
 }

@@ -281,3 +281,51 @@ func resourceCostManagementExportResourceGroupDelete(d *pluginsdk.ResourceData, 
 
 	return nil
 }
+
+func expandExportDeliveryInfo(input []interface{}) *costmanagement.ExportDeliveryInfo {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	attrs := input[0].(map[string]interface{})
+	deliveryInfo := &costmanagement.ExportDeliveryInfo{
+		Destination: &costmanagement.ExportDeliveryDestination{
+			ResourceID:     utils.String(attrs["storage_account_id"].(string)),
+			Container:      utils.String(attrs["container_name"].(string)),
+			RootFolderPath: utils.String(attrs["root_folder_path"].(string)),
+		},
+	}
+
+	return deliveryInfo
+}
+
+func flattenExportDeliveryInfo(input *costmanagement.ExportDeliveryInfo) []interface{} {
+	if input == nil || input.Destination == nil {
+		return []interface{}{}
+	}
+
+	destination := input.Destination
+
+	storageAccountId := ""
+	if v := destination.ResourceID; v != nil {
+		storageAccountId = *v
+	}
+
+	containerName := ""
+	if v := destination.Container; v != nil {
+		containerName = *v
+	}
+
+	rootFolderPath := ""
+	if v := destination.RootFolderPath; v != nil {
+		rootFolderPath = *v
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"container_name":     containerName,
+			"root_folder_path":   rootFolderPath,
+			"storage_account_id": storageAccountId,
+		},
+	}
+}

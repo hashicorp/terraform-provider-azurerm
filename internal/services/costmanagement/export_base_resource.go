@@ -7,11 +7,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2020-06-01/costmanagement"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/validate"
+	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -38,13 +38,13 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 			}, false),
 		},
 
-		"recurrence_period_start": {
+		"recurrence_period_start_date": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 
-		"recurrence_period_end": {
+		"recurrence_period_end_date": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsRFC3339Time,
@@ -56,17 +56,11 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 			Required: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"storage_account_id": {
+					"container_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: azure.ValidateResourceID,
-					},
-					"container_name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validate.ExportContainerName,
+						ValidateFunc: storageValidate.StorageContainerResourceManagerID,
 					},
 					"root_folder_path": {
 						Type:         pluginsdk.TypeString,
@@ -78,7 +72,7 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 			},
 		},
 
-		"export_data_definition": {
+		"export_data_options": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
 			Required: true,
@@ -174,22 +168,27 @@ func (br costManagementExportBaseResource) readFunc(scopeFieldName string) sdk.R
 
 			if schedule := resp.Schedule; schedule != nil {
 				if recurrencePeriod := schedule.RecurrencePeriod; recurrencePeriod != nil {
-					metadata.ResourceData.Set("recurrence_period_start", recurrencePeriod.From.Format(time.RFC3339))
-					metadata.ResourceData.Set("recurrence_period_end", recurrencePeriod.To.Format(time.RFC3339))
+					metadata.ResourceData.Set("recurrence_period_start_date", recurrencePeriod.From.Format(time.RFC3339))
+					metadata.ResourceData.Set("recurrence_period_end_date", recurrencePeriod.To.Format(time.RFC3339))
 				}
-				status := false
-				if schedule.Status == costmanagement.Active {
-					status = true
-				}
+
+				status := schedule.Status == costmanagement.Active
+
 				metadata.ResourceData.Set("active", status)
 				metadata.ResourceData.Set("recurrence_type", schedule.Recurrence)
 			}
-			if err := metadata.ResourceData.Set("export_data_storage_location", flattenExportDeliveryInfo(resp.DeliveryInfo)); err != nil {
+
+			exportDeliveryInfo, err := flattenExportDataStorageLocation(resp.DeliveryInfo)
+			if err != nil {
+				return fmt.Errorf("flattening `export_data_storage_location`: %+v", err)
+			}
+
+			if err := metadata.ResourceData.Set("export_data_storage_location", exportDeliveryInfo); err != nil {
 				return fmt.Errorf("setting `export_data_storage_location`: %+v", err)
 			}
 
-			if err := metadata.ResourceData.Set("export_data_definition", flattenExportDefinition(resp.Definition)); err != nil {
-				return fmt.Errorf("setting `export_data_definition`: %+v", err)
+			if err := metadata.ResourceData.Set("export_data_options", flattenExportDefinition(resp.Definition)); err != nil {
+				return fmt.Errorf("setting `export_data_options`: %+v", err)
 			}
 
 			return nil
@@ -238,12 +237,17 @@ func (br costManagementExportBaseResource) updateFunc() sdk.ResourceFunc {
 }
 
 func createOrUpdateCostManagementExport(ctx context.Context, client *costmanagement.ExportsClient, metadata sdk.ResourceMetaData, id parse.CostManagementExportId) error {
-	from, _ := time.Parse(time.RFC3339, metadata.ResourceData.Get("recurrence_period_start").(string))
-	to, _ := time.Parse(time.RFC3339, metadata.ResourceData.Get("recurrence_period_end").(string))
+	from, _ := time.Parse(time.RFC3339, metadata.ResourceData.Get("recurrence_period_start_date").(string))
+	to, _ := time.Parse(time.RFC3339, metadata.ResourceData.Get("recurrence_period_end_date").(string))
 
 	status := costmanagement.Active
 	if v := metadata.ResourceData.Get("active"); !v.(bool) {
 		status = costmanagement.Inactive
+	}
+
+	deliveryInfo, err := expandExportDataStorageLocation(metadata.ResourceData.Get("export_data_storage_location").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `export_data_storage_location`: %+v", err)
 	}
 
 	props := costmanagement.Export{
@@ -256,33 +260,39 @@ func createOrUpdateCostManagementExport(ctx context.Context, client *costmanagem
 				},
 				Status: status,
 			},
-			DeliveryInfo: expandExportDeliveryInfo(metadata.ResourceData.Get("export_data_storage_location").([]interface{})),
+			DeliveryInfo: deliveryInfo,
 			Format:       costmanagement.Csv,
-			Definition:   expandExportDefinition(metadata.ResourceData.Get("export_data_definition").([]interface{})),
+			Definition:   expandExportDefinition(metadata.ResourceData.Get("export_data_options").([]interface{})),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.Scope, id.Name, props); err != nil {
-		return err
-	}
-	return nil
+	_, err = client.CreateOrUpdate(ctx, id.Scope, id.Name, props)
+
+	return err
 }
 
-func expandExportDeliveryInfo(input []interface{}) *costmanagement.ExportDeliveryInfo {
+func expandExportDataStorageLocation(input []interface{}) (*costmanagement.ExportDeliveryInfo, error) {
 	if len(input) == 0 || input[0] == nil {
-		return nil
+		return nil, nil
+	}
+	attrs := input[0].(map[string]interface{})
+
+	containerId, err := storageParse.StorageContainerResourceManagerID(attrs["container_id"].(string))
+	if err != nil {
+		return nil, err
 	}
 
-	attrs := input[0].(map[string]interface{})
+	storageId := storageParse.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroup, containerId.StorageAccountName)
+
 	deliveryInfo := &costmanagement.ExportDeliveryInfo{
 		Destination: &costmanagement.ExportDeliveryDestination{
-			ResourceID:     utils.String(attrs["storage_account_id"].(string)),
-			Container:      utils.String(attrs["container_name"].(string)),
+			ResourceID:     utils.String(storageId.ID()),
+			Container:      utils.String(containerId.ContainerName),
 			RootFolderPath: utils.String(attrs["root_folder_path"].(string)),
 		},
 	}
 
-	return deliveryInfo
+	return deliveryInfo, nil
 }
 
 func expandExportDefinition(input []interface{}) *costmanagement.ExportDefinition {
@@ -299,24 +309,38 @@ func expandExportDefinition(input []interface{}) *costmanagement.ExportDefinitio
 	return definitionInfo
 }
 
-func flattenExportDeliveryInfo(input *costmanagement.ExportDeliveryInfo) []interface{} {
+func flattenExportDataStorageLocation(input *costmanagement.ExportDeliveryInfo) ([]interface{}, error) {
 	if input == nil || input.Destination == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	destination := input.Destination
-	attrs := make(map[string]interface{})
-	if resourceID := destination.ResourceID; resourceID != nil {
-		attrs["storage_account_id"] = *resourceID
-	}
-	if containerName := destination.Container; containerName != nil {
-		attrs["container_name"] = *containerName
-	}
-	if rootFolderPath := destination.RootFolderPath; rootFolderPath != nil {
-		attrs["root_folder_path"] = *rootFolderPath
+	var err error
+	var storageAccountId *storageParse.StorageAccountId
+
+	if v := destination.ResourceID; v != nil {
+		storageAccountId, err = storageParse.StorageAccountID(*v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return []interface{}{attrs}
+	containerId := ""
+	if v := destination.Container; v != nil && storageAccountId != nil {
+		containerId = storageParse.NewStorageContainerResourceManagerID(storageAccountId.SubscriptionId, storageAccountId.ResourceGroup, storageAccountId.Name, "default", *v).ID()
+	}
+
+	rootFolderPath := ""
+	if v := destination.RootFolderPath; v != nil {
+		rootFolderPath = *v
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"container_id":     containerId,
+			"root_folder_path": rootFolderPath,
+		},
+	}, nil
 }
 
 func flattenExportDefinition(input *costmanagement.ExportDefinition) []interface{} {
@@ -324,11 +348,15 @@ func flattenExportDefinition(input *costmanagement.ExportDefinition) []interface
 		return []interface{}{}
 	}
 
-	attrs := make(map[string]interface{})
-	if queryType := input.Type; queryType != "" {
-		attrs["type"] = queryType
+	queryType := ""
+	if v := input.Type; v != "" {
+		queryType = string(input.Type)
 	}
-	attrs["time_frame"] = string(input.Timeframe)
 
-	return []interface{}{attrs}
+	return []interface{}{
+		map[string]interface{}{
+			"time_frame": string(input.Timeframe),
+			"type":       queryType,
+		},
+	}
 }

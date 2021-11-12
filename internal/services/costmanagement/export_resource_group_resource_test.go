@@ -61,6 +61,24 @@ func TestAccResourceGroupCostManagementExport_update(t *testing.T) {
 	})
 }
 
+func TestAccResourceGroupCostManagementExport_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_cost_management_export", "test")
+	r := ResourceGroupCostManagementExport{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_resource_group_cost_management_export"),
+		},
+	})
+}
+
 func (t ResourceGroupCostManagementExport) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CostManagementExportID(state.ID)
 	if err != nil {
@@ -83,40 +101,40 @@ func (ResourceGroupCostManagementExport) basic(data acceptance.TestData) string 
 provider "azurerm" {
   features {}
 }
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cm-%d"
   location = "%s"
 }
-
 resource "azurerm_storage_account" "test" {
-  name                = "unlikely23exst2acct%s"
-  resource_group_name = azurerm_resource_group.test.name
-
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
+resource "azurerm_storage_container" "test" {
+  name                 = "acctestcontainer%s"
+  storage_account_name = azurerm_storage_account.test.name
+}
+
 resource "azurerm_resource_group_cost_management_export" "test" {
-  name                    = "accrg%d"
-  resource_group_id       = azurerm_resource_group.test.id
-  recurrence_type         = "Monthly"
-  recurrence_period_start = "%sT00:00:00Z"
-  recurrence_period_end   = "%sT00:00:00Z"
+  name                         = "accrg%d"
+  resource_group_id            = azurerm_resource_group.test.id
+  recurrence_type              = "Monthly"
+  recurrence_period_start_date = "%sT00:00:00Z"
+  recurrence_period_end_date   = "%sT00:00:00Z"
 
   export_data_storage_location {
-    storage_account_id = azurerm_storage_account.test.id
-    container_name     = "acctestcontainer"
-    root_folder_path   = "/root"
+    container_id     = azurerm_storage_container.test.resource_manager_id
+    root_folder_path = "/root"
   }
-
-  export_data_definition {
+  export_data_options {
     type       = "Usage"
     time_frame = "TheLastMonth"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, start, end)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, start, end)
 }
 
 func (ResourceGroupCostManagementExport) update(data acceptance.TestData) string {
@@ -127,38 +145,63 @@ func (ResourceGroupCostManagementExport) update(data acceptance.TestData) string
 provider "azurerm" {
   features {}
 }
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cm-%d"
   location = "%s"
 }
-
 resource "azurerm_storage_account" "test" {
-  name                = "unlikely23exst2acct%s"
-  resource_group_name = azurerm_resource_group.test.name
-
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
+resource "azurerm_storage_container" "test" {
+  name                 = "acctestcontainer%s"
+  storage_account_name = azurerm_storage_account.test.name
+}
+
 resource "azurerm_resource_group_cost_management_export" "test" {
-  name                    = "accrg%d"
-  resource_group_id       = azurerm_resource_group.test.id
-  recurrence_type         = "Monthly"
-  recurrence_period_start = "%sT00:00:00Z"
-  recurrence_period_end   = "%sT00:00:00Z"
+  name                         = "accrg%d"
+  resource_group_id            = azurerm_resource_group.test.id
+  recurrence_type              = "Monthly"
+  recurrence_period_start_date = "%sT00:00:00Z"
+  recurrence_period_end_date   = "%sT00:00:00Z"
 
   export_data_storage_location {
-    storage_account_id = azurerm_storage_account.test.id
-    container_name     = "acctestcontainer"
-    root_folder_path   = "/root/updated"
+    container_id     = azurerm_storage_container.test.resource_manager_id
+    root_folder_path = "/root/updated"
   }
-
-  export_data_definition {
+  export_data_options {
     type       = "Usage"
     time_frame = "WeekToDate"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, start, end)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, start, end)
+}
+
+func (ResourceGroupCostManagementExport) requiresImport(data acceptance.TestData) string {
+	template := ResourceGroupCostManagementExport{}.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_resource_group_cost_management_export" "import" {
+  name                         = azurerm_resource_group_cost_management_export.test.name
+  resource_group_id            = azurerm_resource_group.test.id
+  recurrence_type              = azurerm_resource_group_cost_management_export.test.recurrence_type
+  recurrence_period_start_date = azurerm_resource_group_cost_management_export.test.recurrence_period_start_date
+  recurrence_period_end_date   = azurerm_resource_group_cost_management_export.test.recurrence_period_start_date
+
+  export_data_storage_location {
+    container_id     = azurerm_storage_container.test.resource_manager_id
+    root_folder_path = "/root"
+  }
+
+  export_data_options {
+    type       = "Usage"
+    time_frame = "TheLastMonth"
+  }
+}
+`, template)
 }
