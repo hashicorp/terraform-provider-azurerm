@@ -496,7 +496,7 @@ func TestAccAzureRMManagedDisk_update_withIOpsReadOnlyAndMBpsReadOnly(t *testing
 	})
 }
 
-func TestAccAzureRMManagedDisk_update_withBurstingEnabled(t *testing.T) {
+func TestAccAzureRMManagedDisk_update_withOnDemandBursting(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
 
