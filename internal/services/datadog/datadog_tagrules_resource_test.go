@@ -23,56 +23,55 @@ func TestAccDatadogMonitorTagRules_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				//check.That(data.ResourceName).Key("singlesignon_state").HasValue("Enable"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-// func TestAccDatadogMonitorTagRules_update(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tagrules", "test")
-// 	r := TagRulesDatadogMonitorResource{}
-// 	data.ResourceTest(t, r, []acceptance.TestStep{
-// 		{
-// 			Config: r.basic(data),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 				//check.That(data.ResourceName).Key("singlesignon_state").HasValue("Enable"),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 		{
-// 			Config: r.update(data),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 				//check.That(data.ResourceName).Key("singlesignon_state").HasValue("Disable"),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 		{
-// 			Config: r.basic(data),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 				//check.That(data.ResourceName).Key("singlesignon_state").HasValue("Enable"),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 	})
-// }
+func TestAccDatadogMonitorTagRules_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tagrules", "test")
+	r := TagRulesDatadogMonitorResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
 func (r TagRulesDatadogMonitorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DatadogTagRulesID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Datadog.MonitorsClient.Get(ctx, id.ResourceGroup, id.MonitorName)
+
+	resp, err := client.Datadog.TagRulesClient.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
 		return nil, fmt.Errorf("retrieving Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
 	}
+
+	if (*resp.Properties.LogRules.SendResourceLogs == false && *resp.Properties.LogRules.SendSubscriptionLogs == false) || *resp.Properties.MetricRules.FilteringTags == nil {
+		return utils.Bool(false), nil
+	}
+
 	return utils.Bool(true), nil
 }
 
@@ -97,6 +96,13 @@ func (r TagRulesDatadogMonitorResource) basic(data acceptance.TestData) string {
 		log_rules{
 			send_subscription_logs = true
 		}
+		metric_rules{
+			filtering_tag {
+				name = "Vidhi"
+				value = "Testing-Logs"
+				action = "Include"
+			}
+		}
 	}
 `)
 }
@@ -109,6 +115,19 @@ func (r TagRulesDatadogMonitorResource) update(data acceptance.TestData) string 
 		resource_group_name = "acctest-datadog"
 		log_rules{
 			send_subscription_logs = false
+			send_resource_logs = true
+			filtering_tag {
+				name = "Vidhi"
+				value = "Testing-Logs"
+				action = "Include"
+			}
+		}
+		metric_rules{
+			filtering_tag {
+				name = "Vidhi"
+				value = "Testing-Logs"
+				action = "Include"
+			}
 		}
 	}
 `)

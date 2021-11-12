@@ -30,7 +30,7 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DatadogMonitorID(id)
+			_, err := parse.DatadogSingleSignOnConfigurationsID(id)
 			return err
 		}),
 
@@ -140,10 +140,15 @@ func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, me
 		}
 	}
 
+	d.Set("name", id.MonitorName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("configuration_name", id.SingleSignOnConfigurationName)
+
 	if props := resp.Properties; props != nil {
 		d.Set("singlesignon_state", props.SingleSignOnState)
 		d.Set("provisioning_state", props.ProvisioningState)
 		d.Set("singlesignon_url", props.SingleSignOnURL)
+		d.Set("enterpriseapp_id", props.EnterpriseAppID)
 	}
 
 	d.Set("type", resp.Type)

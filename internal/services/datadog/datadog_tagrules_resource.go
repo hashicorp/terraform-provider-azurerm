@@ -31,7 +31,7 @@ func resourceDatadogTagRules() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DatadogMonitorID(id)
+			_, err := parse.DatadogTagRulesID(id)
 			return err
 		}),
 
@@ -201,6 +201,10 @@ func resourceDatadogTagRulesRead(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
+	d.Set("name", id.MonitorName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("rule_set_name", id.TagRuleName)
+
 	if props := resp.Properties; props != nil {
 		if err := d.Set("log_rules", flattenLogRules(props.LogRules)); err != nil {
 			return fmt.Errorf("setting `log_rules`: %+v", err)
@@ -211,7 +215,6 @@ func resourceDatadogTagRulesRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("provisioning_state", props.ProvisioningState)
 	}
 	d.Set("type", resp.Type)
-	d.Set("name", resp.Name)
 	d.Set("id", resp.ID)
 
 	return nil
