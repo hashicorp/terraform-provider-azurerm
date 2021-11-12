@@ -6,6 +6,7 @@ IMPROVEMENTS:
 * datalake: updating the embedded SDK to use the new Resource ID Parsers [GH-14158]
 * maps: updating the embedded SDK to use the new Resource ID Parsers [GH-14155]
 * powerbi: updating the embedded SDK to use the new Resource ID Parsers [GH-14154]
+* relay: updating the embedded SDK to use the new Resource ID Parsers [GH-14153]
 
 ## 2.85.0 (November 12, 2021)
 
