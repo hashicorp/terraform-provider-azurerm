@@ -94,14 +94,6 @@ func resourceBastionHost() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"scale_units": {},
-
-			"enable_copy_paste": {},
-
-			"enable_file_copy": {},
-
-			"enable_ip_connect": {},
-
 			"tags": tags.Schema(),
 		},
 	}
