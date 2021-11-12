@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -113,17 +113,14 @@ func TestAccApiManagementNamedValue_update(t *testing.T) {
 }
 
 func (ApiManagementNamedValueResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.NamedValueID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["namedValues"]
 
-	resp, err := clients.ApiManagement.NamedValueClient.Get(ctx, resourceGroup, serviceName, name)
+	resp, err := clients.ApiManagement.NamedValueClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading ApiManagement Named Value (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -178,17 +178,14 @@ func TestAccApiManagementUser_complete(t *testing.T) {
 }
 
 func (ApiManagementUserResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.UserID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	userId := id.Path["users"]
 
-	resp, err := clients.ApiManagement.UsersClient.Get(ctx, resourceGroup, serviceName, userId)
+	resp, err := clients.ApiManagement.UsersClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading ApiManagement User (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
