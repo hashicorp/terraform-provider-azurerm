@@ -147,6 +147,20 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
+			"disk_iops_read_only": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntAtLeast(1),
+			},
+
+			"disk_mbps_read_only": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntAtLeast(1),
+			},
+
 			"disk_encryption_set_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -231,6 +245,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	createOption := compute.DiskCreateOption(d.Get("create_option").(string))
 	storageAccountType := d.Get("storage_account_type").(string)
 	osType := d.Get("os_type").(string)
+	maxShares := d.Get("max_shares").(int)
 
 	t := d.Get("tags").(map[string]interface{})
 	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
@@ -251,8 +266,8 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.DiskSizeGB = &diskSize
 	}
 
-	if v, ok := d.GetOk("max_shares"); ok {
-		props.MaxShares = utils.Int32(int32(v.(int)))
+	if maxShares != 0 {
+		props.MaxShares = utils.Int32(int32(maxShares))
 	}
 
 	if storageAccountType == string(compute.StorageAccountTypesUltraSSDLRS) {
@@ -268,11 +283,27 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			props.DiskMBpsReadWrite = &diskMBps
 		}
 
+		if v, ok := d.GetOk("disk_iops_read_only"); ok {
+			if maxShares == 0 {
+				return fmt.Errorf("[ERROR] disk_iops_read_only is only available for UltraSSD disks with shared disk enabled")
+			}
+
+			props.DiskIOPSReadOnly = utils.Int64(int64(v.(int)))
+		}
+
+		if v, ok := d.GetOk("disk_mbps_read_only"); ok {
+			if maxShares == 0 {
+				return fmt.Errorf("[ERROR] disk_mbps_read_only is only available for UltraSSD disks with shared disk enabled")
+			}
+
+			props.DiskMBpsReadOnly = utils.Int64(int64(v.(int)))
+		}
+
 		if v, ok := d.GetOk("logical_sector_size"); ok {
 			props.CreationData.LogicalSectorSize = utils.Int32(int32(v.(int)))
 		}
-	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") || d.HasChange("logical_sector_size") {
-		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write and logical_sector_size are only available for UltraSSD disks")
+	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") || d.HasChange("disk_iops_read_only") || d.HasChange("disk_mbps_read_only") || d.HasChange("logical_sector_size") {
+		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only, disk_mbps_read_only and logical_sector_size are only available for UltraSSD disks")
 	}
 
 	if createOption == compute.DiskCreateOptionImport {
@@ -407,6 +438,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	maxShares := d.Get("max_shares").(int)
 	storageAccountType := d.Get("storage_account_type").(string)
 	shouldShutDown := false
 
@@ -424,9 +456,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("max_shares") {
-		v := d.Get("max_shares")
-		maxShares := int32(v.(int))
-		diskUpdate.MaxShares = &maxShares
+		diskUpdate.MaxShares = utils.Int32(int32(maxShares))
 		var skuName compute.DiskStorageAccountTypes
 		for _, v := range compute.PossibleDiskStorageAccountTypesValues() {
 			if strings.EqualFold(storageAccountType, string(v)) {
@@ -477,8 +507,27 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			diskMBps := int64(v.(int))
 			diskUpdate.DiskMBpsReadWrite = &diskMBps
 		}
-	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") {
-		return fmt.Errorf("[ERROR] disk_iops_read_write and disk_mbps_read_write are only available for UltraSSD disks")
+
+		if d.HasChange("disk_iops_read_only") {
+			if maxShares == 0 {
+				return fmt.Errorf("[ERROR] disk_iops_read_only is only available for UltraSSD disks with shared disk enabled")
+			}
+
+			v := d.Get("disk_iops_read_only")
+			diskUpdate.DiskIOPSReadOnly = utils.Int64(int64(v.(int)))
+		}
+
+		if d.HasChange("disk_mbps_read_only") {
+			if maxShares == 0 {
+				return fmt.Errorf("[ERROR] disk_mbps_read_only is only available for UltraSSD disks with shared disk enabled")
+			}
+
+			v := d.Get("disk_mbps_read_only")
+			diskUpdate.DiskMBpsReadOnly = utils.Int64(int64(v.(int)))
+		}
+
+	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") || d.HasChange("disk_iops_read_only") || d.HasChange("disk_mbps_read_only") {
+		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only and disk_mbps_read_only are only available for UltraSSD disks")
 	}
 
 	if d.HasChange("os_type") {
@@ -700,6 +749,8 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("disk_size_gb", props.DiskSizeGB)
 		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
+		d.Set("disk_iops_read_only", props.DiskIOPSReadOnly)
+		d.Set("disk_mbps_read_only", props.DiskMBpsReadOnly)
 		d.Set("os_type", props.OsType)
 		d.Set("tier", props.Tier)
 		d.Set("max_shares", props.MaxShares)

@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Log Analytics Cluster should exist. Changing this forces a new Log Analytics Cluster to be created.
 
-* `identity` - (Required)  A `identity` block as defined below. Changing this forces a new Log Analytics Cluster to be created.
+* `identity` - (Required) An `identity` block as defined below. Changing this forces a new Log Analytics Cluster to be created.
 
 * `size_gb` - (Optional) The capacity of the Log Analytics Cluster specified in GB/day. Defaults to 1000.
 

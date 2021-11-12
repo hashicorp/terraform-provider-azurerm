@@ -119,6 +119,38 @@ func TestAccBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
 	})
 }
 
+func TestAccBackupProtectedVm_updateDiskExclusion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
+	r := BackupProtectedVmResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateDiskExclusion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t BackupProtectedVmResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ProtectedItemID(state.ID)
 	if err != nil {
@@ -200,7 +232,7 @@ resource "azurerm_virtual_machine" "test" {
   name                  = "acctestvm"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
-  vm_size               = "Standard_A0"
+  vm_size               = "Standard_D1_v2"
   network_interface_ids = [azurerm_network_interface.test.id]
 
   storage_image_reference {
@@ -224,6 +256,14 @@ resource "azurerm_virtual_machine" "test" {
     disk_size_gb      = azurerm_managed_disk.test.disk_size_gb
     create_option     = "Attach"
     lun               = 0
+  }
+
+  storage_data_disk {
+    name              = "acctest-another-datadisk"
+    create_option     = "Empty"
+    disk_size_gb      = "1"
+    lun               = 1
+    managed_disk_type = "Standard_LRS"
   }
 
   os_profile {
@@ -277,6 +317,23 @@ resource "azurerm_backup_protected_vm" "test" {
   recovery_vault_name = azurerm_recovery_services_vault.test.name
   source_vm_id        = azurerm_virtual_machine.test.id
   backup_policy_id    = azurerm_backup_policy_vm.test.id
+
+  include_disk_luns = [0]
+}
+`, r.base(data))
+}
+
+func (r BackupProtectedVmResource) updateDiskExclusion(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_protected_vm" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  source_vm_id        = azurerm_virtual_machine.test.id
+  backup_policy_id    = azurerm_backup_policy_vm.test.id
+
+  exclude_disk_luns = [0, 1]
 }
 `, r.base(data))
 }

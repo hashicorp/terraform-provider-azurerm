@@ -3,7 +3,7 @@ package namespaces
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/formatting"
+	"github.com/hashicorp/go-azure-helpers/lang/dates"
 )
 
 type RelayNamespaceProperties struct {
@@ -15,7 +15,7 @@ type RelayNamespaceProperties struct {
 }
 
 func (o RelayNamespaceProperties) GetCreatedAtAsTime() (*time.Time, error) {
-	return formatting.ParseAsDateFormat(o.CreatedAt, "2006-01-02T15:04:05Z07:00")
+	return dates.ParseAsFormat(o.CreatedAt, "2006-01-02T15:04:05Z07:00")
 }
 
 func (o RelayNamespaceProperties) SetCreatedAtAsTime(input time.Time) {
@@ -24,7 +24,7 @@ func (o RelayNamespaceProperties) SetCreatedAtAsTime(input time.Time) {
 }
 
 func (o RelayNamespaceProperties) GetUpdatedAtAsTime() (*time.Time, error) {
-	return formatting.ParseAsDateFormat(o.UpdatedAt, "2006-01-02T15:04:05Z07:00")
+	return dates.ParseAsFormat(o.UpdatedAt, "2006-01-02T15:04:05Z07:00")
 }
 
 func (o RelayNamespaceProperties) SetUpdatedAtAsTime(input time.Time) {

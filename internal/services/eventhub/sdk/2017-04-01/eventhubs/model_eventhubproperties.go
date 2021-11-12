@@ -3,7 +3,7 @@ package eventhubs
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/formatting"
+	"github.com/hashicorp/go-azure-helpers/lang/dates"
 )
 
 type EventhubProperties struct {
@@ -17,7 +17,7 @@ type EventhubProperties struct {
 }
 
 func (o EventhubProperties) GetCreatedAtAsTime() (*time.Time, error) {
-	return formatting.ParseAsDateFormat(o.CreatedAt, "2006-01-02T15:04:05Z07:00")
+	return dates.ParseAsFormat(o.CreatedAt, "2006-01-02T15:04:05Z07:00")
 }
 
 func (o EventhubProperties) SetCreatedAtAsTime(input time.Time) {
@@ -26,7 +26,7 @@ func (o EventhubProperties) SetCreatedAtAsTime(input time.Time) {
 }
 
 func (o EventhubProperties) GetUpdatedAtAsTime() (*time.Time, error) {
-	return formatting.ParseAsDateFormat(o.UpdatedAt, "2006-01-02T15:04:05Z07:00")
+	return dates.ParseAsFormat(o.UpdatedAt, "2006-01-02T15:04:05Z07:00")
 }
 
 func (o EventhubProperties) SetUpdatedAtAsTime(input time.Time) {
