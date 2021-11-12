@@ -314,21 +314,6 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("waiting for creation of AAD admin %s: %+v", id.String(), err)
 			}
 
-			if aadOnlyAuthentictionsEnabled := expandMsSqlServerAADOnlyAuthentictions(d.Get("azuread_administrator").([]interface{})); aadOnlyAuthentictionsEnabled {
-				aadOnlyAuthentictionsParams := sql.ServerAzureADOnlyAuthentication{
-					AzureADOnlyAuthProperties: &sql.AzureADOnlyAuthProperties{
-						AzureADOnlyAuthentication: utils.Bool(aadOnlyAuthentictionsEnabled),
-					},
-				}
-				aadOnlyEnabledFuture, err := aadOnlyAuthentictionsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, aadOnlyAuthentictionsParams)
-				if err != nil {
-					return fmt.Errorf("setting AAD only authentication for %s: %+v", id.String(), err)
-				}
-
-				if err = aadOnlyEnabledFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
-					return fmt.Errorf("waiting for setting of AAD only authentication for %s: %+v", id.String(), err)
-				}
-			}
 		} else {
 			adminDelFuture, err := adminClient.Delete(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
@@ -338,6 +323,22 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			if err = adminDelFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
 				return fmt.Errorf("waiting for deletion of AAD admin %s: %+v", id.String(), err)
 			}
+		}
+	}
+
+	if aadOnlyAuthentictionsEnabled := expandMsSqlServerAADOnlyAuthentictions(d.Get("azuread_administrator").([]interface{})); d.HasChange("azuread_administrator") && aadOnlyAuthentictionsEnabled {
+		aadOnlyAuthentictionsParams := sql.ServerAzureADOnlyAuthentication{
+			AzureADOnlyAuthProperties: &sql.AzureADOnlyAuthProperties{
+				AzureADOnlyAuthentication: utils.Bool(aadOnlyAuthentictionsEnabled),
+			},
+		}
+		aadOnlyEnabledFuture, err := aadOnlyAuthentictionsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, aadOnlyAuthentictionsParams)
+		if err != nil {
+			return fmt.Errorf("setting AAD only authentication for %s: %+v", id.String(), err)
+		}
+
+		if err = aadOnlyEnabledFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
+			return fmt.Errorf("waiting for setting of AAD only authentication for %s: %+v", id.String(), err)
 		}
 	}
 
