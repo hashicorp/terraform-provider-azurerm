@@ -351,13 +351,13 @@ func sourceImageReferenceSchema(isVirtualMachine bool) *pluginsdk.Schema {
 				"publisher": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ForceNew:     isVirtualMachine,
+					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"offer": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ForceNew:     isVirtualMachine,
+					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"sku": {
