@@ -5,10 +5,15 @@ import (
 	"fmt"
 )
 
+var _ TokenKey = RsaTokenKey{}
+
 type RsaTokenKey struct {
 	Alg AccessPolicyRsaAlgo `json:"alg"`
 	E   string              `json:"e"`
 	N   string              `json:"n"`
+
+	// Fields inherited from TokenKey
+	Kid string `json:"kid"`
 }
 
 var _ json.Marshaler = RsaTokenKey{}

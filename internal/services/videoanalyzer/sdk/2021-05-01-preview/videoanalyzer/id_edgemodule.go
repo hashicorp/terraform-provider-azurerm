@@ -112,15 +112,15 @@ func (id EdgeModuleId) ID() string {
 // Segments returns a slice of Resource ID Segments which comprise this Edge Module ID
 func (id EdgeModuleId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
+		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
-		resourceids.StaticSegment("resourceGroups", "resourceGroups", "resourceGroups"),
+		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
 		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
-		resourceids.StaticSegment("providers", "providers", "providers"),
-		resourceids.ResourceProviderSegment("microsoftMedia", "Microsoft.Media", "Microsoft.Media"),
-		resourceids.StaticSegment("videoAnalyzers", "videoAnalyzers", "videoAnalyzers"),
+		resourceids.StaticSegment("staticProviders", "providers", "providers"),
+		resourceids.ResourceProviderSegment("staticMicrosoftMedia", "Microsoft.Media", "Microsoft.Media"),
+		resourceids.StaticSegment("staticVideoAnalyzers", "videoAnalyzers", "videoAnalyzers"),
 		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
-		resourceids.StaticSegment("edgeModules", "edgeModules", "edgeModules"),
+		resourceids.StaticSegment("staticEdgeModules", "edgeModules", "edgeModules"),
 		resourceids.UserSpecifiedSegment("edgeModuleName", "edgeModuleValue"),
 	}
 }

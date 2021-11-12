@@ -5,10 +5,15 @@ import (
 	"fmt"
 )
 
+var _ TokenKey = EccTokenKey{}
+
 type EccTokenKey struct {
 	Alg AccessPolicyEccAlgo `json:"alg"`
 	X   string              `json:"x"`
 	Y   string              `json:"y"`
+
+	// Fields inherited from TokenKey
+	Kid string `json:"kid"`
 }
 
 var _ json.Marshaler = EccTokenKey{}

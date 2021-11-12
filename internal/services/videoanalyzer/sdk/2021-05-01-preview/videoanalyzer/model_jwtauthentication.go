@@ -5,11 +5,15 @@ import (
 	"fmt"
 )
 
+var _ AuthenticationBase = JwtAuthentication{}
+
 type JwtAuthentication struct {
 	Audiences *[]string     `json:"audiences,omitempty"`
 	Claims    *[]TokenClaim `json:"claims,omitempty"`
 	Issuers   *[]string     `json:"issuers,omitempty"`
 	Keys      *[]TokenKey   `json:"keys,omitempty"`
+
+	// Fields inherited from AuthenticationBase
 }
 
 var _ json.Marshaler = JwtAuthentication{}
