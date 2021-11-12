@@ -88,11 +88,29 @@ func dataSourceArmDateLakeStoreAccountRead(d *pluginsdk.ResourceData, meta inter
 		}
 
 		if properties := model.Properties; properties != nil {
-			d.Set("tier", properties.CurrentTier)
+			tier := ""
+			if properties.CurrentTier != nil {
+				tier = string(*properties.CurrentTier)
+			}
+			d.Set("tier", tier)
 
-			d.Set("encryption_state", properties.EncryptionState)
-			d.Set("firewall_allow_azure_ips", properties.FirewallAllowAzureIps)
-			d.Set("firewall_state", properties.FirewallState)
+			encryptionState := ""
+			if properties.EncryptionState != nil {
+				encryptionState = string(*properties.EncryptionState)
+			}
+			d.Set("encryption_state", encryptionState)
+
+			firewallState := ""
+			if properties.FirewallState != nil {
+				firewallState = string(*properties.FirewallState)
+			}
+			d.Set("firewall_state", firewallState)
+
+			firewallAllowAzureIps := ""
+			if properties.FirewallAllowAzureIps != nil {
+				firewallAllowAzureIps = string(*properties.FirewallAllowAzureIps)
+			}
+			d.Set("firewall_allow_azure_ips", firewallAllowAzureIps)
 
 			if config := properties.EncryptionConfig; config != nil {
 				d.Set("encryption_type", string(config.Type))
