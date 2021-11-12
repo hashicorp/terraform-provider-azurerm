@@ -254,7 +254,7 @@ github.com/googleapis/gax-go/v2
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.17.0
+# github.com/hashicorp/go-azure-helpers v0.17.1
 ## explicit
 github.com/hashicorp/go-azure-helpers/authentication
 github.com/hashicorp/go-azure-helpers/lang/dates

@@ -100,7 +100,7 @@ The following arguments are supported:
 
 * `location` - (Optional) The Azure location where this policy assignment should exist. This is required when an Identity is assigned. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) An `identity` block.
+* `identity` - (Optional) An `identity` block as defined below.
 
 -> **Note:** When `identity` is set the `location` field must also be set.
 
@@ -129,7 +129,7 @@ The following attributes are exported:
 
 * `id` - The Policy Assignment id.
 
-* `identity` - An `identity` block.
+* `identity` - An `identity` block as defined below.
 
 ---
 

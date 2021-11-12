@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the App Service Enabled?
 
-* `identity` - (Optional) A Managed Service Identity block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `https_only` - (Optional) Can the App Service only be accessed via HTTPS? Defaults to `false`.
 

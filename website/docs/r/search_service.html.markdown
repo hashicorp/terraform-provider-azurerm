@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `allowed_ips` - (Optional) A list of IPv4 addresses or CIDRs that are allowed access to the search service endpoint. 
 
-* `identity` - (Optional) A `identity` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Search Service.
 

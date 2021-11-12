@@ -25,9 +25,9 @@ import (
 
 func resourceFrontDoor() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFrontDoorCreateUpdate,
+		Create: resourceFrontDoorCreate,
 		Read:   resourceFrontDoorRead,
-		Update: resourceFrontDoorCreateUpdate,
+		Update: resourceFrontDoorUpdate,
 		Delete: resourceFrontDoorDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -549,7 +549,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 	}
 }
 
-func resourceFrontDoorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFrontDoorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -559,16 +559,14 @@ func resourceFrontDoorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	id := frontdoors.NewFrontDoorID(subscriptionId, resourceGroup, name)
 
-	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for presence of %s: %+v", id, err)
-			}
-		}
+	resp, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_frontdoor", id.ID())
+			return fmt.Errorf("checking for presence of %s: %+v", id, err)
 		}
+	}
+	if !response.WasNotFound(resp.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_frontdoor", id.ID())
 	}
 
 	// remove in 3.0
@@ -605,31 +603,124 @@ func resourceFrontDoorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	backendPoolsSettings := d.Get("enforce_backend_pools_certificate_name_check").(bool)
 	backendPoolsSendReceiveTimeoutSeconds := int64(d.Get("backend_pools_send_receive_timeout_seconds").(int))
 	enabledState := expandFrontDoorEnabledState(d.Get("load_balancer_enabled").(bool))
-	explicitResourceOrder := d.Get("explicit_resource_order").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
+
+	frontDoorParameters := frontdoors.FrontDoor{
+		Location: utils.String(location),
+		Properties: &frontdoors.FrontDoorProperties{
+			FriendlyName:          utils.String(friendlyName),
+			RoutingRules:          expandFrontDoorRoutingRule(routingRules, id, nil),
+			BackendPools:          expandFrontDoorBackendPools(backendPools, id),
+			BackendPoolsSettings:  expandFrontDoorBackendPoolsSettings(backendPoolsSettings, backendPoolsSendReceiveTimeoutSeconds),
+			FrontendEndpoints:     expandFrontDoorFrontendEndpoint(frontendEndpoints, id),
+			HealthProbeSettings:   expandFrontDoorHealthProbeSettingsModel(healthProbeSettings, id),
+			LoadBalancingSettings: expandFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, id),
+			EnabledState:          &enabledState,
+		},
+		Tags: expandTags(t),
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, id, frontDoorParameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, id))
+
+	d.SetId(id.ID())
+	return resourceFrontDoorRead(d, meta)
+}
+
+func resourceFrontDoorUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	id := frontdoors.NewFrontDoorID(subscriptionId, resourceGroup, name)
+
+	// remove in 3.0
+	// due to a change in the RP, if a Frontdoor exists in a location other than 'Global' it may continue to
+	// exist in that location, if this is a brand new Frontdoor it must be created in the 'Global' location
+	location := "Global"
+	cfgLocation, hasLocation := d.GetOk("location")
+
+	exists, err := client.Get(ctx, id)
+	if err != nil || exists.Model == nil {
+		if !response.WasNotFound(exists.HttpResponse) {
+			return fmt.Errorf("locating %s: %+v", id, err)
+		}
+	} else {
+		location = azure.NormalizeLocation(*exists.Model.Location)
+	}
+
+	if hasLocation {
+		if location != azure.NormalizeLocation(cfgLocation) {
+			return fmt.Errorf("the Front Door %q (Resource Group %q) already exists in %q and cannot be moved to the %q location", name, resourceGroup, location, cfgLocation)
+		}
+	}
+
+	existingModel := *exists.Model
+
+	if d.HasChange("friendly_name") {
+		existingModel.Properties.FriendlyName = utils.String(d.Get("friendly_name").(string))
+	}
+
+	routingRules := d.Get("routing_rule").([]interface{})
+	if d.HasChange("routing_rule") {
+		rulesEngines := make(map[string]*frontdoors.SubResource)
+		if existingModel.Properties != nil && existingModel.Properties.RoutingRules != nil {
+			for _, rule := range *existingModel.Properties.RoutingRules {
+				if rule.Properties != nil && rule.Properties.RulesEngine != nil {
+					rulesEngines[*rule.Name] = rule.Properties.RulesEngine
+				}
+			}
+		}
+		existingModel.Properties.RoutingRules = expandFrontDoorRoutingRule(routingRules, id, &rulesEngines)
+	}
+
+	loadBalancingSettings := d.Get("backend_pool_load_balancing").([]interface{})
+	if d.HasChange("backend_pool_load_balancing") {
+		existingModel.Properties.LoadBalancingSettings = expandFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, id)
+	}
+
+	healthProbeSettings := d.Get("backend_pool_health_probe").([]interface{})
+	if d.HasChange("backend_pool_health_probe") {
+		existingModel.Properties.HealthProbeSettings = expandFrontDoorHealthProbeSettingsModel(healthProbeSettings, id)
+	}
+
+	backendPools := d.Get("backend_pool").([]interface{})
+	if d.HasChange("backend_pool") {
+		existingModel.Properties.BackendPools = expandFrontDoorBackendPools(backendPools, id)
+	}
+
+	frontendEndpoints := d.Get("frontend_endpoint").([]interface{})
+	if d.HasChange("frontend_endpoint") {
+		existingModel.Properties.FrontendEndpoints = expandFrontDoorFrontendEndpoint(frontendEndpoints, id)
+	}
+
+	if d.HasChanges("enforce_backend_pools_certificate_name_check", "backend_pools_send_receive_timeout_seconds") {
+		existingModel.Properties.BackendPoolsSettings = expandFrontDoorBackendPoolsSettings(d.Get("enforce_backend_pools_certificate_name_check").(bool), int64(d.Get("backend_pools_send_receive_timeout_seconds").(int)))
+	}
+
+	if d.HasChange("load_balancer_enabled") {
+		enabledState := expandFrontDoorEnabledState(d.Get("load_balancer_enabled").(bool))
+		existingModel.Properties.EnabledState = &enabledState
+	}
+
+	if d.HasChanges("tags") {
+		existingModel.Tags = expandTags(d.Get("tags").(map[string]interface{}))
+	}
 
 	// If the explicitResourceOrder is empty and it's not a new resource set the mapping table to the state file and return an error.
 	// If the explicitResourceOrder is empty and it is a new resource it will run the CreateOrUpdate as expected
 	// If the explicitResourceOrder is NOT empty and it is NOT a new resource it will run the CreateOrUpdate as expected
-	if len(explicitResourceOrder) == 0 && !d.IsNewResource() {
+	explicitResourceOrder := d.Get("explicit_resource_order").([]interface{})
+	if len(explicitResourceOrder) == 0 {
 		d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, id))
 	} else {
-		frontDoorParameters := frontdoors.FrontDoor{
-			Location: utils.String(location),
-			Properties: &frontdoors.FrontDoorProperties{
-				FriendlyName:          utils.String(friendlyName),
-				RoutingRules:          expandFrontDoorRoutingRule(routingRules, id),
-				BackendPools:          expandFrontDoorBackendPools(backendPools, id),
-				BackendPoolsSettings:  expandFrontDoorBackendPoolsSettings(backendPoolsSettings, backendPoolsSendReceiveTimeoutSeconds),
-				FrontendEndpoints:     expandFrontDoorFrontendEndpoint(frontendEndpoints, id),
-				HealthProbeSettings:   expandFrontDoorHealthProbeSettingsModel(healthProbeSettings, id),
-				LoadBalancingSettings: expandFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, id),
-				EnabledState:          &enabledState,
-			},
-			Tags: expandTags(t),
-		}
-
-		if err := client.CreateOrUpdateThenPoll(ctx, id, frontDoorParameters); err != nil {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, existingModel); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
@@ -1040,7 +1131,7 @@ func expandFrontDoorLoadBalancingSettingsModel(input []interface{}, frontDoorId 
 	return &output
 }
 
-func expandFrontDoorRoutingRule(input []interface{}, frontDoorId frontdoors.FrontDoorId) *[]frontdoors.RoutingRule {
+func expandFrontDoorRoutingRule(input []interface{}, frontDoorId frontdoors.FrontDoorId, rulesEngines *map[string]*frontdoors.SubResource) *[]frontdoors.RoutingRule {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1079,6 +1170,15 @@ func expandFrontDoorRoutingRule(input []interface{}, frontDoorId frontdoors.Fron
 				RouteConfiguration: &routingConfiguration,
 			},
 		}
+
+		// Preserve existing rules engine for this routing rule
+		// https://github.com/hashicorp/terraform-provider-azurerm/issues/7455#issuecomment-882769364
+		if rulesEngines != nil {
+			if rulesEngine, ok := (*rulesEngines)[name]; ok {
+				currentRoutingRule.Properties.RulesEngine = rulesEngine
+			}
+		}
+
 		output = append(output, currentRoutingRule)
 	}
 
@@ -1261,7 +1361,7 @@ func flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules,
 	}
 	if len(routingRules) > 0 {
 		var oldBlocks interface{}
-		flattenendRoutingRules, err := flattenFrontDoorRoutingRule(expandFrontDoorRoutingRule(routingRules, frontDoorId), oldBlocks, frontDoorId, make([]interface{}, 0))
+		flattenendRoutingRules, err := flattenFrontDoorRoutingRule(expandFrontDoorRoutingRule(routingRules, frontDoorId, nil), oldBlocks, frontDoorId, make([]interface{}, 0))
 		if err == nil {
 			for _, ids := range *flattenendRoutingRules {
 				routingRule := ids.(map[string]interface{})
