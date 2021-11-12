@@ -1,4 +1,4 @@
-package workspaces
+package privatelinkresources
 
 import (
 	"testing"
@@ -6,10 +6,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = WorkspaceId{}
+var _ resourceids.ResourceId = PrivateLinkResourceId{}
 
-func TestNewWorkspaceID(t *testing.T) {
-	id := NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+func TestNewPrivateLinkResourceID(t *testing.T) {
+	id := NewPrivateLinkResourceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "groupIdValue")
 
 	if id.SubscriptionId != "12345678-1234-9876-4563-123456789012" {
 		t.Fatalf("Expected %q but got %q for Segment 'SubscriptionId'", id.SubscriptionId, "12345678-1234-9876-4563-123456789012")
@@ -22,21 +22,25 @@ func TestNewWorkspaceID(t *testing.T) {
 	if id.WorkspaceName != "workspaceValue" {
 		t.Fatalf("Expected %q but got %q for Segment 'WorkspaceName'", id.WorkspaceName, "workspaceValue")
 	}
+
+	if id.GroupId != "groupIdValue" {
+		t.Fatalf("Expected %q but got %q for Segment 'GroupId'", id.GroupId, "groupIdValue")
+	}
 }
 
-func TestFormatWorkspaceID(t *testing.T) {
-	actual := NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Databricks/workspaces/workspaceValue"
+func TestFormatPrivateLinkResourceID(t *testing.T) {
+	actual := NewPrivateLinkResourceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "groupIdValue").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Databricks/workspaces/workspaceValue/privateLinkResources/groupIdValue"
 	if actual != expected {
 		t.Fatalf("Expected the Formatted ID to be %q but got %q", actual, expected)
 	}
 }
 
-func TestParseWorkspaceID(t *testing.T) {
+func TestParsePrivateLinkResourceID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *WorkspaceId
+		Expected *PrivateLinkResourceId
 	}{
 		{
 			// Incomplete URI
@@ -79,24 +83,35 @@ func TestParseWorkspaceID(t *testing.T) {
 			Error: true,
 		},
 		{
-			// Valid URI
+			// Incomplete URI
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Databricks/workspaces/workspaceValue",
-			Expected: &WorkspaceId{
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Databricks/workspaces/workspaceValue/privateLinkResources",
+			Error: true,
+		},
+		{
+			// Valid URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Databricks/workspaces/workspaceValue/privateLinkResources/groupIdValue",
+			Expected: &PrivateLinkResourceId{
 				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
 				ResourceGroupName: "example-resource-group",
 				WorkspaceName:     "workspaceValue",
+				GroupId:           "groupIdValue",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment)
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Databricks/workspaces/workspaceValue/extra",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Databricks/workspaces/workspaceValue/privateLinkResources/groupIdValue/extra",
 			Error: true,
 		},
 	}
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseWorkspaceID(v.Input)
+		actual, err := ParsePrivateLinkResourceID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -120,14 +135,18 @@ func TestParseWorkspaceID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for WorkspaceName", v.Expected.WorkspaceName, actual.WorkspaceName)
 		}
 
+		if actual.GroupId != v.Expected.GroupId {
+			t.Fatalf("Expected %q but got %q for GroupId", v.Expected.GroupId, actual.GroupId)
+		}
+
 	}
 }
 
-func TestParseWorkspaceIDInsensitively(t *testing.T) {
+func TestParsePrivateLinkResourceIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *WorkspaceId
+		Expected *PrivateLinkResourceId
 	}{
 		{
 			// Incomplete URI
@@ -205,38 +224,60 @@ func TestParseWorkspaceIDInsensitively(t *testing.T) {
 			Error: true,
 		},
 		{
-			// Valid URI
+			// Incomplete URI
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Databricks/workspaces/workspaceValue",
-			Expected: &WorkspaceId{
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.dAtAbRiCkS/wOrKsPaCeS/wOrKsPaCeVaLuE",
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Databricks/workspaces/workspaceValue/privateLinkResources",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.dAtAbRiCkS/wOrKsPaCeS/wOrKsPaCeVaLuE/pRiVaTeLiNkReSoUrCeS",
+			Error: true,
+		},
+		{
+			// Valid URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Databricks/workspaces/workspaceValue/privateLinkResources/groupIdValue",
+			Expected: &PrivateLinkResourceId{
 				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
 				ResourceGroupName: "example-resource-group",
 				WorkspaceName:     "workspaceValue",
+				GroupId:           "groupIdValue",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment)
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Databricks/workspaces/workspaceValue/extra",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Databricks/workspaces/workspaceValue/privateLinkResources/groupIdValue/extra",
 			Error: true,
 		},
 		{
 			// Valid URI (mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.dAtAbRiCkS/wOrKsPaCeS/wOrKsPaCeVaLuE",
-			Expected: &WorkspaceId{
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.dAtAbRiCkS/wOrKsPaCeS/wOrKsPaCeVaLuE/pRiVaTeLiNkReSoUrCeS/gRoUpIdVaLuE",
+			Expected: &PrivateLinkResourceId{
 				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
 				ResourceGroupName: "eXaMpLe-rEsOuRcE-GrOuP",
 				WorkspaceName:     "wOrKsPaCeVaLuE",
+				GroupId:           "gRoUpIdVaLuE",
 			},
 		},
 		{
 			// Invalid (Valid Uri with Extra segment - mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.dAtAbRiCkS/wOrKsPaCeS/wOrKsPaCeVaLuE/extra",
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.dAtAbRiCkS/wOrKsPaCeS/wOrKsPaCeVaLuE/pRiVaTeLiNkReSoUrCeS/gRoUpIdVaLuE/extra",
 			Error: true,
 		},
 	}
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseWorkspaceIDInsensitively(v.Input)
+		actual, err := ParsePrivateLinkResourceIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -258,6 +299,10 @@ func TestParseWorkspaceIDInsensitively(t *testing.T) {
 
 		if actual.WorkspaceName != v.Expected.WorkspaceName {
 			t.Fatalf("Expected %q but got %q for WorkspaceName", v.Expected.WorkspaceName, actual.WorkspaceName)
+		}
+
+		if actual.GroupId != v.Expected.GroupId {
+			t.Fatalf("Expected %q but got %q for GroupId", v.Expected.GroupId, actual.GroupId)
 		}
 
 	}

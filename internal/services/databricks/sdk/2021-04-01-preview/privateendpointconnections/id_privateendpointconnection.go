@@ -1,4 +1,4 @@
-package delete
+package privateendpointconnections
 
 import (
 	"fmt"

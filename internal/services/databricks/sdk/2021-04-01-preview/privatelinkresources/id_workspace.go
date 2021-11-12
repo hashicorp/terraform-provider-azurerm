@@ -1,4 +1,4 @@
-package vnetpeering
+package privatelinkresources
 
 import (
 	"fmt"
@@ -7,36 +7,34 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = VirtualNetworkPeeringId{}
+var _ resourceids.ResourceId = WorkspaceId{}
 
-// VirtualNetworkPeeringId is a struct representing the Resource ID for a Virtual Network Peering
-type VirtualNetworkPeeringId struct {
+// WorkspaceId is a struct representing the Resource ID for a Workspace
+type WorkspaceId struct {
 	SubscriptionId    string
 	ResourceGroupName string
 	WorkspaceName     string
-	PeeringName       string
 }
 
-// NewVirtualNetworkPeeringID returns a new VirtualNetworkPeeringId struct
-func NewVirtualNetworkPeeringID(subscriptionId string, resourceGroupName string, workspaceName string, peeringName string) VirtualNetworkPeeringId {
-	return VirtualNetworkPeeringId{
+// NewWorkspaceID returns a new WorkspaceId struct
+func NewWorkspaceID(subscriptionId string, resourceGroupName string, workspaceName string) WorkspaceId {
+	return WorkspaceId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
 		WorkspaceName:     workspaceName,
-		PeeringName:       peeringName,
 	}
 }
 
-// ParseVirtualNetworkPeeringID parses 'input' into a VirtualNetworkPeeringId
-func ParseVirtualNetworkPeeringID(input string) (*VirtualNetworkPeeringId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualNetworkPeeringId{})
+// ParseWorkspaceID parses 'input' into a WorkspaceId
+func ParseWorkspaceID(input string) (*WorkspaceId, error) {
+	parser := resourceids.NewParserFromResourceIdType(WorkspaceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	var ok bool
-	id := VirtualNetworkPeeringId{}
+	id := WorkspaceId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
@@ -50,24 +48,20 @@ func ParseVirtualNetworkPeeringID(input string) (*VirtualNetworkPeeringId, error
 		return nil, fmt.Errorf("the segment 'workspaceName' was not found in the resource id %q", input)
 	}
 
-	if id.PeeringName, ok = parsed.Parsed["peeringName"]; !ok {
-		return nil, fmt.Errorf("the segment 'peeringName' was not found in the resource id %q", input)
-	}
-
 	return &id, nil
 }
 
-// ParseVirtualNetworkPeeringIDInsensitively parses 'input' case-insensitively into a VirtualNetworkPeeringId
+// ParseWorkspaceIDInsensitively parses 'input' case-insensitively into a WorkspaceId
 // note: this method should only be used for API response data and not user input
-func ParseVirtualNetworkPeeringIDInsensitively(input string) (*VirtualNetworkPeeringId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualNetworkPeeringId{})
+func ParseWorkspaceIDInsensitively(input string) (*WorkspaceId, error) {
+	parser := resourceids.NewParserFromResourceIdType(WorkspaceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	var ok bool
-	id := VirtualNetworkPeeringId{}
+	id := WorkspaceId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
@@ -81,36 +75,32 @@ func ParseVirtualNetworkPeeringIDInsensitively(input string) (*VirtualNetworkPee
 		return nil, fmt.Errorf("the segment 'workspaceName' was not found in the resource id %q", input)
 	}
 
-	if id.PeeringName, ok = parsed.Parsed["peeringName"]; !ok {
-		return nil, fmt.Errorf("the segment 'peeringName' was not found in the resource id %q", input)
-	}
-
 	return &id, nil
 }
 
-// ValidateVirtualNetworkPeeringID checks that 'input' can be parsed as a Virtual Network Peering ID
-func ValidateVirtualNetworkPeeringID(input interface{}, key string) (warnings []string, errors []error) {
+// ValidateWorkspaceID checks that 'input' can be parsed as a Workspace ID
+func ValidateWorkspaceID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := ParseVirtualNetworkPeeringID(v); err != nil {
+	if _, err := ParseWorkspaceID(v); err != nil {
 		errors = append(errors, err)
 	}
 
 	return
 }
 
-// ID returns the formatted Virtual Network Peering ID
-func (id VirtualNetworkPeeringId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Databricks/workspaces/%s/virtualNetworkPeerings/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName, id.PeeringName)
+// ID returns the formatted Workspace ID
+func (id WorkspaceId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Databricks/workspaces/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Virtual Network Peering ID
-func (id VirtualNetworkPeeringId) Segments() []resourceids.Segment {
+// Segments returns a slice of Resource ID Segments which comprise this Workspace ID
+func (id WorkspaceId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
@@ -120,18 +110,15 @@ func (id VirtualNetworkPeeringId) Segments() []resourceids.Segment {
 		resourceids.ResourceProviderSegment("microsoftDatabricks", "Microsoft.Databricks", "Microsoft.Databricks"),
 		resourceids.StaticSegment("workspaces", "workspaces", "workspaces"),
 		resourceids.UserSpecifiedSegment("workspaceName", "workspaceValue"),
-		resourceids.StaticSegment("virtualNetworkPeerings", "virtualNetworkPeerings", "virtualNetworkPeerings"),
-		resourceids.UserSpecifiedSegment("peeringName", "peeringValue"),
 	}
 }
 
-// String returns a human-readable description of this Virtual Network Peering ID
-func (id VirtualNetworkPeeringId) String() string {
+// String returns a human-readable description of this Workspace ID
+func (id WorkspaceId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Workspace Name: %q", id.WorkspaceName),
-		fmt.Sprintf("Peering Name: %q", id.PeeringName),
 	}
-	return fmt.Sprintf("Virtual Network Peering (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Workspace (%s)", strings.Join(components, "\n"))
 }

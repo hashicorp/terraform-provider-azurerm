@@ -1,4 +1,4 @@
-package workspaces
+package privatelinkresources
 
 import (
 	"testing"
