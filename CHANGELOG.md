@@ -9,7 +9,8 @@ IMPROVEMENTS:
 * relay: updating the embedded SDK to use the new Resource ID Parsers [GH-14153]
 * signalr: updating the embedded SDK to use the new Resource ID Parsers [GH-14150]
 * videoanalyzer: updating the embedded SDK to use the new Resource ID Parsers [GH-14135]
-
+* upgrading `compute` to API Version `2020-12-01` [GH-14174]
+* 
 BUG FIXES: 
 
 * `linux_virtual_machine_scale_set` - `source_image_reference.offer` and `source_image_reference.publisher` are now ForceNew [GH-14165]
