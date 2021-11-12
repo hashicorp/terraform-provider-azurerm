@@ -90,10 +90,17 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
+data "azuread_application_published_app_ids" "well_known" {}
+
+resource "azuread_service_principal" "test" {
+  application_id = data.azuread_application_published_app_ids.well_known.result["AzureCosmosDb"]
+  use_existing   = true
+}
+
 resource "azurerm_role_assignment" "test" {
-  scope                = azurerm_virtual_network.test.id
+  principal_id         = azuread_service_principal.test.object_id
   role_definition_name = "Network Contributor"
-  principal_id         = "e531a17d-006c-4736-9de9-d8d745730738"
+  scope                = azurerm_virtual_network.test.id
 }
 
 resource "azurerm_cosmosdb_cassandra_cluster" "test" {
