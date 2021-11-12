@@ -3,6 +3,7 @@ package servicefabricmanaged
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -350,8 +351,11 @@ func (k ClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			if rd.HasChange("node_type") {
-				for idx := range rd.Get("node_type").([]interface{}) {
+			o, n := rd.GetChange("node_type")
+			oi := o.([]interface{})
+			ni := n.([]interface{})
+			if len(oi) > 0 && !reflect.DeepEqual(oi, ni) {
+				for idx := range ni {
 					for _, k := range []string{"name", "vm_size", "primary", "stateless"} {
 						attr := fmt.Sprintf("node_type.%d.%s", idx, k)
 						if rd.HasChange(attr) {
