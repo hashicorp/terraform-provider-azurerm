@@ -136,5 +136,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Network ACLs for a SignalR service can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_signalr_service_network_acl.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/SignalR/signalr1
+terraform import azurerm_signalr_service_network_acl.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/signalR/signalr1
 ```
