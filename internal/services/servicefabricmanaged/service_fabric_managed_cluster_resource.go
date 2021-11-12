@@ -334,7 +334,7 @@ func (k ClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				isPrimary := nt["primary"].(bool)
 				if isPrimary && !primary {
 					primary = true
-				} else {
+				} else if isPrimary {
 					return fmt.Errorf("only one node type can be primary at any given time. ")
 				}
 
