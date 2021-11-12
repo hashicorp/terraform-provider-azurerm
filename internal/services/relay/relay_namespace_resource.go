@@ -201,7 +201,7 @@ func resourceRelayNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	// we can't make use of the Future here due to a bug where 404 isn't tracked as Successful
-	log.Printf("[DEBUG] Waiting for Relay Namespace %q (Resource Group %q) to be deleted", id.NamespaceName, id.ResourceGroupName)
+	log.Printf("[DEBUG] Waiting for %s to be deleted", *id)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Pending"},
 		Target:     []string{"Deleted"},
