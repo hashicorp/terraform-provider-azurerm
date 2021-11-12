@@ -1,3 +1,9 @@
+## 2.86.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* databricks: updating the embedded sdk [GH-14157]
+
 ## 2.85.0 (November 12, 2021)
 
 FEATURES:
