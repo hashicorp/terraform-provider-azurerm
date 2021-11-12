@@ -16,7 +16,8 @@ import (
 func (td TestData) DataSourceTest(t *testing.T, steps []TestStep) {
 	// DataSources don't need a check destroy - however since this is a wrapper function
 	// and not matching the ignore pattern `XXX_data_source_test.go`, this needs to be explicitly opted out
-	// // lintignore:AT001
+
+	// lintignore:AT001
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
 		Steps:    steps,
@@ -27,6 +28,7 @@ func (td TestData) DataSourceTest(t *testing.T, steps []TestStep) {
 func (td TestData) DataSourceTestInSequence(t *testing.T, steps []TestStep) {
 	// DataSources don't need a check destroy - however since this is a wrapper function
 	// and not matching the ignore pattern `XXX_data_source_test.go`, this needs to be explicitly opted out
+
 	// lintignore:AT001
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
