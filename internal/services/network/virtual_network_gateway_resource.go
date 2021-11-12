@@ -122,7 +122,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			"ip_configuration": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
-				MaxItems: 2,
+				MaxItems: 3,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {

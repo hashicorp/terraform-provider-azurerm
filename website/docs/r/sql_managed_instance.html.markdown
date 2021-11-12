@@ -237,6 +237,8 @@ The following arguments are supported:
 
 * `dns_zone_partner_id` - (Optional) The ID of the Managed Instance which will share the DNS zone. This is a prerequisite for creating a failover group, although creation of a failover group is not yet possible in `azurerm`. Setting this after creation forces a new resource to be created.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -245,6 +247,12 @@ A `sku` block supports the following:
 
 * `name` - (Required) Sku of the managed instance. Values can be `GP_Gen4`, `GP_Gen5`, `BC_Gen4`, or `BC_Gen5`.
 
+---
+
+ An `identity` block supports the following:
+
+ * `type` - (Required) The identity type of the SQL Managed Instance. Only possible values is `SystemAssigned`.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -252,6 +260,14 @@ The following attributes are exported:
 * `id` - The SQL Managed Instance ID.
 
 * `fqdn` - The fully qualified domain name of the Azure Managed SQL Instance
+
+---
+
+ The `identity` block exports the following:
+
+ * `principal_id` - The Principal ID for the Service Principal associated with the Identity of this SQL Managed Instance.
+
+ * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Managed Instance.
 
 ## Import
 

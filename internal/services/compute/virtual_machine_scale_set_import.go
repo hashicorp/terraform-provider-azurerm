@@ -51,7 +51,7 @@ func importVirtualMachineScaleSet(osType compute.OperatingSystemTypes, resourceT
 
 		client := meta.(*clients.Client).Compute.VMScaleSetClient
 		// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-		vm, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+		vm, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}

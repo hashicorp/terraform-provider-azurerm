@@ -135,8 +135,9 @@ resource azurerm_subnet_network_security_group_association "test" {
 }
 
 resource "azuread_group" "test" {
-  display_name = "AAD DC Administrators %[3]s"
-  description  = "Test for delegating group to administer Azure AD Domain Services"
+  display_name     = "AAD DC Administrators %[3]s"
+  description      = "Test for delegating group to administer Azure AD Domain Services"
+  security_enabled = true
 }
 
 data "azuread_domains" "test" {

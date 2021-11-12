@@ -5,17 +5,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/sdk/datalakestore/2016-11-01/virtualnetworkrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataLakeStoreVirtualNetworkRule() *pluginsdk.Resource {
@@ -65,35 +64,35 @@ func resourceDataLakeStoreVirtualNetworkRule() *pluginsdk.Resource {
 
 func resourceDataLakeStoreVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.VirtualNetworkRulesClient
-	subscriptionId := meta.(*clients.Client).Datalake.VirtualNetworkRulesClient.SubscriptionID
+	subscriptionId := meta.(*clients.Client).Datalake.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewVirtualNetworkRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
+	id := virtualnetworkrules.NewVirtualNetworkRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
 	virtualNetworkSubnetId := d.Get("subnet_id").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Lake Store Virtual Network Rule %s: %+v", id, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_lake_store_virtual_network_rule", *existing.ID)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_data_lake_store_virtual_network_rule", id.ID())
 		}
 	}
 
-	parameters := account.CreateOrUpdateVirtualNetworkRuleParameters{
-		CreateOrUpdateVirtualNetworkRuleProperties: &account.CreateOrUpdateVirtualNetworkRuleProperties{
-			SubnetID: utils.String(virtualNetworkSubnetId),
+	parameters := virtualnetworkrules.CreateOrUpdateVirtualNetworkRuleParameters{
+		Properties: virtualnetworkrules.CreateOrUpdateVirtualNetworkRuleProperties{
+			SubnetId: virtualNetworkSubnetId,
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AccountName, id.Name, parameters); err != nil {
-		return fmt.Errorf("creating Data Lake Store Virtual Network Rule %s: %+v", id, err)
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -106,28 +105,30 @@ func resourceDataLakeStoreVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualNetworkRuleID(d.Id())
+	id, err := virtualnetworkrules.ParseVirtualNetworkRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Data Lake Store Virtual Network Rule %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Virtual Network Rule %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("account_name", id.AccountName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if props := resp.VirtualNetworkRuleProperties; props != nil {
-		d.Set("subnet_id", props.SubnetID)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("subnet_id", props.SubnetId)
+		}
 	}
 
 	return nil
@@ -138,17 +139,17 @@ func resourceDataLakeStoreVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualNetworkRuleID(d.Id())
+	id, err := virtualnetworkrules.ParseVirtualNetworkRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
-		return fmt.Errorf("deleting Data Lake Store Virtual Network Rule %s: %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil

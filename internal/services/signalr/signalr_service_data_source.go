@@ -107,8 +107,8 @@ func dataSourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.SignalRName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ResourceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))

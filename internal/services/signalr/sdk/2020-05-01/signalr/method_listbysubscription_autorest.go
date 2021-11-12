@@ -110,7 +110,7 @@ func (c SignalRClient) preparerForListBySubscription(ctx context.Context, id Sub
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsGet(),
 		autorest.WithBaseURL(c.baseUri),
-		autorest.WithPath(fmt.Sprintf("%s/providers/Microsoft.SignalRService/SignalR", id.ID())),
+		autorest.WithPath(fmt.Sprintf("%s/providers/Microsoft.SignalRService/signalR", id.ID())),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }

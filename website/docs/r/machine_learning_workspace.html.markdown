@@ -80,7 +80,7 @@ The following arguments are supported:
 
 -> **NOTE:** The `account_tier` cannot be `Premium` in order to associate the Storage Account to this Machine Learning Workspace.
 
-* `identity` - (Required) An `identity` block defined below.
+* `identity` - (Required) An `identity` block as defined below.
 
 * `container_registry_id` - (Optional) The ID of the container registry associated with this Machine Learning Workspace. Changing this forces a new resource to be created.
 

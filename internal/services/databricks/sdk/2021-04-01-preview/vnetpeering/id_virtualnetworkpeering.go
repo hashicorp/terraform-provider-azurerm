@@ -7,120 +7,131 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+var _ resourceids.ResourceId = VirtualNetworkPeeringId{}
+
+// VirtualNetworkPeeringId is a struct representing the Resource ID for a Virtual Network Peering
 type VirtualNetworkPeeringId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	WorkspaceName  string
-	Name           string
+	SubscriptionId    string
+	ResourceGroupName string
+	WorkspaceName     string
+	PeeringName       string
 }
 
-func NewVirtualNetworkPeeringID(subscriptionId, resourceGroup, workspaceName, name string) VirtualNetworkPeeringId {
+// NewVirtualNetworkPeeringID returns a new VirtualNetworkPeeringId struct
+func NewVirtualNetworkPeeringID(subscriptionId string, resourceGroupName string, workspaceName string, peeringName string) VirtualNetworkPeeringId {
 	return VirtualNetworkPeeringId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourceGroup,
-		WorkspaceName:  workspaceName,
-		Name:           name,
+		SubscriptionId:    subscriptionId,
+		ResourceGroupName: resourceGroupName,
+		WorkspaceName:     workspaceName,
+		PeeringName:       peeringName,
 	}
 }
 
-func (id VirtualNetworkPeeringId) String() string {
-	segments := []string{
-		fmt.Sprintf("Name %q", id.Name),
-		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+// ParseVirtualNetworkPeeringID parses 'input' into a VirtualNetworkPeeringId
+func ParseVirtualNetworkPeeringID(input string) (*VirtualNetworkPeeringId, error) {
+	parser := resourceids.NewParserFromResourceIdType(VirtualNetworkPeeringId{})
+	parsed, err := parser.Parse(input, false)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
-	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Virtual Network Peering", segmentsStr)
+
+	var ok bool
+	id := VirtualNetworkPeeringId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'workspaceName' was not found in the resource id %q", input)
+	}
+
+	if id.PeeringName, ok = parsed.Parsed["peeringName"]; !ok {
+		return nil, fmt.Errorf("the segment 'peeringName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
 }
 
+// ParseVirtualNetworkPeeringIDInsensitively parses 'input' case-insensitively into a VirtualNetworkPeeringId
+// note: this method should only be used for API response data and not user input
+func ParseVirtualNetworkPeeringIDInsensitively(input string) (*VirtualNetworkPeeringId, error) {
+	parser := resourceids.NewParserFromResourceIdType(VirtualNetworkPeeringId{})
+	parsed, err := parser.Parse(input, true)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	var ok bool
+	id := VirtualNetworkPeeringId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'workspaceName' was not found in the resource id %q", input)
+	}
+
+	if id.PeeringName, ok = parsed.Parsed["peeringName"]; !ok {
+		return nil, fmt.Errorf("the segment 'peeringName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
+}
+
+// ValidateVirtualNetworkPeeringID checks that 'input' can be parsed as a Virtual Network Peering ID
+func ValidateVirtualNetworkPeeringID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	if _, err := ParseVirtualNetworkPeeringID(v); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
+}
+
+// ID returns the formatted Virtual Network Peering ID
 func (id VirtualNetworkPeeringId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Databricks/workspaces/%s/virtualNetworkPeerings/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName, id.PeeringName)
 }
 
-// ParseVirtualNetworkPeeringID parses a VirtualNetworkPeering ID into an VirtualNetworkPeeringId struct
-func ParseVirtualNetworkPeeringID(input string) (*VirtualNetworkPeeringId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// Segments returns a slice of Resource ID Segments which comprise this Virtual Network Peering ID
+func (id VirtualNetworkPeeringId) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
+		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
+		resourceids.StaticSegment("resourceGroups", "resourceGroups", "resourceGroups"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
+		resourceids.StaticSegment("providers", "providers", "providers"),
+		resourceids.ResourceProviderSegment("microsoftDatabricks", "Microsoft.Databricks", "Microsoft.Databricks"),
+		resourceids.StaticSegment("workspaces", "workspaces", "workspaces"),
+		resourceids.UserSpecifiedSegment("workspaceName", "workspaceValue"),
+		resourceids.StaticSegment("virtualNetworkPeerings", "virtualNetworkPeerings", "virtualNetworkPeerings"),
+		resourceids.UserSpecifiedSegment("peeringName", "peeringValue"),
 	}
-
-	resourceId := VirtualNetworkPeeringId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	if resourceId.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
-		return nil, err
-	}
-	if resourceId.Name, err = id.PopSegment("virtualNetworkPeerings"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
 }
 
-// ParseVirtualNetworkPeeringIDInsensitively parses an VirtualNetworkPeering ID into an VirtualNetworkPeeringId struct, insensitively
-// This should only be used to parse an ID for rewriting to a consistent casing,
-// the ParseVirtualNetworkPeeringID method should be used instead for validation etc.
-func ParseVirtualNetworkPeeringIDInsensitively(input string) (*VirtualNetworkPeeringId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// String returns a human-readable description of this Virtual Network Peering ID
+func (id VirtualNetworkPeeringId) String() string {
+	components := []string{
+		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
+		fmt.Sprintf("Workspace Name: %q", id.WorkspaceName),
+		fmt.Sprintf("Peering Name: %q", id.PeeringName),
 	}
-
-	resourceId := VirtualNetworkPeeringId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	// find the correct casing for the 'workspaces' segment
-	workspacesKey := "workspaces"
-	for key := range id.Path {
-		if strings.EqualFold(key, workspacesKey) {
-			workspacesKey = key
-			break
-		}
-	}
-	if resourceId.WorkspaceName, err = id.PopSegment(workspacesKey); err != nil {
-		return nil, err
-	}
-
-	// find the correct casing for the 'virtualNetworkPeerings' segment
-	virtualNetworkPeeringsKey := "virtualNetworkPeerings"
-	for key := range id.Path {
-		if strings.EqualFold(key, virtualNetworkPeeringsKey) {
-			virtualNetworkPeeringsKey = key
-			break
-		}
-	}
-	if resourceId.Name, err = id.PopSegment(virtualNetworkPeeringsKey); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
+	return fmt.Sprintf("Virtual Network Peering (%s)", strings.Join(components, "\n"))
 }
