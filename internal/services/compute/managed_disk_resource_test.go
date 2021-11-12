@@ -1575,7 +1575,6 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-
 func (ManagedDiskResource) create_withOnDemandBursting(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1600,7 +1599,6 @@ resource "azurerm_managed_disk" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
-
 
 func (ManagedDiskResource) update_withOnDemandBursting(data acceptance.TestData) string {
 	return fmt.Sprintf(`
