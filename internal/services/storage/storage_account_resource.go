@@ -1071,7 +1071,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if val, ok := d.GetOk("queue_properties"); ok {
 		storageClient := meta.(*clients.Client).Storage
-		account, err := storageClient.FindAccount(ctx, storageAccountName)
+		account, err := storageClient.FindAccountWithSpecifiedResourceGroup(ctx, resourceGroupName, storageAccountName)
 		if err != nil {
 			return fmt.Errorf("retrieving Account %q: %s", storageAccountName, err)
 		}
@@ -1115,7 +1115,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		storageClient := meta.(*clients.Client).Storage
 
-		account, err := storageClient.FindAccount(ctx, storageAccountName)
+		account, err := storageClient.FindAccountWithSpecifiedResourceGroup(ctx, resourceGroupName, storageAccountName)
 		if err != nil {
 			return fmt.Errorf("retrieving Account %q: %s", storageAccountName, err)
 		}
@@ -1445,7 +1445,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if d.HasChange("queue_properties") {
 		storageClient := meta.(*clients.Client).Storage
-		account, err := storageClient.FindAccount(ctx, storageAccountName)
+		account, err := storageClient.FindAccountWithSpecifiedResourceGroup(ctx, resourceGroupName, storageAccountName)
 		if err != nil {
 			return fmt.Errorf("retrieving Account %q: %s", storageAccountName, err)
 		}
@@ -1489,7 +1489,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		storageClient := meta.(*clients.Client).Storage
 
-		account, err := storageClient.FindAccount(ctx, storageAccountName)
+		account, err := storageClient.FindAccountWithSpecifiedResourceGroup(ctx, resourceGroupName, storageAccountName)
 		if err != nil {
 			return fmt.Errorf("retrieving Account %q: %s", storageAccountName, err)
 		}
@@ -1695,7 +1695,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	storageClient := meta.(*clients.Client).Storage
-	account, err := storageClient.FindAccount(ctx, storageAccountName)
+	account, err := storageClient.FindAccountWithSpecifiedResourceGroup(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q: %s", storageAccountName, err)
 	}
@@ -1764,7 +1764,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if resp.Kind == storage.StorageV2 || resp.Kind == storage.BlockBlobStorage {
 		storageClient := meta.(*clients.Client).Storage
 
-		account, err := storageClient.FindAccount(ctx, storageAccountName)
+		account, err := storageClient.FindAccountWithSpecifiedResourceGroup(ctx, resourceGroupName, storageAccountName)
 		if err != nil {
 			return fmt.Errorf("retrieving Account %q: %s", storageAccountName, err)
 		}

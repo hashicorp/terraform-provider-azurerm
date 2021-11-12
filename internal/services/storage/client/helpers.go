@@ -115,6 +115,35 @@ func (client Client) FindAccount(ctx context.Context, accountName string) (*acco
 	return nil, nil
 }
 
+func (client Client) FindAccountWithSpecifiedResourceGroup(ctx context.Context, resourceGroupName string, accountName string) (*accountDetails, error) {
+	accountsLock.Lock()
+	defer accountsLock.Unlock()
+
+	if existing, ok := storageAccountsCache[accountName]; ok {
+		return &existing, nil
+	}
+
+	resp, err := client.AccountsClient.GetProperties(ctx, resourceGroupName, accountName, "")
+	if err != nil {
+		return nil, fmt.Errorf("Bad: Get on storageServiceClient: %+v", err)
+	}
+
+	if props := resp.AccountProperties; props != nil {
+		account, err := populateAccountDetails(accountName, resp)
+		if err != nil {
+			return nil, err
+		}
+
+		storageAccountsCache[accountName] = *account
+	}
+
+	if existing, ok := storageAccountsCache[accountName]; ok {
+		return &existing, nil
+	}
+
+	return nil, nil
+}
+
 func populateAccountDetails(accountName string, props storage.Account) (*accountDetails, error) {
 	if props.ID == nil {
 		return nil, fmt.Errorf("`id` was nil for Account %q", accountName)
