@@ -496,20 +496,35 @@ func TestAccAzureRMManagedDisk_update_withIOpsReadOnlyAndMBpsReadOnly(t *testing
 	})
 }
 
-func TestAccAzureRMManagedDisk_update_withOnDemandBursting(t *testing.T) {
+func TestAccAzureRMManagedDisk_create_withOnDemandBurstingEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.create_withOnDemandBursting(data),
+			Config: r.create_withOnDemandBurstingEnabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMManagedDisk_update_withOnDemandBurstingEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.empty(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.update_withOnDemandBursting(data),
+			Config: r.update_withOnDemandBurstingEnabled(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1575,7 +1590,7 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ManagedDiskResource) create_withOnDemandBursting(data acceptance.TestData) string {
+func (ManagedDiskResource) create_withOnDemandBurstingEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1591,7 +1606,7 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type       = "Premium_LRS"
   create_option              = "Empty"
   disk_size_gb               = "1024"
-  on_demand_bursting_enabled = false
+  on_demand_bursting_enabled = true
   tags = {
     environment = "acctest"
     cost-center = "ops"
@@ -1600,7 +1615,7 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ManagedDiskResource) update_withOnDemandBursting(data acceptance.TestData) string {
+func (ManagedDiskResource) update_withOnDemandBurstingEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
