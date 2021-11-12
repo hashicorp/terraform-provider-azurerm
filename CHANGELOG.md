@@ -4,6 +4,7 @@ IMPROVEMENTS:
 
 * databricks: updating the embedded SDK to use the new Resource ID Parsers [GH-14157]
 * maps: updating the embedded SDK to use the new Resource ID Parsers [GH-14155]
+* powerbi: updating the embedded SDK to use the new Resource ID Parsers [GH-14154]
 
 ## 2.85.0 (November 12, 2021)
 
