@@ -1,4 +1,4 @@
-package authorizations
+package hcxenterprisesites
 
 import (
 	"testing"
