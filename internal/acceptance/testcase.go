@@ -13,10 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 )
 
-// lintignore:AT001
 func (td TestData) DataSourceTest(t *testing.T, steps []TestStep) {
 	// DataSources don't need a check destroy - however since this is a wrapper function
 	// and not matching the ignore pattern `XXX_data_source_test.go`, this needs to be explicitly opted out
+
+	// lintignore:AT001
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
 		Steps:    steps,
@@ -24,10 +25,11 @@ func (td TestData) DataSourceTest(t *testing.T, steps []TestStep) {
 	td.runAcceptanceTest(t, testCase)
 }
 
-// lintignore:AT001
 func (td TestData) DataSourceTestInSequence(t *testing.T, steps []TestStep) {
 	// DataSources don't need a check destroy - however since this is a wrapper function
 	// and not matching the ignore pattern `XXX_data_source_test.go`, this needs to be explicitly opted out
+
+	// lintignore:AT001
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
 		Steps:    steps,
@@ -36,7 +38,6 @@ func (td TestData) DataSourceTestInSequence(t *testing.T, steps []TestStep) {
 	td.runAcceptanceSequentialTest(t, testCase)
 }
 
-// lintignore:AT001
 func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
@@ -54,8 +55,8 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 
 // ResourceTestIgnoreCheckDestroyed skips the check to confirm the resource test has been destroyed.
 // This is done because certain resources can't actually be deleted.
-// lintignore:AT001
 func (td TestData) ResourceTestSkipCheckDestroyed(t *testing.T, steps []TestStep) {
+	// lintignore:AT001
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
 		Steps:    steps,
@@ -63,8 +64,8 @@ func (td TestData) ResourceTestSkipCheckDestroyed(t *testing.T, steps []TestStep
 	td.runAcceptanceTest(t, testCase)
 }
 
-// lintignore:AT001
 func (td TestData) ResourceSequentialTestSkipCheckDestroyed(t *testing.T, steps []TestStep) {
+	// lintignore:AT001
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
 		Steps:    steps,

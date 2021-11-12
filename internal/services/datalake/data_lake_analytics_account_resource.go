@@ -191,7 +191,11 @@ func resourceArmDateLakeAnalyticsAccountRead(d *pluginsdk.ResourceData, meta int
 		}
 
 		if properties := model.Properties; properties != nil {
-			d.Set("tier", properties.CurrentTier)
+			tier := ""
+			if properties.CurrentTier != nil {
+				tier = string(*properties.CurrentTier)
+			}
+			d.Set("tier", tier)
 			d.Set("default_store_account_name", properties.DefaultDataLakeStoreAccount)
 		}
 
