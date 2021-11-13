@@ -281,7 +281,7 @@ resource "azurerm_servicebus_subscription" "import" {
 }
 
 func (r ServiceBusSubscriptionResource) duplicate(data acceptance.TestData) string {
-	return fmt.Sprint(data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
+	return fmt.Sprintf(testAccServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
 		"duplicate_detection_history_time_window = \"PT1H\"",
 	)
 }
