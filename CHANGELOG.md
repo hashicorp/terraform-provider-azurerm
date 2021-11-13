@@ -10,6 +10,7 @@ IMPROVEMENTS:
 * signalr: updating the embedded SDK to use the new Resource ID Parsers [GH-14150]
 * videoanalyzer: updating the embedded SDK to use the new Resource ID Parsers [GH-14135]
 * upgrading `compute` to API Version `2021-07-01` [GH-14174]
+* `azurerm_orchestrated_virtual_machine_scale_set` - added support for VMSS Flex public preview [GH-14003]
  
 BUG FIXES: 
 
