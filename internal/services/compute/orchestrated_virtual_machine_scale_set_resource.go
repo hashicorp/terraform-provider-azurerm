@@ -40,6 +40,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
+		// TODO: remove support the the legacy Orchestrated Virtual Machine Scale Set in 3.0
 		// TODO: exposing requireGuestProvisionSignal once it's available
 		// https://github.com/Azure/azure-rest-api-specs/pull/7246
 
