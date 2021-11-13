@@ -23,24 +23,8 @@ func importOrchestratedVirtualMachineScaleSet(ctx context.Context, d *pluginsdk.
 		return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	// if err := assertOrchestratedVirtualMachineScaleSet(vmss); err != nil {
-	// 	return []*pluginsdk.ResourceData{}, fmt.Errorf("importing Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	// }
-
 	return []*pluginsdk.ResourceData{d}, nil
 }
-
-// func assertOrchestratedVirtualMachineScaleSet(resp compute.VirtualMachineScaleSet) error {
-// 	if resp.VirtualMachineScaleSetProperties == nil {
-// 		return fmt.Errorf("`properties` is nil")
-// 	}
-
-// 	if resp.VirtualMachineScaleSetProperties.VirtualMachineProfile != nil {
-// 		return fmt.Errorf("the virtual machine scale set is an Orchestrated Virtual Machine Scale Set")
-// 	}
-
-// 	return nil
-// }
 
 func importVirtualMachineScaleSet(osType compute.OperatingSystemTypes, resourceType string) pluginsdk.ImporterFunc {
 	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {

@@ -180,7 +180,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"terminate_notification": OrchestratedVirtualMachineScaleSetTerminateNotificationSchema(),
+			"termination_notification": OrchestratedVirtualMachineScaleSetTerminateNotificationSchema(),
 
 			"zones": azure.SchemaZones(),
 
@@ -399,7 +399,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.LicenseType = utils.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("terminate_notification"); ok {
+	if v, ok := d.GetOk("termination_notification"); ok {
 		virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
 	}
 
@@ -706,8 +706,8 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			updateProps.VirtualMachineProfile.DiagnosticsProfile = expandBootDiagnostics(bootDiagnosticsRaw)
 		}
 
-		if d.HasChange("terminate_notification") {
-			notificationRaw := d.Get("terminate_notification").([]interface{})
+		if d.HasChange("termination_notification") {
+			notificationRaw := d.Get("termination_notification").([]interface{})
 			updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandOrchestratedVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
 		}
 
@@ -952,8 +952,8 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 		}
 
 		if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
-			if err := d.Set("terminate_notification", FlattenOrchestratedVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
-				return fmt.Errorf("setting `terminate_notification`: %+v", err)
+			if err := d.Set("termination_notification", FlattenOrchestratedVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
+				return fmt.Errorf("setting `termination_notification`: %+v", err)
 			}
 		}
 

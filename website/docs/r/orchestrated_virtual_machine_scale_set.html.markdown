@@ -12,9 +12,9 @@ Manages an Orchestrated Virtual Machine Scale Set.
 
 ## Disclaimers
 
-~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
+~> **NOTE:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
-~> **NOTE** Orchestrated Virtual Machine Scale Sets are in Public Preview and it may receive breaking changes - [more details can be found in the Azure Documentation](https://docs.microsoft.com/azure/virtual-machine-scale-sets/orchestration-modes).
+~> **NOTE:** Orchestrated Virtual Machine Scale Sets are in Public Preview and it may receive breaking changes - [more details can be found in the Azure Documentation](https://docs.microsoft.com/azure/virtual-machine-scale-sets/orchestration-modes).
 
 ~> **NOTE:** Due to a bug in the service code `extensions` are not currently supported in the `azurerm_orchestrated_virtual_machine_scale_set` resource. The ETA for `extensions` support is tentatively set for January 15, 2022.
 
@@ -90,7 +90,7 @@ The following arguments are supported:
 
 * `source_image_reference` - (Optional) A `source_image_reference` block as defined below.
 
-* `terminate_notification` - (Optional) A `terminate_notification` block as defined below.
+* `termination_notification` - (Optional) A `termination_notification` block as defined below.
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group which the Orchestrated Virtual Machine should be assigned to. Changing this forces a new resource to be created.
 
@@ -99,7 +99,6 @@ The following arguments are supported:
 ~> **NOTE:** Due to a limitation of the Azure API at this time only one Availability Zone can be defined.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Orchestrated Virtual Machine Scale Set.
-
 
 ---
 
@@ -366,7 +365,7 @@ A `public_ip_address` block supports the following:
 
 ---
 
-A `terminate_notification` block supports the following:
+A `termination_notification` block supports the following:
 
 * `enabled` - (Required) Should the terminate notification be enabled on this Virtual Machine Scale Set? Possible values `true` or `false` Defaults to `false`. 
 
