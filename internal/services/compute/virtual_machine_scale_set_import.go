@@ -18,28 +18,12 @@ func importOrchestratedVirtualMachineScaleSet(ctx context.Context, d *pluginsdk.
 
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	vm, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	_, err = client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	if err := assertOrchestratedVirtualMachineScaleSet(vm); err != nil {
-		return []*pluginsdk.ResourceData{}, fmt.Errorf("importing Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
 	return []*pluginsdk.ResourceData{d}, nil
-}
-
-func assertOrchestratedVirtualMachineScaleSet(resp compute.VirtualMachineScaleSet) error {
-	if resp.VirtualMachineScaleSetProperties == nil {
-		return fmt.Errorf("`properties` is nil")
-	}
-
-	if resp.VirtualMachineScaleSetProperties.VirtualMachineProfile != nil {
-		return fmt.Errorf("the virtual machine scale set is an orchestration virtual machine scale set")
-	}
-
-	return nil
 }
 
 func importVirtualMachineScaleSet(osType compute.OperatingSystemTypes, resourceType string) pluginsdk.ImporterFunc {
