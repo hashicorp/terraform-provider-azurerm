@@ -11,7 +11,8 @@ IMPROVEMENTS:
 * videoanalyzer: updating the embedded SDK to use the new Resource ID Parsers [GH-14135]
 * upgrading `compute` to API Version `2021-07-01` [GH-14174]
 * `azurerm_orchestrated_virtual_machine_scale_set` - added support for VMSS Flex public preview [GH-14003]
- 
+* `azurerm_machine_learning_workspace` - support for the `encryption` block [GH-14120]
+
 BUG FIXES: 
 
 * `linux_virtual_machine_scale_set` - `source_image_reference.offer` and `source_image_reference.publisher` are now ForceNew [GH-14165]
