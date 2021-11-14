@@ -15,8 +15,9 @@ IMPROVEMENTS:
 
 BUG FIXES: 
 
-* `linux_virtual_machine_scale_set` - `source_image_reference.offer` and `source_image_reference.publisher` are now ForceNew [GH-14165]
-* `windows_virtual_machine_scale_set` - `source_image_reference.offer` and `source_image_reference.publisher` are now ForceNew [GH-14165]
+* `azurerm_linux_virtual_machine_scale_set` - `source_image_reference.offer` and `source_image_reference.publisher` are now ForceNew [GH-14165]
+* `azurerm_windows_virtual_machine_scale_set` - `source_image_reference.offer` and `source_image_reference.publisher` are now ForceNew [GH-14165]
+* `azurerm_network_watcher_flow_log` - now locks on the network security group to prevent `AnotherOperationInProgress` errors [GH-14160]
 
 ## 2.85.0 (November 12, 2021)
 
