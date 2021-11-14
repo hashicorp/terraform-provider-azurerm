@@ -182,6 +182,8 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 * `windows_profile` - (Optional) A `windows_profile` block as defined below.
 
+* `http_proxy_config` - (Optional) A `http_proxy_config` block as defined below.
+
 ---
 
 A `aci_connector_linux` block supports the following:
@@ -667,6 +669,20 @@ A `windows_profile` block supports the following:
 * `admin_password` - (Required) The Admin Password for Windows VMs. Length must be between 14 and 123 characters.
 
 * `license` - (Optional) Specifies the type of on-premise license which should be used for Node Pool Windows Virtual Machine. At this time the only possible value is `Windows_Server`.
+
+---
+
+A `http_proxy_config` block supports the following:
+
+* `http_proxy` - (Optional) The proxy address to be used when communicating over HTTP.
+
+* `https_proxy` - (Optional) The proxy address to be used when communicating over HTTPS.
+
+* `no_proxy` - (Optional) The list of domains that will not use the proxy for communication.
+
+-> **Note:** If you specify the `vnet_subnet_id`, be sure to include the CIDR in the no_proxy list.
+
+* `trusted_ca` - (Optional) The base64 encoded alternative CA certificate conten in PEM format.
 
 ---
 
