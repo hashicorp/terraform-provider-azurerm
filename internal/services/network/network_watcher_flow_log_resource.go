@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -183,6 +184,9 @@ func resourceNetworkWatcherFlowLogCreateUpdate(d *pluginsdk.ResourceData, meta i
 	nsgId, _ := parse.NetworkSecurityGroupID(networkSecurityGroupID)
 	id := parse.NewFlowLogID(subscriptionId, resourceGroupName, networkWatcherName, *nsgId)
 
+	locks.ByID(nsgId.ID())
+	defer locks.UnlockByID(nsgId.ID())
+
 	loc := d.Get("location").(string)
 	if loc == "" {
 		// Get the containing network watcher in order to reuse its location if the "location" is not specified.
@@ -295,6 +299,9 @@ func resourceNetworkWatcherFlowLogDelete(d *pluginsdk.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
+
+	locks.ByID(id.NetworkSecurityGroupID())
+	defer locks.UnlockByID(id.NetworkSecurityGroupID())
 
 	future, err := client.Delete(ctx, id.ResourceGroupName, id.NetworkWatcherName, id.Name())
 	if err != nil {
