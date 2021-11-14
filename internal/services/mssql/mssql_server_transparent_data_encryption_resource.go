@@ -50,6 +50,11 @@ func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: keyVaultValidate.NestedItemId,
 			},
+			"auto_rotation_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -87,8 +92,9 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 
 		// Set the SQL Server Key properties
 		serverKeyProperties := sql.ServerKeyProperties{
-			ServerKeyType: serverKeyType,
-			URI:           &keyVaultKeyId,
+			ServerKeyType:       serverKeyType,
+			URI:                 &keyVaultKeyId,
+			AutoRotationEnabled: utils.Bool(d.Get("auto_rotation_enabled").(bool)),
 		}
 		serverKey.ServerKeyProperties = &serverKeyProperties
 
@@ -121,8 +127,9 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 
 	// Service managed doesn't require a key name
 	encryptionProtectorProperties := sql.EncryptionProtectorProperties{
-		ServerKeyType: serverKeyType,
-		ServerKeyName: &serverKeyName,
+		ServerKeyType:       serverKeyType,
+		ServerKeyName:       &serverKeyName,
+		AutoRotationEnabled: utils.Bool(d.Get("auto_rotation_enabled").(bool)),
 	}
 
 	// Only create a server key if the properties have been set
@@ -161,6 +168,7 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 
 func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	encryptionProtectorClient := meta.(*clients.Client).MSSQL.EncryptionProtectorClient
+	serverKeysClient := meta.(*clients.Client).MSSQL.ServerKeysClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -185,16 +193,25 @@ func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta 
 	log.Printf("[INFO] Encryption protector key type is %s", resp.EncryptionProtectorProperties.ServerKeyType)
 
 	keyVaultKeyId := ""
-
+	autoRotationEnabled := false
 	// Only set the key type if it's an AKV key. For service managed, we can omit the setting the key_vault_key_id
 	if resp.EncryptionProtectorProperties != nil && resp.EncryptionProtectorProperties.ServerKeyType == sql.ServerKeyTypeAzureKeyVault {
 		log.Printf("[INFO] Setting Key Vault URI to %s", *resp.EncryptionProtectorProperties.URI)
 
 		keyVaultKeyId = *resp.EncryptionProtectorProperties.URI
+
+		// autoRotation is only for AKV keys
+		if resp.EncryptionProtectorProperties.AutoRotationEnabled != nil {
+			autoRotationEnabled = *resp.EncryptionProtectorProperties.AutoRotationEnabled
+		}
 	}
 
 	if err := d.Set("key_vault_key_id", keyVaultKeyId); err != nil {
-		return fmt.Errorf("setting key_vault_key_id`: %+v", err)
+		return fmt.Errorf("setting `key_vault_key_id`: %+v", err)
+	}
+
+	if err := d.Set("auto_rotation_enabled", autoRotationEnabled); err != nil {
+		return fmt.Errorf("setting `auto_rotation_enabled`: %+v", err)
 	}
 
 	return nil
