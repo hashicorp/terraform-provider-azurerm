@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-
 	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-07-01/machinelearningservices"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,6 +15,7 @@ import (
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
+	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -89,7 +90,13 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			"identity": commonschema.SystemAssignedIdentityRequired(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
+
+			"primary_user_assigned_identity": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: msiValidate.UserAssignedIdentityID,
+			},
 
 			"container_registry_id": {
 				Type:     pluginsdk.TypeString,
@@ -126,6 +133,11 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"user_assigned_identity_id": {
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
 						"key_vault_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
@@ -190,7 +202,7 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 		return tf.ImportAsExistsError("azurerm_machine_learning_workspace", id.ID())
 	}
 
-	expandedIdentity, err := expandMachineLearningWorkspaceIdentity(d.Get("identity").([]interface{}))
+	expandedIdentity, err := expandMachineLearningWorkspaceIdentity(d.Get("identity").(*schema.Set).List())
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -209,9 +221,14 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 			ApplicationInsights:             utils.String(d.Get("application_insights_id").(string)),
 			KeyVault:                        utils.String(d.Get("key_vault_id").(string)),
 			AllowPublicAccessWhenBehindVnet: utils.Bool(d.Get("public_network_access_enabled").(bool)),
-			Encryption:                      expandMachineLearningWorkspaceEncryption(d.Get("encryption").([]interface{})),
 		},
 	}
+
+	encryption, err := expandMachineLearningWorkspaceEncryption(d.Get("encryption").([]interface{}))
+	if err != nil {
+		return err
+	}
+	workspace.Encryption = encryption
 
 	if v, ok := d.GetOk("description"); ok {
 		workspace.WorkspaceProperties.Description = utils.String(v.(string))
@@ -231,6 +248,10 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 
 	if v, ok := d.GetOk("image_build_compute_name"); ok {
 		workspace.WorkspaceProperties.ImageBuildCompute = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("primary_user_assigned_identity"); ok {
+		workspace.WorkspaceProperties.PrimaryUserAssignedIdentity = utils.String(v.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, workspace)
@@ -287,10 +308,15 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("public_network_access_enabled", props.AllowPublicAccessWhenBehindVnet)
 		d.Set("image_build_compute_name", props.ImageBuildCompute)
 		d.Set("discovery_url", props.DiscoveryURL)
+		d.Set("primary_user_assigned_identity", props.PrimaryUserAssignedIdentity)
 	}
 
-	if err := d.Set("identity", flattenMachineLearningWorkspaceIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("flattening identity on Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	flattenedIdentity, err := flattenMachineLearningWorkspaceIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", flattenedIdentity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if err := d.Set("encryption", flattenMachineLearningWorkspaceEncryption(resp.Encryption)); err != nil {
@@ -334,6 +360,18 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta inte
 		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
+	if d.HasChange("identity") {
+		identity, err := expandMachineLearningWorkspaceIdentity(d.Get("identity").(*schema.Set).List())
+		if err != nil {
+			return err
+		}
+		update.Identity = identity
+	}
+
+	if d.HasChange("primary_user_assigned_identity") {
+		update.WorkspacePropertiesUpdateParameters.PrimaryUserAssignedIdentity = utils.String(d.Get("primary_user_assigned_identity").(string))
+	}
+
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, update); err != nil {
 		return fmt.Errorf("updating Machine Learning Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
@@ -364,50 +402,75 @@ func resourceMachineLearningWorkspaceDelete(d *pluginsdk.ResourceData, meta inte
 }
 
 func expandMachineLearningWorkspaceIdentity(input []interface{}) (*machinelearningservices.Identity, error) {
-	expanded, err := identity.ExpandSystemAssigned(input)
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
-	return &machinelearningservices.Identity{
+	out := machinelearningservices.Identity{
 		Type: machinelearningservices.ResourceIdentityType(string(expanded.Type)),
-	}, nil
+	}
+	// api uses `SystemAssigned,UserAssigned` (no space), so convert it from the normalized value
+	if expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.Type = machinelearningservices.ResourceIdentityTypeSystemAssignedUserAssigned
+	}
+	if len(expanded.IdentityIds) > 0 {
+		out.UserAssignedIdentities = make(map[string]*machinelearningservices.UserAssignedIdentity)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &machinelearningservices.UserAssignedIdentity{
+				// intentionally empty
+			}
+		}
+	}
+	return &out, nil
 }
 
-func flattenMachineLearningWorkspaceIdentity(input *machinelearningservices.Identity) []interface{} {
-	var transform *identity.SystemAssigned
+func flattenMachineLearningWorkspaceIdentity(input *machinelearningservices.Identity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {
-		transform = &identity.SystemAssigned{
-			Type: identity.Type(string(input.Type)),
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
+
+		// api uses `SystemAssigned,UserAssigned` (no space), so normalize it back
+		if input.Type == machinelearningservices.ResourceIdentityTypeSystemAssignedUserAssigned {
+			transform.Type = identity.TypeSystemAssignedUserAssigned
+		}
+
 		if input.PrincipalID != nil {
 			transform.PrincipalId = *input.PrincipalID
 		}
 		if input.TenantID != nil {
 			transform.TenantId = *input.TenantID
 		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
 	}
 
-	return identity.FlattenSystemAssigned(transform)
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
-func expandMachineLearningWorkspaceEncryption(input []interface{}) *machinelearningservices.EncryptionProperty {
+func expandMachineLearningWorkspaceEncryption(input []interface{}) (*machinelearningservices.EncryptionProperty, error) {
 	if len(input) == 0 || input[0] == nil {
-		return nil
+		return nil, nil
 	}
 
 	raw := input[0].(map[string]interface{})
-	encryption := &machinelearningservices.EncryptionProperty{
-		Status: machinelearningservices.EncryptionStatusEnabled,
-	}
-
-	encryption.KeyVaultProperties = &machinelearningservices.KeyVaultProperties{
-		KeyVaultArmID: utils.String(raw["key_vault_id"].(string)),
-		KeyIdentifier: utils.String(raw["key_id"].(string)),
-	}
-
-	return encryption
+	return &machinelearningservices.EncryptionProperty{
+		Identity: &machinelearningservices.IdentityForCmk{
+			UserAssignedIdentity: utils.String(raw["user_assigned_identity_id"].(string)),
+		},
+		KeyVaultProperties: &machinelearningservices.KeyVaultProperties{
+			KeyVaultArmID: utils.String(raw["key_vault_id"].(string)),
+			KeyIdentifier: utils.String(raw["key_id"].(string)),
+		},
+	}, nil
 }
 
 func flattenMachineLearningWorkspaceEncryption(encryption *machinelearningservices.EncryptionProperty) []interface{} {
@@ -415,10 +478,16 @@ func flattenMachineLearningWorkspaceEncryption(encryption *machinelearningservic
 		return []interface{}{}
 	}
 
+	userAssignedIdentityID := ""
+	if encryption.Identity.UserAssignedIdentity != nil {
+		userAssignedIdentityID = *encryption.Identity.UserAssignedIdentity
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"key_vault_id": *encryption.KeyVaultProperties.KeyVaultArmID,
-			"key_id":       *encryption.KeyVaultProperties.KeyIdentifier,
+			"user_assigned_identity_id": userAssignedIdentityID,
+			"key_vault_id":              *encryption.KeyVaultProperties.KeyVaultArmID,
+			"key_id":                    *encryption.KeyVaultProperties.KeyIdentifier,
 		},
 	}
 }

@@ -189,6 +189,8 @@ The following arguments are supported:
 
 * `high_business_impact` - (Optional) Flag to signal High Business Impact (HBI) data in the workspace and reduce diagnostic data collected by the service
 
+* `primary_user_assigned_identity` - (Optional) The user assigned identity id that represents the workspace identity.
+
 * `sku_name` - (Optional) SKU/edition of the Machine Learning Workspace, possible values are `Basic`. Defaults to `Basic`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -197,7 +199,9 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The Type of Identity which should be used for this Azure Machine Learning workspace. At this time the only possible value is `SystemAssigned`.
+* `type` - (Required) The Type of Identity which should be used for this Machine Learning Workspace. Possible values are `UserAssigned`, `SystemAssigned` and `SystemAssigned, UserAssigned`.
+
+* `identity_ids` - (Optional) The user assigned identity IDs associated with the resource.
 
 ---
 
@@ -206,6 +210,10 @@ An `encryption` block supports the following:
 * `key_vault_id` - (Required) The ID of the keyVault where the customer owned encryption key is present.
 
 * `key_id` - (Required) The Key Vault URI to access the encryption key.
+
+* `user_assigned_identity_id` - (Optional) The Key Vault URI to access the encryption key.
+
+~> **Note**: `user_assigned_identity_id` must set when`identity.type` is `UserAssigned` or service won't be able to find the assigned permissions.
 
 ## Attributes Reference
 
