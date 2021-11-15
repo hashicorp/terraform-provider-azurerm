@@ -2,14 +2,15 @@
 
 IMPROVEMENTS:
 
+* compute: updating to use API Version `2021-07-01` [GH-14174]
 * databricks: updating the embedded SDK to use the new Resource ID Parsers [GH-14157]
 * datalake: updating the embedded SDK to use the new Resource ID Parsers [GH-14158]
 * maps: updating the embedded SDK to use the new Resource ID Parsers [GH-14155]
 * powerbi: updating the embedded SDK to use the new Resource ID Parsers [GH-14154]
 * relay: updating the embedded SDK to use the new Resource ID Parsers [GH-14153]
 * signalr: updating the embedded SDK to use the new Resource ID Parsers [GH-14150]
+* storage: updating to use API Version `2021-04-01` [GH-14083]
 * videoanalyzer: updating the embedded SDK to use the new Resource ID Parsers [GH-14135]
-* upgrading `compute` to API Version `2021-07-01` [GH-14174]
 * `azurerm_orchestrated_virtual_machine_scale_set` - added support for VMSS Flex public preview [GH-14003]
 * `azurerm_machine_learning_workspace` - support for the `encryption` block [GH-14120]
 
