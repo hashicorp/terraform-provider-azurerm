@@ -1383,7 +1383,8 @@ resource "azurerm_linux_web_app" "test" {
         minimum_process_execution_time = "00:05:00"
       }
     }
-    // auto_swap_slot_name = // TODO - Not supported yet
+
+    vnet_route_all_enabled = true
   }
 
   storage_account {
