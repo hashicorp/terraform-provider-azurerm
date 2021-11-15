@@ -172,7 +172,7 @@ func TestAccEventHubAuthorizationRule_withAliasConnectionString(t *testing.T) {
 }
 
 func (EventHubAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := eventhubs.ParseAuthorizationRuleID(state.ID)
+	id, err := eventhubs.ParseEventhubAuthorizationRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
