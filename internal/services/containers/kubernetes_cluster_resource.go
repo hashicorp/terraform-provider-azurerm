@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -969,6 +971,8 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	tenantId := meta.(*clients.Client).Account.TenantId
 
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster create.")
+
+	applyAKSHTTPCustomFeatures(&client.Client)
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -2650,4 +2654,29 @@ func flattenKubernetesClusterMaintenanceConfigurationTimeInWeeks(input *[]contai
 		})
 	}
 	return results
+}
+
+// applyAKSHTTPCustomFeatures checks the environment AKSHTTPCustomFeatures.
+// if exists, it will add it as HTTP header.
+func applyAKSHTTPCustomFeatures(restClient *autorest.Client) {
+	mergePrepareDecorators := func(decorators ...autorest.PrepareDecorator) autorest.PrepareDecorator {
+		return func(p autorest.Preparer) autorest.Preparer {
+			for _, d := range decorators {
+				if d == nil {
+					continue
+				}
+				p = d(p)
+			}
+			return p
+		}
+	}
+
+	if customfeatures := os.Getenv("AKSHTTPCustomFeatures"); customfeatures != "" {
+		restClient.RequestInspector = mergePrepareDecorators(
+			restClient.RequestInspector,
+			autorest.WithHeaders(map[string]interface{}{
+				"AKSHTTPCustomFeatures": customfeatures,
+			}),
+		)
+	}
 }
