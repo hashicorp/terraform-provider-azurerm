@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -56,8 +56,8 @@ func resourceStorageEncryptionScope() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(storage.MicrosoftKeyVault),
-					string(storage.MicrosoftStorage),
+					string(storage.EncryptionScopeSourceMicrosoftKeyVault),
+					string(storage.EncryptionScopeSourceMicrosoftStorage),
 				}, false),
 			},
 
@@ -94,11 +94,11 @@ func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta interf
 			return fmt.Errorf("checking for present of existing Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", name, accountId.Name, accountId.ResourceGroup, err)
 		}
 	}
-	if existing.EncryptionScopeProperties != nil && strings.EqualFold(string(existing.EncryptionScopeProperties.State), string(storage.Enabled)) {
+	if existing.EncryptionScopeProperties != nil && strings.EqualFold(string(existing.EncryptionScopeProperties.State), string(storage.EncryptionScopeStateEnabled)) {
 		return tf.ImportAsExistsError("azurerm_storage_encryption_scope", resourceId)
 	}
 
-	if d.Get("source").(string) == string(storage.MicrosoftKeyVault) {
+	if d.Get("source").(string) == string(storage.EncryptionScopeSourceMicrosoftKeyVault) {
 		if _, ok := d.GetOk("key_vault_key_id"); !ok {
 			return fmt.Errorf("`key_vault_key_id` is required when source is `%s`", string(storage.KeySourceMicrosoftKeyvault))
 		}
@@ -107,7 +107,7 @@ func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta interf
 	props := storage.EncryptionScope{
 		EncryptionScopeProperties: &storage.EncryptionScopeProperties{
 			Source: storage.EncryptionScopeSource(d.Get("source").(string)),
-			State:  storage.Enabled,
+			State:  storage.EncryptionScopeStateEnabled,
 			KeyVaultProperties: &storage.EncryptionScopeKeyVaultProperties{
 				KeyURI: utils.String(d.Get("key_vault_key_id").(string)),
 			},
@@ -136,7 +136,7 @@ func resourceStorageEncryptionScopeUpdate(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	if d.Get("source").(string) == string(storage.MicrosoftKeyVault) {
+	if d.Get("source").(string) == string(storage.EncryptionScopeSourceMicrosoftKeyVault) {
 		if _, ok := d.GetOk("key_vault_key_id"); !ok {
 			return fmt.Errorf("`key_vault_key_id` is required when source is `%s`", string(storage.KeySourceMicrosoftKeyvault))
 		}
@@ -145,7 +145,7 @@ func resourceStorageEncryptionScopeUpdate(d *pluginsdk.ResourceData, meta interf
 	props := storage.EncryptionScope{
 		EncryptionScopeProperties: &storage.EncryptionScopeProperties{
 			Source: storage.EncryptionScopeSource(d.Get("source").(string)),
-			State:  storage.Enabled,
+			State:  storage.EncryptionScopeStateEnabled,
 			KeyVaultProperties: &storage.EncryptionScopeKeyVaultProperties{
 				KeyURI: utils.String(d.Get("key_vault_key_id").(string)),
 			},
@@ -185,7 +185,7 @@ func resourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	props := *resp.EncryptionScopeProperties
-	if strings.EqualFold(string(props.State), string(storage.Disabled)) {
+	if strings.EqualFold(string(props.State), string(storage.EncryptionScopeStateDisabled)) {
 		log.Printf("[INFO] Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q) does not exist - removing from state", id.Name, id.StorageAccountName, id.ResourceGroup)
 		d.SetId("")
 		return nil
@@ -222,7 +222,7 @@ func resourceStorageEncryptionScopeDelete(d *pluginsdk.ResourceData, meta interf
 
 	props := storage.EncryptionScope{
 		EncryptionScopeProperties: &storage.EncryptionScopeProperties{
-			State: storage.Disabled,
+			State: storage.EncryptionScopeStateDisabled,
 		},
 	}
 
@@ -236,9 +236,9 @@ func resourceStorageEncryptionScopeDelete(d *pluginsdk.ResourceData, meta interf
 func flattenEncryptionScopeSource(input storage.EncryptionScopeSource) string {
 	// TODO: file a bug
 	// the Storage API differs from every other API in Azure in that these Enum's can be returned case-insensitively
-	if strings.EqualFold(string(input), string(storage.MicrosoftKeyVault)) {
-		return string(storage.MicrosoftKeyVault)
+	if strings.EqualFold(string(input), string(storage.EncryptionScopeSourceMicrosoftKeyVault)) {
+		return string(storage.EncryptionScopeSourceMicrosoftKeyVault)
 	}
 
-	return string(storage.MicrosoftStorage)
+	return string(storage.EncryptionScopeSourceMicrosoftStorage)
 }
