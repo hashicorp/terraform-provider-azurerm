@@ -206,5 +206,5 @@ func (r ConsumerGroupResource) ModelObject() interface{} {
 }
 
 func (r ConsumerGroupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.EventHubConsumerGroupID
+	return consumergroups.ValidateConsumerGroupID
 }
