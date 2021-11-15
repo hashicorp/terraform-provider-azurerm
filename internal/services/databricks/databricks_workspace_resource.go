@@ -368,7 +368,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if managedResourceGroupName == "" {
 		// no managed resource group name was provided, we use the default pattern
 		log.Printf("[DEBUG][azurerm_databricks_workspace] no managed resource group id was provided, we use the default pattern.")
-		managedResourceGroupName = fmt.Sprintf("databricks-rg-%s", id.ResourceGroup)
+		managedResourceGroupName = fmt.Sprintf("databricks-rg-%s", id.ResourceGroupName)
 	}
 
 	managedResourceGroupID := resourcesParse.NewResourceGroupID(subscriptionId, managedResourceGroupName).ID()
@@ -515,8 +515,8 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.WorkspaceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", azure.NormalizeLocation(model.Location))

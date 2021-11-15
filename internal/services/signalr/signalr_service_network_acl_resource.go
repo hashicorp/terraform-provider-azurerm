@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2020-05-01/signalr"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -30,6 +30,11 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.NetworkAclV0ToV1{},
+		}),
+		SchemaVersion: 1,
+
 		Importer: pluginsdk.DefaultImporter(),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -37,7 +42,7 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ServiceID,
+				ValidateFunc: signalr.ValidateSignalRID,
 			},
 
 			"default_action": {
@@ -143,8 +148,8 @@ func resourceSignalRServiceNetworkACLCreateUpdate(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	locks.ByName(id.SignalRName, "azurerm_signalr_service")
-	defer locks.UnlockByName(id.SignalRName, "azurerm_signalr_service")
+	locks.ByName(id.ResourceName, "azurerm_signalr_service")
+	defer locks.UnlockByName(id.ResourceName, "azurerm_signalr_service")
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
@@ -249,8 +254,8 @@ func resourceSignalRServiceNetworkACLDelete(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	locks.ByName(id.SignalRName, "azurerm_signalr_service")
-	defer locks.UnlockByName(id.SignalRName, "azurerm_signalr_service")
+	locks.ByName(id.ResourceName, "azurerm_signalr_service")
+	defer locks.UnlockByName(id.ResourceName, "azurerm_signalr_service")
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {

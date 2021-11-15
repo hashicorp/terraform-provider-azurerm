@@ -281,6 +281,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			siteEnvelope := web.Site{
 				Location: utils.String(webApp.Location),
+				Identity: helpers.ExpandIdentity(webApp.Identity),
 				Tags:     tags.FromTypedObject(webApp.Tags),
 				SiteProperties: &web.SiteProperties{
 					ServerFarmID:          utils.String(webApp.ServicePlanId),
@@ -291,10 +292,6 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:     utils.Bool(webApp.ClientCertEnabled),
 					ClientCertMode:        web.ClientCertMode(webApp.ClientCertMode),
 				},
-			}
-
-			if identity := helpers.ExpandIdentity(webApp.Identity); identity != nil {
-				siteEnvelope.Identity = identity
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)

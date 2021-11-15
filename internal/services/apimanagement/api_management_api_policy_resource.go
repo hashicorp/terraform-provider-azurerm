@@ -23,8 +23,10 @@ func resourceApiManagementApiPolicy() *pluginsdk.Resource {
 		Read:   resourceApiManagementAPIPolicyRead,
 		Update: resourceApiManagementAPIPolicyCreateUpdate,
 		Delete: resourceApiManagementAPIPolicyDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ApiPolicyID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -132,24 +134,21 @@ func resourceApiManagementAPIPolicyRead(d *pluginsdk.ResourceData, meta interfac
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	apiName := id.ApiName
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, apimanagement.PolicyExportFormatXML)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, apimanagement.PolicyExportFormatXML)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] API Policy (Resource Group %q / API Management Service %q / API %q) was not found - removing from state!", resourceGroup, serviceName, apiName)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request for API Policy (Resource Group %q / API Management Service %q / API %q): %+v", resourceGroup, serviceName, apiName, err)
+		return fmt.Errorf("making Read request for %s: %+v", *id, err)
 	}
 
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
-	d.Set("api_name", apiName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("api_management_name", id.ServiceName)
+	d.Set("api_name", id.ApiName)
 
 	if properties := resp.PolicyContractProperties; properties != nil {
 		policyContent := ""
@@ -174,13 +173,10 @@ func resourceApiManagementAPIPolicyDelete(d *pluginsdk.ResourceData, meta interf
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	apiName := id.ApiName
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, apiName, ""); err != nil {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting API Policy (Resource Group %q / API Management Service %q / API %q): %+v", resourceGroup, serviceName, apiName, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

@@ -109,11 +109,12 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 			},
 
 			"aad_admin": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConfigMode:    pluginsdk.SchemaConfigModeAttr,
+				ConflictsWith: []string{"customer_managed_key"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"login": {
@@ -303,9 +304,10 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 			},
 
 			"customer_managed_key": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"aad_admin"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"key_versionless_id": {

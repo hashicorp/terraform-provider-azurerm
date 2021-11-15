@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -23,6 +23,21 @@ func TestAccStorageEncryptionScope_keyVaultKey(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.keyVaultKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("source").HasValue("Microsoft.KeyVault"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageEncryptionScope_keyVaultKeyVersionless(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
+	r := StorageEncryptionScopeResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.keyVaultKeyVersionless(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source").HasValue("Microsoft.KeyVault"),
@@ -178,7 +193,7 @@ func (t StorageEncryptionScopeResource) Exists(ctx context.Context, clients *cli
 
 	enabled := false
 	if resp.EncryptionScopeProperties != nil {
-		enabled = strings.EqualFold(string(resp.EncryptionScopeProperties.State), string(storage.Enabled))
+		enabled = strings.EqualFold(string(resp.EncryptionScopeProperties.State), string(storage.EncryptionScopeStateEnabled))
 	}
 
 	return utils.Bool(enabled), nil
@@ -202,6 +217,28 @@ resource "azurerm_storage_encryption_scope" "test" {
   storage_account_id = azurerm_storage_account.test.id
   source             = "Microsoft.KeyVault"
   key_vault_key_id   = azurerm_key_vault_key.first.id
+}
+`, template, data.RandomInteger)
+}
+
+func (t StorageEncryptionScopeResource) keyVaultKeyVersionless(data acceptance.TestData) string {
+	template := t.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
+}
+
+%s
+
+resource "azurerm_storage_encryption_scope" "test" {
+  name               = "acctestES%d"
+  storage_account_id = azurerm_storage_account.test.id
+  source             = "Microsoft.KeyVault"
+  key_vault_key_id   = azurerm_key_vault_key.first.versionless_id
 }
 `, template, data.RandomInteger)
 }

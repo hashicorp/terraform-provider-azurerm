@@ -23,7 +23,7 @@ github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn
 github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2021-04-30/cognitiveservices
 github.com/Azure/azure-sdk-for-go/services/communication/mgmt/2020-08-20/communication
-github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute
+github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute
 github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumption
 github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2019-12-01/containerinstance
 github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-08-01/containerservice
@@ -32,9 +32,7 @@ github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb
 github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2019-10-01/costmanagement
 github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2020-12-01/databoxedge
 github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory
-github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account
 github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem
-github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account
 github.com/Azure/azure-sdk-for-go/services/datamigration/mgmt/2018-04-19/datamigration
 github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare
 github.com/Azure/azure-sdk-for-go/services/devspaces/mgmt/2019-04-01/devspaces
@@ -115,6 +113,7 @@ github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources
 github.com/Azure/azure-sdk-for-go/services/search/mgmt/2020-03-13/search
 github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2021-06-01/servicefabric
 github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage
+github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage
 github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache
 github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync
 github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription
@@ -254,7 +253,7 @@ github.com/googleapis/gax-go/v2
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.17.0
+# github.com/hashicorp/go-azure-helpers v0.17.1
 ## explicit
 github.com/hashicorp/go-azure-helpers/authentication
 github.com/hashicorp/go-azure-helpers/lang/dates

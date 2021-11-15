@@ -109,7 +109,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the Machine Learning Synapse Spark. Changing this forces a new Machine Learning Synapse Spark to be created.
 
-* `identity` - (Optional) A `identity` block as defined below. Changing this forces a new Machine Learning Synapse Spark to be created.
+* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Machine Learning Synapse Spark to be created.
 
 * `local_auth_enabled` - (Optional) Whether local authentication methods is enabled. Defaults to `true`. Changing this forces a new Machine Learning Synapse Spark to be created.
 

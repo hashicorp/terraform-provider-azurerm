@@ -7,102 +7,118 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+var _ resourceids.ResourceId = ConfigurationStoreId{}
+
+// ConfigurationStoreId is a struct representing the Resource ID for a Configuration Store
 type ConfigurationStoreId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	Name           string
+	SubscriptionId    string
+	ResourceGroupName string
+	ConfigStoreName   string
 }
 
-func NewConfigurationStoreID(subscriptionId, resourceGroup, name string) ConfigurationStoreId {
+// NewConfigurationStoreID returns a new ConfigurationStoreId struct
+func NewConfigurationStoreID(subscriptionId string, resourceGroupName string, configStoreName string) ConfigurationStoreId {
 	return ConfigurationStoreId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourceGroup,
-		Name:           name,
+		SubscriptionId:    subscriptionId,
+		ResourceGroupName: resourceGroupName,
+		ConfigStoreName:   configStoreName,
 	}
 }
 
-func (id ConfigurationStoreId) String() string {
-	segments := []string{
-		fmt.Sprintf("Name %q", id.Name),
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+// ParseConfigurationStoreID parses 'input' into a ConfigurationStoreId
+func ParseConfigurationStoreID(input string) (*ConfigurationStoreId, error) {
+	parser := resourceids.NewParserFromResourceIdType(ConfigurationStoreId{})
+	parsed, err := parser.Parse(input, false)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
-	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Configuration Store", segmentsStr)
+
+	var ok bool
+	id := ConfigurationStoreId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.ConfigStoreName, ok = parsed.Parsed["configStoreName"]; !ok {
+		return nil, fmt.Errorf("the segment 'configStoreName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
 }
 
+// ParseConfigurationStoreIDInsensitively parses 'input' case-insensitively into a ConfigurationStoreId
+// note: this method should only be used for API response data and not user input
+func ParseConfigurationStoreIDInsensitively(input string) (*ConfigurationStoreId, error) {
+	parser := resourceids.NewParserFromResourceIdType(ConfigurationStoreId{})
+	parsed, err := parser.Parse(input, true)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	var ok bool
+	id := ConfigurationStoreId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.ConfigStoreName, ok = parsed.Parsed["configStoreName"]; !ok {
+		return nil, fmt.Errorf("the segment 'configStoreName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
+}
+
+// ValidateConfigurationStoreID checks that 'input' can be parsed as a Configuration Store ID
+func ValidateConfigurationStoreID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	if _, err := ParseConfigurationStoreID(v); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
+}
+
+// ID returns the formatted Configuration Store ID
 func (id ConfigurationStoreId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppConfiguration/configurationStores/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ConfigStoreName)
 }
 
-// ParseConfigurationStoreID parses a ConfigurationStore ID into an ConfigurationStoreId struct
-func ParseConfigurationStoreID(input string) (*ConfigurationStoreId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// Segments returns a slice of Resource ID Segments which comprise this Configuration Store ID
+func (id ConfigurationStoreId) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
+		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
+		resourceids.StaticSegment("resourceGroups", "resourceGroups", "resourceGroups"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
+		resourceids.StaticSegment("providers", "providers", "providers"),
+		resourceids.ResourceProviderSegment("microsoftAppConfiguration", "Microsoft.AppConfiguration", "Microsoft.AppConfiguration"),
+		resourceids.StaticSegment("configurationStores", "configurationStores", "configurationStores"),
+		resourceids.UserSpecifiedSegment("configStoreName", "configStoreValue"),
 	}
-
-	resourceId := ConfigurationStoreId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	if resourceId.Name, err = id.PopSegment("configurationStores"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
 }
 
-// ParseConfigurationStoreIDInsensitively parses an ConfigurationStore ID into an ConfigurationStoreId struct, insensitively
-// This should only be used to parse an ID for rewriting to a consistent casing,
-// the ParseConfigurationStoreID method should be used instead for validation etc.
-func ParseConfigurationStoreIDInsensitively(input string) (*ConfigurationStoreId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// String returns a human-readable description of this Configuration Store ID
+func (id ConfigurationStoreId) String() string {
+	components := []string{
+		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
+		fmt.Sprintf("Config Store Name: %q", id.ConfigStoreName),
 	}
-
-	resourceId := ConfigurationStoreId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	// find the correct casing for the 'configurationStores' segment
-	configurationStoresKey := "configurationStores"
-	for key := range id.Path {
-		if strings.EqualFold(key, configurationStoresKey) {
-			configurationStoresKey = key
-			break
-		}
-	}
-	if resourceId.Name, err = id.PopSegment(configurationStoresKey); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
+	return fmt.Sprintf("Configuration Store (%s)", strings.Join(components, "\n"))
 }

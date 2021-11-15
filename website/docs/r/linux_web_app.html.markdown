@@ -79,7 +79,7 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Should the Linux Web App require HTTPS connections.
 
-* `identity` - (Optional) A `identity` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `logs` - (Optional) A `logs` block as defined below.
 

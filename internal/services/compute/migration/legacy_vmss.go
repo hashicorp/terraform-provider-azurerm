@@ -700,7 +700,7 @@ func (LegacyVMSSV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		resGroup := rawState["resource_group_name"].(string)
 		name := rawState["name"].(string)
 
-		read, err := client.Get(ctx, resGroup, name)
+		read, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			return rawState, err
 		}

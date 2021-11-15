@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -17,28 +17,13 @@ func importOrchestratedVirtualMachineScaleSet(ctx context.Context, d *pluginsdk.
 	}
 
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
-	vm, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	_, err = client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	if err := assertOrchestratedVirtualMachineScaleSet(vm); err != nil {
-		return []*pluginsdk.ResourceData{}, fmt.Errorf("importing Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
 	return []*pluginsdk.ResourceData{d}, nil
-}
-
-func assertOrchestratedVirtualMachineScaleSet(resp compute.VirtualMachineScaleSet) error {
-	if resp.VirtualMachineScaleSetProperties == nil {
-		return fmt.Errorf("`properties` is nil")
-	}
-
-	if resp.VirtualMachineScaleSetProperties.VirtualMachineProfile != nil {
-		return fmt.Errorf("the virtual machine scale set is an orchestration virtual machine scale set")
-	}
-
-	return nil
 }
 
 func importVirtualMachineScaleSet(osType compute.OperatingSystemTypes, resourceType string) pluginsdk.ImporterFunc {
@@ -49,7 +34,8 @@ func importVirtualMachineScaleSet(osType compute.OperatingSystemTypes, resourceT
 		}
 
 		client := meta.(*clients.Client).Compute.VMScaleSetClient
-		vm, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+		vm, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
