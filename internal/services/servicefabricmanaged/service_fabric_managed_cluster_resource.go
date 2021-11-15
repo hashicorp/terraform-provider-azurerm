@@ -355,11 +355,18 @@ func (k ClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			oi := o.([]interface{})
 			ni := n.([]interface{})
 			if len(oi) > 0 && !reflect.DeepEqual(oi, ni) {
-				for idx := range ni {
-					for _, k := range []string{"name", "vm_size", "primary", "stateless"} {
-						attr := fmt.Sprintf("node_type.%d.%s", idx, k)
-						if rd.HasChange(attr) {
-							return fmt.Errorf("node type attribute %q cannot be changed once node type is created", k)
+				for idx := range oi {
+					oNodeType := oi[idx].(map[string]interface{})
+					for nIdx := range ni {
+						newNodeType := ni[nIdx].(map[string]interface{})
+						if oNodeType["name"].(string) != newNodeType["name"].(string) {
+							continue
+						}
+						for _, k := range []string{"name", "vm_size", "primary", "stateless"} {
+							attr := fmt.Sprintf("node_type.%d.%s", idx, k)
+							if rd.HasChange(attr) {
+								return fmt.Errorf("node type attribute %q cannot be changed once node type is created", k)
+							}
 						}
 					}
 				}
