@@ -29,19 +29,27 @@ type Client struct {
 	FileSystemsClient           *filesystems.Client
 	ADLSGen2PathsClient         *paths.Client
 	ManagementPoliciesClient    *storage.ManagementPoliciesClient
-	BlobServicesClient          *storage.BlobServicesClient
 	BlobInventoryPoliciesClient *legacystorage.BlobInventoryPoliciesClient
 	CloudEndpointsClient        *storagesync.CloudEndpointsClient
 	EncryptionScopesClient      *storage.EncryptionScopesClient
 	Environment                 az.Environment
-	FileServicesClient          *storage.FileServicesClient
 	ObjectReplicationClient     *storage.ObjectReplicationPoliciesClient
 	SyncServiceClient           *storagesync.ServicesClient
 	SyncGroupsClient            *storagesync.SyncGroupsClient
 	SubscriptionId              string
 
+	BlobServicesClient  *storage.BlobServicesClient
+	FileServicesClient  *storage.FileServicesClient
+	QueueServicesClient *storage.QueueServicesClient
+	TableServicesClient *storage.TableServicesClient
+
 	resourceManagerAuthorizer autorest.Authorizer
 	storageAdAuth             *autorest.Authorizer
+
+	// useResourceManager specifies whether to use the mgmt plane API for resources that have both data plane and mgmt plane support.
+	// Currently, only the following resources are affected: blob container, file share, queue.
+	// TODO: data lake filesystem/path, table.
+	useResourceManager bool
 }
 
 func NewClient(options *common.ClientOptions) *Client {
@@ -57,9 +65,6 @@ func NewClient(options *common.ClientOptions) *Client {
 	managementPoliciesClient := storage.NewManagementPoliciesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&managementPoliciesClient.Client, options.ResourceManagerAuthorizer)
 
-	blobServicesClient := storage.NewBlobServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&blobServicesClient.Client, options.ResourceManagerAuthorizer)
-
 	blobInventoryPoliciesClient := legacystorage.NewBlobInventoryPoliciesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&blobInventoryPoliciesClient.Client, options.ResourceManagerAuthorizer)
 
@@ -68,9 +73,6 @@ func NewClient(options *common.ClientOptions) *Client {
 
 	encryptionScopesClient := storage.NewEncryptionScopesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&encryptionScopesClient.Client, options.ResourceManagerAuthorizer)
-
-	fileServicesClient := storage.NewFileServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&fileServicesClient.Client, options.ResourceManagerAuthorizer)
 
 	objectReplicationPolicyClient := storage.NewObjectReplicationPoliciesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&objectReplicationPolicyClient.Client, options.ResourceManagerAuthorizer)
@@ -81,6 +83,18 @@ func NewClient(options *common.ClientOptions) *Client {
 	syncGroupsClient := storagesync.NewSyncGroupsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&syncGroupsClient.Client, options.ResourceManagerAuthorizer)
 
+	blobServicesClient := storage.NewBlobServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	options.ConfigureClient(&blobServicesClient.Client, options.ResourceManagerAuthorizer)
+
+	fileServicesClient := storage.NewFileServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	options.ConfigureClient(&fileServicesClient.Client, options.ResourceManagerAuthorizer)
+
+	queueServiceClient := storage.NewQueueServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	options.ConfigureClient(&queueServiceClient.Client, options.ResourceManagerAuthorizer)
+
+	tableServiceClient := storage.NewTableServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	options.ConfigureClient(&tableServiceClient.Client, options.ResourceManagerAuthorizer)
+
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	client := Client{
@@ -88,18 +102,23 @@ func NewClient(options *common.ClientOptions) *Client {
 		FileSystemsClient:           &fileSystemsClient,
 		ADLSGen2PathsClient:         &adlsGen2PathsClient,
 		ManagementPoliciesClient:    &managementPoliciesClient,
-		BlobServicesClient:          &blobServicesClient,
 		BlobInventoryPoliciesClient: &blobInventoryPoliciesClient,
 		CloudEndpointsClient:        &cloudEndpointsClient,
 		EncryptionScopesClient:      &encryptionScopesClient,
 		Environment:                 options.Environment,
-		FileServicesClient:          &fileServicesClient,
 		ObjectReplicationClient:     &objectReplicationPolicyClient,
 		SubscriptionId:              options.SubscriptionId,
 		SyncServiceClient:           &syncServiceClient,
 		SyncGroupsClient:            &syncGroupsClient,
 
+		BlobServicesClient:  &blobServicesClient,
+		FileServicesClient:  &fileServicesClient,
+		QueueServicesClient: &queueServiceClient,
+		TableServicesClient: &tableServiceClient,
+
 		resourceManagerAuthorizer: options.ResourceManagerAuthorizer,
+
+		useResourceManager: false, // TODO: feature toggleable
 	}
 
 	if options.StorageUseAzureAD {
@@ -154,11 +173,24 @@ func (client Client) BlobsClient(ctx context.Context, account accountDetails) (*
 }
 
 func (client Client) ContainersClient(ctx context.Context, account accountDetails) (shim.StorageContainerWrapper, error) {
+	if client.useResourceManager {
+		rmClient := storage.NewBlobContainersClientWithBaseURI(client.Environment.ResourceManagerEndpoint, client.SubscriptionId)
+		rmClient.Client.Authorizer = client.resourceManagerAuthorizer
+		return shim.NewMgmtPlaneStorageContainerWrapper(&rmClient), nil
+	}
+
+	containersClient, err := client.ContainersDataPlaneClient(ctx, account)
+	if err != nil {
+		return nil, err
+	}
+	return shim.NewDataPlaneStorageContainerWrapper(containersClient), nil
+}
+
+func (client Client) ContainersDataPlaneClient(ctx context.Context, account accountDetails) (*containers.Client, error) {
 	if client.storageAdAuth != nil {
 		containersClient := containers.NewWithEnvironment(client.Environment)
 		containersClient.Client.Authorizer = *client.storageAdAuth
-		shim := shim.NewDataPlaneStorageContainerWrapper(&containersClient)
-		return shim, nil
+		return &containersClient, nil
 	}
 
 	accountKey, err := account.AccountKey(ctx, client)
@@ -173,9 +205,7 @@ func (client Client) ContainersClient(ctx context.Context, account accountDetail
 
 	containersClient := containers.NewWithEnvironment(client.Environment)
 	containersClient.Client.Authorizer = storageAuth
-
-	shim := shim.NewDataPlaneStorageContainerWrapper(&containersClient)
-	return shim, nil
+	return &containersClient, nil
 }
 
 func (client Client) FileShareDirectoriesClient(ctx context.Context, account accountDetails) (*directories.Client, error) {
@@ -215,6 +245,20 @@ func (client Client) FileShareFilesClient(ctx context.Context, account accountDe
 }
 
 func (client Client) FileSharesClient(ctx context.Context, account accountDetails) (shim.StorageShareWrapper, error) {
+	if client.useResourceManager {
+		sharesClient := storage.NewFileSharesClientWithBaseURI(client.Environment.ResourceManagerEndpoint, client.SubscriptionId)
+		sharesClient.Client.Authorizer = client.resourceManagerAuthorizer
+		return shim.NewMgmtPlaneStorageShareWrapper(&sharesClient), nil
+	}
+
+	sharesClient, err := client.FileSharesDataPlaneClient(ctx, account)
+	if err != nil {
+		return nil, err
+	}
+	return shim.NewDataPlaneStorageShareWrapper(sharesClient), nil
+}
+
+func (client Client) FileSharesDataPlaneClient(ctx context.Context, account accountDetails) (*shares.Client, error) {
 	// NOTE: Files do not support AzureAD Authentication
 
 	accountKey, err := account.AccountKey(ctx, client)
@@ -229,15 +273,28 @@ func (client Client) FileSharesClient(ctx context.Context, account accountDetail
 
 	sharesClient := shares.NewWithEnvironment(client.Environment)
 	sharesClient.Client.Authorizer = storageAuth
-	shim := shim.NewDataPlaneStorageShareWrapper(&sharesClient)
-	return shim, nil
+	return &sharesClient, nil
 }
 
 func (client Client) QueuesClient(ctx context.Context, account accountDetails) (shim.StorageQueuesWrapper, error) {
+	if client.useResourceManager {
+		queueClient := storage.NewQueueClient(client.SubscriptionId)
+		queueClient.Client.Authorizer = client.resourceManagerAuthorizer
+		return shim.NewMgmtPlaneStorageQueueWrapper(&queueClient), nil
+	}
+
+	queuesClient, err := client.QueuesDataPlaneClient(ctx, account)
+	if err != nil {
+		return nil, err
+	}
+	return shim.NewDataPlaneStorageQueueWrapper(queuesClient), nil
+}
+
+func (client Client) QueuesDataPlaneClient(ctx context.Context, account accountDetails) (*queues.Client, error) {
 	if client.storageAdAuth != nil {
 		queueClient := queues.NewWithEnvironment(client.Environment)
 		queueClient.Client.Authorizer = *client.storageAdAuth
-		return shim.NewDataPlaneStorageQueueWrapper(&queueClient), nil
+		return &queueClient, nil
 	}
 
 	accountKey, err := account.AccountKey(ctx, client)
@@ -252,7 +309,7 @@ func (client Client) QueuesClient(ctx context.Context, account accountDetails) (
 
 	queuesClient := queues.NewWithEnvironment(client.Environment)
 	queuesClient.Client.Authorizer = storageAuth
-	return shim.NewDataPlaneStorageQueueWrapper(&queuesClient), nil
+	return &queuesClient, nil
 }
 
 func (client Client) TableEntityClient(ctx context.Context, account accountDetails) (*entities.Client, error) {
@@ -274,6 +331,21 @@ func (client Client) TableEntityClient(ctx context.Context, account accountDetai
 }
 
 func (client Client) TablesClient(ctx context.Context, account accountDetails) (shim.StorageTableWrapper, error) {
+	//TODO: once mgmt API got ACL support, we can uncomment below
+	//if client.useResourceManager {
+	//	tableClient := storage.NewTableClient(client.SubscriptionId)
+	//	tableClient.Client.Authorizer = client.resourceManagerAuthorizer
+	//	return shim.NewMgmtPlaneStorageTableWrapper(&tableClient), nil
+	//}
+
+	tablesClient, err := client.TablesDataPlaneClient(ctx, account)
+	if err != nil {
+		return nil, err
+	}
+	return shim.NewDataPlaneStorageTableWrapper(tablesClient), nil
+}
+
+func (client Client) TablesDataPlaneClient(ctx context.Context, account accountDetails) (*tables.Client, error) {
 	// NOTE: Tables do not support AzureAD Authentication
 
 	accountKey, err := account.AccountKey(ctx, client)
@@ -288,6 +360,5 @@ func (client Client) TablesClient(ctx context.Context, account accountDetails) (
 
 	tablesClient := tables.NewWithEnvironment(client.Environment)
 	tablesClient.Client.Authorizer = storageAuth
-	shim := shim.NewDataPlaneStorageTableWrapper(&tablesClient)
-	return shim, nil
+	return &tablesClient, nil
 }

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/shim"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -1079,10 +1080,13 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("Unable to locate Storage Account %q!", storageAccountName)
 		}
 
-		queueClient, err := storageClient.QueuesClient(ctx, *account)
+		// Currently, only the data plane API of queues fully support the exported properties of the `queue_properties`.
+		// TODO @magodo: once the mgmt plane API catches up, switch following client to the mgmt plane.
+		queuesDataPlaneClient, err := storageClient.QueuesDataPlaneClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("building Queues Client: %s", err)
 		}
+		queueClient := shim.NewDataPlaneStorageQueueWrapper(queuesDataPlaneClient).(shim.DataPlaneStorageQueueWrapper)
 
 		queueProperties, err := expandQueueProperties(val.([]interface{}))
 		if err != nil {
@@ -1453,10 +1457,13 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("Unable to locate Storage Account %q!", storageAccountName)
 		}
 
-		queueClient, err := storageClient.QueuesClient(ctx, *account)
+		// Currently, only the data plane API of queues fully support the exported properties of the `queue_properties`.
+		// TODO @magodo: once the mgmt plane API catches up, switch following client to the mgmt plane.
+		queuesDataPlaneClient, err := storageClient.QueuesDataPlaneClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("building Queues Client: %s", err)
 		}
+		queueClient := shim.NewDataPlaneStorageQueueWrapper(queuesDataPlaneClient).(shim.DataPlaneStorageQueueWrapper)
 
 		queueProperties, err := expandQueueProperties(d.Get("queue_properties").([]interface{}))
 		if err != nil {
@@ -1742,10 +1749,14 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if resp.Sku.Tier == storage.SkuTierStandard {
 		if resp.Kind == storage.KindStorage || resp.Kind == storage.KindStorageV2 {
-			queueClient, err := storageClient.QueuesClient(ctx, *account)
+			// Currently, only the data plane API of queues fully support the exported properties of the `queue_properties`.
+			// TODO @magodo: once the mgmt plane API catches up, switch following client to the mgmt plane.
+			queuesDataPlaneClient, err := storageClient.QueuesDataPlaneClient(ctx, *account)
 			if err != nil {
 				return fmt.Errorf("building Queues Client: %s", err)
 			}
+			queueClient := shim.NewDataPlaneStorageQueueWrapper(queuesDataPlaneClient).(shim.DataPlaneStorageQueueWrapper)
+
 
 			queueProps, err := queueClient.GetServiceProperties(ctx, account.ResourceGroup, storageAccountName)
 			if err != nil {
