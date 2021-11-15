@@ -199,7 +199,7 @@ func TestAccMachineLearningWorkspace_identityUpdate(t *testing.T) {
 	})
 }
 
-//TODO SPN need directory.read permission (SPN - "Azure Cosmos DB")
+// TODO SPN need directory.read permission (SPN - "Azure Cosmos DB")
 func TestAccMachineLearningWorkspace_userAssignedAndCustomManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 	r := WorkspaceResource{}
