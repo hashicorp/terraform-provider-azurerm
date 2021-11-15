@@ -1,5 +1,10 @@
 ## 2.86.0 (Unreleased)
 
+FEATURES:
+
+* **New Beta Resource:** `azurerm_linux_function_app` [GH-13806]
+
+
 IMPROVEMENTS:
 
 * compute: updating to use API Version `2021-07-01` [GH-14174]
