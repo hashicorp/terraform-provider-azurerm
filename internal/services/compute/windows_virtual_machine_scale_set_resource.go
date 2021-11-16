@@ -1152,7 +1152,6 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 		d.Set("extensions_time_budget", extensionsTimeBudget)
 
 		encryptionAtHostEnabled := false
-		securityType := ""
 		vtpmEnabled := false
 		secureBootEnabled := false
 
