@@ -772,7 +772,6 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	encryptionAtHostEnabled := false
-	securityType := ""
 	vtpmEnabled := false
 	secureBootEnabled := false
 
