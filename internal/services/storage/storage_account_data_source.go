@@ -382,8 +382,8 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		// Setting the encryption key type to "Service" in PUT. The following GET will not return the queue/table in the service list of its response.
 		// So defaults to setting the encryption key type to "Service" if it is absent in the GET response. Also, define the default value as "Service" in the schema.
 		var (
-			queueEncryptionKeyType = "Service"
-			tableEncryptionKeyType = "Service"
+			queueEncryptionKeyType = string(storage.KeyTypeService)
+			tableEncryptionKeyType = string(storage.KeyTypeService)
 		)
 		if encryption := props.Encryption; encryption != nil && encryption.Services != nil {
 			if encryption.Services.Queue != nil {
