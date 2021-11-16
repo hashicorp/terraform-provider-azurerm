@@ -434,9 +434,11 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				Name:          id.SiteName,
 				ResourceGroup: id.ResourceGroup,
 				Location:      location.NormalizeNilable(webApp.Location),
-				AppSettings:   helpers.FlattenAppSettings(appSettings),
 				Tags:          tags.ToTypedObject(webApp.Tags),
 			}
+
+			var healthCheckCount *int
+			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
 
 			webAppProps := webApp.SiteProperties
 			if v := webAppProps.ServerFarmID; v != nil {
@@ -499,7 +501,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				currentStack = *currentStackPtr
 			}
 
-			state.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack)
+			state.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
 
 			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 

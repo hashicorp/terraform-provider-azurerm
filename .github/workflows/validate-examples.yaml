@@ -7,11 +7,13 @@ on:
       - '.github/workflows/**'
       - 'examples/**'
 
+concurrency:
+  group: '${{ github.head_ref }}'
+  cancel-in-progress: true
+
 jobs:
   website-lint:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2

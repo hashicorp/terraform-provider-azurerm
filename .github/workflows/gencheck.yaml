@@ -8,6 +8,10 @@ on:
       - 'azurerm/**'
       - '.github/workflows/**'
 
+concurrency:
+  group: '${{ github.head_ref }}'
+  cancel-in-progress: true
+
 jobs:
   gencheck:
     runs-on: ubuntu-latest
