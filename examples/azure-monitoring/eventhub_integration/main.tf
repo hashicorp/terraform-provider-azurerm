@@ -35,23 +35,37 @@ data "azurerm_kusto_cluster" "example" {
   resource_group_name = "example_rg_kusto_cluster"
 }
 
+data "azurerm_monitor_diagnostic_categories" "example"{
+  resource_id = data.azurerm_kusto_cluster.example.id
+}
+
 resource "azurerm_monitor_diagnostic_setting" "example" {
   name                           = "example_monitor_diag_setting"
   target_resource_id             = data.azurerm_kusto_cluster.example.id
   eventhub_name                  = azurerm_eventhub.example.name
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.example.id
 
-  log {
-    category = "Journal"
-    enabled  = false
-    retention_policy {
-      enabled = false
+  dynamic "log"{
+    for_each = data.azurerm_monitor_diagnostic_categories.example.logs
+    content{
+      category = log.key
+
+      retention_policy{
+        enabled = false
+        days = 0
+      }
     }
   }
-  metric {
-    category = "AllMetrics"
-    retention_policy {
-      enabled = false
+  dynamic "metric"{
+    for_each = data.azurerm_monitor_diagnostic_categories.example.metrics
+
+    content{
+      category = metric.key
+
+      retention_policy{
+        enabled = false
+        days = 0
+      }
     }
   }
 }
