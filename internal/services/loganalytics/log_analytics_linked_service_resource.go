@@ -312,7 +312,7 @@ func resourceLogAnalyticsLinkedServiceRead(d *pluginsdk.ResourceData, meta inter
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on AzureRM Log Analytics Linked Service '%s/%s' (Resource Group %q): %+v", workspace.WorkspaceName, id.LinkedServiceName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
 	d.Set("name", resp.Name)
