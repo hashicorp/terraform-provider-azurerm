@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -335,7 +336,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	managedResourceGroupName := d.Get("managed_resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	backendPool := d.Get("load_balancer_backend_address_pool_id").(string)
-	expandedTags := expandTags(d.Get("tags").(map[string]interface{}))
+	expandedTags := tagsHelper.Expand(d.Get("tags").(map[string]interface{}))
 
 	if backendPool != "" {
 		backendPoolId, err := loadBalancerParse.LoadBalancerBackendAddressPoolID(backendPool)
@@ -444,7 +445,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 			ManagedResourceGroupId: managedResourceGroupID,
 			Parameters:             customParams,
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if requireNsgRules != "" {
@@ -598,7 +599,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 				d.Set("managed_services_cmk_key_vault_key_id", key.ID())
 			}
 		}
-		return tags.FlattenAndSet(d, flattenTags(model.Tags))
+		return tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags))
 	}
 
 	return nil

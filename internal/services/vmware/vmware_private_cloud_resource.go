@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -226,7 +227,7 @@ func resourceVmwarePrivateCloudCreate(d *pluginsdk.ResourceData, meta interface{
 			NsxtPassword:    utils.String(d.Get("nsxt_password").(string)),
 			VcenterPassword: utils.String(d.Get("vcenter_password").(string)),
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, privateCloud); err != nil {
@@ -289,7 +290,7 @@ func resourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{})
 
 		d.Set("sku_name", model.Sku.Name)
 
-		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err := tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags)); err != nil {
 			return err
 		}
 	}
@@ -330,7 +331,7 @@ func resourceVmwarePrivateCloudUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("tags") {
-		privateCloudUpdate.Tags = expandTags(d.Get("tags").(map[string]interface{}))
+		privateCloudUpdate.Tags = tagsHelper.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, privateCloudUpdate); err != nil {

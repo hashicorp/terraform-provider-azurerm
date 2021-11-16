@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
@@ -197,7 +198,7 @@ func dataSourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{
 
 		d.Set("sku_name", model.Sku.Name)
 
-		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err := tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags)); err != nil {
 			return err
 		}
 	}
