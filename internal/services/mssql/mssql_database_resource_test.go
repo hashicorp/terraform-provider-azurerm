@@ -294,7 +294,7 @@ func TestAccMsSqlDatabase_createOnlineSecondaryMode(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
-		data.ImportStep("sample_name"),
+		data.ImportStep("sample_name", "create_mode"),
 		{
 			Config: r.createOnlineSecondaryMode(data, "test2"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -304,7 +304,7 @@ func TestAccMsSqlDatabase_createOnlineSecondaryMode(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
-		data.ImportStep("sample_name"),
+		data.ImportStep("sample_name", "create_mode"),
 	})
 }
 
