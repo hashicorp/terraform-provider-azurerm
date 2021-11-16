@@ -17,11 +17,13 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2020-11-02-preview/desktopvirtualization"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2021-09-03-preview/desktopvirtualization"
 
 // Application schema for Application properties.
 type Application struct {
 	autorest.Response `json:"-"`
+	// SystemData - Metadata pertaining to creation and last modification of the resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// ApplicationProperties - Detailed properties for Application
 	*ApplicationProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
@@ -35,6 +37,9 @@ type Application struct {
 // MarshalJSON is the custom marshaler for Application.
 func (a Application) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if a.SystemData != nil {
+		objectMap["systemData"] = a.SystemData
+	}
 	if a.ApplicationProperties != nil {
 		objectMap["properties"] = a.ApplicationProperties
 	}
@@ -50,6 +55,15 @@ func (a *Application) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				a.SystemData = &systemData
+			}
 		case "properties":
 			if v != nil {
 				var applicationProperties ApplicationProperties
@@ -95,31 +109,60 @@ func (a *Application) UnmarshalJSON(body []byte) error {
 // ApplicationGroup represents a ApplicationGroup definition.
 type ApplicationGroup struct {
 	autorest.Response `json:"-"`
+	// SystemData - Metadata pertaining to creation and last modification of the resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// ApplicationGroupProperties - Detailed properties for ApplicationGroup
 	*ApplicationGroupProperties `json:"properties,omitempty"`
-	// Tags - Resource tags.
-	Tags map[string]*string `json:"tags"`
-	// Location - The geo-location where the resource lives
-	Location *string `json:"location,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
+	// Location - The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// ManagedBy - The fully qualified resource ID of the resource that manages this resource. Indicates if this resource is managed by another Azure resource. If this is present, complete mode deployment will not delete the resource if it is removed from the template since it is managed by another resource.
+	ManagedBy *string `json:"managedBy,omitempty"`
+	// Kind - Metadata used by portal/tooling/etc to render different UX experiences for resources of the same type; e.g. ApiApps are a kind of Microsoft.Web/sites type.  If supported, the resource provider must validate and persist this value.
+	Kind *string `json:"kind,omitempty"`
+	// Etag - READ-ONLY; The etag field is *not* required. If it is provided in the response body, it must also be provided as a header per the normal etag convention.  Entity tags are used for comparing two or more entities from the same requested resource. HTTP/1.1 uses entity tags in the etag (section 14.19), If-Match (section 14.24), If-None-Match (section 14.26), and If-Range (section 14.27) header fields.
+	Etag *string `json:"etag,omitempty"`
+	// Tags - Resource tags.
+	Tags     map[string]*string                           `json:"tags"`
+	Identity *ResourceModelWithAllowedPropertySetIdentity `json:"identity,omitempty"`
+	Sku      *ResourceModelWithAllowedPropertySetSku      `json:"sku,omitempty"`
+	Plan     *ResourceModelWithAllowedPropertySetPlan     `json:"plan,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ApplicationGroup.
 func (ag ApplicationGroup) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if ag.SystemData != nil {
+		objectMap["systemData"] = ag.SystemData
+	}
 	if ag.ApplicationGroupProperties != nil {
 		objectMap["properties"] = ag.ApplicationGroupProperties
+	}
+	if ag.Location != nil {
+		objectMap["location"] = ag.Location
+	}
+	if ag.ManagedBy != nil {
+		objectMap["managedBy"] = ag.ManagedBy
+	}
+	if ag.Kind != nil {
+		objectMap["kind"] = ag.Kind
 	}
 	if ag.Tags != nil {
 		objectMap["tags"] = ag.Tags
 	}
-	if ag.Location != nil {
-		objectMap["location"] = ag.Location
+	if ag.Identity != nil {
+		objectMap["identity"] = ag.Identity
+	}
+	if ag.Sku != nil {
+		objectMap["sku"] = ag.Sku
+	}
+	if ag.Plan != nil {
+		objectMap["plan"] = ag.Plan
 	}
 	return json.Marshal(objectMap)
 }
@@ -133,6 +176,15 @@ func (ag *ApplicationGroup) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				ag.SystemData = &systemData
+			}
 		case "properties":
 			if v != nil {
 				var applicationGroupProperties ApplicationGroupProperties
@@ -141,24 +193,6 @@ func (ag *ApplicationGroup) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				ag.ApplicationGroupProperties = &applicationGroupProperties
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				ag.Tags = tags
-			}
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				ag.Location = &location
 			}
 		case "id":
 			if v != nil {
@@ -186,6 +220,78 @@ func (ag *ApplicationGroup) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				ag.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				ag.Location = &location
+			}
+		case "managedBy":
+			if v != nil {
+				var managedBy string
+				err = json.Unmarshal(*v, &managedBy)
+				if err != nil {
+					return err
+				}
+				ag.ManagedBy = &managedBy
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				ag.Kind = &kind
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				ag.Etag = &etag
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				ag.Tags = tags
+			}
+		case "identity":
+			if v != nil {
+				var identity ResourceModelWithAllowedPropertySetIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				ag.Identity = &identity
+			}
+		case "sku":
+			if v != nil {
+				var sku ResourceModelWithAllowedPropertySetSku
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				ag.Sku = &sku
+			}
+		case "plan":
+			if v != nil {
+				var plan ResourceModelWithAllowedPropertySetPlan
+				err = json.Unmarshal(*v, &plan)
+				if err != nil {
+					return err
+				}
+				ag.Plan = &plan
 			}
 		}
 	}
@@ -457,6 +563,8 @@ type ApplicationGroupPatchProperties struct {
 
 // ApplicationGroupProperties schema for ApplicationGroup properties.
 type ApplicationGroupProperties struct {
+	// ObjectID - READ-ONLY; ObjectId of ApplicationGroup. (internal use)
+	ObjectID *string `json:"objectId,omitempty"`
 	// Description - Description of ApplicationGroup.
 	Description *string `json:"description,omitempty"`
 	// FriendlyName - Friendly name of ApplicationGroup.
@@ -467,6 +575,10 @@ type ApplicationGroupProperties struct {
 	WorkspaceArmPath *string `json:"workspaceArmPath,omitempty"`
 	// ApplicationGroupType - Resource Type of ApplicationGroup. Possible values include: 'ApplicationGroupTypeRemoteApp', 'ApplicationGroupTypeDesktop'
 	ApplicationGroupType ApplicationGroupType `json:"applicationGroupType,omitempty"`
+	// MigrationRequest - The registration info of HostPool.
+	MigrationRequest *MigrationRequestProperties `json:"migrationRequest,omitempty"`
+	// CloudPcResource - READ-ONLY; Is cloud pc resource.
+	CloudPcResource *bool `json:"cloudPcResource,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ApplicationGroupProperties.
@@ -483,6 +595,9 @@ func (agp ApplicationGroupProperties) MarshalJSON() ([]byte, error) {
 	}
 	if agp.ApplicationGroupType != "" {
 		objectMap["applicationGroupType"] = agp.ApplicationGroupType
+	}
+	if agp.MigrationRequest != nil {
+		objectMap["migrationRequest"] = agp.MigrationRequest
 	}
 	return json.Marshal(objectMap)
 }
@@ -716,7 +831,7 @@ type ApplicationPatchProperties struct {
 	FriendlyName *string `json:"friendlyName,omitempty"`
 	// FilePath - Specifies a path for the executable file for the application.
 	FilePath *string `json:"filePath,omitempty"`
-	// CommandLineSetting - Specifies whether this published application can be launched with command line arguments provided by the client, command line arguments specified at publish time, or no command line arguments at all. Possible values include: 'DoNotAllow', 'Allow', 'Require'
+	// CommandLineSetting - Specifies whether this published application can be launched with command line arguments provided by the client, command line arguments specified at publish time, or no command line arguments at all. Possible values include: 'CommandLineSettingDoNotAllow', 'CommandLineSettingAllow', 'CommandLineSettingRequire'
 	CommandLineSetting CommandLineSetting `json:"commandLineSetting,omitempty"`
 	// CommandLineArguments - Command Line Arguments for Application.
 	CommandLineArguments *string `json:"commandLineArguments,omitempty"`
@@ -730,12 +845,14 @@ type ApplicationPatchProperties struct {
 	MsixPackageFamilyName *string `json:"msixPackageFamilyName,omitempty"`
 	// MsixPackageApplicationID - Specifies the package application Id for MSIX applications
 	MsixPackageApplicationID *string `json:"msixPackageApplicationId,omitempty"`
-	// ApplicationType - Resource Type of Application. Possible values include: 'InBuilt', 'MsixApplication'
+	// ApplicationType - Resource Type of Application. Possible values include: 'RemoteApplicationTypeInBuilt', 'RemoteApplicationTypeMsixApplication'
 	ApplicationType RemoteApplicationType `json:"applicationType,omitempty"`
 }
 
 // ApplicationProperties schema for Application properties.
 type ApplicationProperties struct {
+	// ObjectID - READ-ONLY; ObjectId of Application. (internal use)
+	ObjectID *string `json:"objectId,omitempty"`
 	// Description - Description of Application.
 	Description *string `json:"description,omitempty"`
 	// FriendlyName - Friendly name of Application.
@@ -746,9 +863,9 @@ type ApplicationProperties struct {
 	MsixPackageFamilyName *string `json:"msixPackageFamilyName,omitempty"`
 	// MsixPackageApplicationID - Specifies the package application Id for MSIX applications
 	MsixPackageApplicationID *string `json:"msixPackageApplicationId,omitempty"`
-	// ApplicationType - Resource Type of Application. Possible values include: 'InBuilt', 'MsixApplication'
+	// ApplicationType - Resource Type of Application. Possible values include: 'RemoteApplicationTypeInBuilt', 'RemoteApplicationTypeMsixApplication'
 	ApplicationType RemoteApplicationType `json:"applicationType,omitempty"`
-	// CommandLineSetting - Specifies whether this published application can be launched with command line arguments provided by the client, command line arguments specified at publish time, or no command line arguments at all. Possible values include: 'DoNotAllow', 'Allow', 'Require'
+	// CommandLineSetting - Specifies whether this published application can be launched with command line arguments provided by the client, command line arguments specified at publish time, or no command line arguments at all. Possible values include: 'CommandLineSettingDoNotAllow', 'CommandLineSettingAllow', 'CommandLineSettingRequire'
 	CommandLineSetting CommandLineSetting `json:"commandLineSetting,omitempty"`
 	// CommandLineArguments - Command Line Arguments for Application.
 	CommandLineArguments *string `json:"commandLineArguments,omitempty"`
@@ -821,12 +938,12 @@ func (aer AzureEntityResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// CloudError ...
+// CloudError cloud error object.
 type CloudError struct {
 	Error *CloudErrorProperties `json:"error,omitempty"`
 }
 
-// CloudErrorProperties ...
+// CloudErrorProperties cloud error object properties.
 type CloudErrorProperties struct {
 	// Code - Error code
 	Code *string `json:"code,omitempty"`
@@ -837,6 +954,8 @@ type CloudErrorProperties struct {
 // Desktop schema for Desktop properties.
 type Desktop struct {
 	autorest.Response `json:"-"`
+	// SystemData - Metadata pertaining to creation and last modification of the resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// DesktopProperties - Detailed properties for Desktop
 	*DesktopProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
@@ -850,6 +969,9 @@ type Desktop struct {
 // MarshalJSON is the custom marshaler for Desktop.
 func (d Desktop) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if d.SystemData != nil {
+		objectMap["systemData"] = d.SystemData
+	}
 	if d.DesktopProperties != nil {
 		objectMap["properties"] = d.DesktopProperties
 	}
@@ -865,6 +987,15 @@ func (d *Desktop) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				d.SystemData = &systemData
+			}
 		case "properties":
 			if v != nil {
 				var desktopProperties DesktopProperties
@@ -923,6 +1054,156 @@ func (dl DesktopList) MarshalJSON() ([]byte, error) {
 		objectMap["value"] = dl.Value
 	}
 	return json.Marshal(objectMap)
+}
+
+// DesktopListIterator provides access to a complete listing of Desktop values.
+type DesktopListIterator struct {
+	i    int
+	page DesktopListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *DesktopListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DesktopListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *DesktopListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter DesktopListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter DesktopListIterator) Response() DesktopList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter DesktopListIterator) Value() Desktop {
+	if !iter.page.NotDone() {
+		return Desktop{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the DesktopListIterator type.
+func NewDesktopListIterator(page DesktopListPage) DesktopListIterator {
+	return DesktopListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (dl DesktopList) IsEmpty() bool {
+	return dl.Value == nil || len(*dl.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (dl DesktopList) hasNextLink() bool {
+	return dl.NextLink != nil && len(*dl.NextLink) != 0
+}
+
+// desktopListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (dl DesktopList) desktopListPreparer(ctx context.Context) (*http.Request, error) {
+	if !dl.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(dl.NextLink)))
+}
+
+// DesktopListPage contains a page of Desktop values.
+type DesktopListPage struct {
+	fn func(context.Context, DesktopList) (DesktopList, error)
+	dl DesktopList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *DesktopListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DesktopListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.dl)
+		if err != nil {
+			return err
+		}
+		page.dl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *DesktopListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page DesktopListPage) NotDone() bool {
+	return !page.dl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page DesktopListPage) Response() DesktopList {
+	return page.dl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page DesktopListPage) Values() []Desktop {
+	if page.dl.IsEmpty() {
+		return nil
+	}
+	return *page.dl.Value
+}
+
+// Creates a new instance of the DesktopListPage type.
+func NewDesktopListPage(cur DesktopList, getNextPage func(context.Context, DesktopList) (DesktopList, error)) DesktopListPage {
+	return DesktopListPage{
+		fn: getNextPage,
+		dl: cur,
+	}
 }
 
 // DesktopPatch desktop properties that can be patched.
@@ -988,6 +1269,8 @@ type DesktopPatchProperties struct {
 
 // DesktopProperties schema for Desktop properties.
 type DesktopProperties struct {
+	// ObjectID - READ-ONLY; ObjectId of Desktop. (internal use)
+	ObjectID *string `json:"objectId,omitempty"`
 	// Description - Description of Desktop.
 	Description *string `json:"description,omitempty"`
 	// FriendlyName - Friendly name of Desktop.
@@ -1283,31 +1566,60 @@ type ExpandMsixImageProperties struct {
 // HostPool represents a HostPool definition.
 type HostPool struct {
 	autorest.Response `json:"-"`
+	// SystemData - Metadata pertaining to creation and last modification of the resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// HostPoolProperties - Detailed properties for HostPool
 	*HostPoolProperties `json:"properties,omitempty"`
-	// Tags - Resource tags.
-	Tags map[string]*string `json:"tags"`
-	// Location - The geo-location where the resource lives
-	Location *string `json:"location,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
+	// Location - The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// ManagedBy - The fully qualified resource ID of the resource that manages this resource. Indicates if this resource is managed by another Azure resource. If this is present, complete mode deployment will not delete the resource if it is removed from the template since it is managed by another resource.
+	ManagedBy *string `json:"managedBy,omitempty"`
+	// Kind - Metadata used by portal/tooling/etc to render different UX experiences for resources of the same type; e.g. ApiApps are a kind of Microsoft.Web/sites type.  If supported, the resource provider must validate and persist this value.
+	Kind *string `json:"kind,omitempty"`
+	// Etag - READ-ONLY; The etag field is *not* required. If it is provided in the response body, it must also be provided as a header per the normal etag convention.  Entity tags are used for comparing two or more entities from the same requested resource. HTTP/1.1 uses entity tags in the etag (section 14.19), If-Match (section 14.24), If-None-Match (section 14.26), and If-Range (section 14.27) header fields.
+	Etag *string `json:"etag,omitempty"`
+	// Tags - Resource tags.
+	Tags     map[string]*string                           `json:"tags"`
+	Identity *ResourceModelWithAllowedPropertySetIdentity `json:"identity,omitempty"`
+	Sku      *ResourceModelWithAllowedPropertySetSku      `json:"sku,omitempty"`
+	Plan     *ResourceModelWithAllowedPropertySetPlan     `json:"plan,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for HostPool.
 func (hp HostPool) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if hp.SystemData != nil {
+		objectMap["systemData"] = hp.SystemData
+	}
 	if hp.HostPoolProperties != nil {
 		objectMap["properties"] = hp.HostPoolProperties
+	}
+	if hp.Location != nil {
+		objectMap["location"] = hp.Location
+	}
+	if hp.ManagedBy != nil {
+		objectMap["managedBy"] = hp.ManagedBy
+	}
+	if hp.Kind != nil {
+		objectMap["kind"] = hp.Kind
 	}
 	if hp.Tags != nil {
 		objectMap["tags"] = hp.Tags
 	}
-	if hp.Location != nil {
-		objectMap["location"] = hp.Location
+	if hp.Identity != nil {
+		objectMap["identity"] = hp.Identity
+	}
+	if hp.Sku != nil {
+		objectMap["sku"] = hp.Sku
+	}
+	if hp.Plan != nil {
+		objectMap["plan"] = hp.Plan
 	}
 	return json.Marshal(objectMap)
 }
@@ -1321,6 +1633,15 @@ func (hp *HostPool) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				hp.SystemData = &systemData
+			}
 		case "properties":
 			if v != nil {
 				var hostPoolProperties HostPoolProperties
@@ -1329,24 +1650,6 @@ func (hp *HostPool) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				hp.HostPoolProperties = &hostPoolProperties
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				hp.Tags = tags
-			}
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				hp.Location = &location
 			}
 		case "id":
 			if v != nil {
@@ -1374,6 +1677,78 @@ func (hp *HostPool) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				hp.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				hp.Location = &location
+			}
+		case "managedBy":
+			if v != nil {
+				var managedBy string
+				err = json.Unmarshal(*v, &managedBy)
+				if err != nil {
+					return err
+				}
+				hp.ManagedBy = &managedBy
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				hp.Kind = &kind
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				hp.Etag = &etag
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				hp.Tags = tags
+			}
+		case "identity":
+			if v != nil {
+				var identity ResourceModelWithAllowedPropertySetIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				hp.Identity = &identity
+			}
+		case "sku":
+			if v != nil {
+				var sku ResourceModelWithAllowedPropertySetSku
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				hp.Sku = &sku
+			}
+		case "plan":
+			if v != nil {
+				var plan ResourceModelWithAllowedPropertySetPlan
+				err = json.Unmarshal(*v, &plan)
+				if err != nil {
+					return err
+				}
+				hp.Plan = &plan
 			}
 		}
 	}
@@ -1645,9 +2020,9 @@ type HostPoolPatchProperties struct {
 	CustomRdpProperty *string `json:"customRdpProperty,omitempty"`
 	// MaxSessionLimit - The max session limit of HostPool.
 	MaxSessionLimit *int32 `json:"maxSessionLimit,omitempty"`
-	// PersonalDesktopAssignmentType - PersonalDesktopAssignment type for HostPool. Possible values include: 'Automatic', 'Direct'
+	// PersonalDesktopAssignmentType - PersonalDesktopAssignment type for HostPool. Possible values include: 'PersonalDesktopAssignmentTypeAutomatic', 'PersonalDesktopAssignmentTypeDirect'
 	PersonalDesktopAssignmentType PersonalDesktopAssignmentType `json:"personalDesktopAssignmentType,omitempty"`
-	// LoadBalancerType - The type of the load balancer. Possible values include: 'BreadthFirst', 'DepthFirst', 'Persistent'
+	// LoadBalancerType - The type of the load balancer. Possible values include: 'LoadBalancerTypeBreadthFirst', 'LoadBalancerTypeDepthFirst', 'LoadBalancerTypePersistent'
 	LoadBalancerType LoadBalancerType `json:"loadBalancerType,omitempty"`
 	// Ring - The ring number of HostPool.
 	Ring *int32 `json:"ring,omitempty"`
@@ -1657,37 +2032,39 @@ type HostPoolPatchProperties struct {
 	RegistrationInfo *RegistrationInfoPatch `json:"registrationInfo,omitempty"`
 	// VMTemplate - VM template for sessionhosts configuration within hostpool.
 	VMTemplate *string `json:"vmTemplate,omitempty"`
-	// SsoContext - Path to keyvault containing ssoContext secret.
-	SsoContext *string `json:"ssoContext,omitempty"`
 	// SsoadfsAuthority - URL to customer ADFS server for signing WVD SSO certificates.
 	SsoadfsAuthority *string `json:"ssoadfsAuthority,omitempty"`
 	// SsoClientID - ClientId for the registered Relying Party used to issue WVD SSO certificates.
 	SsoClientID *string `json:"ssoClientId,omitempty"`
 	// SsoClientSecretKeyVaultPath - Path to Azure KeyVault storing the secret used for communication to ADFS.
 	SsoClientSecretKeyVaultPath *string `json:"ssoClientSecretKeyVaultPath,omitempty"`
-	// SsoSecretType - The type of single sign on Secret Type. Possible values include: 'SharedKey', 'Certificate', 'SharedKeyInKeyVault', 'CertificateInKeyVault'
+	// SsoSecretType - The type of single sign on Secret Type. Possible values include: 'SSOSecretTypeSharedKey', 'SSOSecretTypeCertificate', 'SSOSecretTypeSharedKeyInKeyVault', 'SSOSecretTypeCertificateInKeyVault'
 	SsoSecretType SSOSecretType `json:"ssoSecretType,omitempty"`
 	// PreferredAppGroupType - The type of preferred application group type, default to Desktop Application Group. Possible values include: 'PreferredAppGroupTypeNone', 'PreferredAppGroupTypeDesktop', 'PreferredAppGroupTypeRailApplications'
 	PreferredAppGroupType PreferredAppGroupType `json:"preferredAppGroupType,omitempty"`
 	// StartVMOnConnect - The flag to turn on/off StartVMOnConnect feature.
 	StartVMOnConnect *bool `json:"startVMOnConnect,omitempty"`
+	// PublicNetworkAccess - Enabled to allow this resource to be access from the public network. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 }
 
 // HostPoolProperties properties of HostPool.
 type HostPoolProperties struct {
+	// ObjectID - READ-ONLY; ObjectId of HostPool. (internal use)
+	ObjectID *string `json:"objectId,omitempty"`
 	// FriendlyName - Friendly name of HostPool.
 	FriendlyName *string `json:"friendlyName,omitempty"`
 	// Description - Description of HostPool.
 	Description *string `json:"description,omitempty"`
-	// HostPoolType - HostPool type for desktop. Possible values include: 'Personal', 'Pooled'
+	// HostPoolType - HostPool type for desktop. Possible values include: 'HostPoolTypePersonal', 'HostPoolTypePooled', 'HostPoolTypeBYODesktop'
 	HostPoolType HostPoolType `json:"hostPoolType,omitempty"`
-	// PersonalDesktopAssignmentType - PersonalDesktopAssignment type for HostPool. Possible values include: 'Automatic', 'Direct'
+	// PersonalDesktopAssignmentType - PersonalDesktopAssignment type for HostPool. Possible values include: 'PersonalDesktopAssignmentTypeAutomatic', 'PersonalDesktopAssignmentTypeDirect'
 	PersonalDesktopAssignmentType PersonalDesktopAssignmentType `json:"personalDesktopAssignmentType,omitempty"`
 	// CustomRdpProperty - Custom rdp property of HostPool.
 	CustomRdpProperty *string `json:"customRdpProperty,omitempty"`
 	// MaxSessionLimit - The max session limit of HostPool.
 	MaxSessionLimit *int32 `json:"maxSessionLimit,omitempty"`
-	// LoadBalancerType - The type of the load balancer. Possible values include: 'BreadthFirst', 'DepthFirst', 'Persistent'
+	// LoadBalancerType - The type of the load balancer. Possible values include: 'LoadBalancerTypeBreadthFirst', 'LoadBalancerTypeDepthFirst', 'LoadBalancerTypePersistent'
 	LoadBalancerType LoadBalancerType `json:"loadBalancerType,omitempty"`
 	// Ring - The ring number of HostPool.
 	Ring *int32 `json:"ring,omitempty"`
@@ -1699,20 +2076,24 @@ type HostPoolProperties struct {
 	VMTemplate *string `json:"vmTemplate,omitempty"`
 	// ApplicationGroupReferences - READ-ONLY; List of applicationGroup links.
 	ApplicationGroupReferences *[]string `json:"applicationGroupReferences,omitempty"`
-	// SsoContext - Path to keyvault containing ssoContext secret.
-	SsoContext *string `json:"ssoContext,omitempty"`
 	// SsoadfsAuthority - URL to customer ADFS server for signing WVD SSO certificates.
 	SsoadfsAuthority *string `json:"ssoadfsAuthority,omitempty"`
 	// SsoClientID - ClientId for the registered Relying Party used to issue WVD SSO certificates.
 	SsoClientID *string `json:"ssoClientId,omitempty"`
 	// SsoClientSecretKeyVaultPath - Path to Azure KeyVault storing the secret used for communication to ADFS.
 	SsoClientSecretKeyVaultPath *string `json:"ssoClientSecretKeyVaultPath,omitempty"`
-	// SsoSecretType - The type of single sign on Secret Type. Possible values include: 'SharedKey', 'Certificate', 'SharedKeyInKeyVault', 'CertificateInKeyVault'
+	// SsoSecretType - The type of single sign on Secret Type. Possible values include: 'SSOSecretTypeSharedKey', 'SSOSecretTypeCertificate', 'SSOSecretTypeSharedKeyInKeyVault', 'SSOSecretTypeCertificateInKeyVault'
 	SsoSecretType SSOSecretType `json:"ssoSecretType,omitempty"`
 	// PreferredAppGroupType - The type of preferred application group type, default to Desktop Application Group. Possible values include: 'PreferredAppGroupTypeNone', 'PreferredAppGroupTypeDesktop', 'PreferredAppGroupTypeRailApplications'
 	PreferredAppGroupType PreferredAppGroupType `json:"preferredAppGroupType,omitempty"`
 	// StartVMOnConnect - The flag to turn on/off StartVMOnConnect feature.
 	StartVMOnConnect *bool `json:"startVMOnConnect,omitempty"`
+	// MigrationRequest - The registration info of HostPool.
+	MigrationRequest *MigrationRequestProperties `json:"migrationRequest,omitempty"`
+	// CloudPcResource - READ-ONLY; Is cloud pc resource.
+	CloudPcResource *bool `json:"cloudPcResource,omitempty"`
+	// PublicNetworkAccess - Enabled allows this resource to be accessed from both public and private networks, Disabled allows this resource to only be accessed via private endpoints. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for HostPoolProperties.
@@ -1751,9 +2132,6 @@ func (hpp HostPoolProperties) MarshalJSON() ([]byte, error) {
 	if hpp.VMTemplate != nil {
 		objectMap["vmTemplate"] = hpp.VMTemplate
 	}
-	if hpp.SsoContext != nil {
-		objectMap["ssoContext"] = hpp.SsoContext
-	}
 	if hpp.SsoadfsAuthority != nil {
 		objectMap["ssoadfsAuthority"] = hpp.SsoadfsAuthority
 	}
@@ -1772,7 +2150,50 @@ func (hpp HostPoolProperties) MarshalJSON() ([]byte, error) {
 	if hpp.StartVMOnConnect != nil {
 		objectMap["startVMOnConnect"] = hpp.StartVMOnConnect
 	}
+	if hpp.MigrationRequest != nil {
+		objectMap["migrationRequest"] = hpp.MigrationRequest
+	}
+	if hpp.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = hpp.PublicNetworkAccess
+	}
 	return json.Marshal(objectMap)
+}
+
+// Identity identity for the resource.
+type Identity struct {
+	// PrincipalID - READ-ONLY; The principal ID of resource identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// TenantID - READ-ONLY; The tenant ID of resource.
+	TenantID *string `json:"tenantId,omitempty"`
+	// Type - The identity type. Possible values include: 'ResourceIdentityTypeSystemAssigned'
+	Type ResourceIdentityType `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Identity.
+func (i Identity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if i.Type != "" {
+		objectMap["type"] = i.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// LogSpecification specifications of the Log for Azure Monitoring
+type LogSpecification struct {
+	// Name - Name of the log
+	Name *string `json:"name,omitempty"`
+	// DisplayName - Localized friendly display name of the log
+	DisplayName *string `json:"displayName,omitempty"`
+	// BlobDuration - Blob duration of the log
+	BlobDuration *string `json:"blobDuration,omitempty"`
+}
+
+// MigrationRequestProperties properties for arm migration.
+type MigrationRequestProperties struct {
+	// Operation - The type of operation for migration. Possible values include: 'OperationStart', 'OperationRevoke', 'OperationComplete', 'OperationHide', 'OperationUnhide'
+	Operation Operation `json:"operation,omitempty"`
+	// MigrationPath - The path to the legacy object to migrate.
+	MigrationPath *string `json:"migrationPath,omitempty"`
 }
 
 // MSIXImageURI represents URI referring to MSIX Image
@@ -1784,6 +2205,8 @@ type MSIXImageURI struct {
 // MSIXPackage schema for MSIX Package properties.
 type MSIXPackage struct {
 	autorest.Response `json:"-"`
+	// SystemData - Metadata pertaining to creation and last modification of the resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// MSIXPackageProperties - Detailed properties for MSIX Package
 	*MSIXPackageProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
@@ -1797,6 +2220,9 @@ type MSIXPackage struct {
 // MarshalJSON is the custom marshaler for MSIXPackage.
 func (mp MSIXPackage) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if mp.SystemData != nil {
+		objectMap["systemData"] = mp.SystemData
+	}
 	if mp.MSIXPackageProperties != nil {
 		objectMap["properties"] = mp.MSIXPackageProperties
 	}
@@ -1812,6 +2238,15 @@ func (mp *MSIXPackage) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				mp.SystemData = &systemData
+			}
 		case "properties":
 			if v != nil {
 				var mSIXPackageProperties MSIXPackageProperties
@@ -2158,6 +2593,647 @@ type MSIXPackageProperties struct {
 	PackageApplications *[]MsixPackageApplications `json:"packageApplications,omitempty"`
 }
 
+// OperationProperties properties of the operation
+type OperationProperties struct {
+	ServiceSpecification *ServiceSpecification `json:"serviceSpecification,omitempty"`
+}
+
+// Plan plan for the resource.
+type Plan struct {
+	// Name - A user defined name of the 3rd Party Artifact that is being procured.
+	Name *string `json:"name,omitempty"`
+	// Publisher - The publisher of the 3rd Party Artifact that is being bought. E.g. NewRelic
+	Publisher *string `json:"publisher,omitempty"`
+	// Product - The 3rd Party artifact that is being procured. E.g. NewRelic. Product maps to the OfferID specified for the artifact at the time of Data Market onboarding.
+	Product *string `json:"product,omitempty"`
+	// PromotionCode - A publisher provided promotion code as provisioned in Data Market for the said product/artifact.
+	PromotionCode *string `json:"promotionCode,omitempty"`
+	// Version - The version of the desired product/artifact.
+	Version *string `json:"version,omitempty"`
+}
+
+// PrivateEndpoint the Private Endpoint resource.
+type PrivateEndpoint struct {
+	// ID - READ-ONLY; The ARM identifier for Private Endpoint
+	ID *string `json:"id,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpoint.
+func (peVar PrivateEndpoint) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// PrivateEndpointConnection the Private Endpoint Connection resource.
+type PrivateEndpointConnection struct {
+	// PrivateEndpointConnectionProperties - Resource properties.
+	*PrivateEndpointConnectionProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnection.
+func (pec PrivateEndpointConnection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pec.PrivateEndpointConnectionProperties != nil {
+		objectMap["properties"] = pec.PrivateEndpointConnectionProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateEndpointConnection struct.
+func (pec *PrivateEndpointConnection) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateEndpointConnectionProperties PrivateEndpointConnectionProperties
+				err = json.Unmarshal(*v, &privateEndpointConnectionProperties)
+				if err != nil {
+					return err
+				}
+				pec.PrivateEndpointConnectionProperties = &privateEndpointConnectionProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				pec.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				pec.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				pec.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateEndpointConnectionListResultWithSystemData list of private endpoint connection associated with
+// the specified storage account
+type PrivateEndpointConnectionListResultWithSystemData struct {
+	autorest.Response `json:"-"`
+	// Value - Array of private endpoint connections
+	Value *[]PrivateEndpointConnectionWithSystemData `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to the next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnectionListResultWithSystemData.
+func (peclrwsd PrivateEndpointConnectionListResultWithSystemData) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if peclrwsd.Value != nil {
+		objectMap["value"] = peclrwsd.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// PrivateEndpointConnectionListResultWithSystemDataIterator provides access to a complete listing of
+// PrivateEndpointConnectionWithSystemData values.
+type PrivateEndpointConnectionListResultWithSystemDataIterator struct {
+	i    int
+	page PrivateEndpointConnectionListResultWithSystemDataPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *PrivateEndpointConnectionListResultWithSystemDataIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateEndpointConnectionListResultWithSystemDataIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *PrivateEndpointConnectionListResultWithSystemDataIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter PrivateEndpointConnectionListResultWithSystemDataIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter PrivateEndpointConnectionListResultWithSystemDataIterator) Response() PrivateEndpointConnectionListResultWithSystemData {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter PrivateEndpointConnectionListResultWithSystemDataIterator) Value() PrivateEndpointConnectionWithSystemData {
+	if !iter.page.NotDone() {
+		return PrivateEndpointConnectionWithSystemData{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the PrivateEndpointConnectionListResultWithSystemDataIterator type.
+func NewPrivateEndpointConnectionListResultWithSystemDataIterator(page PrivateEndpointConnectionListResultWithSystemDataPage) PrivateEndpointConnectionListResultWithSystemDataIterator {
+	return PrivateEndpointConnectionListResultWithSystemDataIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (peclrwsd PrivateEndpointConnectionListResultWithSystemData) IsEmpty() bool {
+	return peclrwsd.Value == nil || len(*peclrwsd.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (peclrwsd PrivateEndpointConnectionListResultWithSystemData) hasNextLink() bool {
+	return peclrwsd.NextLink != nil && len(*peclrwsd.NextLink) != 0
+}
+
+// privateEndpointConnectionListResultWithSystemDataPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (peclrwsd PrivateEndpointConnectionListResultWithSystemData) privateEndpointConnectionListResultWithSystemDataPreparer(ctx context.Context) (*http.Request, error) {
+	if !peclrwsd.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(peclrwsd.NextLink)))
+}
+
+// PrivateEndpointConnectionListResultWithSystemDataPage contains a page of
+// PrivateEndpointConnectionWithSystemData values.
+type PrivateEndpointConnectionListResultWithSystemDataPage struct {
+	fn       func(context.Context, PrivateEndpointConnectionListResultWithSystemData) (PrivateEndpointConnectionListResultWithSystemData, error)
+	peclrwsd PrivateEndpointConnectionListResultWithSystemData
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *PrivateEndpointConnectionListResultWithSystemDataPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateEndpointConnectionListResultWithSystemDataPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.peclrwsd)
+		if err != nil {
+			return err
+		}
+		page.peclrwsd = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *PrivateEndpointConnectionListResultWithSystemDataPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page PrivateEndpointConnectionListResultWithSystemDataPage) NotDone() bool {
+	return !page.peclrwsd.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page PrivateEndpointConnectionListResultWithSystemDataPage) Response() PrivateEndpointConnectionListResultWithSystemData {
+	return page.peclrwsd
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page PrivateEndpointConnectionListResultWithSystemDataPage) Values() []PrivateEndpointConnectionWithSystemData {
+	if page.peclrwsd.IsEmpty() {
+		return nil
+	}
+	return *page.peclrwsd.Value
+}
+
+// Creates a new instance of the PrivateEndpointConnectionListResultWithSystemDataPage type.
+func NewPrivateEndpointConnectionListResultWithSystemDataPage(cur PrivateEndpointConnectionListResultWithSystemData, getNextPage func(context.Context, PrivateEndpointConnectionListResultWithSystemData) (PrivateEndpointConnectionListResultWithSystemData, error)) PrivateEndpointConnectionListResultWithSystemDataPage {
+	return PrivateEndpointConnectionListResultWithSystemDataPage{
+		fn:       getNextPage,
+		peclrwsd: cur,
+	}
+}
+
+// PrivateEndpointConnectionProperties properties of the PrivateEndpointConnectProperties.
+type PrivateEndpointConnectionProperties struct {
+	// PrivateEndpoint - The resource of private end point.
+	PrivateEndpoint *PrivateEndpoint `json:"privateEndpoint,omitempty"`
+	// PrivateLinkServiceConnectionState - A collection of information about the state of the connection between service consumer and provider.
+	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+	// ProvisioningState - The provisioning state of the private endpoint connection resource. Possible values include: 'PrivateEndpointConnectionProvisioningStateSucceeded', 'PrivateEndpointConnectionProvisioningStateCreating', 'PrivateEndpointConnectionProvisioningStateDeleting', 'PrivateEndpointConnectionProvisioningStateFailed'
+	ProvisioningState PrivateEndpointConnectionProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// PrivateEndpointConnectionWithSystemData the Private Endpoint Connection resource.
+type PrivateEndpointConnectionWithSystemData struct {
+	autorest.Response `json:"-"`
+	SystemData        *SystemData `json:"systemData,omitempty"`
+	// PrivateEndpointConnectionProperties - Resource properties.
+	*PrivateEndpointConnectionProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnectionWithSystemData.
+func (pecwsd PrivateEndpointConnectionWithSystemData) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pecwsd.SystemData != nil {
+		objectMap["systemData"] = pecwsd.SystemData
+	}
+	if pecwsd.PrivateEndpointConnectionProperties != nil {
+		objectMap["properties"] = pecwsd.PrivateEndpointConnectionProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateEndpointConnectionWithSystemData struct.
+func (pecwsd *PrivateEndpointConnectionWithSystemData) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				pecwsd.SystemData = &systemData
+			}
+		case "properties":
+			if v != nil {
+				var privateEndpointConnectionProperties PrivateEndpointConnectionProperties
+				err = json.Unmarshal(*v, &privateEndpointConnectionProperties)
+				if err != nil {
+					return err
+				}
+				pecwsd.PrivateEndpointConnectionProperties = &privateEndpointConnectionProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				pecwsd.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				pecwsd.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				pecwsd.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateLinkResource a private link resource
+type PrivateLinkResource struct {
+	// PrivateLinkResourceProperties - Resource properties.
+	*PrivateLinkResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResource.
+func (plr PrivateLinkResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plr.PrivateLinkResourceProperties != nil {
+		objectMap["properties"] = plr.PrivateLinkResourceProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateLinkResource struct.
+func (plr *PrivateLinkResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateLinkResourceProperties PrivateLinkResourceProperties
+				err = json.Unmarshal(*v, &privateLinkResourceProperties)
+				if err != nil {
+					return err
+				}
+				plr.PrivateLinkResourceProperties = &privateLinkResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				plr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				plr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				plr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateLinkResourceListResult a list of private link resources
+type PrivateLinkResourceListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Array of private link resources
+	Value *[]PrivateLinkResource `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to the next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResourceListResult.
+func (plrlr PrivateLinkResourceListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plrlr.Value != nil {
+		objectMap["value"] = plrlr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// PrivateLinkResourceListResultIterator provides access to a complete listing of PrivateLinkResource
+// values.
+type PrivateLinkResourceListResultIterator struct {
+	i    int
+	page PrivateLinkResourceListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *PrivateLinkResourceListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkResourceListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *PrivateLinkResourceListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter PrivateLinkResourceListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter PrivateLinkResourceListResultIterator) Response() PrivateLinkResourceListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter PrivateLinkResourceListResultIterator) Value() PrivateLinkResource {
+	if !iter.page.NotDone() {
+		return PrivateLinkResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the PrivateLinkResourceListResultIterator type.
+func NewPrivateLinkResourceListResultIterator(page PrivateLinkResourceListResultPage) PrivateLinkResourceListResultIterator {
+	return PrivateLinkResourceListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (plrlr PrivateLinkResourceListResult) IsEmpty() bool {
+	return plrlr.Value == nil || len(*plrlr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (plrlr PrivateLinkResourceListResult) hasNextLink() bool {
+	return plrlr.NextLink != nil && len(*plrlr.NextLink) != 0
+}
+
+// privateLinkResourceListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (plrlr PrivateLinkResourceListResult) privateLinkResourceListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !plrlr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(plrlr.NextLink)))
+}
+
+// PrivateLinkResourceListResultPage contains a page of PrivateLinkResource values.
+type PrivateLinkResourceListResultPage struct {
+	fn    func(context.Context, PrivateLinkResourceListResult) (PrivateLinkResourceListResult, error)
+	plrlr PrivateLinkResourceListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *PrivateLinkResourceListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkResourceListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.plrlr)
+		if err != nil {
+			return err
+		}
+		page.plrlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *PrivateLinkResourceListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page PrivateLinkResourceListResultPage) NotDone() bool {
+	return !page.plrlr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page PrivateLinkResourceListResultPage) Response() PrivateLinkResourceListResult {
+	return page.plrlr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page PrivateLinkResourceListResultPage) Values() []PrivateLinkResource {
+	if page.plrlr.IsEmpty() {
+		return nil
+	}
+	return *page.plrlr.Value
+}
+
+// Creates a new instance of the PrivateLinkResourceListResultPage type.
+func NewPrivateLinkResourceListResultPage(cur PrivateLinkResourceListResult, getNextPage func(context.Context, PrivateLinkResourceListResult) (PrivateLinkResourceListResult, error)) PrivateLinkResourceListResultPage {
+	return PrivateLinkResourceListResultPage{
+		fn:    getNextPage,
+		plrlr: cur,
+	}
+}
+
+// PrivateLinkResourceProperties properties of a private link resource.
+type PrivateLinkResourceProperties struct {
+	// GroupID - READ-ONLY; The private link resource group id.
+	GroupID *string `json:"groupId,omitempty"`
+	// RequiredMembers - READ-ONLY; The private link resource required member names.
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// RequiredZoneNames - The private link resource Private link DNS zone name.
+	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResourceProperties.
+func (plrp PrivateLinkResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plrp.RequiredZoneNames != nil {
+		objectMap["requiredZoneNames"] = plrp.RequiredZoneNames
+	}
+	return json.Marshal(objectMap)
+}
+
+// PrivateLinkServiceConnectionState a collection of information about the state of the connection between
+// service consumer and provider.
+type PrivateLinkServiceConnectionState struct {
+	// Status - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service. Possible values include: 'PrivateEndpointServiceConnectionStatusPending', 'PrivateEndpointServiceConnectionStatusApproved', 'PrivateEndpointServiceConnectionStatusRejected'
+	Status PrivateEndpointServiceConnectionStatus `json:"status,omitempty"`
+	// Description - The reason for approval/rejection of the connection.
+	Description *string `json:"description,omitempty"`
+	// ActionsRequired - A message indicating if changes on the service provider require any updates on the consumer.
+	ActionsRequired *string `json:"actionsRequired,omitempty"`
+}
+
 // ProxyResource the resource model definition for a Azure Resource Manager proxy resource. It will not
 // have tags and a location
 type ProxyResource struct {
@@ -2177,11 +3253,12 @@ func (pr ProxyResource) MarshalJSON() ([]byte, error) {
 
 // RegistrationInfo represents a RegistrationInfo definition.
 type RegistrationInfo struct {
+	autorest.Response `json:"-"`
 	// ExpirationTime - Expiration time of registration token.
 	ExpirationTime *date.Time `json:"expirationTime,omitempty"`
 	// Token - The registration token base64 encoded string.
 	Token *string `json:"token,omitempty"`
-	// RegistrationTokenOperation - The type of resetting the token. Possible values include: 'Delete', 'None', 'Update'
+	// RegistrationTokenOperation - The type of resetting the token. Possible values include: 'RegistrationTokenOperationDelete', 'RegistrationTokenOperationNone', 'RegistrationTokenOperationUpdate'
 	RegistrationTokenOperation RegistrationTokenOperation `json:"registrationTokenOperation,omitempty"`
 }
 
@@ -2189,7 +3266,7 @@ type RegistrationInfo struct {
 type RegistrationInfoPatch struct {
 	// ExpirationTime - Expiration time of registration token.
 	ExpirationTime *date.Time `json:"expirationTime,omitempty"`
-	// RegistrationTokenOperation - The type of resetting the token. Possible values include: 'Delete', 'None', 'Update'
+	// RegistrationTokenOperation - The type of resetting the token. Possible values include: 'RegistrationTokenOperationDelete', 'RegistrationTokenOperationNone', 'RegistrationTokenOperationUpdate'
 	RegistrationTokenOperation RegistrationTokenOperation `json:"registrationTokenOperation,omitempty"`
 }
 
@@ -2209,12 +3286,114 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// ResourceModelWithAllowedPropertySet the resource model definition containing the full set of allowed
+// properties for a resource. Except properties bag, there cannot be a top level property outside of this
+// set.
+type ResourceModelWithAllowedPropertySet struct {
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+	// Location - The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// ManagedBy - The fully qualified resource ID of the resource that manages this resource. Indicates if this resource is managed by another Azure resource. If this is present, complete mode deployment will not delete the resource if it is removed from the template since it is managed by another resource.
+	ManagedBy *string `json:"managedBy,omitempty"`
+	// Kind - Metadata used by portal/tooling/etc to render different UX experiences for resources of the same type; e.g. ApiApps are a kind of Microsoft.Web/sites type.  If supported, the resource provider must validate and persist this value.
+	Kind *string `json:"kind,omitempty"`
+	// Etag - READ-ONLY; The etag field is *not* required. If it is provided in the response body, it must also be provided as a header per the normal etag convention.  Entity tags are used for comparing two or more entities from the same requested resource. HTTP/1.1 uses entity tags in the etag (section 14.19), If-Match (section 14.24), If-None-Match (section 14.26), and If-Range (section 14.27) header fields.
+	Etag *string `json:"etag,omitempty"`
+	// Tags - Resource tags.
+	Tags     map[string]*string                           `json:"tags"`
+	Identity *ResourceModelWithAllowedPropertySetIdentity `json:"identity,omitempty"`
+	Sku      *ResourceModelWithAllowedPropertySetSku      `json:"sku,omitempty"`
+	Plan     *ResourceModelWithAllowedPropertySetPlan     `json:"plan,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceModelWithAllowedPropertySet.
+func (rmwaps ResourceModelWithAllowedPropertySet) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rmwaps.Location != nil {
+		objectMap["location"] = rmwaps.Location
+	}
+	if rmwaps.ManagedBy != nil {
+		objectMap["managedBy"] = rmwaps.ManagedBy
+	}
+	if rmwaps.Kind != nil {
+		objectMap["kind"] = rmwaps.Kind
+	}
+	if rmwaps.Tags != nil {
+		objectMap["tags"] = rmwaps.Tags
+	}
+	if rmwaps.Identity != nil {
+		objectMap["identity"] = rmwaps.Identity
+	}
+	if rmwaps.Sku != nil {
+		objectMap["sku"] = rmwaps.Sku
+	}
+	if rmwaps.Plan != nil {
+		objectMap["plan"] = rmwaps.Plan
+	}
+	return json.Marshal(objectMap)
+}
+
+// ResourceModelWithAllowedPropertySetIdentity ...
+type ResourceModelWithAllowedPropertySetIdentity struct {
+	// PrincipalID - READ-ONLY; The principal ID of resource identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// TenantID - READ-ONLY; The tenant ID of resource.
+	TenantID *string `json:"tenantId,omitempty"`
+	// Type - The identity type. Possible values include: 'ResourceIdentityTypeSystemAssigned'
+	Type ResourceIdentityType `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceModelWithAllowedPropertySetIdentity.
+func (rmwaps ResourceModelWithAllowedPropertySetIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rmwaps.Type != "" {
+		objectMap["type"] = rmwaps.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// ResourceModelWithAllowedPropertySetPlan ...
+type ResourceModelWithAllowedPropertySetPlan struct {
+	// Name - A user defined name of the 3rd Party Artifact that is being procured.
+	Name *string `json:"name,omitempty"`
+	// Publisher - The publisher of the 3rd Party Artifact that is being bought. E.g. NewRelic
+	Publisher *string `json:"publisher,omitempty"`
+	// Product - The 3rd Party artifact that is being procured. E.g. NewRelic. Product maps to the OfferID specified for the artifact at the time of Data Market onboarding.
+	Product *string `json:"product,omitempty"`
+	// PromotionCode - A publisher provided promotion code as provisioned in Data Market for the said product/artifact.
+	PromotionCode *string `json:"promotionCode,omitempty"`
+	// Version - The version of the desired product/artifact.
+	Version *string `json:"version,omitempty"`
+}
+
+// ResourceModelWithAllowedPropertySetSku ...
+type ResourceModelWithAllowedPropertySetSku struct {
+	// Name - The name of the SKU. Ex - P3. It is typically a letter+number code
+	Name *string `json:"name,omitempty"`
+	// Tier - This field is required to be implemented by the Resource Provider if the service has more than one tier, but is not required on a PUT. Possible values include: 'SkuTierFree', 'SkuTierBasic', 'SkuTierStandard', 'SkuTierPremium'
+	Tier SkuTier `json:"tier,omitempty"`
+	// Size - The SKU size. When the name field is the combination of tier and some other value, this would be the standalone code.
+	Size *string `json:"size,omitempty"`
+	// Family - If the service has different generations of hardware, for the same SKU, then that can be captured here.
+	Family *string `json:"family,omitempty"`
+	// Capacity - If the SKU supports scale out/in then the capacity integer should be included. If scale out/in is not possible for the resource this may be omitted.
+	Capacity *int32 `json:"capacity,omitempty"`
+}
+
 // ResourceProviderOperation supported operation of this resource provider.
 type ResourceProviderOperation struct {
 	// Name - Operation name, in format of {provider}/{resource}/{operation}
 	Name *string `json:"name,omitempty"`
 	// Display - Display metadata associated with the operation.
 	Display *ResourceProviderOperationDisplay `json:"display,omitempty"`
+	// IsDataAction - Is a data action.
+	IsDataAction *bool                `json:"isDataAction,omitempty"`
+	Properties   *OperationProperties `json:"properties,omitempty"`
 }
 
 // ResourceProviderOperationDisplay display metadata associated with the operation.
@@ -2234,6 +3413,693 @@ type ResourceProviderOperationList struct {
 	autorest.Response `json:"-"`
 	// Value - List of operations supported by this resource provider.
 	Value *[]ResourceProviderOperation `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to the next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceProviderOperationList.
+func (rpol ResourceProviderOperationList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rpol.Value != nil {
+		objectMap["value"] = rpol.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// ResourceProviderOperationListIterator provides access to a complete listing of ResourceProviderOperation
+// values.
+type ResourceProviderOperationListIterator struct {
+	i    int
+	page ResourceProviderOperationListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ResourceProviderOperationListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ResourceProviderOperationListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ResourceProviderOperationListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ResourceProviderOperationListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ResourceProviderOperationListIterator) Response() ResourceProviderOperationList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ResourceProviderOperationListIterator) Value() ResourceProviderOperation {
+	if !iter.page.NotDone() {
+		return ResourceProviderOperation{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ResourceProviderOperationListIterator type.
+func NewResourceProviderOperationListIterator(page ResourceProviderOperationListPage) ResourceProviderOperationListIterator {
+	return ResourceProviderOperationListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (rpol ResourceProviderOperationList) IsEmpty() bool {
+	return rpol.Value == nil || len(*rpol.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (rpol ResourceProviderOperationList) hasNextLink() bool {
+	return rpol.NextLink != nil && len(*rpol.NextLink) != 0
+}
+
+// resourceProviderOperationListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (rpol ResourceProviderOperationList) resourceProviderOperationListPreparer(ctx context.Context) (*http.Request, error) {
+	if !rpol.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(rpol.NextLink)))
+}
+
+// ResourceProviderOperationListPage contains a page of ResourceProviderOperation values.
+type ResourceProviderOperationListPage struct {
+	fn   func(context.Context, ResourceProviderOperationList) (ResourceProviderOperationList, error)
+	rpol ResourceProviderOperationList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ResourceProviderOperationListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ResourceProviderOperationListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.rpol)
+		if err != nil {
+			return err
+		}
+		page.rpol = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ResourceProviderOperationListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ResourceProviderOperationListPage) NotDone() bool {
+	return !page.rpol.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ResourceProviderOperationListPage) Response() ResourceProviderOperationList {
+	return page.rpol
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ResourceProviderOperationListPage) Values() []ResourceProviderOperation {
+	if page.rpol.IsEmpty() {
+		return nil
+	}
+	return *page.rpol.Value
+}
+
+// Creates a new instance of the ResourceProviderOperationListPage type.
+func NewResourceProviderOperationListPage(cur ResourceProviderOperationList, getNextPage func(context.Context, ResourceProviderOperationList) (ResourceProviderOperationList, error)) ResourceProviderOperationListPage {
+	return ResourceProviderOperationListPage{
+		fn:   getNextPage,
+		rpol: cur,
+	}
+}
+
+// ScalingHostPoolReference scaling plan reference to hostpool.
+type ScalingHostPoolReference struct {
+	// HostPoolArmPath - Arm path of referenced hostpool.
+	HostPoolArmPath *string `json:"hostPoolArmPath,omitempty"`
+	// ScalingPlanEnabled - Is the scaling plan enabled for this hostpool.
+	ScalingPlanEnabled *bool `json:"scalingPlanEnabled,omitempty"`
+}
+
+// ScalingPlan represents a scaling plan definition.
+type ScalingPlan struct {
+	autorest.Response `json:"-"`
+	// SystemData - Metadata pertaining to creation and last modification of the resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
+	// ScalingPlanProperties - Detailed properties for scaling plan.
+	*ScalingPlanProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+	// Location - The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// ManagedBy - The fully qualified resource ID of the resource that manages this resource. Indicates if this resource is managed by another Azure resource. If this is present, complete mode deployment will not delete the resource if it is removed from the template since it is managed by another resource.
+	ManagedBy *string `json:"managedBy,omitempty"`
+	// Kind - Metadata used by portal/tooling/etc to render different UX experiences for resources of the same type; e.g. ApiApps are a kind of Microsoft.Web/sites type.  If supported, the resource provider must validate and persist this value.
+	Kind *string `json:"kind,omitempty"`
+	// Etag - READ-ONLY; The etag field is *not* required. If it is provided in the response body, it must also be provided as a header per the normal etag convention.  Entity tags are used for comparing two or more entities from the same requested resource. HTTP/1.1 uses entity tags in the etag (section 14.19), If-Match (section 14.24), If-None-Match (section 14.26), and If-Range (section 14.27) header fields.
+	Etag *string `json:"etag,omitempty"`
+	// Tags - Resource tags.
+	Tags     map[string]*string                           `json:"tags"`
+	Identity *ResourceModelWithAllowedPropertySetIdentity `json:"identity,omitempty"`
+	Sku      *ResourceModelWithAllowedPropertySetSku      `json:"sku,omitempty"`
+	Plan     *ResourceModelWithAllowedPropertySetPlan     `json:"plan,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ScalingPlan.
+func (sp ScalingPlan) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sp.SystemData != nil {
+		objectMap["systemData"] = sp.SystemData
+	}
+	if sp.ScalingPlanProperties != nil {
+		objectMap["properties"] = sp.ScalingPlanProperties
+	}
+	if sp.Location != nil {
+		objectMap["location"] = sp.Location
+	}
+	if sp.ManagedBy != nil {
+		objectMap["managedBy"] = sp.ManagedBy
+	}
+	if sp.Kind != nil {
+		objectMap["kind"] = sp.Kind
+	}
+	if sp.Tags != nil {
+		objectMap["tags"] = sp.Tags
+	}
+	if sp.Identity != nil {
+		objectMap["identity"] = sp.Identity
+	}
+	if sp.Sku != nil {
+		objectMap["sku"] = sp.Sku
+	}
+	if sp.Plan != nil {
+		objectMap["plan"] = sp.Plan
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ScalingPlan struct.
+func (sp *ScalingPlan) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				sp.SystemData = &systemData
+			}
+		case "properties":
+			if v != nil {
+				var scalingPlanProperties ScalingPlanProperties
+				err = json.Unmarshal(*v, &scalingPlanProperties)
+				if err != nil {
+					return err
+				}
+				sp.ScalingPlanProperties = &scalingPlanProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				sp.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sp.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sp.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				sp.Location = &location
+			}
+		case "managedBy":
+			if v != nil {
+				var managedBy string
+				err = json.Unmarshal(*v, &managedBy)
+				if err != nil {
+					return err
+				}
+				sp.ManagedBy = &managedBy
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				sp.Kind = &kind
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				sp.Etag = &etag
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				sp.Tags = tags
+			}
+		case "identity":
+			if v != nil {
+				var identity ResourceModelWithAllowedPropertySetIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				sp.Identity = &identity
+			}
+		case "sku":
+			if v != nil {
+				var sku ResourceModelWithAllowedPropertySetSku
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				sp.Sku = &sku
+			}
+		case "plan":
+			if v != nil {
+				var plan ResourceModelWithAllowedPropertySetPlan
+				err = json.Unmarshal(*v, &plan)
+				if err != nil {
+					return err
+				}
+				sp.Plan = &plan
+			}
+		}
+	}
+
+	return nil
+}
+
+// ScalingPlanList list of scaling plan definitions.
+type ScalingPlanList struct {
+	autorest.Response `json:"-"`
+	// Value - List of scaling plan definitions.
+	Value *[]ScalingPlan `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to the next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ScalingPlanList.
+func (spl ScalingPlanList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if spl.Value != nil {
+		objectMap["value"] = spl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// ScalingPlanListIterator provides access to a complete listing of ScalingPlan values.
+type ScalingPlanListIterator struct {
+	i    int
+	page ScalingPlanListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ScalingPlanListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ScalingPlanListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ScalingPlanListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ScalingPlanListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ScalingPlanListIterator) Response() ScalingPlanList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ScalingPlanListIterator) Value() ScalingPlan {
+	if !iter.page.NotDone() {
+		return ScalingPlan{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ScalingPlanListIterator type.
+func NewScalingPlanListIterator(page ScalingPlanListPage) ScalingPlanListIterator {
+	return ScalingPlanListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (spl ScalingPlanList) IsEmpty() bool {
+	return spl.Value == nil || len(*spl.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (spl ScalingPlanList) hasNextLink() bool {
+	return spl.NextLink != nil && len(*spl.NextLink) != 0
+}
+
+// scalingPlanListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (spl ScalingPlanList) scalingPlanListPreparer(ctx context.Context) (*http.Request, error) {
+	if !spl.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(spl.NextLink)))
+}
+
+// ScalingPlanListPage contains a page of ScalingPlan values.
+type ScalingPlanListPage struct {
+	fn  func(context.Context, ScalingPlanList) (ScalingPlanList, error)
+	spl ScalingPlanList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ScalingPlanListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ScalingPlanListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.spl)
+		if err != nil {
+			return err
+		}
+		page.spl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ScalingPlanListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ScalingPlanListPage) NotDone() bool {
+	return !page.spl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ScalingPlanListPage) Response() ScalingPlanList {
+	return page.spl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ScalingPlanListPage) Values() []ScalingPlan {
+	if page.spl.IsEmpty() {
+		return nil
+	}
+	return *page.spl.Value
+}
+
+// Creates a new instance of the ScalingPlanListPage type.
+func NewScalingPlanListPage(cur ScalingPlanList, getNextPage func(context.Context, ScalingPlanList) (ScalingPlanList, error)) ScalingPlanListPage {
+	return ScalingPlanListPage{
+		fn:  getNextPage,
+		spl: cur,
+	}
+}
+
+// ScalingPlanPatch scaling plan properties that can be patched.
+type ScalingPlanPatch struct {
+	// Tags - tags to be updated
+	Tags map[string]*string `json:"tags"`
+	// ScalingPlanPatchProperties - Detailed properties for scaling plan
+	*ScalingPlanPatchProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ScalingPlanPatch.
+func (spp ScalingPlanPatch) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if spp.Tags != nil {
+		objectMap["tags"] = spp.Tags
+	}
+	if spp.ScalingPlanPatchProperties != nil {
+		objectMap["properties"] = spp.ScalingPlanPatchProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ScalingPlanPatch struct.
+func (spp *ScalingPlanPatch) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				spp.Tags = tags
+			}
+		case "properties":
+			if v != nil {
+				var scalingPlanPatchProperties ScalingPlanPatchProperties
+				err = json.Unmarshal(*v, &scalingPlanPatchProperties)
+				if err != nil {
+					return err
+				}
+				spp.ScalingPlanPatchProperties = &scalingPlanPatchProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// ScalingPlanPatchProperties scaling plan properties.
+type ScalingPlanPatchProperties struct {
+	// Description - Description of scaling plan.
+	Description *string `json:"description,omitempty"`
+	// FriendlyName - User friendly name of scaling plan.
+	FriendlyName *string `json:"friendlyName,omitempty"`
+	// TimeZone - Timezone of the scaling plan.
+	TimeZone *string `json:"timeZone,omitempty"`
+	// ExclusionTag - Exclusion tag for scaling plan.
+	ExclusionTag *string `json:"exclusionTag,omitempty"`
+	// Schedules - List of ScalingSchedule definitions.
+	Schedules *[]ScalingSchedule `json:"schedules,omitempty"`
+	// HostPoolReferences - List of ScalingHostPoolReference definitions.
+	HostPoolReferences *[]ScalingHostPoolReference `json:"hostPoolReferences,omitempty"`
+}
+
+// ScalingPlanProperties scaling plan properties.
+type ScalingPlanProperties struct {
+	// ObjectID - READ-ONLY; ObjectId of scaling plan. (internal use)
+	ObjectID *string `json:"objectId,omitempty"`
+	// Description - Description of scaling plan.
+	Description *string `json:"description,omitempty"`
+	// FriendlyName - User friendly name of scaling plan.
+	FriendlyName *string `json:"friendlyName,omitempty"`
+	// TimeZone - Timezone of the scaling plan.
+	TimeZone *string `json:"timeZone,omitempty"`
+	// HostPoolType - HostPool type for desktop. Possible values include: 'ScalingHostPoolTypePooled'
+	HostPoolType ScalingHostPoolType `json:"hostPoolType,omitempty"`
+	// ExclusionTag - Exclusion tag for scaling plan.
+	ExclusionTag *string `json:"exclusionTag,omitempty"`
+	// Schedules - List of ScalingSchedule definitions.
+	Schedules *[]ScalingSchedule `json:"schedules,omitempty"`
+	// HostPoolReferences - List of ScalingHostPoolReference definitions.
+	HostPoolReferences *[]ScalingHostPoolReference `json:"hostPoolReferences,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ScalingPlanProperties.
+func (spp ScalingPlanProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if spp.Description != nil {
+		objectMap["description"] = spp.Description
+	}
+	if spp.FriendlyName != nil {
+		objectMap["friendlyName"] = spp.FriendlyName
+	}
+	if spp.TimeZone != nil {
+		objectMap["timeZone"] = spp.TimeZone
+	}
+	if spp.HostPoolType != "" {
+		objectMap["hostPoolType"] = spp.HostPoolType
+	}
+	if spp.ExclusionTag != nil {
+		objectMap["exclusionTag"] = spp.ExclusionTag
+	}
+	if spp.Schedules != nil {
+		objectMap["schedules"] = spp.Schedules
+	}
+	if spp.HostPoolReferences != nil {
+		objectMap["hostPoolReferences"] = spp.HostPoolReferences
+	}
+	return json.Marshal(objectMap)
+}
+
+// ScalingSchedule scaling plan schedule.
+type ScalingSchedule struct {
+	// Name - Name of the scaling schedule.
+	Name *string `json:"name,omitempty"`
+	// DaysOfWeek - Set of days of the week on which this schedule is active.
+	DaysOfWeek *[]string `json:"daysOfWeek,omitempty"`
+	// RampUpStartTime - Starting time for ramp up period.
+	RampUpStartTime *Time `json:"rampUpStartTime,omitempty"`
+	// RampUpLoadBalancingAlgorithm - Load balancing algorithm for ramp up period. Possible values include: 'SessionHostLoadBalancingAlgorithmBreadthFirst', 'SessionHostLoadBalancingAlgorithmDepthFirst'
+	RampUpLoadBalancingAlgorithm SessionHostLoadBalancingAlgorithm `json:"rampUpLoadBalancingAlgorithm,omitempty"`
+	// RampUpMinimumHostsPct - Minimum host percentage for ramp up period.
+	RampUpMinimumHostsPct *int32 `json:"rampUpMinimumHostsPct,omitempty"`
+	// RampUpCapacityThresholdPct - Capacity threshold for ramp up period.
+	RampUpCapacityThresholdPct *int32 `json:"rampUpCapacityThresholdPct,omitempty"`
+	// PeakStartTime - Starting time for peak period.
+	PeakStartTime *Time `json:"peakStartTime,omitempty"`
+	// PeakLoadBalancingAlgorithm - Load balancing algorithm for peak period. Possible values include: 'SessionHostLoadBalancingAlgorithmBreadthFirst', 'SessionHostLoadBalancingAlgorithmDepthFirst'
+	PeakLoadBalancingAlgorithm SessionHostLoadBalancingAlgorithm `json:"peakLoadBalancingAlgorithm,omitempty"`
+	// RampDownStartTime - Starting time for ramp down period.
+	RampDownStartTime *Time `json:"rampDownStartTime,omitempty"`
+	// RampDownLoadBalancingAlgorithm - Load balancing algorithm for ramp down period. Possible values include: 'SessionHostLoadBalancingAlgorithmBreadthFirst', 'SessionHostLoadBalancingAlgorithmDepthFirst'
+	RampDownLoadBalancingAlgorithm SessionHostLoadBalancingAlgorithm `json:"rampDownLoadBalancingAlgorithm,omitempty"`
+	// RampDownMinimumHostsPct - Minimum host percentage for ramp down period.
+	RampDownMinimumHostsPct *int32 `json:"rampDownMinimumHostsPct,omitempty"`
+	// RampDownCapacityThresholdPct - Capacity threshold for ramp down period.
+	RampDownCapacityThresholdPct *int32 `json:"rampDownCapacityThresholdPct,omitempty"`
+	// RampDownForceLogoffUsers - Should users be logged off forcefully from hosts.
+	RampDownForceLogoffUsers *bool `json:"rampDownForceLogoffUsers,omitempty"`
+	// RampDownStopHostsWhen - Specifies when to stop hosts during ramp down period. Possible values include: 'StopHostsWhenZeroSessions', 'StopHostsWhenZeroActiveSessions'
+	RampDownStopHostsWhen StopHostsWhen `json:"rampDownStopHostsWhen,omitempty"`
+	// RampDownWaitTimeMinutes - Number of minutes to wait to stop hosts during ramp down period.
+	RampDownWaitTimeMinutes *int32 `json:"rampDownWaitTimeMinutes,omitempty"`
+	// RampDownNotificationMessage - Notification message for users during ramp down period.
+	RampDownNotificationMessage *string `json:"rampDownNotificationMessage,omitempty"`
+	// OffPeakStartTime - Starting time for off-peak period.
+	OffPeakStartTime *Time `json:"offPeakStartTime,omitempty"`
+	// OffPeakLoadBalancingAlgorithm - Load balancing algorithm for off-peak period. Possible values include: 'SessionHostLoadBalancingAlgorithmBreadthFirst', 'SessionHostLoadBalancingAlgorithmDepthFirst'
+	OffPeakLoadBalancingAlgorithm SessionHostLoadBalancingAlgorithm `json:"offPeakLoadBalancingAlgorithm,omitempty"`
 }
 
 // SendMessage represents message sent to a UserSession.
@@ -2244,9 +4110,17 @@ type SendMessage struct {
 	MessageBody *string `json:"messageBody,omitempty"`
 }
 
+// ServiceSpecification service specification payload
+type ServiceSpecification struct {
+	// LogSpecifications - Specifications of the Log for Azure Monitoring
+	LogSpecifications *[]LogSpecification `json:"logSpecifications,omitempty"`
+}
+
 // SessionHost represents a SessionHost definition.
 type SessionHost struct {
 	autorest.Response `json:"-"`
+	// SystemData - Metadata pertaining to creation and last modification of the resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// SessionHostProperties - Detailed properties for SessionHost
 	*SessionHostProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
@@ -2260,6 +4134,9 @@ type SessionHost struct {
 // MarshalJSON is the custom marshaler for SessionHost.
 func (sh SessionHost) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if sh.SystemData != nil {
+		objectMap["systemData"] = sh.SystemData
+	}
 	if sh.SessionHostProperties != nil {
 		objectMap["properties"] = sh.SessionHostProperties
 	}
@@ -2275,6 +4152,15 @@ func (sh *SessionHost) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				sh.SystemData = &systemData
+			}
 		case "properties":
 			if v != nil {
 				var sessionHostProperties SessionHostProperties
@@ -2315,6 +4201,38 @@ func (sh *SessionHost) UnmarshalJSON(body []byte) error {
 	}
 
 	return nil
+}
+
+// SessionHostHealthCheckFailureDetails contains details on the failure.
+type SessionHostHealthCheckFailureDetails struct {
+	// Message - READ-ONLY; Failure message: hints on what is wrong and how to recover.
+	Message *string `json:"message,omitempty"`
+	// ErrorCode - READ-ONLY; Error code corresponding for the failure.
+	ErrorCode *int32 `json:"errorCode,omitempty"`
+	// LastHealthCheckDateTime - READ-ONLY; The timestamp of the last update.
+	LastHealthCheckDateTime *date.Time `json:"lastHealthCheckDateTime,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SessionHostHealthCheckFailureDetails.
+func (shhcfd SessionHostHealthCheckFailureDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// SessionHostHealthCheckReport the report for session host information.
+type SessionHostHealthCheckReport struct {
+	// HealthCheckName - READ-ONLY; Represents the name of the health check operation performed. Possible values include: 'HealthCheckNameDomainJoinedCheck', 'HealthCheckNameDomainTrustCheck', 'HealthCheckNameFSLogixHealthCheck', 'HealthCheckNameSxSStackListenerCheck', 'HealthCheckNameUrlsAccessibleCheck', 'HealthCheckNameMonitoringAgentCheck', 'HealthCheckNameDomainReachable', 'HealthCheckNameWebRTCRedirectorCheck', 'HealthCheckNameSupportedEncryptionCheck', 'HealthCheckNameMetaDataServiceCheck', 'HealthCheckNameAppAttachHealthCheck'
+	HealthCheckName HealthCheckName `json:"healthCheckName,omitempty"`
+	// HealthCheckResult - READ-ONLY; Represents the Health state of the health check we performed. Possible values include: 'HealthCheckResultUnknown', 'HealthCheckResultHealthCheckSucceeded', 'HealthCheckResultHealthCheckFailed', 'HealthCheckResultSessionHostShutdown'
+	HealthCheckResult HealthCheckResult `json:"healthCheckResult,omitempty"`
+	// AdditionalFailureDetails - READ-ONLY; Additional detailed information on the failure.
+	AdditionalFailureDetails *SessionHostHealthCheckFailureDetails `json:"additionalFailureDetails,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SessionHostHealthCheckReport.
+func (shhcr SessionHostHealthCheckReport) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SessionHostList list of SessionHost definitions.
@@ -2567,6 +4485,8 @@ type SessionHostPatchProperties struct {
 
 // SessionHostProperties schema for SessionHost properties.
 type SessionHostProperties struct {
+	// ObjectID - READ-ONLY; ObjectId of SessionHost. (internal use)
+	ObjectID *string `json:"objectId,omitempty"`
 	// LastHeartBeat - Last heart beat from SessionHost.
 	LastHeartBeat *date.Time `json:"lastHeartBeat,omitempty"`
 	// Sessions - Number of sessions on SessionHost.
@@ -2581,7 +4501,7 @@ type SessionHostProperties struct {
 	ResourceID *string `json:"resourceId,omitempty"`
 	// AssignedUser - User assigned to SessionHost.
 	AssignedUser *string `json:"assignedUser,omitempty"`
-	// Status - Status for a SessionHost. Possible values include: 'StatusAvailable', 'StatusUnavailable', 'StatusShutdown', 'StatusDisconnected', 'StatusUpgrading', 'StatusUpgradeFailed'
+	// Status - Status for a SessionHost. Possible values include: 'StatusAvailable', 'StatusUnavailable', 'StatusShutdown', 'StatusDisconnected', 'StatusUpgrading', 'StatusUpgradeFailed', 'StatusNoHeartbeat', 'StatusNotJoinedToDomain', 'StatusDomainTrustRelationshipLost', 'StatusSxSStackListenerNotReady', 'StatusFSLogixNotHealthy', 'StatusNeedsAssistance'
 	Status Status `json:"status,omitempty"`
 	// StatusTimestamp - READ-ONLY; The timestamp of the status.
 	StatusTimestamp *date.Time `json:"statusTimestamp,omitempty"`
@@ -2595,6 +4515,8 @@ type SessionHostProperties struct {
 	LastUpdateTime *date.Time `json:"lastUpdateTime,omitempty"`
 	// UpdateErrorMessage - The error message.
 	UpdateErrorMessage *string `json:"updateErrorMessage,omitempty"`
+	// SessionHostHealthCheckResults - READ-ONLY; List of SessionHostHealthCheckReports
+	SessionHostHealthCheckResults *[]SessionHostHealthCheckReport `json:"sessionHostHealthCheckResults,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SessionHostProperties.
@@ -2631,6 +4553,20 @@ func (shp SessionHostProperties) MarshalJSON() ([]byte, error) {
 		objectMap["updateErrorMessage"] = shp.UpdateErrorMessage
 	}
 	return json.Marshal(objectMap)
+}
+
+// Sku the resource model definition representing SKU
+type Sku struct {
+	// Name - The name of the SKU. Ex - P3. It is typically a letter+number code
+	Name *string `json:"name,omitempty"`
+	// Tier - This field is required to be implemented by the Resource Provider if the service has more than one tier, but is not required on a PUT. Possible values include: 'SkuTierFree', 'SkuTierBasic', 'SkuTierStandard', 'SkuTierPremium'
+	Tier SkuTier `json:"tier,omitempty"`
+	// Size - The SKU size. When the name field is the combination of tier and some other value, this would be the standalone code.
+	Size *string `json:"size,omitempty"`
+	// Family - If the service has different generations of hardware, for the same SKU, then that can be captured here.
+	Family *string `json:"family,omitempty"`
+	// Capacity - If the SKU supports scale out/in then the capacity integer should be included. If scale out/in is not possible for the resource this may be omitted.
+	Capacity *int32 `json:"capacity,omitempty"`
 }
 
 // StartMenuItem represents a StartMenuItem definition.
@@ -2877,8 +4813,6 @@ func NewStartMenuItemListPage(cur StartMenuItemList, getNextPage func(context.Co
 type StartMenuItemProperties struct {
 	// AppAlias - Alias of StartMenuItem.
 	AppAlias *string `json:"appAlias,omitempty"`
-	// FriendlyName - Friendly name of StartMenuItem.
-	FriendlyName *string `json:"friendlyName,omitempty"`
 	// FilePath - Path to the file of StartMenuItem.
 	FilePath *string `json:"filePath,omitempty"`
 	// CommandLineArguments - Command line arguments for StartMenuItem.
@@ -2887,6 +4821,30 @@ type StartMenuItemProperties struct {
 	IconPath *string `json:"iconPath,omitempty"`
 	// IconIndex - Index of the icon.
 	IconIndex *int32 `json:"iconIndex,omitempty"`
+}
+
+// SystemData metadata pertaining to creation and last modification of the resource.
+type SystemData struct {
+	// CreatedBy - The identity that created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	CreatedByType CreatedByType `json:"createdByType,omitempty"`
+	// CreatedAt - The timestamp of resource creation (UTC).
+	CreatedAt *date.Time `json:"createdAt,omitempty"`
+	// LastModifiedBy - The identity that last modified the resource.
+	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
+	// LastModifiedAt - The timestamp of resource last modification (UTC)
+	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
+}
+
+// Time the time for a scaling action to occur.
+type Time struct {
+	// Hour - The hour.
+	Hour *int32 `json:"hour,omitempty"`
+	// Minute - The minute.
+	Minute *int32 `json:"minute,omitempty"`
 }
 
 // TrackedResource the resource model definition for an Azure Resource Manager tracked top level resource
@@ -2919,6 +4877,8 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 // UserSession represents a UserSession definition.
 type UserSession struct {
 	autorest.Response `json:"-"`
+	// SystemData - Metadata pertaining to creation and last modification of the resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// UserSessionProperties - Detailed properties for UserSession
 	*UserSessionProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
@@ -2932,6 +4892,9 @@ type UserSession struct {
 // MarshalJSON is the custom marshaler for UserSession.
 func (us UserSession) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if us.SystemData != nil {
+		objectMap["systemData"] = us.SystemData
+	}
 	if us.UserSessionProperties != nil {
 		objectMap["properties"] = us.UserSessionProperties
 	}
@@ -2947,6 +4910,15 @@ func (us *UserSession) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				us.SystemData = &systemData
+			}
 		case "properties":
 			if v != nil {
 				var userSessionProperties UserSessionProperties
@@ -3159,11 +5131,13 @@ func NewUserSessionListPage(cur UserSessionList, getNextPage func(context.Contex
 
 // UserSessionProperties schema for UserSession properties.
 type UserSessionProperties struct {
+	// ObjectID - READ-ONLY; ObjectId of user session. (internal use)
+	ObjectID *string `json:"objectId,omitempty"`
 	// UserPrincipalName - The user principal name.
 	UserPrincipalName *string `json:"userPrincipalName,omitempty"`
 	// ApplicationType - Application type of application. Possible values include: 'ApplicationTypeRemoteApp', 'ApplicationTypeDesktop'
 	ApplicationType ApplicationType `json:"applicationType,omitempty"`
-	// SessionState - State of user session. Possible values include: 'Unknown', 'Active', 'Disconnected', 'Pending', 'LogOff', 'UserProfileDiskMounted'
+	// SessionState - State of user session. Possible values include: 'SessionStateUnknown', 'SessionStateActive', 'SessionStateDisconnected', 'SessionStatePending', 'SessionStateLogOff', 'SessionStateUserProfileDiskMounted'
 	SessionState SessionState `json:"sessionState,omitempty"`
 	// ActiveDirectoryUserName - The active directory user name.
 	ActiveDirectoryUserName *string `json:"activeDirectoryUserName,omitempty"`
@@ -3171,34 +5145,84 @@ type UserSessionProperties struct {
 	CreateTime *date.Time `json:"createTime,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for UserSessionProperties.
+func (usp UserSessionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if usp.UserPrincipalName != nil {
+		objectMap["userPrincipalName"] = usp.UserPrincipalName
+	}
+	if usp.ApplicationType != "" {
+		objectMap["applicationType"] = usp.ApplicationType
+	}
+	if usp.SessionState != "" {
+		objectMap["sessionState"] = usp.SessionState
+	}
+	if usp.ActiveDirectoryUserName != nil {
+		objectMap["activeDirectoryUserName"] = usp.ActiveDirectoryUserName
+	}
+	if usp.CreateTime != nil {
+		objectMap["createTime"] = usp.CreateTime
+	}
+	return json.Marshal(objectMap)
+}
+
 // Workspace represents a Workspace definition.
 type Workspace struct {
 	autorest.Response `json:"-"`
+	// SystemData - Metadata pertaining to creation and last modification of the resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// WorkspaceProperties - Detailed properties for Workspace
 	*WorkspaceProperties `json:"properties,omitempty"`
-	// Tags - Resource tags.
-	Tags map[string]*string `json:"tags"`
-	// Location - The geo-location where the resource lives
-	Location *string `json:"location,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
+	// Location - The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// ManagedBy - The fully qualified resource ID of the resource that manages this resource. Indicates if this resource is managed by another Azure resource. If this is present, complete mode deployment will not delete the resource if it is removed from the template since it is managed by another resource.
+	ManagedBy *string `json:"managedBy,omitempty"`
+	// Kind - Metadata used by portal/tooling/etc to render different UX experiences for resources of the same type; e.g. ApiApps are a kind of Microsoft.Web/sites type.  If supported, the resource provider must validate and persist this value.
+	Kind *string `json:"kind,omitempty"`
+	// Etag - READ-ONLY; The etag field is *not* required. If it is provided in the response body, it must also be provided as a header per the normal etag convention.  Entity tags are used for comparing two or more entities from the same requested resource. HTTP/1.1 uses entity tags in the etag (section 14.19), If-Match (section 14.24), If-None-Match (section 14.26), and If-Range (section 14.27) header fields.
+	Etag *string `json:"etag,omitempty"`
+	// Tags - Resource tags.
+	Tags     map[string]*string                           `json:"tags"`
+	Identity *ResourceModelWithAllowedPropertySetIdentity `json:"identity,omitempty"`
+	Sku      *ResourceModelWithAllowedPropertySetSku      `json:"sku,omitempty"`
+	Plan     *ResourceModelWithAllowedPropertySetPlan     `json:"plan,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Workspace.
 func (w Workspace) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if w.SystemData != nil {
+		objectMap["systemData"] = w.SystemData
+	}
 	if w.WorkspaceProperties != nil {
 		objectMap["properties"] = w.WorkspaceProperties
+	}
+	if w.Location != nil {
+		objectMap["location"] = w.Location
+	}
+	if w.ManagedBy != nil {
+		objectMap["managedBy"] = w.ManagedBy
+	}
+	if w.Kind != nil {
+		objectMap["kind"] = w.Kind
 	}
 	if w.Tags != nil {
 		objectMap["tags"] = w.Tags
 	}
-	if w.Location != nil {
-		objectMap["location"] = w.Location
+	if w.Identity != nil {
+		objectMap["identity"] = w.Identity
+	}
+	if w.Sku != nil {
+		objectMap["sku"] = w.Sku
+	}
+	if w.Plan != nil {
+		objectMap["plan"] = w.Plan
 	}
 	return json.Marshal(objectMap)
 }
@@ -3212,6 +5236,15 @@ func (w *Workspace) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				w.SystemData = &systemData
+			}
 		case "properties":
 			if v != nil {
 				var workspaceProperties WorkspaceProperties
@@ -3220,24 +5253,6 @@ func (w *Workspace) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				w.WorkspaceProperties = &workspaceProperties
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				w.Tags = tags
-			}
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				w.Location = &location
 			}
 		case "id":
 			if v != nil {
@@ -3265,6 +5280,78 @@ func (w *Workspace) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				w.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				w.Location = &location
+			}
+		case "managedBy":
+			if v != nil {
+				var managedBy string
+				err = json.Unmarshal(*v, &managedBy)
+				if err != nil {
+					return err
+				}
+				w.ManagedBy = &managedBy
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				w.Kind = &kind
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				w.Etag = &etag
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				w.Tags = tags
+			}
+		case "identity":
+			if v != nil {
+				var identity ResourceModelWithAllowedPropertySetIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				w.Identity = &identity
+			}
+		case "sku":
+			if v != nil {
+				var sku ResourceModelWithAllowedPropertySetSku
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				w.Sku = &sku
+			}
+		case "plan":
+			if v != nil {
+				var plan ResourceModelWithAllowedPropertySetPlan
+				err = json.Unmarshal(*v, &plan)
+				if err != nil {
+					return err
+				}
+				w.Plan = &plan
 			}
 		}
 	}
@@ -3501,14 +5588,40 @@ type WorkspacePatchProperties struct {
 	FriendlyName *string `json:"friendlyName,omitempty"`
 	// ApplicationGroupReferences - List of applicationGroup links.
 	ApplicationGroupReferences *[]string `json:"applicationGroupReferences,omitempty"`
+	// PublicNetworkAccess - Enabled to allow this resource to be access from the public network. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 }
 
 // WorkspaceProperties schema for Workspace properties.
 type WorkspaceProperties struct {
+	// ObjectID - READ-ONLY; ObjectId of Workspace. (internal use)
+	ObjectID *string `json:"objectId,omitempty"`
 	// Description - Description of Workspace.
 	Description *string `json:"description,omitempty"`
 	// FriendlyName - Friendly name of Workspace.
 	FriendlyName *string `json:"friendlyName,omitempty"`
 	// ApplicationGroupReferences - List of applicationGroup resource Ids.
 	ApplicationGroupReferences *[]string `json:"applicationGroupReferences,omitempty"`
+	// CloudPcResource - READ-ONLY; Is cloud pc resource.
+	CloudPcResource *bool `json:"cloudPcResource,omitempty"`
+	// PublicNetworkAccess - Enabled allows this resource to be accessed from both public and private networks, Disabled allows this resource to only be accessed via private endpoints. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for WorkspaceProperties.
+func (wp WorkspaceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if wp.Description != nil {
+		objectMap["description"] = wp.Description
+	}
+	if wp.FriendlyName != nil {
+		objectMap["friendlyName"] = wp.FriendlyName
+	}
+	if wp.ApplicationGroupReferences != nil {
+		objectMap["applicationGroupReferences"] = wp.ApplicationGroupReferences
+	}
+	if wp.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = wp.PublicNetworkAccess
+	}
+	return json.Marshal(objectMap)
 }

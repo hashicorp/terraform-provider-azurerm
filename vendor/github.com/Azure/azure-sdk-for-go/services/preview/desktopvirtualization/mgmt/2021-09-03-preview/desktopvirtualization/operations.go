@@ -31,17 +31,18 @@ func NewOperationsClientWithBaseURI(baseURI string, subscriptionID string) Opera
 }
 
 // List list all of the available operations the Desktop Virtualization resource provider supports.
-func (client OperationsClient) List(ctx context.Context) (result ResourceProviderOperationList, err error) {
+func (client OperationsClient) List(ctx context.Context) (result ResourceProviderOperationListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/OperationsClient.List")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.rpol.Response.Response != nil {
+				sc = result.rpol.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.OperationsClient", "List", nil, "Failure preparing request")
@@ -50,14 +51,18 @@ func (client OperationsClient) List(ctx context.Context) (result ResourceProvide
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.rpol.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.OperationsClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListResponder(resp)
+	result.rpol, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.OperationsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rpol.hasNextLink() && result.rpol.IsEmpty() {
+		err = result.NextWithContext(ctx)
 		return
 	}
 
@@ -66,7 +71,7 @@ func (client OperationsClient) List(ctx context.Context) (result ResourceProvide
 
 // ListPreparer prepares the List request.
 func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2020-11-02-preview"
+	const APIVersion = "2021-09-03-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -94,5 +99,42 @@ func (client OperationsClient) ListResponder(resp *http.Response) (result Resour
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listNextResults retrieves the next set of results, if any.
+func (client OperationsClient) listNextResults(ctx context.Context, lastResults ResourceProviderOperationList) (result ResourceProviderOperationList, err error) {
+	req, err := lastResults.resourceProviderOperationListPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "desktopvirtualization.OperationsClient", "listNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "desktopvirtualization.OperationsClient", "listNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "desktopvirtualization.OperationsClient", "listNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListComplete enumerates all values, automatically crossing page boundaries as required.
+func (client OperationsClient) ListComplete(ctx context.Context) (result ResourceProviderOperationListIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/OperationsClient.List")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.List(ctx)
 	return
 }

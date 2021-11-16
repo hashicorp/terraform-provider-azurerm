@@ -52,8 +52,7 @@ func (client DesktopsClient) Get(ctx context.Context, resourceGroupName string, 
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: applicationGroupName,
 			Constraints: []validation.Constraint{{Target: "applicationGroupName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "applicationGroupName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
@@ -94,7 +93,7 @@ func (client DesktopsClient) GetPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-02-preview"
+	const APIVersion = "2021-09-03-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -129,13 +128,13 @@ func (client DesktopsClient) GetResponder(resp *http.Response) (result Desktop, 
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
 // applicationGroupName - the name of the application group
-func (client DesktopsClient) List(ctx context.Context, resourceGroupName string, applicationGroupName string) (result DesktopList, err error) {
+func (client DesktopsClient) List(ctx context.Context, resourceGroupName string, applicationGroupName string) (result DesktopListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DesktopsClient.List")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.dl.Response.Response != nil {
+				sc = result.dl.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -145,14 +144,14 @@ func (client DesktopsClient) List(ctx context.Context, resourceGroupName string,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: applicationGroupName,
 			Constraints: []validation.Constraint{{Target: "applicationGroupName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "applicationGroupName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("desktopvirtualization.DesktopsClient", "List", err.Error())
 	}
 
+	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, resourceGroupName, applicationGroupName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.DesktopsClient", "List", nil, "Failure preparing request")
@@ -161,14 +160,18 @@ func (client DesktopsClient) List(ctx context.Context, resourceGroupName string,
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.dl.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.DesktopsClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListResponder(resp)
+	result.dl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.DesktopsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.dl.hasNextLink() && result.dl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 		return
 	}
 
@@ -183,7 +186,7 @@ func (client DesktopsClient) ListPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-02-preview"
+	const APIVersion = "2021-09-03-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -214,6 +217,43 @@ func (client DesktopsClient) ListResponder(resp *http.Response) (result DesktopL
 	return
 }
 
+// listNextResults retrieves the next set of results, if any.
+func (client DesktopsClient) listNextResults(ctx context.Context, lastResults DesktopList) (result DesktopList, err error) {
+	req, err := lastResults.desktopListPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "desktopvirtualization.DesktopsClient", "listNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "desktopvirtualization.DesktopsClient", "listNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "desktopvirtualization.DesktopsClient", "listNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListComplete enumerates all values, automatically crossing page boundaries as required.
+func (client DesktopsClient) ListComplete(ctx context.Context, resourceGroupName string, applicationGroupName string) (result DesktopListIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DesktopsClient.List")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.List(ctx, resourceGroupName, applicationGroupName)
+	return
+}
+
 // Update update a desktop.
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
@@ -236,8 +276,7 @@ func (client DesktopsClient) Update(ctx context.Context, resourceGroupName strin
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: applicationGroupName,
 			Constraints: []validation.Constraint{{Target: "applicationGroupName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "applicationGroupName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
@@ -278,7 +317,7 @@ func (client DesktopsClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-02-preview"
+	const APIVersion = "2021-09-03-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
