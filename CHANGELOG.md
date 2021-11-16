@@ -23,10 +23,11 @@ IMPROVEMENTS:
 
 BUG FIXES: 
 
-* `azurerm_linux_virtual_machine_scale_set` - `source_image_reference.offer` and `source_image_reference.publisher` are now ForceNew [GH-14165]
-* `azurerm_windows_virtual_machine_scale_set` - `source_image_reference.offer` and `source_image_reference.publisher` are now ForceNew [GH-14165]
-* `azurerm_network_watcher_flow_log` - now locks on the network security group to prevent `AnotherOperationInProgress` errors [GH-14160]
 * `azurerm_frontdoor` - validation for `probe_method` allows the default value [GH-14204]
+* `azurerm_linux_virtual_machine_scale_set` - `source_image_reference.offer` and `source_image_reference.publisher` are now ForceNew [GH-14165]
+* `azurerm_mssql_database`: Fix error with OnlineSecondary with auditing on Primary [GH-14192]
+* `azurerm_network_watcher_flow_log` - now locks on the network security group to prevent `AnotherOperationInProgress` errors [GH-14160]
+* `azurerm_windows_virtual_machine_scale_set` - `source_image_reference.offer` and `source_image_reference.publisher` are now ForceNew [GH-14165]
 
 ## 2.85.0 (November 12, 2021)
 
