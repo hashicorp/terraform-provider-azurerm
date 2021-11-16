@@ -248,7 +248,6 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-
 			"source_image_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,

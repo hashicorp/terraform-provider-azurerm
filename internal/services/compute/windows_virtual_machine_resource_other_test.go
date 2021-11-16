@@ -882,8 +882,6 @@ func TestAccWindowsVirtualMachine_otherSecureBootEnabled(t *testing.T) {
 	})
 }
 
-
-
 func TestAccWindowsVirtualMachine_otherVTpmEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
