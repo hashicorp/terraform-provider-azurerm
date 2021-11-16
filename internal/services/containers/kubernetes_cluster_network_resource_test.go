@@ -2173,9 +2173,6 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 }
 
-
-
-
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
@@ -2207,6 +2204,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   http_proxy_config {
     http_proxy  = "http://${azurerm_network_interface.test.private_ip_address}:8888/"
     https_proxy = "http://${azurerm_network_interface.test.private_ip_address}:8888/"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      http_proxy_config.0.no_proxy
+    ]
   }
 }
 
@@ -2244,7 +2247,6 @@ resource "azurerm_network_interface" "test" {
     subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
-
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
@@ -2272,9 +2274,6 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-
-
-
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
@@ -2308,6 +2307,15 @@ resource "azurerm_kubernetes_cluster" "test" {
   http_proxy_config {
     http_proxy  = "http://${azurerm_network_interface.test.private_ip_address}:8888/"
     https_proxy = "http://${azurerm_network_interface.test.private_ip_address}:8888/"
+    no_proxy = [
+      "10.1.0.0/24"
+    ]
+  }
+
+  lifecycle {
+    ignore_changes = [
+      http_proxy_config.0.no_proxy
+    ]
   }
 }
 

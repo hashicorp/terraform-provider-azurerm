@@ -96,6 +96,10 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/en-us/azure/aks/azure-disk-customer-managed-keys).
 
+* `http_proxy_config` - (Optional) A `http_proxy_config` block as defined below.
+
+-> **NOTE:** This requires that the Preview Feature `Microsoft.ContainerService/HTTPProxyConfigPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/http-proxy) for more information.
+
 * `identity` - (Optional) An `identity` block as defined below. One of either `identity` or `service_principal` must be specified.
 
 !> **NOTE:** A migration scenario from `service_principal` to `identity` is supported. When upgrading `service_principal` to `identity`, your cluster's control plane and addon pods will switch to use managed identity, but the kubelets will keep using your configured `service_principal` until you upgrade your Node Pool.
@@ -181,9 +185,6 @@ resource "azurerm_kubernetes_cluster" "example" {
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `windows_profile` - (Optional) A `windows_profile` block as defined below.
-
-* `http_proxy_config` - (Optional) A `http_proxy_config` block as defined below.
-
 ---
 
 A `aci_connector_linux` block supports the following:
@@ -680,9 +681,9 @@ A `http_proxy_config` block supports the following:
 
 * `no_proxy` - (Optional) The list of domains that will not use the proxy for communication.
 
--> **Note:** If you specify the `vnet_subnet_id`, be sure to include the CIDR in the no_proxy list.
+-> **Note:** If you specify the `default_node_pool.0.vnet_subnet_id`, be sure to include the Subnet CIDR in the `no_proxy` list.
 
-* `trusted_ca` - (Optional) The base64 encoded alternative CA certificate conten in PEM format.
+* `trusted_ca` - (Optional) The base64 encoded alternative CA certificate content in PEM format.
 
 ---
 

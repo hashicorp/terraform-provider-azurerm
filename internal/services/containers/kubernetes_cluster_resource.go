@@ -879,26 +879,24 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"http_proxy_config": {
 				Type:     pluginsdk.TypeList,
-				Computed: true,
 				Optional: true,
-
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"http_proxy": {
 							Type:     pluginsdk.TypeString,
-							Computed: true,
 							Optional: true,
+							ForceNew: true,
 						},
 						"https_proxy": {
 							Type:     pluginsdk.TypeString,
-							Computed: true,
 							Optional: true,
+							ForceNew: true,
 						},
 						"no_proxy": {
 							Type:     pluginsdk.TypeList,
-							Computed: true,
 							Optional: true,
+							ForceNew: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
@@ -906,7 +904,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"trusted_ca": {
 							Type:      pluginsdk.TypeString,
 							Optional:  true,
-							Computed:  true,
 							Sensitive: true,
 						},
 					},
@@ -2707,16 +2704,19 @@ func flattenKubernetesClusterMaintenanceConfigurationTimeInWeeks(input *[]contai
 
 func expandKubernetesClusterHttpProxyConfig(input []interface{}) *containerservice.ManagedClusterHTTPProxyConfig {
 	httpProxyConfig := containerservice.ManagedClusterHTTPProxyConfig{}
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	config := input[0].(map[string]interface{})
+
 	httpProxyConfig.HTTPProxy = utils.String(config["http_proxy"].(string))
 	httpProxyConfig.HTTPSProxy = utils.String(config["https_proxy"].(string))
 	httpProxyConfig.TrustedCa = utils.String(config["trusted_ca"].(string))
+
 	noProxyRaw := config["no_proxy"].([]interface{})
 	httpProxyConfig.NoProxy = utils.ExpandStringSlice(noProxyRaw)
+
 	return &httpProxyConfig
 }
 
@@ -2724,44 +2724,29 @@ func flattenKubernetesClusterHttpProxyConfig(props *containerservice.ManagedClus
 	results := make(map[string]interface{})
 	httpProxyConfig := props.HTTPProxyConfig
 	if httpProxyConfig != nil {
-		results["http_proxy"] = httpProxyConfig.HTTPProxy
-		results["https_proxy"] = httpProxyConfig.HTTPSProxy
-		noProxyList := httpProxyConfig.NoProxy
-		// Removing the default values that AKS always applies from the flatten
-		newNoProxyList := make([]string, len(*noProxyList))
-		ignoreList := []string{
-			"168.63.129.16",
-			"169.254.169.254",
-			"127.0.0.1",
-			"localhost",
-			"konnectivity",
+		httpProxy := ""
+		if httpProxyConfig.HTTPProxy != nil {
+			httpProxy = *httpProxyConfig.HTTPProxy
 		}
-		if props.NetworkProfile.PodCidr != nil && *props.NetworkProfile.PodCidr != "" {
-			ignoreList = append(ignoreList, *props.NetworkProfile.PodCidr)
-		}
-		if props.NetworkProfile.ServiceCidr != nil && *props.NetworkProfile.ServiceCidr != "" {
-			ignoreList = append(ignoreList, *props.NetworkProfile.ServiceCidr)
-		}
-		if props.NetworkProfile.DockerBridgeCidr != nil && *props.NetworkProfile.DockerBridgeCidr != "" {
-			ignoreList = append(ignoreList, *props.NetworkProfile.DockerBridgeCidr)
-		}
-		if props.Fqdn != nil && *props.Fqdn != "" {
-			ignoreList = append(ignoreList, *props.Fqdn)
-		}
-		if (*flattenedDefaultNodePool)[0] != nil && (*flattenedDefaultNodePool)[0].(map[string]interface{})["vnet_subnet_id"] == "" {
-			ignoreList = append(ignoreList, "10.240.0.0/12")
-		}
+		results["http_proxy"] = httpProxy
 
-		i := 0
-		for _, element := range *noProxyList {
-			if !utils.SliceContainsValue(ignoreList, element) {
-				newNoProxyList[i] = element
-				i++
-			}
+		httpsProxy := ""
+		if httpProxyConfig.HTTPSProxy != nil {
+			httpsProxy = *httpProxyConfig.HTTPSProxy
 		}
-		newNoProxyList = newNoProxyList[:i]
-		results["no_proxy"] = newNoProxyList
-		results["trusted_ca"] = httpProxyConfig.TrustedCa
+		results["https_proxy"] = httpsProxy
+
+		noProxyList := make([]string, 0)
+		if httpProxyConfig.NoProxy != nil {
+			noProxyList = append(noProxyList, *httpProxyConfig.NoProxy...)
+		}
+		results["no_proxy"] = noProxyList
+
+		trustedCa := ""
+		if httpProxyConfig.TrustedCa != nil {
+			trustedCa = *httpProxyConfig.TrustedCa
+		}
+		results["trusted_ca"] = trustedCa
 	}
 
 	return []interface{}{results}
