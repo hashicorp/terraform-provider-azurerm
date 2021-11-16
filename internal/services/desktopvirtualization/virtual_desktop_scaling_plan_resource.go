@@ -74,15 +74,6 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"hostpool_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(desktopvirtualization.ScalingHostPoolTypePooled),
-				}, false),
-			},
-
 			"schedule": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -286,7 +277,7 @@ func resourceVirtualDesktopScalingPlanCreate(d *pluginsdk.ResourceData, meta int
 			Description:        utils.String(d.Get("description").(string)),
 			FriendlyName:       utils.String(d.Get("friendly_name").(string)),
 			TimeZone:           utils.String(d.Get("time_zone").(string)),
-			HostPoolType:       desktopvirtualization.ScalingHostPoolType(d.Get("hostpool_type").(string)),
+			HostPoolType:       desktopvirtualization.ScalingHostPoolTypePooled, // Only one possible value for this
 			ExclusionTag:       utils.String(d.Get("exclusion_tag").(string)),
 			Schedules:          expandScalingPlanSchedule(d.Get("schedule").([]interface{})),
 			HostPoolReferences: expandScalingPlanHostpoolReference(d.Get("hostpool_reference").([]interface{})),
@@ -332,7 +323,7 @@ func resourceVirtualDesktopScalingPlanUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("Creating Virtual Desktop Scaling Plan %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceVirtualDesktopHostPoolRead(d, meta)
+	return resourceVirtualDesktopScalingPlanRead(d, meta)
 }
 
 func resourceVirtualDesktopScalingPlanRead(d *pluginsdk.ResourceData, meta interface{}) error {
