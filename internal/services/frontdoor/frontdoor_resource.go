@@ -336,7 +336,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 							Optional: true,
 							Default:  string(frontdoors.FrontDoorHealthProbeMethodGET),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(frontdoors.FrontDoorProtocolHttp),
+								string(frontdoors.FrontDoorHealthProbeMethodGET),
 								string(frontdoors.FrontDoorHealthProbeMethodHEAD),
 							}, false),
 						},
