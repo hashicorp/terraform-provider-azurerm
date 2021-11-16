@@ -35,7 +35,7 @@ data "azurerm_kusto_cluster" "example" {
   resource_group_name = "example_rg_kusto_cluster"
 }
 
-data "azurerm_monitor_diagnostic_categories" "example"{
+data "azurerm_monitor_diagnostic_categories" "example" {
   resource_id = data.azurerm_kusto_cluster.example.id
 }
 
@@ -45,26 +45,26 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
   eventhub_name                  = azurerm_eventhub.example.name
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.example.id
 
-  dynamic "log"{
+  dynamic "log" {
     for_each = data.azurerm_monitor_diagnostic_categories.example.logs
-    content{
+    content {
       category = log.key
 
-      retention_policy{
+      retention_policy {
         enabled = false
-        days = 0
+        days    = 0
       }
     }
   }
-  dynamic "metric"{
+  dynamic "metric" {
     for_each = data.azurerm_monitor_diagnostic_categories.example.metrics
 
-    content{
+    content {
       category = metric.key
 
-      retention_policy{
+      retention_policy {
         enabled = false
-        days = 0
+        days    = 0
       }
     }
   }

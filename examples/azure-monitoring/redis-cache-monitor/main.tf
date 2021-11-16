@@ -6,8 +6,8 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "main"{
-  name = "example_rg_rediscache"
+resource "azurerm_resource_group" "main" {
+  name     = "example_rg_rediscache"
   location = "east us"
 }
 
@@ -43,7 +43,7 @@ resource "azurerm_monitor_metric_alert" "cache_hit_alert" {
     operator         = "GreaterThan"
     threshold        = var.cache.cache_hit_threshold
 
-    
+
   }
 
   action {
@@ -66,7 +66,7 @@ resource "azurerm_monitor_metric_alert" "cache_miss_alert" {
     operator         = "GreaterThan"
     threshold        = var.cache.cache_misses_threshold
 
-    
+
   }
 
   action {
@@ -88,7 +88,7 @@ resource "azurerm_monitor_metric_alert" "cache_connected_clients" {
     operator         = "GreaterThan"
     threshold        = var.cache.cache_connected_clients_threshold
 
-    
+
   }
 
   action {
@@ -111,7 +111,7 @@ resource "azurerm_monitor_metric_alert" "cache_cpu" {
     operator         = "GreaterThan"
     threshold        = var.cache.cache_cpu_threshold
 
-    
+
   }
 
   action {
