@@ -218,7 +218,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.StorageAccountName,
 		},
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
@@ -228,39 +227,17 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 		"account_kind": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(storage.Storage),
-				string(storage.BlobStorage),
-				string(storage.BlockBlobStorage),
-				string(storage.FileStorage),
-				string(storage.StorageV2),
-			}, true),
-			Default: string(storage.StorageV2),
 		},
 
 		"account_tier": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"Standard",
-				"Premium",
-			}, true),
-			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"account_replication_type": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"LRS",
-				"ZRS",
-				"GRS",
-				"RAGRS",
-				"GZRS",
-				"RAGZRS",
-			}, true),
-			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		// Only valid for BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
@@ -268,10 +245,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(storage.Cool),
-				string(storage.Hot),
-			}, true),
 		},
 
 		"azure_files_authentication": {
@@ -283,10 +256,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 					"directory_type": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(storage.DirectoryServiceOptionsAADDS),
-							string(storage.DirectoryServiceOptionsAD),
-						}, false),
 					},
 
 					"active_directory": {
@@ -299,37 +268,31 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 								"storage_sid": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"domain_guid": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.IsUUID,
 								},
 
 								"domain_name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"domain_sid": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"forest_name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"netbios_domain_name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
 								},
 							},
 						},
@@ -367,12 +330,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 		"min_tls_version": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  string(storage.TLS10),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(storage.TLS10),
-				string(storage.TLS11),
-				string(storage.TLS12),
-			}, false),
 		},
 
 		"is_hns_enabled": {
@@ -414,12 +371,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 						Computed: true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(storage.AzureServices),
-								string(storage.Logging),
-								string(storage.Metrics),
-								string(storage.None),
-							}, true),
 						},
 						Set: pluginsdk.HashString,
 					},
@@ -430,7 +381,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 						Computed: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							ValidateFunc: validate.StorageAccountIpRule,
 						},
 						Set: pluginsdk.HashString,
 					},
@@ -446,10 +396,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 					"default_action": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(storage.DefaultActionAllow),
-							string(storage.DefaultActionDeny),
-						}, false),
 					},
 
 					"private_link_access": {
@@ -460,14 +406,12 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 								"endpoint_resource_id": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: azure.ValidateResourceID,
 								},
 
 								"endpoint_tenant_id": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									Computed:     true,
-									ValidateFunc: validation.IsUUID,
 								},
 							},
 						},
@@ -486,12 +430,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 					"type": {
 						Type:             pluginsdk.TypeString,
 						Required:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(storage.IdentityTypeSystemAssigned),
-							string(storage.IdentityTypeSystemAssignedUserAssigned),
-							string(storage.IdentityTypeUserAssigned),
-						}, true),
 					},
 					"principal_id": {
 						Type:     pluginsdk.TypeString,
@@ -507,7 +445,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 						MinItems: 1,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							ValidateFunc: msiValidate.UserAssignedIdentityID,
 						},
 					},
 				},
@@ -532,7 +469,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									Default:      7,
-									ValidateFunc: validation.IntBetween(1, 365),
 								},
 							},
 						},
@@ -554,7 +490,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true,
-						ValidateFunc: validate.BlobPropertiesDefaultServiceVersion,
 					},
 
 					"last_access_time_enabled": {
@@ -573,7 +508,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									Default:      7,
-									ValidateFunc: validation.IntBetween(1, 365),
 								},
 							},
 						},
@@ -599,7 +533,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 								"version": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"delete": {
 									Type:     pluginsdk.TypeBool,
@@ -616,7 +549,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 								"retention_policy_days": {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
-									ValidateFunc: validation.IntBetween(1, 365),
 								},
 							},
 						},
@@ -630,7 +562,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 								"version": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"enabled": {
 									Type:     pluginsdk.TypeBool,
@@ -643,7 +574,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 								"retention_policy_days": {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
-									ValidateFunc: validation.IntBetween(1, 365),
 								},
 							},
 						},
@@ -657,7 +587,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 								"version": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"enabled": {
 									Type:     pluginsdk.TypeBool,
@@ -670,7 +599,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 								"retention_policy_days": {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
-									ValidateFunc: validation.IntBetween(1, 365),
 								},
 							},
 						},
@@ -701,11 +629,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 					"choice": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(storage.MicrosoftRouting),
-							string(storage.InternetRouting),
-						}, false),
-						Default: string(storage.MicrosoftRouting),
 					},
 				},
 			},
@@ -730,7 +653,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									Default:      7,
-									ValidateFunc: validation.IntBetween(1, 365),
 								},
 							},
 						},
@@ -747,11 +669,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 									Optional: true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
-										ValidateFunc: validation.StringInSlice([]string{
-											"SMB2.1",
-											"SMB3.0",
-											"SMB3.1.1",
-										}, false),
 									},
 								},
 
@@ -760,10 +677,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 									Optional: true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
-										ValidateFunc: validation.StringInSlice([]string{
-											"NTLMv2",
-											"Kerberos",
-										}, false),
 									},
 								},
 
@@ -772,10 +685,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 									Optional: true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
-										ValidateFunc: validation.StringInSlice([]string{
-											"RC4-HMAC",
-											"AES-256",
-										}, false),
 									},
 								},
 
@@ -784,11 +693,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 									Optional: true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
-										ValidateFunc: validation.StringInSlice([]string{
-											"AES-128-CCM",
-											"AES-128-GCM",
-											"AES-256-GCM",
-										}, false),
 									},
 								},
 							},
@@ -808,12 +712,10 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 					"index_document": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"error_404_document": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
@@ -994,7 +896,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 		"tags": {
 			Type:         pluginsdk.TypeMap,
 			Optional:     true,
-			ValidateFunc: validate.StorageAccountTags,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
