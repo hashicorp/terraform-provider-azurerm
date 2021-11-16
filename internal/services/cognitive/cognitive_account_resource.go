@@ -6,7 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	identityHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -135,12 +136,12 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 						"type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  "None",
+							Default:  string(identityHelper.TypeNone),
 							ValidateFunc: validation.StringInSlice([]string{
-								"None",
-								"SystemAssigned",
-								"UserAssigned",
-								"SystemAssigned, UserAssigned",
+								string(identityHelper.TypeNone),
+								string(identityHelper.TypeSystemAssigned),
+								string(identityHelper.TypeUserAssigned),
+								string(identityHelper.TypeSystemAssignedUserAssigned),
 							}, false),
 						},
 
@@ -533,8 +534,8 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("secondary_access_key", model.Key2)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.AccountName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		d.Set("kind", model.Kind)
@@ -610,7 +611,7 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	deletedAccountId := cognitiveservicesaccounts.NewDeletedAccountID(id.SubscriptionId, *account.Model.Location, id.ResourceGroup, id.Name)
+	deletedAccountId := cognitiveservicesaccounts.NewDeletedAccountID(id.SubscriptionId, *account.Model.Location, id.ResourceGroupName, id.AccountName)
 	if err != nil {
 		return err
 	}
@@ -740,7 +741,7 @@ func expandCognitiveAccountStorage(input []interface{}) *[]cognitiveservicesacco
 func expandCognitiveAccountIdentity(vs []interface{}) (*identity.SystemUserAssignedIdentityMap, error) {
 	if len(vs) == 0 {
 		return &identity.SystemUserAssignedIdentityMap{
-			Type: "None",
+			Type: identityHelper.TypeNone,
 		}, nil
 	}
 
@@ -758,7 +759,7 @@ func expandCognitiveAccountIdentity(vs []interface{}) (*identity.SystemUserAssig
 	}
 
 	// If type contains `UserAssigned`, `identity_ids` must be specified and have at least 1 element
-	if config.Type == "UserAssigned" || config.Type == "SystemAssigned, UserAssigned" {
+	if config.Type == identityHelper.TypeUserAssigned || config.Type == identityHelper.TypeSystemAssignedUserAssigned {
 		if len(identityIdSet) == 0 {
 			return nil, fmt.Errorf("`identity_ids` must have at least 1 element when `type` includes `UserAssigned`")
 		}
@@ -873,7 +874,7 @@ func flattenCognitiveAccountStorage(input *[]cognitiveservicesaccounts.UserOwned
 }
 
 func flattenCognitiveAccountIdentity(identity *identity.SystemUserAssignedIdentityMap) ([]interface{}, error) {
-	if identity == nil || identity.Type == "None" {
+	if identity == nil || identity.Type == identityHelper.TypeNone {
 		return make([]interface{}, 0), nil
 	}
 

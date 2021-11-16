@@ -66,8 +66,8 @@ func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.Resourc
 		return err
 	}
 
-	locks.ByName(id.Name, "azurerm_cognitive_account")
-	defer locks.UnlockByName(id.Name, "azurerm_cognitive_account")
+	locks.ByName(id.AccountName, "azurerm_cognitive_account")
+	defer locks.UnlockByName(id.AccountName, "azurerm_cognitive_account")
 
 	resp, err := client.AccountsGet(ctx, *id)
 	if err != nil {
@@ -169,8 +169,8 @@ func resourceCognitiveAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData,
 		return err
 	}
 
-	locks.ByName(id.Name, "azurerm_cognitive_account")
-	defer locks.UnlockByName(id.Name, "azurerm_cognitive_account")
+	locks.ByName(id.AccountName, "azurerm_cognitive_account")
+	defer locks.UnlockByName(id.AccountName, "azurerm_cognitive_account")
 
 	resp, err := client.AccountsGet(ctx, *id)
 	if err != nil {
