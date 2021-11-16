@@ -118,12 +118,11 @@ func resourceApiManagementRedisCacheCreateUpdate(d *pluginsdk.ResourceData, meta
 		parameters.CacheContractProperties.Description = utils.String(v.(string))
 	}
 
-	//Remove the extra / in the ResourceID so the redis cache can be associated to the api mgmt service as expected,
-	//otherwise, the resourceId behave like
-	//"https://management.azure.com//subscriptions/xx/resourceGroups/xx/providers/Microsoft.Cache/Redis/xx"
+	// Remove the extra / in the ResourceID so the redis cache can be associated to the api mgmt service as expected,
+	// otherwise, the resourceId behave like
+	// "https://management.azure.com//subscriptions/xx/resourceGroups/xx/providers/Microsoft.Cache/Redis/xx"
 	if v, ok := d.GetOk("redis_cache_id"); ok && v.(string) != "" {
-		resEndpoint := meta.(*clients.Client).Account.Environment.ResourceManagerEndpoint
-		parameters.CacheContractProperties.ResourceID = utils.String(resEndpoint[:len(resEndpoint)-1] + v.(string))
+		parameters.CacheContractProperties.ResourceID = utils.String(strings.TrimSuffix(meta.(*clients.Client).Account.Environment.ResourceManagerEndpoint, "/") + v.(string))
 	}
 
 	// here we use "PUT" for updating, because `description` is not allowed to be empty string, Then we could not update to remove `description` by `PATCH`
@@ -162,9 +161,8 @@ func resourceApiManagementRedisCacheRead(d *pluginsdk.ResourceData, meta interfa
 
 		cacheId := ""
 		if props.ResourceID != nil {
-			//correct the resourceID issue: "https://management.azure.com//subscriptions/xx/resourceGroups/xx/providers/Microsoft.Cache/Redis/xx"
-			resEndpoint := meta.(*clients.Client).Account.Environment.ResourceManagerEndpoint
-			cacheId = strings.TrimPrefix(*props.ResourceID, resEndpoint[:len(resEndpoint)-1])
+			// correct the resourceID issue: "https://management.azure.com//subscriptions/xx/resourceGroups/xx/providers/Microsoft.Cache/Redis/xx"
+			cacheId = strings.TrimPrefix(*props.ResourceID, strings.TrimSuffix(meta.(*clients.Client).Account.Environment.ResourceManagerEndpoint, "/"))
 		}
 		d.Set("redis_cache_id", cacheId)
 		d.Set("cache_location", props.UseFromLocation)
