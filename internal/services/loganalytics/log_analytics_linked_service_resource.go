@@ -29,9 +29,10 @@ func resourceLogAnalyticsLinkedService() *pluginsdk.Resource {
 		Read:   resourceLogAnalyticsLinkedServiceRead,
 		Update: resourceLogAnalyticsLinkedServiceCreateUpdate,
 		Delete: resourceLogAnalyticsLinkedServiceDelete,
-
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.LogAnalyticsLinkedServiceID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -298,30 +299,27 @@ func resourceLogAnalyticsLinkedServiceRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.LogAnalyticsLinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	workspaceName := id.Path["workspaces"]
-	serviceType := id.Path["linkedServices"]
-	workspace := parse.NewLogAnalyticsWorkspaceID(subscriptionId, resourceGroup, workspaceName)
+	workspace := parse.NewLogAnalyticsWorkspaceID(subscriptionId, id.ResourceGroup, id.WorkspaceName)
 
-	resp, err := client.Get(ctx, resourceGroup, workspaceName, serviceType)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.LinkedServiceName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on AzureRM Log Analytics Linked Service '%s/%s' (Resource Group %q): %+v", workspace.WorkspaceName, serviceType, resourceGroup, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("workspace_id", workspace.ID())
-	d.Set("workspace_name", workspaceName)
-	d.Set("linked_service_name", serviceType)
+	d.Set("workspace_name", id.WorkspaceName)
+	d.Set("linked_service_name", id.LinkedServiceName)
 
 	if props := resp.LinkedServiceProperties; props != nil {
 		d.Set("resource_id", props.ResourceID)
@@ -337,32 +335,28 @@ func resourceLogAnalyticsLinkedServiceDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.LogAnalyticsLinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	workspaceName := id.Path["workspaces"]
-	serviceType := id.Path["linkedServices"]
-
-	future, err := client.Delete(ctx, resourceGroup, workspaceName, serviceType)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.LinkedServiceName)
 	if err != nil {
-		return fmt.Errorf("deleting Log Analytics Linked Service '%s/%s' (Resource Group %q): %+v", workspaceName, serviceType, resourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of Log Analytics Linked Service '%s/%s' (Resource Group %q): %+v", workspaceName, serviceType, resourceGroup, err)
+			return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 		}
 	}
 
 	// (@WodansSon) - This is a bug in the service API, it returns instantly from the delete call with a 200
 	// so we must wait for the state to change before we return from the delete function
-	deleteWait := logAnalyticsLinkedServiceDeleteWaitForState(ctx, meta, d.Timeout(pluginsdk.TimeoutDelete), resourceGroup, workspaceName, serviceType)
+	deleteWait := logAnalyticsLinkedServiceDeleteWaitForState(ctx, meta, d.Timeout(pluginsdk.TimeoutDelete), id.ResourceGroup, id.WorkspaceName, id.LinkedServiceName)
 
 	if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Log Analytics Cluster to finish deleting '%s/%s' (Resource Group %q): %+v", workspaceName, serviceType, resourceGroup, err)
+		return fmt.Errorf("waiting for %s: %+v", *id, err)
 	}
 
 	return nil
