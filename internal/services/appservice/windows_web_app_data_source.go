@@ -251,7 +251,8 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Metadata for Windows %s: %+v", id, err)
 			}
 
-			webApp.AppSettings = helpers.FlattenAppSettings(appSettings)
+			var healthCheckCount *int
+			webApp.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
 			webApp.Kind = utils.NormalizeNilableString(existing.Kind)
 			webApp.Location = location.NormalizeNilable(existing.Location)
 			webApp.Tags = tags.ToTypedObject(existing.Tags)
@@ -292,7 +293,7 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 			if ok {
 				currentStack = *currentStackPtr
 			}
-			webApp.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack)
+			webApp.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
 
 			webApp.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 

@@ -1352,6 +1352,7 @@ resource "azurerm_linux_web_app" "test" {
     websockets_enabled          = true
     ftps_state                  = "FtpsOnly"
     health_check_path           = "/health2"
+    health_check_eviction_time  = 7
     number_of_workers           = 2
     minimum_tls_version         = "1.2"
     scm_minimum_tls_version     = "1.2"

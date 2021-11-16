@@ -17,40 +17,40 @@ import (
 )
 
 type SiteConfigWindows struct {
-	AlwaysOn                 bool                     `tfschema:"always_on"`
-	ApiManagementConfigId    string                   `tfschema:"api_management_api_id"`
-	ApiDefinition            string                   `tfschema:"api_definition_url"`
-	AppCommandLine           string                   `tfschema:"app_command_line"`
-	AutoHeal                 bool                     `tfschema:"auto_heal"`
-	AutoHealSettings         []AutoHealSettingWindows `tfschema:"auto_heal_setting"`
-	UseManagedIdentityACR    bool                     `tfschema:"container_registry_use_managed_identity"`
-	ContainerRegistryUserMSI string                   `tfschema:"container_registry_managed_identity_client_id"`
-	DefaultDocuments         []string                 `tfschema:"default_documents"`
-	Http2Enabled             bool                     `tfschema:"http2_enabled"`
-	IpRestriction            []IpRestriction          `tfschema:"ip_restriction"`
-	ScmUseMainIpRestriction  bool                     `tfschema:"scm_use_main_ip_restriction"`
-	ScmIpRestriction         []IpRestriction          `tfschema:"scm_ip_restriction"`
-	LoadBalancing            string                   `tfschema:"load_balancing_mode"`
-	LocalMysql               bool                     `tfschema:"local_mysql"`
-	ManagedPipelineMode      string                   `tfschema:"managed_pipeline_mode"`
-	RemoteDebugging          bool                     `tfschema:"remote_debugging"`
-	RemoteDebuggingVersion   string                   `tfschema:"remote_debugging_version"`
-	ScmType                  string                   `tfschema:"scm_type"`
-	Use32BitWorker           bool                     `tfschema:"use_32_bit_worker"`
-	WebSockets               bool                     `tfschema:"websockets_enabled"`
-	FtpsState                string                   `tfschema:"ftps_state"`
-	HealthCheckPath          string                   `tfschema:"health_check_path"`
-	// TODO - Health check timeout
-	NumberOfWorkers      int                       `tfschema:"number_of_workers"`
-	ApplicationStack     []ApplicationStackWindows `tfschema:"application_stack"`
-	VirtualApplications  []VirtualApplication      `tfschema:"virtual_application"`
-	MinTlsVersion        string                    `tfschema:"minimum_tls_version"`
-	ScmMinTlsVersion     string                    `tfschema:"scm_minimum_tls_version"`
-	AutoSwapSlotName     string                    `tfschema:"auto_swap_slot_name"`
-	Cors                 []CorsSetting             `tfschema:"cors"`
-	DetailedErrorLogging bool                      `tfschema:"detailed_error_logging"`
-	WindowsFxVersion     string                    `tfschema:"windows_fx_version"`
-	VnetRouteAllEnabled  bool                      `tfschema:"vnet_route_all_enabled"`
+	AlwaysOn                 bool                      `tfschema:"always_on"`
+	ApiManagementConfigId    string                    `tfschema:"api_management_api_id"`
+	ApiDefinition            string                    `tfschema:"api_definition_url"`
+	AppCommandLine           string                    `tfschema:"app_command_line"`
+	AutoHeal                 bool                      `tfschema:"auto_heal"`
+	AutoHealSettings         []AutoHealSettingWindows  `tfschema:"auto_heal_setting"`
+	UseManagedIdentityACR    bool                      `tfschema:"container_registry_use_managed_identity"`
+	ContainerRegistryUserMSI string                    `tfschema:"container_registry_managed_identity_client_id"`
+	DefaultDocuments         []string                  `tfschema:"default_documents"`
+	Http2Enabled             bool                      `tfschema:"http2_enabled"`
+	IpRestriction            []IpRestriction           `tfschema:"ip_restriction"`
+	ScmUseMainIpRestriction  bool                      `tfschema:"scm_use_main_ip_restriction"`
+	ScmIpRestriction         []IpRestriction           `tfschema:"scm_ip_restriction"`
+	LoadBalancing            string                    `tfschema:"load_balancing_mode"`
+	LocalMysql               bool                      `tfschema:"local_mysql"`
+	ManagedPipelineMode      string                    `tfschema:"managed_pipeline_mode"`
+	RemoteDebugging          bool                      `tfschema:"remote_debugging"`
+	RemoteDebuggingVersion   string                    `tfschema:"remote_debugging_version"`
+	ScmType                  string                    `tfschema:"scm_type"`
+	Use32BitWorker           bool                      `tfschema:"use_32_bit_worker"`
+	WebSockets               bool                      `tfschema:"websockets_enabled"`
+	FtpsState                string                    `tfschema:"ftps_state"`
+	HealthCheckPath          string                    `tfschema:"health_check_path"`
+	HealthCheckEvictionTime  int                       `tfschema:"health_check_eviction_time"`
+	NumberOfWorkers          int                       `tfschema:"number_of_workers"`
+	ApplicationStack         []ApplicationStackWindows `tfschema:"application_stack"`
+	VirtualApplications      []VirtualApplication      `tfschema:"virtual_application"`
+	MinTlsVersion            string                    `tfschema:"minimum_tls_version"`
+	ScmMinTlsVersion         string                    `tfschema:"scm_minimum_tls_version"`
+	AutoSwapSlotName         string                    `tfschema:"auto_swap_slot_name"`
+	Cors                     []CorsSetting             `tfschema:"cors"`
+	DetailedErrorLogging     bool                      `tfschema:"detailed_error_logging"`
+	WindowsFxVersion         string                    `tfschema:"windows_fx_version"`
+	VnetRouteAllEnabled      bool                      `tfschema:"vnet_route_all_enabled"`
 	// TODO new properties / blocks
 	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - ASE related for limiting App resource consumption
 	// PushSettings - Supported in SDK, but blocked by manual step needed for connecting app to notification hub.
@@ -80,6 +80,7 @@ type SiteConfigLinux struct {
 	WebSockets              bool                    `tfschema:"websockets_enabled"`
 	FtpsState               string                  `tfschema:"ftps_state"`
 	HealthCheckPath         string                  `tfschema:"health_check_path"`
+	HealthCheckEvictionTime int                     `tfschema:"health_check_eviction_time"`
 	NumberOfWorkers         int                     `tfschema:"number_of_workers"`
 	ApplicationStack        []ApplicationStackLinux `tfschema:"application_stack"`
 	MinTlsVersion           string                  `tfschema:"minimum_tls_version"`
@@ -248,6 +249,14 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"health_check_path": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+				},
+
+				"health_check_eviction_time": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntBetween(2, 10),
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"number_of_workers": {
@@ -429,6 +438,11 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 
 				"health_check_path": {
 					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"health_check_eviction_time": {
+					Type:     pluginsdk.TypeInt,
 					Computed: true,
 				},
 
@@ -633,6 +647,14 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					Optional: true,
 				},
 
+				"health_check_eviction_time": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntBetween(2, 10),
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
+				},
+
 				"number_of_workers": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
@@ -805,6 +827,11 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 
 				"health_check_path": {
 					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"health_check_eviction_time": {
+					Type:     pluginsdk.TypeInt,
 					Computed: true,
 				},
 
@@ -3428,7 +3455,7 @@ func onlyDefaultLoggingConfig(props web.SiteLogsConfigProperties) bool {
 	return true
 }
 
-func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string) []SiteConfigWindows {
+func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string, healthCheckCount *int) []SiteConfigWindows {
 	if appSiteConfig == nil {
 		return nil
 	}
@@ -3442,6 +3469,7 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		DetailedErrorLogging:     utils.NormaliseNilableBool(appSiteConfig.DetailedErrorLoggingEnabled),
 		FtpsState:                string(appSiteConfig.FtpsState),
 		HealthCheckPath:          utils.NormalizeNilableString(appSiteConfig.HealthCheckPath),
+		HealthCheckEvictionTime:  utils.NormaliseNilableInt(healthCheckCount),
 		Http2Enabled:             utils.NormaliseNilableBool(appSiteConfig.HTTP20Enabled),
 		IpRestriction:            FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions),
 		LoadBalancing:            string(appSiteConfig.LoadBalancing),
@@ -3515,7 +3543,7 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 	return []SiteConfigWindows{siteConfig}
 }
 
-func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
+func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int) []SiteConfigLinux {
 	if appSiteConfig == nil {
 		return nil
 	}
@@ -3533,6 +3561,7 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
 		ScmType:                 string(appSiteConfig.ScmType),
 		FtpsState:               string(appSiteConfig.FtpsState),
 		HealthCheckPath:         utils.NormalizeNilableString(appSiteConfig.HealthCheckPath),
+		HealthCheckEvictionTime: utils.NormaliseNilableInt(healthCheckCount),
 		LoadBalancing:           string(appSiteConfig.LoadBalancing),
 		LocalMysql:              utils.NormaliseNilableBool(appSiteConfig.LocalMySQLEnabled),
 		MinTlsVersion:           string(appSiteConfig.MinTLSVersion),
@@ -3646,22 +3675,29 @@ func ExpandAppSettings(settings map[string]string) *web.StringDictionary {
 	}
 }
 
-func FlattenAppSettings(input web.StringDictionary) map[string]string {
+func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {
+	maxPingFailures := "WEBSITE_HEALTHCHECK_MAXPINGFAILURE"
 	unmanagedSettings := []string{
 		"DIAGNOSTICS_AZUREBLOBCONTAINERSASURL",
 		"DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS",
 		"WEBSITE_HTTPLOGGING_CONTAINER_URL",
 		"WEBSITE_HTTPLOGGING_RETENTION_DAYS",
+		maxPingFailures,
 	}
 
+	var healthCheckCount *int
 	appSettings := FlattenWebStringDictionary(input)
+	if v, ok := appSettings[maxPingFailures]; ok {
+		h, _ := strconv.Atoi(v)
+		healthCheckCount = &h
+	}
 
 	// Remove the settings the service adds for legacy reasons when logging settings are specified.
 	for _, v := range unmanagedSettings { //nolint:typecheck
 		delete(appSettings, v)
 	}
 
-	return appSettings
+	return appSettings, healthCheckCount
 }
 
 func flattenVirtualApplications(appVirtualApplications *[]web.VirtualApplication) []VirtualApplication {
