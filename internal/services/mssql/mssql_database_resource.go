@@ -706,7 +706,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	extendedAuditingPolicy := []interface{}{}
-	if createMode, ok := d.GetOk("create_mode"); !ok || createMode.(string) != "Secondary" {
+	if createMode, ok := d.GetOk("create_mode"); !ok || (createMode.(string) != "Secondary" && createMode.(string) != "OnlineSecondary") {
 		auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
 			return fmt.Errorf("retrieving Blob Auditing Policies for %s: %+v", id, err)

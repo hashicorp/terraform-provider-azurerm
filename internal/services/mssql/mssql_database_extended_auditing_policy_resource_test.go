@@ -30,6 +30,28 @@ func TestAccMsSqlDatabaseExtendedAuditingPolicy_basic(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabaseExtendedAuditingPolicy_primaryWithOnlineSecondary(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database_extended_auditing_policy", "test")
+	r := MsSqlDatabaseExtendedAuditingPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.primaryWithOnlineSecondary(data, "test1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+		{
+			Config: r.primaryWithOnlineSecondary(data, "test2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+	})
+}
+
 func TestAccMsSqlDatabaseExtendedAuditingPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database_extended_auditing_policy", "test")
 	r := MsSqlDatabaseExtendedAuditingPolicyResource{}
@@ -227,6 +249,45 @@ resource "azurerm_mssql_database_extended_auditing_policy" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 `, r.template(data))
+}
+
+func (r MsSqlDatabaseExtendedAuditingPolicyResource) primaryWithOnlineSecondary(data acceptance.TestData, tag string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_resource_group" "second" {
+  name     = "acctestRG-mssql2-%[2]d"
+  location = "%[4]s"
+}
+
+resource "azurerm_mssql_server" "second" {
+  name                         = "acctest-sqlserver2-%[2]d"
+  resource_group_name          = azurerm_resource_group.second.name
+  location                     = azurerm_resource_group.second.location
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+resource "azurerm_mssql_database" "secondary" {
+  name                        = "acctest-dbs-%[2]d"
+  server_id                   = azurerm_mssql_server.second.id
+  create_mode                 = "OnlineSecondary"
+  creation_source_database_id = azurerm_mssql_database.test.id
+
+  tags = {
+    tag = "%[5]s"
+  }
+}
+
+resource "azurerm_mssql_database_extended_auditing_policy" "test" {
+  database_id                = azurerm_mssql_database.test.id
+  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  depends_on = [azurerm_mssql_database.secondary]
+}
+`, r.template(data), data.RandomInteger, data.RandomString, data.Locations.Secondary, tag)
 }
 
 func (r MsSqlDatabaseExtendedAuditingPolicyResource) requiresImport(data acceptance.TestData) string {

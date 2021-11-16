@@ -280,6 +280,34 @@ func TestAccMsSqlDatabase_createSecondaryMode(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_createOnlineSecondaryMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "secondary")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.createOnlineSecondaryMode(data, "test1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("collation").HasValue("SQL_AltDiction_CP850_CI_AI"),
+				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+			),
+		},
+		data.ImportStep("sample_name", "create_mode"),
+		{
+			Config: r.createOnlineSecondaryMode(data, "test2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("collation").HasValue("SQL_AltDiction_CP850_CI_AI"),
+				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+			),
+		},
+		data.ImportStep("sample_name", "create_mode"),
+	})
+}
+
 func TestAccMsSqlDatabase_scaleReplicaSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "primary")
 	r := MsSqlDatabaseResource{}
@@ -977,6 +1005,37 @@ resource "azurerm_mssql_database" "secondary" {
   name                        = "acctest-dbs-%[2]d"
   server_id                   = azurerm_mssql_server.second.id
   create_mode                 = "Secondary"
+  creation_source_database_id = azurerm_mssql_database.test.id
+
+  tags = {
+    tag = "%[4]s"
+  }
+}
+`, r.complete(data), data.RandomInteger, data.Locations.Secondary, tag)
+}
+
+func (r MsSqlDatabaseResource) createOnlineSecondaryMode(data acceptance.TestData, tag string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_resource_group" "second" {
+  name     = "acctestRG-mssql2-%[2]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_mssql_server" "second" {
+  name                         = "acctest-sqlserver2-%[2]d"
+  resource_group_name          = azurerm_resource_group.second.name
+  location                     = azurerm_resource_group.second.location
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+resource "azurerm_mssql_database" "secondary" {
+  name                        = "acctest-dbs-%[2]d"
+  server_id                   = azurerm_mssql_server.second.id
+  create_mode                 = "OnlineSecondary"
   creation_source_database_id = azurerm_mssql_database.test.id
 
   tags = {
