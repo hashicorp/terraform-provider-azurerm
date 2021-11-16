@@ -209,10 +209,7 @@ resource "azurerm_virtual_desktop_scaling_plan" "test" {
 		off_peak_load_balancing_algorithm = "DepthFirst"
 	}
 
-	hostpool_reference {
-		hostpool_id = azurerm_virtual_desktop_host_pool.test.id
-		scaling_plan_enabled = true
-	}
+	depends_on = [azurerm_role_assignment.test]
 
 
 }
@@ -336,15 +333,13 @@ resource "azurerm_role_assignment" "test" {
 		off_peak_start_time = "20:00"
 		off_peak_load_balancing_algorithm = "DepthFirst"
 	  }
-
-	  hostpool_reference {
-		hostpool_id = azurerm_virtual_desktop_host_pool.test.id
-		scaling_plan_enabled = true
-	  }
+	  
 
     tags = {
 		Acceptance = "Test"
 	}
+
+	depends_on = [azurerm_role_assignment.test]
   }
 
 `, data.RandomInteger, data.RandomString, roleAssignmentId, data.RandomString, data.RandomString)
