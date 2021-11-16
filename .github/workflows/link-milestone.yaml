@@ -9,8 +9,6 @@ jobs:
   link-milestone:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
     permissions:
       contents: read
       pull-requests: write
