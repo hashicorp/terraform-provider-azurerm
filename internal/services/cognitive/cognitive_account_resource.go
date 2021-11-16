@@ -741,7 +741,7 @@ func expandCognitiveAccountStorage(input []interface{}) *[]cognitiveservicesacco
 func expandCognitiveAccountIdentity(vs []interface{}) (*identity.SystemUserAssignedIdentityMap, error) {
 	if len(vs) == 0 {
 		return &identity.SystemUserAssignedIdentityMap{
-			Type: identityHelper.TypeNone,
+			Type: identity.Type(identityHelper.TypeNone),
 		}, nil
 	}
 
@@ -759,7 +759,7 @@ func expandCognitiveAccountIdentity(vs []interface{}) (*identity.SystemUserAssig
 	}
 
 	// If type contains `UserAssigned`, `identity_ids` must be specified and have at least 1 element
-	if config.Type == identityHelper.TypeUserAssigned || config.Type == identityHelper.TypeSystemAssignedUserAssigned {
+	if string(config.Type) == string(identityHelper.TypeUserAssigned) || string(config.Type) == string(identityHelper.TypeSystemAssignedUserAssigned) {
 		if len(identityIdSet) == 0 {
 			return nil, fmt.Errorf("`identity_ids` must have at least 1 element when `type` includes `UserAssigned`")
 		}
@@ -874,7 +874,7 @@ func flattenCognitiveAccountStorage(input *[]cognitiveservicesaccounts.UserOwned
 }
 
 func flattenCognitiveAccountIdentity(identity *identity.SystemUserAssignedIdentityMap) ([]interface{}, error) {
-	if identity == nil || identity.Type == identityHelper.TypeNone {
+	if identity == nil || string(identity.Type) == string(identityHelper.TypeNone) {
 		return make([]interface{}, 0), nil
 	}
 
