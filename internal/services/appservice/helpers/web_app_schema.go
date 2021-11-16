@@ -226,7 +226,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"use_32_bit_worker": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Default:  false,
+					Computed: true, // Variable default value depending on several factors, such as plan type.
 				},
 
 				"websockets_enabled": {
