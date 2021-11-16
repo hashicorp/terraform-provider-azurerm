@@ -1343,19 +1343,19 @@ resource "azurerm_linux_web_app" "test" {
       "third.aspx",
       "hostingstart.html",
     ]
-    http2_enabled               = false
-    scm_use_main_ip_restriction = false
-    local_mysql                 = false
-    managed_pipeline_mode       = "Integrated"
-    remote_debugging            = true
-    remote_debugging_version    = "VS2017"
-    websockets_enabled          = true
-    ftps_state                  = "FtpsOnly"
-    health_check_path           = "/health2"
-    health_check_eviction_time_in_min  = 7
-    number_of_workers           = 2
-    minimum_tls_version         = "1.2"
-    scm_minimum_tls_version     = "1.2"
+    http2_enabled                     = false
+    scm_use_main_ip_restriction       = false
+    local_mysql                       = false
+    managed_pipeline_mode             = "Integrated"
+    remote_debugging                  = true
+    remote_debugging_version          = "VS2017"
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health2"
+    health_check_eviction_time_in_min = 7
+    number_of_workers                 = 2
+    minimum_tls_version               = "1.2"
+    scm_minimum_tls_version           = "1.2"
     cors {
       allowed_origins = [
         "http://www.contoso.com",
