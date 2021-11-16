@@ -925,8 +925,8 @@ resource "azurerm_linux_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
-    health_check_path          = "/health"
-    health_check_eviction_time = 3
+    health_check_path                 = "/health"
+    health_check_eviction_time_in_min = 3
   }
 }
 `, r.template(data, planSku), data.RandomInteger)
