@@ -1703,7 +1703,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `windows_profile`: %+v", err)
 		}
 
-		httpProxyConfig := flattenKubernetesClusterHttpProxyConfig(props, flattenedDefaultNodePool)
+		httpProxyConfig := flattenKubernetesClusterHttpProxyConfig(props)
 		if err := d.Set("http_proxy_config", httpProxyConfig); err != nil {
 			return fmt.Errorf("setting `http_proxy_config`: %+v", err)
 		}
@@ -2720,7 +2720,7 @@ func expandKubernetesClusterHttpProxyConfig(input []interface{}) *containerservi
 	return &httpProxyConfig
 }
 
-func flattenKubernetesClusterHttpProxyConfig(props *containerservice.ManagedClusterProperties, flattenedDefaultNodePool *[]interface{}) []interface{} {
+func flattenKubernetesClusterHttpProxyConfig(props *containerservice.ManagedClusterProperties) []interface{} {
 	results := make(map[string]interface{})
 	httpProxyConfig := props.HTTPProxyConfig
 	if httpProxyConfig != nil {
