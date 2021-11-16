@@ -225,19 +225,16 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 
 func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.ManagementPoliciesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageAccountId := d.Get("storage_account_id").(string)
-
-	rid, err := parse.StorageAccountID(storageAccountId)
+	rid, err := parse.StorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
 
 	// The name of the Storage Account Management Policy. It should always be 'default' (from https://docs.microsoft.com/en-us/rest/api/storagerp/managementpolicies/createorupdate)
-	mgmtPolicyId := parse.NewStorageAccountManagementPolicyID(subscriptionId, rid.ResourceGroup, rid.Name, "default")
+	mgmtPolicyId := parse.NewStorageAccountManagementPolicyID(rid.SubscriptionId, rid.ResourceGroup, rid.Name, "default")
 
 	parameters := storage.ManagementPolicy{
 		Name: &mgmtPolicyId.ManagementPolicyName,
@@ -245,7 +242,7 @@ func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, me
 
 	armRules, err := expandStorageManagementPolicyRules(d)
 	if err != nil {
-		return fmt.Errorf("expanding Azure Storage Management Policy Rules %q: %+v", storageAccountId, err)
+		return fmt.Errorf("expanding %s: %+v", mgmtPolicyId, err)
 	}
 
 	parameters.ManagementPolicyProperties = &storage.ManagementPolicyProperties{
@@ -255,7 +252,7 @@ func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, rid.ResourceGroup, rid.Name, parameters); err != nil {
-		return fmt.Errorf("creating Azure Storage Management Policy %q: %+v", storageAccountId, err)
+		return fmt.Errorf("creating %s: %+v", mgmtPolicyId, err)
 	}
 
 	d.SetId(mgmtPolicyId.ID())
