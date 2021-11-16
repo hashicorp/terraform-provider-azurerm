@@ -4,14 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ pluginsdk.StateUpgrade = AccountV0ToV1{}
@@ -215,14 +208,22 @@ func accountSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 func accountSchemaForV2() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-		"location": azure.SchemaLocation(),
+		"location": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
 		"account_kind": {
 			Type:     pluginsdk.TypeString,
@@ -266,33 +267,33 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"storage_sid": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
+									Type:     pluginsdk.TypeString,
+									Required: true,
 								},
 
 								"domain_guid": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
+									Type:     pluginsdk.TypeString,
+									Required: true,
 								},
 
 								"domain_name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
+									Type:     pluginsdk.TypeString,
+									Required: true,
 								},
 
 								"domain_sid": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
+									Type:     pluginsdk.TypeString,
+									Required: true,
 								},
 
 								"forest_name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
+									Type:     pluginsdk.TypeString,
+									Required: true,
 								},
 
 								"netbios_domain_name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
+									Type:     pluginsdk.TypeString,
+									Required: true,
 								},
 							},
 						},
@@ -380,7 +381,7 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 						Optional: true,
 						Computed: true,
 						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
+							Type: pluginsdk.TypeString,
 						},
 						Set: pluginsdk.HashString,
 					},
@@ -404,14 +405,14 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"endpoint_resource_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
+									Type:     pluginsdk.TypeString,
+									Required: true,
 								},
 
 								"endpoint_tenant_id": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									Computed:     true,
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Computed: true,
 								},
 							},
 						},
@@ -428,8 +429,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {
-						Type:             pluginsdk.TypeString,
-						Required:         true,
+						Type:     pluginsdk.TypeString,
+						Required: true,
 					},
 					"principal_id": {
 						Type:     pluginsdk.TypeString,
@@ -444,7 +445,7 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 						Optional: true,
 						MinItems: 1,
 						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
+							Type: pluginsdk.TypeString,
 						},
 					},
 				},
@@ -458,7 +459,53 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"cors_rule": helpers.SchemaStorageAccountCorsRule(true),
+					"cors_rule": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 5,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"allowed_origins": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MaxItems: 64,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"exposed_headers": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MaxItems: 64,
+									MinItems: 1,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"allowed_headers": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MaxItems: 64,
+									MinItems: 1,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"allowed_methods": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MaxItems: 64,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"max_age_in_seconds": {
+									Type:     pluginsdk.TypeInt,
+									Required: true,
+								},
+							},
+						},
+					},
 					"delete_retention_policy": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
@@ -466,9 +513,9 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"days": {
-									Type:         pluginsdk.TypeInt,
-									Optional:     true,
-									Default:      7,
+									Type:     pluginsdk.TypeInt,
+									Optional: true,
+									Default:  7,
 								},
 							},
 						},
@@ -487,9 +534,9 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 					},
 
 					"default_service_version": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
 					},
 
 					"last_access_time_enabled": {
@@ -505,9 +552,9 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"days": {
-									Type:         pluginsdk.TypeInt,
-									Optional:     true,
-									Default:      7,
+									Type:     pluginsdk.TypeInt,
+									Optional: true,
+									Default:  7,
 								},
 							},
 						},
@@ -523,7 +570,53 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"cors_rule": helpers.SchemaStorageAccountCorsRule(false),
+					"cors_rule": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 5,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"allowed_origins": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MaxItems: 64,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"exposed_headers": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MaxItems: 64,
+									MinItems: 1,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"allowed_headers": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MaxItems: 64,
+									MinItems: 1,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"allowed_methods": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MaxItems: 64,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"max_age_in_seconds": {
+									Type:     pluginsdk.TypeInt,
+									Required: true,
+								},
+							},
+						},
+					},
 					"logging": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
@@ -531,8 +624,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"version": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
+									Type:     pluginsdk.TypeString,
+									Required: true,
 								},
 								"delete": {
 									Type:     pluginsdk.TypeBool,
@@ -547,8 +640,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 									Required: true,
 								},
 								"retention_policy_days": {
-									Type:         pluginsdk.TypeInt,
-									Optional:     true,
+									Type:     pluginsdk.TypeInt,
+									Optional: true,
 								},
 							},
 						},
@@ -560,8 +653,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"version": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
+									Type:     pluginsdk.TypeString,
+									Required: true,
 								},
 								"enabled": {
 									Type:     pluginsdk.TypeBool,
@@ -572,8 +665,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 									Optional: true,
 								},
 								"retention_policy_days": {
-									Type:         pluginsdk.TypeInt,
-									Optional:     true,
+									Type:     pluginsdk.TypeInt,
+									Optional: true,
 								},
 							},
 						},
@@ -585,8 +678,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"version": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
+									Type:     pluginsdk.TypeString,
+									Required: true,
 								},
 								"enabled": {
 									Type:     pluginsdk.TypeBool,
@@ -597,8 +690,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 									Optional: true,
 								},
 								"retention_policy_days": {
-									Type:         pluginsdk.TypeInt,
-									Optional:     true,
+									Type:     pluginsdk.TypeInt,
+									Optional: true,
 								},
 							},
 						},
@@ -641,7 +734,53 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"cors_rule": helpers.SchemaStorageAccountCorsRule(true),
+					"cors_rule": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 5,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"allowed_origins": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MaxItems: 64,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"exposed_headers": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MaxItems: 64,
+									MinItems: 1,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"allowed_headers": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MaxItems: 64,
+									MinItems: 1,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"allowed_methods": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MaxItems: 64,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"max_age_in_seconds": {
+									Type:     pluginsdk.TypeInt,
+									Required: true,
+								},
+							},
+						},
+					},
 
 					"retention_policy": {
 						Type:     pluginsdk.TypeList,
@@ -650,9 +789,9 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"days": {
-									Type:         pluginsdk.TypeInt,
-									Optional:     true,
-									Default:      7,
+									Type:     pluginsdk.TypeInt,
+									Optional: true,
+									Default:  7,
 								},
 							},
 						},
@@ -710,12 +849,12 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"index_document": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
 					},
 					"error_404_document": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
 					},
 				},
 			},
@@ -894,8 +1033,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": {
-			Type:         pluginsdk.TypeMap,
-			Optional:     true,
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
