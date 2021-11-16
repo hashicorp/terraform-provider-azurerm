@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -99,17 +99,14 @@ func TestAccApiManagementAPIPolicy_customPolicy(t *testing.T) {
 }
 
 func (ApiManagementApiPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ApiPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	apiName := id.Path["apis"]
 
-	resp, err := clients.ApiManagement.ApiPoliciesClient.Get(ctx, resourceGroup, serviceName, apiName, apimanagement.PolicyExportFormatXML)
+	resp, err := clients.ApiManagement.ApiPoliciesClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, apimanagement.PolicyExportFormatXML)
 	if err != nil {
-		return nil, fmt.Errorf("reading ApiManagementApi Policy (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

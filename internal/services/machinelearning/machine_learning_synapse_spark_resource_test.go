@@ -129,6 +129,7 @@ resource "azurerm_machine_learning_synapse_spark" "test" {
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   location                      = azurerm_resource_group.test.location
   synapse_spark_pool_id         = azurerm_synapse_spark_pool.test.id
+  local_auth_enabled            = false
 }
 `, template, data.RandomIntOfLength(8))
 }
@@ -143,7 +144,6 @@ resource "azurerm_machine_learning_synapse_spark" "test" {
   location                      = azurerm_resource_group.test.location
   synapse_spark_pool_id         = azurerm_synapse_spark_pool.test.id
   description                   = "this is desc changed"
-
   identity {
     type = "SystemAssigned"
   }

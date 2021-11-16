@@ -38,6 +38,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Firewall Policy to be created.
 
+* `insights` - (Optional) An `insights` block as defined below.
+
 * `intrusion_detection` - (Optional) A `intrusion_detection` block as defined below.
 
 * `private_ip_ranges` - (Optional) A list of private IP ranges to which traffic will not be SNAT.
@@ -72,6 +74,18 @@ A `identity` block supports the following:
 
 ---
 
+An `insights` block supports the following:
+
+* `enabled` - (Required) Whether the insights functionality is enabled for this Firewall Policy.
+
+* `default_log_analytics_workspace_id` - (Required) The ID of the default Log Analytics Workspace that the Firewalls associated with this Firewall Policy will send their logs to, when there is no location matches in the `log_analytics_workspace`.
+
+* `retention_in_days` - (Optional) The log retention period in days. 
+
+* `log_analytics_workspace` - (Optional) A list of `log_analytics_workspace` block as defined below.
+
+---
+
 A `intrusion_detection` block supports the following:
 
 * `mode` - (Optional) In which mode you want to run intrusion detection: "Off", "Alert" or "Deny".
@@ -79,6 +93,14 @@ A `intrusion_detection` block supports the following:
 * `signature_overrides` - (Optional) One or more `signature_overrides` blocks as defined below.
 
 * `traffic_bypass` - (Optional) One or more `traffic_bypass` blocks as defined below.
+
+---
+
+A `log_analytisc_workspace` block supports the following:
+
+* `id` - (Required) The ID of the Log Analytics Workspace that the Firewalls associated with this Firewall Policy will send their logs to when their locations match the `firewall_location`.
+
+* `firewall_location` - (Required) The location of the Firewalls, that when matches this Log Analytics Workspace will be used to consume their logs.
 
 ---
 

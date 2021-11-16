@@ -280,6 +280,34 @@ func TestAccMsSqlDatabase_createSecondaryMode(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_createOnlineSecondaryMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "secondary")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.createOnlineSecondaryMode(data, "test1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("collation").HasValue("SQL_AltDiction_CP850_CI_AI"),
+				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+			),
+		},
+		data.ImportStep("sample_name", "create_mode"),
+		{
+			Config: r.createOnlineSecondaryMode(data, "test2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("collation").HasValue("SQL_AltDiction_CP850_CI_AI"),
+				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+			),
+		},
+		data.ImportStep("sample_name", "create_mode"),
+	})
+}
+
 func TestAccMsSqlDatabase_scaleReplicaSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "primary")
 	r := MsSqlDatabaseResource{}
@@ -424,21 +452,13 @@ func TestAccMsSqlDatabase_storageAccountType(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.threatDetectionPolicy(data, "Enabled"),
+			Config: r.storageAccountTypeLRS(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue("LRS"),
 			),
 		},
-		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
-		{
-			Config: r.threatDetectionPolicy(data, "Disabled"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
-				check.That(data.ResourceName).Key("threat_detection_policy.0.state").HasValue("Disabled"),
-			),
-		},
-		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
+		data.ImportStep("sample_name"),
 	})
 }
 
@@ -994,6 +1014,37 @@ resource "azurerm_mssql_database" "secondary" {
 `, r.complete(data), data.RandomInteger, data.Locations.Secondary, tag)
 }
 
+func (r MsSqlDatabaseResource) createOnlineSecondaryMode(data acceptance.TestData, tag string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_resource_group" "second" {
+  name     = "acctestRG-mssql2-%[2]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_mssql_server" "second" {
+  name                         = "acctest-sqlserver2-%[2]d"
+  resource_group_name          = azurerm_resource_group.second.name
+  location                     = azurerm_resource_group.second.location
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+resource "azurerm_mssql_database" "secondary" {
+  name                        = "acctest-dbs-%[2]d"
+  server_id                   = azurerm_mssql_server.second.id
+  create_mode                 = "OnlineSecondary"
+  creation_source_database_id = azurerm_mssql_database.test.id
+
+  tags = {
+    tag = "%[4]s"
+  }
+}
+`, r.complete(data), data.RandomInteger, data.Locations.Secondary, tag)
+}
+
 func (r MsSqlDatabaseResource) scaleReplicaSet(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -1192,6 +1243,19 @@ resource "azurerm_mssql_database" "restore" {
 }
 
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r MsSqlDatabaseResource) storageAccountTypeLRS(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[2]d"
+  server_id = azurerm_mssql_server.test.id
+
+  storage_account_type = "LRS"
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r MsSqlDatabaseResource) threatDetectionPolicy(data acceptance.TestData, state string) string {

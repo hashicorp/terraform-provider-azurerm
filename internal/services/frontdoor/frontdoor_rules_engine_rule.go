@@ -5,12 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-05-01/frontdoor"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-05-01/frontdoors"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -148,7 +148,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 									"negate_condition": {
 										Type:     pluginsdk.TypeBool,
 										Optional: true,
-										Default:  true,
+										Default:  true, // TODO 3,0 change to false- needs to change https://github.com/hashicorp/terraform-provider-azurerm/pull/13605
 									},
 
 									"value": {
@@ -181,9 +181,9 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 												"header_action_type": {
 													Type: pluginsdk.TypeString,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(frontdoor.Append),
-														string(frontdoor.Delete),
-														string(frontdoor.Overwrite),
+														string(frontdoors.HeaderActionTypeAppend),
+														string(frontdoors.HeaderActionTypeDelete),
+														string(frontdoors.HeaderActionTypeOverwrite),
 													}, false),
 													Optional: true,
 												},
@@ -213,9 +213,9 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 												"header_action_type": {
 													Type: pluginsdk.TypeString,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(frontdoor.Append),
-														string(frontdoor.Delete),
-														string(frontdoor.Overwrite),
+														string(frontdoors.HeaderActionTypeAppend),
+														string(frontdoors.HeaderActionTypeDelete),
+														string(frontdoors.HeaderActionTypeOverwrite),
 													}, false),
 													Optional: true,
 												},
@@ -245,7 +245,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 }
 
 func resourceFrontDoorRulesEngineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Frontdoor.FrontDoorsRulesEnginesClient
+	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -256,32 +256,28 @@ func resourceFrontDoorRulesEngineCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	rules := d.Get("rule").([]interface{})
 
-	id := parse.NewRulesEngineID(subscriptionId, resourceGroup, frontDoorName, rulesEngineName).ID()
+	id := frontdoors.NewRulesEngineID(subscriptionId, resourceGroup, frontDoorName, rulesEngineName)
 
-	frontdoorRulesEngineProperties := frontdoor.RulesEngineProperties{
+	frontdoorRulesEngineProperties := frontdoors.RulesEngineProperties{
 		Rules: expandFrontDoorRulesEngineRules(rules),
 	}
 
-	frontdoorRulesEngine := frontdoor.RulesEngine{
-		Name:                  utils.String(rulesEngineName),
-		RulesEngineProperties: &frontdoorRulesEngineProperties,
+	frontdoorRulesEngine := frontdoors.RulesEngine{
+		Name:       utils.String(rulesEngineName),
+		Properties: &frontdoorRulesEngineProperties,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, frontDoorName, rulesEngineName, frontdoorRulesEngine)
-	if err != nil {
-		return fmt.Errorf("creating Front Door Rules Engine %q (Resource Group %q): %+v", rulesEngineName, resourceGroup, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Front Door Rules Engine %q (Resource Group %q): %+v", rulesEngineName, resourceGroup, err)
+	if err := client.RulesEnginesCreateOrUpdateThenPoll(ctx, id, frontdoorRulesEngine); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	d.SetId(id)
+	d.SetId(id.ID())
 	return resourceFrontDoorRulesEngineRead(d, meta)
 }
 
-func expandFrontDoorRulesEngineAction(input []interface{}) *frontdoor.RulesEngineAction {
+func expandFrontDoorRulesEngineAction(input []interface{}) frontdoors.RulesEngineAction {
 	if len(input) == 0 {
-		return nil
+		return frontdoors.RulesEngineAction{}
 	}
 
 	ruleAction := input[0].(map[string]interface{})
@@ -289,19 +285,19 @@ func expandFrontDoorRulesEngineAction(input []interface{}) *frontdoor.RulesEngin
 	requestHeaderActions := ruleAction["request_header"].([]interface{})
 	responseHeaderActions := ruleAction["response_header"].([]interface{})
 
-	frontdoorRulesEngineRuleAction := frontdoor.RulesEngineAction{
+	frontdoorRulesEngineRuleAction := frontdoors.RulesEngineAction{
 		RequestHeaderActions:  expandHeaderAction(requestHeaderActions),
 		ResponseHeaderActions: expandHeaderAction(responseHeaderActions),
 	}
 
-	return &frontdoorRulesEngineRuleAction
+	return frontdoorRulesEngineRuleAction
 }
 
-func expandHeaderAction(input []interface{}) *[]frontdoor.HeaderAction {
+func expandHeaderAction(input []interface{}) *[]frontdoors.HeaderAction {
 	if len(input) == 0 {
 		return nil
 	}
-	output := make([]frontdoor.HeaderAction, 0)
+	output := make([]frontdoors.HeaderAction, 0)
 
 	for _, a := range input {
 		action := a.(map[string]interface{})
@@ -310,10 +306,10 @@ func expandHeaderAction(input []interface{}) *[]frontdoor.HeaderAction {
 		value := action["value"].(string)
 		headerActionType := action["header_action_type"].(string)
 
-		frontdoorRulesEngineRuleHeaderAction := frontdoor.HeaderAction{
-			HeaderName:       utils.String(headerName),
+		frontdoorRulesEngineRuleHeaderAction := frontdoors.HeaderAction{
+			HeaderName:       headerName,
 			Value:            utils.String(value),
-			HeaderActionType: frontdoor.HeaderActionType(headerActionType),
+			HeaderActionType: frontdoors.HeaderActionType(headerActionType),
 		}
 
 		output = append(output, frontdoorRulesEngineRuleHeaderAction)
@@ -322,24 +318,24 @@ func expandHeaderAction(input []interface{}) *[]frontdoor.HeaderAction {
 	return &output
 }
 
-func expandFrontDoorRulesEngineRules(input []interface{}) *[]frontdoor.RulesEngineRule {
+func expandFrontDoorRulesEngineRules(input []interface{}) *[]frontdoors.RulesEngineRule {
 	if len(input) == 0 {
 		return nil
 	}
 
-	output := make([]frontdoor.RulesEngineRule, 0)
+	output := make([]frontdoors.RulesEngineRule, 0)
 
 	for _, r := range input {
 		rule := r.(map[string]interface{})
 
 		ruleName := rule["name"].(string)
-		priority := int32(rule["priority"].(int))
+		priority := int64(rule["priority"].(int))
 		actions := rule["action"].([]interface{})
 		matchConditions := rule["match_condition"].([]interface{})
 
-		frontdoorRulesEngineRule := frontdoor.RulesEngineRule{
-			Name:            utils.String(ruleName),
-			Priority:        utils.Int32(priority),
+		frontdoorRulesEngineRule := frontdoors.RulesEngineRule{
+			Name:            ruleName,
+			Priority:        priority,
 			Action:          expandFrontDoorRulesEngineAction(actions),
 			MatchConditions: expandFrontDoorRulesEngineMatchCondition(matchConditions),
 		}
@@ -349,12 +345,12 @@ func expandFrontDoorRulesEngineRules(input []interface{}) *[]frontdoor.RulesEngi
 	return &output
 }
 
-func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoor.RulesEngineMatchCondition {
+func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoors.RulesEngineMatchCondition {
 	if len(input) == 0 {
 		return nil
 	}
 
-	output := make([]frontdoor.RulesEngineMatchCondition, 0)
+	output := make([]frontdoors.RulesEngineMatchCondition, 0)
 
 	for _, c := range input {
 		condition := c.(map[string]interface{})
@@ -371,12 +367,12 @@ func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoor.
 			matchValueArray = append(matchValueArray, v.(string))
 		}
 
-		matchCondition := frontdoor.RulesEngineMatchCondition{
-			RulesEngineMatchVariable: frontdoor.RulesEngineMatchVariable(matchVariable),
+		matchCondition := frontdoors.RulesEngineMatchCondition{
+			RulesEngineMatchVariable: frontdoors.RulesEngineMatchVariable(matchVariable),
 			Selector:                 utils.String(selector),
-			RulesEngineOperator:      frontdoor.RulesEngineOperator(operator),
+			RulesEngineOperator:      frontdoors.RulesEngineOperator(operator),
 			NegateCondition:          &negateCondition,
-			RulesEngineMatchValue:    &matchValueArray,
+			RulesEngineMatchValue:    matchValueArray,
 			Transforms:               expandFrontDoorRulesEngineMatchConditionTransform(transform),
 		}
 		output = append(output, matchCondition)
@@ -384,15 +380,15 @@ func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoor.
 	return &output
 }
 
-func expandFrontDoorRulesEngineMatchConditionTransform(input []interface{}) *[]frontdoor.Transform {
+func expandFrontDoorRulesEngineMatchConditionTransform(input []interface{}) *[]frontdoors.Transform {
 	if len(input) == 0 {
-		return &[]frontdoor.Transform{}
+		return &[]frontdoors.Transform{}
 	}
 
-	output := make([]frontdoor.Transform, 0)
+	output := make([]frontdoors.Transform, 0)
 
 	for _, t := range input {
-		result := frontdoor.Transform(t.(string))
+		result := frontdoors.Transform(t.(string))
 
 		output = append(output, result)
 	}
@@ -400,44 +396,40 @@ func expandFrontDoorRulesEngineMatchConditionTransform(input []interface{}) *[]f
 }
 
 func resourceFrontDoorRulesEngineRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Frontdoor.FrontDoorsRulesEnginesClient
+	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	frontDoorName := d.Get("frontdoor_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	rulesEngineName := d.Get("name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, frontDoorName, rulesEngineName)
+	id, err := frontdoors.ParseRulesEngineIDInsensitively(d.Id())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Front Door Rules Engine %q does not exist - removing from state", rulesEngineName)
+		return err
+	}
+
+	resp, err := client.RulesEnginesGet(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Front Door Rules Engine %q (Resource Group %q): %+v", rulesEngineName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return nil
 }
 
 func resourceFrontDoorRulesEngineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Frontdoor.FrontDoorsRulesEnginesClient
+	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	frontDoorName := d.Get("frontdoor_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	rulesEngineName := d.Get("name").(string)
-
-	future, err := client.Delete(ctx, resourceGroup, frontDoorName, rulesEngineName)
+	id, err := frontdoors.ParseRulesEngineIDInsensitively(d.Id())
 	if err != nil {
-		return fmt.Errorf("deleting Front Door Rules Engine %q (Resource Group %q): %+v", rulesEngineName, resourceGroup, err)
+		return err
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deleting Front Door Rules Engine %q (Resource Group %q): %+v", rulesEngineName, resourceGroup, err)
-		}
+	if err := client.RulesEnginesDeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
+
 	return nil
 }

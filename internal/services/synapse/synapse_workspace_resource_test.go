@@ -290,6 +290,12 @@ resource "azurerm_synapse_workspace" "test" {
     tenant_id = data.azurerm_client_config.current.tenant_id
   }
 
+  sql_aad_admin {
+    login     = "AzureAD Admin"
+    object_id = data.azurerm_client_config.current.object_id
+    tenant_id = data.azurerm_client_config.current.tenant_id
+  }
+
   tags = {
     ENV = "Test2"
   }

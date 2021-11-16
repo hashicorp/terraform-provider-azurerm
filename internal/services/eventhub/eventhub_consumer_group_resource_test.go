@@ -88,7 +88,7 @@ func TestAccEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
 }
 
 func (EventHubConsumerGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := consumergroups.ParseConsumergroupID(state.ID)
+	id, err := consumergroups.ParseConsumerGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}

@@ -164,8 +164,8 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(cdn.Allow),
-								string(cdn.Block),
+								string(cdn.ActionTypeAllow),
+								string(cdn.ActionTypeBlock),
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
@@ -184,11 +184,11 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.DynamicSiteAcceleration),
-					string(cdn.GeneralMediaStreaming),
-					string(cdn.GeneralWebDelivery),
-					string(cdn.LargeFileDownload),
-					string(cdn.VideoOnDemandMediaStreaming),
+					string(cdn.OptimizationTypeDynamicSiteAcceleration),
+					string(cdn.OptimizationTypeGeneralMediaStreaming),
+					string(cdn.OptimizationTypeGeneralWebDelivery),
+					string(cdn.OptimizationTypeLargeFileDownload),
+					string(cdn.OptimizationTypeVideoOnDemandMediaStreaming),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -295,11 +295,11 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("expanding `global_delivery_rule` or `delivery_rule`: %s", err)
 		}
 
-		if profile.Sku.Name != cdn.StandardMicrosoft && len(*deliveryPolicy.Rules) > 0 {
+		if profile.Sku.Name != cdn.SkuNameStandardMicrosoft && len(*deliveryPolicy.Rules) > 0 {
 			return fmt.Errorf("`global_delivery_rule` and `delivery_rule` are only allowed when `Standard_Microsoft` sku is used. Profile sku:  %s", profile.Sku.Name)
 		}
 
-		if profile.Sku.Name == cdn.StandardMicrosoft {
+		if profile.Sku.Name == cdn.SkuNameStandardMicrosoft {
 			endpoint.EndpointProperties.DeliveryPolicy = deliveryPolicy
 		}
 	}
@@ -399,11 +399,11 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("expanding `global_delivery_rule` or `delivery_rule`: %s", err)
 		}
 
-		if profile.Sku.Name != cdn.StandardMicrosoft && len(*deliveryPolicy.Rules) > 0 {
+		if profile.Sku.Name != cdn.SkuNameStandardMicrosoft && len(*deliveryPolicy.Rules) > 0 {
 			return fmt.Errorf("`global_delivery_rule` and `delivery_rule` are only allowed when `Standard_Microsoft` sku is used. Profile sku:  %s", profile.Sku.Name)
 		}
 
-		if profile.Sku.Name == cdn.StandardMicrosoft {
+		if profile.Sku.Name == cdn.SkuNameStandardMicrosoft {
 			endpoint.EndpointPropertiesUpdateParameters.DeliveryPolicy = deliveryPolicy
 		}
 	}

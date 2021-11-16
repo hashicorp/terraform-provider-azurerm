@@ -36,7 +36,7 @@ resource "azurerm_data_factory_linked_service_cosmosdb" "example" {
   resource_group_name = azurerm_resource_group.example.name
   data_factory_name   = azurerm_data_factory.example.name
   account_endpoint    = azurerm_cosmosdb_account.example.endpoint
-  account_key         = data.azurerm_cosmosdb_account.example.primary_access_key
+  account_key         = data.azurerm_cosmosdb_account.example.primary_key
   database            = "foo"
 
 }

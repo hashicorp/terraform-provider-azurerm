@@ -136,5 +136,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 SignalR services can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_signalr_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/terraform-signalr/providers/Microsoft.SignalRService/SignalR/tfex-signalr
+terraform import azurerm_signalr_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/terraform-signalr/providers/Microsoft.SignalRService/signalR/tfex-signalr
 ```

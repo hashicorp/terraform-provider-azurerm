@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -94,10 +94,10 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(storage.AzureServices),
-						string(storage.Logging),
-						string(storage.Metrics),
-						string(storage.None),
+						string(storage.BypassAzureServices),
+						string(storage.BypassLogging),
+						string(storage.BypassMetrics),
+						string(storage.BypassNone),
 					}, false),
 				},
 				Set: pluginsdk.HashString,
@@ -306,7 +306,7 @@ func resourceStorageAccountNetworkRulesDelete(d *pluginsdk.ResourceData, meta in
 	opts := storage.AccountUpdateParameters{
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 			NetworkRuleSet: &storage.NetworkRuleSet{
-				Bypass:        storage.AzureServices,
+				Bypass:        storage.BypassAzureServices,
 				DefaultAction: storage.DefaultActionAllow,
 			},
 		},
@@ -350,7 +350,7 @@ func expandStorageAccountNetworkRuleIpRules(ipRulesInfo []interface{}) *[]storag
 		attrs := ipRuleConfig.(string)
 		ipRule := storage.IPRule{
 			IPAddressOrRange: utils.String(attrs),
-			Action:           storage.Allow,
+			Action:           storage.ActionAllow,
 		}
 		ipRules[i] = ipRule
 	}
@@ -365,7 +365,7 @@ func expandStorageAccountNetworkRuleVirtualRules(virtualNetworkInfo []interface{
 		attrs := virtualNetworkConfig.(string)
 		virtualNetwork := storage.VirtualNetworkRule{
 			VirtualNetworkResourceID: utils.String(attrs),
-			Action:                   storage.Allow,
+			Action:                   storage.ActionAllow,
 		}
 		virtualNetworks[i] = virtualNetwork
 	}

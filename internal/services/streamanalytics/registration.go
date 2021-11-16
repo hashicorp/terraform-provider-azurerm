@@ -49,6 +49,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_stream_analytics_output_eventhub":         resourceStreamAnalyticsOutputEventHub(),
 		"azurerm_stream_analytics_output_servicebus_queue": resourceStreamAnalyticsOutputServiceBusQueue(),
 		"azurerm_stream_analytics_output_servicebus_topic": resourceStreamAnalyticsOutputServiceBusTopic(),
+		"azurerm_stream_analytics_output_synapse":          resourceStreamAnalyticsOutputSynapse(),
 		"azurerm_stream_analytics_reference_input_blob":    resourceStreamAnalyticsReferenceInputBlob(),
 		"azurerm_stream_analytics_reference_input_mssql":   resourceStreamAnalyticsReferenceMsSql(),
 		"azurerm_stream_analytics_stream_input_blob":       resourceStreamAnalyticsStreamInputBlob(),

@@ -23,8 +23,10 @@ func resourceApiManagementApiOperationPolicy() *pluginsdk.Resource {
 		Read:   resourceApiManagementAPIOperationPolicyRead,
 		Update: resourceApiManagementAPIOperationPolicyCreateUpdate,
 		Delete: resourceApiManagementAPIOperationPolicyDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ApiOperationPolicyID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

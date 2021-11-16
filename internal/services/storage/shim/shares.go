@@ -17,7 +17,8 @@ type StorageShareWrapper interface {
 }
 
 type StorageShareProperties struct {
-	ACLs     []shares.SignedIdentifier
-	MetaData map[string]string
-	QuotaGB  int
+	ACLs            []shares.SignedIdentifier
+	MetaData        map[string]string
+	QuotaGB         int
+	EnabledProtocol shares.ShareProtocol
 }

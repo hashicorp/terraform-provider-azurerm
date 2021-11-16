@@ -1,7 +1,7 @@
 package frontdoor
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-05-01/frontdoor"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-05-01/frontdoors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -11,10 +11,10 @@ func schemaCustomHttpsConfiguration() map[string]*pluginsdk.Schema {
 		"certificate_source": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  string(frontdoor.CertificateSourceFrontDoor),
+			Default:  string(frontdoors.FrontDoorCertificateSourceFrontDoor),
 			ValidateFunc: validation.StringInSlice([]string{
-				string(frontdoor.CertificateSourceAzureKeyVault),
-				string(frontdoor.CertificateSourceFrontDoor),
+				string(frontdoors.FrontDoorCertificateSourceAzureKeyVault),
+				string(frontdoors.FrontDoorCertificateSourceFrontDoor),
 			}, false),
 		},
 		"minimum_tls_version": {
@@ -51,7 +51,7 @@ type flattenedCustomHttpsConfiguration struct {
 	CustomHTTPSProvisioningEnabled bool
 }
 
-func flattenCustomHttpsConfiguration(properties *frontdoor.FrontendEndpointProperties) flattenedCustomHttpsConfiguration {
+func flattenCustomHttpsConfiguration(properties *frontdoors.FrontendEndpointProperties) flattenedCustomHttpsConfiguration {
 	result := flattenedCustomHttpsConfiguration{
 		CustomHTTPSConfiguration:       make([]interface{}, 0),
 		CustomHTTPSProvisioningEnabled: false,
@@ -61,20 +61,20 @@ func flattenCustomHttpsConfiguration(properties *frontdoor.FrontendEndpointPrope
 		return result
 	}
 
-	if config := properties.CustomHTTPSConfiguration; config != nil {
-		certificateSource := string(frontdoor.CertificateSourceFrontDoor)
+	if config := properties.CustomHttpsConfiguration; config != nil {
+		certificateSource := string(frontdoors.FrontDoorCertificateSourceFrontDoor)
 		keyVaultCertificateVaultId := ""
 		keyVaultCertificateSecretName := ""
 		keyVaultCertificateSecretVersion := ""
 		provisioningState := ""
 		provisioningSubstate := ""
 
-		if config.CertificateSource == frontdoor.CertificateSourceAzureKeyVault {
+		if config.CertificateSource == frontdoors.FrontDoorCertificateSourceAzureKeyVault {
 			if vault := config.KeyVaultCertificateSourceParameters; vault != nil {
-				certificateSource = string(frontdoor.CertificateSourceAzureKeyVault)
+				certificateSource = string(frontdoors.FrontDoorCertificateSourceAzureKeyVault)
 
-				if vault.Vault != nil && vault.Vault.ID != nil {
-					keyVaultCertificateVaultId = *vault.Vault.ID
+				if vault.Vault != nil && vault.Vault.Id != nil {
+					keyVaultCertificateVaultId = *vault.Vault.Id
 				}
 
 				if vault.SecretName != nil {
@@ -87,23 +87,23 @@ func flattenCustomHttpsConfiguration(properties *frontdoor.FrontendEndpointPrope
 			}
 		}
 
-		if properties.CustomHTTPSProvisioningState != "" {
-			provisioningState = string(properties.CustomHTTPSProvisioningState)
-			if properties.CustomHTTPSProvisioningState == frontdoor.CustomHTTPSProvisioningStateEnabled || properties.CustomHTTPSProvisioningState == frontdoor.CustomHTTPSProvisioningStateEnabling {
+		if properties.CustomHttpsProvisioningState != nil && *properties.CustomHttpsProvisioningState != "" {
+			provisioningState = string(*properties.CustomHttpsProvisioningState)
+			if properties.CustomHttpsProvisioningState != nil && *properties.CustomHttpsProvisioningState == frontdoors.CustomHttpsProvisioningStateEnabled || *properties.CustomHttpsProvisioningState == frontdoors.CustomHttpsProvisioningStateEnabling {
 				result.CustomHTTPSProvisioningEnabled = true
 
-				if properties.CustomHTTPSProvisioningSubstate != "" {
-					provisioningSubstate = string(properties.CustomHTTPSProvisioningSubstate)
+				if properties.CustomHttpsProvisioningSubstate != nil && *properties.CustomHttpsProvisioningSubstate != "" {
+					provisioningSubstate = string(*properties.CustomHttpsProvisioningSubstate)
 				}
 			}
 
 			// Only return a CustomHTTPSConfiguration if CustomHTTPSConfiguration
 			// is enabled
 			if result.CustomHTTPSProvisioningEnabled {
-				if certificateSource == string(frontdoor.CertificateSourceFrontDoor) {
+				if certificateSource == string(frontdoors.FrontDoorCertificateSourceFrontDoor) {
 					result.CustomHTTPSConfiguration = append(result.CustomHTTPSConfiguration, map[string]interface{}{
 						"certificate_source":    certificateSource,
-						"minimum_tls_version":   string(config.MinimumTLSVersion),
+						"minimum_tls_version":   string(config.MinimumTlsVersion),
 						"provisioning_state":    provisioningState,
 						"provisioning_substate": provisioningSubstate,
 					})
@@ -113,7 +113,7 @@ func flattenCustomHttpsConfiguration(properties *frontdoor.FrontendEndpointPrope
 						"azure_key_vault_certificate_secret_name":    keyVaultCertificateSecretName,
 						"azure_key_vault_certificate_secret_version": keyVaultCertificateSecretVersion,
 						"certificate_source":                         certificateSource,
-						"minimum_tls_version":                        string(config.MinimumTLSVersion),
+						"minimum_tls_version":                        string(config.MinimumTlsVersion),
 						"provisioning_state":                         provisioningState,
 						"provisioning_substate":                      provisioningSubstate,
 					})

@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `enforce` - (Optional) Specifies if this Policy should be enforced or not?
 
-* `identity` - (Optional) A `identity` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 -> **Note:** The `location` field must also be specified when `identity` is specified.
 

@@ -377,6 +377,8 @@ A `site_config` block exports the following:
 
 * `health_check_path` - The path to the Health Check endpoint.
 
+* `health_check_eviction_time_in_min` - (Optional) The amount of time in minutes that a node can be unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`.
+
 * `http2_enabled` - Is HTTP2.0 enabled.
 
 * `ip_restriction` - A `ip_restriction` block as defined above.

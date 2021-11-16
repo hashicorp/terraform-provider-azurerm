@@ -102,6 +102,13 @@ func resourceComputeInstance() *pluginsdk.Resource {
 
 			"identity": SystemAssignedUserAssigned{}.Schema(),
 
+			"local_auth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+				ForceNew: true,
+			},
+
 			"ssh": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -181,8 +188,9 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 				ComputeInstanceAuthorizationType: machinelearningservices.ComputeInstanceAuthorizationType(d.Get("authorization_type").(string)),
 				PersonalComputeInstanceSettings:  expandComputePersonalComputeInstanceSetting(d.Get("assign_to_user").([]interface{})),
 			},
-			ComputeLocation: utils.String(d.Get("location").(string)),
-			Description:     utils.String(d.Get("description").(string)),
+			ComputeLocation:  utils.String(d.Get("location").(string)),
+			Description:      utils.String(d.Get("description").(string)),
+			DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
 		Identity: identity,
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
@@ -238,6 +246,9 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 	d.Set("identity", identity)
 
 	if props, ok := resp.Properties.AsComputeInstance(); ok && props != nil {
+		if props.DisableLocalAuth != nil {
+			d.Set("local_auth_enabled", !*props.DisableLocalAuth)
+		}
 		d.Set("description", props.Description)
 		if props.Properties != nil {
 			d.Set("virtual_machine_size", props.Properties.VMSize)
@@ -264,7 +275,7 @@ func resourceComputeInstanceDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, machinelearningservices.UnderlyingResourceActionDetach)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, machinelearningservices.UnderlyingResourceActionDelete)
 	if err != nil {
 		return fmt.Errorf("deleting Machine Learning Compute (%q): %+v", id, err)
 	}

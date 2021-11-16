@@ -1,11 +1,5 @@
 package configurationstores
 
-import (
-	"time"
-
-	"github.com/hashicorp/go-azure-helpers/formatting"
-)
-
 type ApiKey struct {
 	ConnectionString *string `json:"connectionString,omitempty"`
 	Id               *string `json:"id,omitempty"`
@@ -13,13 +7,4 @@ type ApiKey struct {
 	Name             *string `json:"name,omitempty"`
 	ReadOnly         *bool   `json:"readOnly,omitempty"`
 	Value            *string `json:"value,omitempty"`
-}
-
-func (o ApiKey) GetLastModifiedAsTime() (*time.Time, error) {
-	return formatting.ParseAsDateFormat(o.LastModified, "2006-01-02T15:04:05Z07:00")
-}
-
-func (o ApiKey) SetLastModifiedAsTime(input time.Time) {
-	formatted := input.Format("2006-01-02T15:04:05Z07:00")
-	o.LastModified = &formatted
 }

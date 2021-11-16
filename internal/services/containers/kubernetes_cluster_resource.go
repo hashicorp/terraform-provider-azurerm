@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-05-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -1784,8 +1784,8 @@ func expandKubernetesClusterLinuxProfile(input []interface{}) *containerservice.
 	}
 }
 
-func expandKubernetesClusterIdentityProfile(input []interface{}) map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue {
-	identityProfile := make(map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue)
+func expandKubernetesClusterIdentityProfile(input []interface{}) map[string]*containerservice.UserAssignedIdentity {
+	identityProfile := make(map[string]*containerservice.UserAssignedIdentity)
 	if len(input) == 0 || input[0] == nil {
 		return identityProfile
 	}
@@ -1793,7 +1793,7 @@ func expandKubernetesClusterIdentityProfile(input []interface{}) map[string]*con
 	values := input[0].(map[string]interface{})
 
 	if containerservice.ResourceIdentityType(values["user_assigned_identity_id"].(string)) != "" {
-		identityProfile["kubeletidentity"] = &containerservice.ManagedClusterPropertiesIdentityProfileValue{
+		identityProfile["kubeletidentity"] = &containerservice.UserAssignedIdentity{
 			ResourceID: utils.String(values["user_assigned_identity_id"].(string)),
 			ClientID:   utils.String(values["client_id"].(string)),
 			ObjectID:   utils.String(values["object_id"].(string)),
@@ -1803,7 +1803,7 @@ func expandKubernetesClusterIdentityProfile(input []interface{}) map[string]*con
 	return identityProfile
 }
 
-func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue) ([]interface{}, error) {
+func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservice.UserAssignedIdentity) ([]interface{}, error) {
 	if profile == nil {
 		return []interface{}{}, nil
 	}

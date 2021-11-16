@@ -135,7 +135,7 @@ The following arguments are supported:
 
 * `http_listener` - (Required) One or more `http_listener` blocks as defined below.
 
-* `identity` - (Optional) A `identity` block.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `request_routing_rule` - (Required) One or more `request_routing_rule` blocks as defined below.
 

@@ -7,102 +7,118 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+var _ resourceids.ResourceId = NamespaceId{}
+
+// NamespaceId is a struct representing the Resource ID for a Namespace
 type NamespaceId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	Name           string
+	SubscriptionId    string
+	ResourceGroupName string
+	NamespaceName     string
 }
 
-func NewNamespaceID(subscriptionId, resourceGroup, name string) NamespaceId {
+// NewNamespaceID returns a new NamespaceId struct
+func NewNamespaceID(subscriptionId string, resourceGroupName string, namespaceName string) NamespaceId {
 	return NamespaceId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourceGroup,
-		Name:           name,
+		SubscriptionId:    subscriptionId,
+		ResourceGroupName: resourceGroupName,
+		NamespaceName:     namespaceName,
 	}
 }
 
-func (id NamespaceId) String() string {
-	segments := []string{
-		fmt.Sprintf("Name %q", id.Name),
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+// ParseNamespaceID parses 'input' into a NamespaceId
+func ParseNamespaceID(input string) (*NamespaceId, error) {
+	parser := resourceids.NewParserFromResourceIdType(NamespaceId{})
+	parsed, err := parser.Parse(input, false)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
-	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Namespace", segmentsStr)
+
+	var ok bool
+	id := NamespaceId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.NamespaceName, ok = parsed.Parsed["namespaceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'namespaceName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
 }
 
+// ParseNamespaceIDInsensitively parses 'input' case-insensitively into a NamespaceId
+// note: this method should only be used for API response data and not user input
+func ParseNamespaceIDInsensitively(input string) (*NamespaceId, error) {
+	parser := resourceids.NewParserFromResourceIdType(NamespaceId{})
+	parsed, err := parser.Parse(input, true)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	var ok bool
+	id := NamespaceId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.NamespaceName, ok = parsed.Parsed["namespaceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'namespaceName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
+}
+
+// ValidateNamespaceID checks that 'input' can be parsed as a Namespace ID
+func ValidateNamespaceID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	if _, err := ParseNamespaceID(v); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
+}
+
+// ID returns the formatted Namespace ID
 func (id NamespaceId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Relay/namespaces/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 }
 
-// ParseNamespaceID parses a Namespace ID into an NamespaceId struct
-func ParseNamespaceID(input string) (*NamespaceId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// Segments returns a slice of Resource ID Segments which comprise this Namespace ID
+func (id NamespaceId) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
+		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
+		resourceids.StaticSegment("resourceGroups", "resourceGroups", "resourceGroups"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
+		resourceids.StaticSegment("providers", "providers", "providers"),
+		resourceids.ResourceProviderSegment("microsoftRelay", "Microsoft.Relay", "Microsoft.Relay"),
+		resourceids.StaticSegment("namespaces", "namespaces", "namespaces"),
+		resourceids.UserSpecifiedSegment("namespaceName", "namespaceValue"),
 	}
-
-	resourceId := NamespaceId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	if resourceId.Name, err = id.PopSegment("namespaces"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
 }
 
-// ParseNamespaceIDInsensitively parses an Namespace ID into an NamespaceId struct, insensitively
-// This should only be used to parse an ID for rewriting to a consistent casing,
-// the ParseNamespaceID method should be used instead for validation etc.
-func ParseNamespaceIDInsensitively(input string) (*NamespaceId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// String returns a human-readable description of this Namespace ID
+func (id NamespaceId) String() string {
+	components := []string{
+		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
+		fmt.Sprintf("Namespace Name: %q", id.NamespaceName),
 	}
-
-	resourceId := NamespaceId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	// find the correct casing for the 'namespaces' segment
-	namespacesKey := "namespaces"
-	for key := range id.Path {
-		if strings.EqualFold(key, namespacesKey) {
-			namespacesKey = key
-			break
-		}
-	}
-	if resourceId.Name, err = id.PopSegment(namespacesKey); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
+	return fmt.Sprintf("Namespace (%s)", strings.Join(components, "\n"))
 }
