@@ -926,7 +926,7 @@ resource "azurerm_linux_function_app" "test" {
 
   site_config {
     health_check_path          = "/health"
-    health_check_eviction_time = 3
+    health_check_eviction_time_in_min = 3
   }
 }
 `, r.template(data, planSku), data.RandomInteger)

@@ -307,7 +307,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			appSettings := helpers.ExpandAppSettings(webApp.AppSettings)
-			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time") {
+			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURE"] = utils.String(strconv.Itoa(webApp.SiteConfig[0].HealthCheckEvictionTime))
 			}
 
@@ -607,7 +607,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
 			if metadata.ResourceData.HasChange("app_settings") {
 				appSettingsUpdate := helpers.ExpandAppSettings(state.AppSettings)
-				if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time") {
+				if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 					appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURE"] = utils.String(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
 				}
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate); err != nil {

@@ -40,7 +40,7 @@ type SiteConfigWindows struct {
 	WebSockets               bool                      `tfschema:"websockets_enabled"`
 	FtpsState                string                    `tfschema:"ftps_state"`
 	HealthCheckPath          string                    `tfschema:"health_check_path"`
-	HealthCheckEvictionTime  int                       `tfschema:"health_check_eviction_time"`
+	HealthCheckEvictionTime  int                       `tfschema:"health_check_eviction_time_in_min"`
 	NumberOfWorkers          int                       `tfschema:"number_of_workers"`
 	ApplicationStack         []ApplicationStackWindows `tfschema:"application_stack"`
 	VirtualApplications      []VirtualApplication      `tfschema:"virtual_application"`
@@ -80,7 +80,7 @@ type SiteConfigLinux struct {
 	WebSockets              bool                    `tfschema:"websockets_enabled"`
 	FtpsState               string                  `tfschema:"ftps_state"`
 	HealthCheckPath         string                  `tfschema:"health_check_path"`
-	HealthCheckEvictionTime int                     `tfschema:"health_check_eviction_time"`
+	HealthCheckEvictionTime int                     `tfschema:"health_check_eviction_time_in_min"`
 	NumberOfWorkers         int                     `tfschema:"number_of_workers"`
 	ApplicationStack        []ApplicationStackLinux `tfschema:"application_stack"`
 	MinTlsVersion           string                  `tfschema:"minimum_tls_version"`
@@ -251,7 +251,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 					Optional: true,
 				},
 
-				"health_check_eviction_time": {
+				"health_check_eviction_time_in_min": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true,
@@ -441,7 +441,7 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"health_check_eviction_time": {
+				"health_check_eviction_time_in_min": {
 					Type:     pluginsdk.TypeInt,
 					Computed: true,
 				},
@@ -647,7 +647,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					Optional: true,
 				},
 
-				"health_check_eviction_time": {
+				"health_check_eviction_time_in_min": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true,
@@ -830,7 +830,7 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"health_check_eviction_time": {
+				"health_check_eviction_time_in_min": {
 					Type:     pluginsdk.TypeInt,
 					Computed: true,
 				},
