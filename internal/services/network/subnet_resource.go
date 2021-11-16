@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -478,7 +479,9 @@ func resourceSubnetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+		}
 	}
 
 	return nil
