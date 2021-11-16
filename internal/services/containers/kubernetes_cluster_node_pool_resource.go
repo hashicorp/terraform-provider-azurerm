@@ -692,7 +692,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 	d.Set("name", id.AgentPoolName)
 
 	clusterId := parse.NewClusterID(id.SubscriptionId, id.ResourceGroup, id.ManagedClusterName)
-	d.Set("kubernetes_cluster_id", clusterId)
+	d.Set("kubernetes_cluster_id", clusterId.ID())
 
 	if props := resp.ManagedClusterAgentPoolProfileProperties; props != nil {
 		if err := d.Set("availability_zones", utils.FlattenStringSlice(props.AvailabilityZones)); err != nil {

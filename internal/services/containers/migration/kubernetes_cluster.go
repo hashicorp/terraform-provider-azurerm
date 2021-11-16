@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -18,6 +17,21 @@ import (
 var _ pluginsdk.StateUpgrade = KubernetesClusterV0ToV1{}
 
 type KubernetesClusterV0ToV1 struct{}
+
+func (k KubernetesClusterV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+		log.Printf("[DEBUG] Migrating ID to correct casing for Kubernetes Cluster")
+		rawId := rawState["id"].(string)
+
+		id, err := parse.ClusterID(rawId)
+		if err != nil {
+			return nil, err
+		}
+
+		rawState["id"] = id.ID()
+		return rawState, nil
+	}
+}
 
 func (k KubernetesClusterV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -36,9 +50,9 @@ func (k KubernetesClusterV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"resource_group_name": {
-			Type:       pluginsdk.TypeString,
-			Optional:   true,
-			Deprecated: "This field is no longer used and will be removed in the next major version of the Azure Provider",
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 
 		"dns_prefix": {
@@ -618,9 +632,8 @@ func (k KubernetesClusterV0ToV1) Schema() map[string]*pluginsdk.Schema {
 									Required: true,
 								},
 								"log_analytics_workspace_id": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
+									Type:     pluginsdk.TypeString,
+									Optional: true,
 								},
 								"oms_agent_identity": {
 									Type:     pluginsdk.TypeList,
@@ -1404,20 +1417,5 @@ func (k KubernetesClusterV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Computed:  true,
 			Sensitive: true,
 		},
-	}
-}
-
-func (k KubernetesClusterV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-		log.Printf("[DEBUG] Migrating ID to correct casing for Kubernetes Cluster")
-		rawId := rawState["id"].(string)
-
-		id, err := parse.ClusterID(rawId)
-		if err != nil {
-			return nil, err
-		}
-
-		rawState["id"] = id.ID()
-		return rawState, nil
 	}
 }
