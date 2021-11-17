@@ -248,6 +248,8 @@ A `os_disk` block supports the following:
 
 -> **NOTE:** The Disk Encryption Set must have the `Reader` Role Assignment scoped on the Key Vault - in addition to an Access Policy to the Key Vault
 
+-> **NOTE:** Encryption type of the key will be decided by the disk encryption set. [More info on encryption type](https://docs.microsoft.com/en-us/azure/virtual-machines/disk-encryption)
+
 * `disk_size_gb` - (Optional) The Size of the Internal OS Disk in GB, if you wish to vary from the size used in the image this Virtual Machine is sourced from.
 
 -> **NOTE:** If specified this must be equal to or larger than the size of the Image the Virtual Machine is based on. When creating a larger disk than exists in the image you'll need to repartition the disk to use the remaining space.
