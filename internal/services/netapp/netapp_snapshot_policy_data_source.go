@@ -40,7 +40,7 @@ func dataSourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 
 			"enabled": {
 				Type:     pluginsdk.TypeBool,
-				Required: true,
+				Optional: true,
 			},
 
 			"hourly_schedule": {
@@ -184,6 +184,7 @@ func dataSourceNetAppSnapshotPolicyRead(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if props := resp.SnapshotPolicyProperties; props != nil {
+		//d.Set("enabled", props.Enabled == to.BoolPtr(true))
 		d.Set("enabled", props.Enabled)
 		if err := d.Set("hourly_schedule", flattenNetAppVolumeSnapshotPolicyHourlySchedule(props.HourlySchedule)); err != nil {
 			return fmt.Errorf("setting `hourly_schedule`: %+v", err)
