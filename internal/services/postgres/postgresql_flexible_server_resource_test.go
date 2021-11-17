@@ -340,7 +340,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
 
   high_availability {
     mode                      = "ZoneRedundant"
-    standby_availability_zone = "1"
+    standby_availability_zone = "2"
   }
 
   maintenance_window {
@@ -411,6 +411,11 @@ resource "azurerm_postgresql_flexible_server" "test" {
   private_dns_zone_id    = azurerm_private_dns_zone.test.id
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
+
+  high_availability {
+    mode                      = "ZoneRedundant"
+    standby_availability_zone = "1"
+  }
 
   maintenance_window {
     day_of_week  = 0
