@@ -136,7 +136,7 @@ The following attributes are exported:
   
 * `location` - Specifies the supported Azure location where the resource exists.
 
-* `account_name` - (Required) The name of the NetApp Account in which the NetApp Snapshot Policy was created.
+* `account_name` - The name of the NetApp Account in which the NetApp Snapshot Policy was created.
 
 * `enabled` - Defines that the NetApp Snapshot Policy is enabled or not.
 
