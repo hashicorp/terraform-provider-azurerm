@@ -45,6 +45,28 @@ func TestAccPurviewAccount_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccPurviewAccount_withManagedResourceGroupName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
+	r := PurviewAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withManagedResourceGroupName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withManagedResourceGroupNameUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r PurviewAccountResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AccountID(state.ID)
 	if err != nil {
@@ -99,4 +121,32 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r PurviewAccountResource) withManagedResourceGroupName(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_purview_account" "test" {
+  name                        = "acctestsw%d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  managed_resource_group_name = "acctestRG-purview-managed-%d"
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PurviewAccountResource) withManagedResourceGroupNameUpdated(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_purview_account" "test" {
+  name                        = "acctestsw%d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  managed_resource_group_name = "acctestRG-purview-managed2-%d"
+}
+`, template, data.RandomInteger, data.RandomInteger)
 }

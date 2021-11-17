@@ -39,6 +39,10 @@ The following arguments are supported:
 
 * `public_network_enabled` - (Optional) Should the Purview Account be visible to the public network? Defaults to `true`.
 
+* `managed_resource_group_name` - (Optional) The name of the Resource Group where Purview Account creates the managed resources.
+
+~> **Note**: `managed_resource_group_name` must be a new Resource Group
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Purview Account.
 
 ## Attributes Reference
