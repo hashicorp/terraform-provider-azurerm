@@ -37,13 +37,13 @@ func TestAccResourceProviderRegistration_requiresImport(t *testing.T) {
 	r := ResourceProviderRegistrationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic("Wandisco.Fusion"),
+			Config: r.basic("Microsoft.Marketplace"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.RequiresImportErrorStep(func(data acceptance.TestData) string {
-			return r.requiresImport("Wandisco.Fusion")
+			return r.requiresImport("Microsoft.Marketplace")
 		}),
 	})
 }
