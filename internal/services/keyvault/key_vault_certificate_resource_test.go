@@ -27,6 +27,7 @@ func TestAccKeyVaultCertificate_basicImportPFX(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
 				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
+				check.That(data.ResourceName).Key("certificate_policy.0.secret_properties.0.content_type").HasValue("application/x-pkcs12"),
 			),
 		},
 		data.ImportStep("certificate"),
@@ -389,23 +390,6 @@ resource "azurerm_key_vault_certificate" "test" {
     contents = filebase64("testdata/keyvaultcert.pfx")
     password = ""
   }
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      exportable = true
-      key_size   = 2048
-      key_type   = "RSA"
-      reuse_key  = false
-    }
-
-    secret_properties {
-      content_type = "application/x-pkcs12"
-    }
-  }
 }
 `, r.template(data), data.RandomString)
 }
@@ -425,24 +409,6 @@ resource "azurerm_key_vault_certificate" "test" {
   certificate {
     contents = filebase64("testdata/ecdsa.pem")
     password = ""
-  }
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      curve      = "P-256"
-      exportable = true
-      key_size   = 256
-      key_type   = "EC"
-      reuse_key  = false
-    }
-
-    secret_properties {
-      content_type = "application/x-pem-file"
-    }
   }
 }
 `, r.template(data), data.RandomString)
@@ -464,24 +430,6 @@ resource "azurerm_key_vault_certificate" "test" {
     contents = filebase64("testdata/ecdsa.pfx")
     password = ""
   }
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      curve      = "P-256"
-      exportable = true
-      key_size   = 256
-      key_type   = "EC"
-      reuse_key  = false
-    }
-
-    secret_properties {
-      content_type = "application/x-pkcs12"
-    }
-  }
 }
 `, r.template(data), data.RandomString)
 }
@@ -501,23 +449,6 @@ resource "azurerm_key_vault_certificate" "test" {
   certificate {
     contents = filebase64("testdata/rsa_bundle.pfx")
     password = ""
-  }
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      exportable = true
-      key_size   = 2048
-      key_type   = "RSA"
-      reuse_key  = false
-    }
-
-    secret_properties {
-      content_type = "application/x-pkcs12"
-    }
   }
 }
 `, r.template(data), data.RandomString)
@@ -539,23 +470,6 @@ resource "azurerm_key_vault_certificate" "test" {
     contents = filebase64("testdata/rsa_single.pem")
     password = ""
   }
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      exportable = true
-      key_size   = 4096
-      key_type   = "RSA"
-      reuse_key  = false
-    }
-
-    secret_properties {
-      content_type = "application/x-pem-file"
-    }
-  }
 }
 `, r.template(data), data.RandomString)
 }
@@ -576,23 +490,6 @@ resource "azurerm_key_vault_certificate" "test" {
     contents = filebase64("testdata/rsa_bundle.pem")
     password = ""
   }
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      exportable = true
-      key_size   = 4096
-      key_type   = "RSA"
-      reuse_key  = false
-    }
-
-    secret_properties {
-      content_type = "application/x-pem-file"
-    }
-  }
 }
 `, r.template(data), data.RandomString)
 }
@@ -608,23 +505,6 @@ resource "azurerm_key_vault_certificate" "import" {
   certificate {
     contents = filebase64("testdata/keyvaultcert.pfx")
     password = ""
-  }
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      exportable = true
-      key_size   = 2048
-      key_type   = "RSA"
-      reuse_key  = false
-    }
-
-    secret_properties {
-      content_type = "application/x-pkcs12"
-    }
   }
 }
 `, r.basicImportPFX(data))

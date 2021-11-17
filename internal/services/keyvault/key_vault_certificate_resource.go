@@ -62,6 +62,10 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
+				AtLeastOneOf: []string{
+					"certificate_policy",
+					"certificate",
+				},
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -84,8 +88,13 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 
 			"certificate_policy": {
 				Type:     pluginsdk.TypeList,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				ForceNew: true,
+				AtLeastOneOf: []string{
+					"certificate_policy",
+					"certificate",
+				},
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -693,6 +702,10 @@ func (d deleteAndPurgeCertificate) NestedItemHasBeenPurged(ctx context.Context) 
 
 func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.CertificatePolicy, error) {
 	policies := d.Get("certificate_policy").([]interface{})
+	if len(policies) == 0 || policies[0] == nil {
+		return nil, nil
+	}
+
 	policyRaw := policies[0].(map[string]interface{})
 	policy := keyvault.CertificatePolicy{}
 
