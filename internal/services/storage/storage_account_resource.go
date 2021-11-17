@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/shim"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -24,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/shim"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -1756,7 +1756,6 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("building Queues Client: %s", err)
 			}
 			queueClient := shim.NewDataPlaneStorageQueueWrapper(queuesDataPlaneClient).(shim.DataPlaneStorageQueueWrapper)
-
 
 			queueProps, err := queueClient.GetServiceProperties(ctx, account.ResourceGroup, storageAccountName)
 			if err != nil {
