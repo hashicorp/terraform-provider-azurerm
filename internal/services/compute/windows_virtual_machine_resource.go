@@ -1126,12 +1126,17 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			diskName := d.Get("os_disk.0.name").(string)
 			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %q..", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
 
+			encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
+			if err != nil {
+				return fmt.Errorf("retrieving encryption type from disk encryption set %q: %+v", diskEncryptionSetId, err)
+			}
+
 			disksClient := meta.(*clients.Client).Compute.DisksClient
 
 			update := compute.DiskUpdate{
 				DiskUpdateProperties: &compute.DiskUpdateProperties{
 					Encryption: &compute.Encryption{
-						Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
+						Type:                compute.EncryptionType(*encryptionType),
 						DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 					},
 				},

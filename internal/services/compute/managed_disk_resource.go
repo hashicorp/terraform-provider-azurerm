@@ -167,7 +167,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
 				//       https://github.com/Azure/azure-rest-api-specs/issues/8132
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     azure.ValidateResourceID,
+				ValidateFunc:     validate.DiskEncryptionSetID,
 			},
 
 			"encryption_settings": encryptionSettingsSchema(),
@@ -344,19 +344,13 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
-		diskEncryptionSet, err := parse.DiskEncryptionSetID(diskEncryptionSetId)
+		encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
 		if err != nil {
-			return fmt.Errorf("`disk_encryption_set_id` is not a valid disk encryption set id")
-		}
-
-		diskEncryptionSetClient := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
-		resp, err := diskEncryptionSetClient.Get(ctx, diskEncryptionSet.ResourceGroup, diskEncryptionSet.Name)
-		if err != nil {
-			return fmt.Errorf("reading Disk Encryption Set %q (Resource Group %q): %+v", diskEncryptionSet.Name, diskEncryptionSet.ResourceGroup, err)
+			return fmt.Errorf("retrieving encryption type from disk encryption set %q: %+v", diskEncryptionSetId, err)
 		}
 
 		props.Encryption = &compute.Encryption{
-			Type:                compute.EncryptionType(resp.EncryptionType),
+			Type:                compute.EncryptionType(*encryptionType),
 			DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 		}
 	}
@@ -548,19 +542,13 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if d.HasChange("disk_encryption_set_id") {
 		shouldShutDown = true
 		if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
-			diskEncryptionSet, err := parse.DiskEncryptionSetID(diskEncryptionSetId)
+			encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
 			if err != nil {
-				return fmt.Errorf("`disk_encryption_set_id` is not a valid disk encryption set id")
-			}
-
-			diskEncryptionSetClient := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
-			resp, err := diskEncryptionSetClient.Get(ctx, diskEncryptionSet.ResourceGroup, diskEncryptionSet.Name)
-			if err != nil {
-				return fmt.Errorf("reading Disk Encryption Set %q (Resource Group %q): %+v", diskEncryptionSet.Name, diskEncryptionSet.ResourceGroup, err)
+				return fmt.Errorf("retrieving encryption type from disk encryption set %q: %+v", diskEncryptionSetId, err)
 			}
 
 			diskUpdate.Encryption = &compute.Encryption{
-				Type:                compute.EncryptionType(resp.EncryptionType),
+				Type:                compute.EncryptionType(*encryptionType),
 				DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 			}
 		} else {
