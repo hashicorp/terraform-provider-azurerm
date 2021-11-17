@@ -556,7 +556,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				"use_32_bit_worker": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Default:     false,
+					Default:     true,
 					Description: "Should the Windows Web App use a 32-bit worker.",
 				},
 
@@ -912,7 +912,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"7.0",
+						"7",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
