@@ -58,7 +58,7 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "example" {
   node_count                     = 3
   disk_count                     = 4
   sku_name                       = "Standard_DS14_v2"
-  availability_zones             = false
+  availability_zones_enabled     = false
 }
 ```
 
@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `disk_count` - (Optional) Determines the number of p30 disks that are attached to each node. Defaults to 4.
 
-* `availability_zones` - (Optional) Determines whether availability zones are enabled. Defaults to true.
+* `availability_zones_enabled` - (Optional) Determines whether availability zones are enabled. Defaults to true.
 
 ## Attributes Reference
 

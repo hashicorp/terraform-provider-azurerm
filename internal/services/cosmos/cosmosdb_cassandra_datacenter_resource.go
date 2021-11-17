@@ -81,7 +81,7 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(1, 10),
 			},
-			"availability_zones": {
+			"availability_zones_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
@@ -113,7 +113,7 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 			DelegatedSubnetID:  utils.String(d.Get("delegated_management_subnet_id").(string)),
 			NodeCount:          utils.Int32(int32(d.Get("node_count").(int))),
 			Sku:                utils.String(d.Get("sku_name").(string)),
-			AvailabilityZone:   utils.Bool(d.Get("availability_zones").(bool)),
+			AvailabilityZone:   utils.Bool(d.Get("availability_zones_enabled").(bool)),
 			DiskCapacity:       utils.Int32(int32(d.Get("disk_count").(int))),
 			DataCenterLocation: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		},
@@ -163,7 +163,7 @@ func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("node_count", props.NodeCount)
 			d.Set("disk_count", int(*props.DiskCapacity))
 			d.Set("sku_name", props.Sku)
-			d.Set("availability_zones", props.AvailabilityZone)
+			d.Set("availability_zones_enabled", props.AvailabilityZone)
 		}
 	}
 	return nil
