@@ -4,13 +4,7 @@ FEATURES:
 
 * **New Beta Resource:** `azurerm_linux_function_app` [GH-13806]
 
-ENHANCEMENT:
-
-* `azurerm_key_vault_certificate` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
-* `azurerm_key_vault_key` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
-* `azurerm_key_vault_secret` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
-
-IMPROVEMENTS:
+ENHANCEMENTS:
 
 * compute: updating to use API Version `2021-07-01` [GH-14174]
 * databricks: updating the embedded SDK to use the new Resource ID Parsers [GH-14157]
@@ -21,9 +15,13 @@ IMPROVEMENTS:
 * signalr: updating the embedded SDK to use the new Resource ID Parsers [GH-14150]
 * storage: updating to use API Version `2021-04-01` [GH-14083]
 * videoanalyzer: updating the embedded SDK to use the new Resource ID Parsers [GH-14135]
-* `azurerm_orchestrated_virtual_machine_scale_set` - added support for VMSS Flex public preview [GH-14003]
-* `azurerm_machine_learning_workspace` - support for the `encryption` block [GH-14120]
+* `azurerm_key_vault_certificate` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
+* `azurerm_key_vault_key` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
+* `azurerm_key_vault_secret` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
 * `azurerm_linux_web_app` - (Beta) add support for `health_check_eviction_time_in_mins` and `vnet_route_all_enabled` [GH-14202]
+* `azurerm_machine_learning_workspace` - support for the `encryption` block [GH-14120]
+* `azurerm_orchestrated_virtual_machine_scale_set` - added support for VMSS Flex public preview [GH-14003]
+* `azurerm_resource_provider_registration` - support for managing `features` [GH-12385]
 * `azurerm_windows_virtual_machine` - support for configuring `secure_boot_enabled` [GH-13713]
 * `azurerm_windows_virtual_machine` - support for configuring `vtpm_enabled` [GH-13713]
 * `azurerm_windows_virtual_machine_scale_set` - support for configuring `secure_boot_enabled` [GH-13713]
