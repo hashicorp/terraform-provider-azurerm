@@ -3,6 +3,7 @@ package appservice_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -876,7 +877,7 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_windows_function_app" "test" {
-  name                = "acctest-FA-%[2]d"
+  name                = "acctest-WFA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1033,7 +1034,7 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_windows_function_app" "test" {
-  name                = "acctest-FA-%[2]d"
+  name                = "acctest-WFA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1190,8 +1191,16 @@ provider "azurerm" {
 
 %s
 
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
+
 resource "azurerm_windows_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-WFA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1220,7 +1229,6 @@ resource "azurerm_windows_function_app" "test" {
   }
 
   site_config {
-    always_on                              = true
     app_command_line                       = "whoami"
     api_definition_url                     = "https://example.com/azure_function_app_def.json"
     application_insights_key               = azurerm_application_insights.test.instrumentation_key
@@ -1303,7 +1311,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_windows_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-WFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1351,7 +1359,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_windows_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-WFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1375,7 +1383,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_windows_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-WFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1403,7 +1411,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_windows_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-WFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1430,7 +1438,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_windows_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-WFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1464,7 +1472,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_windows_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-WFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1488,7 +1496,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_windows_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-WFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1512,7 +1520,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_windows_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-WFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1537,7 +1545,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_windows_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-WFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1708,6 +1716,10 @@ resource "azurerm_linux_function_app" "test" {
 // Config Templates
 
 func (WindowsFunctionAppResource) template(data acceptance.TestData, planSku string) string {
+	var additionalConfig string
+	if strings.EqualFold(planSku, "EP1") {
+		additionalConfig = "maximum_elastic_worker_count = 5"
+	}
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-LFA-%d"
@@ -1728,8 +1740,9 @@ resource "azurerm_service_plan" "test" {
   resource_group_name = azurerm_resource_group.test.name
   os_type             = "Windows"
   sku_name            = "%s"
+  %s
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, planSku)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, planSku, additionalConfig)
 }
 
 func (r WindowsFunctionAppResource) storageContainerTemplate(data acceptance.TestData, planSku string) string {
