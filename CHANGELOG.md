@@ -4,6 +4,11 @@ FEATURES:
 
 * **New Beta Resource:** `azurerm_linux_function_app` [GH-13806]
 
+ENHANCEMENT:
+
+* `azurerm_key_vault_certificate` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
+* `azurerm_key_vault_key` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
+* `azurerm_key_vault_secret` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
 
 IMPROVEMENTS:
 
