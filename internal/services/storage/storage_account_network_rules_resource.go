@@ -232,27 +232,24 @@ func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.StorageAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	storageAccountName := id.Path["storageAccounts"]
-
-	storageAccount, err := client.GetProperties(ctx, resourceGroup, storageAccountName, "")
+	storageAccount, err := client.GetProperties(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(storageAccount.Response) {
 			log.Printf("[INFO] Storage Account Network Rules %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Storage Account Network Rules %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
+		return fmt.Errorf("reading Storage Account Network Rules %s : %+v", *id, err)
 	}
 
 	d.Set("storage_account_id", d.Id())
-	d.Set("storage_account_name", storageAccountName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("storage_account_name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if rules := storageAccount.NetworkRuleSet; rules != nil {
 		if err := d.Set("ip_rules", pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountIPRules(rules.IPRules))); err != nil {
@@ -278,24 +275,21 @@ func resourceStorageAccountNetworkRulesDelete(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	parsedStorageAccountNetworkRuleId, err := azure.ParseAzureResourceID(d.Id())
+	parsedStorageAccountNetworkRuleId, err := parse.StorageAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := parsedStorageAccountNetworkRuleId.ResourceGroup
-	storageAccountName := parsedStorageAccountNetworkRuleId.Path["storageAccounts"]
+	locks.ByName(parsedStorageAccountNetworkRuleId.Name, storageAccountResourceName)
+	defer locks.UnlockByName(parsedStorageAccountNetworkRuleId.Name, storageAccountResourceName)
 
-	locks.ByName(storageAccountName, storageAccountResourceName)
-	defer locks.UnlockByName(storageAccountName, storageAccountResourceName)
-
-	storageAccount, err := client.GetProperties(ctx, resourceGroup, storageAccountName, "")
+	storageAccount, err := client.GetProperties(ctx, parsedStorageAccountNetworkRuleId.ResourceGroup, parsedStorageAccountNetworkRuleId.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(storageAccount.Response) {
-			return fmt.Errorf("Storage Account %q (Resource Group %q) was not found", storageAccountName, resourceGroup)
+			return fmt.Errorf("%s was not found", *parsedStorageAccountNetworkRuleId)
 		}
 
-		return fmt.Errorf("loading Storage Account %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
+		return fmt.Errorf("loading %s: %+v", *parsedStorageAccountNetworkRuleId, err)
 	}
 
 	if storageAccount.NetworkRuleSet == nil {
@@ -312,8 +306,8 @@ func resourceStorageAccountNetworkRulesDelete(d *pluginsdk.ResourceData, meta in
 		},
 	}
 
-	if _, err := client.Update(ctx, resourceGroup, storageAccountName, opts); err != nil {
-		return fmt.Errorf("deleting Azure Storage Account Network Rule %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
+	if _, err := client.Update(ctx, parsedStorageAccountNetworkRuleId.ResourceGroup, parsedStorageAccountNetworkRuleId.Name, opts); err != nil {
+		return fmt.Errorf("deleting Azure %s: %+v", *parsedStorageAccountNetworkRuleId, err)
 	}
 
 	return nil
