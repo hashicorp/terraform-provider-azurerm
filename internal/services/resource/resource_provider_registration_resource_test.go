@@ -132,13 +132,13 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_provider_registration" "test" {
-  name = "Microsoft.IoTCentral"
+  name = "Microsoft.HybridCompute"
   feature {
-    name       = "metering"
+    name       = "UpdateCenter"
     registered = %t
   }
   feature {
-    name       = "scootaloo"
+    name       = "ArcServerPrivateLinkPreview"
     registered = %t
   }
 }
