@@ -375,7 +375,7 @@ func TestAccLinuxFunctionApp_withConnectionStrings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.builtInLogging(data, SkuStandardPlan, true),
+			Config: r.connectionStrings(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -765,6 +765,22 @@ func TestAccLinuxFunctionApp_appStackDockerManagedServiceIdentity(t *testing.T) 
 	})
 }
 
+func TestAccLinuxFunctionApp_appStackPowerShellCore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackPowerShellCore(data, SkuBasicPlan, "7"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // Others
 
 func TestAccLinuxFunctionApp_updateServicePlan(t *testing.T) {
@@ -870,7 +886,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -892,7 +908,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -916,7 +932,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -941,7 +957,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -968,7 +984,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -992,7 +1008,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1019,7 +1035,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1047,7 +1063,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1071,7 +1087,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1119,7 +1135,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1153,7 +1169,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1180,7 +1196,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1206,7 +1222,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1232,7 +1248,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1258,7 +1274,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1284,7 +1300,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1314,7 +1330,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1342,6 +1358,32 @@ resource "azurerm_linux_function_app" "test" {
 `, r.identityTemplate(data, planSku), data.RandomInteger)
 }
 
+func (r LinuxFunctionAppResource) appStackPowerShellCore(data acceptance.TestData, planSku string, version string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    application_stack {
+      powershell_core_version = "%s"
+    }
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, version)
+}
+
 func (r LinuxFunctionAppResource) backup(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1351,7 +1393,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1396,7 +1438,7 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%[2]d"
+  name                = "acctest-LFA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1556,7 +1598,7 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%[2]d"
+  name                = "acctest-LFA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1717,7 +1759,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1833,7 +1875,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.update.id
@@ -1857,7 +1899,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1873,7 +1915,7 @@ resource "azurerm_linux_function_app" "test" {
 func (LinuxFunctionAppResource) template(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-LFA-%d"
   location = "%s"
 }
 
@@ -1898,7 +1940,7 @@ resource "azurerm_service_plan" "test" {
 func (LinuxFunctionAppResource) templateExtraStorageAccount(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-LFA-%[1]d"
   location = "%[2]s"
 }
 
