@@ -175,7 +175,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 		f.Schema["purge_soft_deleted_keys_on_destroy"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default: true,
+			Default:  true,
 		}
 
 		// TODO: Add this to 3.0 Upgrade guide
@@ -191,7 +191,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 		f.Schema["purge_soft_deleted_certificates_on_destroy"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default: true,
+			Default:  true,
 		}
 
 		// TODO: Add this to 3.0 Upgrade guide
@@ -207,7 +207,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 		f.Schema["purge_soft_deleted_secrets_on_destroy"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default: true,
+			Default:  true,
 		}
 	}
 
