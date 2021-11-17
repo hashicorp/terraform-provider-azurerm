@@ -9,7 +9,7 @@ on:
       - '.github/workflows/**'
 
 concurrency:
-  group: '${{ github.head_ref }}'
+  group: 'tflint-${{ github.head_ref }}'
   cancel-in-progress: true
 
 jobs:

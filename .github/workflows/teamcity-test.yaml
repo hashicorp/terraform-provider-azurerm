@@ -10,7 +10,7 @@ on:
       - '.github/workflows/**'
 
 concurrency:
-  group: '${{ github.head_ref }}'
+  group: 'tctest-${{ github.head_ref }}'
   cancel-in-progress: true
 
 jobs:
