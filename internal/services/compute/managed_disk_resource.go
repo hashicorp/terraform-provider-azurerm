@@ -344,8 +344,19 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
+		diskEncryptionSet, err := parse.DiskEncryptionSetID(diskEncryptionSetId)
+		if err != nil {
+			return fmt.Errorf("`disk_encryption_set_id` is not a valid disk encryption set id")
+		}
+
+		diskEncryptionSetClient := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
+		resp, err := diskEncryptionSetClient.Get(ctx, diskEncryptionSet.ResourceGroup, diskEncryptionSet.Name)
+		if err != nil {
+			return fmt.Errorf("reading Disk Encryption Set %q (Resource Group %q): %+v", diskEncryptionSet.Name, diskEncryptionSet.ResourceGroup, err)
+		}
+
 		props.Encryption = &compute.Encryption{
-			Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
+			Type:                compute.EncryptionType(resp.EncryptionType),
 			DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 		}
 	}
@@ -537,8 +548,19 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if d.HasChange("disk_encryption_set_id") {
 		shouldShutDown = true
 		if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
+			diskEncryptionSet, err := parse.DiskEncryptionSetID(diskEncryptionSetId)
+			if err != nil {
+				return fmt.Errorf("`disk_encryption_set_id` is not a valid disk encryption set id")
+			}
+
+			diskEncryptionSetClient := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
+			resp, err := diskEncryptionSetClient.Get(ctx, diskEncryptionSet.ResourceGroup, diskEncryptionSet.Name)
+			if err != nil {
+				return fmt.Errorf("reading Disk Encryption Set %q (Resource Group %q): %+v", diskEncryptionSet.Name, diskEncryptionSet.ResourceGroup, err)
+			}
+
 			diskUpdate.Encryption = &compute.Encryption{
-				Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
+				Type:                compute.EncryptionType(resp.EncryptionType),
 				DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 			}
 		} else {

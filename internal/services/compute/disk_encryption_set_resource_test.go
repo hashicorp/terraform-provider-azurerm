@@ -104,6 +104,30 @@ func TestAccDiskEncryptionSet_keyRotate(t *testing.T) {
 	})
 }
 
+func TestAccDiskEncryptionSet_withEncryptionType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
+	r := DiskEncryptionSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withEncryptionTypeDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("encryption_type").HasValue("EncryptionAtRestWithCustomerKey"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withEncryptionTypeUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("encryption_type").HasValue("EncryptionAtRestWithPlatformAndCustomerKeys"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (DiskEncryptionSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DiskEncryptionSetID(state.ID)
 	if err != nil {
@@ -285,6 +309,41 @@ resource "azurerm_disk_encryption_set" "test" {
   location                  = azurerm_resource_group.test.location
   key_vault_key_id          = azurerm_key_vault_key.new.id
   auto_key_rotation_enabled = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, r.dependencies(data), data.RandomInteger)
+}
+
+func (r DiskEncryptionSetResource) withEncryptionTypeDefault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_disk_encryption_set" "test" {
+  name                = "acctestDES-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  key_vault_key_id    = azurerm_key_vault_key.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, r.dependencies(data), data.RandomInteger)
+}
+
+func (r DiskEncryptionSetResource) withEncryptionTypeUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_disk_encryption_set" "test" {
+  name                = "acctestDES-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  key_vault_key_id    = azurerm_key_vault_key.test.id
+  encryption_type     = "EncryptionAtRestWithPlatformAndCustomerKeys"
 
   identity {
     type = "SystemAssigned"
