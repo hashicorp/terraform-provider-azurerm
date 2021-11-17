@@ -15,7 +15,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type StorageContainerResource struct{}
+type StorageContainerResource struct {
+	useResourceManager bool
+}
 
 func TestAccStorageContainer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
@@ -177,6 +179,133 @@ func TestAccStorageContainer_web(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("$web"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageContainer_mgmtBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{useResourceManager: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageContainer_mgmtUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{useResourceManager: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.update(data, "private"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container_access_type").HasValue("private"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data, "container"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container_access_type").HasValue("container"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageContainer_mgmtMetaData(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{useResourceManager: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.metaData(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.metaDataUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.metaDataEmpty(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+// TODO: The mgmt plane API is forbidden to destroy a root container.
+// See: https://github.com/Azure/azure-rest-api-specs/issues/16783
+//func TestAccStorageContainer_mgmtRoot(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+//	r := StorageContainerResource{useResourceManager: true}
+//
+//	data.ResourceTest(t, r, []acceptance.TestStep{
+//		{
+//			Config: r.root(data),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//				check.That(data.ResourceName).Key("name").HasValue("$root"),
+//			),
+//		},
+//		data.ImportStep(),
+//	})
+//}
+
+func TestAccStorageContainer_mgmtWeb(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{useResourceManager: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.web(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue("$web"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageContainer_crossPlaneUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.update(data, "private"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			PreConfig: func() {
+				r.useResourceManager = true
+			},
+			Config: r.update(data, "container"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -379,7 +508,11 @@ resource "azurerm_storage_container" "test" {
 func (r StorageContainerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    storage {
+      use_resource_manager = %t
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -399,7 +532,7 @@ resource "azurerm_storage_account" "test" {
     environment = "staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.useResourceManager, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func TestValidateStorageContainerName(t *testing.T) {

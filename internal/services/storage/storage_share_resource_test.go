@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type StorageShareResource struct{}
+type StorageShareResource struct {
+	useResourceManager bool
+}
 
 func TestAccStorageShare_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
@@ -192,6 +194,189 @@ func TestAccStorageShare_nfsProtocol(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.nfsProtocol(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageShare_mgmtBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{useResourceManager: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageShare_mgmtMetaData(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{useResourceManager: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.metaData(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.metaDataUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+// TODO: uncomment following two test cases after https://github.com/Azure/azure-rest-api-specs/issues/16782 is addressed.
+//func TestAccStorageShare_mgmtAcl(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+//	r := StorageShareResource{useResourceManager: true}
+//
+//	data.ResourceTest(t, r, []acceptance.TestStep{
+//		{
+//			Config: r.acl(data),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//			),
+//		},
+//		data.ImportStep(),
+//		{
+//			Config: r.aclUpdated(data),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//			),
+//		},
+//		data.ImportStep(),
+//	})
+//}
+//
+//func TestAccStorageShare_mgmtAclGhostedRecall(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+//	r := StorageShareResource{useResourceManager: true}
+//
+//	data.ResourceTest(t, r, []acceptance.TestStep{
+//		{
+//			Config: r.aclGhostedRecall(data),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//			),
+//		},
+//		data.ImportStep(),
+//	})
+//}
+
+func TestAccStorageShare_mgmtUpdateQuota(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{useResourceManager: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.updateQuota(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("quota").HasValue("5"),
+			),
+		},
+	})
+}
+
+func TestAccStorageShare_mgmtLargeQuota(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{useResourceManager: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.largeQuota(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.largeQuotaUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageShare_mgmtNfsProtocol(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{useResourceManager: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nfsProtocol(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageShare_crossPlaneMetaData(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.metaData(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			PreConfig: func() {
+				r.useResourceManager = true
+			},
+			Config: r.metaDataUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageShare_crossPlaneAcl(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.acl(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			PreConfig: func() {
+				r.useResourceManager = true
+			},
+			Config: r.aclUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -395,7 +580,11 @@ resource "azurerm_storage_share" "test" {
 func (r StorageShareResource) largeQuota(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    storage {
+      use_resource_manager = %t
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -421,13 +610,17 @@ resource "azurerm_storage_share" "test" {
   storage_account_name = azurerm_storage_account.test.name
   quota                = 6000
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, r.useResourceManager, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func (r StorageShareResource) largeQuotaUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    storage {
+      use_resource_manager = %t
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -453,13 +646,17 @@ resource "azurerm_storage_share" "test" {
   storage_account_name = azurerm_storage_account.test.name
   quota                = 10000
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, r.useResourceManager, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func (r StorageShareResource) nfsProtocol(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    storage {
+      use_resource_manager = %t
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -481,13 +678,17 @@ resource "azurerm_storage_share" "test" {
   storage_account_name = azurerm_storage_account.test.name
   enabled_protocol     = "NFS"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, r.useResourceManager, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func (r StorageShareResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    storage {
+      use_resource_manager = %t
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -506,5 +707,5 @@ resource "azurerm_storage_account" "test" {
     environment = "staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.useResourceManager, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

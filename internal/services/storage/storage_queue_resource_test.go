@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type StorageQueueResource struct{}
+type StorageQueueResource struct {
+	useResourceManager bool
+}
 
 func TestAccStorageQueue_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
@@ -73,6 +75,68 @@ func TestAccStorageQueue_metaData(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.metaDataUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageQueue_mgmtBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
+	r := StorageQueueResource{useResourceManager: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageQueue_mgmtMetaData(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
+	r := StorageQueueResource{useResourceManager: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.metaData(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.metaDataUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageQueue_crossPlaneMetaData(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
+	r := StorageQueueResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.metaData(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			PreConfig: func() {
+				r.useResourceManager = true
+			},
 			Config: r.metaDataUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -196,7 +260,11 @@ resource "azurerm_storage_queue" "test" {
 func (r StorageQueueResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    storage {
+      use_resource_manager = %t
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -215,5 +283,5 @@ resource "azurerm_storage_account" "test" {
     environment = "staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.useResourceManager, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

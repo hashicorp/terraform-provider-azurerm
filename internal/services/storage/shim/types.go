@@ -18,6 +18,7 @@ func mapStringToMapStringPtr(input map[string]string) map[string]*string {
 	output := make(map[string]*string, len(input))
 
 	for k, v := range input {
+		v := v
 		output[k] = &v
 	}
 

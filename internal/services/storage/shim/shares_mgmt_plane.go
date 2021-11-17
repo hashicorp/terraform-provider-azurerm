@@ -78,11 +78,18 @@ func (w ResourceManagerStorageShareWrapper) Get(ctx context.Context, resourceGro
 		quotaGB = int(*quotaPtr)
 	}
 
+	// Currently, the service won't return the `enabledProtocols` in the GET response when set to `SMB`. See: https://github.com/Azure/azure-rest-api-specs/issues/16782.
+	// Once above issue being addressed, we can remove below code.
+	protocol := shares.SMB
+	if share.FileShareProperties.EnabledProtocols != "" {
+		protocol = shares.ShareProtocol(share.FileShareProperties.EnabledProtocols)
+	}
+
 	output := StorageShareProperties{
 		ACLs:            w.mapToACLs(share.FileShareProperties.SignedIdentifiers),
 		MetaData:        mapStringPtrToMapString(share.FileShareProperties.Metadata),
 		QuotaGB:         quotaGB,
-		EnabledProtocol: shares.ShareProtocol(share.FileShareProperties.EnabledProtocols),
+		EnabledProtocol: protocol,
 	}
 	return &output, nil
 }
