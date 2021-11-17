@@ -50,6 +50,9 @@ func TestExpandFeatures(t *testing.T) {
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: false,
 				},
+				Storage: features.StorageFeatures{
+					UseResourceManager: false,
+				},
 			},
 		},
 		{
@@ -106,6 +109,11 @@ func TestExpandFeatures(t *testing.T) {
 							"scale_to_zero_before_deletion": true,
 						},
 					},
+					"storage": []interface{}{
+						map[string]interface{}{
+							"use_resource_manager": true,
+						},
+					},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -140,6 +148,9 @@ func TestExpandFeatures(t *testing.T) {
 					RollInstancesWhenRequired: true,
 					ForceDelete:               true,
 					ScaleToZeroOnDelete:       true,
+				},
+				Storage: features.StorageFeatures{
+					UseResourceManager: true,
 				},
 			},
 		},
@@ -197,6 +208,11 @@ func TestExpandFeatures(t *testing.T) {
 							"scale_to_zero_before_deletion": false,
 						},
 					},
+					"storage": []interface{}{
+						map[string]interface{}{
+							"use_resource_manager": false,
+						},
+					},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -231,6 +247,9 @@ func TestExpandFeatures(t *testing.T) {
 					ForceDelete:               false,
 					RollInstancesWhenRequired: false,
 					ScaleToZeroOnDelete:       false,
+				},
+				Storage: features.StorageFeatures{
+					UseResourceManager: false,
 				},
 			},
 		},
@@ -932,6 +951,71 @@ func TestExpandFeaturesResourceGroup(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.ResourceGroup, testCase.Expected.ResourceGroup) {
 			t.Fatalf("Expected %+v but got %+v", result.ResourceGroup, testCase.Expected.ResourceGroup)
+		}
+	}
+}
+
+func TestExpandFeaturesStorage(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"use_resource_manager": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				Storage: features.StorageFeatures{
+					UseResourceManager: false,
+				},
+			},
+		},
+		{
+			Name: "Use Resource Manager Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"storage": []interface{}{
+						map[string]interface{}{
+							"use_resource_manager": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				Storage: features.StorageFeatures{
+					UseResourceManager: true,
+				},
+			},
+		},
+		{
+			Name: "Use Resource Manager Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"storage": []interface{}{
+						map[string]interface{}{
+							"use_resource_manager": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				Storage: features.StorageFeatures{
+					UseResourceManager: false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.Storage, testCase.Expected.Storage) {
+			t.Fatalf("Expected %+v but got %+v", result.Storage, testCase.Expected.Storage)
 		}
 	}
 }

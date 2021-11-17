@@ -157,6 +157,20 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
+
+		"storage": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"use_resource_manager": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+				},
+			},
+		},
 	}
 
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
@@ -293,6 +307,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			resourceGroupRaw := items[0].(map[string]interface{})
 			if v, ok := resourceGroupRaw["prevent_deletion_if_contains_resources"]; ok {
 				features.ResourceGroup.PreventDeletionIfContainsResources = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["storage"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			storageRaw := items[0].(map[string]interface{})
+			if v, ok := storageRaw["use_resource_manager"]; ok {
+				features.Storage.UseResourceManager = v.(bool)
 			}
 		}
 	}

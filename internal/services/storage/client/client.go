@@ -118,7 +118,7 @@ func NewClient(options *common.ClientOptions) *Client {
 
 		resourceManagerAuthorizer: options.ResourceManagerAuthorizer,
 
-		useResourceManager: false, // TODO: feature toggleable
+		useResourceManager: options.Features.Storage.UseResourceManager,
 	}
 
 	if options.StorageUseAzureAD {

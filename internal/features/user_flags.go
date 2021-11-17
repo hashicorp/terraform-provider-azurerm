@@ -10,6 +10,7 @@ type UserFeatures struct {
 	TemplateDeployment     TemplateDeploymentFeatures
 	LogAnalyticsWorkspace  LogAnalyticsWorkspaceFeatures
 	ResourceGroup          ResourceGroupFeatures
+	Storage                StorageFeatures
 }
 
 type CognitiveAccountFeatures struct {
@@ -51,4 +52,8 @@ type ResourceGroupFeatures struct {
 
 type ApiManagementFeatures struct {
 	PurgeSoftDeleteOnDestroy bool
+}
+
+type StorageFeatures struct {
+	UseResourceManager bool
 }
