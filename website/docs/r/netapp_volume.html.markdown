@@ -87,7 +87,7 @@ resource "azurerm_netapp_volume" "example" {
   }
 
   # Enabling Snapshot Policy for the volume
-  # Note: this cannot be used in conjunction with data_protection_replication when endpoint_type is `dst`
+  # Note: this cannot be used in conjunction with data_protection_replication when endpoint_type is dst
   data_protection_snapshot_policy {
     snapshot_policy_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1/snapshotPolicies/snapshotpolicy1"
   }
