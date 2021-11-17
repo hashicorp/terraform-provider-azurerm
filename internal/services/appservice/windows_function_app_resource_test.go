@@ -943,9 +943,6 @@ resource "azurerm_windows_function_app" "test" {
     application_insights_key               = azurerm_application_insights.test.instrumentation_key
     application_insights_connection_string = azurerm_application_insights.test.connection_string
 
-    container_registry_use_managed_identity       = true
-    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
-
     default_documents = [
       "first.html",
       "second.jsp",
@@ -1116,9 +1113,6 @@ resource "azurerm_windows_function_app" "test" {
       powershell_core_version = "7"
     }
 
-    container_registry_use_managed_identity       = true
-    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
-
     default_documents = [
       "first.html",
       "second.jsp",
@@ -1235,9 +1229,6 @@ resource "azurerm_windows_function_app" "test" {
     application_stack {
       powershell_core_version = "7"
     }
-
-    container_registry_use_managed_identity       = true
-    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
 
     default_documents = [
       "first.html",
