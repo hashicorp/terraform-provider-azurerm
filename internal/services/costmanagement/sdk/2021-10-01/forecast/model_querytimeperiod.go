@@ -1,0 +1,30 @@
+package forecast
+
+import (
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/dates"
+)
+
+type QueryTimePeriod struct {
+	From string `json:"from"`
+	To   string `json:"to"`
+}
+
+func (o QueryTimePeriod) GetFromAsTime() (*time.Time, error) {
+	return dates.ParseAsFormat(&o.From, "2006-01-02T15:04:05Z07:00")
+}
+
+func (o QueryTimePeriod) SetFromAsTime(input time.Time) {
+	formatted := input.Format("2006-01-02T15:04:05Z07:00")
+	o.From = formatted
+}
+
+func (o QueryTimePeriod) GetToAsTime() (*time.Time, error) {
+	return dates.ParseAsFormat(&o.To, "2006-01-02T15:04:05Z07:00")
+}
+
+func (o QueryTimePeriod) SetToAsTime(input time.Time) {
+	formatted := input.Format("2006-01-02T15:04:05Z07:00")
+	o.To = formatted
+}
