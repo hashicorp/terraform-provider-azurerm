@@ -23,8 +23,12 @@ IMPROVEMENTS:
 * videoanalyzer: updating the embedded SDK to use the new Resource ID Parsers [GH-14135]
 * `azurerm_orchestrated_virtual_machine_scale_set` - added support for VMSS Flex public preview [GH-14003]
 * `azurerm_machine_learning_workspace` - support for the `encryption` block [GH-14120]
-* `azurerm_windows_web_app` - (Beta) add support for `health_check_eviction_time_in_mins` and `vnet_route_all_enabled` [GH-14202]
 * `azurerm_linux_web_app` - (Beta) add support for `health_check_eviction_time_in_mins` and `vnet_route_all_enabled` [GH-14202]
+* `azurerm_windows_virtual_machine` - support for configuring `secure_boot_enabled` [GH-13713]
+* `azurerm_windows_virtual_machine` - support for configuring `vtpm_enabled` [GH-13713]
+* `azurerm_windows_virtual_machine_scale_set` - support for configuring `secure_boot_enabled` [GH-13713]
+* `azurerm_windows_virtual_machine_scale_set` - support for configuring `vtpm_enabled` [GH-13713]
+* `azurerm_windows_web_app` - (Beta) add support for `health_check_eviction_time_in_mins` and `vnet_route_all_enabled` [GH-14202]
 
 BUG FIXES: 
 
