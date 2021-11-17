@@ -343,8 +343,6 @@ type SiteConfigWindowsFunctionApp struct {
 	AppInsightsConnectionString   string                               `tfschema:"application_insights_connection_string"`
 	AppScaleLimit                 int                                  `tfschema:"app_scale_limit"`
 	AppServiceLogs                []FunctionAppAppServiceLogs          `tfschema:"app_service_logs"`
-	UseManagedIdentityACR         bool                                 `tfschema:"container_registry_use_managed_identity"`
-	ContainerRegistryMSI          string                               `tfschema:"container_registry_managed_identity_client_id"`
 	DefaultDocuments              []string                             `tfschema:"default_documents"`
 	ElasticInstanceMinimum        int                                  `tfschema:"elastic_instance_minimum"`
 	Http2Enabled                  bool                                 `tfschema:"http2_enabled"`
@@ -440,20 +438,6 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				"application_stack": windowsFunctionAppStackSchema(),
 
 				"app_service_logs": FunctionAppAppServiceLogsSchema(),
-
-				"container_registry_use_managed_identity": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Default:     false,
-					Description: "Should connections for Azure Container Registry use Managed Identity.",
-				},
-
-				"container_registry_managed_identity_client_id": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.IsUUID,
-					Description:  "The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.",
-				},
 
 				"default_documents": {
 					Type:     pluginsdk.TypeList,
@@ -1362,16 +1346,8 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 		}
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.container_registry_use_managed_identity") {
-		expanded.AcrUseManagedIdentityCreds = utils.Bool(windowsSiteConfig.UseManagedIdentityACR)
-	}
-
 	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
 		expanded.VnetRouteAllEnabled = utils.Bool(windowsSiteConfig.VnetRouteAllEnabled)
-	}
-
-	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
-		expanded.AcrUserManagedIdentityID = utils.String(windowsSiteConfig.ContainerRegistryMSI)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.default_documents") {
@@ -1552,7 +1528,6 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig) 
 		AlwaysOn:                utils.NormaliseNilableBool(functionAppSiteConfig.AlwaysOn),
 		AppCommandLine:          utils.NormalizeNilableString(functionAppSiteConfig.AppCommandLine),
 		AppScaleLimit:           int(utils.NormaliseNilableInt32(functionAppSiteConfig.FunctionAppScaleLimit)),
-		ContainerRegistryMSI:    utils.NormalizeNilableString(functionAppSiteConfig.AcrUserManagedIdentityID),
 		DetailedErrorLogging:    utils.NormaliseNilableBool(functionAppSiteConfig.DetailedErrorLoggingEnabled),
 		HealthCheckPath:         utils.NormalizeNilableString(functionAppSiteConfig.HealthCheckPath),
 		Http2Enabled:            utils.NormaliseNilableBool(functionAppSiteConfig.HTTP20Enabled),
@@ -1570,7 +1545,6 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig) 
 		Use32BitWorker:          utils.NormaliseNilableBool(functionAppSiteConfig.Use32BitWorkerProcess),
 		WebSockets:              utils.NormaliseNilableBool(functionAppSiteConfig.WebSocketsEnabled),
 		ScmUseMainIpRestriction: utils.NormaliseNilableBool(functionAppSiteConfig.ScmIPSecurityRestrictionsUseMain),
-		UseManagedIdentityACR:   utils.NormaliseNilableBool(functionAppSiteConfig.AcrUseManagedIdentityCreds),
 		RemoteDebugging:         utils.NormaliseNilableBool(functionAppSiteConfig.RemoteDebuggingEnabled),
 		RemoteDebuggingVersion:  strings.ToUpper(utils.NormalizeNilableString(functionAppSiteConfig.RemoteDebuggingVersion)),
 		VnetRouteAllEnabled:     utils.NormaliseNilableBool(functionAppSiteConfig.VnetRouteAllEnabled),
