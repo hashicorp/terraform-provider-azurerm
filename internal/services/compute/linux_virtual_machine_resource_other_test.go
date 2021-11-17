@@ -578,14 +578,7 @@ func TestAccLinuxVirtualMachine_otherSecureBootEnabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherSecureBootEnabled(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.otherSecureBootEnabled(data, true),
+			Config: r.otherSecureBootEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -600,14 +593,7 @@ func TestAccLinuxVirtualMachine_otherVTpmEnabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherVTpmEnabled(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.otherVTpmEnabled(data, true),
+			Config: r.otherVTpmEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1841,7 +1827,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, gracefulShutdown, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineResource) otherSecureBootEnabled(data acceptance.TestData, secureBootEnabled bool) string {
+func (r LinuxVirtualMachineResource) otherSecureBootEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1873,12 +1859,12 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 
-  secure_boot_enabled = %t
+  secure_boot_enabled = true
 }
-`, r.template(data), data.RandomInteger, secureBootEnabled)
+`, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineResource) otherVTpmEnabled(data acceptance.TestData, vTpmEnabled bool) string {
+func (r LinuxVirtualMachineResource) otherVTpmEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1910,7 +1896,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 
-  vtpm_enabled = %t
+  vtpm_enabled = true
 }
-`, r.template(data), data.RandomInteger, vTpmEnabled)
+`, r.template(data), data.RandomInteger)
 }

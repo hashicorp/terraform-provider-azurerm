@@ -644,16 +644,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherSecureBootEnabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherSecureBootEnabled(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"admin_password",
-		),
-		{
-			Config: r.otherSecureBootEnabled(data, true),
+			Config: r.otherSecureBootEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -670,16 +661,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherVTpmEnabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherVTpmEnabled(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"admin_password",
-		),
-		{
-			Config: r.otherVTpmEnabled(data, true),
+			Config: r.otherVTpmEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2518,7 +2500,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherSecureBootEnabled(data acceptance.TestData, secureBootEnabled bool) string {
+func (r LinuxVirtualMachineScaleSetResource) otherSecureBootEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -2560,12 +2542,12 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 
-  secure_boot_enabled = %t
+  secure_boot_enabled = true
 }
-`, r.template(data), data.RandomInteger, secureBootEnabled)
+`, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherVTpmEnabled(data acceptance.TestData, vTpmEnabled bool) string {
+func (r LinuxVirtualMachineScaleSetResource) otherVTpmEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -2607,7 +2589,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 
-  vtpm_enabled = %t
+  vtpm_enabled = true
 }
-`, r.template(data), data.RandomInteger, vTpmEnabled)
+`, r.template(data), data.RandomInteger)
 }
