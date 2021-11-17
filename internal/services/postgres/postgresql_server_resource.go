@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"strconv"
 	"strings"
@@ -298,7 +299,12 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			"ssl_minimal_tls_version_enforced": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(postgresql.TLSEnforcementDisabled),
+				Default: func() interface{} {
+					if features.ThreePointOh() {
+						return string(postgresql.TLS12)
+					}
+					return string(postgresql.TLSEnforcementDisabled)
+				}(),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresql.TLSEnforcementDisabled),
 					string(postgresql.TLS10),

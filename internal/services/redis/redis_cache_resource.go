@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"strconv"
 	"strings"
@@ -91,7 +92,12 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  redis.TLSVersionOneFullStopZero,
+				Default: func() interface{} {
+					if features.ThreePointOh() {
+						return string(redis.TLSVersionOneFullStopTwo)
+					}
+					return string(redis.TLSVersionOneFullStopZero)
+				}(),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(redis.TLSVersionOneFullStopZero),
 					string(redis.TLSVersionOneFullStopOne),

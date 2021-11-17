@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"strconv"
 	"strings"
@@ -218,7 +219,12 @@ func resourceMySqlServer() *pluginsdk.Resource {
 			"ssl_minimal_tls_version_enforced": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(mysql.TLSEnforcementDisabled),
+				Default: func() interface{} {
+					if features.ThreePointOh() {
+						return string(mysql.TLS12)
+					}
+					return string(mysql.TLSEnforcementDisabled)
+				}(),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(mysql.TLSEnforcementDisabled),
 					string(mysql.TLS10),

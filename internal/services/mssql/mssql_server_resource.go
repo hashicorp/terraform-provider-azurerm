@@ -3,6 +3,7 @@ package mssql
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"net/http"
 	"time"
@@ -175,6 +176,12 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default: func() interface{} {
+					if features.ThreePointOh() {
+						return "1.2"
+					}
+					return nil
+				}(),
 				ValidateFunc: validation.StringInSlice([]string{
 					"1.0",
 					"1.1",
