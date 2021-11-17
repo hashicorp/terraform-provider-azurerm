@@ -1,11 +1,11 @@
-package storage
+package helpers
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func schemaStorageAccountCorsRule(patchEnabled bool) *pluginsdk.Schema {
+func SchemaStorageAccountCorsRule(patchEnabled bool) *pluginsdk.Schema {
 	// CorsRule "PATCH" method is only supported by blob
 	allowedMethods := []string{
 		"DELETE",

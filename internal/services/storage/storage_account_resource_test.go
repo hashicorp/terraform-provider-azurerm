@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -218,6 +220,9 @@ func TestAccStorageAccount_minTLSVersion(t *testing.T) {
 }
 
 func TestAccStorageAccount_allowBlobPublicAccess(t *testing.T) {
+	if features.ThreePointOh() {
+		t.Skip("Skipping since 3.0 mode is enabled")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -243,6 +248,40 @@ func TestAccStorageAccount_allowBlobPublicAccess(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("allow_blob_public_access").HasValue("false"),
+			),
+		},
+	})
+}
+
+func TestAccStorageAccount_allowNestedItemsToBePublic(t *testing.T) {
+	if !features.ThreePointOh() {
+		t.Skip("Skipping since 3.0 mode is disabled")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allow_nested_items_to_be_public").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.controlAllowNestedItemsToBePublic(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allow_nested_items_to_be_public").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.controlAllowNestedItemsToBePublic(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allow_nested_items_to_be_public").HasValue("true"),
 			),
 		},
 	})
@@ -1369,6 +1408,32 @@ resource "azurerm_storage_account" "test" {
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r *StorageAccountResource) controlAllowNestedItemsToBePublic(data acceptance.TestData, allowFlag bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = %t
+
+  tags = {
+    environment = "production"
+  }
+}`, data.RandomInteger, data.Locations.Primary, data.RandomString, allowFlag)
 }
 
 func (r StorageAccountResource) isHnsEnabledTrue(data acceptance.TestData) string {

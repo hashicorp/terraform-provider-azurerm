@@ -22,6 +22,7 @@ import (
 	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	vnetParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -39,17 +40,31 @@ var storageAccountResourceName = "azurerm_storage_account"
 var allowPublicNestedItemsName = getDefaultAllowBlobPublicAccessName()
 
 func resourceStorageAccount() *pluginsdk.Resource {
+	upgraders := map[int]pluginsdk.StateUpgrade{
+		0: migration.AccountV0ToV1{},
+		1: migration.AccountV1ToV2{},
+	}
+	schemaVersion := 2
+
+	// TODO: (v3.0) The migration is not backwards compatible so we need to make sure it's always
+	// behind a flag that is *not* user configurable.
+
+	// TODO: (v3.0) Add the following to the migration guide:
+	// *Breaking Change* In this version the field `allow_blob_public_access` is renamed to `allow_nested_items_to_be_public`
+	// in order to make its use clearer. Please update your configuration before running terraform.
+	if features.ThreePointOh() {
+		upgraders[2] = migration.AccountV2ToV3{}
+		schemaVersion = 3
+	}
+
 	return &pluginsdk.Resource{
 		Create: resourceStorageAccountCreate,
 		Read:   resourceStorageAccountRead,
 		Update: resourceStorageAccountUpdate,
 		Delete: resourceStorageAccountDelete,
 
-		SchemaVersion: 2,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.AccountV0ToV1{},
-			1: migration.AccountV1ToV2{},
-		}),
+		SchemaVersion:  schemaVersion,
+		StateUpgraders: pluginsdk.StateUpgrades(upgraders),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.StorageAccountID(id)
@@ -372,7 +387,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"cors_rule": schemaStorageAccountCorsRule(true),
+						"cors_rule": helpers.SchemaStorageAccountCorsRule(true),
 						"delete_retention_policy": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -440,7 +455,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"cors_rule": schemaStorageAccountCorsRule(false),
+						"cors_rule": helpers.SchemaStorageAccountCorsRule(false),
 						"logging": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -569,7 +584,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"cors_rule": schemaStorageAccountCorsRule(true),
+						"cors_rule": helpers.SchemaStorageAccountCorsRule(true),
 
 						"retention_policy": {
 							Type:     pluginsdk.TypeList,
