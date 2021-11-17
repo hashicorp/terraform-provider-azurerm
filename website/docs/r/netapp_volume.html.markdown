@@ -173,6 +173,8 @@ A full example of the `data_protection_replication` attribute can be found in [t
 A `data_protection_snapshot_policy` block is used when automatic snapshots for a volume based on a specific snapshot policy. It supports the following:
 
 * `snapshot_policy_id` - (Required) Resource ID of the snapshot policy to apply to the volume.
+
+A full example of the `data_protection_snapshot_policy` attribute usage can be found in [the `./examples/netapp/nfsv3_volume_with_snapshot_policy` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/netapp/nfsv3_volume_with_snapshot_policy)
   
 ~> **NOTE:** `data_protection_snapshot_policy` block can be used alone or with data_protection_replication in the primary volume only, if enabling it in the secondary, an error will be thrown.
 
