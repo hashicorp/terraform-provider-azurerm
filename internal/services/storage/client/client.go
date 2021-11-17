@@ -48,7 +48,7 @@ type Client struct {
 
 	// useResourceManager specifies whether to use the mgmt plane API for resources that have both data plane and mgmt plane support.
 	// Currently, only the following resources are affected: blob container, file share, queue.
-	// TODO: data lake filesystem/path, table.
+	// TODO: table.
 	useResourceManager bool
 }
 
