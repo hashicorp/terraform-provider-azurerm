@@ -101,7 +101,7 @@ func resourceNetAppSnapshotCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		resp, err := client.Get(ctx, resourceGroup, accountName, poolName, volumeName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for present of existing NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(resp.Response) {
