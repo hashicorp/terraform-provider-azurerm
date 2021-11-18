@@ -23,6 +23,7 @@ ENHANCEMENTS:
 * `azurerm_key_vault_key` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
 * `azurerm_key_vault_secret` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
 * `azurerm_linux_web_app` - (Beta) add support for `health_check_eviction_time_in_mins` and `vnet_route_all_enabled` [GH-14202]
+* `azurerm_mssql_server` - support `azuread_authentication_only` on creation [GH-14169]
 * `azurerm_machine_learning_workspace` - support for the `encryption` block [GH-14120]
 * `azurerm_orchestrated_virtual_machine_scale_set` - added support for VMSS Flex public preview [GH-14003]
 * `azurerm_resource_provider_registration` - support for managing `features` [GH-12385]
