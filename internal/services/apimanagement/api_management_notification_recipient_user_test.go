@@ -16,39 +16,6 @@ import (
 
 type ApiManagementNotificationRecipientUserResource struct{}
 
-//var config = `
-//data "azurerm_api_management" "example" {
-//  name                = "xz3-apim"
-//  resource_group_name = "xz3-apimanagement-test"
-//}
-//
-////resource "azurerm_api_management_notification_recipient_email" "example" {
-////  api_management_id = data.azurerm_api_management.example.id
-////  notification_type = "AccountClosedPublisher"
-////  email           = "foo@bar.com"
-////}
-//
-//resource "azurerm_api_management_notification_recipient_user" "example" {
-// api_management_id = data.azurerm_api_management.example.id
-// notification_type = "AccountClosedPublisher"
-// user_id           = "test-test-com"
-//}
-//`
-//
-//func TestAccApiManagementNotificationRecipientUser_DD(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_api_management_notification_recipient_user", "test")
-//	r := ApiManagementNotificationRecipientUserResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: config,
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//	})
-//}
-
 func TestAccApiManagementNotificationRecipientUser_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_notification_recipient_user", "test")
 	r := ApiManagementNotificationRecipientUserResource{}
@@ -93,7 +60,7 @@ func (ApiManagementNotificationRecipientUserResource) Exists(ctx context.Context
 	}
 	if users.Value != nil {
 		for _, existing := range *users.Value {
-			if existing.RecipientUsersContractProperties != nil && existing.RecipientUsersContractProperties.UserID != nil && *existing.RecipientUsersContractProperties.UserID == id.RecipientUserName {
+			if existing.Name != nil && *existing.Name == id.RecipientUserName {
 				return utils.Bool(true), nil
 			}
 		}
@@ -105,8 +72,8 @@ func (r ApiManagementNotificationRecipientUserResource) basic(data acceptance.Te
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_api_management_user" "example" {
-  user_id             = "test_user"
+resource "azurerm_api_management_user" "test" {
+  user_id             = "123"
   api_management_name = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
   first_name          = "Example"
@@ -118,7 +85,7 @@ resource "azurerm_api_management_user" "example" {
 resource "azurerm_api_management_notification_recipient_user" "test" {
   api_management_id = azurerm_api_management.test.id
   notification_type = "AccountClosedPublisher"
-  user_id           = azurerm_api_management_user.example.user_id
+  user_id           = azurerm_api_management_user.test.user_id
 }
 `, ApiManagementResource{}.basic(data))
 }
@@ -127,7 +94,7 @@ func (r ApiManagementNotificationRecipientUserResource) requiresImport(data acce
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_api_manageme_notification_recipient_user" "import" {
+resource "azurerm_api_management_notification_recipient_user" "import" {
   api_management_id = azurerm_api_management.test.id
   notification_type = azurerm_api_management_notification_recipient_user.test.notification_type
   user_id           = azurerm_api_management_notification_recipient_user.test.user_id
