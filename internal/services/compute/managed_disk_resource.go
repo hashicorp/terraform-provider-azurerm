@@ -346,11 +346,11 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
 		encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
 		if err != nil {
-			return fmt.Errorf("retrieving encryption type from disk encryption set %q: %+v", diskEncryptionSetId, err)
+			return err
 		}
 
 		props.Encryption = &compute.Encryption{
-			Type:                compute.EncryptionType(*encryptionType),
+			Type:                *encryptionType,
 			DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 		}
 	}
@@ -544,11 +544,11 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
 			encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
 			if err != nil {
-				return fmt.Errorf("retrieving encryption type from disk encryption set %q: %+v", diskEncryptionSetId, err)
+				return err
 			}
 
 			diskUpdate.Encryption = &compute.Encryption{
-				Type:                compute.EncryptionType(*encryptionType),
+				Type:                *encryptionType,
 				DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 			}
 		} else {

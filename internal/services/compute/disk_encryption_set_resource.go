@@ -69,11 +69,11 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  compute.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey,
+				Default:  string(compute.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey),
 					string(compute.DiskEncryptionSetTypeEncryptionAtRestWithPlatformAndCustomerKeys),
-				}, true),
+				}, false),
 			},
 
 			"identity": {
@@ -216,7 +216,12 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 		d.Set("key_vault_key_id", keyVaultKeyId)
 		d.Set("auto_key_rotation_enabled", props.RotationToLatestKeyVersionEnabled)
-		d.Set("encryption_type", props.EncryptionType)
+
+		encryptionType := string(compute.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey)
+		if props.EncryptionType != "" {
+			encryptionType = string(props.EncryptionType)
+		}
+		d.Set("encryption_type", encryptionType)
 	}
 
 	if err := d.Set("identity", flattenDiskEncryptionSetIdentity(resp.Identity)); err != nil {

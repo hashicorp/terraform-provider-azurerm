@@ -25,6 +25,7 @@ func TestAccDiskEncryptionSet_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("encryption_type").HasValue("EncryptionAtRestWithCustomerKey"),
 			),
 		},
 		data.ImportStep(),
@@ -110,18 +111,9 @@ func TestAccDiskEncryptionSet_withEncryptionType(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withEncryptionTypeDefault(data),
+			Config: r.withPlatformAndCustomerKeys(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("encryption_type").HasValue("EncryptionAtRestWithCustomerKey"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.withEncryptionTypeUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("encryption_type").HasValue("EncryptionAtRestWithPlatformAndCustomerKeys"),
 			),
 		},
 		data.ImportStep(),
@@ -317,24 +309,7 @@ resource "azurerm_disk_encryption_set" "test" {
 `, r.dependencies(data), data.RandomInteger)
 }
 
-func (r DiskEncryptionSetResource) withEncryptionTypeDefault(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_disk_encryption_set" "test" {
-  name                = "acctestDES-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  key_vault_key_id    = azurerm_key_vault_key.test.id
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, r.dependencies(data), data.RandomInteger)
-}
-
-func (r DiskEncryptionSetResource) withEncryptionTypeUpdated(data acceptance.TestData) string {
+func (r DiskEncryptionSetResource) withPlatformAndCustomerKeys(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

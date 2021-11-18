@@ -1091,7 +1091,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 
 			encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
 			if err != nil {
-				return fmt.Errorf("retrieving encryption type from disk encryption set %q: %+v", diskEncryptionSetId, err)
+				return err
 			}
 
 			disksClient := meta.(*clients.Client).Compute.DisksClient
@@ -1099,7 +1099,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 			update := compute.DiskUpdate{
 				DiskUpdateProperties: &compute.DiskUpdateProperties{
 					Encryption: &compute.Encryption{
-						Type:                compute.EncryptionType(*encryptionType),
+						Type:                *encryptionType,
 						DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 					},
 				},

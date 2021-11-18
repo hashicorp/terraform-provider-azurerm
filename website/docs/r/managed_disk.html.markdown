@@ -97,8 +97,6 @@ The following arguments are supported:
 
 ~> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
 
--> **NOTE:** Encryption type of the key will be decided by the disk encryption set. [More info on encryption type](https://docs.microsoft.com/en-us/azure/virtual-machines/disk-encryption)
-
 * `disk_iops_read_write` - (Optional) The number of IOPS allowed for this disk; only settable for UltraSSD disks. One operation can transfer between 4k and 256k bytes.
 
 * `disk_mbps_read_write` - (Optional) The bandwidth allowed for this disk; only settable for UltraSSD disks. MBps means millions of bytes per second.

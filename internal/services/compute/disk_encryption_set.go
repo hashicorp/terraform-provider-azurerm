@@ -9,7 +9,7 @@ import (
 )
 
 // retrieveDiskEncryptionSetEncryptionType returns encryption type of the disk encryption set
-func retrieveDiskEncryptionSetEncryptionType(ctx context.Context, client *compute.DiskEncryptionSetsClient, diskEncryptionSetId string) (*string, error) {
+func retrieveDiskEncryptionSetEncryptionType(ctx context.Context, client *compute.DiskEncryptionSetsClient, diskEncryptionSetId string) (*compute.EncryptionType, error) {
 	diskEncryptionSet, err := parse.DiskEncryptionSetID(diskEncryptionSetId)
 	if err != nil {
 		return nil, err
@@ -17,13 +17,18 @@ func retrieveDiskEncryptionSetEncryptionType(ctx context.Context, client *comput
 
 	resp, err := client.Get(ctx, diskEncryptionSet.ResourceGroup, diskEncryptionSet.Name)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("retrieving %s: %+v", *diskEncryptionSet, err)
 	}
 
-	if properties := resp.EncryptionSetProperties; properties != nil {
-		encryptionType := string(properties.EncryptionType)
-		return &encryptionType, nil
-	} else {
-		return nil, fmt.Errorf("could not get EncryptionSetProperties")
+	var encryptionType *compute.EncryptionType
+	if props := resp.EncryptionSetProperties; props != nil && string(props.EncryptionType) != "" {
+		v := compute.EncryptionType(props.EncryptionType)
+		encryptionType = &v
 	}
+
+	if encryptionType == nil {
+		return nil, fmt.Errorf("retrieving %s: EncryptionType was nil", *diskEncryptionSet)
+	}
+
+	return encryptionType, nil
 }
