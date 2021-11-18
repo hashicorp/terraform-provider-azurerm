@@ -1153,10 +1153,19 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_storage_account" "test" {
+  name                     = "testaccsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
 resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  storage_account_id  = azurerm_storage_account.test.id
 }
 
 resource "azurerm_batch_application" "test" {
@@ -1187,7 +1196,7 @@ resource "azurerm_batch_pool" "test" {
     id = azurerm_batch_application.test.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) containerConfiguration(data acceptance.TestData) string {

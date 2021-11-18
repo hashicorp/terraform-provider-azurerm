@@ -240,6 +240,8 @@ An `application_package` block supports the following:
 
 - `version` - (Optional) Version of the Application package to install. If this is omitted and no default version is specified for this application, the request will fail.
 
+~> **Please Note:** Application Packages require a `storage_account_id` to be specified.
+
 ---
 
 A `certificate` block supports the following:
