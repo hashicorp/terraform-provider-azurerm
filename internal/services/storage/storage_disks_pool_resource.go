@@ -3,6 +3,10 @@ package storage
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/storagepool/mgmt/2021-08-01/storagepool"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -16,9 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"regexp"
-	"strings"
-	"time"
 )
 
 type DisksPoolResource struct{}
@@ -45,7 +46,7 @@ func (d DisksPoolResource) Arguments() map[string]*schema.Schema {
 				validation.StringIsNotEmpty,
 				validation.StringLenBetween(7, 30),
 				validation.StringMatch(
-					regexp.MustCompile("^[A-Za-z\\d][A-Za-z\\d.\\-_]*[A-Za-z\\d_]$"),
+					regexp.MustCompile(`^[A-Za-z\d][A-Za-z\d.\-_]*[A-Za-z\d_]$`),
 					"The name must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens.",
 				),
 			),
