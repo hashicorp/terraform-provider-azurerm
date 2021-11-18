@@ -68,9 +68,9 @@ resource "azurerm_virtual_machine" "example" {
   vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    publisher = "canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 

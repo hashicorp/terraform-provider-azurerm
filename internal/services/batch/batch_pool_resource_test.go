@@ -30,9 +30,9 @@ func TestAccBatchPool_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("canonical"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("20_04-lts"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("0001-com-ubuntu-server-focal"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("1"),
 				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
@@ -69,9 +69,9 @@ func TestAccBatchPool_identityUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("canonical"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("20_04-lts"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("0001-com-ubuntu-server-focal"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("1"),
 				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
@@ -92,9 +92,9 @@ func TestAccBatchPool_identityUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("canonical"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("20_04-lts"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("0001-com-ubuntu-server-focal"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("1"),
 				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
@@ -116,9 +116,9 @@ func TestAccBatchPool_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("canonical"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("20_04-lts"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("0001-com-ubuntu-server-focal"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("1"),
 				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
@@ -144,9 +144,9 @@ func TestAccBatchPool_fixedScale_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("max_tasks_per_node").HasValue("2"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("canonical"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("20_04-lts"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("0001-com-ubuntu-server-focal"),
 				check.That(data.ResourceName).Key("auto_scale.#").HasValue("0"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("2"),
@@ -171,9 +171,9 @@ func TestAccBatchPool_autoScale_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("canonical"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("20_04-lts"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("0001-com-ubuntu-server-focal"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("0"),
 				check.That(data.ResourceName).Key("auto_scale.#").HasValue("1"),
 				check.That(data.ResourceName).Key("auto_scale.0.evaluation_interval").HasValue("PT15M"),
@@ -196,9 +196,9 @@ func TestAccBatchPool_completeUpdated(t *testing.T) {
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("canonical"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("20_04-lts"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("0001-com-ubuntu-server-focal"),
 				check.That(data.ResourceName).Key("auto_scale.#").HasValue("0"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("2"),
@@ -215,9 +215,9 @@ func TestAccBatchPool_completeUpdated(t *testing.T) {
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("canonical"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("20_04-lts"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("0001-com-ubuntu-server-focal"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("0"),
 				check.That(data.ResourceName).Key("auto_scale.#").HasValue("1"),
 				check.That(data.ResourceName).Key("auto_scale.0.evaluation_interval").HasValue("PT15M"),
@@ -240,9 +240,9 @@ func TestAccBatchPool_startTask_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("canonical"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("20_04-lts"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("0001-com-ubuntu-server-focal"),
 				check.That(data.ResourceName).Key("auto_scale.#").HasValue("0"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("1"),
@@ -423,9 +423,9 @@ func TestAccBatchPool_frontEndPortRanges(t *testing.T) {
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("canonical"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("20_04-lts"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("0001-com-ubuntu-server-focal"),
 				check.That(data.ResourceName).Key("auto_scale.#").HasValue("0"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("1"),
@@ -520,9 +520,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    publisher = "canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 
@@ -578,9 +578,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    publisher = "canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 
@@ -645,9 +645,9 @@ EOF
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    publisher = "canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 }
@@ -683,9 +683,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    publisher = "canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 }
@@ -731,9 +731,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    publisher = "canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 }
@@ -756,9 +756,9 @@ resource "azurerm_batch_pool" "import" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    publisher = "canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 }
@@ -794,9 +794,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    publisher = "canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 
@@ -855,9 +855,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    publisher = "canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 
@@ -917,9 +917,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    publisher = "canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 
@@ -979,9 +979,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    publisher = "canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 
@@ -1041,9 +1041,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    publisher = "canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 
@@ -1121,9 +1121,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    publisher = "canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 
@@ -1177,9 +1177,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    publisher = "canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 
@@ -1319,8 +1319,8 @@ resource "azurerm_virtual_machine" "testsource" {
   vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
+    publisher = "canonical"
+    offer     = "0001-com-ubuntu-server-focal"
     sku       = "16.04-LTS"
     version   = "latest"
   }
@@ -1467,9 +1467,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    publisher = "canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 

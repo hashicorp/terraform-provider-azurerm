@@ -40,9 +40,9 @@ resource "azurerm_batch_pool" "example" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    publisher = "canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 }
@@ -57,34 +57,34 @@ resource "azurerm_batch_job" "example" {
 
 The following arguments are supported:
 
-* `batch_pool_id` - (Required) The ID of the Batch Pool. Changing this forces a new Batch Job to be created.
+- `batch_pool_id` - (Required) The ID of the Batch Pool. Changing this forces a new Batch Job to be created.
 
-* `name` - (Required) The name which should be used for this Batch Job. Changing this forces a new Batch Job to be created.
+- `name` - (Required) The name which should be used for this Batch Job. Changing this forces a new Batch Job to be created.
 
 ---
 
-* `common_environment_properties` - (Optional) Specifies a map of common environment settings applied to this Batch Job. Changing this forces a new Batch Job to be created.
+- `common_environment_properties` - (Optional) Specifies a map of common environment settings applied to this Batch Job. Changing this forces a new Batch Job to be created.
 
-* `display_name` - (Optional) The display name of this Batch Job. Changing this forces a new Batch Job to be created.
+- `display_name` - (Optional) The display name of this Batch Job. Changing this forces a new Batch Job to be created.
 
-* `task_retry_maximum` - (Optional) The number of retries to each Batch Task belongs to this Batch Job. If this is set to `0`, the Batch service does not retry Tasks. If this is set to `-1`, the Batch service retries Batch Tasks without limit. Default value is `0`.
+- `task_retry_maximum` - (Optional) The number of retries to each Batch Task belongs to this Batch Job. If this is set to `0`, the Batch service does not retry Tasks. If this is set to `-1`, the Batch service retries Batch Tasks without limit. Default value is `0`.
 
-* `priority` - (Optional) The priority of this Batch Job, possible values can range from -1000 (lowest) to 1000 (highest). Defaults to `0`.
+- `priority` - (Optional) The priority of this Batch Job, possible values can range from -1000 (lowest) to 1000 (highest). Defaults to `0`.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Batch Job.
+- `id` - The ID of the Batch Job.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 5 minutes) Used when creating the Batch Job.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Batch Job.
-* `update` - (Defaults to 5 minutes) Used when updating the Batch Job.
-* `delete` - (Defaults to 5 minutes) Used when deleting the Batch Job.
+- `create` - (Defaults to 5 minutes) Used when creating the Batch Job.
+- `read` - (Defaults to 5 minutes) Used when retrieving the Batch Job.
+- `update` - (Defaults to 5 minutes) Used when updating the Batch Job.
+- `delete` - (Defaults to 5 minutes) Used when deleting the Batch Job.
 
 ## Import
 
