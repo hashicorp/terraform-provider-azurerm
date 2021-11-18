@@ -1550,11 +1550,6 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	// for "resourcegroups" in `terraform import`
-	if d.Id() != id.ID() {
-		d.SetId(id.ID())
-	}
-
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
