@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Beta Resource:** `azurerm_linux_function_app` [GH-13806]
+* **New Resource:** `azurerm_logz_tag_rule` [GH-14020]
 
 ENHANCEMENTS:
 
