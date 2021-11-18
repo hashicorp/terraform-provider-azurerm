@@ -28,7 +28,7 @@ func TestAccBatchPool_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
-				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
+				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
@@ -67,7 +67,7 @@ func TestAccBatchPool_identityUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
-				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
+				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
@@ -90,7 +90,7 @@ func TestAccBatchPool_identityUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
-				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
+				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
@@ -114,7 +114,7 @@ func TestAccBatchPool_requiresImport(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
-				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
+				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
@@ -142,7 +142,7 @@ func TestAccBatchPool_fixedScale_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("max_tasks_per_node").HasValue("2"),
-				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
+				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
@@ -169,7 +169,7 @@ func TestAccBatchPool_autoScale_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
-				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
+				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
@@ -194,7 +194,7 @@ func TestAccBatchPool_completeUpdated(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
-				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
+				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
@@ -213,7 +213,7 @@ func TestAccBatchPool_completeUpdated(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
-				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
+				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
@@ -238,7 +238,7 @@ func TestAccBatchPool_startTask_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
-				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
+				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
@@ -277,7 +277,7 @@ func TestAccBatchPool_certificates(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
-				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
+				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("certificate.#").HasValue("2"),
 				check.That(data.ResourceName).Key("certificate.0.id").HasValue(certificate0ID),
 				check.That(data.ResourceName).Key("certificate.0.store_location").HasValue("CurrentUser"),
@@ -306,7 +306,7 @@ func TestAccBatchPool_applications(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
-				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
+				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("application_package.#").HasValue("1"),
 				check.That(data.ResourceName).Key("application_package.0.id").HasValue(application0ID),
 			),
@@ -398,7 +398,7 @@ func TestAccBatchPool_customImage(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("max_tasks_per_node").HasValue("2"),
-				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
+				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("auto_scale.#").HasValue("0"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("2"),
@@ -421,7 +421,7 @@ func TestAccBatchPool_frontEndPortRanges(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
-				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
+				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
@@ -513,7 +513,7 @@ resource "azurerm_batch_pool" "test" {
   display_name        = "Test Acc Pool"
   vm_size             = "Standard_A1"
   max_tasks_per_node  = 2
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
 
   fixed_scale {
     target_dedicated_nodes = 2
@@ -571,7 +571,7 @@ resource "azurerm_batch_pool" "test" {
   display_name        = "Test Acc Pool"
   vm_size             = "Standard_A1"
   max_tasks_per_node  = 2
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
 
   fixed_scale {
     target_dedicated_nodes = 3
@@ -628,7 +628,7 @@ resource "azurerm_batch_pool" "test" {
   account_name                  = azurerm_batch_account.test.name
   display_name                  = "Test Acc Pool"
   vm_size                       = "Standard_A1"
-  node_agent_sku_id             = "batch.node.ubuntu 16.04"
+  node_agent_sku_id             = "batch.node.ubuntu 20.04"
   stop_pending_resize_operation = true
 
   auto_scale {
@@ -675,7 +675,7 @@ resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
   vm_size             = "Standard_A1"
 
   fixed_scale {
@@ -719,7 +719,7 @@ resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
   vm_size             = "Standard_A1"
   identity {
     type         = "UserAssigned"
@@ -786,7 +786,7 @@ resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
   vm_size             = "Standard_A1"
 
   fixed_scale {
@@ -847,7 +847,7 @@ resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
   vm_size             = "Standard_A1"
 
   fixed_scale {
@@ -909,7 +909,7 @@ resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
   vm_size             = "Standard_A1"
 
   fixed_scale {
@@ -971,7 +971,7 @@ resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
   vm_size             = "Standard_A1"
 
   fixed_scale {
@@ -1033,7 +1033,7 @@ resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
   vm_size             = "Standard_A1"
 
   fixed_scale {
@@ -1113,7 +1113,7 @@ resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
   vm_size             = "Standard_A1"
 
   fixed_scale {
@@ -1169,7 +1169,7 @@ resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
   vm_size             = "Standard_A1"
 
   fixed_scale {
@@ -1218,7 +1218,7 @@ resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
   vm_size             = "Standard_A1"
 
   fixed_scale {
@@ -1406,7 +1406,7 @@ resource "azurerm_batch_pool" "test" {
   display_name        = "Test Acc Pool"
   vm_size             = "Standard_A1"
   max_tasks_per_node  = 2
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
 
   fixed_scale {
     target_dedicated_nodes = 2
@@ -1459,7 +1459,7 @@ resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%[3]s"
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_batch_account.test.name}"
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
   vm_size             = "Standard_A1"
 
   fixed_scale {

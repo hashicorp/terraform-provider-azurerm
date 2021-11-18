@@ -28,7 +28,7 @@ func TestAccBatchPoolDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("2"),
 				check.That(data.ResourceName).Key("fixed_scale.0.resize_timeout").HasValue("PT15M"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_low_priority_nodes").HasValue("0"),
-				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
+				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("max_tasks_per_node").HasValue("2"),
 				check.That(data.ResourceName).Key("start_task.#").HasValue("1"),
 				check.That(data.ResourceName).Key("start_task.0.max_task_retry_count").HasValue("1"),
@@ -108,7 +108,7 @@ resource "azurerm_batch_pool" "test" {
   account_name        = azurerm_batch_account.test.name
   display_name        = "Test Acc Pool"
   vm_size             = "Standard_A1"
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
   max_tasks_per_node  = 2
 
   fixed_scale {

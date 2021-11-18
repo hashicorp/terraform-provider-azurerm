@@ -54,7 +54,7 @@ resource "azurerm_batch_pool" "example" {
   account_name        = azurerm_batch_account.example.name
   display_name        = "Test Acc Pool Auto"
   vm_size             = "Standard_A1"
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
 
   auto_scale {
     evaluation_interval = "PT15M"

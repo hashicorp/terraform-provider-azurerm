@@ -128,7 +128,7 @@ resource "azurerm_batch_pool" "example" {
   account_name        = azurerm_batch_account.example.name
   display_name        = "Custom Img Pool"
   vm_size             = "Standard_A1"
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
 
   fixed_scale {
     target_dedicated_nodes = 2

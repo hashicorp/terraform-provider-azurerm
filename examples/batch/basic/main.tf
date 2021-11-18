@@ -28,7 +28,7 @@ resource "azurerm_batch_pool" "fixed" {
   account_name        = azurerm_batch_account.example.name
   display_name        = "Fixed Scale Pool"
   vm_size             = "Standard_A1"
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
 
   fixed_scale {
     target_dedicated_nodes = 2
@@ -70,7 +70,7 @@ resource "azurerm_batch_pool" "autopool" {
   account_name        = azurerm_batch_account.example.name
   display_name        = "Auto Scale Pool"
   vm_size             = "Standard_A1"
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
 
   auto_scale {
     evaluation_interval = "PT15M"
