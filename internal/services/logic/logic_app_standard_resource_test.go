@@ -783,39 +783,17 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+%s
 
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[1]d-func"
+  name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) containerized(data acceptance.TestData) string {
@@ -824,34 +802,10 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  kind                = "Linux"
-  reserved            = true
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+%s
 
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[1]d-func"
+  name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
@@ -862,7 +816,7 @@ resource "azurerm_logic_app_standard" "test" {
     linux_fx_version = "DOCKER|mcr.microsoft.com/azure-functions/dotnet:3.0-appservice"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) extensionBundle(data acceptance.TestData) string {
@@ -871,32 +825,10 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+%s
 
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[1]d-func"
+  name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
@@ -905,7 +837,7 @@ resource "azurerm_logic_app_standard" "test" {
   use_extension_bundle       = true
   bundle_version             = "[1.*, 2.0.0)"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) siteConfigVnetRouteAllEnabled(data acceptance.TestData) string {
@@ -913,28 +845,11 @@ func (r LogicAppStandardResource) siteConfigVnetRouteAllEnabled(data acceptance.
 provider "azurerm" {
   features {}
 }
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+
+%s
+
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[1]d-func"
+  name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
@@ -944,7 +859,7 @@ resource "azurerm_logic_app_standard" "test" {
     vnet_route_all_enabled = true
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) appSettingsVnetRouteAllEnabled(data acceptance.TestData) string {
@@ -952,28 +867,10 @@ func (r LogicAppStandardResource) appSettingsVnetRouteAllEnabled(data acceptance
 provider "azurerm" {
   features {}
 }
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+%s
+
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[1]d-func"
+  name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
@@ -983,7 +880,7 @@ resource "azurerm_logic_app_standard" "test" {
     "WEBSITE_VNET_ROUTE_ALL" = "true"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) requiresImport(data acceptance.TestData) string {
@@ -1008,32 +905,10 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+%s
 
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[1]d-func"
+  name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
@@ -1044,7 +919,7 @@ resource "azurerm_logic_app_standard" "test" {
     environment = "production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) tagsUpdated(data acceptance.TestData) string {
@@ -1053,32 +928,9 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
+%s
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[1]d-func"
+  name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
@@ -1090,7 +942,7 @@ resource "azurerm_logic_app_standard" "test" {
     hello       = "Berlin"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) version(data acceptance.TestData, version string) string {
@@ -1099,40 +951,18 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+%s
 
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[1]d-func"
+  name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  version                    = "%[4]s"
+  version                    = "%s"
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, version)
+`, r.template(data), data.RandomInteger, version)
 }
 
 func (r LogicAppStandardResource) appSettings(data acceptance.TestData) string {
@@ -1141,45 +971,23 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+%s
 
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[1]d-func"
+  name                       = "acctest-%[2]d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  storage_account_share_name = "acctest-%[1]d-func-content"
+  storage_account_share_name = "acctest-%[2]d-func-content"
 
   app_settings = {
     "hello"                          = "world"
     "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_storage_account.test.primary_connection_string
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) customShare(data acceptance.TestData) string {
@@ -1188,29 +996,7 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+%s
 
 resource "azurerm_storage_share" "custom" {
   name                 = "customshare"
@@ -1218,7 +1004,7 @@ resource "azurerm_storage_share" "custom" {
 }
 
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[1]d-func"
+  name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
@@ -1231,7 +1017,7 @@ resource "azurerm_logic_app_standard" "test" {
     "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_storage_account.test.primary_connection_string
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) alwaysOn(data acceptance.TestData) string {
@@ -1240,32 +1026,9 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
+%s
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[1]d-func"
+  name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
@@ -1276,7 +1039,7 @@ resource "azurerm_logic_app_standard" "test" {
     always_on = true
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) healthCheck(data acceptance.TestData) string {
@@ -1330,32 +1093,10 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+%s
 
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[1]d-func"
+  name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
@@ -1368,7 +1109,7 @@ resource "azurerm_logic_app_standard" "test" {
     type  = "PostgreSQL"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) app64bit(data acceptance.TestData) string {
@@ -1377,29 +1118,7 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+%s
 
 resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
@@ -1413,7 +1132,7 @@ resource "azurerm_logic_app_standard" "test" {
     use_32_bit_worker_process = false
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) httpsOnly(data acceptance.TestData) string {
@@ -1464,32 +1183,10 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+%s
 
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[1]d-func"
+  name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
@@ -1500,7 +1197,7 @@ resource "azurerm_logic_app_standard" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) corsSettings(data acceptance.TestData) string {
@@ -1509,32 +1206,10 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+%s
 
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[1]d-func"
+  name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
@@ -1554,7 +1229,7 @@ resource "azurerm_logic_app_standard" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) enableHttp2(data acceptance.TestData) string {
@@ -1563,29 +1238,7 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+%s
 
 resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
@@ -1599,7 +1252,7 @@ resource "azurerm_logic_app_standard" "test" {
     http2_enabled = true
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) minTlsVersion(data acceptance.TestData) string {
@@ -1608,29 +1261,7 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+%s
 
 resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
@@ -1644,7 +1275,7 @@ resource "azurerm_logic_app_standard" "test" {
     min_tls_version = "1.2"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) ftpsState(data acceptance.TestData) string {
@@ -1653,29 +1284,7 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+%s
 
 resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
@@ -1689,7 +1298,7 @@ resource "azurerm_logic_app_standard" "test" {
     ftps_state = "AllAllowed"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) preWarmedInstanceCount(data acceptance.TestData) string {
@@ -1698,30 +1307,7 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  kind                = "elastic"
-
-  sku {
-    tier = "ElasticPremium"
-    size = "EP1"
-  }
-}
+%s
 
 resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
@@ -1735,7 +1321,7 @@ resource "azurerm_logic_app_standard" "test" {
     pre_warmed_instance_count = 1
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) computedPreWarmedInstanceCount(data acceptance.TestData) string {
@@ -1786,29 +1372,7 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+%s
 
 resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
@@ -1824,7 +1388,7 @@ resource "azurerm_logic_app_standard" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) oneServiceTagIpRestriction(data acceptance.TestData) string {
@@ -1833,29 +1397,7 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+%s
 
 resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
@@ -1871,7 +1413,7 @@ resource "azurerm_logic_app_standard" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) oneVNetSubnetIpRestriction(data acceptance.TestData) string {
@@ -1880,46 +1422,24 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
+%s
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
+  name                = "acctestvirtnet%[2]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
+  name                 = "acctestsubnet%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%d-func"
+  name                       = "acctest-%[2]d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
@@ -1932,7 +1452,7 @@ resource "azurerm_logic_app_standard" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) manyIpRestrictions(data acceptance.TestData) string {
@@ -2000,29 +1520,7 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+%s
 
 resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
@@ -2036,7 +1534,7 @@ resource "azurerm_logic_app_standard" "test" {
     ip_restriction = []
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) updateStorageAccountKey(data acceptance.TestData) string {
@@ -2220,30 +1718,7 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  kind                = "elastic"
-
-  sku {
-    tier = "ElasticPremium"
-    size = "EP1"
-  }
-}
+%s
 
 resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
@@ -2259,7 +1734,7 @@ resource "azurerm_logic_app_standard" "test" {
     runtime_scale_monitoring_enabled = true
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) dotnetVersion(data acceptance.TestData, functionVersion string, version string) string {
@@ -2268,29 +1743,7 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
+%s
 
 resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
@@ -2306,5 +1759,35 @@ resource "azurerm_logic_app_standard" "test" {
     dotnet_framework_version = "%s"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, functionVersion, version)
+`, r.template(data), data.RandomInteger, functionVersion, version)
+}
+
+func (LogicAppStandardResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "elastic"
+
+  sku {
+    tier = "WorkflowStandard"
+    size = "WS1"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
