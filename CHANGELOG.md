@@ -23,6 +23,7 @@ ENHANCEMENTS:
 * `azurerm_key_vault_certificate` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
 * `azurerm_key_vault_key` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
 * `azurerm_key_vault_secret` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
+* `azurerm_key_vault_certificate` - the `certificate_policy` property is now optional for imported certificates [GH-14225]
 * `azurerm_linux_web_app` - (Beta) add support for `health_check_eviction_time_in_mins` and `vnet_route_all_enabled` [GH-14202]
 * `azurerm_mssql_server` - support `azuread_authentication_only` on creation [GH-14169]
 * `azurerm_machine_learning_workspace` - support for the `encryption` block [GH-14120]
