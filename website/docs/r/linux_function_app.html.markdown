@@ -476,7 +476,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `create` - (Defaults to 30 minutes) Used when creating the Linux Function App.
 * `read` - (Defaults to 25 minutes) Used when retrieving the Linux Function App.
 * `update` - (Defaults to 30 minutes) Used when updating the Linux Function App.
-* `delete` - (Defaults to 5 minutes) Used when deleting the Linux Function App.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Linux Function App.
 
 ## Import
 
