@@ -45,6 +45,23 @@ func TestAccPurviewAccount_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccPurviewAccount_withManagedResourceGroupName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
+	r := PurviewAccountResource{}
+	managedResourceGroupName := fmt.Sprintf("acctestRG-purview-managed-%d", data.RandomInteger)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withManagedResourceGroupName(data, managedResourceGroupName),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("managed_resource_group_name").HasValue(managedResourceGroupName),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r PurviewAccountResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AccountID(state.ID)
 	if err != nil {
@@ -99,4 +116,18 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r PurviewAccountResource) withManagedResourceGroupName(data acceptance.TestData, managedResourceGroupName string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_purview_account" "test" {
+  name                        = "acctestsw%d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  managed_resource_group_name = "%s"
+}
+`, template, data.RandomInteger, managedResourceGroupName)
 }
