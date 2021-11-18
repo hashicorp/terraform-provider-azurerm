@@ -825,6 +825,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.python_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
