@@ -360,7 +360,7 @@ type SiteConfigWindowsFunctionApp struct {
 	WebSockets                    bool                                 `tfschema:"websockets_enabled"`
 	FtpsState                     string                               `tfschema:"ftps_state"`
 	HealthCheckPath               string                               `tfschema:"health_check_path"`
-	HealthCheckEvictionTime       int                                  `tfschema:"health_check_eviction_time"`
+	HealthCheckEvictionTime       int                                  `tfschema:"health_check_eviction_time_in_min"`
 	NumberOfWorkers               int                                  `tfschema:"number_of_workers"`
 	ApplicationStack              []ApplicationStackWindowsFunctionApp `tfschema:"application_stack"`
 	MinTlsVersion                 string                               `tfschema:"minimum_tls_version"`
@@ -569,7 +569,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Description: "The path to be checked for this function app health.",
 				},
 
-				"health_check_eviction_time": { // NOTE: Will evict the only node in single node configurations.
+				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true,
@@ -986,7 +986,7 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	linuxSiteConfig := siteConfig[0]
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
-		if linuxSiteConfig.HealthCheckPath != "" && metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time") {
+		if linuxSiteConfig.HealthCheckPath != "" && metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 			v := strconv.Itoa(linuxSiteConfig.HealthCheckEvictionTime)
 			appSettings = append(appSettings, web.NameValuePair{
 				Name:  utils.String("WEBSITE_HEALTHCHECK_MAXPINGFAILURES"),
@@ -1246,7 +1246,7 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 	windowsSiteConfig := siteConfig[0]
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
-		if windowsSiteConfig.HealthCheckPath != "" && metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time") {
+		if windowsSiteConfig.HealthCheckPath != "" && metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 			v := strconv.Itoa(windowsSiteConfig.HealthCheckEvictionTime)
 			appSettings = append(appSettings, web.NameValuePair{
 				Name:  utils.String("WEBSITE_HEALTHCHECK_MAXPINGFAILURES"),
