@@ -65,6 +65,23 @@ func TestAccPublicIpPrefix_basic(t *testing.T) {
 	})
 }
 
+func TestAccPublicIpPrefix_ipv6(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	r := PublicIPPrefixResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipv6(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_prefix").Exists(),
+				check.That(data.ResourceName).Key("prefix_length").HasValue("126"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccPublicIpPrefix_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 	r := PublicIPPrefixResource{}
@@ -201,6 +218,28 @@ resource "azurerm_public_ip_prefix" "test" {
   name                = "acctestpublicipprefix-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (PublicIPPrefixResource) ipv6(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_public_ip_prefix" "test" {
+  name                = "acctestpublicipprefix-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_version          = "IPv6"
+
+  prefix_length = 126
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
