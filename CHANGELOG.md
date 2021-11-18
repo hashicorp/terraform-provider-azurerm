@@ -28,6 +28,7 @@ ENHANCEMENTS:
 * `azurerm_mssql_server` - support `azuread_authentication_only` on creation [GH-14169]
 * `azurerm_machine_learning_workspace` - support for the `encryption` block [GH-14120]
 * `azurerm_orchestrated_virtual_machine_scale_set` - added support for VMSS Flex public preview [GH-14003]
+* `azurerm_purview_account` - support for the `managed_resource_group_name` property [GH-14217]
 * `azurerm_resource_provider_registration` - support for managing `features` [GH-12385]
 * `azurerm_windows_virtual_machine` - support for configuring `secure_boot_enabled` [GH-13713]
 * `azurerm_windows_virtual_machine` - support for configuring `vtpm_enabled` [GH-13713]
