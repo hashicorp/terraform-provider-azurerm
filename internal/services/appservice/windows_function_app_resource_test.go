@@ -1699,7 +1699,7 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app" "test" {
+resource "azurerm_windows_function_app" "test" {
   name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -1844,7 +1844,7 @@ resource "azurerm_service_plan" "test" {
   name                = "acctestASP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  os_type             = "Linux"
+  os_type             = "Windows"
   sku_name            = "%[4]s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, planSku)
