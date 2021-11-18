@@ -132,6 +132,8 @@ A `application_stack` block supports the following:
 
 * `python_version` - (Optional) The version of Python to run. Possible values include `3.6`, `3.7`, `3.8`, and `3.9`.
 
+* `powershell_core_version` - (Optional) The version of PowerShell Core to run. Possible values are `7`.
+
 * `use_custom_runtime` - (Optional) Should the Linux Function App use a custom runtime?
 
 ---
