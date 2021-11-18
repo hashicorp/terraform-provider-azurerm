@@ -595,6 +595,21 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		if err != nil {
 			return fmt.Errorf("while enabling Transparent Data Encryption for %q: %+v", id.String(), err)
 		}
+
+		if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+			c, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+			if err != nil {
+				return pluginsdk.NonRetryableError(fmt.Errorf("while polling cluster %s for status: %+v", id.String(), err))
+			}
+			if c.DatabaseProperties.Status == sql.DatabaseStatusScaling {
+				return pluginsdk.RetryableError(fmt.Errorf("database %s is still scaling", id.String()))
+			}
+
+			return nil
+		}); err != nil {
+			return nil
+		}
+
 	}
 
 	d.SetId(id.ID())
