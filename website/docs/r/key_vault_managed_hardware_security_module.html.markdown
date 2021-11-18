@@ -71,9 +71,9 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Key Vault Managed Hardware Security Module.
+* `create` - (Defaults to 60 minutes) Used when creating the Key Vault Managed Hardware Security Module.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Managed Hardware Security Module.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Managed Hardware Security Module.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Key Vault Managed Hardware Security Module.
 
 ## Import
 
