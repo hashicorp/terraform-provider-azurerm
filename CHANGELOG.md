@@ -18,9 +18,11 @@ ENHANCEMENTS:
 * signalr: updating the embedded SDK to use the new Resource ID Parsers [GH-14150]
 * storage: updating to use API Version `2021-04-01` [GH-14083]
 * videoanalyzer: updating the embedded SDK to use the new Resource ID Parsers [GH-14135]
+* Data Source: `azurerm_storage_account` - support for the `table_encryption_key_type` and `queue_encryption_key_type` attributes [GH-14080]
 * `azurerm_cosmosdb_cassandra_datacenter` - add availability zones flag [GH-14235]
 * `azurerm_cosmosdb_cassandra_datacenter` - rename availability_zones to availability_zones_enabled [GH-14237]
 * `azurerm_disk_encryption_set` - add support for `encryption_type` [GH-14218]
+* `azurerm_elastic_pool` - support for the `Fsv2` family SKUs [GH-14250]
 * `azurerm_key_vault_certificate` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
 * `azurerm_key_vault_key` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
 * `azurerm_key_vault_secret` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
@@ -42,7 +44,6 @@ ENHANCEMENTS:
 * `azurerm_storage_account` - (Beta) add state migration for the renaming of `allow_blob_public_access` to `allow_nested_items_to_be_public` [GH-13607]
 * `azurerm_sql_active_directory_administrator` - support for the `azuread_authentication_only` property [GH-14172]
 * `azurerm_virtual_network` - support for the `flow_timeout_in_minutes` property [GH-14200]
-* Data Source: `azurerm_storage_account` - support for the `table_encryption_key_type` and `queue_encryption_key_type` attributes [GH-14080]
 
 BUG FIXES: 
 
