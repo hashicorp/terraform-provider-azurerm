@@ -1285,30 +1285,7 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  kind                = "elastic"
-
-  sku {
-    tier = "ElasticPremium"
-    size = "EP1"
-  }
-}
+%s
 
 resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
@@ -1318,7 +1295,7 @@ resource "azurerm_logic_app_standard" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) oneIpRestriction(data acceptance.TestData) string {
