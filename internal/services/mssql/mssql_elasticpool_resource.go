@@ -77,7 +77,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 								"GP_Gen5",
 								"BC_Gen4",
 								"BC_Gen5",
-								"GP_FSv2",
+								"GP_Fsv2",
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
@@ -107,6 +107,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"Gen4",
 								"Gen5",
+								"Fsv2",
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
