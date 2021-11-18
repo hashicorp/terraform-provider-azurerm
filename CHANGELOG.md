@@ -5,6 +5,7 @@ FEATURES:
 * **New Beta Resource:** `azurerm_linux_function_app` [GH-13806]
 * **New Resource:** `azurerm_automation_webhook` [GH-13893]
 * **New Resource:** `azurerm_logz_tag_rule` [GH-14020]
+* **New Resource:** `azurerm_monitor_private_link_scoped_service` [GH-14119]
 
 ENHANCEMENTS:
 
