@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * videoanalyzer: updating the embedded SDK to use the new Resource ID Parsers [GH-14135]
 * `azurerm_cosmosdb_cassandra_datacenter` - add availability zones flag [GH-14235]
 * `azurerm_cosmosdb_cassandra_datacenter` - rename availability_zones to availability_zones_enabled [GH-14237]
+* `azurerm_disk_encryption_set` - add support for `encryption_type` [GH-14218]
 * `azurerm_key_vault_certificate` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
 * `azurerm_key_vault_key` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
 * `azurerm_key_vault_secret` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
