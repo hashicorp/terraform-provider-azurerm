@@ -300,14 +300,20 @@ func TestAccKustoCluster_engineV3(t *testing.T) {
 }
 
 func TestAccKustoCluster_trustedExternalTenants(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
-	r := KustoClusterResource{}
-
 	if features.ThreePointOh() {
 		t.Skip("Skipping since 3.0 mode is enabled")
 	}
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+	r := KustoClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("trusted_external_tenants"),
 		{
 			Config: r.trustedExternalTenants(data, "[\"*\"]"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -333,14 +339,20 @@ func TestAccKustoCluster_trustedExternalTenants(t *testing.T) {
 }
 
 func TestAccKustoCluster_trustedExternalTenantsThreePointOh(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
-	r := KustoClusterResource{}
-
 	if !features.ThreePointOh() {
 		t.Skip("Skipping since 3.0 mode is disabled")
 	}
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+	r := KustoClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.trustedExternalTenants(data, "[\"*\"]"),
 			Check: acceptance.ComposeTestCheckFunc(
