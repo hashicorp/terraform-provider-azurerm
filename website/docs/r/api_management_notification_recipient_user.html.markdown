@@ -41,7 +41,7 @@ resource "azurerm_api_management_user" "example" {
 resource "azurerm_api_management_notification_recipient_user" "example" {
   api_management_id = azurerm_api_management.example.id
   notification_type = "AccountClosedPublisher"
-  user_id             = azurerm_api_management_user.example.user_id
+  user_id           = azurerm_api_management_user.example.user_id
 }
 ```
 
