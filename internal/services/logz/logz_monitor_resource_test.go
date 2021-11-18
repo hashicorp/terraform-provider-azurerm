@@ -3,6 +3,7 @@ package logz_test
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
@@ -124,7 +125,7 @@ func (r LogzMonitorResource) basic(data acceptance.TestData, effectiveDate strin
 %s
 
 resource "azurerm_logz_monitor" "test" {
-  name                = "acctest-lm-%d"
+  name                = "%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   plan {
@@ -141,7 +142,7 @@ resource "azurerm_logz_monitor" "test" {
     phone_number = "123456"
   }
 }
-`, template, data.RandomInteger, effectiveDate)
+`, template, getLogzInstanceName(data.RandomInteger), effectiveDate)
 }
 
 func (r LogzMonitorResource) update(data acceptance.TestData, effectiveDate string) string {
@@ -150,7 +151,7 @@ func (r LogzMonitorResource) update(data acceptance.TestData, effectiveDate stri
 %s
 
 resource "azurerm_logz_monitor" "test" {
-  name                = "acctest-lm-%d"
+  name                = "%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   plan {
@@ -168,7 +169,7 @@ resource "azurerm_logz_monitor" "test" {
   }
   enabled = false
 }
-`, template, data.RandomInteger, effectiveDate)
+`, template, getLogzInstanceName(data.RandomInteger), effectiveDate)
 }
 
 func (r LogzMonitorResource) requiresImport(data acceptance.TestData) string {
@@ -204,7 +205,7 @@ func (r LogzMonitorResource) complete(data acceptance.TestData, effectiveDate st
 %s
 
 resource "azurerm_logz_monitor" "test" {
-  name                = "acctest-lm-%d"
+  name                = "%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -228,5 +229,9 @@ resource "azurerm_logz_monitor" "test" {
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger, effectiveDate)
+`, template, getLogzInstanceName(data.RandomInteger), effectiveDate)
+}
+
+func getLogzInstanceName(randomInteger int) string {
+	return "liftr_test_only_" + strconv.Itoa(randomInteger)[2:]
 }
