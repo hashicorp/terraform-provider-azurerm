@@ -60,6 +60,23 @@ func TestAccStreamAnalyticsOutputServiceBusTopic_json(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsOutputServiceBusTopic_propertyColumns(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_topic", "test")
+	r := StreamAnalyticsOutputServiceBusTopicResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.propertyColumns(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("property_columns.0").HasValue("col1"),
+				check.That(data.ResourceName).Key("property_columns.1").HasValue("col2"),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+	})
+}
+
 func TestAccStreamAnalyticsOutputServiceBusTopic_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_topic", "test")
 	r := StreamAnalyticsOutputServiceBusTopicResource{}
@@ -169,6 +186,30 @@ resource "azurerm_stream_analytics_output_servicebus_topic" "test" {
   servicebus_namespace      = azurerm_servicebus_namespace.test.name
   shared_access_policy_key  = azurerm_servicebus_namespace.test.default_primary_key
   shared_access_policy_name = "RootManageSharedAccessKey"
+
+  serialization {
+    type     = "Json"
+    encoding = "UTF8"
+    format   = "LineSeparated"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r StreamAnalyticsOutputServiceBusTopicResource) propertyColumns(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_output_servicebus_topic" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  topic_name                = azurerm_servicebus_topic.test.name
+  servicebus_namespace      = azurerm_servicebus_namespace.test.name
+  shared_access_policy_key  = azurerm_servicebus_namespace.test.default_primary_key
+  shared_access_policy_name = "RootManageSharedAccessKey"
+  property_columns          = ["col1", "col2"]
 
   serialization {
     type     = "Json"

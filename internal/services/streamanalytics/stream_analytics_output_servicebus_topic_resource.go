@@ -183,13 +183,7 @@ func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData,
 		d.Set("topic_name", v.TopicName)
 		d.Set("servicebus_namespace", v.ServiceBusNamespace)
 		d.Set("shared_access_policy_name", v.SharedAccessPolicyName)
-
-		var propertyColumns []string
-		if v.PropertyColumns != nil {
-			propertyColumns = *v.PropertyColumns
-		}
-
-		d.Set("property_columns", propertyColumns)
+		d.Set("property_columns", v.PropertyColumns)
 
 		if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
 			return fmt.Errorf("setting `serialization`: %+v", err)
