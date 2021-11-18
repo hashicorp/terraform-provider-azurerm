@@ -1835,7 +1835,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   name                = "acctestVM-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size                = "Standard_DS3_v2"
+  size                = "Standard_B1ls"
   admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
@@ -1872,7 +1872,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   name                = "acctestVM-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size                = "Standard_DS3_v2"
+  size                = "Standard_B1ls"
   admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,

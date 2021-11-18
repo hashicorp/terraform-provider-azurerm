@@ -2512,7 +2512,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_DS3_V2"
+  sku                 = "Standard_B1ls"
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
@@ -2559,7 +2559,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_DS3_V2"
+  sku                 = "Standard_B1ls"
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
