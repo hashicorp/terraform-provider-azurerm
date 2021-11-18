@@ -48,19 +48,14 @@ func TestAccPurviewAccount_requiresImport(t *testing.T) {
 func TestAccPurviewAccount_withManagedResourceGroupName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
 	r := PurviewAccountResource{}
+	managedResourceGroupName := fmt.Sprintf("acctestRG-purview-managed-%d", data.RandomInteger)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withManagedResourceGroupName(data),
+			Config: r.withManagedResourceGroupName(data, managedResourceGroupName),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.withManagedResourceGroupNameUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("managed_resource_group_name").HasValue(managedResourceGroupName),
 			),
 		},
 		data.ImportStep(),
@@ -123,7 +118,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r PurviewAccountResource) withManagedResourceGroupName(data acceptance.TestData) string {
+func (r PurviewAccountResource) withManagedResourceGroupName(data acceptance.TestData, managedResourceGroupName string) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -132,21 +127,7 @@ resource "azurerm_purview_account" "test" {
   name                        = "acctestsw%d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
-  managed_resource_group_name = "acctestRG-purview-managed-%d"
+  managed_resource_group_name = "%s"
 }
-`, template, data.RandomInteger, data.RandomInteger)
-}
-
-func (r PurviewAccountResource) withManagedResourceGroupNameUpdated(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_purview_account" "test" {
-  name                        = "acctestsw%d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  managed_resource_group_name = "acctestRG-purview-managed2-%d"
-}
-`, template, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger, managedResourceGroupName)
 }

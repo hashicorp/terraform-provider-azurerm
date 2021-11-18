@@ -39,7 +39,7 @@ The following arguments are supported:
 
 * `public_network_enabled` - (Optional) Should the Purview Account be visible to the public network? Defaults to `true`.
 
-* `managed_resource_group_name` - (Optional) The name of the Resource Group where Purview Account creates the managed resources.
+* `managed_resource_group_name` - (Optional) The name which should be used for the new Resource Group where Purview Account creates the managed resources. Changing this forces a new Purview Account to be created.
 
 ~> **Note**: `managed_resource_group_name` must be a new Resource Group
 
