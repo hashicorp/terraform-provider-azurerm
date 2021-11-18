@@ -1,14 +1,14 @@
 ---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_linux_function_app"
+page_title: "Azure Resource Manager: azurerm_windows_function_app"
 description: |-
-  Manages a Linux Function App.
+  Manages a Windows Function App.
 ---
 
-# azurerm_linux_function_app
+# azurerm_windows_function_app
 
-Manages a Linux Function App.
+Manages a Windows Function App.
 
 !> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
 
@@ -25,7 +25,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_storage_account" "example" {
-  name                     = "linuxfunctionappsa"
+  name                     = "windowsfunctionappsa"
   resource_group_name      = azurerm_resource_group.example.name
   location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
@@ -36,12 +36,12 @@ resource "azurerm_service_plan" "example" {
   name                = "example-app-service-plan"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  os_type             = "Linux"
+  os_type             = "Windows"
   sku_name            = "Y1"
 }
 
-resource "azurerm_linux_function_app" "example" {
-  name                = "example-linux-function-app"
+resource "azurerm_windows_function_app" "example" {
+  name                = "example-windows-function-app"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
@@ -56,11 +56,11 @@ resource "azurerm_linux_function_app" "example" {
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region where the Linux Function App should exist. Changing this forces a new Linux Function App to be created.
+* `location` - (Required) The Azure Region where the Windows Function App should exist. Changing this forces a new Windows Function App to be created.
 
-* `name` - (Required) The name which should be used for this Linux Function App. Changing this forces a new Linux Function App to be created.
+* `name` - (Required) The name which should be used for this Windows Function App. Changing this forces a new Windows Function App to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Linux Function App should exist. Changing this forces a new Linux Function App to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Windows Function App should exist. Changing this forces a new Windows Function App to be created.
 
 * `service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App.
 
@@ -102,7 +102,7 @@ The following arguments are supported:
 
 ~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Windows Function App.
 
 ---
 
@@ -122,17 +122,15 @@ An `active_directory` block supports the following:
 
 A `application_stack` block supports the following:
 
-* `docker` - (Optional) One or more `docker` blocks as defined below.
-
 * `dotnet_version` - (Optional) The version of .Net to use. Possible values include `3.1` and `6`.
 
 * `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, and `11`.
 
 * `node_version` - (Optional) The version of Node to run. Possible values include `12`, and `14`.
 
-* `python_version` - (Optional) The version of Python to run. Possible values include `3.6`, `3.7`, `3.8`, and `3.9`.
+* `powershell_core_version` - (Optional) The version of PowerShell Core to run. Possible values are `7`.
 
-* `use_custom_runtime` - (Optional) Should the Linux Function App use a custom runtime?
+* `use_custom_runtime` - (Optional) Should the Windows Function App use a custom runtime?
 
 ---
 
@@ -148,13 +146,13 @@ An `app_service_logs` block supports the following:
 
 An `auth_settings` block supports the following:
 
-* `enabled` - (Required) Should the Authentication / Authorization feature be enabled for the Linux Web App?
+* `enabled` - (Required) Should the Authentication / Authorization feature be enabled for the Windows Web App?
 
 * `active_directory` - (Optional) An `active_directory` block as defined above.
 
 * `additional_login_params` - (Optional) Specifies a map of Login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.
 
-* `allowed_external_redirect_urls` - (Optional) Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Linux Web App.
+* `allowed_external_redirect_urls` - (Optional) Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Windows Web App.
 
 * `default_provider` - (Optional) The default authentication provider to use when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`
 
@@ -166,17 +164,17 @@ An `auth_settings` block supports the following:
 
 * `google` - (Optional) A `google` block as defined below.
 
-* `issuer` - (Optional) The OpenID Connect Issuer URI that represents the entity which issues access tokens for this Linux Web App.
+* `issuer` - (Optional) The OpenID Connect Issuer URI that represents the entity which issues access tokens for this Windows Web App.
 
 ~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/.
 
 * `microsoft` - (Optional) A `microsoft` block as defined below.
 
-* `runtime_version` - (Optional) The RuntimeVersion of the Authentication / Authorization feature in use for the Linux Web App.
+* `runtime_version` - (Optional) The RuntimeVersion of the Authentication / Authorization feature in use for the Windows Web App.
 
 * `token_refresh_extension_hours` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours.
 
-* `token_store_enabled` - (Optional) Should the Linux Web App durably store platform-specific security tokens that are obtained during login flows? Defaults to `false`.
+* `token_store_enabled` - (Optional) Should the Windows Web App durably store platform-specific security tokens that are obtained during login flows? Defaults to `false`.
 
 * `twitter` - (Optional) A `twitter` block as defined below.
 
@@ -212,24 +210,6 @@ A `cors` block supports the following:
 * `allowed_origins` - (Required) Specifies a list of origins that should be allowed to make cross-origin calls.
 
 * `support_credentials` - (Optional) Are credentials allowed in CORS requests? Defaults to `false`.
-
----
-
-A `docker` block supports the following:
-
-* `registry_url` - (Required) The URL of the docker registry.
-
-* `image_name` - (Required) The name of the Docker image to use.
-
-* `image_tag` - (Required) The image tag of the image to use.
-
-* `registry_username` - (Optional) The username to use for connections to the registry.
-
-~> **NOTE:** This value is required if `container_registry_use_managed_identity` is not set to `true`.
-
-* `registry_password` - (Optional) The password for the account to use to connect to the registry.
-
-~> **NOTE:** This value is required if `container_registry_use_managed_identity` is not set to `true`.
 
 ---
 
@@ -327,7 +307,7 @@ A `schedule` block supports the following:
 
 * `frequency_interval` - (Required) How often the backup should be executed (e.g. for weekly backup, this should be set to `7` and `frequency_unit` should be set to `Day`).
 
-~> **NOTE:** Not all intervals are supported on all Linux Function App SKU's. Please refer to the official documentation for appropriate values.
+~> **NOTE:** Not all intervals are supported on all Windows Function App SKU's. Please refer to the official documentation for appropriate values.
 
 * `frequency_unit` - (Required) The unit of time for how often the backup should take place. Possible values include: `Day` and `Hour`. 
 
@@ -361,35 +341,31 @@ A `scm_ip_restriction` block supports the following:
 
 A `site_config` block supports the following:
 
-* `always_on` - (Optional) If this Linux Web App is Always On enabled. Defaults to `false`.
+* `always_on` - (Optional) If this Windows Web App is Always On enabled. Defaults to `false`.
 
-* `api_definition_url` - (Optional) The URL of the API definition that describes this Linux Function App.
+* `api_definition_url` - (Optional) The URL of the API definition that describes this Windows Function App.
 
-* `api_management_api_id` - (Optional) The ID of the API Management API for this Linux Function App.
+* `api_management_api_id` - (Optional) The ID of the API Management API for this Windows Function App.
 
 * `app_command_line` - (Optional) The App command line to launch.
 
 * `app_scale_limit` - (Optional) The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.
 
-* `application_insights_connection_string` - (Optional) The Connection String for linking the Linux Function App to Application Insights.
+* `application_insights_connection_string` - (Optional) The Connection String for linking the Windows Function App to Application Insights.
 
-* `application_insights_key` - (Optional) The Instrumentation Key for connecting the Linux Function App to Application Insights.
+* `application_insights_key` - (Optional) The Instrumentation Key for connecting the Windows Function App to Application Insights.
 
 * `application_stack` - (Optional) An `application_stack` block as defined above.
 
 * `app_service_logs` - (Optional) An `app_service_logs` block as defined above.
 
-* `auto_swap_slot_name` - (Optional) The Linux Function App Slot Name to automatically swap to when deployment to that slot is successfully completed.
-
-* `container_registry_managed_identity_client_id` - (Optional) The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.
-
-* `container_registry_use_managed_identity` - (Optional) Should connections for Azure Container Registry use Managed Identity.
+* `auto_swap_slot_name` - (Optional) The Windows Function App Slot Name to automatically swap to when deployment to that slot is successfully completed.
 
 * `cors` - (Optional) A `cors` block as defined above.
 
-* `default_documents` - (Optional) Specifies a list of Default Documents for the Linux Web App.
+* `default_documents` - (Optional) Specifies a list of Default Documents for the Windows Web App.
 
-* `elastic_instance_minimum` - (Optional) The number of minimum instances for this Linux Function App. Only affects apps on Elastic Premium plans.
+* `elastic_instance_minimum` - (Optional) The number of minimum instances for this Windows Function App. Only affects apps on Elastic Premium plans.
 
 * `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.
 
@@ -407,7 +383,7 @@ A `site_config` block supports the following:
 
 * `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
 
-* `number_of_workers` - (Optional) The number of Workers for this Linux Function App.
+* `number_of_workers` - (Optional) The number of Workers for this Windows Function App.
 
 * `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.
 
@@ -421,9 +397,9 @@ A `site_config` block supports the following:
 
 * `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
 
-* `scm_use_main_ip_restriction` - (Optional) Should the Linux Function App `ip_restriction` configuration be used for the SCM also.
+* `scm_use_main_ip_restriction` - (Optional) Should the Windows Function App `ip_restriction` configuration be used for the SCM also.
 
-* `use_32_bit_worker` - (Optional) Should the Linux Web App use a 32-bit worker process. Defaults to `true`.
+* `use_32_bit_worker` - (Optional) Should the Windows Web App use a 32-bit worker process. Defaults to `true`.
 
 * `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.
 
@@ -443,13 +419,13 @@ A `twitter` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Linux Function App.
+* `id` - The ID of the Windows Function App.
 
 * `custom_domain_verification_id` - The identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
-* `default_hostname` - The default hostname of the Linux Function App.
+* `default_hostname` - The default hostname of the Windows Function App.
 
-* `kind` - The Kind value for this Linux Function App.
+* `kind` - The Kind value for this Windows Function App.
 
 * `outbound_ip_address_list` - A list of outbound IP addresses. For example `["52.23.25.3", "52.143.43.12"]`
 
@@ -473,15 +449,15 @@ A `site_credential` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Linux Function App.
-* `read` - (Defaults to 25 minutes) Used when retrieving the Linux Function App.
-* `update` - (Defaults to 30 minutes) Used when updating the Linux Function App.
-* `delete` - (Defaults to 5 minutes) Used when deleting the Linux Function App.
+* `create` - (Defaults to 30 minutes) Used when creating the Windows Function App.
+* `read` - (Defaults to 25 minutes) Used when retrieving the Windows Function App.
+* `update` - (Defaults to 30 minutes) Used when updating the Windows Function App.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Windows Function App.
 
 ## Import
 
-Linux Function Apps can be imported using the `resource id`, e.g.
+Windows Function Apps can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_linux_function_app.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1
+terraform import azurerm_windows_function_app.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1
 ```
