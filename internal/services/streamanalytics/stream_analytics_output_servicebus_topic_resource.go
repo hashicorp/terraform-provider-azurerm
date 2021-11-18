@@ -78,10 +78,10 @@ func resourceStreamAnalyticsOutputServiceBusTopic() *pluginsdk.Resource {
 			},
 
 			"property_columns": {
-				Type: pluginsdk.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
@@ -129,7 +129,7 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 					ServiceBusNamespace:    utils.String(d.Get("servicebus_namespace").(string)),
 					SharedAccessPolicyKey:  utils.String(d.Get("shared_access_policy_key").(string)),
 					SharedAccessPolicyName: utils.String(d.Get("shared_access_policy_name").(string)),
-					PropertyColumns: utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
+					PropertyColumns:        utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
 				},
 			},
 			Serialization: serialization,
