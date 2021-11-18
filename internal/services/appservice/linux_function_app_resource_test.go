@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -766,7 +767,7 @@ func TestAccLinuxFunctionApp_appStackDockerManagedServiceIdentity(t *testing.T) 
 }
 
 func TestAccLinuxFunctionApp_appStackPowerShellCore(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -774,7 +775,7 @@ func TestAccLinuxFunctionApp_appStackPowerShellCore(t *testing.T) {
 			Config: r.appStackPowerShellCore(data, SkuBasicPlan, "7"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
 		data.ImportStep(),
@@ -1758,8 +1759,21 @@ provider "azurerm" {
 
 %s
 
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
+  name                = "acctest-LFA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1788,7 +1802,6 @@ resource "azurerm_linux_function_app" "test" {
   }
 
   site_config {
-    always_on          = true
     app_command_line   = "whoami"
     api_definition_url = "https://example.com/azure_function_app_def.json"
     // api_management_api_id = ""  // TODO
@@ -1913,6 +1926,10 @@ resource "azurerm_linux_function_app" "test" {
 }
 
 func (LinuxFunctionAppResource) template(data acceptance.TestData, planSku string) string {
+	var additionalConfig string
+	if strings.EqualFold(planSku, "EP1") {
+		additionalConfig = "maximum_elastic_worker_count = 5"
+	}
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-LFA-%d"
@@ -1933,8 +1950,9 @@ resource "azurerm_service_plan" "test" {
   resource_group_name = azurerm_resource_group.test.name
   os_type             = "Linux"
   sku_name            = "%s"
+  %s
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, planSku)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, planSku, additionalConfig)
 }
 
 func (LinuxFunctionAppResource) templateExtraStorageAccount(data acceptance.TestData, planSku string) string {
