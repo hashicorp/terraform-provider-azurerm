@@ -363,12 +363,13 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	// hasHealthExtension is currently not needed but I added the plumming because we will need it
 	// once upgrade policy is added to OVMSS
+	hasHealthExtension := false
 	if v, ok := d.GetOk("extension"); ok {
-		extensionProfile, _, err := expandOrchestratedVirtualMachineScaleSetExtensions(v.(*pluginsdk.Set).List())
+		var err error
+		virtualMachineProfile.ExtensionProfile, hasHealthExtension, err = expandOrchestratedVirtualMachineScaleSetExtensions(v.(*pluginsdk.Set).List())
 		if err != nil {
 			return err
 		}
-		virtualMachineProfile.ExtensionProfile = extensionProfile
 	}
 
 	if v, ok := d.GetOk("extensions_time_budget"); ok {
@@ -376,6 +377,10 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			virtualMachineProfile.ExtensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
 		}
 		virtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(v.(string))
+	}
+
+	if hasHealthExtension {
+		log.Printf("[DEBUG] Orchestrated Virtual Machine Scale Set %q (Resource Group %q) has a Health Extension defined", name, resourceGroup)
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
