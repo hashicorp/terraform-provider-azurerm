@@ -690,6 +690,10 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO: (v3.0): Set default value to storage.KeyTypeService
+			// In Azure REST API default value is "Service" for queue and table encryption key types.
+			// However the *_encryption_key_type fields require the ForceNew feature here, so cannot have a default value
+			// as this would result in recreation of the resource when updating the resource from older 2.x.y provider versions.
 			"queue_encryption_key_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -700,6 +704,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				}, false),
 			},
 
+			// TODO: (v3.0): Set default value to storage.KeyTypeService
 			"table_encryption_key_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -1760,22 +1765,20 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		d.Set("shared_access_key_enabled", allowSharedKeyAccess)
 
-		// Setting the encryption key type to "Service" in PUT. The following GET will not return the queue/table in the service list of its response.
-		// So defaults to setting the encryption key type to "Service" if it is absent in the GET response. Also, define the default value as "Service" in the schema.
-		var (
-			queueEncryptionKeyType = string(storage.KeyTypeService)
-			tableEncryptionKeyType = string(storage.KeyTypeService)
-		)
 		if encryption := props.Encryption; encryption != nil && encryption.Services != nil {
 			if encryption.Services.Queue != nil {
 				queueEncryptionKeyType = string(encryption.Services.Queue.KeyType)
+				if err := d.Set("queue_encryption_key_type", queueEncryptionKeyType); err != nil {
+					return fmt.Errorf("setting `queue_encryption_key_type`: %+v", err)
+				}
 			}
 			if encryption.Services.Table != nil {
 				tableEncryptionKeyType = string(encryption.Services.Table.KeyType)
+				if err := d.Set("table_encryption_key_type", tableEncryptionKeyType); err != nil {
+					return fmt.Errorf("setting `table_encryption_key_type`: %+v", err)
+				}
 			}
 		}
-		d.Set("table_encryption_key_type", tableEncryptionKeyType)
-		d.Set("queue_encryption_key_type", queueEncryptionKeyType)
 	}
 
 	if accessKeys := keys.Keys; accessKeys != nil {
