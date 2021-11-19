@@ -23,7 +23,7 @@ import (
 )
 
 type CustomFabricSetting struct {
-	Parameter string `tfschema:"name"`
+	Parameter string `tfschema:"parameter"`
 	Section   string `tfschema:"section"`
 	Value     string `tfschema:"value"`
 }
@@ -114,7 +114,7 @@ type ClusterResourceModel struct {
 	ResourceGroup        string `tfschema:"resource_group_name"`
 
 	Authentication       []Authentication                     `tfschema:"authentication"`
-	CustomFabricSettings []CustomFabricSetting                `tfschema:"custom_fabric_parameter"`
+	CustomFabricSettings []CustomFabricSetting                `tfschema:"custom_fabric_setting"`
 	LBRules              []LBRule                             `tfschema:"lb_rule"`
 	NodeTypes            []NodeType                           `tfschema:"node_type"`
 	Sku                  managedcluster.SkuName               `tfschema:"sku"`
