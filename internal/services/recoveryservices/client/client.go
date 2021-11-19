@@ -8,20 +8,21 @@ import (
 )
 
 type Client struct {
-	ProtectableItemsClient           *backup.ProtectableItemsClient
-	ProtectedItemsClient             *backup.ProtectedItemsClient
-	ProtectedItemsGroupClient        *backup.ProtectedItemsGroupClient
-	ProtectionPoliciesClient         *backup.ProtectionPoliciesClient
-	BackupProtectionContainersClient *backup.ProtectionContainersClient
-	BackupOperationStatusesClient    *backup.OperationStatusesClient
-	VaultsClient                     *recoveryservices.VaultsClient
-	VaultsConfigsClient              *backup.ResourceVaultConfigsClient // Not sure why this is in backup, but https://github.com/Azure/azure-sdk-for-go/issues/7279
-	FabricClient                     func(resourceGroupName string, vaultName string) siterecovery.ReplicationFabricsClient
-	ProtectionContainerClient        func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectionContainersClient
-	ReplicationPoliciesClient        func(resourceGroupName string, vaultName string) siterecovery.ReplicationPoliciesClient
-	ContainerMappingClient           func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectionContainerMappingsClient
-	NetworkMappingClient             func(resourceGroupName string, vaultName string) siterecovery.ReplicationNetworkMappingsClient
-	ReplicationMigrationItemsClient  func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectedItemsClient
+	ProtectableItemsClient                    *backup.ProtectableItemsClient
+	ProtectedItemsClient                      *backup.ProtectedItemsClient
+	ProtectedItemsGroupClient                 *backup.ProtectedItemsGroupClient
+	ProtectionPoliciesClient                  *backup.ProtectionPoliciesClient
+	ProtectionContainerOperationResultsClient *backup.ProtectionContainerOperationResultsClient
+	BackupProtectionContainersClient          *backup.ProtectionContainersClient
+	BackupOperationStatusesClient             *backup.OperationStatusesClient
+	VaultsClient                              *recoveryservices.VaultsClient
+	VaultsConfigsClient                       *backup.ResourceVaultConfigsClient // Not sure why this is in backup, but https://github.com/Azure/azure-sdk-for-go/issues/7279
+	FabricClient                              func(resourceGroupName string, vaultName string) siterecovery.ReplicationFabricsClient
+	ProtectionContainerClient                 func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectionContainersClient
+	ReplicationPoliciesClient                 func(resourceGroupName string, vaultName string) siterecovery.ReplicationPoliciesClient
+	ContainerMappingClient                    func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectionContainerMappingsClient
+	NetworkMappingClient                      func(resourceGroupName string, vaultName string) siterecovery.ReplicationNetworkMappingsClient
+	ReplicationMigrationItemsClient           func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectedItemsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -48,6 +49,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	backupOperationStatusesClient := backup.NewOperationStatusesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&backupOperationStatusesClient.Client, o.ResourceManagerAuthorizer)
+
+	backupProtectionContainerOperationResultsClient := backup.NewProtectionContainerOperationResultsClient(o.SubscriptionId)
+	o.ConfigureClient(&backupProtectionContainerOperationResultsClient.Client, o.ResourceManagerAuthorizer)
 
 	fabricClient := func(resourceGroupName string, vaultName string) siterecovery.ReplicationFabricsClient {
 		client := siterecovery.NewReplicationFabricsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, resourceGroupName, vaultName)
@@ -86,19 +90,20 @@ func NewClient(o *common.ClientOptions) *Client {
 	}
 
 	return &Client{
-		ProtectableItemsClient:           &protectableItemsClient,
-		ProtectedItemsClient:             &protectedItemsClient,
-		ProtectedItemsGroupClient:        &protectedItemsGroupClient,
-		ProtectionPoliciesClient:         &protectionPoliciesClient,
-		BackupProtectionContainersClient: &backupProtectionContainersClient,
-		BackupOperationStatusesClient:    &backupOperationStatusesClient,
-		VaultsClient:                     &vaultsClient,
-		VaultsConfigsClient:              &vaultConfigsClient,
-		FabricClient:                     fabricClient,
-		ProtectionContainerClient:        protectionContainerClient,
-		ReplicationPoliciesClient:        replicationPoliciesClient,
-		ContainerMappingClient:           containerMappingClient,
-		NetworkMappingClient:             networkMappingClient,
-		ReplicationMigrationItemsClient:  replicationMigrationItemsClient,
+		ProtectableItemsClient:                    &protectableItemsClient,
+		ProtectedItemsClient:                      &protectedItemsClient,
+		ProtectedItemsGroupClient:                 &protectedItemsGroupClient,
+		ProtectionPoliciesClient:                  &protectionPoliciesClient,
+		ProtectionContainerOperationResultsClient: &backupProtectionContainerOperationResultsClient,
+		BackupProtectionContainersClient:          &backupProtectionContainersClient,
+		BackupOperationStatusesClient:             &backupOperationStatusesClient,
+		VaultsClient:                              &vaultsClient,
+		VaultsConfigsClient:                       &vaultConfigsClient,
+		FabricClient:                              fabricClient,
+		ProtectionContainerClient:                 protectionContainerClient,
+		ReplicationPoliciesClient:                 replicationPoliciesClient,
+		ContainerMappingClient:                    containerMappingClient,
+		NetworkMappingClient:                      networkMappingClient,
+		ReplicationMigrationItemsClient:           replicationMigrationItemsClient,
 	}
 }

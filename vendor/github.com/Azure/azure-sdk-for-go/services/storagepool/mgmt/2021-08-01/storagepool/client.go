@@ -1,7 +1,7 @@
-// Package costmanagement implements the Azure ARM Costmanagement service API version 2019-10-01.
+// Package storagepool implements the Azure ARM Storagepool service API version 2021-08-01.
 //
 //
-package costmanagement
+package storagepool
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -14,11 +14,11 @@ import (
 )
 
 const (
-	// DefaultBaseURI is the default URI used for the service Costmanagement
+	// DefaultBaseURI is the default URI used for the service Storagepool
 	DefaultBaseURI = "https://management.azure.com"
 )
 
-// BaseClient is the base client for Costmanagement.
+// BaseClient is the base client for Storagepool.
 type BaseClient struct {
 	autorest.Client
 	BaseURI        string

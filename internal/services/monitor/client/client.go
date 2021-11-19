@@ -28,6 +28,7 @@ type Client struct {
 	LogProfilesClient                *classic.LogProfilesClient
 	MetricAlertsClient               *classic.MetricAlertsClient
 	PrivateLinkScopesClient          *classic.PrivateLinkScopesClient
+	PrivateLinkScopedResourcesClient *classic.PrivateLinkScopedResourcesClient
 	ScheduledQueryRulesClient        *classic.ScheduledQueryRulesClient
 }
 
@@ -68,6 +69,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	PrivateLinkScopesClient := classic.NewPrivateLinkScopesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&PrivateLinkScopesClient.Client, o.ResourceManagerAuthorizer)
 
+	PrivateLinkScopedResourcesClient := classic.NewPrivateLinkScopedResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&PrivateLinkScopedResourcesClient.Client, o.ResourceManagerAuthorizer)
+
 	ScheduledQueryRulesClient := classic.NewScheduledQueryRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ScheduledQueryRulesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -84,6 +88,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		LogProfilesClient:                &LogProfilesClient,
 		MetricAlertsClient:               &MetricAlertsClient,
 		PrivateLinkScopesClient:          &PrivateLinkScopesClient,
+		PrivateLinkScopedResourcesClient: &PrivateLinkScopedResourcesClient,
 		ScheduledQueryRulesClient:        &ScheduledQueryRulesClient,
 	}
 }

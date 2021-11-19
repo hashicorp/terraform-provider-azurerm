@@ -137,6 +137,19 @@ var getvCoreMaxGB = map[string]map[string]map[int]float64{
 			40: 4096,
 			80: 4096,
 		},
+		"fsv2": {
+			8:  1024,
+			10: 1024,
+			12: 1024,
+			14: 1024,
+			16: 1536,
+			18: 1536,
+			20: 1536,
+			24: 1536,
+			32: 3072,
+			36: 3072,
+			72: 4096,
+		},
 	},
 	"businesscritical": {
 		"gen4": {
@@ -182,6 +195,7 @@ var getTierFromName = map[string]string{
 	"premiumpool":  "Premium",
 	"gp_gen4":      "GeneralPurpose",
 	"gp_gen5":      "GeneralPurpose",
+	"gp_fsv2":      "GeneralPurpose",
 	"bc_gen4":      "BusinessCritical",
 	"bc_gen5":      "BusinessCritical",
 }
@@ -270,6 +284,10 @@ func getFamilyFromName(s sku) string {
 
 	if strings.EqualFold(nameFamily, "Gen5") {
 		retFamily = "Gen5"
+	}
+
+	if strings.EqualFold(nameFamily, "Fsv2") {
+		retFamily = "Fsv2"
 	}
 
 	return retFamily

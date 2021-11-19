@@ -167,7 +167,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
 				//       https://github.com/Azure/azure-rest-api-specs/issues/8132
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     azure.ValidateResourceID,
+				ValidateFunc:     validate.DiskEncryptionSetID,
 			},
 
 			"encryption_settings": encryptionSettingsSchema(),
@@ -344,8 +344,13 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
+		encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
+		if err != nil {
+			return err
+		}
+
 		props.Encryption = &compute.Encryption{
-			Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
+			Type:                *encryptionType,
 			DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 		}
 	}
@@ -537,8 +542,13 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if d.HasChange("disk_encryption_set_id") {
 		shouldShutDown = true
 		if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
+			encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
+			if err != nil {
+				return err
+			}
+
 			diskUpdate.Encryption = &compute.Encryption{
-				Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
+				Type:                *encryptionType,
 				DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 			}
 		} else {

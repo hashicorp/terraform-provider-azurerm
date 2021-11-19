@@ -127,11 +127,12 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
 }
 
 resource "azurerm_virtual_desktop_application_group" "test" {
-  name                = "acctestAG%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  type                = "Desktop"
-  host_pool_id        = azurerm_virtual_desktop_host_pool.test.id
+  name                         = "acctestAG%d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  type                         = "Desktop"
+  default_desktop_display_name = "Acceptance Test"
+  host_pool_id                 = azurerm_virtual_desktop_host_pool.test.id
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8))
 }
@@ -158,13 +159,14 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
 }
 
 resource "azurerm_virtual_desktop_application_group" "test" {
-  name                = "acctestAG%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  type                = "Desktop"
-  host_pool_id        = azurerm_virtual_desktop_host_pool.test.id
-  friendly_name       = "TestAppGroup"
-  description         = "Acceptance Test: An application group"
+  name                         = "acctestAG%d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  type                         = "Desktop"
+  host_pool_id                 = azurerm_virtual_desktop_host_pool.test.id
+  friendly_name                = "TestAppGroup"
+  default_desktop_display_name = "Acceptance Test"
+  description                  = "Acceptance Test: An application group"
   tags = {
     Purpose = "Acceptance-Testing"
   }

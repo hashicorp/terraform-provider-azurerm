@@ -29,7 +29,7 @@ github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2019-12-01/con
 github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-08-01/containerservice
 github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice
 github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb
-github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2019-10-01/costmanagement
+github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2020-06-01/costmanagement
 github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2020-12-01/databoxedge
 github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory
 github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem
@@ -116,6 +116,7 @@ github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2021-06-01/service
 github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage
 github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage
 github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache
+github.com/Azure/azure-sdk-for-go/services/storagepool/mgmt/2021-08-01/storagepool
 github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync
 github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription
 github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse
