@@ -34,6 +34,7 @@ ENHANCEMENTS:
 * `azurerm_key_vault_certificate` - the `certificate_policy` property is now optional for imported certificates [GH-14225]
 * `azurerm_kubernetes_cluster` - support for `outbound_type` = `*NATGateway` and the `nat_gateway_profile` block [GH-14142]
 * `azurerm_linux_web_app` - (Beta) add support for `health_check_eviction_time_in_mins` and `vnet_route_all_enabled` [GH-14202]
+* `azurerm_managed_disk` - support for the `on_demand_bursting_enabled` property [GH-14137]
 * `azurerm_mssql_server` - support `azuread_authentication_only` on creation [GH-14169]
 * `azurerm_machine_learning_workspace` - support for the `encryption` block [GH-14120]
 * `azurerm_orchestrated_virtual_machine_scale_set` - added support for VMSS Flex public preview [GH-14003]
