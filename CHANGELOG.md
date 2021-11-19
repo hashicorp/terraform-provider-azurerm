@@ -2,6 +2,9 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_stream_analytics_cluster` [GH-14082]
+* **New Resource:** `azurerm_stream_analytics_managed_private_endpoint` [GH-14082]
+
 ENHANCEMENTS:
 
 * `azurerm_managed_disk` - support for the `public_network_access_enabled` property [GH-14199]
