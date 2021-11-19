@@ -73,6 +73,20 @@ func TestAccDataSourceStorageAccount_withEncryptionKey(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceStorageAccount_noEncryptionKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_account", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StorageAccountDataSource{}.noEncryptionKeyWithDataSource(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("table_encryption_key_type").DoesNotExist(),
+				check.That(data.ResourceName).Key("queue_encryption_key_type").DoesNotExist(),
+			),
+		},
+	})
+}
+
 func (d StorageAccountDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -163,4 +177,31 @@ data "azurerm_storage_account" "test" {
   resource_group_name = azurerm_storage_account.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, t, t)
+}
+
+func (d StorageAccountDataSource) noEncryptionKeyWithDataSource(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                  = azurerm_resource_group.test.location
+  account_tier              = "Standard"
+  account_replication_type  = "LRS"
+}
+
+data "azurerm_storage_account" "test" {
+  name                = azurerm_storage_account.test.name
+  resource_group_name = azurerm_storage_account.test.resource_group_name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

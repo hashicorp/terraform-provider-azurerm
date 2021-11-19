@@ -258,11 +258,13 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 			"queue_encryption_key_type": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+				Optional: true,
 			},
 
 			"table_encryption_key_type": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+				Optional: true,
 			},
 
 			"tags": tags.SchemaDataSource(),
@@ -379,22 +381,20 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
 		}
 
-		// Setting the encryption key type to "Service" in PUT. The following GET will not return the queue/table in the service list of its response.
-		// So defaults to setting the encryption key type to "Service" if it is absent in the GET response. Also, define the default value as "Service" in the schema.
-		var (
-			queueEncryptionKeyType = string(storage.KeyTypeService)
-			tableEncryptionKeyType = string(storage.KeyTypeService)
-		)
 		if encryption := props.Encryption; encryption != nil && encryption.Services != nil {
 			if encryption.Services.Queue != nil {
 				queueEncryptionKeyType = string(encryption.Services.Queue.KeyType)
+				if err := d.Set("queue_encryption_key_type", queueEncryptionKeyType); err != nil {
+					return fmt.Errorf("setting `queue_encryption_key_type`: %+v", err)
+				}
 			}
 			if encryption.Services.Table != nil {
 				tableEncryptionKeyType = string(encryption.Services.Table.KeyType)
+				if err := d.Set("table_encryption_key_type", tableEncryptionKeyType); err != nil {
+					return fmt.Errorf("setting `table_encryption_key_type`: %+v", err)
+				}
 			}
 		}
-		d.Set("table_encryption_key_type", tableEncryptionKeyType)
-		d.Set("queue_encryption_key_type", queueEncryptionKeyType)
 	}
 
 	if accessKeys := accountKeys; accessKeys != nil {
