@@ -49,7 +49,6 @@ func dataSourceSharedImage() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			// TODO: rename to hyper_v_generation_version in v3.0
 			"hyper_v_generation": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,

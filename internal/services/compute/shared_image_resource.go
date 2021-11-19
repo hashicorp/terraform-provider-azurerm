@@ -67,7 +67,6 @@ func resourceSharedImage() *pluginsdk.Resource {
 				}, false),
 			},
 
-			// TODO: rename to hyper_v_generation_version in v3.0
 			"hyper_v_generation": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,

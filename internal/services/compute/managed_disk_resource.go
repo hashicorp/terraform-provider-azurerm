@@ -215,10 +215,9 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"hyper_v_generation_version": {
+			"hyper_v_generation": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
 				ForceNew: true, // Not supported by disk update
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.HyperVGenerationV1),
@@ -435,7 +434,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.BurstingEnabled = utils.Bool(true)
 	}
 
-	if v, ok := d.GetOk("hyper_v_generation_version"); ok {
+	if v, ok := d.GetOk("hyper_v_generation"); ok {
 		props.HyperVGeneration = compute.HyperVGeneration(v.(string))
 	}
 
@@ -827,7 +826,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("os_type", props.OsType)
 		d.Set("tier", props.Tier)
 		d.Set("max_shares", props.MaxShares)
-		d.Set("hyper_v_generation_version", props.HyperVGeneration)
+		d.Set("hyper_v_generation", props.HyperVGeneration)
 
 		if networkAccessPolicy := props.NetworkAccessPolicy; networkAccessPolicy != compute.NetworkAccessPolicyAllowAll {
 			d.Set("network_access_policy", props.NetworkAccessPolicy)
