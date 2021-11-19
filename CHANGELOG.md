@@ -4,6 +4,8 @@ FEATURES:
 
 * **New Beta Resource:** `azurerm_linux_function_app` [GH-13806]
 * **New Resource:** `azurerm_automation_webhook` [GH-13893]
+* **New Resource:** `azurerm_resource_group_cost_management_export` [GH-14140]
+* **New Resource:** `azurerm_subscription_cost_management_export` [GH-14140]
 * **New Resource:** `azurerm_logz_tag_rule` [GH-14020]
 * **New Resource:** `azurerm_monitor_private_link_scoped_service` [GH-14119]
 * **New Resource:** `azurerm_storage_disks_pool` [GH-14145]
@@ -23,6 +25,7 @@ ENHANCEMENTS:
 * `azurerm_container_registry` - support for the `anonymous_pull_enabled`, `data_endpoint_enabled`, and `network_rule_bypass_option` properties [GH-14096]
 * `azurerm_cosmosdb_cassandra_datacenter` - add availability zones flag [GH-14235]
 * `azurerm_cosmosdb_cassandra_datacenter` - rename availability_zones to availability_zones_enabled [GH-14237]
+* `azurerm_cost_management_export_resource_group` - has been deprecated in favour of the `azurerm_resource_group_cost_management_export` resource [GH-14140]
 * `azurerm_disk_encryption_set` - add support for `encryption_type` [GH-14218]
 * `azurerm_elastic_pool` - support for the `Fsv2` family SKUs [GH-14250]
 * `azurerm_key_vault_certificate` - groundwork for the (currently disabled) 3.0 feature to support more granular configuration of soft-delete and purge protection [GH-13682]
