@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -480,7 +481,7 @@ func resourceFrontDoorFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta
 			CustomRules:  expandFrontDoorFirewallCustomRules(customRules),
 			ManagedRules: expandFrontDoorFirewallManagedRules(managedRules),
 		},
-		Tags: expandTags(t),
+		Tags: tagsHelper.Expand(t),
 	}
 
 	if redirectUrl != "" {
@@ -554,7 +555,7 @@ func resourceFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta interfa
 			}
 		}
 
-		return tags.FlattenAndSet(d, flattenTags(model.Tags))
+		return tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags))
 	}
 	return nil
 }
