@@ -187,9 +187,9 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, m
 			return fmt.Errorf("converting Stream Input EventHub to an EventHub Stream Input: %+v", err)
 		}
 
-		d.Set("eventhub_name", *eventHub.EventHubName)
-		d.Set("servicebus_namespace", *eventHub.ServiceBusNamespace)
-		d.Set("shared_access_policy_name", *eventHub.SharedAccessPolicyName)
+		d.Set("eventhub_name", eventHub.EventHubName)
+		d.Set("servicebus_namespace", eventHub.ServiceBusNamespace)
+		d.Set("shared_access_policy_name", eventHub.SharedAccessPolicyName)
 
 		consumerGroupName := ""
 		if eventHub.ConsumerGroupName != nil {
