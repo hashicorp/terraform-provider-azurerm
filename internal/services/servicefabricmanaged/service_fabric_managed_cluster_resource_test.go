@@ -93,7 +93,7 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
   sku                 = "Standard"
   username            = "testUser"
   password            = "NotV3ryS3cur3P@$$w0rd"
-  dns_service         = true
+  dns_service_enabled = true
 
   client_connection_port = 12345
   http_gateway_port      = 23456
