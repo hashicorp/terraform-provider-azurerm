@@ -59,6 +59,7 @@ BUG FIXES:
 * `azurerm_backup_protected_file_share` - correctly list file shares that are added to an existing storage account not returned by the Backup Protectable Items API [GH-14238]
 * `azurerm_frontdoor` - validation for `probe_method` allows the default value [GH-14204]
 * `azurerm_key_vault_managed_hardware_security_module` - extend context timeouts for creation and deletion [GH-14253]
+* `azurerm_key_vault_certificate` - changing the `tags` property no longer forces a new resource to be created [GH-14079]
 * `azurerm_linux_virtual_machine_scale_set` - `source_image_reference.offer` and `source_image_reference.publisher` are now ForceNew [GH-14165]
 * `azurerm_mssql_database`: Fix error with OnlineSecondary with auditing on Primary [GH-14192]
 * `azurerm_network_watcher_flow_log` - now locks on the network security group to prevent `AnotherOperationInProgress` errors [GH-14160]
