@@ -6,6 +6,7 @@ FEATURES:
 * **New Resource:** `azurerm_automation_webhook` [GH-13893]
 * **New Resource:** `azurerm_logz_tag_rule` [GH-14020]
 * **New Resource:** `azurerm_monitor_private_link_scoped_service` [GH-14119]
+* **New Resource:** `azurerm_storage_disks_pool` [GH-14145]
 
 ENHANCEMENTS:
 
