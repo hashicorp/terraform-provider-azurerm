@@ -18,6 +18,7 @@ ENHANCEMENTS:
 
 BUG FIXES: 
 
+* `azurerm_monitor_diagnostic_setting` - Swap Relay parser and validator with EventHub [GH-14277]
 * `azurerm_stream_analytics_stream_input_eventhub` - correctly support creation with the default `eventhub_consumer_group_name` [GH-14264]
 
 ## 2.86.0 (November 19, 2021)
