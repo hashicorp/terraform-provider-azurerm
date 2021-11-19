@@ -17,6 +17,8 @@ ENHANCEMENTS:
 
 BUG FIXES: 
 
+* `azurerm_stream_analytics_stream_input_eventhub` - correctly support creation with the default `eventhub_consumer_group_name` [GH-14264]
+
 ## 2.86.0 (November 19, 2021)
 
 FEATURES:
