@@ -131,7 +131,7 @@ func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *pluginsdk.Resourc
 		Properties: &streamanalytics.StreamInputProperties{
 			Type: streamanalytics.TypeStream,
 			Datasource: &streamanalytics.EventHubStreamInputDataSource{
-				Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftServiceBusEventHub,
+				Type:                                    streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftServiceBusEventHub,
 				EventHubStreamInputDataSourceProperties: eventHubDataSourceProps,
 			},
 			Serialization: serialization,
