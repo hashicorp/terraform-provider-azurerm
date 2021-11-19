@@ -44,6 +44,7 @@ ENHANCEMENTS:
 * `azurerm_storage_account` - (Beta) add state migration for the renaming of `allow_blob_public_access` to `allow_nested_items_to_be_public` [GH-13607]
 * `azurerm_sql_active_directory_administrator` - support for the `azuread_authentication_only` property [GH-14172]
 * `azurerm_virtual_network` - support for the `flow_timeout_in_minutes` property [GH-14200]
+* `azurerm_virtual_desktop_application_group` - support for the `default_desktop_display_name` property [GH-14227]
 
 BUG FIXES: 
 
