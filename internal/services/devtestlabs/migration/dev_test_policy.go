@@ -2,12 +2,13 @@ package migration
 
 import (
 	"context"
+	"log"
+	"strings"
+
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"log"
-	"strings"
 )
 
 var _ pluginsdk.StateUpgrade = DevTestLabPolicyUpgradeV0ToV1{}
