@@ -249,20 +249,17 @@ func resourceVirtualDesktopScalingPlanCreate(d *pluginsdk.ResourceData, meta int
 
 	log.Printf("[INFO] preparing arguments for Virtual Desktop Scaling Plan create")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resourceId := parse.NewScalingPlanID(subscriptionId, resourceGroup, name).ID()
+	id := parse.NewScalingPlanID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Virtual Desktop Scaling Plan %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Virtual Desktop Scaling Plan %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 			}
 		}
 
 		if existing.ScalingPlanProperties != nil {
-			return tf.ImportAsExistsError("azurerm_virtual_desktop_scaling_plan", resourceId)
+			return tf.ImportAsExistsError("azurerm_virtual_desktop_scaling_plan", id.ID())
 		}
 	}
 
@@ -270,7 +267,7 @@ func resourceVirtualDesktopScalingPlanCreate(d *pluginsdk.ResourceData, meta int
 	t := d.Get("tags").(map[string]interface{})
 
 	context := desktopvirtualization.ScalingPlan{
-		Name:     utils.String(name),
+		Name:     utils.String(d.Get("name").(string)),
 		Location: &location,
 		Tags:     tags.Expand(t),
 		ScalingPlanProperties: &desktopvirtualization.ScalingPlanProperties{
@@ -284,11 +281,11 @@ func resourceVirtualDesktopScalingPlanCreate(d *pluginsdk.ResourceData, meta int
 		},
 	}
 
-	if _, err := client.Create(ctx, resourceGroup, name, context); err != nil {
-		return fmt.Errorf("Creating Virtual Desktop Scaling Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.Create(ctx, id.ResourceGroup, id.Name, context); err != nil {
+		return fmt.Errorf("Creating Virtual Desktop Scaling Plan %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId)
+	d.SetId(id.ID())
 
 	return resourceVirtualDesktopScalingPlanRead(d, meta)
 }
@@ -344,7 +341,7 @@ func resourceVirtualDesktopScalingPlanRead(d *pluginsdk.ResourceData, meta inter
 			return nil
 		}
 
-		return fmt.Errorf("Making Read request on Virtual Desktop Scaling Plan %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
