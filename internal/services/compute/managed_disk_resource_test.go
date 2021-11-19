@@ -589,13 +589,13 @@ func TestAccAzureRMManagedDisk_update_withOnDemandBurstingEnabled(t *testing.T) 
 	})
 }
 
-func TestAccAzureRMManagedDisk_create_withHyperVGeneration(t *testing.T) {
+func TestAccAzureRMManagedDisk_create_withHyperVGenerationVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.create_withHyperVGeneration(data),
+			Config: r.create_withHyperVGenerationVersion(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1756,7 +1756,7 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ManagedDiskResource) create_withHyperVGeneration(data acceptance.TestData) string {
+func (ManagedDiskResource) create_withHyperVGenerationVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1766,14 +1766,14 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_managed_disk" "test" {
-  name                 = "acctestd-%d"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_type = "Premium_LRS"
-  create_option        = "Empty"
-  disk_size_gb         = "1024"
-  zones                = ["1"]
-  hyper_v_generation   = "V2"
+  name                       = "acctestd-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  storage_account_type       = "Premium_LRS"
+  create_option              = "Empty"
+  disk_size_gb               = "1024"
+  zones                      = ["1"]
+  hyper_v_generation_version = "V2"
   tags = {
     environment = "acctest"
     cost-center = "ops"

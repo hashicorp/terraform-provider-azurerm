@@ -111,7 +111,7 @@ The following arguments are supported:
 
 * `encryption_settings` - (Optional) A `encryption_settings` block as defined below.
 
-* `hyper_v_generation` - (Optional) The hypervisor generation of the Virtual Machine. Applicable to OS disks only.
+* `hyper_v_generation_version` - (Optional) The generation of HyperV of the Disk. Applicable to OS disks only.
 
 * `image_reference_id` - (Optional) ID of an existing platform/marketplace disk image to copy when `create_option` is `FromImage`.
 
