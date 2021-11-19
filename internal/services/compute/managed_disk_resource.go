@@ -190,6 +190,12 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 			},
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -375,6 +381,12 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		default:
 			props.DiskAccessID = nil
 		}
+	}
+
+	if d.Get("public_network_access_enabled").(bool) {
+		props.PublicNetworkAccess = compute.PublicNetworkAccessEnabled
+	} else {
+		props.PublicNetworkAccess = compute.PublicNetworkAccessDisabled
 	}
 
 	if tier := d.Get("tier").(string); tier != "" {
@@ -595,6 +607,14 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
+	if d.HasChange("public_network_access_enabled") {
+		if d.Get("public_network_access_enabled").(bool) {
+			diskUpdate.PublicNetworkAccess = compute.PublicNetworkAccessEnabled
+		} else {
+			diskUpdate.PublicNetworkAccess = compute.PublicNetworkAccessDisabled
+		}
+	}
+
 	if onDemandBurstingEnabled {
 		switch storageAccountType {
 		case string(compute.StorageAccountTypesPremiumLRS):
@@ -797,6 +817,8 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("network_access_policy", props.NetworkAccessPolicy)
 		}
 		d.Set("disk_access_id", props.DiskAccessID)
+
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == compute.PublicNetworkAccessEnabled)
 
 		diskEncryptionSetId := ""
 		if props.Encryption != nil && props.Encryption.DiskEncryptionSetID != nil {

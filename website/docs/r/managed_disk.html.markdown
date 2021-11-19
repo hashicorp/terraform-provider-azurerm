@@ -153,6 +153,8 @@ The following arguments are supported:
 
 ~> **Note**: `disk_access_id` is only supported when `network_access_policy` is set to `AllowPrivate`.
 
+* `public_network_access_enabled` - (Optional) Whether it is allowed to access the disk via public network. Defaults to `true`.
+
 For more information on managed disks, such as sizing options and pricing, please check out the [Azure Documentation](https://docs.microsoft.com/en-us/azure/storage/storage-managed-disks-overview).
 
 ---
