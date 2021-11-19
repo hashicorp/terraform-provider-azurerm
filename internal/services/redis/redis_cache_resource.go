@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
@@ -91,7 +92,12 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  redis.TLSVersionOneFullStopZero,
+				Default: func() interface{} {
+					if features.ThreePointOh() {
+						return string(redis.TLSVersionOneFullStopTwo)
+					}
+					return string(redis.TLSVersionOneFullStopZero)
+				}(),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(redis.TLSVersionOneFullStopZero),
 					string(redis.TLSVersionOneFullStopOne),

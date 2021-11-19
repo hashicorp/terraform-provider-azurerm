@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
@@ -298,7 +299,12 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			"ssl_minimal_tls_version_enforced": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(postgresql.TLSEnforcementDisabled),
+				Default: func() interface{} {
+					if features.ThreePointOh() {
+						return string(postgresql.TLS12)
+					}
+					return string(postgresql.TLSEnforcementDisabled)
+				}(),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresql.TLSEnforcementDisabled),
 					string(postgresql.TLS10),
