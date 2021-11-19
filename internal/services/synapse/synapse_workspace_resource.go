@@ -430,7 +430,7 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	sqlAdmin := expandArmWorkspaceAadAdmin(d.Get("sql_aad_admin").([]interface{}))
 	if sqlAdmin != nil {
-		workspaceSqlAdminsCreateOrUpdateFuture, err := sqlAdminClient.CreateOrUpdate(ctx, resourceGroup, name, *aadAdmin)
+		workspaceSqlAdminsCreateOrUpdateFuture, err := sqlAdminClient.CreateOrUpdate(ctx, resourceGroup, name, *sqlAdmin)
 		if err != nil {
 			return fmt.Errorf("updating Synapse Workspace %q Sql Admin (Resource Group %q): %+v", name, resourceGroup, err)
 		}
