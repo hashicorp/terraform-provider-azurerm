@@ -10,6 +10,14 @@ description: |-
 
 Manages a Disks Pool Managed Disk Attachment.
 
+~> **Note:** Must be either a premium SSD, standard SSD, or an ultra disk in the same region and availability zone as the disk pool.
+
+~> **Note:** Ultra disks must have a disk sector size of 512 bytes.
+
+~> **Note:** Must be a shared disk, with a maxShares value of two or greater.
+
+~> **Note:** You must provide the StoragePool resource provider RBAC permissions to the disks that will be added to the disk pool.
+
 ## Example Usage
 
 ```hcl
