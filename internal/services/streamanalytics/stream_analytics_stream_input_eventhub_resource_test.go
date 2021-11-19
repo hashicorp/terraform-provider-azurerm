@@ -98,6 +98,9 @@ func TestAccStreamAnalyticsStreamInputEventHub_requiresImport(t *testing.T) {
 
 func (r StreamAnalyticsStreamInputEventHubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.StreamInputID(state.ID)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := client.StreamAnalytics.InputsClient.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName)
 	if err != nil {
