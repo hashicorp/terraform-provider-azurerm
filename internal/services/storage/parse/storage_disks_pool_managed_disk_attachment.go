@@ -38,10 +38,16 @@ func StorageDisksPoolManagedDiskAttachmentID(input string) (*StorageDisksPoolMan
 	}
 
 	poolId, err := StorageDisksPoolID(parts[0])
+	if poolId == nil {
+		return nil, fmt.Errorf("malformed disks pool managed disk attachment id:%q", input)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("malformed disks pool id: %q, %v", poolId.ID(), err)
 	}
 	diskId, err := computeParse.ManagedDiskID(parts[1])
+	if diskId == nil {
+		return nil, fmt.Errorf("malformed disks pool managed disk attachment id:%q", input)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("malformed disk id: %q, %v", diskId.ID(), err)
 	}

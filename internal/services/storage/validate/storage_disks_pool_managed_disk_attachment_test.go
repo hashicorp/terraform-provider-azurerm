@@ -74,6 +74,11 @@ func TestStorageDisksPoolManagedDiskAttachmentID(t *testing.T) {
 		},
 
 		{
+			Input: "/managedDisks|/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/disks/disk1",
+			Valid: false,
+		},
+
+		{
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/storagePool1/managedDisks|/subscriptions",
 			Valid: false,
 		},
