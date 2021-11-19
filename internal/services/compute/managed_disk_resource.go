@@ -215,7 +215,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"hyper_v_generation": {
+			"hyper_v_generation_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
@@ -266,7 +266,6 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	storageAccountType := d.Get("storage_account_type").(string)
 	osType := d.Get("os_type").(string)
 	maxShares := d.Get("max_shares").(int)
-	hyperVGeneration := d.Get("hyper_v_generation").(string)
 
 	t := d.Get("tags").(map[string]interface{})
 	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
@@ -280,7 +279,6 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Encryption: &compute.Encryption{
 			Type: compute.EncryptionTypeEncryptionAtRestWithPlatformKey,
 		},
-		HyperVGeneration: compute.HyperVGeneration(hyperVGeneration),
 	}
 
 	diskSizeGB := d.Get("disk_size_gb").(int)
@@ -435,6 +433,10 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		props.BurstingEnabled = utils.Bool(true)
+	}
+
+	if v, ok := d.GetOk("hyper_v_generation_version"); ok {
+		props.HyperVGeneration = compute.HyperVGeneration(v.(string))
 	}
 
 	createDisk := compute.Disk{
@@ -825,7 +827,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("os_type", props.OsType)
 		d.Set("tier", props.Tier)
 		d.Set("max_shares", props.MaxShares)
-		d.Set("hyper_v_generation", props.HyperVGeneration)
+		d.Set("hyper_v_generation_version", props.HyperVGeneration)
 
 		if networkAccessPolicy := props.NetworkAccessPolicy; networkAccessPolicy != compute.NetworkAccessPolicyAllowAll {
 			d.Set("network_access_policy", props.NetworkAccessPolicy)
