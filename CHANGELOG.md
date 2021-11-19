@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * storage: updating to use API Version `2021-04-01` [GH-14083]
 * videoanalyzer: updating the embedded SDK to use the new Resource ID Parsers [GH-14135]
 * Data Source: `azurerm_storage_account` - support for the `table_encryption_key_type` and `queue_encryption_key_type` attributes [GH-14080]
+* `azurerm_container_registry` - support for the `anonymous_pull_enabled`, `data_endpoint_enabled`, and `network_rule_bypass_option` properties [GH-14096]
 * `azurerm_cosmosdb_cassandra_datacenter` - add availability zones flag [GH-14235]
 * `azurerm_cosmosdb_cassandra_datacenter` - rename availability_zones to availability_zones_enabled [GH-14237]
 * `azurerm_disk_encryption_set` - add support for `encryption_type` [GH-14218]
