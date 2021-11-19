@@ -118,7 +118,6 @@ func (r WatchlistResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			// TODO: construct params from model
 			param := securityinsight.Watchlist{
 				WatchlistProperties: &securityinsight.WatchlistProperties{
 					DisplayName: &model.DisplayName,
@@ -126,7 +125,7 @@ func (r WatchlistResource) Create() sdk.ResourceFunc {
 					Provider: utils.String("Microsoft"),
 
 					// The source represents the source file name which contains the watchlist items. Since in Terraform we allows users
-					// to specify each item via the items property, therefore setting the "source" here is merely to make the API happy.
+					// to specify each item via the items resource, setting the "source" here is merely to make the API happy.
 					Source:      securityinsight.Source("a.csv"),
 					ContentType: utils.String("Text/Csv"),
 				},
