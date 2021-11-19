@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Whether this Sentinel Automation Rule is enabled? Defaults to `true`.
 
-* `expiration` - (Optional) The time in RFC3339 format of kind "UTC" that determines when this Automation Rule should expire and be disabled.
+* `expiration` - (Optional) The time in RFC3339 format of kind `UTC` that determines when this Automation Rule should expire and be disabled.
 
 ---
 
