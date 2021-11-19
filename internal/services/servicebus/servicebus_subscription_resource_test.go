@@ -215,6 +215,12 @@ func TestAccServiceBusSubscription_DuplicateDetectionHistoryTimeWindow(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		{
+			Config: r.duplicate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("duplicate_detection_history_time_window").HasValue("PT1H"),
+			),
+		},
 		data.ImportStep(),
 	})
 }
