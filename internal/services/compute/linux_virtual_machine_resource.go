@@ -663,10 +663,11 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 			if err := d.Set("admin_ssh_key", pluginsdk.NewSet(SSHKeySchemaHash, *flattenedSSHKeys)); err != nil {
 				return fmt.Errorf("setting `admin_ssh_key`: %+v", err)
 			}
-			patchSettings := config.PatchSettings
-			if patchSettings != nil && patchSettings.PatchMode != "" {
-				d.Set("patch_mode", patchSettings.PatchMode)
+			patchMode := string(compute.LinuxVMGuestPatchModeImageDefault)
+			if patchSettings := config.PatchSettings; patchSettings != nil && patchSettings.PatchMode != "" {
+				patchMode = *patchSettings.PatchMode
 			}
+			d.Set("patch_mode", patchMode)
 		}
 
 		if err := d.Set("secret", flattenLinuxSecrets(profile.Secrets)); err != nil {
