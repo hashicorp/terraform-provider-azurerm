@@ -698,7 +698,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					string(storage.KeyTypeService),
 					string(storage.KeyTypeAccount),
 				}, false),
-				Default: string(storage.KeyTypeService),
 			},
 
 			"table_encryption_key_type": {
@@ -709,7 +708,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					string(storage.KeyTypeService),
 					string(storage.KeyTypeAccount),
 				}, false),
-				Default: string(storage.KeyTypeService),
 			},
 
 			"large_file_share_enabled": {
@@ -1070,7 +1068,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		parameters.RoutingPreference = expandArmStorageAccountRouting(v.([]interface{}))
 	}
 
-	// By default (by leaving empty), the table and queue encryption key type is set to "Service". While users can change it to "Account" so that
+	// By default (by leaving empty), the table and queue encryption key type is not set - d.Get returns "". While users can change it to "Account" so that
 	// they can further use CMK to encrypt table/queue data. Only the StorageV2 account kind supports the Account key type.
 	// Also noted that the blob and file are always using the "Account" key type.
 	// See: https://docs.microsoft.com/en-gb/azure/storage/common/account-encryption-key-create?tabs=portal
@@ -1084,16 +1082,37 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("`table_encryption_key_type = \"Account\"` can only be used with account kind `StorageV2`")
 		}
 	}
-	parameters.Encryption = &storage.Encryption{
-		KeySource: storage.KeySourceMicrosoftStorage,
-		Services: &storage.EncryptionServices{
-			Queue: &storage.EncryptionService{
-				KeyType: storage.KeyType(queueEncryptionKeyType),
+
+	if queueEncryptionKeyType != "" && tableEncryptionKeyType != "" {
+		parameters.Encryption = &storage.Encryption{
+			KeySource: storage.KeySourceMicrosoftStorage,
+			Services: &storage.EncryptionServices{
+				Queue: &storage.EncryptionService{
+					KeyType: storage.KeyType(queueEncryptionKeyType),
+				},
+				Table: &storage.EncryptionService{
+					KeyType: storage.KeyType(tableEncryptionKeyType),
+				},
 			},
-			Table: &storage.EncryptionService{
-				KeyType: storage.KeyType(tableEncryptionKeyType),
+		}
+	} else if queueEncryptionKeyType != "" {
+		parameters.Encryption = &storage.Encryption{
+			KeySource: storage.KeySourceMicrosoftStorage,
+			Services: &storage.EncryptionServices{
+				Queue: &storage.EncryptionService{
+					KeyType: storage.KeyType(queueEncryptionKeyType),
+				},
 			},
-		},
+		}
+	} else if tableEncryptionKeyType != "" {
+		parameters.Encryption = &storage.Encryption{
+			KeySource: storage.KeySourceMicrosoftStorage,
+			Services: &storage.EncryptionServices{
+				Table: &storage.EncryptionService{
+					KeyType: storage.KeyType(tableEncryptionKeyType),
+				},
+			},
+		}
 	}
 
 	// Create
