@@ -40,6 +40,7 @@ ENHANCEMENTS:
 * `azurerm_windows_virtual_machine_scale_set` - support for configuring `secure_boot_enabled` [GH-13713]
 * `azurerm_windows_virtual_machine_scale_set` - support for configuring `vtpm_enabled` [GH-13713]
 * `azurerm_windows_web_app` - (Beta) add support for `health_check_eviction_time_in_mins` and `vnet_route_all_enabled` [GH-14202]
+* `azurerm_stream_analytics_output_servicebus_topic` - support for the `property_columns` property [GH-14252]
 * `azurerm_storage_account` - support for `table_encryption_key_type` and `queue_encryption_key_type` [GH-14080]
 * `azurerm_storage_account` - (Beta) add state migration for the renaming of `allow_blob_public_access` to `allow_nested_items_to_be_public` [GH-13607]
 * `azurerm_sql_active_directory_administrator` - support for the `azuread_authentication_only` property [GH-14172]
