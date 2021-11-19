@@ -124,8 +124,8 @@ func (r WatchlistResource) Create() sdk.ResourceFunc {
 					// The only supported provider for now is "Microsoft"
 					Provider: utils.String("Microsoft"),
 
-					// The source represents the source file name which contains the watchlist items. Since in Terraform we allows users
-					// to specify each item via the items resource, setting the "source" here is merely to make the API happy.
+					// The "source" and "contentType" represent the source file name which contains the watchlist items and its content type.
+					// Setting them here is merely to make the API happy.
 					Source:      securityinsight.Source("a.csv"),
 					ContentType: utils.String("Text/Csv"),
 				},
