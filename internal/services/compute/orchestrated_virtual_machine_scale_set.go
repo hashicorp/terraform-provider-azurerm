@@ -961,7 +961,7 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(inp
 	return &osProfile
 }
 
-// I am only commenting this out as this is going to be supported in the next release of the API in October 2021
+// I am only commenting this out as this is going to be supported in the next release of the API version 2021-10-01
 // func expandWindowsConfigurationAdditionalUnattendContent(input []interface{}) *[]compute.AdditionalUnattendContent {
 // 	output := make([]compute.AdditionalUnattendContent, 0)
 
@@ -1439,13 +1439,29 @@ func flattenOrchestratedVirtualMachineScaleSetExtensions(input *compute.VirtualM
 		return result, nil
 	}
 
-	for k, v := range *input.Extensions {
+	// extensionsFromState holds the "extension" block, which is used to retrieve the "protected_settings" to fill it back the state,
+	// since it is not returned from the API.
+	extensionsFromState := map[string]map[string]interface{}{}
+	if extSet, ok := d.GetOk("extension"); ok && extSet != nil {
+		extensions := extSet.(*pluginsdk.Set).List()
+		for _, ext := range extensions {
+			if ext == nil {
+				continue
+			}
+			ext := ext.(map[string]interface{})
+			extensionsFromState[ext["name"].(string)] = ext
+		}
+	}
+
+	for _, v := range *input.Extensions {
 		name := ""
 		if v.Name != nil {
 			name = *v.Name
 		}
 
 		autoUpgradeMinorVersion := false
+		// Automatic Upgrade is not yet supported in VMSS Flex
+		// enableAutomaticUpgrade := false
 		forceUpdateTag := ""
 		provisionAfterExtension := make([]interface{}, 0)
 		protectedSettings := ""
@@ -1471,6 +1487,10 @@ func flattenOrchestratedVirtualMachineScaleSetExtensions(input *compute.VirtualM
 				autoUpgradeMinorVersion = *props.AutoUpgradeMinorVersion
 			}
 
+			// if props.EnableAutomaticUpgrade != nil {
+			// 	enableAutomaticUpgrade = *props.EnableAutomaticUpgrade
+			// }
+
 			if props.ForceUpdateTag != nil {
 				forceUpdateTag = *props.ForceUpdateTag
 			}
@@ -1487,16 +1507,19 @@ func flattenOrchestratedVirtualMachineScaleSetExtensions(input *compute.VirtualM
 				extSettings = extSettingsRaw
 			}
 		}
-		// protected_settings isn't returned, so we attempt to get it from config otherwise set to empty string
-		if protectedSettingsFromConfig, ok := d.GetOk(fmt.Sprintf("extension.%d.protected_settings", k)); ok {
-			if protectedSettingsFromConfig.(string) != "" && protectedSettingsFromConfig.(string) != "{}" {
-				protectedSettings = protectedSettingsFromConfig.(string)
+		// protected_settings isn't returned, so we attempt to get it from state otherwise set to empty string
+		if ext, ok := extensionsFromState[name]; ok {
+			if protectedSettingsFromState, ok := ext["protected_settings"]; ok {
+				if protectedSettingsFromState.(string) != "" && protectedSettingsFromState.(string) != "{}" {
+					protectedSettings = protectedSettingsFromState.(string)
+				}
 			}
 		}
 
 		result = append(result, map[string]interface{}{
 			"name":                       name,
 			"auto_upgrade_minor_version": autoUpgradeMinorVersion,
+			// "automatic_upgrade_enabled":  enableAutomaticUpgrade,
 			"force_update_tag":           forceUpdateTag,
 			"provision_after_extensions": provisionAfterExtension,
 			"protected_settings":         protectedSettings,
