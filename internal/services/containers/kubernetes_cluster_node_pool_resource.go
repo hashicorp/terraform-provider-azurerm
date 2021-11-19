@@ -301,6 +301,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
+	if kubernetesClusterId.SubscriptionId != clustersClient.SubscriptionID {
+		return fmt.Errorf("`kuberentes_cluster_id`'s subscription id is different than provider's subscription")
+	}
+
 	resourceGroup := kubernetesClusterId.ResourceGroup
 	clusterName := kubernetesClusterId.ManagedClusterName
 	name := d.Get("name").(string)
@@ -499,20 +503,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("waiting for completion of Managed Kubernetes Cluster Node Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	read, err := poolsClient.Get(ctx, resourceGroup, clusterName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Managed Kubernetes Cluster Node Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID for Managed Kubernetes Cluster Node Pool %q (Resource Group %q)", name, resourceGroup)
-	}
-
-	id, err := parse.NodePoolID(*read.ID)
-	if err != nil {
-		return err
-	}
-
+	id := parse.NewNodePoolID(poolsClient.SubscriptionID, resourceGroup, clusterName, name)
 	d.SetId(id.ID())
 
 	return resourceKubernetesClusterNodePoolRead(d, meta)

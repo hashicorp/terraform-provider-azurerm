@@ -1151,15 +1151,6 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("waiting for creation of Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("cannot read ID for Managed Kubernetes Cluster %q (Resource Group %q)", name, resGroup)
-	}
-
 	if maintenanceConfigRaw, ok := d.GetOk("maintenance_window"); ok {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
 		parameters := containerservice.MaintenanceConfiguration{
@@ -1170,12 +1161,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	// Normalize Cluster ID, service side may returns resource id contains `resourcegroups` instead of `resourceGroups`
-	id, err := parse.ClusterID(*read.ID)
-	if err != nil {
-		return err
-	}
-
+	id := parse.NewClusterID(client.SubscriptionID, resGroup, name)
 	d.SetId(id.ID())
 
 	return resourceKubernetesClusterRead(d, meta)
