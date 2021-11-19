@@ -53,7 +53,7 @@ func TestAccServiceFabricManagedCluster_full(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("node_type.#").HasValue("1"),
-				check.That(data.ResourceName).Key("node_type.0.data_disk_size").HasValue("140")),
+				check.That(data.ResourceName).Key("node_type.0.data_disk_size_gb").HasValue("140")),
 		},
 	})
 }
@@ -118,7 +118,7 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
 func (r ClusterResource) nodeType(name string, primary bool, diskSize int, instanceCount int) string {
 	return fmt.Sprintf(`
 node_type {
-  data_disk_size         = %[1]d
+  data_disk_size_gb      = %[1]d
   name                   = "%[2]s"
   primary                = %[3]t
   application_port_range = "7000-9000"
