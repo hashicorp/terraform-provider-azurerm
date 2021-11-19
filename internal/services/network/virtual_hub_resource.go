@@ -256,6 +256,29 @@ func resourceVirtualHubDelete(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("while rettrieving virtual hub %q: %+v", id.String(), err)
+	}
+
+	if props := resp.VirtualHubProperties; props != nil {
+		if routes := props.RouteTable; routes != nil && routes.Routes != nil && len(*routes.Routes) > 0 {
+			props.RouteTable = nil
+			parameters := network.VirtualHub{
+				Location:             resp.Location,
+				VirtualHubProperties: props,
+			}
+			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
+			if err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for removal of routes of %s: %+v", id, err)
+			}
+		}
+	}
+
 	locks.ByName(id.Name, virtualHubResourceName)
 	defer locks.UnlockByName(id.Name, virtualHubResourceName)
 
