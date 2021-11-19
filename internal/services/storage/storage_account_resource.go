@@ -1766,10 +1766,8 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("shared_access_key_enabled", allowSharedKeyAccess)
 
 		if encryption := props.Encryption; encryption != nil && encryption.Services != nil {
-			var (
-				queueEncryptionKeyType = string
-				tableEncryptionKeyType = string
-			)
+			var queueEncryptionKeyType string
+			var tableEncryptionKeyType string
 			if encryption.Services.Queue != nil {
 				queueEncryptionKeyType = string(encryption.Services.Queue.KeyType)
 				if err := d.Set("queue_encryption_key_type", queueEncryptionKeyType); err != nil {
