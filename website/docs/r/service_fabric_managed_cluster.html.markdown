@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `authentication` - (Optional) Controls how connections to the cluster are authenticated. A `authentication` block as defined below.
 
-* `backup_restore_service` - (Optional) If true, backup service is enabled.
+* `backup_service_enabled` - (Optional) If true, backup service is enabled.
 
 * `custom_fabric_setting` - (Optional) One or more `custom_fabric_setting` blocks as defined below.
 
@@ -123,7 +123,7 @@ A `certificates` block supports the following:
 
 ---
 
-A `custom_fabric_setting` block supports the following:
+A `custom_fabric` block supports the following:
 
 * `parameter` - (Required) Parameter name.
 
@@ -151,7 +151,7 @@ A `node_type` block supports the following:
 
 * `application_port_range` - (Required) Sets the port range available for applications. Format is `<from_port>-<to_port>`, for example `10000-20000`.
 
-* `data_disk_size` - (Required) The size of the data disk in gigabytes..
+* `data_disk_size_gb` - (Required) The size of the data disk in gigabytes..
 
 * `ephemeral_port_range` - (Required) Sets the port range available for the OS. Format is `<from_port>-<to_port>`, for example `10000-20000`. There has to be at least 255 ports available and cannot overlap with `application_port_range`..
 
@@ -173,7 +173,7 @@ A `node_type` block supports the following:
 
 * `data_disk_type` - (Optional) The type of the disk to use for storing data. It can be one of `Premium_LRS`, `Standard_LRS`, or `StandardSSD_LRS`.
 
-* `multiple_placement_groups` - (Optional) If set the node type can be composed of multiple placement groups.
+* `multiple_placement_groups_enabled` - (Optional) If set the node type can be composed of multiple placement groups.
 
 * `placement_properties` - (Optional) Specifies a list of placement tags that can be used to indicate where services should run..
 

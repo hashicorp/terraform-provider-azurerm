@@ -134,7 +134,7 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Computed:     true,
 			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-z0-9]+(-*[a-z0-9])*$`), "The dns name of the cluster must have lowercase letters, numbers and hyphens. The first character must be a letter and the last character a letter or number"),
 		},
-		"dns_service": {
+		"dns_service_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
@@ -169,12 +169,12 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"node_type":      nodeTypeSchema(),
 		"authentication": authSchema(),
-		"custom_fabric_setting": {
+		"custom_fabric_parameter": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"parameter": {
+					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotWhiteSpace,
@@ -545,7 +545,6 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 	model.Username = properties.AdminUserName
 
 	if aad := properties.AzureActiveDirectory; aad != nil {
-
 		adModel := ADAuthentication{}
 		adModel.ClientApp = utils.NormalizeNilableString(aad.ClientApplication)
 		adModel.ClusterApp = utils.NormalizeNilableString(aad.ClusterApplication)
