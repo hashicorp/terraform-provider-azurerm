@@ -520,8 +520,7 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 		patch.Tags = tags.Expand(t.(map[string]interface{}))
 	}
 
-	_, err = client.UpdateCertificate(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, patch)
-	if err != nil {
+	if _, err = client.UpdateCertificate(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, patch); err != nil {
 		return err
 	}
 	return resourceKeyVaultCertificateRead(d, meta)
