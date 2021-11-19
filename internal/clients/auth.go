@@ -27,7 +27,7 @@ func NewResourceManagerAccount(ctx context.Context, config authentication.Config
 		if err != nil {
 			return nil, fmt.Errorf("getting authenticated object ID: %v", err)
 		}
-		objectId = v
+		objectId = *v
 	}
 
 	account := ResourceManagerAccount{
