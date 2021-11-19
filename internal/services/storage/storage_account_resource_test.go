@@ -1094,6 +1094,8 @@ func TestAccStorageAccount_encryptionKeyType(t *testing.T) {
 			Config: r.encryptionKeyType(data, "Account"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("table_encryption_key_type").HasValue("Account"),
+				check.That(data.ResourceName).Key("queue_encryption_key_type").HasValue("Account"),
 			),
 		},
 		data.ImportStep(),
@@ -1101,6 +1103,17 @@ func TestAccStorageAccount_encryptionKeyType(t *testing.T) {
 			Config: r.encryptionKeyType(data, "Service"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("table_encryption_key_type").HasValue("Service"),
+				check.That(data.ResourceName).Key("queue_encryption_key_type").HasValue("Service"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.noEncryptionKeyType(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("table_encryption_key_type").DoesNotExist(),
+				check.That(data.ResourceName).Key("queue_encryption_key_type").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -3158,4 +3171,26 @@ resource "azurerm_storage_account" "test" {
   queue_encryption_key_type = %q
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, t, t)
+}
+
+func (r StorageAccountResource) noEncryptionKeyType(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                  = azurerm_resource_group.test.location
+  account_tier              = "Standard"
+  account_replication_type  = "LRS"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
