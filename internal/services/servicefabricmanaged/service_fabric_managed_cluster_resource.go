@@ -23,7 +23,7 @@ import (
 )
 
 type CustomFabricSetting struct {
-	Parameter string `tfschema:"parameter"`
+	Parameter string `tfschema:"name"`
 	Section   string `tfschema:"section"`
 	Value     string `tfschema:"value"`
 }
@@ -69,18 +69,18 @@ type VmSecrets struct {
 }
 
 type NodeType struct {
-	DataDiskSize            int64  `tfschema:"data_disk_size"`
-	Id                      string `tfschema:"id"`
-	MultiplePlacementGroups bool   `tfschema:"multiple_placement_groups"`
-	Name                    string `tfschema:"name"`
-	Primary                 bool   `tfschema:"primary"`
-	Stateless               bool   `tfschema:"stateless"`
-	VmImageOffer            string `tfschema:"vm_image_offer"`
-	VmImagePublisher        string `tfschema:"vm_image_publisher"`
-	VmImageSku              string `tfschema:"vm_image_sku"`
-	VmImageVersion          string `tfschema:"vm_image_version"`
-	VmInstanceCount         int64  `tfschema:"vm_instance_count"`
-	VmSize                  string `tfschema:"vm_size"`
+	DataDiskSize                   int64  `tfschema:"data_disk_size_gb"`
+	Id                             string `tfschema:"id"`
+	MultiplePlacementGroupsEnabled bool   `tfschema:"multiple_placement_groups_enabled"`
+	Name                           string `tfschema:"name"`
+	Primary                        bool   `tfschema:"primary"`
+	Stateless                      bool   `tfschema:"stateless"`
+	VmImageOffer                   string `tfschema:"vm_image_offer"`
+	VmImagePublisher               string `tfschema:"vm_image_publisher"`
+	VmImageSku                     string `tfschema:"vm_image_sku"`
+	VmImageVersion                 string `tfschema:"vm_image_version"`
+	VmInstanceCount                int64  `tfschema:"vm_instance_count"`
+	VmSize                         string `tfschema:"vm_size"`
 
 	ApplicationPorts    string            `tfschema:"application_port_range"`
 	Capacities          map[string]string `tfschema:"capacities"`
@@ -102,10 +102,10 @@ type ClusterResource struct{}
 var _ sdk.ResourceWithCustomizeDiff = ClusterResource{}
 
 type ClusterResourceModel struct {
-	BackupRestoreService bool   `tfschema:"backup_restore_service"`
+	BackupRestoreService bool   `tfschema:"backup_service_enabled"`
 	ClientConnectionPort int64  `tfschema:"client_connection_port"`
 	DNSName              string `tfschema:"dns_name"`
-	DNSService           bool   `tfschema:"dns_service"`
+	DNSService           bool   `tfschema:"dns_service_enabled"`
 	HTTPGatewayPort      int64  `tfschema:"http_gateway_port"`
 	Location             string `tfschema:"location"`
 	Name                 string `tfschema:"name"`
@@ -114,7 +114,7 @@ type ClusterResourceModel struct {
 	ResourceGroup        string `tfschema:"resource_group_name"`
 
 	Authentication       []Authentication                     `tfschema:"authentication"`
-	CustomFabricSettings []CustomFabricSetting                `tfschema:"custom_fabric_setting"`
+	CustomFabricSettings []CustomFabricSetting                `tfschema:"custom_fabric_parameter"`
 	LBRules              []LBRule                             `tfschema:"lb_rule"`
 	NodeTypes            []NodeType                           `tfschema:"node_type"`
 	Sku                  managedcluster.SkuName               `tfschema:"sku"`
@@ -124,7 +124,7 @@ type ClusterResourceModel struct {
 
 func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"backup_restore_service": {
+		"backup_service_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
@@ -169,12 +169,12 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"node_type":      nodeTypeSchema(),
 		"authentication": authSchema(),
-		"custom_fabric_parameter": {
+		"custom_fabric_setting": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"name": {
+					"parameter": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotWhiteSpace,
@@ -634,7 +634,7 @@ func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 	}
 
 	if mpg := props.MultiplePlacementGroups; mpg != nil {
-		out.MultiplePlacementGroups = *mpg
+		out.MultiplePlacementGroupsEnabled = *mpg
 	}
 
 	if stateless := props.IsStateless; stateless != nil {
@@ -830,7 +830,7 @@ func expandNodeTypeProperties(nt *NodeType) (*nodetype.NodeTypeProperties, error
 		},
 		IsPrimary:               nt.Primary,
 		IsStateless:             &nt.Stateless,
-		MultiplePlacementGroups: &nt.MultiplePlacementGroups,
+		MultiplePlacementGroups: &nt.MultiplePlacementGroupsEnabled,
 		PlacementProperties:     &nt.PlacementProperties,
 		VmImageOffer:            &nt.VmImageOffer,
 		VmImagePublisher:        &nt.VmImagePublisher,
@@ -874,11 +874,11 @@ func nodeTypeSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
-				"data_disk_size": {
+				"data_disk_size_gb": {
 					Type:     pluginsdk.TypeInt,
 					Required: true,
 				},
-				"multiple_placement_groups": {
+				"multiple_placement_groups_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 				},

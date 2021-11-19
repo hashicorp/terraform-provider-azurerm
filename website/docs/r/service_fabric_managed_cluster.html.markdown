@@ -29,7 +29,7 @@ resource "azurerm_service_fabric_managed_cluster" "example" {
   client_connection_port = 12345
 
   node_type {
-    data_disk_size         = 130
+    data_disk_size_gb      = 130
     name                   = "test1"
     primary                = true
     application_port_range = "30000-49000"
@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `dns_name` - (Optional) Hostname for the cluster. If unset the cluster's name will be used..
 
-* `dns_service` - (Optional) If true, DNS service is enabled.
+* `dns_service_enabled` - (Optional) If true, DNS service is enabled.
 
 * `node_type` - (Optional) One or more `node_type` blocks as defined below.
 
@@ -123,7 +123,7 @@ A `certificates` block supports the following:
 
 ---
 
-A `custom_fabric` block supports the following:
+A `custom_fabric_setting` block supports the following:
 
 * `parameter` - (Required) Parameter name.
 
