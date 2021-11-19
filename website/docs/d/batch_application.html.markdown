@@ -1,10 +1,10 @@
----
+*--
 subcategory: "Batch"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_batch_application"
 description: |-
   Get information about an existing Batch Application instance
----
+*--
 
 # Data Source: azurerm_batch_application
 
