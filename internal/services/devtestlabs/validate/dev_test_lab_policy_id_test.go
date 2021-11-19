@@ -53,32 +53,32 @@ func TestDevTestLabPolicyID(t *testing.T) {
 		},
 
 		{
-			// missing PolicysetName
+			// missing PolicySetName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/",
 			Valid: false,
 		},
 
 		{
-			// missing value for PolicysetName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/policysets/",
+			// missing value for PolicySetName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/policySets/",
 			Valid: false,
 		},
 
 		{
 			// missing PolicyName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/policysets/policyset1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/policySets/policyset1/",
 			Valid: false,
 		},
 
 		{
 			// missing value for PolicyName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/policysets/policyset1/policies/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/policySets/policyset1/policies/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/policysets/policyset1/policies/policy1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/policySets/policyset1/policies/policy1",
 			Valid: true,
 		},
 

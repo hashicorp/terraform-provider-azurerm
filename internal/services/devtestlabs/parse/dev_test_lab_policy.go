@@ -13,16 +13,16 @@ type DevTestLabPolicyId struct {
 	SubscriptionId string
 	ResourceGroup  string
 	LabName        string
-	PolicysetName  string
+	PolicySetName  string
 	PolicyName     string
 }
 
-func NewDevTestLabPolicyID(subscriptionId, resourceGroup, labName, policysetName, policyName string) DevTestLabPolicyId {
+func NewDevTestLabPolicyID(subscriptionId, resourceGroup, labName, policySetName, policyName string) DevTestLabPolicyId {
 	return DevTestLabPolicyId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		LabName:        labName,
-		PolicysetName:  policysetName,
+		PolicySetName:  policySetName,
 		PolicyName:     policyName,
 	}
 }
@@ -30,7 +30,7 @@ func NewDevTestLabPolicyID(subscriptionId, resourceGroup, labName, policysetName
 func (id DevTestLabPolicyId) String() string {
 	segments := []string{
 		fmt.Sprintf("Policy Name %q", id.PolicyName),
-		fmt.Sprintf("Policyset Name %q", id.PolicysetName),
+		fmt.Sprintf("Policy Set Name %q", id.PolicySetName),
 		fmt.Sprintf("Lab Name %q", id.LabName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
@@ -39,8 +39,8 @@ func (id DevTestLabPolicyId) String() string {
 }
 
 func (id DevTestLabPolicyId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DevTestLab/labs/%s/policysets/%s/policies/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.LabName, id.PolicysetName, id.PolicyName)
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DevTestLab/labs/%s/policySets/%s/policies/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.LabName, id.PolicySetName, id.PolicyName)
 }
 
 // DevTestLabPolicyID parses a DevTestLabPolicy ID into an DevTestLabPolicyId struct
@@ -66,7 +66,7 @@ func DevTestLabPolicyID(input string) (*DevTestLabPolicyId, error) {
 	if resourceId.LabName, err = id.PopSegment("labs"); err != nil {
 		return nil, err
 	}
-	if resourceId.PolicysetName, err = id.PopSegment("policysets"); err != nil {
+	if resourceId.PolicySetName, err = id.PopSegment("policySets"); err != nil {
 		return nil, err
 	}
 	if resourceId.PolicyName, err = id.PopSegment("policies"); err != nil {

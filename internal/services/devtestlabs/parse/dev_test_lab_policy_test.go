@@ -12,7 +12,7 @@ var _ resourceid.Formatter = DevTestLabPolicyId{}
 
 func TestDevTestLabPolicyIDFormatter(t *testing.T) {
 	actual := NewDevTestLabPolicyID("12345678-1234-9876-4563-123456789012", "group1", "lab1", "policyset1", "policy1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/policysets/policyset1/policies/policy1"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/policySets/policyset1/policies/policy1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -68,37 +68,37 @@ func TestDevTestLabPolicyID(t *testing.T) {
 		},
 
 		{
-			// missing PolicysetName
+			// missing PolicySetName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/",
 			Error: true,
 		},
 
 		{
-			// missing value for PolicysetName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/policysets/",
+			// missing value for PolicySetName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/policySets/",
 			Error: true,
 		},
 
 		{
 			// missing PolicyName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/policysets/policyset1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/policySets/policyset1/",
 			Error: true,
 		},
 
 		{
 			// missing value for PolicyName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/policysets/policyset1/policies/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/policySets/policyset1/policies/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/policysets/policyset1/policies/policy1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/policySets/policyset1/policies/policy1",
 			Expected: &DevTestLabPolicyId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "group1",
 				LabName:        "lab1",
-				PolicysetName:  "policyset1",
+				PolicySetName:  "policyset1",
 				PolicyName:     "policy1",
 			},
 		},
@@ -134,8 +134,8 @@ func TestDevTestLabPolicyID(t *testing.T) {
 		if actual.LabName != v.Expected.LabName {
 			t.Fatalf("Expected %q but got %q for LabName", v.Expected.LabName, actual.LabName)
 		}
-		if actual.PolicysetName != v.Expected.PolicysetName {
-			t.Fatalf("Expected %q but got %q for PolicysetName", v.Expected.PolicysetName, actual.PolicysetName)
+		if actual.PolicySetName != v.Expected.PolicySetName {
+			t.Fatalf("Expected %q but got %q for PolicySetName", v.Expected.PolicySetName, actual.PolicySetName)
 		}
 		if actual.PolicyName != v.Expected.PolicyName {
 			t.Fatalf("Expected %q but got %q for PolicyName", v.Expected.PolicyName, actual.PolicyName)
