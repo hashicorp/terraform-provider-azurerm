@@ -581,7 +581,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_extensions(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -616,7 +616,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_extensionsMultiple(t *testing.T) 
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -631,7 +631,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_extensionsMultiple_provision_afte
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password", "extension.0.protected_settings"),
 	})
 }
 
