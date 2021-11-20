@@ -665,7 +665,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 			patchMode := string(compute.LinuxVMGuestPatchModeImageDefault)
 			if patchSettings := config.PatchSettings; patchSettings != nil && patchSettings.PatchMode != "" {
-				patchMode = *patchSettings.PatchMode
+				patchMode = string(patchSettings.PatchMode)
 			}
 			d.Set("patch_mode", patchMode)
 		}
