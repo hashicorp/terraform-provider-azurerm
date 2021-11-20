@@ -688,23 +688,23 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"queue_encryption_key_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.KeyTypeService),
 					string(storage.KeyTypeAccount),
 				}, false),
-				Default: string(storage.KeyTypeService),
 			},
 
 			"table_encryption_key_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.KeyTypeService),
 					string(storage.KeyTypeAccount),
 				}, false),
-				Default: string(storage.KeyTypeService),
 			},
 
 			"large_file_share_enabled": {
