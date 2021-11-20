@@ -177,6 +177,45 @@ func TestAccOrchestratedVirtualMachineScaleSet_loadBalancer(t *testing.T) {
 	})
 }
 
+func (OrchestratedVirtualMachineScaleSetResource) hasLoadBalancer(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	id, err := parse.VirtualMachineScaleSetID(state.ID)
+	if err != nil {
+		return err
+	}
+
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	read, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	if err != nil {
+		return err
+	}
+
+	if props := read.VirtualMachineScaleSetProperties; props != nil {
+		if vmProfile := props.VirtualMachineProfile; vmProfile != nil {
+			if nwProfile := vmProfile.NetworkProfile; nwProfile != nil {
+				if nics := nwProfile.NetworkInterfaceConfigurations; nics != nil {
+					for _, nic := range *nics {
+						if nic.IPConfigurations == nil {
+							continue
+						}
+
+						for _, config := range *nic.IPConfigurations {
+							if config.LoadBalancerBackendAddressPools == nil {
+								continue
+							}
+
+							if len(*config.LoadBalancerBackendAddressPools) > 0 {
+								return nil
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return fmt.Errorf("load balancer configuration was missing")
+}
+
 func (OrchestratedVirtualMachineScaleSetResource) multipleNetworkProfiles(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
