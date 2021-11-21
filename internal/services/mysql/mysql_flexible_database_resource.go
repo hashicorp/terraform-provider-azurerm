@@ -23,7 +23,7 @@ func resourceMySqlFlexibleDatabase() *pluginsdk.Resource {
 		Read:   resourceMySqlFlexibleDatabaseRead,
 		Delete: resourceMySqlFlexibleDatabaseDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DatabaseID(id)
+			_, err := parse.FlexibleDatabaseID(id)
 			return err
 		}),
 
