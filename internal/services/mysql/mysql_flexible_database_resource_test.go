@@ -106,13 +106,13 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_mysql_flexible_server" "test" {
-	name                   = "acctest-fs-%d"
-	resource_group_name    = azurerm_resource_group.test.name
-	location               = azurerm_resource_group.test.location
-	administrator_login    = "adminTerraform"
-	administrator_password = "QAZwsx123"
-	sku_name               = "B_Standard_B1s"
-  }
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  sku_name               = "B_Standard_B1s"
+}
 
 resource "azurerm_mysql_flexible_database" "test" {
   name                = "acctestdb_%d"
@@ -149,13 +149,13 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_mysql_flexible_server" "test" {
-	name                   = "acctest-fs-%d"
-	resource_group_name    = azurerm_resource_group.test.name
-	location               = azurerm_resource_group.test.location
-	administrator_login    = "adminTerraform"
-	administrator_password = "QAZwsx123"
-	sku_name               = "B_Standard_B1s"
-  }
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  sku_name               = "B_Standard_B1s"
+}
 
 resource "azurerm_mysql_flexible_database" "test" {
   name                = "acctestdb_%d"
@@ -178,13 +178,13 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_mysql_flexible_server" "test" {
-	name                   = "acctest-fs-%d"
-	resource_group_name    = azurerm_resource_group.test.name
-	location               = azurerm_resource_group.test.location
-	administrator_login    = "adminTerraform"
-	administrator_password = "QAZwsx123"
-	sku_name               = "B_Standard_B1s"
-  }
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  sku_name               = "B_Standard_B1s"
+}
 
 resource "azurerm_mysql_flexible_database" "test" {
   name                = "acctestdb_%d"
