@@ -87,7 +87,7 @@ func resourceMySqlFlexibleDatabaseCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_mysql_database", id.ID())
+			return tf.ImportAsExistsError("azurerm_mysql_flexible_database", id.ID())
 		}
 	}
 
