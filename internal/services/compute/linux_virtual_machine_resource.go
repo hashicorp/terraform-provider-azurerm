@@ -958,7 +958,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		if patchMode, ok := d.GetOk("patch_mode"); ok {
 			patchSettings.PatchMode = compute.LinuxVMGuestPatchMode(patchMode.(string))
 		} else {
-			patchSettings.PatchMode = compute.LinuxVMGuestPatchMode(compute.LinuxVMGuestPatchModeImageDefault)
+			patchSettings.PatchMode = compute.LinuxVMGuestPatchModeImageDefault
 		}
 
 		if update.VirtualMachineProperties.OsProfile == nil {
