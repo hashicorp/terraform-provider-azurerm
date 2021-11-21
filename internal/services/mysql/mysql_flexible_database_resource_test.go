@@ -87,7 +87,7 @@ func (r MySQLFlexibleDatabaseResource) Exists(ctx context.Context, clients *clie
 		return nil, err
 	}
 
-	resp, err := clients.MySQL.DatabasesClient.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.DatabaseName)
+	resp, err := clients.MySQL.FlexibleDatabasesClient.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.DatabaseName)
 	if err != nil {
 		return nil, err
 	}
