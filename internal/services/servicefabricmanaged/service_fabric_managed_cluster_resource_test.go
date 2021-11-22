@@ -19,7 +19,7 @@ type ClusterResource struct{}
 func TestAccServiceFabricManagedCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
 	r := ClusterResource{}
-	nodeTypeData1 := r.nodeType("test1", true, 130, 5)
+	nodeTypeData1 := r.nodeType("test1", true, 130)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, nodeTypeData1),
@@ -36,7 +36,7 @@ func TestAccServiceFabricManagedCluster_importError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
 
 	r := ClusterResource{}
-	nodeTypeData1 := r.nodeType("test1", true, 130, 5)
+	nodeTypeData1 := r.nodeType("test1", true, 130)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, nodeTypeData1),
@@ -55,9 +55,9 @@ func TestAccServiceFabricManagedCluster_importError(t *testing.T) {
 func TestAccServiceFabricManagedCluster_full(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
 	r := ClusterResource{}
-	nodeTypeData1 := r.nodeType("test1", true, 130, 5)
-	nodeTypeData1Altered := r.nodeType("test1", true, 140, 5)
-	nodeTypeData2 := r.nodeType("test2", false, 130, 5)
+	nodeTypeData1 := r.nodeType("test1", true, 130)
+	nodeTypeData1Altered := r.nodeType("test1", true, 140)
+	nodeTypeData2 := r.nodeType("test2", false, 130)
 	nodeTypeDataBoth := fmt.Sprintf("%s\n%s", nodeTypeData1, nodeTypeData2)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -185,7 +185,7 @@ resource "azurerm_service_fabric_managed_cluster" "test1" {
 `, r.basic(data, nt), data.RandomString, nt)
 }
 
-func (r ClusterResource) nodeType(name string, primary bool, diskSize int, instanceCount int) string {
+func (r ClusterResource) nodeType(name string, primary bool, diskSize int) string {
 	return fmt.Sprintf(`
 node_type {
   data_disk_size_gb      = %[1]d
@@ -199,7 +199,7 @@ node_type {
   vm_image_sku       = "2016-Datacenter"
   vm_image_offer     = "WindowsServer"
   vm_image_version   = "latest"
-  vm_instance_count  = %[4]d
+  vm_instance_count  = 5
 }
-`, diskSize, name, primary, instanceCount)
+`, diskSize, name, primary)
 }
