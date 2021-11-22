@@ -10,7 +10,7 @@ description: |-
 
 Manages a CosmosDB (formally DocumentDB) Account.
 
-## Example Usage
+## Example Usage (GlobalDocumentDB)
 
 ```hcl
 resource "azurerm_resource_group" "rg" {
@@ -32,22 +32,6 @@ resource "azurerm_cosmosdb_account" "db" {
 
   enable_automatic_failover = true
 
-  capabilities {
-    name = "EnableAggregationPipeline"
-  }
-
-  capabilities {
-    name = "mongoEnableDocLevelTTL"
-  }
-
-  capabilities {
-    name = "MongoDBv3.4"
-  }
-
-  capabilities {
-    name = "EnableMongo"
-  }
-
   consistency_policy {
     consistency_level       = "BoundedStaleness"
     max_interval_in_seconds = 10
@@ -57,6 +41,75 @@ resource "azurerm_cosmosdb_account" "db" {
   geo_location {
     location          = var.failover_location
     failover_priority = 1
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.rg.location
+    failover_priority = 0
+  }
+}
+```
+
+## Example Usage (MongoDB)
+
+```hcl
+resource "azurerm_resource_group" "rg" {
+  name     = var.resource_group_name
+  location = var.resource_group_location
+}
+
+resource "random_integer" "ri" {
+  min = 10000
+  max = 99999
+}
+
+resource "azurerm_cosmosdb_account" "db" {
+  name                 = "tfex-cosmos-db-${random_integer.ri.result}"
+  location             = azurerm_resource_group.rg.location
+  resource_group_name  = azurerm_resource_group.rg.name
+  offer_type           = "Standard"
+  kind                 = "MongoDB"
+  mongo_server_version = "3.6"
+
+  public_network_access_enabled = true
+
+  capabilities {
+    name = "EnableMongo"
+  }
+
+  consistency_policy {
+    consistency_level = "Strong"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.rg.location
+    failover_priority = 0
+  }
+}
+```
+
+## Example Usage (Parse)
+
+```hcl
+resource "azurerm_resource_group" "rg" {
+  name     = var.resource_group_name
+  location = var.resource_group_location
+}
+
+resource "random_integer" "ri" {
+  min = 10000
+  max = 99999
+}
+
+resource "azurerm_cosmosdb_account" "db" {
+  name                = "tfex-cosmos-db-${random_integer.ri.result}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  offer_type          = "Standard"
+  kind                = "Parse"
+
+  consistency_policy {
+    consistency_level = "Strong"
   }
 
   geo_location {
@@ -149,9 +202,7 @@ The following arguments are supported:
 
 `capabilities` Configures the capabilities to enable for this Cosmos DB account:
 
-* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`, `EnableMongo`, `EnableTable`, `EnableServerless`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`. 
-
-**NOTE:**  Setting `MongoDBv3.4` also requires setting `EnableMongo`.
+* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`, `EnableMongo`, `EnableTable`, `EnableServerless`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`.
 
 **NOTE:** The `prefix` and `failover_priority` fields of a location cannot be changed for the location with a failover priority of `0`.
 

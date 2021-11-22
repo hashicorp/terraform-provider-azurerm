@@ -52,27 +52,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				// backup type can only change from Periodic to Continuous
 				return old.(string) == string(documentdb.TypeContinuous) && new.(string) == string(documentdb.TypePeriodic)
 			}),
-
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-				caps := diff.Get("capabilities")
-				mongo34found := false
-				enableMongo := false
-				for _, cap := range caps.(*pluginsdk.Set).List() {
-					m := cap.(map[string]interface{})
-					if v, ok := m["name"].(string); ok {
-						if v == "MongoDBv3.4" {
-							mongo34found = true
-						} else if v == "EnableMongo" {
-							enableMongo = true
-						}
-					}
-				}
-
-				if mongo34found && !enableMongo {
-					return fmt.Errorf("capability EnableMongo must be enabled if MongoDBv3.4 is also enabled")
-				}
-				return nil
-			}),
 		),
 
 		// TODO: replace this with an importer which validates the ID during import
