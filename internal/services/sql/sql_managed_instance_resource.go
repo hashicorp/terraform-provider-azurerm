@@ -248,7 +248,7 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 		},
 	}
 
-	identity, err := expandManagedInstanceIdentity(d.Get("identity").([]interface{}))
+	identity, err := expandManagedInstanceIdentity(d.Get("identity").([]interface{}), d.IsNewResource())
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
@@ -369,10 +369,15 @@ func expandManagedInstanceSkuName(skuName string) (*sql.Sku, error) {
 	}, nil
 }
 
-func expandManagedInstanceIdentity(input []interface{}) (*sql.ResourceIdentity, error) {
+func expandManagedInstanceIdentity(input []interface{}, isNewResource bool) (*sql.ResourceIdentity, error) {
 	config, err := managedInstanceIdentity{}.Expand(input)
 	if err != nil {
 		return nil, err
+	}
+
+	// Workaround for issue https://github.com/Azure/azure-rest-api-specs/issues/16838
+	if config.Type == identity.Type("None") && isNewResource {
+		return nil, nil
 	}
 
 	return &sql.ResourceIdentity{
