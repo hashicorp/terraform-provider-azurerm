@@ -220,6 +220,36 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"purchase_plan": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"publisher": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"product": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"promotion_code": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -268,6 +298,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Encryption: &compute.Encryption{
 			Type: compute.EncryptionTypeEncryptionAtRestWithPlatformKey,
 		},
+		PurchasePlan: expandManagedDiskPurchasePlan(d.Get("purchase_plan").([]interface{})),
 	}
 
 	diskSizeGB := d.Get("disk_size_gb").(int)
@@ -638,6 +669,10 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		shouldShutDown = false
 	}
 
+	if d.HasChange("purchase_plan") {
+		diskUpdate.DiskUpdateProperties.PurchasePlan = expandManagedDiskPurchasePlan(d.Get("purchase_plan").([]interface{}))
+	}
+
 	// if we are attached to a VM we bring down the VM as necessary for the operations which are not allowed while it's online
 	if shouldShutDown {
 		virtualMachine, err := parse.VirtualMachineID(*disk.ManagedBy)
@@ -843,6 +878,10 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			onDemandBurstingEnabled = *props.BurstingEnabled
 		}
 		d.Set("on_demand_bursting_enabled", onDemandBurstingEnabled)
+
+		if err := d.Set("purchase_plan", flattenManagedDiskPurchasePlan(props.PurchasePlan)); err != nil {
+			return fmt.Errorf("setting `purchase_plan`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -868,4 +907,58 @@ func resourceManagedDiskDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	return nil
+}
+
+func expandManagedDiskPurchasePlan(input []interface{}) *compute.PurchasePlan {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	result := compute.PurchasePlan{
+		Name:      utils.String(v["name"].(string)),
+		Publisher: utils.String(v["publisher"].(string)),
+		Product:   utils.String(v["product"].(string)),
+	}
+
+	if promotionCode := v["promotion_code"].(string); promotionCode != "" {
+		result.PromotionCode = utils.String(promotionCode)
+	}
+
+	return &result
+}
+
+func flattenManagedDiskPurchasePlan(input *compute.PurchasePlan) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	name := ""
+	if input.Name != nil {
+		name = *input.Name
+	}
+
+	publisher := ""
+	if input.Publisher != nil {
+		publisher = *input.Publisher
+	}
+
+	product := ""
+	if input.Product != nil {
+		product = *input.Product
+	}
+
+	promotionCode := ""
+	if input.PromotionCode != nil {
+		promotionCode = *input.PromotionCode
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"name":           name,
+			"publisher":      publisher,
+			"product":        product,
+			"promotion_code": promotionCode,
+		},
+	}
 }

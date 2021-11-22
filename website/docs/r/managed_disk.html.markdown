@@ -155,6 +155,8 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether it is allowed to access the disk via public network. Defaults to `true`.
 
+* `purchase_plan` - (Optional) A `purchase_plan` block as defined below. Purchase Plan is used for establishing the purchase context of any 3rd Party artifact through Marketplace.
+
 For more information on managed disks, such as sizing options and pricing, please check out the [Azure Documentation](https://docs.microsoft.com/en-us/azure/storage/storage-managed-disks-overview).
 
 ---
@@ -182,6 +184,18 @@ The `key_encryption_key` block supports:
 * `key_url` - (Required) The URL to the Key Vault Key used as the Key Encryption Key. This can be found as `id` on the `azurerm_key_vault_key` resource.
 
 * `source_vault_id` - (Required) The ID of the source Key Vault.
+
+---
+
+A `purchase_plan` block supports:
+
+* `name` - (Required) The Purchase Plan Name.
+
+* `publisher` - (Required) The Purchase Plan Publisher.
+
+* `product` - (Required) The Purchase Plan Product.
+
+* `promotion_code` - (Optional) The Purchase Plan Promotion Code.
 
 ## Attributes Reference
 
