@@ -276,7 +276,7 @@ func resourceFrontDoorRulesEngineCreateUpdate(d *pluginsdk.ResourceData, meta in
 }
 
 func expandFrontDoorRulesEngineAction(input []interface{}) frontdoors.RulesEngineAction {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return frontdoors.RulesEngineAction{}
 	}
 
@@ -294,7 +294,7 @@ func expandFrontDoorRulesEngineAction(input []interface{}) frontdoors.RulesEngin
 }
 
 func expandHeaderAction(input []interface{}) *[]frontdoors.HeaderAction {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	output := make([]frontdoors.HeaderAction, 0)
@@ -319,7 +319,7 @@ func expandHeaderAction(input []interface{}) *[]frontdoors.HeaderAction {
 }
 
 func expandFrontDoorRulesEngineRules(input []interface{}) *[]frontdoors.RulesEngineRule {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
@@ -346,7 +346,7 @@ func expandFrontDoorRulesEngineRules(input []interface{}) *[]frontdoors.RulesEng
 }
 
 func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoors.RulesEngineMatchCondition {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
@@ -381,7 +381,7 @@ func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoors
 }
 
 func expandFrontDoorRulesEngineMatchConditionTransform(input []interface{}) *[]frontdoors.Transform {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return &[]frontdoors.Transform{}
 	}
 
