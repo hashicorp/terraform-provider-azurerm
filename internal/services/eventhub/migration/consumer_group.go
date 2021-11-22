@@ -2,9 +2,12 @@ package migration
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"strings"
 
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/consumergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -14,13 +17,30 @@ type ConsumerGroupsV0ToV1 struct{}
 
 func (ConsumerGroupsV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-		oldId := rawState["id"].(string)
+		// old:
+		// 	/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/eventhubs/eventhub1/consumergroups/consumergroup1
+		// new:
+		// 	/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/eventhubs/eventhub1/consumerGroups/consumergroup1
+		oldId, err := azure.ParseAzureResourceID(rawState["id"].(string))
+		if err != nil {
+			return rawState, err
+		}
 
-		newId := strings.Replace(rawState["id"].(string), "/consumergroups/", "/consumerGroups/", 1)
+		consumerGroupSegment := ""
+		for key, value := range oldId.Path {
+			if strings.EqualFold(key, "consumergroups") {
+				consumerGroupSegment = value
+				break
+			}
+		}
 
+		if consumerGroupSegment == "" {
+			return rawState, fmt.Errorf("couldn't find the `consumerGroups` segment in the old resource id %q", oldId)
+		}
+
+		newId := consumergroups.NewConsumerGroupID(oldId.SubscriptionID, oldId.ResourceGroup, oldId.Path["namespaces"], oldId.Path["eventhubs"], consumerGroupSegment)
 		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
-
-		rawState["id"] = newId
+		rawState["id"] = newId.ID()
 
 		return rawState, nil
 	}
@@ -33,28 +53,28 @@ func (ConsumerGroupsV0ToV1) Schema() map[string]*pluginsdk.Schema {
 func consumerGroupsSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 
 		"namespace_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 
 		"eventhub_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 
 		"resource_group_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 
 		"user_metadata": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
 		},
 	}
 }
