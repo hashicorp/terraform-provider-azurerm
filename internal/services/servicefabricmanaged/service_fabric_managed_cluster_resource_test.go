@@ -16,6 +16,42 @@ import (
 
 type ClusterResource struct{}
 
+func TestAccServiceFabricManagedCluster_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
+	r := ClusterResource{}
+	nodeTypeData1 := r.nodeType("test1", true, 130, 5)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, nodeTypeData1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Test").HasValue("value")),
+		},
+		data.ImportStep("password"),
+	})
+}
+
+func TestAccServiceFabricManagedCluster_importError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
+
+	r := ClusterResource{}
+	nodeTypeData1 := r.nodeType("test1", true, 130, 5)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, nodeTypeData1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Test").HasValue("value")),
+		},
+		{
+			Config:      r.requiresImport(data, nodeTypeData1),
+			ExpectError: acceptance.RequiresImportError(data.ResourceType),
+		},
+	})
+}
+
 func TestAccServiceFabricManagedCluster_full(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
 	r := ClusterResource{}
@@ -113,6 +149,40 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, nodeTypeData)
+}
+
+func (r ClusterResource) requiresImport(data acceptance.TestData, nt string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_service_fabric_managed_cluster" "test1" {
+  name                = "testacc-sfmc-%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+  username            = "testUser"
+  password            = "NotV3ryS3cur3P@$$w0rd"
+  dns_service_enabled = true
+
+  client_connection_port = 12345
+  http_gateway_port      = 23456
+
+  lb_rule {
+    backend_port       = 8000
+    frontend_port      = 443
+    probe_protocol     = "http"
+    protocol           = "tcp"
+    probe_request_path = "/"
+  }
+
+  %[3]s
+
+  tags = {
+    Test = "value"
+  }
+}
+
+`, r.basic(data, nt), data.RandomString, nt)
 }
 
 func (r ClusterResource) nodeType(name string, primary bool, diskSize int, instanceCount int) string {

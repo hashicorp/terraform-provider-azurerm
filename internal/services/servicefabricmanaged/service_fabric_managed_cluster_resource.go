@@ -409,6 +409,17 @@ func createOrUpdate(ctx context.Context, metadata sdk.ResourceMetaData) error {
 	}
 	cluster.Tags = &tagsMap
 
+	if metadata.ResourceData.IsNewResource() {
+		resp, err := clusterClient.Get(ctx, managedClusterId)
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("while checking if cluster %q already exists: %+v", managedClusterId.String(), err)
+			}
+		} else {
+			return metadata.ResourceRequiresImport("azurerm_service_fabric_managed_cluster", managedClusterId)
+		}
+	}
+
 	resp, err := clusterClient.CreateOrUpdate(ctx, managedClusterId, cluster)
 	if err != nil {
 		return fmt.Errorf("while creating cluster %q: %+v", model.Name, err)
