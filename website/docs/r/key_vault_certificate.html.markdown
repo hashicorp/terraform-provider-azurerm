@@ -232,7 +232,7 @@ The following arguments are supported:
 
 ~> **NOTE:** When creating a Key Vault Certificate, at least one of `certificate` or `certificate_policy` is required. Provide `certificate` to import an existing certificate, `certificate_policy` to generate a new certificate.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 

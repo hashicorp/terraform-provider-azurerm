@@ -10,6 +10,8 @@ description: |-
 
 Manages an Azure Cost Management Export for a Resource Group.
 
+!> **Note:** The `azurerm_cost_management_export_resource_group` resource has been deprecated in favour of the `azurerm_resource_group_cost_management_export` resource and will be removed in v3.0 of the Azure Provider.
+
 ## Example Usage
 
 ```hcl
@@ -83,7 +85,7 @@ A `query` block supports the following:
 
 * `type` - (Required) The type of the query.
 
-* `time_frame` - (Required) The time frame for pulling data for the query. If custom, then a specific time period must be provided. Possible values include: `WeekToDate`, `MonthToDate`, `YearToDate`, `TheLastWeek`, `TheLastMonth`, `TheLastYear`, `Custom`.
+* `time_frame` - (Required) The time frame for pulling data for the query. If custom, then a specific time period must be provided. Possible values include: `WeekToDate`, `MonthToDate`, `BillingMonthToDate`, `TheLastWeek`, `TheLastMonth`, `TheLastBillingMonth`, `Custom`.
 
 ## Attributes Reference
 

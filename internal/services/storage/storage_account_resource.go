@@ -232,7 +232,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"min_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(storage.MinimumTLSVersionTLS10),
+				Default: func() interface{} {
+					if features.ThreePointOh() {
+						return string(storage.MinimumTLSVersionTLS12)
+					}
+					return string(storage.MinimumTLSVersionTLS10)
+				}(),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.MinimumTLSVersionTLS10),
 					string(storage.MinimumTLSVersionTLS11),

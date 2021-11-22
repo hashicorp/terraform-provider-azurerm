@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/2020-06-01/configurationstores"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/2020-06-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -186,7 +186,7 @@ func dataSourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("secondary_read_key", accessKeys.secondaryReadKey)
 		d.Set("secondary_write_key", accessKeys.secondaryWriteKey)
 
-		return tags.FlattenAndSet(d, flattenTags(model.Tags))
+		return tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags))
 	}
 
 	return nil

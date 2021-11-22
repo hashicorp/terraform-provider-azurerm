@@ -137,6 +137,10 @@ The following arguments are supported:
 
 -> **Note:** Trusted Launch can only be enabled when `create_option` is `FromImage` or `Import`.
 
+* `on_demand_bursting_enabled` (Optional) Specifies if On-Demand Bursting is enabled for the Managed Disk. Defaults to `false`.
+
+-> **Note:** Credit-Based Bursting is enabled by default on all eligible disks. More information on [Credit-Based and On-Demand Bursting can be found in the documentation](https://docs.microsoft.com/azure/virtual-machines/disk-bursting#disk-level-bursting).
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `zones` - (Optional) A collection containing the availability zone to allocate the Managed Disk in.
@@ -148,6 +152,8 @@ The following arguments are supported:
 * `disk_access_id` - The ID of the disk access resource for using private endpoints on disks.
 
 ~> **Note**: `disk_access_id` is only supported when `network_access_policy` is set to `AllowPrivate`.
+
+* `public_network_access_enabled` - (Optional) Whether it is allowed to access the disk via public network. Defaults to `true`.
 
 For more information on managed disks, such as sizing options and pricing, please check out the [Azure Documentation](https://docs.microsoft.com/en-us/azure/storage/storage-managed-disks-overview).
 

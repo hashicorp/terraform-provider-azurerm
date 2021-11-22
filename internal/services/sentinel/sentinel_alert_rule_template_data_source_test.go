@@ -34,7 +34,7 @@ func TestAccSentinelAlertRuleTemplateDataSource_securityIncident(t *testing.T) {
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.byDisplayName(data, "Create incidents based on Azure Security Center for IoT alerts"),
+			Config: r.byDisplayName(data, "Create incidents based on Azure Defender alerts"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").Exists(),
 				check.That(data.ResourceName).Key("display_name").Exists(),
@@ -59,7 +59,6 @@ func TestAccSentinelAlertRuleTemplateDataSource_scheduled(t *testing.T) {
 				check.That(data.ResourceName).Key("display_name").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("scheduled_template.0.description").Exists(),
-				check.That(data.ResourceName).Key("scheduled_template.0.tactics.0").Exists(),
 				check.That(data.ResourceName).Key("scheduled_template.0.severity").Exists(),
 				check.That(data.ResourceName).Key("scheduled_template.0.query").Exists(),
 				check.That(data.ResourceName).Key("scheduled_template.0.query_frequency").Exists(),
