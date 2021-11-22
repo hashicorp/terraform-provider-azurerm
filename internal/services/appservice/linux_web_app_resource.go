@@ -36,6 +36,7 @@ type LinuxWebAppModel struct {
 	Enabled                       bool                       `tfschema:"enabled"`
 	HttpsOnly                     bool                       `tfschema:"https_only"`
 	Identity                      []helpers.Identity         `tfschema:"identity"`
+	KeyVaultReferenceIdentityID   string                     `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                    []helpers.LogsConfig       `tfschema:"logs"`
 	MetaData                      map[string]string          `tfschema:"app_metadata"`
 	SiteConfig                    []helpers.SiteConfigLinux  `tfschema:"site_config"`
@@ -285,13 +286,14 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				Identity: helpers.ExpandIdentity(webApp.Identity),
 				Tags:     tags.FromTypedObject(webApp.Tags),
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:          utils.String(webApp.ServicePlanId),
-					Enabled:               utils.Bool(webApp.Enabled),
-					HTTPSOnly:             utils.Bool(webApp.HttpsOnly),
-					SiteConfig:            siteConfig,
-					ClientAffinityEnabled: utils.Bool(webApp.ClientAffinityEnabled),
-					ClientCertEnabled:     utils.Bool(webApp.ClientCertEnabled),
-					ClientCertMode:        web.ClientCertMode(webApp.ClientCertMode),
+					ServerFarmID:              utils.String(webApp.ServicePlanId),
+					Enabled:                   utils.Bool(webApp.Enabled),
+					HTTPSOnly:                 utils.Bool(webApp.HttpsOnly),
+					SiteConfig:                siteConfig,
+					ClientAffinityEnabled:     utils.Bool(webApp.ClientAffinityEnabled),
+					ClientCertEnabled:         utils.Bool(webApp.ClientCertEnabled),
+					ClientCertMode:            web.ClientCertMode(webApp.ClientCertMode),
+					KeyVaultReferenceIdentity: utils.String(webApp.KeyVaultReferenceIdentityID),
 				},
 			}
 
@@ -378,7 +380,8 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Linux %s: %+v", id, err)
 			}
 
-			if webApp.SiteProperties == nil {
+			props := webApp.SiteProperties
+			if props == nil {
 				return fmt.Errorf("reading properties of Linux %s", id)
 			}
 
@@ -434,58 +437,31 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			state := LinuxWebAppModel{
-				Name:          id.SiteName,
-				ResourceGroup: id.ResourceGroup,
-				Location:      location.NormalizeNilable(webApp.Location),
-				Tags:          tags.ToTypedObject(webApp.Tags),
+				Name:                        id.SiteName,
+				ResourceGroup:               id.ResourceGroup,
+				Location:                    location.NormalizeNilable(webApp.Location),
+				ServicePlanId:               utils.NormalizeNilableString(props.ServerFarmID),
+				ClientAffinityEnabled:       utils.NormaliseNilableBool(props.ClientAffinityEnabled),
+				ClientCertEnabled:           utils.NormaliseNilableBool(props.ClientCertEnabled),
+				ClientCertMode:              string(props.ClientCertMode),
+				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
+				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
+				Kind:                        utils.NormalizeNilableString(webApp.Kind),
+				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
+				Enabled:                     utils.NormaliseNilableBool(props.Enabled),
+				HttpsOnly:                   utils.NormaliseNilableBool(props.HTTPSOnly),
+				Tags:                        tags.ToTypedObject(webApp.Tags),
 			}
 
 			var healthCheckCount *int
 			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
 
-			webAppProps := webApp.SiteProperties
-			if v := webAppProps.ServerFarmID; v != nil {
-				state.ServicePlanId = *v
-			}
-
-			if v := webAppProps.ClientAffinityEnabled; v != nil {
-				state.ClientAffinityEnabled = *v
-			}
-
-			if v := webAppProps.ClientCertEnabled; v != nil {
-				state.ClientCertEnabled = *v
-			}
-
-			if webAppProps.ClientCertMode != "" {
-				state.ClientCertMode = string(webAppProps.ClientCertMode)
-			}
-
-			if v := webAppProps.Enabled; v != nil {
-				state.Enabled = *v
-			}
-
-			if v := webAppProps.HTTPSOnly; v != nil {
-				state.HttpsOnly = *v
-			}
-
-			if v := webAppProps.CustomDomainVerificationID; v != nil {
-				state.CustomDomainVerificationId = *v
-			}
-
-			if v := webAppProps.DefaultHostName; v != nil {
-				state.DefaultHostname = *v
-			}
-
-			if v := webApp.Kind; v != nil {
-				state.Kind = *v
-			}
-
-			if v := webAppProps.OutboundIPAddresses; v != nil {
+			if v := props.OutboundIPAddresses; v != nil {
 				state.OutboundIPAddresses = *v
 				state.OutboundIPAddressList = strings.Split(*v, ",")
 			}
 
-			if v := webAppProps.PossibleOutboundIPAddresses; v != nil {
+			if v := props.PossibleOutboundIPAddresses; v != nil {
 				state.PossibleOutboundIPAddresses = *v
 				state.PossibleOutboundIPAddressList = strings.Split(*v, ",")
 			}
@@ -507,6 +483,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
 
 			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
+
 			return metadata.Encode(&state)
 		},
 	}
@@ -582,6 +559,10 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("identity") {
 				existing.Identity = helpers.ExpandIdentity(state.Identity)
+			}
+
+			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
+				existing.KeyVaultReferenceIdentity = utils.String(state.KeyVaultReferenceIdentityID)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
