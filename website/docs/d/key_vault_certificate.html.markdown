@@ -56,6 +56,8 @@ The following attributes are exported:
 
 * `version` - The current version of the Key Vault Certificate.
 
+* `versionless_id` - The Base ID of the Key Vault Certificate.
+
 * `certificate_data` - The raw Key Vault Certificate data represented as a hexadecimal string.
 
 * `certificate_data_base64` - The raw Key Vault Certificate data represented as a base64 string.
