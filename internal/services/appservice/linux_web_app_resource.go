@@ -293,15 +293,18 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				Identity: helpers.ExpandIdentity(webApp.Identity),
 				Tags:     tags.FromTypedObject(webApp.Tags),
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:              utils.String(webApp.ServicePlanId),
-					Enabled:                   utils.Bool(webApp.Enabled),
-					HTTPSOnly:                 utils.Bool(webApp.HttpsOnly),
-					SiteConfig:                siteConfig,
-					ClientAffinityEnabled:     utils.Bool(webApp.ClientAffinityEnabled),
-					ClientCertEnabled:         utils.Bool(webApp.ClientCertEnabled),
-					ClientCertMode:            web.ClientCertMode(webApp.ClientCertMode),
-					KeyVaultReferenceIdentity: utils.String(webApp.KeyVaultReferenceIdentityID),
+					ServerFarmID:          utils.String(webApp.ServicePlanId),
+					Enabled:               utils.Bool(webApp.Enabled),
+					HTTPSOnly:             utils.Bool(webApp.HttpsOnly),
+					SiteConfig:            siteConfig,
+					ClientAffinityEnabled: utils.Bool(webApp.ClientAffinityEnabled),
+					ClientCertEnabled:     utils.Bool(webApp.ClientCertEnabled),
+					ClientCertMode:        web.ClientCertMode(webApp.ClientCertMode),
 				},
+			}
+
+			if webApp.KeyVaultReferenceIdentityID != "" {
+				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(webApp.KeyVaultReferenceIdentityID)
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
