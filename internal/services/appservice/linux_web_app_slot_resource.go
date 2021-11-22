@@ -25,7 +25,7 @@ type LinuxWebAppSlotResource struct{}
 
 type LinuxWebAppSlotModel struct {
 	Name                          string                              `tfschema:"name"`
-	AppServiceID                  string                              `tfschema:"app_service_id"`
+	AppServiceName                string                              `tfschema:"app_service_name"`
 	ResourceGroup                 string                              `tfschema:"resource_group_name"`
 	Location                      string                              `tfschema:"location"`
 	ServicePlanId                 string                              `tfschema:"service_plan_id"`
@@ -75,6 +75,12 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
+			ValidateFunc: validate.WebAppName,
+		},
+
+		"app_service_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
 			ValidateFunc: validate.WebAppName,
 		},
 
@@ -225,12 +231,7 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.AppService.WebAppsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			webAppId, err := parse.WebAppID(webAppSlot.AppServiceID)
-			if err != nil {
-				return err
-			}
-
-			id := parse.NewWebAppSlotID(subscriptionId, webAppSlot.ResourceGroup, webAppId.SiteName, webAppSlot.Name)
+			id := parse.NewWebAppSlotID(subscriptionId, webAppSlot.ResourceGroup, webAppSlot.AppServiceName, webAppSlot.Name)
 
 			existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
@@ -251,15 +252,18 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 				Identity: helpers.ExpandIdentity(webAppSlot.Identity),
 				Tags:     tags.FromTypedObject(webAppSlot.Tags),
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:              utils.String(webAppSlot.ServicePlanId),
-					Enabled:                   utils.Bool(webAppSlot.Enabled),
-					HTTPSOnly:                 utils.Bool(webAppSlot.HttpsOnly),
-					SiteConfig:                siteConfig,
-					ClientAffinityEnabled:     utils.Bool(webAppSlot.ClientAffinityEnabled),
-					ClientCertEnabled:         utils.Bool(webAppSlot.ClientCertEnabled),
-					ClientCertMode:            web.ClientCertMode(webAppSlot.ClientCertMode),
-					KeyVaultReferenceIdentity: utils.String(webAppSlot.KeyVaultReferenceIdentityID),
+					ServerFarmID:          utils.String(webAppSlot.ServicePlanId),
+					Enabled:               utils.Bool(webAppSlot.Enabled),
+					HTTPSOnly:             utils.Bool(webAppSlot.HttpsOnly),
+					SiteConfig:            siteConfig,
+					ClientAffinityEnabled: utils.Bool(webAppSlot.ClientAffinityEnabled),
+					ClientCertEnabled:     utils.Bool(webAppSlot.ClientCertEnabled),
+					ClientCertMode:        web.ClientCertMode(webAppSlot.ClientCertMode),
 				},
+			}
+
+			if webAppSlot.KeyVaultReferenceIdentityID != "" {
+				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(webAppSlot.KeyVaultReferenceIdentityID)
 			}
 
 			future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
@@ -402,7 +406,8 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			state := LinuxWebAppSlotModel{
-				Name:                        id.SiteName,
+				Name:                        id.SlotName,
+				AppServiceName:              id.SiteName,
 				ResourceGroup:               id.ResourceGroup,
 				Location:                    location.NormalizeNilable(webApp.Location),
 				ServicePlanId:               utils.NormalizeNilableString(props.ServerFarmID),
