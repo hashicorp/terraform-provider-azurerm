@@ -73,7 +73,6 @@ type StateUpgradeData struct {
 	Upgraders     map[int]pluginsdk.StateUpgrade
 }
 
-// TODO: ResourceWithStateMigration
 // TODO: a generic state migration for updating ID's
 
 type ResourceWithCustomImporter interface {
