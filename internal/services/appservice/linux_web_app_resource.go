@@ -139,7 +139,6 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 // TODO - Feature: Deployments (Preview)?
-// TODO - Feature: App Insights? - Part of site_settings map
 
 func (r LinuxWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
