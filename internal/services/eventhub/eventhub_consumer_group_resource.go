@@ -211,9 +211,11 @@ func (r ConsumerGroupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return consumergroups.ValidateConsumerGroupID
 }
 
-func (r ConsumerGroupResource) StateUpgradeDataFunc() sdk.StateUpgradeData {
+func (r ConsumerGroupResource) StateUpgraders() sdk.StateUpgradeData {
 	return sdk.StateUpgradeData{
 		SchemaVersion: 1,
-		Upgraders:     map[int]pluginsdk.StateUpgrade{0: migration.ConsumerGroupsV0ToV1{}},
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.ConsumerGroupsV0ToV1{},
+		},
 	}
 }

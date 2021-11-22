@@ -65,7 +65,7 @@ type Resource interface {
 
 type ResourceWithStateMigration interface {
 	Resource
-	StateUpgradeDataFunc() StateUpgradeData
+	StateUpgraders() StateUpgradeData
 }
 
 type StateUpgradeData struct {

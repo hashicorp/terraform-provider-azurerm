@@ -149,7 +149,7 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 	}
 
 	if v, ok := rw.resource.(ResourceWithStateMigration); ok {
-		stateUpgradeData := v.StateUpgradeDataFunc()
+		stateUpgradeData := v.StateUpgraders()
 		resource.SchemaVersion = stateUpgradeData.SchemaVersion
 		resource.StateUpgraders = pluginsdk.StateUpgrades(stateUpgradeData.Upgraders)
 	}
