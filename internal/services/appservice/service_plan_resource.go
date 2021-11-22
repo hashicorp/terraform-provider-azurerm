@@ -83,7 +83,6 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 				"EP1", "EP2", "EP3", // Elastic Premium Plans - Function Apps
 				"WS1", "WS2", "WS3", // Workflow plans - Logic Apps
 			}, false),
-			// TODO - need to look at Isolated as separate property via ExactlyOneOf?
 		},
 
 		"os_type": {
