@@ -8,6 +8,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: upgrading to `v0.18.0` of `github.com/hashicorp/go-azure-helpers` [GH-14261]
 * `azurerm_automation_rule` - support for the `expiration` property [GH-14262]
 * `azurerm_managed_disk` - support for the `public_network_access_enabled` property [GH-14199]
 * `azurerm_mssql_elasticpool` - support for the `DC` family [GH-14270]
