@@ -85,7 +85,6 @@ type SiteConfigLinux struct {
 	ApplicationStack        []ApplicationStackLinux `tfschema:"application_stack"`
 	MinTlsVersion           string                  `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion        string                  `tfschema:"scm_minimum_tls_version"`
-	AutoSwapSlotName        string                  `tfschema:"auto_swap_slot_name"`
 	Cors                    []CorsSetting           `tfschema:"cors"`
 	DetailedErrorLogging    bool                    `tfschema:"detailed_error_logging"`
 	LinuxFxVersion          string                  `tfschema:"linux_fx_version"`
@@ -3074,10 +3073,6 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
 		expanded.ScmMinTLSVersion = web.SupportedTLSVersions(linuxSiteConfig.ScmMinTlsVersion)
-	}
-
-	if metadata.ResourceData.HasChange("site_config.0.auto_swap_slot_name") {
-		expanded.AutoSwapSlotName = utils.String(linuxSiteConfig.AutoSwapSlotName)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
