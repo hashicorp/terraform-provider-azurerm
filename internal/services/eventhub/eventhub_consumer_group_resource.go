@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/consumergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,6 +26,7 @@ type ConsumerGroupObject struct {
 
 var _ sdk.Resource = ConsumerGroupResource{}
 var _ sdk.ResourceWithUpdate = ConsumerGroupResource{}
+var _ sdk.ResourceWithStateMigration = ConsumerGroupResource{}
 
 type ConsumerGroupResource struct {
 }
@@ -207,4 +209,13 @@ func (r ConsumerGroupResource) ModelObject() interface{} {
 
 func (r ConsumerGroupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return consumergroups.ValidateConsumerGroupID
+}
+
+func (r ConsumerGroupResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.ConsumerGroupsV0ToV1{},
+		},
+	}
 }
