@@ -67,6 +67,17 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"custom_ip_prefix_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+				// TODO: The diff suppression function can be removed once
+				// following issue get resolved:
+				// https://github.com/Azure/azure-rest-api-specs/issues/17059
+				DiffSuppressFunc: suppress.CaseDifference,
+			},
+
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -152,7 +163,8 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	ipVersion := d.Get("ip_version").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	zones := &[]string{"1", "2"}
+	zones := &[]string{"1", "2", "3"}
+
 	// TODO - Remove in 3.0
 	if deprecatedZonesRaw, ok := d.GetOk("zones"); ok {
 		deprecatedZones := azure.ExpandZones(deprecatedZonesRaw.([]interface{}))
@@ -166,10 +178,11 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		case "1", "2", "3":
 			zones = &[]string{availabilityZones.(string)}
 		case "Zone-Redundant":
-			zones = &[]string{"1", "2"}
+			zones = &[]string{"1", "2", "3"}
 		case "No-Zone":
 			zones = &[]string{}
 		}
+
 	}
 
 	publicIpPrefix := network.PublicIPPrefix{
@@ -183,6 +196,12 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		},
 		Tags:  tags.Expand(t),
 		Zones: zones,
+	}
+
+	if v, ok := d.GetOk("custom_ip_prefix_id"); ok {
+		publicIpPrefix.CustomIPPrefix = &network.SubResource{
+			ID: utils.String(v.(string)),
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.PublicIPPrefixeName, publicIpPrefix)
@@ -246,7 +265,9 @@ func resourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if props := resp.PublicIPPrefixPropertiesFormat; props != nil {
 		d.Set("prefix_length", props.PrefixLength)
 		d.Set("ip_prefix", props.IPPrefix)
-
+		if props.CustomIPPrefix != nil {
+			d.Set("custom_ip_prefix_id", props.CustomIPPrefix.ID)
+		}
 		if version := props.PublicIPAddressVersion; version != "" {
 			d.Set("ip_version", string(props.PublicIPAddressVersion))
 		}
