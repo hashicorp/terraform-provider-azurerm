@@ -3,6 +3,7 @@ package migration
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/consumergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
