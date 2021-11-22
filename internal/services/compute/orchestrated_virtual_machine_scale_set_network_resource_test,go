@@ -88,7 +88,9 @@ func TestAccOrchestratedVirtualMachineScaleSet_updateNetworkProfile(t *testing.T
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 		{
 			Config: r.basicEmptyNetworkProfile_true_ipforwarding(data),
-			Check:  acceptance.ComposeTestCheckFunc(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 	})
