@@ -67,7 +67,7 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-			"cdn_managed_https_settings": {
+			"cdn_managed_https": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
@@ -92,10 +92,10 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 						},
 					},
 				},
-				ConflictsWith: []string{"user_managed_https_settings"},
+				ConflictsWith: []string{"user_managed_https"},
 			},
 
-			"user_managed_https_settings": {
+			"user_managed_https": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
@@ -119,11 +119,11 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 						},
 					},
 				},
-				ConflictsWith: []string{"cdn_managed_https_settings"},
+				ConflictsWith: []string{"cdn_managed_https"},
 			},
 		},
 		CustomizeDiff: func(ctx context.Context, diff *pluginsdk.ResourceDiff, _ interface{}) error {
-			if settings, ok := diff.GetOk("cdn_managed_https_settings"); ok {
+			if settings, ok := diff.GetOk("cdn_managed_https"); ok {
 				settings := settings.([]interface{})[0].(map[string]interface{})
 				cert, protocol := settings["certificate_type"].(string), settings["protocol_type"].(string)
 				if cert == string(cdn.CertificateTypeShared) && protocol != string(cdn.ProtocolTypeServerNameIndication) {
@@ -180,7 +180,7 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 
 	// Enable https if specified
 	var params cdn.BasicCustomDomainHTTPSParameters
-	if v, ok := d.GetOk("user_managed_https_settings"); ok {
+	if v, ok := d.GetOk("user_managed_https"); ok {
 		// User managed certificate is only available for Azure CDN from Microsoft and Azure CDN from Verizon profiles.
 		// https://docs.microsoft.com/en-us/azure/cdn/cdn-custom-ssl?tabs=option-2-enable-https-with-your-own-certificate#tlsssl-certificates
 		pfClient := meta.(*clients.Client).Cdn.ProfilesClient
@@ -196,7 +196,7 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 		if err != nil {
 			return err
 		}
-	} else if v, ok := d.GetOk("cdn_managed_https_settings"); ok {
+	} else if v, ok := d.GetOk("cdn_managed_https"); ok {
 		params = expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(v.([]interface{}))
 	}
 
@@ -238,10 +238,10 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	switch {
-	case d.HasChange("cdn_managed_https_settings") && d.HasChange("user_managed_https_settings"):
+	case d.HasChange("cdn_managed_https") && d.HasChange("user_managed_https"):
 		// One is turned on, and the other is turned off
 		return fmt.Errorf("in-place update on enabled HTTPS settings is not supported on %q", id)
-	case d.HasChange("cdn_managed_https_settings"):
+	case d.HasChange("cdn_managed_https"):
 		props := resp.CustomDomainProperties
 		if props == nil {
 			return errors.New("unexpected nil of `CustomDomainProperties` in response")
@@ -249,11 +249,11 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta in
 		if props.CustomHTTPSParameters == nil {
 			// disabled -> enabled
 			if err := enableArmCdnEndpointCustomDomainHttps(ctx, client, *id,
-				expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(d.Get("cdn_managed_https_settings").([]interface{}))); err != nil {
+				expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(d.Get("cdn_managed_https").([]interface{}))); err != nil {
 				return fmt.Errorf("enable HTTPS on %q: %+v", id, err)
 			}
 		} else {
-			params := expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(d.Get("cdn_managed_https_settings").([]interface{}))
+			params := expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(d.Get("cdn_managed_https").([]interface{}))
 			if params == nil {
 				// enabled -> disabled
 				if err := disableArmCdnEndpointCustomDomainHttps(ctx, client, *id); err != nil {
@@ -263,12 +263,12 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta in
 				return fmt.Errorf("in-place update on enabled HTTPS settings is not supported on %q", id)
 			}
 		}
-	case d.HasChange("user_managed_https_settings"):
+	case d.HasChange("user_managed_https"):
 		props := resp.CustomDomainProperties
 		if props == nil {
 			return errors.New("unexpected nil of `CustomDomainProperties` in response")
 		}
-		param, err := expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(d.Get("user_managed_https_settings").([]interface{}))
+		param, err := expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(d.Get("user_managed_https").([]interface{}))
 		if err != nil {
 			return err
 		}
@@ -320,12 +320,12 @@ func resourceArmCdnEndpointCustomDomainRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("host_name", props.HostName)
 		switch params := props.CustomHTTPSParameters.(type) {
 		case cdn.ManagedHTTPSParameters:
-			if err := d.Set("cdn_managed_https_settings", flattenArmCdnEndpointCustomDomainCdnManagedHttpsSettings(params)); err != nil {
-				return fmt.Errorf("setting `cdn_managed_https_settings`: %+v", err)
+			if err := d.Set("cdn_managed_https", flattenArmCdnEndpointCustomDomainCdnManagedHttpsSettings(params)); err != nil {
+				return fmt.Errorf("setting `cdn_managed_https`: %+v", err)
 			}
 		case cdn.UserManagedHTTPSParameters:
-			if err := d.Set("user_managed_https_settings", flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(params)); err != nil {
-				return fmt.Errorf("setting `user_managed_https_settings`: %+v", err)
+			if err := d.Set("user_managed_https", flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(params)); err != nil {
+				return fmt.Errorf("setting `user_managed_https`: %+v", err)
 			}
 		}
 	}

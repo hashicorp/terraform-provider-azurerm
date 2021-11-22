@@ -248,7 +248,7 @@ resource "azurerm_cdn_endpoint_custom_domain" "test" {
   name            = "acctest-customdomain"
   cdn_endpoint_id = azurerm_cdn_endpoint.test.id
   host_name       = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
-  cdn_managed_https_settings {
+  cdn_managed_https {
     certificate_type = "Dedicated"
     protocol_type    = "IPBased"
   }
@@ -325,7 +325,7 @@ resource "azurerm_cdn_endpoint_custom_domain" "test" {
   name            = "testcustomdomain-%[2]d"
   cdn_endpoint_id = azurerm_cdn_endpoint.test.id
   host_name       = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
-  user_managed_https_settings {
+  user_managed_https {
     key_vault_id   = azurerm_key_vault.test.id
     secret_name    = azurerm_key_vault_certificate.test.name
     secret_version = azurerm_key_vault_certificate.test.version

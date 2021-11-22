@@ -75,17 +75,17 @@ The following arguments are supported:
 
 * `host_name` - (Required) The host name of the custom domain. Changing this forces a new CDN Endpoint Custom Domain to be created.
 
-* `cdn_managed_https_settings` (Optional) - A `cdn_managed_https_settings` block as defined below. 
+* `cdn_managed_https` (Optional) - A `cdn_managed_https` block as defined below. 
 
-* `user_managed_https_settings` (Optional) - A `user_managed_https_settings` block as defined below.
+* `user_managed_https` (Optional) - A `user_managed_https` block as defined below.
 
-~> **NOTE** Only one of `cdn_managed_https_settings` and `user_managed_https_settings` can be specified.
+~> **NOTE** Only one of `cdn_managed_https` and `user_managed_https` can be specified.
 
 !> **Warning** It is allowed to update the HTTPS settings on the CDN Endpoint Custom Domain only by toggling it. In-place update on HTTPS settings is not allowed. This is because setting different HTTPS settings will need a disable-then-enable process. When HTTPS settings got disabled, the service will take ~8 hours to clean up your previous enablement request for the same custom domain and there is no way to get notification when that clean up has done.
 
 ---
 
-A `cdn_managed_https_settings` block supports the following:
+A `cdn_managed_https` block supports the following:
 
 * `certificate_type` - (Required) The type of the HTTPS certificate. Possible values are `Shared` and `Dedicated`.
 * 
@@ -93,7 +93,7 @@ A `cdn_managed_https_settings` block supports the following:
 
 ---
 
-A `user_managed_https_settings` block supports the following:
+A `user_managed_https` block supports the following:
 
 * `key_vault_id` - (Required) The ID of the Key Vault that contains the HTTPS certificate.
 
