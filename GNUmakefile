@@ -129,9 +129,12 @@ teamcity-test:
 	@$(MAKE) -C .teamcity tools
 	@$(MAKE) -C .teamcity test
 
+serve-schema-api:
+	-go run ./internal/tools/schema-api/main.go || true
+
 validate-examples:
 	./scripts/validate-examples.sh
 
 pr-check: generate build test lint tflint website-lint
 
-.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples
+.PHONY: build build-docker test test-docker testacc vet fmt fmtcheck errcheck scaffold-website test-compile website website-test validate-examples pr-check serve-schema-api
