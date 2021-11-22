@@ -470,6 +470,7 @@ func expandMachineLearningWorkspaceEncryption(input []interface{}) (*machinelear
 			KeyVaultArmID: utils.String(raw["key_vault_id"].(string)),
 			KeyIdentifier: utils.String(raw["key_id"].(string)),
 		},
+		Status: machinelearningservices.EncryptionStatusEnabled,
 	}, nil
 }
 
