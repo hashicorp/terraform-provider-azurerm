@@ -9,18 +9,18 @@ import (
 )
 
 var kubernetesAddOnTests = map[string]func(t *testing.T){
-	"addonProfileAciConnectorLinux":         testAccKubernetesCluster_addonProfileAciConnectorLinux,
-	"addonProfileAciConnectorLinuxDisabled": testAccKubernetesCluster_addonProfileAciConnectorLinuxDisabled,
-	"addonProfileAzurePolicy":               testAccKubernetesCluster_addonProfileAzurePolicy,
-	"addonProfileKubeDashboard":             testAccKubernetesCluster_addonProfileKubeDashboard,
-	"addonProfileOMS":                       testAccKubernetesCluster_addonProfileOMS,
-	"addonProfileOMSToggle":                 testAccKubernetesCluster_addonProfileOMSToggle,
-	"addonProfileRouting":                   testAccKubernetesCluster_addonProfileRoutingToggle,
-	"addonProfileAppGatewayAppGatewayId":    testAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId,
-	"addonProfileAppGatewaySubnetCIDR":      testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR,
-	"addonProfileAppGatewaySubnetID":        testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId,
-	"addonProfileOpenServiceMesh":           testAccKubernetesCluster_addonProfileOpenServiceMesh,
-  "addonProfileazureKeyvaultSecretsProvider":           testAccKubernetesCluster_addonProfileAzureKeyvaultSecretsProvider,
+	"addonProfileAciConnectorLinux":            testAccKubernetesCluster_addonProfileAciConnectorLinux,
+	"addonProfileAciConnectorLinuxDisabled":    testAccKubernetesCluster_addonProfileAciConnectorLinuxDisabled,
+	"addonProfileAzurePolicy":                  testAccKubernetesCluster_addonProfileAzurePolicy,
+	"addonProfileKubeDashboard":                testAccKubernetesCluster_addonProfileKubeDashboard,
+	"addonProfileOMS":                          testAccKubernetesCluster_addonProfileOMS,
+	"addonProfileOMSToggle":                    testAccKubernetesCluster_addonProfileOMSToggle,
+	"addonProfileRouting":                      testAccKubernetesCluster_addonProfileRoutingToggle,
+	"addonProfileAppGatewayAppGatewayId":       testAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId,
+	"addonProfileAppGatewaySubnetCIDR":         testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR,
+	"addonProfileAppGatewaySubnetID":           testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId,
+	"addonProfileOpenServiceMesh":              testAccKubernetesCluster_addonProfileOpenServiceMesh,
+	"addonProfileazureKeyvaultSecretsProvider": testAccKubernetesCluster_addonProfileAzureKeyvaultSecretsProvider,
 }
 
 var addOnAppGatewaySubnetCIDR string = "10.241.0.0/16" // AKS will use 10.240.0.0/16 for the aks subnet so use 10.241.0.0/16 for the app gateway subnet
@@ -388,8 +388,8 @@ func testAccKubernetesCluster_addonProfileAzureKeyvaultSecretsProvider(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.enabled").HasValue("true"),
-        check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation").HasValue("true"),
-        check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.rotation_interval").HasValue("2m"),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation").HasValue("true"),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.rotation_interval").HasValue("2m"),
 			),
 		},
 		data.ImportStep(),
@@ -1248,5 +1248,5 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled, secretRotation, rotationInterval )
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled, secretRotation, rotationInterval)
 }

@@ -7,19 +7,19 @@ import (
 func TestSecretRotationInterval(t *testing.T) {
 	cases := []struct {
 		SecretRotationInterval string
-		Errors        int
+		Errors                 int
 	}{
 		{
 			SecretRotationInterval: "",
-			Errors:        1,
+			Errors:                 1,
 		},
 		{
 			SecretRotationInterval: "2m",
-			Errors:        0,
+			Errors:                 0,
 		},
 		{
 			SecretRotationInterval: "1md",
-			Errors:        1,
+			Errors:                 1,
 		},
 	}
 

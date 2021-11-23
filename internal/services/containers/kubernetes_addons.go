@@ -7,11 +7,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
 	"github.com/Azure/go-autorest/autorest/azure"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	laparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	applicationGatewayValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	subnetValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -253,9 +253,9 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 								Type:     pluginsdk.TypeBool,
 								Optional: true,
 							},
-							"secret_rotation_interval" : {
-								Type: pluginsdk.TypeString,
-								Optional: true,
+							"secret_rotation_interval": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
 								ValidateFunc: containerValidate.SecretRotationInterval,
 							},
 						},
@@ -408,7 +408,7 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 			config["enableSecretRotation"] = utils.String("true")
 			if rotationInterval, ok := value["secret_rotation_interval"]; ok && rotationInterval != "" {
 				config["rotationPollInterval"] = utils.String(rotationInterval.(string))
-			} else {
+			} else { // set default value of 2 minutes
 				config["rotationPollInterval"] = utils.String("2m")
 			}
 		}
@@ -599,10 +599,20 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 		if enabledVal := azureKeyvaultSecretsProvider.Enabled; enabledVal != nil {
 			enabled = *enabledVal
 		}
-
+		enableSecretRotation := false
+		if v := kubernetesAddonProfilelocateInConfig(azureKeyvaultSecretsProvider.Config, "enableSecretRotation"); v != nil && v != utils.String("false") {
+			enableSecretRotation = true
+		}
+		rotationPollInterval := ""
+		if v := kubernetesAddonProfilelocateInConfig(azureKeyvaultSecretsProvider.Config, "rotationPollInterval"); v != nil {
+			rotationPollInterval = *v
+		}
 		azureKeyvaultSecretsProviders = append(azureKeyvaultSecretsProviders, map[string]interface{}{
-			"enabled": enabled,
+			"enabled":                  enabled,
+			"secret_rotation":          enableSecretRotation,
+			"secret_rotation_interval": rotationPollInterval,
 		})
+
 	}
 
 	// this is a UX hack, since if the top level block isn't defined everything should be turned off
