@@ -1238,8 +1238,8 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   addon_profile {
     azure_keyvault_secrets_provider {
-      enabled = %t
-      secret_rotation = %t
+      enabled           = %t
+      secret_rotation   = %t
       rotation_interval = %s
     }
   }
