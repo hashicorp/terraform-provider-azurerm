@@ -604,7 +604,7 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("storage_account") {
 				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
-				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate); err != nil {
+				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate, id.SlotName); err != nil {
 					return fmt.Errorf("updating Storage Accounts for Linux %s: %+v", id, err)
 				}
 			}
