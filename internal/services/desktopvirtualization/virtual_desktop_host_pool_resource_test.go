@@ -160,7 +160,7 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
   }
   lifecycle {
     ignore_changes = [
-      registration_info[0].expiration_date,
+      registration_info,
     ]
   }
 
