@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 
 	"github.com/gofrs/uuid"
@@ -14,6 +15,7 @@ import (
 	loganalyticsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
+	"github.com/Azure/go-autorest/autorest/date"
 
 	loganalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 
@@ -76,6 +78,13 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"expiration": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				DiffSuppressFunc: suppress.RFC3339Time,
+				ValidateFunc:     validation.IsRFC3339Time,
 			},
 
 			"condition": {
@@ -312,6 +321,11 @@ func resourceSentinelAutomationRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 		},
 	}
 
+	if expiration := d.Get("expiration").(string); expiration != "" {
+		t, _ := time.Parse(time.RFC3339, expiration)
+		params.AutomationRuleProperties.TriggeringLogic.ExpirationTimeUtc = &date.Time{Time: t}
+	}
+
 	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name, params)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -360,6 +374,12 @@ func resourceSentinelAutomationRuleRead(d *pluginsdk.ResourceData, meta interfac
 				enabled = *tl.IsEnabled
 			}
 			d.Set("enabled", enabled)
+
+			var expiration string
+			if tl.ExpirationTimeUtc != nil {
+				expiration = tl.ExpirationTimeUtc.Format(time.RFC3339)
+			}
+			d.Set("expiration", expiration)
 
 			if err := d.Set("condition", flattenAutomationRuleConditions(tl.Conditions)); err != nil {
 				return fmt.Errorf("setting `condition`: %v", err)

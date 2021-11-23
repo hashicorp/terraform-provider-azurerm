@@ -1,11 +1,27 @@
 package identity
 
-import "strings"
+import (
+	"encoding/json"
+	"strings"
+)
+
+var _ json.Marshaler = &SystemAssigned{}
 
 type SystemAssigned struct {
-	Type        Type   `tfschema:"type"`
-	PrincipalId string `tfschema:"principal_id"`
-	TenantId    string `tfschema:"tenant_id"`
+	Type        Type   `json:"type"`
+	PrincipalId string `json:"principalId"`
+	TenantId    string `json:"tenantId"`
+}
+
+func (s *SystemAssigned) MarshalJSON() ([]byte, error) {
+	// we use a custom marshal function here since we can only send the Type field
+	out := map[string]interface{}{
+		"type": string(TypeNone),
+	}
+	if s != nil && s.Type == TypeSystemAssigned {
+		out["type"] = string(TypeSystemAssigned)
+	}
+	return json.Marshal(out)
 }
 
 func ExpandSystemAssigned(input []interface{}) (*SystemAssigned, error) {

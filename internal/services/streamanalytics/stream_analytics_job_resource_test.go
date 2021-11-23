@@ -41,6 +41,7 @@ func TestAccStreamAnalyticsJob_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("compatibility_level").HasValue("1.2"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("Test"),
 			),
@@ -165,7 +166,7 @@ resource "azurerm_stream_analytics_job" "test" {
   resource_group_name                      = azurerm_resource_group.test.name
   location                                 = azurerm_resource_group.test.location
   data_locale                              = "en-GB"
-  compatibility_level                      = "1.0"
+  compatibility_level                      = "1.2"
   events_late_arrival_max_delay_in_seconds = 60
   events_out_of_order_max_delay_in_seconds = 50
   events_out_of_order_policy               = "Adjust"

@@ -150,6 +150,12 @@ var getvCoreMaxGB = map[string]map[string]map[int]float64{
 			36: 3072,
 			72: 4096,
 		},
+		"dc": {
+			2: 756,
+			4: 1536,
+			6: 2048,
+			8: 2048,
+		},
 	},
 	"businesscritical": {
 		"gen4": {
@@ -180,6 +186,12 @@ var getvCoreMaxGB = map[string]map[string]map[int]float64{
 			40: 4096,
 			80: 4096,
 		},
+		"dc": {
+			2: 768,
+			4: 768,
+			6: 768,
+			8: 768,
+		},
 	},
 }
 
@@ -196,8 +208,10 @@ var getTierFromName = map[string]string{
 	"gp_gen4":      "GeneralPurpose",
 	"gp_gen5":      "GeneralPurpose",
 	"gp_fsv2":      "GeneralPurpose",
+	"gp_dc":        "GeneralPurpose",
 	"bc_gen4":      "BusinessCritical",
 	"bc_gen5":      "BusinessCritical",
+	"bc_dc":        "BusinessCritical",
 }
 
 func MSSQLElasticPoolValidateSKU(diff *pluginsdk.ResourceDiff) error {
@@ -288,6 +302,10 @@ func getFamilyFromName(s sku) string {
 
 	if strings.EqualFold(nameFamily, "Fsv2") {
 		retFamily = "Fsv2"
+	}
+
+	if strings.EqualFold(nameFamily, "DC") {
+		retFamily = "DC"
 	}
 
 	return retFamily

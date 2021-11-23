@@ -416,21 +416,21 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("waiting on creation for Synapse Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	aadAdmin := expandArmWorkspaceAadAdmin(d.Get("aad_admin").([]interface{}))
+	aadAdmin := expandArmWorkspaceAadAdminInfo(d.Get("aad_admin").([]interface{}))
 	if aadAdmin != nil {
 		workspaceAadAdminsCreateOrUpdateFuture, err := aadAdminClient.CreateOrUpdate(ctx, resourceGroup, name, *aadAdmin)
 		if err != nil {
-			return fmt.Errorf("updating Synapse Workspace %q Sql Admin (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("updating Synapse Workspace %q Azure AD Admin (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		if err = workspaceAadAdminsCreateOrUpdateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting on updating for Synapse Workspace %q Sql Admin (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting on updating for Synapse Workspace %q Azure AD Admin (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
-	sqlAdmin := expandArmWorkspaceAadAdmin(d.Get("sql_aad_admin").([]interface{}))
+	sqlAdmin := expandArmWorkspaceAadAdminInfo(d.Get("sql_aad_admin").([]interface{}))
 	if sqlAdmin != nil {
-		workspaceSqlAdminsCreateOrUpdateFuture, err := sqlAdminClient.CreateOrUpdate(ctx, resourceGroup, name, *aadAdmin)
+		workspaceSqlAdminsCreateOrUpdateFuture, err := sqlAdminClient.CreateOrUpdate(ctx, resourceGroup, name, *sqlAdmin)
 		if err != nil {
 			return fmt.Errorf("updating Synapse Workspace %q Sql Admin (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -602,7 +602,7 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("aad_admin") {
-		aadAdmin := expandArmWorkspaceAadAdmin(d.Get("aad_admin").([]interface{}))
+		aadAdmin := expandArmWorkspaceAadAdminInfo(d.Get("aad_admin").([]interface{}))
 		if aadAdmin != nil {
 			workspaceAadAdminsCreateOrUpdateFuture, err := aadAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *aadAdmin)
 			if err != nil {
@@ -625,7 +625,7 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("sql_aad_admin") {
-		sqlAdmin := expandArmWorkspaceAadAdmin(d.Get("sql_aad_admin").([]interface{}))
+		sqlAdmin := expandArmWorkspaceAadAdminInfo(d.Get("sql_aad_admin").([]interface{}))
 		if sqlAdmin != nil {
 			workspaceSqlAdminsCreateOrUpdateFuture, err := sqlAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlAdmin)
 			if err != nil {
@@ -690,7 +690,7 @@ func expandArmWorkspaceDataLakeStorageAccountDetails(storageDataLakeGen2Filesyst
 	}
 }
 
-func expandArmWorkspaceAadAdmin(input []interface{}) *synapse.WorkspaceAadAdminInfo {
+func expandArmWorkspaceAadAdminInfo(input []interface{}) *synapse.WorkspaceAadAdminInfo {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}

@@ -2,19 +2,28 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_service_fabric_managed_cluster` [GH-14131]
 * **New Resource:** `azurerm_stream_analytics_cluster` [GH-14082]
 * **New Resource:** `azurerm_stream_analytics_managed_private_endpoint` [GH-14082]
 
 ENHANCEMENTS:
 
+* dependencies: upgrading to `v0.18.0` of `github.com/hashicorp/go-azure-helpers` [GH-14261]
+* `azurerm_automation_rule` - support for the `expiration` property [GH-14262]
 * `azurerm_managed_disk` - support for the `public_network_access_enabled` property [GH-14199]
+* `azurerm_mssql_elasticpool` - support for the `DC` family [GH-14270]
 * `azurerm_mssql_server` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 [GH-14229]
 * `azurerm_mysql_server` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 [GH-14229]
 * `azurerm_postgresql_server` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 [GH-14229]
 * `azurerm_redis_cache` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 [GH-14229]
 * `azurerm_storage_account` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 [GH-14229]
+* `azurerm_stream_analytics_job` - `compatibility_level` now accepts 1.2 [GH-14294]
 
 BUG FIXES: 
+
+* `azurerm_monitor_diagnostic_setting` - Swap Relay parser and validator with EventHub [GH-14277]
+* `azurerm_stream_analytics_stream_input_eventhub` - correctly support creation with the default `eventhub_consumer_group_name` [GH-14264]
+* `azurerm_synapse_workspace` - fix a crash during update when `sql_aad_admin` was configured [GH-14275]
 
 ## 2.86.0 (November 19, 2021)
 
