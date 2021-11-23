@@ -11,6 +11,7 @@ import (
 	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	applicationGatewayValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	subnetValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -255,6 +256,7 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 							"secret_rotation_interval" : {
 								Type: pluginsdk.TypeString,
 								Optional: true,
+								ValidateFunc: containerValidate.SecretRotationInterval,
 							},
 						},
 					},
@@ -404,7 +406,7 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 
 		if secretRotation, ok := value["secret_rotation"]; ok && secretRotation.(bool) {
 			config["enableSecretRotation"] = utils.String("true")
-			if rotationInterval, ok := value["rotation_interval"]; ok && rotationInterval != "" {
+			if rotationInterval, ok := value["secret_rotation_interval"]; ok && rotationInterval != "" {
 				config["rotationPollInterval"] = utils.String(rotationInterval.(string))
 			} else {
 				config["rotationPollInterval"] = utils.String("2m")
