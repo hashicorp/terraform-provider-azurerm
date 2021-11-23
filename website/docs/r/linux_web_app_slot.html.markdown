@@ -1,14 +1,14 @@
 ---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_linux_web_app"
+page_title: "Azure Resource Manager: azurerm_linux_web_app_slot"
 description: |-
-  Manages a Linux Web App.
+  Manages a Linux Web App Slot.
 ---
 
-# azurerm_linux_web_app
+# azurerm_linux_web_app_slot
 
-Manages a Linux Web App.
+Manages a Linux Web App Slot.
 
 !> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
 
@@ -41,17 +41,29 @@ resource "azurerm_linux_web_app" "example" {
   site_config {}
 }
 
+resource "azurerm_linux_web_app_slot" "example" {
+  name                = "example"
+  app_service_name    = azurerm_linux_web_app.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_service_plan.example.location
+  service_plan_id     = azurerm_service_plan.example.id
+
+  site_config {}
+}
+
 ```
 
 ## Arguments Reference
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region where the Linux Web App should exist. Changing this forces a new Linux Web App to be created.
-
 * `name` - (Required) The name which should be used for this Linux Web App. Changing this forces a new Linux Web App to be created.
 
-~> **NOTE:** Terraform will perform a name availability check as part of the creation progress, if this Web App is part of an App Service Environment terraform will require Read permission on the ASE for this to complete reliably.
+* ~> **NOTE:** Terraform will perform a name availability check as part of the creation progress, if this Web App is part of an App Service Environment terraform will require Read permission on the ASE for this to complete reliably.
+
+* `location` - (Required) The Azure Region where the Linux Web App should exist. Changing this forces a new Linux Web App to be created.
+
+* `app_service_name` - (Required) The name of the Linux Web App this Deployment Slot will be part of.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Linux Web App should exist. Changing this forces a new Linux Web App to be created.
 
@@ -403,6 +415,10 @@ A `site_config` block supports the following:
 
 * `api_management_config_id` - (Optional) The ID of the APIM configuration for this Linux Web App.
 
+* `api_management_api_id` - (Optional) The API Management API ID this Linux Web App Slot os associated with.
+
+* `api_definition_url` - (Optional) The URL to the API Definition for this Linux Web App Slot.
+
 * `app_command_line` - (Optional) The App command line to launch.
 
 * `application_stack` - (Optional) A `application_stack` block as defined above.
@@ -410,6 +426,10 @@ A `site_config` block supports the following:
 * `auto_heal` - (Optional) Should Auto heal rules be enabled. Required with `auto_heal_setting`.
 
 * `auto_heal_setting` - (Optional) A `auto_heal_setting` block as defined above. Required with `auto_heal`.
+
+* `auto_swap_slot_name` - (Optional) The Linux Web App Slot Name to automatically swap to when deployment to that slot is successfully completed.
+
+~> **Note:** This must be a valid slot name on the target Linux Web App. 
 
 * `container_registry_managed_identity_client_id` - (Optional) The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.
 
