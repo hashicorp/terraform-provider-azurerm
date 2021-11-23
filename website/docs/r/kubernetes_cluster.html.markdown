@@ -235,6 +235,10 @@ A `addon_profile` block supports the following:
 
 -> **NOTE.** Open Service Mesh is available on an opt-in preview basis. For more details about how to opt-in, please visit [Open Service Mesh for AKS](https://docs.microsoft.com/azure/aks/open-service-mesh-deploy-add-on#register-the-aks-openservicemesh-preview-feature)
 
+* `azure_keyvault_secrets_provider` - (Optional) An `azure_keyvault_secrets_provider` block as defined below. For more details, please visit [Azure Keyvault Secrets Provider for AKS](https://docs.microsoft.com/en-us/azure/aks/csi-secrets-store-driver).
+
+-> **NOTE.** At this time the Azure Keyvault Secrets Provider is not supported in Azure US government or Azure China.
+
 ---
 
 An `auto_scaler_profile` block supports the following:
@@ -583,6 +587,16 @@ An `ingress_application_gateway` block supports the following:
 An `open_service_mesh` block supports the following:
 
 * `enabled` - Is Open Service Mesh enabled?
+
+---
+
+An `azure_keyvault_secrets_provider` block supports the following:
+
+* `enabled` - Is Open Service Mesh enabled?
+
+* `secret_rotation` - Is secret rotation enabled?
+
+* `secret_rotation_interval` - The interval to poll for secret rotation. This attribute is only set when `secret_rotation` is true.
 
 ---
 

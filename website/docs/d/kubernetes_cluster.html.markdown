@@ -102,6 +102,8 @@ A `addon_profile` block exports the following:
 
 * `open_service_mesh` - An `open_service_mesh` block.
 
+* `azure_keyvault_secrets_provider` - An `azure_keyvault_secrets_provider` block.
+
 ---
 
 A `agent_pool_profile` block exports the following:
@@ -295,6 +297,16 @@ The `ingress_application_gateway_identity` block exports the following:
 An `open_service_mesh` block supports the following:
 
 * `enabled` - Is Open Service Mesh enabled?
+
+---
+
+An `azure_keyvault_secrets_provider` block supports the following:
+
+* `enabled` - Is the Azure Keyvault Secrets Provider enabled?
+
+* `secret_rotation` - Is secret rotation enabled?
+
+* `secret_rotation_interval` - The interval to poll for secret rotation. This attribute is only set when `secret_rotation` is true.
 
 ---
 
