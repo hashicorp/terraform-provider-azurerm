@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -158,7 +159,7 @@ func resourceArmDateLakeStoreCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	dateLakeStore := accounts.CreateDataLakeStoreAccountParameters{
 		Location: location,
-		Tags:     expandTags(t),
+		Tags:     tagsHelper.Expand(t),
 		Identity: expandDataLakeStoreIdentity(d.Get("identity").([]interface{})),
 		Properties: &accounts.CreateDataLakeStoreAccountProperties{
 			NewTier:               &tier,
@@ -201,7 +202,7 @@ func resourceArmDateLakeStoreUpdate(d *pluginsdk.ResourceData, meta interface{})
 			FirewallState:         &firewallState,
 			FirewallAllowAzureIps: &firewallAllowAzureIPs,
 		},
-		Tags: expandTags(t),
+		Tags: tagsHelper.Expand(t),
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, props); err != nil {
@@ -276,7 +277,7 @@ func resourceArmDateLakeStoreRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("endpoint", properties.Endpoint)
 		}
 
-		return tags.FlattenAndSet(d, flattenTags(model.Tags))
+		return tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags))
 	}
 	return nil
 }

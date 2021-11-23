@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -108,7 +109,7 @@ func resourceArmDateLakeAnalyticsAccountCreate(d *pluginsdk.ResourceData, meta i
 
 	dateLakeAnalyticsAccount := accounts.CreateDataLakeAnalyticsAccountParameters{
 		Location: location,
-		Tags:     expandTags(t),
+		Tags:     tagsHelper.Expand(t),
 		Properties: accounts.CreateDataLakeAnalyticsAccountProperties{
 			NewTier:                     &tier,
 			DefaultDataLakeStoreAccount: storeAccountName,
@@ -144,7 +145,7 @@ func resourceArmDateLakeAnalyticsAccountUpdate(d *pluginsdk.ResourceData, meta i
 	newTags := d.Get("tags").(map[string]interface{})
 
 	props := accounts.UpdateDataLakeAnalyticsAccountParameters{
-		Tags: expandTags(newTags),
+		Tags: tagsHelper.Expand(newTags),
 		Properties: &accounts.UpdateDataLakeAnalyticsAccountProperties{
 			NewTier: &newTier,
 			DataLakeStoreAccounts: &[]accounts.UpdateDataLakeStoreWithAccountParameters{
@@ -199,7 +200,7 @@ func resourceArmDateLakeAnalyticsAccountRead(d *pluginsdk.ResourceData, meta int
 			d.Set("default_store_account_name", properties.DefaultDataLakeStoreAccount)
 		}
 
-		return tags.FlattenAndSet(d, flattenTags(model.Tags))
+		return tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags))
 	}
 	return nil
 }

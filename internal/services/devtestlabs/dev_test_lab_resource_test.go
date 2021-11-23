@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -70,15 +70,14 @@ func TestAccDevTestLab_complete(t *testing.T) {
 }
 
 func (DevTestLabResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.DevTestLabID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	name := id.Path["labs"]
 
-	resp, err := clients.DevTestLabs.LabsClient.Get(ctx, id.ResourceGroup, name, "")
+	resp, err := clients.DevTestLabs.LabsClient.Get(ctx, id.ResourceGroup, id.LabName, "")
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Dev Test Lab %q (resource group: %q): %+v", name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrievisng %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.LabProperties != nil), nil

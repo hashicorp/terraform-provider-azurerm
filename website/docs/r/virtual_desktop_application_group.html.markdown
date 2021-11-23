@@ -84,6 +84,8 @@ The following arguments are supported:
 
 * `friendly_name` - (Optional) Option to set a friendly name for the Virtual Desktop Application Group.
 
+* `default_desktop_display_name` - (Optional) Option to set the display name for the default sessionDesktop desktop when `type` is set to `Desktop`.
+
 * `description` - (Optional) Option to set a description for the Virtual Desktop Application Group.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.

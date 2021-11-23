@@ -63,7 +63,16 @@ type Resource interface {
 	IDValidationFunc() pluginsdk.SchemaValidateFunc
 }
 
-// TODO: ResourceWithStateMigration
+type ResourceWithStateMigration interface {
+	Resource
+	StateUpgraders() StateUpgradeData
+}
+
+type StateUpgradeData struct {
+	SchemaVersion int
+	Upgraders     map[int]pluginsdk.StateUpgrade
+}
+
 // TODO: a generic state migration for updating ID's
 
 type ResourceWithCustomImporter interface {

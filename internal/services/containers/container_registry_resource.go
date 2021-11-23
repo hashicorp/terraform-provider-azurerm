@@ -337,6 +337,26 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"anonymous_pull_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"data_endpoint_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"network_rule_bypass_option": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerregistry.NetworkRuleBypassOptionsAzureServices),
+					string(containerregistry.NetworkRuleBypassOptionsNone),
+				}, false),
+				Default: string(containerregistry.NetworkRuleBypassOptionsAzureServices),
+			},
+
 			"tags": tags.Schema(),
 		},
 
@@ -381,6 +401,16 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				if ok && zoneRedundancyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
 					return fmt.Errorf("ACR zone redundancy can only be applied when using the Premium Sku")
 				}
+			}
+
+			// anonymous pull is only available for Standard/Premium Sku.
+			if d.Get("anonymous_pull_enabled").(bool) && (!strings.EqualFold(sku, string(containerregistry.Standard)) && !strings.EqualFold(sku, string(containerregistry.Premium))) {
+				return fmt.Errorf("`anonymous_pull_enabled` can only be applied when using the Standard/Premium Sku")
+			}
+
+			// data endpoint is only available for Premium Sku.
+			if d.Get("data_endpoint_enabled").(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+				return fmt.Errorf("`data_endpoint_enabled` can only be applied when using the Premium Sku")
 			}
 
 			return nil
@@ -475,8 +505,11 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 				RetentionPolicy:  retentionPolicy,
 				TrustPolicy:      trustPolicy,
 			},
-			PublicNetworkAccess: publicNetworkAccess,
-			ZoneRedundancy:      zoneRedundancy,
+			PublicNetworkAccess:      publicNetworkAccess,
+			ZoneRedundancy:           zoneRedundancy,
+			AnonymousPullEnabled:     utils.Bool(d.Get("anonymous_pull_enabled").(bool)),
+			DataEndpointEnabled:      utils.Bool(d.Get("data_endpoint_enabled").(bool)),
+			NetworkRuleBypassOptions: containerregistry.NetworkRuleBypassOptions(d.Get("network_rule_bypass_option").(string)),
 		},
 
 		Tags: tags.Expand(t),
@@ -584,8 +617,11 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 				RetentionPolicy:  retentionPolicy,
 				TrustPolicy:      trustPolicy,
 			},
-			PublicNetworkAccess: publicNetworkAccess,
-			Encryption:          encryption,
+			PublicNetworkAccess:      publicNetworkAccess,
+			Encryption:               encryption,
+			AnonymousPullEnabled:     utils.Bool(d.Get("anonymous_pull_enabled").(bool)),
+			DataEndpointEnabled:      utils.Bool(d.Get("data_endpoint_enabled").(bool)),
+			NetworkRuleBypassOptions: containerregistry.NetworkRuleBypassOptions(d.Get("network_rule_bypass_option").(string)),
 		},
 		Identity: identity,
 		Tags:     tags.Expand(t),
@@ -761,6 +797,9 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `encryption`: %+v", err)
 		}
 		d.Set("zone_redundancy_enabled", properties.ZoneRedundancy == containerregistry.ZoneRedundancyEnabled)
+		d.Set("anonymous_pull_enabled", properties.AnonymousPullEnabled)
+		d.Set("data_endpoint_enabled", properties.DataEndpointEnabled)
+		d.Set("network_rule_bypass_option", string(properties.NetworkRuleBypassOptions))
 	}
 
 	if sku := resp.Sku; sku != nil {

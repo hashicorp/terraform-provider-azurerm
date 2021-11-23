@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func SystemAssignedIdentitySchema() *schema.Schema {
+func SystemAssignedIdentity() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -34,7 +34,7 @@ func SystemAssignedIdentitySchema() *schema.Schema {
 	}
 }
 
-func SystemAssignedIdentitySchemaDataSource() *schema.Schema {
+func SystemAssignedIdentityDataSource() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Computed: true,

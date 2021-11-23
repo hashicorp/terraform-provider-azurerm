@@ -7,19 +7,19 @@ import (
 )
 
 func Schema() *pluginsdk.Schema {
-	return commonschema.LocationSchema()
+	return commonschema.Location()
 }
 
 func SchemaOptional() *pluginsdk.Schema {
-	return commonschema.LocationSchemaOptional()
+	return commonschema.LocationOptional()
 }
 
 func SchemaComputed() *pluginsdk.Schema {
-	return commonschema.LocationSchemaComputed()
+	return commonschema.LocationComputed()
 }
 
 func SchemaWithoutForceNew() *pluginsdk.Schema {
-	return commonschema.LocationSchemaWithoutForceNew()
+	return commonschema.LocationWithoutForceNew()
 }
 
 func DiffSuppressFunc(v, old, new string, d *pluginsdk.ResourceData) bool {

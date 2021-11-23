@@ -41,7 +41,7 @@ data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "example" {
   name                     = "example"
-  location                 = azurerm_resource_group.exampl.location
+  location                 = azurerm_resource_group.example.location
   resource_group_name      = azurerm_resource_group.example.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
@@ -59,7 +59,7 @@ resource "azurerm_key_vault_access_policy" "deployer" {
 }
 
 resource "azurerm_key_vault_key" "example" {
-  name         = "workspace_encryption_key"
+  name         = "workspaceEncryptionKey"
   key_vault_id = azurerm_key_vault.example.id
   key_type     = "RSA"
   key_size     = 2048
@@ -79,8 +79,10 @@ resource "azurerm_synapse_workspace" "example" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.example.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
-  customer_managed_key_versionless_id  = azurerm_key_vault_key.example.versionless_id
-  customer_managed_key_name            = "enckey"
+  customer_managed_key {
+    key_versionless_id = azurerm_key_vault_key.example.versionless_id
+    key_name           = "enckey"
+  }
 
   aad_admin {
     login     = "AzureAD Admin"
@@ -107,7 +109,7 @@ resource "azurerm_synapse_workspace_key" "example" {
   customer_managed_key_versionless_id = azurerm_key_vault_key.example.versionless_id
   synapse_workspace_id                = azurerm_synapse_workspace.example.id
   active                              = true
-  key_name                            = "enckey"
+  customer_managed_key_name           = "enckey"
   depends_on                          = [azurerm_key_vault_access_policy.workspace_policy]
 }
 ```

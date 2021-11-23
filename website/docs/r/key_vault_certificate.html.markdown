@@ -89,23 +89,6 @@ resource "azurerm_key_vault_certificate" "example" {
     contents = filebase64("certificate-to-import.pfx")
     password = ""
   }
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      exportable = true
-      key_size   = 2048
-      key_type   = "RSA"
-      reuse_key  = false
-    }
-
-    secret_properties {
-      content_type = "application/x-pkcs12"
-    }
-  }
 }
 ```
 
@@ -245,9 +228,11 @@ The following arguments are supported:
 
 * `certificate` - (Optional) A `certificate` block as defined below, used to Import an existing certificate.
 
-* `certificate_policy` - (Required) A `certificate_policy` block as defined below.
+* `certificate_policy` - (Optional) A `certificate_policy` block as defined below.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
+~> **NOTE:** When creating a Key Vault Certificate, at least one of `certificate` or `certificate_policy` is required. Provide `certificate` to import an existing certificate, `certificate_policy` to generate a new certificate.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 

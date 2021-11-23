@@ -43,7 +43,47 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, "Basic"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"catalog_info.0.administrator_password",
+			"custom_setup_script.0.sas_token",
+			"express_custom_setup.0.component.0.license",
+			"express_custom_setup.0.command_key.0.password",
+		),
+	})
+}
+
+func TestAccDataFactoryIntegrationRuntimeManagedSsis_SSISDBpricingtier_GP_S_Gen5_1(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
+	r := IntegrationRuntimeManagedSsisResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "GP_S_Gen5_1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"catalog_info.0.administrator_password",
+			"custom_setup_script.0.sas_token",
+			"express_custom_setup.0.component.0.license",
+			"express_custom_setup.0.command_key.0.password",
+		),
+	})
+}
+
+func TestAccDataFactoryIntegrationRuntimeManagedSsis_SSISDBpricingtier_S0(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
+	r := IntegrationRuntimeManagedSsisResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "S0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -137,7 +177,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (IntegrationRuntimeManagedSsisResource) complete(data acceptance.TestData) string {
+func (IntegrationRuntimeManagedSsisResource) complete(data acceptance.TestData, pricingTier string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -288,7 +328,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
     server_endpoint        = "${azurerm_sql_server.test.fully_qualified_domain_name}"
     administrator_login    = "ssis_catalog_admin"
     administrator_password = "my-s3cret-p4ssword!"
-    pricing_tier           = "Basic"
+    pricing_tier           = "%[4]s"
     dual_standby_pair_name = "dual_name"
   }
 
@@ -332,7 +372,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
     path                                 = "containerpath"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, pricingTier)
 }
 
 func (IntegrationRuntimeManagedSsisResource) vnetIntegration(data acceptance.TestData) string {

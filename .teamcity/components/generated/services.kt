@@ -84,6 +84,7 @@ var services = mapOf(
         "securitycenter" to "Security Center",
         "sentinel" to "Sentinel",
         "servicefabric" to "Service Fabric",
+        "servicefabricmanaged" to "Service Fabric Managed Clusters",
         "servicebus" to "ServiceBus",
         "signalr" to "SignalR",
         "springcloud" to "Spring Cloud",

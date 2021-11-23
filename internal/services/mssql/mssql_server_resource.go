@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
@@ -175,6 +176,12 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default: func() interface{} {
+					if features.ThreePointOh() {
+						return "1.2"
+					}
+					return nil
+				}(),
 				ValidateFunc: validation.StringInSlice([]string{
 					"1.0",
 					"1.1",
@@ -314,21 +321,6 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("waiting for creation of AAD admin %s: %+v", id.String(), err)
 			}
 
-			if aadOnlyAuthentictionsEnabled := expandMsSqlServerAADOnlyAuthentictions(d.Get("azuread_administrator").([]interface{})); aadOnlyAuthentictionsEnabled {
-				aadOnlyAuthentictionsParams := sql.ServerAzureADOnlyAuthentication{
-					AzureADOnlyAuthProperties: &sql.AzureADOnlyAuthProperties{
-						AzureADOnlyAuthentication: utils.Bool(aadOnlyAuthentictionsEnabled),
-					},
-				}
-				aadOnlyEnabledFuture, err := aadOnlyAuthentictionsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, aadOnlyAuthentictionsParams)
-				if err != nil {
-					return fmt.Errorf("setting AAD only authentication for %s: %+v", id.String(), err)
-				}
-
-				if err = aadOnlyEnabledFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
-					return fmt.Errorf("waiting for setting of AAD only authentication for %s: %+v", id.String(), err)
-				}
-			}
 		} else {
 			adminDelFuture, err := adminClient.Delete(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
@@ -338,6 +330,22 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			if err = adminDelFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
 				return fmt.Errorf("waiting for deletion of AAD admin %s: %+v", id.String(), err)
 			}
+		}
+	}
+
+	if aadOnlyAuthentictionsEnabled := expandMsSqlServerAADOnlyAuthentictions(d.Get("azuread_administrator").([]interface{})); d.HasChange("azuread_administrator") && aadOnlyAuthentictionsEnabled {
+		aadOnlyAuthentictionsParams := sql.ServerAzureADOnlyAuthentication{
+			AzureADOnlyAuthProperties: &sql.AzureADOnlyAuthProperties{
+				AzureADOnlyAuthentication: utils.Bool(aadOnlyAuthentictionsEnabled),
+			},
+		}
+		aadOnlyEnabledFuture, err := aadOnlyAuthentictionsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, aadOnlyAuthentictionsParams)
+		if err != nil {
+			return fmt.Errorf("setting AAD only authentication for %s: %+v", id.String(), err)
+		}
+
+		if err = aadOnlyEnabledFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
+			return fmt.Errorf("waiting for setting of AAD only authentication for %s: %+v", id.String(), err)
 		}
 	}
 

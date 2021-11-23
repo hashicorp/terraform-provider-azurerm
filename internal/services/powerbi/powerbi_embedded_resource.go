@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -119,7 +120,7 @@ func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Sku: capacities.CapacitySku{
 			Name: d.Get("sku_name").(string),
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
@@ -174,7 +175,7 @@ func resourcePowerBIEmbeddedRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 		d.Set("sku_name", model.Sku.Name)
 
-		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err := tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags)); err != nil {
 			return err
 		}
 	}
@@ -213,7 +214,7 @@ func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if d.HasChange("tags") {
-		parameters.Tags = expandTags(d.Get("tags").(map[string]interface{}))
+		parameters.Tags = tagsHelper.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
