@@ -1,9 +1,9 @@
---
+---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_public_certificate"
 description: |-
-Manages an App Service Public Certificate.
+ Manages an App Service Public Certificate.
 ---
 
 # azurerm_app_service_public_certificate
@@ -58,8 +58,6 @@ The following arguments are supported:
 * `certificate_location` - (Required) The location of the certificate. Possible values are `CurrentUserMy`, `LocalMachineMy` and `Unknown`.
 
 * `blob` - (Required) The base64-encoded contents of the certificate. Changing this forces a new App Service Public Certificate to be created.
-
-
 
 ## Attributes Reference
 
