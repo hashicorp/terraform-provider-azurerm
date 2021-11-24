@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -210,7 +209,7 @@ func resourceSiteRecoveryReplicationPolicyDelete(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceSiteRecoveryReplicationPolicyCustomDiff(ctx context.Context, d *schema.ResourceDiff, i interface{}) error {
+func resourceSiteRecoveryReplicationPolicyCustomDiff(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
 	retention := d.Get("recovery_point_retention_in_minutes").(int)
 	frequency := d.Get("application_consistent_snapshot_frequency_in_minutes").(int)
 
