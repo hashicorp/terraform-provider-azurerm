@@ -189,7 +189,6 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 					Optional: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
