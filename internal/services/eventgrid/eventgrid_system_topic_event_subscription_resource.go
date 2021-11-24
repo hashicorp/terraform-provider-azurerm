@@ -182,7 +182,11 @@ func resourceEventGridSystemTopicEventSubscriptionCreateUpdate(d *pluginsdk.Reso
 
 	if v, ok := d.GetOk("delivery_identity"); ok {
 		deliveryIdentityRaw := v.([]interface{})
-		deliveryIdentity := expandEventGridEventSubscriptionIdentity(deliveryIdentityRaw)
+		deliveryIdentity, err := expandEventGridEventSubscriptionIdentity(deliveryIdentityRaw)
+		if err != nil {
+			return fmt.Errorf("expanding `delivery_identity`: %+v", err)
+		}
+
 		eventSubscriptionProperties.DeliveryWithResourceIdentity = &eventgrid.DeliveryWithResourceIdentity{
 			Identity:    deliveryIdentity,
 			Destination: destination,
@@ -196,7 +200,11 @@ func resourceEventGridSystemTopicEventSubscriptionCreateUpdate(d *pluginsdk.Reso
 			return fmt.Errorf("`dead_letter_identity`: `storage_blob_dead_letter_destination` must be specified")
 		}
 		deadLetterIdentityRaw := v.([]interface{})
-		deadLetterIdentity := expandEventGridEventSubscriptionIdentity(deadLetterIdentityRaw)
+		deadLetterIdentity, err := expandEventGridEventSubscriptionIdentity(deadLetterIdentityRaw)
+		if err != nil {
+			return fmt.Errorf("expanding `dead_letter_identity`: %+v", err)
+		}
+
 		eventSubscriptionProperties.DeadLetterWithResourceIdentity = &eventgrid.DeadLetterWithResourceIdentity{
 			Identity:              deadLetterIdentity,
 			DeadLetterDestination: deadLetterDestination,
