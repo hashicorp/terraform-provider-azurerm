@@ -10,95 +10,99 @@ package storagecache
 type CacheIdentityType string
 
 const (
-	// None ...
-	None CacheIdentityType = "None"
-	// SystemAssigned ...
-	SystemAssigned CacheIdentityType = "SystemAssigned"
+	// CacheIdentityTypeNone ...
+	CacheIdentityTypeNone CacheIdentityType = "None"
+	// CacheIdentityTypeSystemAssigned ...
+	CacheIdentityTypeSystemAssigned CacheIdentityType = "SystemAssigned"
+	// CacheIdentityTypeSystemAssignedUserAssigned ...
+	CacheIdentityTypeSystemAssignedUserAssigned CacheIdentityType = "SystemAssigned, UserAssigned"
+	// CacheIdentityTypeUserAssigned ...
+	CacheIdentityTypeUserAssigned CacheIdentityType = "UserAssigned"
 )
 
 // PossibleCacheIdentityTypeValues returns an array of possible values for the CacheIdentityType const type.
 func PossibleCacheIdentityTypeValues() []CacheIdentityType {
-	return []CacheIdentityType{None, SystemAssigned}
+	return []CacheIdentityType{CacheIdentityTypeNone, CacheIdentityTypeSystemAssigned, CacheIdentityTypeSystemAssignedUserAssigned, CacheIdentityTypeUserAssigned}
 }
 
 // CreatedByType enumerates the values for created by type.
 type CreatedByType string
 
 const (
-	// Application ...
-	Application CreatedByType = "Application"
-	// Key ...
-	Key CreatedByType = "Key"
-	// ManagedIdentity ...
-	ManagedIdentity CreatedByType = "ManagedIdentity"
-	// User ...
-	User CreatedByType = "User"
+	// CreatedByTypeApplication ...
+	CreatedByTypeApplication CreatedByType = "Application"
+	// CreatedByTypeKey ...
+	CreatedByTypeKey CreatedByType = "Key"
+	// CreatedByTypeManagedIdentity ...
+	CreatedByTypeManagedIdentity CreatedByType = "ManagedIdentity"
+	// CreatedByTypeUser ...
+	CreatedByTypeUser CreatedByType = "User"
 )
 
 // PossibleCreatedByTypeValues returns an array of possible values for the CreatedByType const type.
 func PossibleCreatedByTypeValues() []CreatedByType {
-	return []CreatedByType{Application, Key, ManagedIdentity, User}
+	return []CreatedByType{CreatedByTypeApplication, CreatedByTypeKey, CreatedByTypeManagedIdentity, CreatedByTypeUser}
 }
 
 // DomainJoinedType enumerates the values for domain joined type.
 type DomainJoinedType string
 
 const (
-	// Error ...
-	Error DomainJoinedType = "Error"
-	// No ...
-	No DomainJoinedType = "No"
-	// Yes ...
-	Yes DomainJoinedType = "Yes"
+	// DomainJoinedTypeError ...
+	DomainJoinedTypeError DomainJoinedType = "Error"
+	// DomainJoinedTypeNo ...
+	DomainJoinedTypeNo DomainJoinedType = "No"
+	// DomainJoinedTypeYes ...
+	DomainJoinedTypeYes DomainJoinedType = "Yes"
 )
 
 // PossibleDomainJoinedTypeValues returns an array of possible values for the DomainJoinedType const type.
 func PossibleDomainJoinedTypeValues() []DomainJoinedType {
-	return []DomainJoinedType{Error, No, Yes}
+	return []DomainJoinedType{DomainJoinedTypeError, DomainJoinedTypeNo, DomainJoinedTypeYes}
 }
 
 // FirmwareStatusType enumerates the values for firmware status type.
 type FirmwareStatusType string
 
 const (
-	// Available ...
-	Available FirmwareStatusType = "available"
-	// Unavailable ...
-	Unavailable FirmwareStatusType = "unavailable"
+	// FirmwareStatusTypeAvailable ...
+	FirmwareStatusTypeAvailable FirmwareStatusType = "available"
+	// FirmwareStatusTypeUnavailable ...
+	FirmwareStatusTypeUnavailable FirmwareStatusType = "unavailable"
 )
 
 // PossibleFirmwareStatusTypeValues returns an array of possible values for the FirmwareStatusType const type.
 func PossibleFirmwareStatusTypeValues() []FirmwareStatusType {
-	return []FirmwareStatusType{Available, Unavailable}
+	return []FirmwareStatusType{FirmwareStatusTypeAvailable, FirmwareStatusTypeUnavailable}
 }
 
 // HealthStateType enumerates the values for health state type.
 type HealthStateType string
 
 const (
-	// Degraded ...
-	Degraded HealthStateType = "Degraded"
-	// Down ...
-	Down HealthStateType = "Down"
-	// Flushing ...
-	Flushing HealthStateType = "Flushing"
-	// Healthy ...
-	Healthy HealthStateType = "Healthy"
-	// Stopped ...
-	Stopped HealthStateType = "Stopped"
-	// Stopping ...
-	Stopping HealthStateType = "Stopping"
-	// Transitioning ...
-	Transitioning HealthStateType = "Transitioning"
-	// Unknown ...
-	Unknown HealthStateType = "Unknown"
-	// Upgrading ...
-	Upgrading HealthStateType = "Upgrading"
+	// HealthStateTypeDegraded ...
+	HealthStateTypeDegraded HealthStateType = "Degraded"
+	// HealthStateTypeDown ...
+	HealthStateTypeDown HealthStateType = "Down"
+	// HealthStateTypeFlushing ...
+	HealthStateTypeFlushing HealthStateType = "Flushing"
+	// HealthStateTypeHealthy ...
+	HealthStateTypeHealthy HealthStateType = "Healthy"
+	// HealthStateTypeStopped ...
+	HealthStateTypeStopped HealthStateType = "Stopped"
+	// HealthStateTypeStopping ...
+	HealthStateTypeStopping HealthStateType = "Stopping"
+	// HealthStateTypeTransitioning ...
+	HealthStateTypeTransitioning HealthStateType = "Transitioning"
+	// HealthStateTypeUnknown ...
+	HealthStateTypeUnknown HealthStateType = "Unknown"
+	// HealthStateTypeUpgrading ...
+	HealthStateTypeUpgrading HealthStateType = "Upgrading"
 )
 
 // PossibleHealthStateTypeValues returns an array of possible values for the HealthStateType const type.
 func PossibleHealthStateTypeValues() []HealthStateType {
-	return []HealthStateType{Degraded, Down, Flushing, Healthy, Stopped, Stopping, Transitioning, Unknown, Upgrading}
+	return []HealthStateType{HealthStateTypeDegraded, HealthStateTypeDown, HealthStateTypeFlushing, HealthStateTypeHealthy, HealthStateTypeStopped, HealthStateTypeStopping, HealthStateTypeTransitioning, HealthStateTypeUnknown, HealthStateTypeUpgrading}
 }
 
 // MetricAggregationType enumerates the values for metric aggregation type.
@@ -147,55 +151,74 @@ func PossibleNfsAccessRuleAccessValues() []NfsAccessRuleAccess {
 type NfsAccessRuleScope string
 
 const (
-	// Default ...
-	Default NfsAccessRuleScope = "default"
-	// Host ...
-	Host NfsAccessRuleScope = "host"
-	// Network ...
-	Network NfsAccessRuleScope = "network"
+	// NfsAccessRuleScopeDefault ...
+	NfsAccessRuleScopeDefault NfsAccessRuleScope = "default"
+	// NfsAccessRuleScopeHost ...
+	NfsAccessRuleScopeHost NfsAccessRuleScope = "host"
+	// NfsAccessRuleScopeNetwork ...
+	NfsAccessRuleScopeNetwork NfsAccessRuleScope = "network"
 )
 
 // PossibleNfsAccessRuleScopeValues returns an array of possible values for the NfsAccessRuleScope const type.
 func PossibleNfsAccessRuleScopeValues() []NfsAccessRuleScope {
-	return []NfsAccessRuleScope{Default, Host, Network}
+	return []NfsAccessRuleScope{NfsAccessRuleScopeDefault, NfsAccessRuleScopeHost, NfsAccessRuleScopeNetwork}
+}
+
+// OperationalStateType enumerates the values for operational state type.
+type OperationalStateType string
+
+const (
+	// OperationalStateTypeBusy ...
+	OperationalStateTypeBusy OperationalStateType = "Busy"
+	// OperationalStateTypeFlushing ...
+	OperationalStateTypeFlushing OperationalStateType = "Flushing"
+	// OperationalStateTypeReady ...
+	OperationalStateTypeReady OperationalStateType = "Ready"
+	// OperationalStateTypeSuspended ...
+	OperationalStateTypeSuspended OperationalStateType = "Suspended"
+)
+
+// PossibleOperationalStateTypeValues returns an array of possible values for the OperationalStateType const type.
+func PossibleOperationalStateTypeValues() []OperationalStateType {
+	return []OperationalStateType{OperationalStateTypeBusy, OperationalStateTypeFlushing, OperationalStateTypeReady, OperationalStateTypeSuspended}
 }
 
 // ProvisioningStateType enumerates the values for provisioning state type.
 type ProvisioningStateType string
 
 const (
-	// Cancelled ...
-	Cancelled ProvisioningStateType = "Cancelled"
-	// Creating ...
-	Creating ProvisioningStateType = "Creating"
-	// Deleting ...
-	Deleting ProvisioningStateType = "Deleting"
-	// Failed ...
-	Failed ProvisioningStateType = "Failed"
-	// Succeeded ...
-	Succeeded ProvisioningStateType = "Succeeded"
-	// Updating ...
-	Updating ProvisioningStateType = "Updating"
+	// ProvisioningStateTypeCancelled ...
+	ProvisioningStateTypeCancelled ProvisioningStateType = "Cancelled"
+	// ProvisioningStateTypeCreating ...
+	ProvisioningStateTypeCreating ProvisioningStateType = "Creating"
+	// ProvisioningStateTypeDeleting ...
+	ProvisioningStateTypeDeleting ProvisioningStateType = "Deleting"
+	// ProvisioningStateTypeFailed ...
+	ProvisioningStateTypeFailed ProvisioningStateType = "Failed"
+	// ProvisioningStateTypeSucceeded ...
+	ProvisioningStateTypeSucceeded ProvisioningStateType = "Succeeded"
+	// ProvisioningStateTypeUpdating ...
+	ProvisioningStateTypeUpdating ProvisioningStateType = "Updating"
 )
 
 // PossibleProvisioningStateTypeValues returns an array of possible values for the ProvisioningStateType const type.
 func PossibleProvisioningStateTypeValues() []ProvisioningStateType {
-	return []ProvisioningStateType{Cancelled, Creating, Deleting, Failed, Succeeded, Updating}
+	return []ProvisioningStateType{ProvisioningStateTypeCancelled, ProvisioningStateTypeCreating, ProvisioningStateTypeDeleting, ProvisioningStateTypeFailed, ProvisioningStateTypeSucceeded, ProvisioningStateTypeUpdating}
 }
 
 // ReasonCode enumerates the values for reason code.
 type ReasonCode string
 
 const (
-	// NotAvailableForSubscription ...
-	NotAvailableForSubscription ReasonCode = "NotAvailableForSubscription"
-	// QuotaID ...
-	QuotaID ReasonCode = "QuotaId"
+	// ReasonCodeNotAvailableForSubscription ...
+	ReasonCodeNotAvailableForSubscription ReasonCode = "NotAvailableForSubscription"
+	// ReasonCodeQuotaID ...
+	ReasonCodeQuotaID ReasonCode = "QuotaId"
 )
 
 // PossibleReasonCodeValues returns an array of possible values for the ReasonCode const type.
 func PossibleReasonCodeValues() []ReasonCode {
-	return []ReasonCode{NotAvailableForSubscription, QuotaID}
+	return []ReasonCode{ReasonCodeNotAvailableForSubscription, ReasonCodeQuotaID}
 }
 
 // StorageTargetType enumerates the values for storage target type.
