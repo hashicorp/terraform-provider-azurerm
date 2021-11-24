@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * `azurerm_mssql_elasticpool` - support for the `DC` family [GH-14270]
 * `azurerm_mssql_server` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 [GH-14229]
 * `azurerm_mysql_server` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 [GH-14229]
+* `azurerm_orchestrated_virtual_machine_scale_set` - add extension support [GH-14236]
 * `azurerm_postgresql_server` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 [GH-14229]
 * `azurerm_redis_cache` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 [GH-14229]
 * `azurerm_storage_account` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 [GH-14229]
