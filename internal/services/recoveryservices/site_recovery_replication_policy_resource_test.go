@@ -23,7 +23,7 @@ func TestAccSiteRecoveryReplicationPolicy_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data,24 ,4),
+			Config: r.basic(data, 24, 4),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -38,7 +38,7 @@ func TestAccSiteRecoveryReplicationPolicy_noSnapshots(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data,48 ,0),
+			Config: r.basic(data, 48, 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("recovery_point_retention_in_minutes").HasValue("2880"),
@@ -55,7 +55,7 @@ func TestAccSiteRecoveryReplicationPolicy_wrongSettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data,0 ,3),
+			Config:      r.basic(data, 0, 3),
 			ExpectError: regexp.MustCompile("application_consistent_snapshot_frequency_in_minutes cannot be greater than zero when recovery_point_retention_in_minutes is set to zero"),
 		},
 	})
