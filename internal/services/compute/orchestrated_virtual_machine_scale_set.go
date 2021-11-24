@@ -135,73 +135,74 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 	}
 }
 
-// func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
-// 	return &pluginsdk.Schema{
-// 		Type:     pluginsdk.TypeSet,
-// 		Optional: true,
-// 		Computed: true,
-// 		Elem: &pluginsdk.Resource{
-// 			Schema: map[string]*pluginsdk.Schema{
-// 				"name": {
-// 					Type:         pluginsdk.TypeString,
-// 					Required:     true,
-// 					ValidateFunc: validation.StringIsNotEmpty,
-// 				},
+func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
+		Optional: true,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
 
-// 				"publisher": {
-// 					Type:         pluginsdk.TypeString,
-// 					Required:     true,
-// 					ValidateFunc: validation.StringIsNotEmpty,
-// 				},
+				"publisher": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
 
-// 				"type": {
-// 					Type:         pluginsdk.TypeString,
-// 					Required:     true,
-// 					ValidateFunc: validation.StringIsNotEmpty,
-// 				},
+				"type": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
 
-// 				"type_handler_version": {
-// 					Type:         pluginsdk.TypeString,
-// 					Required:     true,
-// 					ValidateFunc: validation.StringIsNotEmpty,
-// 				},
+				"type_handler_version": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
 
-// 				"auto_upgrade_minor_version": {
-// 					Type:     pluginsdk.TypeBool,
-// 					Optional: true,
-// 					Default:  true,
-// 				},
+				"auto_upgrade_minor_version_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
 
-// 				"force_update_tag": {
-// 					Type:     pluginsdk.TypeString,
-// 					Optional: true,
-// 				},
+				"force_extension_execution_on_change": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
 
-// 				"protected_settings": {
-// 					Type:         pluginsdk.TypeString,
-// 					Optional:     true,
-// 					Sensitive:    true,
-// 					ValidateFunc: validation.StringIsJSON,
-// 				},
+				"protected_settings": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsJSON,
+				},
 
-// 				"provision_after_extensions": {
-// 					Type:     pluginsdk.TypeList,
-// 					Optional: true,
-// 					Elem: &pluginsdk.Schema{
-// 						Type: pluginsdk.TypeString,
-// 					},
-// 				},
+				"extensions_to_provision_after_vm_creation": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
 
-// 				"settings": {
-// 					Type:             pluginsdk.TypeString,
-// 					Optional:         true,
-// 					ValidateFunc:     validation.StringIsJSON,
-// 					DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-// 				},
-// 			},
-// 		},
-// 	}
-// }
+				"settings": {
+					Type:             pluginsdk.TypeString,
+					Optional:         true,
+					ValidateFunc:     validation.StringIsJSON,
+					DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+				},
+			},
+		},
+	}
+}
 
 func OrchestratedVirtualMachineScaleSetIdentitySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
@@ -366,14 +367,6 @@ func orchestratedVirtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema
 					Set:      pluginsdk.HashString,
 				},
 
-				// Removed per service team this attribute will never be used in VMSS Flex
-				// "load_balancer_inbound_nat_rules_ids": {
-				// 	Type:     pluginsdk.TypeSet,
-				// 	Optional: true,
-				// 	Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				// 	Set:      pluginsdk.HashString,
-				// },
-
 				"primary": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -436,15 +429,6 @@ func orchestratedVirtualMachineScaleSetIPConfigurationSchemaForDataSource() *plu
 						Type: pluginsdk.TypeString,
 					},
 				},
-
-				// Removed per service team this attribute will never be used in VMSS Flex
-				// "load_balancer_inbound_nat_rules_ids": {
-				// 	Type:     pluginsdk.TypeList,
-				// 	Computed: true,
-				// 	Elem: &pluginsdk.Schema{
-				// 		Type: pluginsdk.TypeString,
-				// 	},
-				// },
 
 				"primary": {
 					Type:     pluginsdk.TypeBool,
@@ -552,7 +536,6 @@ func computerPrefixLinuxSchema() *pluginsdk.Schema {
 
 func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		// TODO: does this want to be a Set?
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
@@ -657,7 +640,7 @@ func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						// note: OS Disks don't support Ultra SSDs
+						// NOTE: OS Disks don't support Ultra SSDs
 						string(compute.StorageAccountTypesPremiumLRS),
 						string(compute.StorageAccountTypesStandardLRS),
 						string(compute.StorageAccountTypesStandardSSDLRS),
@@ -979,7 +962,7 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(inp
 	return &osProfile
 }
 
-// I am only commenting this out as this is going to be supported in the next release of the API in October 2021
+// I am only commenting this out as this is going to be supported in the next release of the API version 2021-10-01
 // func expandWindowsConfigurationAdditionalUnattendContent(input []interface{}) *[]compute.AdditionalUnattendContent {
 // 	output := make([]compute.AdditionalUnattendContent, 0)
 
@@ -1085,10 +1068,6 @@ func expandOrchestratedVirtualMachineScaleSetIPConfiguration(raw map[string]inte
 	loadBalancerBackendAddressPoolIdsRaw := raw["load_balancer_backend_address_pool_ids"].(*pluginsdk.Set).List()
 	loadBalancerBackendAddressPoolIds := expandIDsToSubResources(loadBalancerBackendAddressPoolIdsRaw)
 
-	// Removed per service team this attribute will never be used in VMSS Flex
-	// loadBalancerInboundNatPoolIdsRaw := raw["load_balancer_inbound_nat_rules_ids"].(*pluginsdk.Set).List()
-	// loadBalancerInboundNatPoolIds := expandIDsToSubResources(loadBalancerInboundNatPoolIdsRaw)
-
 	primary := raw["primary"].(bool)
 	version := compute.IPVersion(raw["version"].(string))
 	if primary && version == compute.IPVersionIPv6 {
@@ -1103,8 +1082,7 @@ func expandOrchestratedVirtualMachineScaleSetIPConfiguration(raw map[string]inte
 			ApplicationGatewayBackendAddressPools: applicationGatewayBackendAddressPoolIds,
 			ApplicationSecurityGroups:             applicationSecurityGroupIds,
 			LoadBalancerBackendAddressPools:       loadBalancerBackendAddressPoolIds,
-			// Removed per service team this attribute will never be used in VMSS Flex
-			// LoadBalancerInboundNatPools:           loadBalancerInboundNatPoolIds,
+			// LoadBalancerInboundNatPools removed per service team this attribute will never be used in VMSS Flex
 		},
 	}
 
@@ -1217,10 +1195,6 @@ func expandOrchestratedVirtualMachineScaleSetIPConfigurationUpdate(raw map[strin
 	loadBalancerBackendAddressPoolIdsRaw := raw["load_balancer_backend_address_pool_ids"].(*pluginsdk.Set).List()
 	loadBalancerBackendAddressPoolIds := expandIDsToSubResources(loadBalancerBackendAddressPoolIdsRaw)
 
-	// Removed per service team this attribute will never be used in VMSS Flex
-	// loadBalancerInboundNatPoolIdsRaw := raw["load_balancer_inbound_nat_rules_ids"].(*pluginsdk.Set).List()
-	// loadBalancerInboundNatPoolIds := expandIDsToSubResources(loadBalancerInboundNatPoolIdsRaw)
-
 	primary := raw["primary"].(bool)
 	version := compute.IPVersion(raw["version"].(string))
 
@@ -1236,8 +1210,7 @@ func expandOrchestratedVirtualMachineScaleSetIPConfigurationUpdate(raw map[strin
 			ApplicationGatewayBackendAddressPools: applicationGatewayBackendAddressPoolIds,
 			ApplicationSecurityGroups:             applicationSecurityGroupIds,
 			LoadBalancerBackendAddressPools:       loadBalancerBackendAddressPoolIds,
-			// Removed per service team this attribute will never be used in VMSS Flex
-			// LoadBalancerInboundNatPools:           loadBalancerInboundNatPoolIds,
+			// LoadBalancerInboundNatPools removed per service team this attribute will never be used in VMSS Flex
 		},
 	}
 
@@ -1407,136 +1380,158 @@ func ExpandOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(input []inte
 	}
 }
 
-// func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfile *compute.VirtualMachineScaleSetExtensionProfile, err error) {
-// 	extensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
-// 	if len(input) == 0 {
-// 		return nil, nil
-// 	}
+func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfile *compute.VirtualMachineScaleSetExtensionProfile, hasHealthExtension bool, err error) {
+	extensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
+	if len(input) == 0 {
+		return nil, false, nil
+	}
 
-// 	extensions := make([]compute.VirtualMachineScaleSetExtension, 0)
-// 	for _, v := range input {
-// 		extensionRaw := v.(map[string]interface{})
-// 		extension := compute.VirtualMachineScaleSetExtension{
-// 			Name: utils.String(extensionRaw["name"].(string)),
-// 		}
-// 		extensionType := extensionRaw["type"].(string)
+	extensions := make([]compute.VirtualMachineScaleSetExtension, 0)
+	for _, v := range input {
+		extensionRaw := v.(map[string]interface{})
+		extension := compute.VirtualMachineScaleSetExtension{
+			Name: utils.String(extensionRaw["name"].(string)),
+		}
+		extensionType := extensionRaw["type"].(string)
 
-// 		extensionProps := compute.VirtualMachineScaleSetExtensionProperties{
-// 			Publisher:                utils.String(extensionRaw["publisher"].(string)),
-// 			Type:                     &extensionType,
-// 			TypeHandlerVersion:       utils.String(extensionRaw["type_handler_version"].(string)),
-// 			AutoUpgradeMinorVersion:  utils.Bool(extensionRaw["auto_upgrade_minor_version"].(bool)),
-// 			ProvisionAfterExtensions: utils.ExpandStringSlice(extensionRaw["provision_after_extensions"].([]interface{})),
-// 		}
+		extensionProps := compute.VirtualMachineScaleSetExtensionProperties{
+			Publisher:                utils.String(extensionRaw["publisher"].(string)),
+			Type:                     &extensionType,
+			TypeHandlerVersion:       utils.String(extensionRaw["type_handler_version"].(string)),
+			AutoUpgradeMinorVersion:  utils.Bool(extensionRaw["auto_upgrade_minor_version_enabled"].(bool)),
+			ProvisionAfterExtensions: utils.ExpandStringSlice(extensionRaw["extensions_to_provision_after_vm_creation"].([]interface{})),
+		}
 
-// 		// Leaving this here as it is going to be in the GA API
-// 		// if extensionType == "ApplicationHealthLinux" || extensionType == "ApplicationHealthWindows" {
-// 		// 	hasHealthExtension = true
-// 		// }
+		if extensionType == "ApplicationHealthLinux" || extensionType == "ApplicationHealthWindows" {
+			hasHealthExtension = true
+		}
 
-// 		if forceUpdateTag := extensionRaw["force_update_tag"]; forceUpdateTag != nil {
-// 			extensionProps.ForceUpdateTag = utils.String(forceUpdateTag.(string))
-// 		}
+		if forceUpdateTag := extensionRaw["force_extension_execution_on_change"]; forceUpdateTag != nil {
+			extensionProps.ForceUpdateTag = utils.String(forceUpdateTag.(string))
+		}
 
-// 		if val, ok := extensionRaw["settings"]; ok && val.(string) != "" {
-// 			settings, err := pluginsdk.ExpandJsonFromString(val.(string))
-// 			if err != nil {
-// 				return nil, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
-// 			}
-// 			extensionProps.Settings = settings
-// 		}
+		if val, ok := extensionRaw["settings"]; ok && val.(string) != "" {
+			settings, err := pluginsdk.ExpandJsonFromString(val.(string))
+			if err != nil {
+				return nil, false, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
+			}
+			extensionProps.Settings = settings
+		}
 
-// 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
-// 			protectedSettings, err := pluginsdk.ExpandJsonFromString(val.(string))
-// 			if err != nil {
-// 				return nil, fmt.Errorf("failed to parse JSON from `protected_settings`: %+v", err)
-// 			}
-// 			extensionProps.ProtectedSettings = protectedSettings
-// 		}
+		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
+			protectedSettings, err := pluginsdk.ExpandJsonFromString(val.(string))
+			if err != nil {
+				return nil, false, fmt.Errorf("failed to parse JSON from `protected_settings`: %+v", err)
+			}
+			extensionProps.ProtectedSettings = protectedSettings
+		}
 
-// 		extension.VirtualMachineScaleSetExtensionProperties = &extensionProps
-// 		extensions = append(extensions, extension)
-// 	}
-// 	extensionProfile.Extensions = &extensions
+		extension.VirtualMachineScaleSetExtensionProperties = &extensionProps
+		extensions = append(extensions, extension)
+	}
+	extensionProfile.Extensions = &extensions
 
-// 	return extensionProfile, nil
-// }
+	return extensionProfile, hasHealthExtension, nil
+}
 
-// func flattenOrchestratedVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleSetExtensionProfile, d *pluginsdk.ResourceData) ([]map[string]interface{}, error) {
-// 	result := make([]map[string]interface{}, 0)
-// 	if input == nil || input.Extensions == nil {
-// 		return result, nil
-// 	}
+func flattenOrchestratedVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleSetExtensionProfile, d *pluginsdk.ResourceData) ([]map[string]interface{}, error) {
+	result := make([]map[string]interface{}, 0)
+	if input == nil || input.Extensions == nil {
+		return result, nil
+	}
 
-// 	for k, v := range *input.Extensions {
-// 		name := ""
-// 		if v.Name != nil {
-// 			name = *v.Name
-// 		}
+	// extensionsFromState holds the "extension" block, which is used to retrieve the "protected_settings" to fill it back the state,
+	// since it is not returned from the API.
+	extensionsFromState := map[string]map[string]interface{}{}
+	if extSet, ok := d.GetOk("extension"); ok && extSet != nil {
+		extensions := extSet.(*pluginsdk.Set).List()
+		for _, ext := range extensions {
+			if ext == nil {
+				continue
+			}
+			ext := ext.(map[string]interface{})
+			extensionsFromState[ext["name"].(string)] = ext
+		}
+	}
 
-// 		autoUpgradeMinorVersion := false
-// 		forceUpdateTag := ""
-// 		provisionAfterExtension := make([]interface{}, 0)
-// 		protectedSettings := ""
-// 		extPublisher := ""
-// 		extSettings := ""
-// 		extType := ""
-// 		extTypeVersion := ""
+	for _, v := range *input.Extensions {
+		name := ""
+		if v.Name != nil {
+			name = *v.Name
+		}
 
-// 		if props := v.VirtualMachineScaleSetExtensionProperties; props != nil {
-// 			if props.Publisher != nil {
-// 				extPublisher = *props.Publisher
-// 			}
+		autoUpgradeMinorVersion := false
+		// Automatic Upgrade is not yet supported in VMSS Flex
+		// enableAutomaticUpgrade := false
+		forceUpdateTag := ""
+		provisionAfterExtension := make([]interface{}, 0)
+		protectedSettings := ""
+		extPublisher := ""
+		extSettings := ""
+		extType := ""
+		extTypeVersion := ""
 
-// 			if props.Type != nil {
-// 				extType = *props.Type
-// 			}
+		if props := v.VirtualMachineScaleSetExtensionProperties; props != nil {
+			if props.Publisher != nil {
+				extPublisher = *props.Publisher
+			}
 
-// 			if props.TypeHandlerVersion != nil {
-// 				extTypeVersion = *props.TypeHandlerVersion
-// 			}
+			if props.Type != nil {
+				extType = *props.Type
+			}
 
-// 			if props.AutoUpgradeMinorVersion != nil {
-// 				autoUpgradeMinorVersion = *props.AutoUpgradeMinorVersion
-// 			}
+			if props.TypeHandlerVersion != nil {
+				extTypeVersion = *props.TypeHandlerVersion
+			}
 
-// 			if props.ForceUpdateTag != nil {
-// 				forceUpdateTag = *props.ForceUpdateTag
-// 			}
+			if props.AutoUpgradeMinorVersion != nil {
+				autoUpgradeMinorVersion = *props.AutoUpgradeMinorVersion
+			}
 
-// 			if props.ProvisionAfterExtensions != nil {
-// 				provisionAfterExtension = utils.FlattenStringSlice(props.ProvisionAfterExtensions)
-// 			}
+			// if props.EnableAutomaticUpgrade != nil {
+			// 	enableAutomaticUpgrade = *props.EnableAutomaticUpgrade
+			// }
 
-// 			if props.Settings != nil {
-// 				extSettingsRaw, err := pluginsdk.FlattenJsonToString(props.Settings.(map[string]interface{}))
-// 				if err != nil {
-// 					return nil, err
-// 				}
-// 				extSettings = extSettingsRaw
-// 			}
-// 		}
-// 		// protected_settings isn't returned, so we attempt to get it from config otherwise set to empty string
-// 		if protectedSettingsFromConfig, ok := d.GetOk(fmt.Sprintf("extension.%d.protected_settings", k)); ok {
-// 			if protectedSettingsFromConfig.(string) != "" && protectedSettingsFromConfig.(string) != "{}" {
-// 				protectedSettings = protectedSettingsFromConfig.(string)
-// 			}
-// 		}
+			if props.ForceUpdateTag != nil {
+				forceUpdateTag = *props.ForceUpdateTag
+			}
 
-// 		result = append(result, map[string]interface{}{
-// 			"name":                       name,
-// 			"auto_upgrade_minor_version": autoUpgradeMinorVersion,
-// 			"force_update_tag":           forceUpdateTag,
-// 			"provision_after_extensions": provisionAfterExtension,
-// 			"protected_settings":         protectedSettings,
-// 			"publisher":                  extPublisher,
-// 			"settings":                   extSettings,
-// 			"type":                       extType,
-// 			"type_handler_version":       extTypeVersion,
-// 		})
-// 	}
-// 	return result, nil
-// }
+			if props.ProvisionAfterExtensions != nil {
+				provisionAfterExtension = utils.FlattenStringSlice(props.ProvisionAfterExtensions)
+			}
+
+			if props.Settings != nil {
+				extSettingsRaw, err := pluginsdk.FlattenJsonToString(props.Settings.(map[string]interface{}))
+				if err != nil {
+					return nil, err
+				}
+				extSettings = extSettingsRaw
+			}
+		}
+		// protected_settings isn't returned, so we attempt to get it from state otherwise set to empty string
+		if ext, ok := extensionsFromState[name]; ok {
+			if protectedSettingsFromState, ok := ext["protected_settings"]; ok {
+				if protectedSettingsFromState.(string) != "" && protectedSettingsFromState.(string) != "{}" {
+					protectedSettings = protectedSettingsFromState.(string)
+				}
+			}
+		}
+
+		result = append(result, map[string]interface{}{
+			"name":                               name,
+			"auto_upgrade_minor_version_enabled": autoUpgradeMinorVersion,
+			// "automatic_upgrade_enabled":  enableAutomaticUpgrade,
+			"force_extension_execution_on_change":       forceUpdateTag,
+			"extensions_to_provision_after_vm_creation": provisionAfterExtension,
+			"protected_settings":                        protectedSettings,
+			"publisher":                                 extPublisher,
+			"settings":                                  extSettings,
+			"type":                                      extType,
+			"type_handler_version":                      extTypeVersion,
+		})
+	}
+	return result, nil
+}
 
 func FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(input compute.VirtualMachineScaleSetIPConfiguration) map[string]interface{} {
 	var name, subnetId string
@@ -1560,8 +1555,6 @@ func FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(input compute.Virt
 	applicationGatewayBackendAddressPoolIds := flattenSubResourcesToIDs(input.ApplicationGatewayBackendAddressPools)
 	applicationSecurityGroupIds := flattenSubResourcesToIDs(input.ApplicationSecurityGroups)
 	loadBalancerBackendAddressPoolIds := flattenSubResourcesToIDs(input.LoadBalancerBackendAddressPools)
-	// Removed per service team this attribute will never be used in VMSS Flex
-	// loadBalancerInboundNatRuleIds := flattenSubResourcesToIDs(input.LoadBalancerInboundNatPools)
 
 	return map[string]interface{}{
 		"name":              name,
@@ -1572,8 +1565,7 @@ func FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(input compute.Virt
 		"application_gateway_backend_address_pool_ids": applicationGatewayBackendAddressPoolIds,
 		"application_security_group_ids":               applicationSecurityGroupIds,
 		"load_balancer_backend_address_pool_ids":       loadBalancerBackendAddressPoolIds,
-		// Removed per service team this attribute will never be used in VMSS Flex
-		// "load_balancer_inbound_nat_rules_ids":          loadBalancerInboundNatRuleIds,
+		// load_balancer_inbound_nat_rules_ids removed per service team this attribute will never be used in VMSS Flex
 	}
 }
 
@@ -1695,9 +1687,9 @@ func flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input *compute.
 		}
 	}
 
-	// if v := input.AdminPassword; v != nil {
-	// 	output["admin_password"] = *v
-	// }
+	if v := input.AdminPassword; v != nil {
+		output["admin_password"] = *v
+	}
 
 	if v := linConfig.SSH; v != nil {
 		if sshKeys, _ := FlattenSSHKeys(v); sshKeys != nil {
