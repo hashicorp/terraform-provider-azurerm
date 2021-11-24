@@ -23,7 +23,7 @@ func TestAccSiteRecoveryReplicationPolicy_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, 24, 4),
+			Config: r.basic(data, 24*60, 4*60),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -38,7 +38,7 @@ func TestAccSiteRecoveryReplicationPolicy_noSnapshots(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, 48, 0),
+			Config: r.basic(data, 48*60, 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("recovery_point_retention_in_minutes").HasValue("2880"),
@@ -61,7 +61,7 @@ func TestAccSiteRecoveryReplicationPolicy_wrongSettings(t *testing.T) {
 	})
 }
 
-func (SiteRecoveryReplicationPolicyResource) basic(data acceptance.TestData, retentionInHours int, snapshotFrequencyInHours int) string {
+func (SiteRecoveryReplicationPolicyResource) basic(data acceptance.TestData, retentionInMinutes int, snapshotFrequencyInMinutes int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -85,10 +85,10 @@ resource "azurerm_site_recovery_replication_policy" "test" {
   resource_group_name                                  = azurerm_resource_group.test.name
   recovery_vault_name                                  = azurerm_recovery_services_vault.test.name
   name                                                 = "acctest-policy-%d"
-  recovery_point_retention_in_minutes                  = %d * 60
-  application_consistent_snapshot_frequency_in_minutes = %d * 60
+  recovery_point_retention_in_minutes                  = %d
+  application_consistent_snapshot_frequency_in_minutes = %d
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, retentionInHours, snapshotFrequencyInHours)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, retentionInMinutes, snapshotFrequencyInMinutes)
 }
 
 func (t SiteRecoveryReplicationPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
