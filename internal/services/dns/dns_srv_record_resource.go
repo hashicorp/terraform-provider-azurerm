@@ -112,8 +112,8 @@ func resourceDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_dns_srv_record", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_dns_srv_record", resourceId.ID())
 		}
 	}
 
