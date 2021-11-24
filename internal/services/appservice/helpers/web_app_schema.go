@@ -3486,6 +3486,7 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		UseManagedIdentityACR:    utils.NormaliseNilableBool(appSiteConfig.AcrUseManagedIdentityCreds),
 		VirtualApplications:      flattenVirtualApplications(appSiteConfig.VirtualApplications),
 		WebSockets:               utils.NormaliseNilableBool(appSiteConfig.WebSocketsEnabled),
+		VnetRouteAllEnabled:      utils.NormaliseNilableBool(appSiteConfig.VnetRouteAllEnabled),
 	}
 
 	if appSiteConfig.APIManagementConfig != nil && appSiteConfig.APIManagementConfig.ID != nil {
@@ -3681,6 +3682,7 @@ func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {
 		"DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS",
 		"WEBSITE_HTTPLOGGING_CONTAINER_URL",
 		"WEBSITE_HTTPLOGGING_RETENTION_DAYS",
+		"WEBSITE_VNET_ROUTE_ALL",
 		maxPingFailures,
 	}
 
@@ -3691,7 +3693,7 @@ func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {
 		healthCheckCount = &h
 	}
 
-	// Remove the settings the service adds for legacy reasons when logging settings are specified.
+	// Remove the settings the service adds for legacy reasons.
 	for _, v := range unmanagedSettings { //nolint:typecheck
 		delete(appSettings, v)
 	}
