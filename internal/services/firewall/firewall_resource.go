@@ -220,29 +220,27 @@ func resourceFirewall() *pluginsdk.Resource {
 
 func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Azure Firewall creation")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewFirewallID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Firewall %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	if d.IsNewResource() {
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_firewall", *existing.ID)
-		}
+	if d.IsNewResource() && !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_firewall", id.ID())
 	}
 
 	if err := validateFirewallIPConfigurationSettings(d.Get("ip_configuration").([]interface{})); err != nil {
-		return fmt.Errorf("validating Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("validating %s: %+v", id, err)
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -326,8 +324,8 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	locks.ByName(name, azureFirewallResourceName)
-	defer locks.UnlockByName(name, azureFirewallResourceName)
+	locks.ByName(id.AzureFirewallName, azureFirewallResourceName)
+	defer locks.UnlockByName(id.AzureFirewallName, azureFirewallResourceName)
 
 	locks.MultipleByName(vnetToLock, VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(vnetToLock, VirtualNetworkResourceName)
@@ -336,15 +334,15 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	defer locks.UnlockMultipleByName(subnetToLock, SubnetResourceName)
 
 	if !d.IsNewResource() {
-		exists, err2 := client.Get(ctx, resourceGroup, name)
+		exists, err2 := client.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
 		if err2 != nil {
 			if utils.ResponseWasNotFound(exists.Response) {
-				return fmt.Errorf("retrieving existing Firewall %q (Resource Group %q): firewall not found in resource group", name, resourceGroup)
+				return fmt.Errorf("retrieving existing %s: firewall not found in resource group", id)
 			}
-			return fmt.Errorf("retrieving existing Firewall %q (Resource Group %q): %s", name, resourceGroup, err2)
+			return fmt.Errorf("retrieving existing %s: %+v", id, err2)
 		}
 		if exists.AzureFirewallPropertiesFormat == nil {
-			return fmt.Errorf("retrieving existing rules (Firewall %q / Resource Group %q): `props` was nil", name, resourceGroup)
+			return fmt.Errorf("retrieving existing rules for %s: `props` was nil", id)
 		}
 		props := *exists.AzureFirewallPropertiesFormat
 		parameters.AzureFirewallPropertiesFormat.ApplicationRuleCollections = props.ApplicationRuleCollections
@@ -352,26 +350,16 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		parameters.AzureFirewallPropertiesFormat.NatRuleCollections = props.NatRuleCollections
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AzureFirewallName, parameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Azure Firewall %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceFirewallRead(d, meta)
 }
 
