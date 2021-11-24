@@ -78,7 +78,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_extensionsMultiple_on_existing_OV
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("os_profile.0.linux_configuration.0.admin_password", "extension.0.protected_settings"),
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password", "extension.0.protected_settings", "extension.1.protected_settings"),
 	})
 }
 
