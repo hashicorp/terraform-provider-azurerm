@@ -243,9 +243,11 @@ An `extension` block supports the following:
 
 * `type_handler_version` - (Required) Specifies the version of the extension to use, available versions can be found using the Azure CLI. 
 
-* `auto_upgrade_minor_version` - (Optional) Should the latest version of the Extension be used at Deployment Time, if one is available? This won't auto-update the extension on existing installation. Defaults to true. 
+* `auto_upgrade_minor_version_enabled` - (Optional) Should the latest version of the Extension be used at Deployment Time, if one is available? This won't auto-update the extension on existing installation. Defaults to true. 
 
-* `force_update_tag` - (Optional) A value which, when different to the previous value can be used to force-run the Extension even if the Extension Configuration hasn't changed. 
+* `extensions_to_provision_after_vm_creation` - (Optional) An ordered list of Extension names which Orchestrated Virtual Machine Scale Set should provision after VM creation.
+
+* `force_extension_execution_on_change` - (Optional) A value which, when different to the previous value can be used to force-run the Extension even if the Extension Configuration hasn't changed. 
 
 * `protected_settings` - (Optional) A JSON String which specifies Sensitive Settings (such as Passwords) for the Extension. 
 

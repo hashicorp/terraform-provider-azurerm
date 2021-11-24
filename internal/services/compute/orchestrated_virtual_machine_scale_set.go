@@ -166,13 +166,13 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
-				"auto_upgrade_minor_version": {
+				"auto_upgrade_minor_version_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  true,
 				},
 
-				"force_update_tag": {
+				"force_extension_execution_on_change": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
@@ -184,11 +184,13 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsJSON,
 				},
 
-				"provision_after_extensions": {
+				"extensions_to_provision_after_vm_creation": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 
@@ -1397,15 +1399,15 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 			Publisher:                utils.String(extensionRaw["publisher"].(string)),
 			Type:                     &extensionType,
 			TypeHandlerVersion:       utils.String(extensionRaw["type_handler_version"].(string)),
-			AutoUpgradeMinorVersion:  utils.Bool(extensionRaw["auto_upgrade_minor_version"].(bool)),
-			ProvisionAfterExtensions: utils.ExpandStringSlice(extensionRaw["provision_after_extensions"].([]interface{})),
+			AutoUpgradeMinorVersion:  utils.Bool(extensionRaw["auto_upgrade_minor_version_enabled"].(bool)),
+			ProvisionAfterExtensions: utils.ExpandStringSlice(extensionRaw["extensions_to_provision_after_vm_creation"].([]interface{})),
 		}
 
 		if extensionType == "ApplicationHealthLinux" || extensionType == "ApplicationHealthWindows" {
 			hasHealthExtension = true
 		}
 
-		if forceUpdateTag := extensionRaw["force_update_tag"]; forceUpdateTag != nil {
+		if forceUpdateTag := extensionRaw["force_extension_execution_on_change"]; forceUpdateTag != nil {
 			extensionProps.ForceUpdateTag = utils.String(forceUpdateTag.(string))
 		}
 
@@ -1517,16 +1519,16 @@ func flattenOrchestratedVirtualMachineScaleSetExtensions(input *compute.VirtualM
 		}
 
 		result = append(result, map[string]interface{}{
-			"name":                       name,
-			"auto_upgrade_minor_version": autoUpgradeMinorVersion,
+			"name":                               name,
+			"auto_upgrade_minor_version_enabled": autoUpgradeMinorVersion,
 			// "automatic_upgrade_enabled":  enableAutomaticUpgrade,
-			"force_update_tag":           forceUpdateTag,
-			"provision_after_extensions": provisionAfterExtension,
-			"protected_settings":         protectedSettings,
-			"publisher":                  extPublisher,
-			"settings":                   extSettings,
-			"type":                       extType,
-			"type_handler_version":       extTypeVersion,
+			"force_extension_execution_on_change":       forceUpdateTag,
+			"extensions_to_provision_after_vm_creation": provisionAfterExtension,
+			"protected_settings":                        protectedSettings,
+			"publisher":                                 extPublisher,
+			"settings":                                  extSettings,
+			"type":                                      extType,
+			"type_handler_version":                      extTypeVersion,
 		})
 	}
 	return result, nil
