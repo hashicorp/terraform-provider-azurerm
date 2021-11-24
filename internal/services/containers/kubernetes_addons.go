@@ -249,7 +249,7 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 								Type:     pluginsdk.TypeBool,
 								Required: true,
 							},
-							"secret_rotation": {
+							"secret_rotation_enabled": {
 								Type:     pluginsdk.TypeBool,
 								Optional: true,
 							},
@@ -404,7 +404,7 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 		config := make(map[string]*string)
 		enabled := value["enabled"].(bool)
 
-		if secretRotation, ok := value["secret_rotation"]; ok && secretRotation.(bool) {
+		if secretRotation, ok := value["secret_rotation_enabled"]; ok && secretRotation.(bool) {
 			config["enableSecretRotation"] = utils.String("true")
 			if rotationInterval, ok := value["secret_rotation_interval"]; ok && rotationInterval != "" {
 				config["rotationPollInterval"] = utils.String(rotationInterval.(string))
@@ -600,7 +600,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			enabled = *enabledVal
 		}
 		enableSecretRotation := false
-		if v := kubernetesAddonProfilelocateInConfig(azureKeyvaultSecretsProvider.Config, "enableSecretRotation"); v == utils.String("true") {
+		if v := kubernetesAddonProfilelocateInConfig(azureKeyvaultSecretsProvider.Config, "enableSecretRotation"); v != nil && v != utils.String("false") {
 			enableSecretRotation = true
 		}
 		rotationPollInterval := ""
@@ -609,7 +609,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 		}
 		azureKeyvaultSecretsProviders = append(azureKeyvaultSecretsProviders, map[string]interface{}{
 			"enabled":                  enabled,
-			"secret_rotation":          enableSecretRotation,
+			"secret_rotation_enabled":  enableSecretRotation,
 			"secret_rotation_interval": rotationPollInterval,
 		})
 

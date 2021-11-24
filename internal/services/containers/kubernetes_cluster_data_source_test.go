@@ -34,7 +34,7 @@ var kubernetesDataSourceTests = map[string]func(t *testing.T){
 	"addOnProfileIngressApplicationGateewaySubnetCIDR": testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetCIDR,
 	"addOnProfileIngressApplicationGateewaySubnetId":   testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetId,
 	"addOnProfileOpenServiceMesh":                      testAccDataSourceKubernetesCluster_addOnProfileOpenServiceMesh,
-	"addOnProfileAzureKeyvaultSecretsProvider":         testAccDataSourceKubernetesCluster_addOnProfileAzureKeyvaultSecretsProvider,
+	"addOnProfileAzureKeyvaultSecretsProvider":         TestAccDataSourceKubernetesCluster_addOnProfileAzureKeyvaultSecretsProvider,
 	"autoscalingNoAvailabilityZones":                   testAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones,
 	"autoscalingWithAvailabilityZones":                 testAccDataSourceKubernetesCluster_autoscalingWithAvailabilityZones,
 	"nodeLabels":                                       testAccDataSourceKubernetesCluster_nodeLabels,
@@ -578,7 +578,7 @@ func testAccDataSourceKubernetesCluster_addOnProfileOpenServiceMesh(t *testing.T
 	})
 }
 
-func testAccDataSourceKubernetesCluster_addOnProfileAzureKeyvaultSecretsProvider(t *testing.T) {
+func TestAccDataSourceKubernetesCluster_addOnProfileAzureKeyvaultSecretsProvider(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -588,7 +588,7 @@ func testAccDataSourceKubernetesCluster_addOnProfileAzureKeyvaultSecretsProvider
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation").HasValue("true"),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation_interval").HasValue("2m"),
 			),
 		},

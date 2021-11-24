@@ -20,7 +20,7 @@ var kubernetesAddOnTests = map[string]func(t *testing.T){
 	"addonProfileAppGatewaySubnetCIDR":         testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR,
 	"addonProfileAppGatewaySubnetID":           testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId,
 	"addonProfileOpenServiceMesh":              testAccKubernetesCluster_addonProfileOpenServiceMesh,
-	"addonProfileazureKeyvaultSecretsProvider": testAccKubernetesCluster_addonProfileAzureKeyvaultSecretsProvider,
+	"addonProfileAzureKeyvaultSecretsProvider": TestAccKubernetesCluster_addonProfileAzureKeyvaultSecretsProvider,
 }
 
 var addOnAppGatewaySubnetCIDR string = "10.241.0.0/16" // AKS will use 10.240.0.0/16 for the aks subnet so use 10.241.0.0/16 for the app gateway subnet
@@ -376,7 +376,7 @@ func testAccKubernetesCluster_addonProfileOpenServiceMesh(t *testing.T) {
 	})
 }
 
-func testAccKubernetesCluster_addonProfileAzureKeyvaultSecretsProvider(t *testing.T) {
+func TestAccKubernetesCluster_addonProfileAzureKeyvaultSecretsProvider(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -388,7 +388,7 @@ func testAccKubernetesCluster_addonProfileAzureKeyvaultSecretsProvider(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation").HasValue("true"),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.rotation_interval").HasValue("2m"),
 			),
 		},
@@ -1238,9 +1238,9 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   addon_profile {
     azure_keyvault_secrets_provider {
-      enabled           = %t
-      secret_rotation   = %t
-      rotation_interval = %s
+      enabled                 = %t
+      secret_rotation_enabled = %t
+      rotation_interval       = %s
     }
   }
 

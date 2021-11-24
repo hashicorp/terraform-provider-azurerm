@@ -189,7 +189,7 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeBool,
 										Computed: true,
 									},
-									"secret_rotation": {
+									"secret_rotation_enabled": {
 										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
@@ -991,7 +991,7 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 
 		output := map[string]interface{}{
 			"enabled":                  enabled,
-			"secret_rotation":          enableSecretRotation,
+			"secret_rotation_enabled":  enableSecretRotation,
 			"secret_rotation_interval": rotationPollInterval,
 		}
 		azureKeyvaultSecretsProviders = append(azureKeyvaultSecretsProviders, output)
