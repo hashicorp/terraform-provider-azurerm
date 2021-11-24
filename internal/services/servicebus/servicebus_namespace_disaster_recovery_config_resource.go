@@ -95,24 +95,24 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.Resour
 
 	log.Printf("[INFO] preparing arguments for ServiceBus Namespace pairing create/update.")
 
-	id, err := parse.NamespaceID(d.Get("primary_namespace_id").(string))
+	namespaceId, err := parse.NamespaceID(d.Get("primary_namespace_id").(string))
 	if err != nil {
 		return err
 	}
 
-	aliasName := d.Get("name").(string)
 	partnerNamespaceId := d.Get("partner_namespace_id").(string)
 
+	id := parse.NewNamespaceDisasterRecoveryConfigID(namespaceId.SubscriptionId, namespaceId.ResourceGroup, namespaceId.Name, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, aliasName)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", aliasName, id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_servicebus_namespace_disaster_recovery_config", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_servicebus_namespace_disaster_recovery_config", id.ID())
 		}
 	}
 
@@ -122,25 +122,15 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.Resour
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, aliasName, parameters); err != nil {
-		return fmt.Errorf("creating/updating Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", aliasName, id.Name, id.ResourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, id.ResourceGroup, id.Name, aliasName, d.Timeout(pluginsdk.TimeoutCreate)); err != nil {
-		return fmt.Errorf("waiting for replication to complete for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", aliasName, id.Name, id.ResourceGroup, err)
+	if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, id); err != nil {
+		return fmt.Errorf("waiting for replication to complete for %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, id.ResourceGroup, id.Name, aliasName)
-	if err != nil {
-		return fmt.Errorf("reading Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %v", aliasName, id.Name, id.ResourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("got nil ID for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q)", aliasName, id.Name, id.ResourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceServiceBusNamespaceDisasterRecoveryConfigRead(d, meta)
 }
 
@@ -163,7 +153,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resour
 			return fmt.Errorf("issuing break pairing request for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
 		}
 
-		if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName, d.Timeout(pluginsdk.TimeoutUpdate)); err != nil {
+		if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, *id); err != nil {
 			return fmt.Errorf("waiting for break pairing request to complete for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
 		}
 	}
@@ -178,7 +168,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resour
 		return fmt.Errorf("creating/updating Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
-	if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName, d.Timeout(pluginsdk.TimeoutUpdate)); err != nil {
+	if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, *id); err != nil {
 		return fmt.Errorf("waiting for replication to complete for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
@@ -243,7 +233,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resour
 		return fmt.Errorf("breaking pairing for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
-	if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName, d.Timeout(pluginsdk.TimeoutDelete)); err != nil {
+	if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, *id); err != nil {
 		return fmt.Errorf("waiting for break pairing request to complete for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
@@ -298,26 +288,30 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resour
 	return nil
 }
 
-func resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx context.Context, client *servicebus.DisasterRecoveryConfigsClient, resourceGroup, namespaceName, name string, timeout time.Duration) error {
+func resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx context.Context, client *servicebus.DisasterRecoveryConfigsClient, id parse.NamespaceDisasterRecoveryConfigId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(servicebus.ProvisioningStateDRAccepted)},
 		Target:     []string{string(servicebus.ProvisioningStateDRSucceeded)},
 		MinTimeout: 30 * time.Second,
-		Timeout:    timeout,
+		Timeout:    time.Until(deadline),
 		Refresh: func() (interface{}, string, error) {
-			read, err := client.Get(ctx, resourceGroup, namespaceName, name)
+			read, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName)
 			if err != nil {
-				return nil, "error", fmt.Errorf("wait read Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %v", name, namespaceName, resourceGroup, err)
+				return nil, "error", fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			if props := read.ArmDisasterRecoveryProperties; props != nil {
 				if props.ProvisioningState == servicebus.ProvisioningStateDRFailed {
-					return read, "failed", fmt.Errorf("replication for Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q) failed", name, namespaceName, resourceGroup)
+					return read, "failed", fmt.Errorf("replication Failed for %s: %+v", id, err)
 				}
 				return read, string(props.ProvisioningState), nil
 			}
 
-			return read, "nil", fmt.Errorf("waiting for replication error Service Bus Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): provisioning state is nil", name, namespaceName, resourceGroup)
+			return read, "nil", fmt.Errorf("waiting on replication of %s: %+v", id, err)
 		},
 	}
 
