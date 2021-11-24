@@ -109,7 +109,7 @@ func TestAccCosmosDBAccount_keyVaultUri(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.key_vault_uri(data, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelStrong),
+			Config: r.key_vault_uri(data, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelStrong, "FirstPartyIdentity"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelStrong, 1),
 			),
@@ -124,14 +124,14 @@ func TestAccCosmosDBAccount_keyVaultUriUpdateConsistancy(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.key_vault_uri(data, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelStrong),
+			Config: r.key_vault_uri(data, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelStrong, "FirstPartyIdentity"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelStrong, 1),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.key_vault_uri(data, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelSession),
+			Config: r.key_vault_uri(data, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelSession, "SystemAssignedIdentity"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelSession, 1),
 			),
@@ -607,7 +607,15 @@ func TestAccCosmosDBAccount_analyticalStorage(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.analyticalStorage(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual),
+			Config: r.analyticalStorage(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual, documentdb.AnalyticalStorageSchemaTypeWellDefined),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
+				check.That(data.ResourceName).Key("analytical_storage_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.analyticalStorage(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual,documentdb.AnalyticalStorageSchemaTypeFullFidelity),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 				check.That(data.ResourceName).Key("analytical_storage_enabled").HasValue("true"),
@@ -1093,6 +1101,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   is_virtual_network_filter_enabled = true
 
+  capacity {
+    total_throughput_limit = -1
+  }
+
   virtual_network_rule {
     id = azurerm_subnet.subnet1.id
   }
@@ -1296,6 +1308,10 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   is_virtual_network_filter_enabled = true
+
+  capacity {
+    total_throughput_limit = 200
+  }
 
   virtual_network_rule {
     id = azurerm_subnet.subnet2.id
@@ -1683,7 +1699,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
-func (CosmosDBAccountResource) analyticalStorage(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+func (CosmosDBAccountResource) analyticalStorage(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel, schemaType documentdb.AnalyticalStorageSchemaType) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1703,6 +1719,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   analytical_storage_enabled = true
 
+  analytical_storage_configuration {
+    schema_type = "%s"
+  }
+
   consistency_policy {
     consistency_level = "%s"
   }
@@ -1712,7 +1732,7 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(schemaType), string(consistency))
 }
 
 func (CosmosDBAccountResource) mongoAnalyticalStorage(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel) string {
@@ -1804,7 +1824,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
-func (CosmosDBAccountResource) key_vault_uri(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+func (CosmosDBAccountResource) key_vault_uri(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel, defaultIdentity string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -1903,6 +1923,7 @@ resource "azurerm_cosmosdb_account" "test" {
   offer_type          = "Standard"
   kind                = "%s"
   key_vault_key_id    = azurerm_key_vault_key.test.versionless_id
+  default_identity    = "%s"
 
   capabilities {
     name = "EnableMongo"
@@ -1917,7 +1938,7 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, string(kind), string(consistency))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, string(kind), string(consistency), defaultIdentity)
 }
 
 func (CosmosDBAccountResource) systemAssignedIdentity(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel) string {
@@ -1989,6 +2010,7 @@ resource "azurerm_cosmosdb_account" "test" {
     type                = "Periodic"
     interval_in_minutes = 120
     retention_in_hours  = 10
+    storage_redundancy  = "Geo"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
@@ -2025,6 +2047,7 @@ resource "azurerm_cosmosdb_account" "test" {
     type                = "Periodic"
     interval_in_minutes = 60
     retention_in_hours  = 8
+    storage_redundancy  = "Local"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
