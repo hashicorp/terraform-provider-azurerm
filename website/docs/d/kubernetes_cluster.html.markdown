@@ -309,6 +309,15 @@ An `azure_keyvault_secrets_provider` block supports the following:
 * `secret_rotation_interval` - The interval to poll for secret rotation.
 
 ---
+The `azure_keyvault_secrets_provider_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used by the Secret Provider.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used by the Secret Provider.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the Secret Provider.
+
+---
 
 A `role_based_access_control` block exports the following:
 

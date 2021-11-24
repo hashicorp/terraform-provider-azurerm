@@ -197,6 +197,26 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
+									"azure_keyvault_secrets_provider_identity": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"client_id": {
+													Type:     pluginsdk.TypeString,
+													Computed: true,
+												},
+												"object_id": {
+													Type:     pluginsdk.TypeString,
+													Computed: true,
+												},
+												"user_assigned_identity_id": {
+													Type:     pluginsdk.TypeString,
+													Computed: true,
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -989,10 +1009,16 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 			rotationPollInterval = *v
 		}
 
+		azureKeyvaultSecretsProviderIdentity, err := flattenKubernetesClusterDataSourceAddOnIdentityProfile(azureKeyvaultSecretsProvider.Identity)
+		if err != nil {
+			return err
+		}
+
 		output := map[string]interface{}{
-			"enabled":                  enabled,
-			"secret_rotation_enabled":  enableSecretRotation,
-			"secret_rotation_interval": rotationPollInterval,
+			"enabled":                                  enabled,
+			"secret_rotation_enabled":                  enableSecretRotation,
+			"secret_rotation_interval":                 rotationPollInterval,
+			"azure_keyvault_secrets_provider_identity": azureKeyvaultSecretsProviderIdentity,
 		}
 		azureKeyvaultSecretsProviders = append(azureKeyvaultSecretsProviders, output)
 	}

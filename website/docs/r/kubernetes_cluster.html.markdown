@@ -600,6 +600,7 @@ An `azure_keyvault_secrets_provider` block supports the following:
 
 ---
 
+
 A `role_based_access_control` block supports the following:
 
 * `azure_active_directory` - (Optional) An `azure_active_directory` block.
@@ -795,6 +796,8 @@ The `addon_profile` block exports the following:
 
 * `oms_agent` - An `oms_agent` block as defined below.
 
+* `azure_keyvault_secrets_provider` - An `azure_keyvault_secrets_provider` block as defined below.
+
 ---
 
 The `ingress_application_gateway` block exports the following:
@@ -828,6 +831,25 @@ The `oms_agent_identity` block exports the following:
 * `object_id` - The Object ID of the user-defined Managed Identity used by the OMS Agents.
 
 * `user_assigned_identity_id` - The ID of the User Assigned Identity used by the OMS Agents.
+
+---
+
+The `azure_keyvault_secrets_provider` block exports the following:
+
+* `azure_keyvault_secrets_provider_identity` - An `azure_keyvault_secrets_provider_identity` block is exported. The exported attributes are defined below.  
+
+---
+
+The `azure_keyvault_secrets_provider_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used by the Secret Provider.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used by the Secret Provider.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the Secret Provider.
+
+---
+
 
 ## Timeouts
 
