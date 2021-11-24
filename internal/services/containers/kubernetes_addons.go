@@ -251,12 +251,14 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 							},
 							"secret_rotation_enabled": {
 								Type:     pluginsdk.TypeBool,
+								Default:  false,
 								Optional: true,
 							},
 							"secret_rotation_interval": {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
-								ValidateFunc: containerValidate.SecretRotationInterval,
+								Default:      "2m",
+								ValidateFunc: containerValidate.Duration,
 							},
 						},
 					},
@@ -406,11 +408,10 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 
 		if secretRotation, ok := value["secret_rotation_enabled"]; ok && secretRotation.(bool) {
 			config["enableSecretRotation"] = utils.String("true")
-			if rotationInterval, ok := value["secret_rotation_interval"]; ok && rotationInterval != "" {
-				config["rotationPollInterval"] = utils.String(rotationInterval.(string))
-			} else { // set default value of 2 minutes
-				config["rotationPollInterval"] = utils.String("2m")
-			}
+		}
+
+		if rotationPollInterval, ok := value["secret_rotation_interval"]; ok && rotationPollInterval != "" {
+			config["rotationPollInterval"] = utils.String(rotationPollInterval.(string))
 		}
 
 		addonProfiles[azureKeyvaultSecretsProviderKey] = &containerservice.ManagedClusterAddonProfile{
