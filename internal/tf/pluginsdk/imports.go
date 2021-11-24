@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -38,6 +39,10 @@ func ImporterValidatingResourceIdThen(validateFunc IDValidationFunc, thenFunc Im
 	return &schema.ResourceImporter{
 		StateContext: func(ctx context.Context, d *ResourceData, meta interface{}) ([]*ResourceData, error) {
 			log.Printf("[DEBUG] Importing Resource - parsing %q", d.Id())
+
+			// strip trailing slashes off the id
+			id := strings.TrimSuffix(d.Id(), "/")
+			d.SetId(id)
 
 			if err := validateFunc(d.Id()); err != nil {
 				return []*ResourceData{d}, fmt.Errorf("parsing Resource ID %q: %+v", d.Id(), err)
