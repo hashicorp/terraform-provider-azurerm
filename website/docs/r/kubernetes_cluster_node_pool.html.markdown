@@ -183,7 +183,7 @@ A `kubelet_config` block supports the following:
 
 * `image_gc_low_threshold` - (Optional) Specifies the percent of disk usage lower than which image garbage collection is never run. Must be between `0` and `100`. Changing this forces a new resource to be created.
 
-* `pod_max_pids` - (Optional) Specifies the maximum number of processes per pod. Changing this forces a new resource to be created.
+* `pod_max_pid` - (Optional) Specifies the maximum number of processes per pod. Changing this forces a new resource to be created.
 
 * `topology_manager_policy` - (Optional) Specifies the Topology Manager policy to use. Possible values are `none`, `best-effort`, `restricted` or `single-numa-node`. Changing this forces a new resource to be created.
 
