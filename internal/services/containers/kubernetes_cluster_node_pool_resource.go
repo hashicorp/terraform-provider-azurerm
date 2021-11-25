@@ -301,10 +301,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	if kubernetesClusterId.SubscriptionId != clustersClient.SubscriptionID {
-		return fmt.Errorf("`kuberentes_cluster_id`'s subscription id is different than provider's subscription")
-	}
-
 	resourceGroup := kubernetesClusterId.ResourceGroup
 	clusterName := kubernetesClusterId.ManagedClusterName
 	name := d.Get("name").(string)
