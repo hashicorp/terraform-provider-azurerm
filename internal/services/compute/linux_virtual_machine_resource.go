@@ -218,6 +218,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 					string(compute.LinuxVMGuestPatchModeAutomaticByPlatform),
 					string(compute.LinuxVMGuestPatchModeImageDefault),
 				}, false),
+				Default: string(compute.LinuxVMGuestPatchModeImageDefault),
 			},
 
 			"proximity_placement_group_id": {
@@ -662,6 +663,11 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 			if err := d.Set("admin_ssh_key", pluginsdk.NewSet(SSHKeySchemaHash, *flattenedSSHKeys)); err != nil {
 				return fmt.Errorf("setting `admin_ssh_key`: %+v", err)
 			}
+			patchMode := string(compute.LinuxVMGuestPatchModeImageDefault)
+			if patchSettings := config.PatchSettings; patchSettings != nil && patchSettings.PatchMode != "" {
+				patchMode = string(patchSettings.PatchMode)
+			}
+			d.Set("patch_mode", patchMode)
 		}
 
 		if err := d.Set("secret", flattenLinuxSecrets(profile.Secrets)); err != nil {
@@ -946,9 +952,24 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("patch_mode") {
-		update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{
-			PatchMode: compute.LinuxVMGuestPatchMode(d.Get("patch_mode").(string)),
+		shouldUpdate = true
+		patchSettings := &compute.LinuxPatchSettings{}
+
+		if patchMode, ok := d.GetOk("patch_mode"); ok {
+			patchSettings.PatchMode = compute.LinuxVMGuestPatchMode(patchMode.(string))
+		} else {
+			patchSettings.PatchMode = compute.LinuxVMGuestPatchModeImageDefault
 		}
+
+		if update.VirtualMachineProperties.OsProfile == nil {
+			update.VirtualMachineProperties.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration == nil {
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration = &compute.LinuxConfiguration{}
+		}
+
+		update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = patchSettings
 	}
 
 	if d.HasChange("allow_extension_operations") {
