@@ -137,6 +137,12 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 								},
 							},
 						},
+						"internet_security_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							ForceNew: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -328,7 +334,8 @@ func expandPointToSiteVPNGatewayConnectionConfiguration(input []interface{}) *[]
 				VpnClientAddressPool: &network.AddressSpace{
 					AddressPrefixes: &addressPrefixes,
 				},
-				RoutingConfiguration: expandPointToSiteVPNGatewayConnectionRouteConfiguration(raw["route"].([]interface{})),
+				RoutingConfiguration:   expandPointToSiteVPNGatewayConnectionRouteConfiguration(raw["route"].([]interface{})),
+				EnableInternetSecurity: utils.Bool(raw["internet_security_enabled"].(bool)),
 			},
 		})
 	}
@@ -381,6 +388,7 @@ func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]network.P2SCon
 		}
 
 		addressPrefixes := make([]interface{}, 0)
+		enableInternetSecurity := false
 		if props := v.P2SConnectionConfigurationProperties; props != nil {
 			if props.VpnClientAddressPool == nil {
 				continue
@@ -391,6 +399,10 @@ func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]network.P2SCon
 					addressPrefixes = append(addressPrefixes, prefix)
 				}
 			}
+
+			if props.EnableInternetSecurity != nil {
+				enableInternetSecurity = *props.EnableInternetSecurity
+			}
 		}
 
 		output = append(output, map[string]interface{}{
@@ -400,7 +412,8 @@ func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]network.P2SCon
 					"address_prefixes": addressPrefixes,
 				},
 			},
-			"route": flattenPointToSiteVPNGatewayConnectionRouteConfiguration(v.RoutingConfiguration),
+			"route":                     flattenPointToSiteVPNGatewayConnectionRouteConfiguration(v.RoutingConfiguration),
+			"internet_security_enabled": enableInternetSecurity,
 		})
 	}
 
