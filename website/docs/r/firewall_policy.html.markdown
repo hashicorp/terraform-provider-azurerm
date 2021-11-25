@@ -116,7 +116,7 @@ A `threat_intelligence_allowlist` block supports the following:
 
 * `fqdns` - (Optional) A list of FQDNs that will be skipped for threat detection.
 
-* `ip_addresses` - (Optional) A list of IP addresses or IP address ranges that will be skipped for threat detection.
+* `ip_addresses` - (Optional) A list of IP addresses or CIDR ranges that will be skipped for threat detection.
 
 ---
 
