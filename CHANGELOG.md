@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_app_service_public_certificate` [GH-14337]
 * **New Resource:** `azurerm_service_fabric_managed_cluster` [GH-14131]
 * **New Resource:** `azurerm_static_site_custom_domain` [GH-12764]
 * **New Resource:** `azurerm_stream_analytics_cluster` [GH-14082]
