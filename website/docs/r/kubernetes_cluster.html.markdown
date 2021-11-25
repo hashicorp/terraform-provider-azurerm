@@ -277,7 +277,7 @@ An `auto_scaler_profile` block supports the following:
 
 A `azure_active_directory` block supports the following:
 
-* `managed` - Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration.
+* `managed` - (Optional) Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration.
 
 * `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used.
 
