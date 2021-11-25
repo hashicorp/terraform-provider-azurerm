@@ -33,6 +33,9 @@ resource "azurerm_data_protection_backup_vault" "example" {
   location            = azurerm_resource_group.rg.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_role_assignment" "example1" {
