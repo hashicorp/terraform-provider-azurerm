@@ -648,10 +648,10 @@ func getBasicFunctionAppSlotAppSettings(d *pluginsdk.ResourceData, appServiceTie
 	var contentShare string
 	contentSharePreviouslySet := false
 	if currentContentShare, ok := existingSettings[contentSharePropName]; ok {
-		// generate and use a new value
 		contentShare = *currentContentShare
 		contentSharePreviouslySet = true
 	} else {
+		// generate and use a new value
 		suffix := uuid.New().String()[0:4]
 		contentShare = strings.ToLower(d.Get("name").(string)) + suffix
 	}
