@@ -155,7 +155,7 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
       address_prefixes = ["172.100.0.0/14"]
     }
 
-    enable_internet_security = true
+    internet_security_enabled = true
   }
 }
 `, r.template(data), data.RandomInteger)
