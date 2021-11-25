@@ -363,7 +363,6 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	var currentAppSettings map[string]*string
-	//appSettingsList, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 	appSettingsList, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
 		return fmt.Errorf("reading App Settings for %s: %+v", id, err)
@@ -650,8 +649,6 @@ func getBasicFunctionAppSlotAppSettings(d *pluginsdk.ResourceData, appServiceTie
 	contentSharePreviouslySet := false
 	if currentContentShare, ok := existingSettings[contentSharePropName]; ok {
 		// generate and use a new value
-		//suffix := uuid.New().String()[0:4]
-		//contentShare = strings.ToLower(d.Get("name").(string)) + suffix
 		contentShare = *currentContentShare
 		contentSharePreviouslySet = true
 	} else {
