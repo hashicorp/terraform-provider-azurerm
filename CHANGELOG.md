@@ -21,6 +21,7 @@ ENHANCEMENTS:
 * `azurerm_postgresql_server` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 [GH-14229]
 * `azurerm_redis_cache` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 [GH-14229]
 * `azurerm_service_plan` (beta) - add Logic App SKUs to validation. [GH-14288]
+* `azurerm_site_recovery_replication_policy` - now supports disabling of snapshots and their retention [GH-14329]
 * `azurerm_storage_account` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 [GH-14229]
 * `azurerm_stream_analytics_job` - `compatibility_level` now accepts 1.2 [GH-14294]
 
