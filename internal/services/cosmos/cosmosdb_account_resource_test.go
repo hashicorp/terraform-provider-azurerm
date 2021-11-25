@@ -109,7 +109,7 @@ func TestAccCosmosDBAccount_keyVaultUri(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.key_vault_uri(data, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelStrong, "FirstPartyIdentity"),
+			Config: r.key_vault_uri(data, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelStrong),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelStrong, 1),
 			),
@@ -124,16 +124,52 @@ func TestAccCosmosDBAccount_keyVaultUriUpdateConsistancy(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.key_vault_uri(data, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelStrong, "FirstPartyIdentity"),
+			Config: r.key_vault_uri(data, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelStrong),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelStrong, 1),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.key_vault_uri(data, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelSession, "SystemAssignedIdentity"),
+			Config: r.key_vault_uri(data, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelSession),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelSession, 1),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDBAccount_updateDefaultIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.defaultIdentity(data, documentdb.DatabaseAccountKindGlobalDocumentDB, "FirstPartyIdentity", documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateDefaultIdentity(data, documentdb.DatabaseAccountKindGlobalDocumentDB, "SystemAssignedIdentity", documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 			),
 		},
 		data.ImportStep(),
@@ -607,18 +643,82 @@ func TestAccCosmosDBAccount_analyticalStorage(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.analyticalStorage(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual, documentdb.AnalyticalStorageSchemaTypeWellDefined),
+			Config: r.analyticalStorage(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 				check.That(data.ResourceName).Key("analytical_storage_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDBAccount_updateAnalyticalStorage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.analyticalStorage(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual,documentdb.AnalyticalStorageSchemaTypeFullFidelity),
+			Config: r.basic(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
-				check.That(data.ResourceName).Key("analytical_storage_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateAnalyticalStorage(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.AnalyticalStorageSchemaTypeWellDefined, documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateAnalyticalStorage(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.AnalyticalStorageSchemaTypeFullFidelity, documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDBAccount_updateCapacity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateCapacity(data, documentdb.DatabaseAccountKindGlobalDocumentDB, -1, documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateCapacity(data, documentdb.DatabaseAccountKindGlobalDocumentDB, 200, documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 			),
 		},
 		data.ImportStep(),
@@ -685,6 +785,7 @@ func TestAccCosmosDBAccount_backup(t *testing.T) {
 				check.That(data.ResourceName).Key("backup.0.type").HasValue("Periodic"),
 				check.That(data.ResourceName).Key("backup.0.interval_in_minutes").HasValue("240"),
 				check.That(data.ResourceName).Key("backup.0.retention_in_hours").HasValue("8"),
+				check.That(data.ResourceName).Key("backup.0.storage_redundancy").HasValue("Geo"),
 			),
 		},
 		data.ImportStep(),
@@ -1101,10 +1202,6 @@ resource "azurerm_cosmosdb_account" "test" {
 
   is_virtual_network_filter_enabled = true
 
-  capacity {
-    total_throughput_limit = -1
-  }
-
   virtual_network_rule {
     id = azurerm_subnet.subnet1.id
   }
@@ -1308,10 +1405,6 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   is_virtual_network_filter_enabled = true
-
-  capacity {
-    total_throughput_limit = 200
-  }
 
   virtual_network_rule {
     id = azurerm_subnet.subnet2.id
@@ -1699,7 +1792,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
-func (CosmosDBAccountResource) analyticalStorage(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel, schemaType documentdb.AnalyticalStorageSchemaType) string {
+func (CosmosDBAccountResource) analyticalStorage(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1719,10 +1812,6 @@ resource "azurerm_cosmosdb_account" "test" {
 
   analytical_storage_enabled = true
 
-  analytical_storage_configuration {
-    schema_type = "%s"
-  }
-
   consistency_policy {
     consistency_level = "%s"
   }
@@ -1732,7 +1821,7 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(schemaType), string(consistency))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
 func (CosmosDBAccountResource) mongoAnalyticalStorage(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel) string {
@@ -1824,7 +1913,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
-func (CosmosDBAccountResource) key_vault_uri(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel, defaultIdentity string) string {
+func (CosmosDBAccountResource) key_vault_uri(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -1923,7 +2012,6 @@ resource "azurerm_cosmosdb_account" "test" {
   offer_type          = "Standard"
   kind                = "%s"
   key_vault_key_id    = azurerm_key_vault_key.test.versionless_id
-  default_identity    = "%s"
 
   capabilities {
     name = "EnableMongo"
@@ -1938,7 +2026,7 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, string(kind), string(consistency), defaultIdentity)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, string(kind), string(consistency))
 }
 
 func (CosmosDBAccountResource) systemAssignedIdentity(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel) string {
@@ -2319,4 +2407,140 @@ resource "azurerm_cosmosdb_account" "test" {
   local_authentication_disabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+}
+
+func (CosmosDBAccountResource) updateAnalyticalStorage(data acceptance.TestData, kind documentdb.DatabaseAccountKind, schemaType documentdb.AnalyticalStorageSchemaType, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                       = "acctest-ca-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  offer_type                 = "Standard"
+  kind                       = "%s"
+  analytical_storage_enabled = false
+
+  analytical_storage_configuration {
+    schema_type = "%s"
+  }
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(schemaType), string(consistency))
+}
+
+func (CosmosDBAccountResource) updateCapacity(data acceptance.TestData, kind documentdb.DatabaseAccountKind, totalThroughputLimit int, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                       = "acctest-ca-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  offer_type                 = "Standard"
+  kind                       = "%s"
+  analytical_storage_enabled = false
+
+  capacity {
+    total_throughput_limit = %d
+  }
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), totalThroughputLimit, string(consistency))
+}
+
+func (CosmosDBAccountResource) defaultIdentity(data acceptance.TestData, kind documentdb.DatabaseAccountKind, defaultIdentity string, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+  default_identity    = "%s"
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), defaultIdentity, string(consistency))
+}
+
+func (CosmosDBAccountResource) updateDefaultIdentity(data acceptance.TestData, kind documentdb.DatabaseAccountKind, defaultIdentity string, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+  default_identity    = "%s"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), defaultIdentity, string(consistency))
 }
