@@ -210,7 +210,15 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"zones": azure.SchemaZones(),
+			"zones": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				ForceNew: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
 
 			"tags": tags.Schema(),
 		},
@@ -247,7 +255,7 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
+	zones := azure.ExpandZones(d.Get("zones").(*pluginsdk.Set).List())
 
 	optimizedAutoScale := expandOptimizedAutoScale(d.Get("optimized_auto_scale").([]interface{}))
 
