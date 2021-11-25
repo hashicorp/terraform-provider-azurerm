@@ -11,6 +11,7 @@ ENHANCEMENTS:
 
 * dependencies: upgrading to `v0.18.0` of `github.com/hashicorp/go-azure-helpers` [GH-14261]
 * `azurerm_automation_rule` - support for the `expiration` property [GH-14262]
+* `azurerm_firewall_policy` - allow cidr ranges for the `threat_intelligence_allowlist` property [GH-14340]
 * `azurerm_managed_disk` - support for the `public_network_access_enabled` property [GH-14199]
 * `azurerm_mssql_elasticpool` - support for the `DC` family [GH-14270]
 * `azurerm_mssql_server` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 [GH-14229]
@@ -21,7 +22,6 @@ ENHANCEMENTS:
 * `azurerm_service_plan` (beta) - add Logic App SKUs to validation. [GH-14288]
 * `azurerm_storage_account` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 [GH-14229]
 * `azurerm_stream_analytics_job` - `compatibility_level` now accepts 1.2 [GH-14294]
-
 
 BUG FIXES: 
 
