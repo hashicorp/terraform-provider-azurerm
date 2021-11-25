@@ -25,6 +25,7 @@ ENHANCEMENTS:
 
 BUG FIXES: 
 
+* `azurerm_function_app_slot` - fix a bug in `app_settings` for `WEBSITE_CONTENTSHARE` incorrectly updating [GH-14211]
 * `azurerm_monitor_diagnostic_setting` - Swap Relay parser and validator with EventHub [GH-14277]
 * `azurerm_stream_analytics_stream_input_eventhub` - correctly support creation with the default `eventhub_consumer_group_name` [GH-14264]
 * `azurerm_synapse_workspace` - fix a crash during update when `sql_aad_admin` was configured [GH-14275]
