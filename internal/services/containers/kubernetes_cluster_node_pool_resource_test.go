@@ -1792,9 +1792,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   priority              = "Spot"
   spot_max_price        = 0.5 # high, but this is a maximum (we pay less) so ensures this won't fail
-  node_labels = {
-    "kubernetes.azure.com/scalesetpriority" = "spot"
-  }
 }
 `, r.templateConfig(data))
 }
