@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -105,8 +106,13 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Computed:   true,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
+					Type: pluginsdk.TypeString,
+					ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty, validation.StringInSlice(func() []string {
+						if features.ThreePointOh() {
+							return []string{"*"}
+						}
+						return []string{"MyTenantOnly", "*"}
+					}(), false)),
 				},
 			},
 
@@ -286,8 +292,12 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		clusterProperties.VirtualNetworkConfiguration = vnet
 	}
 
-	if v, ok := d.GetOk("trusted_external_tenants"); ok {
+	if v, ok := d.GetOk("trusted_external_tenants"); ok && !features.ThreePointOh() {
 		trustedExternalTenants := expandTrustedExternalTenants(v.([]interface{}))
+		clusterProperties.TrustedExternalTenants = trustedExternalTenants
+	}
+	if features.ThreePointOh() {
+		trustedExternalTenants := expandTrustedExternalTenants(d.Get("trusted_external_tenants").([]interface{}))
 		clusterProperties.TrustedExternalTenants = trustedExternalTenants
 	}
 
