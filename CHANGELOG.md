@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * compute: `storagecache` to use API Version `2021-09-01` [GH-14311]
 * `azurerm_linux_virtual_machine` - support the `secure_boot_enabled` and `vtpm_enabled` properties [GH-13842]
 * `azurerm_linux_virtual_machine_scale_set` - support the `secure_boot_enabled` and `vtpm_enabled` properties [GH-13842]
+* `azurerm_point_to_site_vpn_gateway` - support for the `internet_security_enabled` property [GH-14345]
 
 ## 2.87.0 (November 26, 2021)
 
