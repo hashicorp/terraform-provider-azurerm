@@ -302,6 +302,45 @@ func dataSourceMonitorActionGroup() *pluginsdk.Resource {
 					},
 				},
 			},
+			"event_hub_receiver": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"event_hub_namespace": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"event_hub_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"tenant_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+						"subscription_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+						"use_common_alert_schema": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -364,6 +403,9 @@ func dataSourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{
 		}
 		if err = d.Set("arm_role_receiver", flattenMonitorActionGroupRoleReceiver(group.ArmRoleReceivers)); err != nil {
 			return fmt.Errorf("setting `arm_role_receiver`: %+v", err)
+		}
+		if err = d.Set("event_hub_receiver", flattenMonitorActionGroupEventHubReceiver(group.EventHubReceivers)); err != nil {
+			return fmt.Errorf("setting `event_hub_receiver`: %+v", err)
 		}
 	}
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
+	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2021-09-01/insights"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -369,6 +369,46 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"event_hub_receiver": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"event_hub_namespace": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"event_hub_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"tenant_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+						"subscription_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+						"use_common_alert_schema": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
 			"tags": tags.Schema(),
 		},
 	}
@@ -409,6 +449,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	logicAppReceiversRaw := d.Get("logic_app_receiver").([]interface{})
 	azureFunctionReceiversRaw := d.Get("azure_function_receiver").([]interface{})
 	armRoleReceiversRaw := d.Get("arm_role_receiver").([]interface{})
+	eventHubReceiversRaw := d.Get("event_hub_receiver").([]interface{})
 
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
@@ -428,6 +469,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			LogicAppReceivers:          expandMonitorActionGroupLogicAppReceiver(logicAppReceiversRaw),
 			AzureFunctionReceivers:     expandMonitorActionGroupAzureFunctionReceiver(azureFunctionReceiversRaw),
 			ArmRoleReceivers:           expandMonitorActionGroupRoleReceiver(armRoleReceiversRaw),
+			EventHubReceivers:          expandMonitorActionGroupEventHubReceiver(tenantId, subscriptionId, eventHubReceiversRaw),
 		},
 		Tags: expandedTags,
 	}
@@ -504,6 +546,9 @@ func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 		if err = d.Set("arm_role_receiver", flattenMonitorActionGroupRoleReceiver(group.ArmRoleReceivers)); err != nil {
 			return fmt.Errorf("setting `arm_role_receiver`: %+v", err)
+		}
+		if err = d.Set("event_hub_receiver", flattenMonitorActionGroupEventHubReceiver(group.EventHubReceivers)); err != nil {
+			return fmt.Errorf("setting `event_hub_receiver`: %+v", err)
 		}
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -682,6 +727,31 @@ func expandMonitorActionGroupRoleReceiver(v []interface{}) *[]insights.ArmRoleRe
 			Name:                 utils.String(val["name"].(string)),
 			RoleID:               utils.String(val["role_id"].(string)),
 			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
+		}
+		receivers = append(receivers, receiver)
+	}
+	return &receivers
+}
+
+func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId string, v []interface{}) *[]insights.EventHubReceiver {
+	receivers := make([]insights.EventHubReceiver, 0)
+	for _, receiverValue := range v {
+		val := receiverValue.(map[string]interface{})
+		receiver := insights.EventHubReceiver{
+			Name:                 utils.String(val["name"].(string)),
+			EventHubNameSpace:    utils.String(val["event_hub_namespace"].(string)),
+			EventHubName:         utils.String(val["event_hub_name"].(string)),
+			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
+		}
+		if v := val["tenant_id"].(string); v != "" {
+			receiver.TenantID = utils.String(v)
+		} else {
+			receiver.TenantID = utils.String(tenantId)
+		}
+		if v := val["subscription_id"].(string); v != "" {
+			receiver.SubscriptionID = utils.String(v)
+		} else {
+			receiver.SubscriptionID = utils.String(subscriptionId)
 		}
 		receivers = append(receivers, receiver)
 	}
@@ -938,6 +1008,35 @@ func flattenMonitorActionGroupRoleReceiver(receivers *[]insights.ArmRoleReceiver
 			}
 			if receiver.UseCommonAlertSchema != nil {
 				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema
+			}
+			result = append(result, val)
+		}
+	}
+	return result
+}
+
+func flattenMonitorActionGroupEventHubReceiver(receivers *[]insights.EventHubReceiver) []interface{} {
+	result := make([]interface{}, 0)
+	if receivers != nil {
+		for _, receiver := range *receivers {
+			val := make(map[string]interface{})
+			if receiver.Name != nil {
+				val["name"] = *receiver.Name
+			}
+			if receiver.EventHubNameSpace != nil {
+				val["event_hub_namespace"] = *receiver.EventHubNameSpace
+			}
+			if receiver.EventHubName != nil {
+				val["event_hub_name"] = *receiver.EventHubName
+			}
+			if receiver.UseCommonAlertSchema != nil {
+				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema
+			}
+			if receiver.TenantID != nil {
+				val["tenant_id"] = *receiver.TenantID
+			}
+			if receiver.SubscriptionID != nil {
+				val["subscription_id"] = *receiver.SubscriptionID
 			}
 			result = append(result, val)
 		}
