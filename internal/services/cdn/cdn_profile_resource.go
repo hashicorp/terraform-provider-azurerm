@@ -2,7 +2,6 @@ package cdn
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -80,8 +79,6 @@ func resourceCdnProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure ARM CDN Profile creation.")
 
 	id := parse.NewProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {

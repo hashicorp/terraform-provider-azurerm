@@ -185,7 +185,7 @@ func resourceNetAppPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	// Then it tries to immediately delete NetApp Account but it still throws error `Can not delete resource before nested resources are deleted.`
 	// In this case we're going to re-check status code again.
 	// For more details, see related Bug: https://github.com/Azure/azure-sdk-for-go/issues/6374
-	log.Printf("[DEBUG] Waiting for NetApp Pool %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Waiting for %s to be deleted", *id)
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("context has no deadline")

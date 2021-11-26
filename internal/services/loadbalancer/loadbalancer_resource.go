@@ -331,11 +331,11 @@ func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) er
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.Name)
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("failed to retrieve Load Balancer By ID: %+v", err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)

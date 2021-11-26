@@ -327,12 +327,12 @@ func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta interface{}) err
 	resp, err := sqlClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Synapse SQL Pool %q (Workspace %q / Resource Group %q) does not exist - removing from state", id.Name, id.WorkspaceName, id.ResourceGroup)
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Synapse SqlPool %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	transparentDataEncryption, err := sqlPTDEClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)

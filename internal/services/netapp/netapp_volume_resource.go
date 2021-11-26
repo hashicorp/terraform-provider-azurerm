@@ -470,11 +470,11 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 	resp, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] NetApp Volumes %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading NetApp Volumes %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -522,64 +522,68 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	dataProtectionReplicationRaw := d.Get("data_protection_replication").([]interface{})
 	dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
 
-	if replVolumeID := id; dataProtectionReplication != nil && dataProtectionReplication.Replication != nil {
+	if replicaVolumeId := id; dataProtectionReplication != nil && dataProtectionReplication.Replication != nil {
+		if dataProtectionReplication.Replication.RemoteVolumeResourceID == nil {
+			return fmt.Errorf("remote volume id was nil")
+		}
+
 		if strings.ToLower(string(dataProtectionReplication.Replication.EndpointType)) != "dst" {
 			// This is the case where primary volume started the deletion, in this case, to be consistent we will remove replication from secondary
-			replVolumeID, err = parse.VolumeID(*dataProtectionReplication.Replication.RemoteVolumeResourceID)
+			replicaVolumeId, err = parse.VolumeID(*dataProtectionReplication.Replication.RemoteVolumeResourceID)
 			if err != nil {
 				return err
 			}
 		}
 
 		// Checking replication status before deletion, it need to be broken before proceeding with deletion
-		if res, err := client.ReplicationStatusMethod(ctx, replVolumeID.ResourceGroup, replVolumeID.NetAppAccountName, replVolumeID.CapacityPoolName, replVolumeID.Name); err == nil {
+		if res, err := client.ReplicationStatusMethod(ctx, replicaVolumeId.ResourceGroup, replicaVolumeId.NetAppAccountName, replicaVolumeId.CapacityPoolName, replicaVolumeId.Name); err == nil {
 			// Wait for replication state = "mirrored"
 			if strings.ToLower(string(res.MirrorState)) == "uninitialized" {
-				if err := waitForReplMirrorState(ctx, client, *replVolumeID, "mirrored"); err != nil {
-					return err
+				if err := waitForReplMirrorState(ctx, client, *replicaVolumeId, "mirrored"); err != nil {
+					return fmt.Errorf("waiting for replica %s to become 'mirrored': %+v", *replicaVolumeId, err)
 				}
 			}
 
 			// Breaking replication
 			_, err = client.BreakReplication(ctx,
-				replVolumeID.ResourceGroup,
-				replVolumeID.NetAppAccountName,
-				replVolumeID.CapacityPoolName,
-				replVolumeID.Name,
+				replicaVolumeId.ResourceGroup,
+				replicaVolumeId.NetAppAccountName,
+				replicaVolumeId.CapacityPoolName,
+				replicaVolumeId.Name,
 				&netapp.BreakReplicationRequest{
 					ForceBreakReplication: utils.Bool(true),
 				})
 
 			if err != nil {
-				return fmt.Errorf("deleting replication from NetApp Volume %q (Resource Group %q): %+v", replVolumeID.Name, replVolumeID.ResourceGroup, err)
+				return fmt.Errorf("breaking replication for %s: %+v", *replicaVolumeId, err)
 			}
 
 			// Waiting for replication be in broken state
-			log.Printf("[DEBUG] Waiting for replication on NetApp Volume Provisioning Service %q (Resource Group %q) to be in broken state", replVolumeID.Name, replVolumeID.ResourceGroup)
-			if err := waitForReplMirrorState(ctx, client, *replVolumeID, "broken"); err != nil {
-				return err
+			log.Printf("[DEBUG] Waiting for the replication of %s to be in broken state", *replicaVolumeId)
+			if err := waitForReplMirrorState(ctx, client, *replicaVolumeId, "broken"); err != nil {
+				return fmt.Errorf("waiting for the breaking of replication for %s: %+v", *replicaVolumeId, err)
 			}
 		}
 
 		// Deleting replication and waiting for it to fully complete the operation
-		if _, err = client.DeleteReplication(ctx, replVolumeID.ResourceGroup, replVolumeID.NetAppAccountName, replVolumeID.CapacityPoolName, replVolumeID.Name); err != nil {
-			return fmt.Errorf("deleting replication from NetApp Volume %q (Resource Group %q): %+v", replVolumeID.Name, replVolumeID.ResourceGroup, err)
+		if _, err = client.DeleteReplication(ctx, replicaVolumeId.ResourceGroup, replicaVolumeId.NetAppAccountName, replicaVolumeId.CapacityPoolName, replicaVolumeId.Name); err != nil {
+			return fmt.Errorf("deleting replicate %s: %+v", *replicaVolumeId, err)
 		}
 
-		log.Printf("[DEBUG] Waiting for replication on NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted", replVolumeID.Name, replVolumeID.ResourceGroup)
-		if err := waitForReplicationDeletion(ctx, client, *replVolumeID); err != nil {
-			return err
+		log.Printf("[DEBUG] Waiting for the replica of %s to be deleted", replicaVolumeId)
+		if err := waitForReplicationDeletion(ctx, client, *replicaVolumeId); err != nil {
+			return fmt.Errorf("waiting for the replica %s to be deleted: %+v", *replicaVolumeId, err)
 		}
 	}
 
 	// Deleting volume and waiting for it fo fully complete the operation
 	if _, err = client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name); err != nil {
-		return fmt.Errorf("deleting NetApp Volume %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Waiting for %s to be deleted", *id)
 	if err := waitForVolumeDeletion(ctx, client, *id); err != nil {
-		return err
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
