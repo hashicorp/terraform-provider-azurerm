@@ -207,14 +207,14 @@ func TestAccSecurityCenterAutomation_sourceMulti(t *testing.T) {
 }
 
 func (t SecurityCenterAutomationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SecurityCenterAutomationID(state.ID)
+	id, err := parse.AutomationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.SecurityCenter.AutomationsClient.Get(ctx, id.ResourceGroup, id.AutomationName)
+	resp, err := clients.SecurityCenter.AutomationsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Security Center automation %q (resource group: %q): %v", id.AutomationName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.AutomationProperties != nil), nil

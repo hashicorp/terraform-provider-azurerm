@@ -91,8 +91,8 @@ func resourceDnsNsRecordCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_dns_ns_record", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_dns_ns_record", resourceId.ID())
 	}
 
 	ttl := int64(d.Get("ttl").(int))

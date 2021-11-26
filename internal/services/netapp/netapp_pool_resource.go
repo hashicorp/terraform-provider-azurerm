@@ -81,22 +81,20 @@ func resourceNetAppPool() *pluginsdk.Resource {
 
 func resourceNetAppPoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("account_name").(string)
-
+	id := parse.NewCapacityPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, accountName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing NetApp Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_netapp_pool", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_netapp_pool", id.ID())
 		}
 	}
 
@@ -115,23 +113,15 @@ func resourceNetAppPoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, capacityPoolParameters, resourceGroup, accountName, name)
+	future, err := client.CreateOrUpdate(ctx, capacityPoolParameters, id.ResourceGroup, id.NetAppAccountName, id.Name)
 	if err != nil {
-		return fmt.Errorf("creating NetApp Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of NetApp Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, accountName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving NetApp Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read NetApp Pool %q (Resource Group %q) ID", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceNetAppPoolRead(d, meta)
 }
 
@@ -148,11 +138,11 @@ func resourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	resp, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] NetApp Pools %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading NetApp Pools %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -187,7 +177,7 @@ func resourceNetAppPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if _, err = client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name); err != nil {
-		return fmt.Errorf("deleting NetApp Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	// The resource NetApp Pool depends on the resource NetApp Account.
@@ -195,30 +185,34 @@ func resourceNetAppPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	// Then it tries to immediately delete NetApp Account but it still throws error `Can not delete resource before nested resources are deleted.`
 	// In this case we're going to re-check status code again.
 	// For more details, see related Bug: https://github.com/Azure/azure-sdk-for-go/issues/6374
-	log.Printf("[DEBUG] Waiting for NetApp Pool %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Waiting for %s to be deleted", *id)
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context has no deadline")
+	}
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
 		Delay:                     10 * time.Second,
 		MinTimeout:                10 * time.Second,
 		Pending:                   []string{"200", "202"},
 		Target:                    []string{"204", "404"},
-		Refresh:                   netappPoolDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.NetAppAccountName, id.Name),
-		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
+		Refresh:                   netappPoolDeleteStateRefreshFunc(ctx, client, *id),
+		Timeout:                   time.Until(deadline),
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for NetApp Pool %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for %s to be deleted: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func netappPoolDeleteStateRefreshFunc(ctx context.Context, client *netapp.PoolsClient, resourceGroupName string, accountName string, name string) pluginsdk.StateRefreshFunc {
+func netappPoolDeleteStateRefreshFunc(ctx context.Context, client *netapp.PoolsClient, id parse.CapacityPoolId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroupName, accountName, name)
+		res, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(res.Response) {
-				return nil, "", fmt.Errorf("retrieving NetApp Pool %q (Resource Group %q): %s", name, resourceGroupName, err)
+				return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 		}
 
