@@ -11,6 +11,10 @@ ENHANCEMENTS:
 * `azurerm_linux_virtual_machine_scale_set` - support the `secure_boot_enabled` and `vtpm_enabled` properties [GH-13842]
 * `azurerm_point_to_site_vpn_gateway` - support for the `internet_security_enabled` property [GH-14345]
 
+BUG FIXES:
+
+* `azurerm_storage_account` - populating the account cache on creation, which fixes an issue when the storage account occasionally couldn't be found [GH-14361]
+
 ## 2.87.0 (November 26, 2021)
 
 FEATURES:
