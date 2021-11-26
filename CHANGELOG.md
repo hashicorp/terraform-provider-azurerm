@@ -14,6 +14,7 @@ ENHANCEMENTS:
 
 * dependencies: upgrading to `v0.18.0` of `github.com/hashicorp/go-azure-helpers` [GH-14261]
 * `azurerm_automation_rule` - support for the `expiration` property [GH-14262]
+* `azurerm_cosmosdb_account` - support for the `analytical_storage` and `capacity` blocks, `default_identity_type` and `storage_redundancy` properties [GH-14346]
 * `azurerm_eventgrid_event_subscription` - support the `queue_message_time_to_live_in_seconds` and `user_assigned_identity` properties [GH-14318]
 * `azurerm_firewall_policy` - allow cidr ranges for the `threat_intelligence_allowlist` property [GH-14340]
 * `azurerm_managed_disk` - support for the `public_network_access_enabled` property [GH-14199]
