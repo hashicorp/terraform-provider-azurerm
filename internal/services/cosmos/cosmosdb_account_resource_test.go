@@ -2428,7 +2428,7 @@ resource "azurerm_cosmosdb_account" "test" {
   kind                       = "%s"
   analytical_storage_enabled = false
 
-  analytical_storage_configuration {
+  analytical_storage {
     schema_type = "%s"
   }
 
@@ -2491,12 +2491,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cosmosdb_account" "test" {
-  name                = "acctest-ca-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  offer_type          = "Standard"
-  kind                = "%s"
-  default_identity    = "%s"
+  name                  = "acctest-ca-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  offer_type            = "Standard"
+  kind                  = "%s"
+  default_identity_type = "%s"
 
   consistency_policy {
     consistency_level = "%s"
@@ -2522,12 +2522,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cosmosdb_account" "test" {
-  name                = "acctest-ca-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  offer_type          = "Standard"
-  kind                = "%s"
-  default_identity    = "%s"
+  name                  = "acctest-ca-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  offer_type            = "Standard"
+  kind                  = "%s"
+  default_identity_type = "%s"
 
   identity {
     type = "SystemAssigned"

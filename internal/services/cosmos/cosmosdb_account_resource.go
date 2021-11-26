@@ -110,7 +110,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				}, true),
 			},
 
-			"analytical_storage_configuration": {
+			"analytical_storage": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
@@ -144,7 +144,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"default_identity": {
+			"default_identity_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "FirstPartyIdentity",
@@ -634,12 +634,12 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			NetworkACLBypass:                   networkByPass,
 			NetworkACLBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
 			DisableLocalAuth:                   utils.Bool(disableLocalAuthentication),
-			DefaultIdentity:                    utils.String(d.Get("default_identity").(string)),
+			DefaultIdentity:                    utils.String(d.Get("default_identity_type").(string)),
 		},
 		Tags: tags.Expand(t),
 	}
 
-	if v, ok := d.GetOk("analytical_storage_configuration"); ok {
+	if v, ok := d.GetOk("analytical_storage"); ok {
 		account.DatabaseAccountCreateUpdateProperties.AnalyticalStorageConfiguration = expandCosmosDBAccountAnalyticalStorageConfiguration(v.([]interface{}))
 	}
 
@@ -777,12 +777,12 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			NetworkACLBypass:                   networkByPass,
 			NetworkACLBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
 			DisableLocalAuth:                   utils.Bool(disableLocalAuthentication),
-			DefaultIdentity:                    utils.String(d.Get("default_identity").(string)),
+			DefaultIdentity:                    utils.String(d.Get("default_identity_type").(string)),
 		},
 		Tags: tags.Expand(t),
 	}
 
-	if v, ok := d.GetOk("analytical_storage_configuration"); ok {
+	if v, ok := d.GetOk("analytical_storage"); ok {
 		account.DatabaseAccountCreateUpdateProperties.AnalyticalStorageConfiguration = expandCosmosDBAccountAnalyticalStorageConfiguration(v.([]interface{}))
 	}
 
@@ -908,7 +908,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("enable_free_tier", props.EnableFreeTier)
 		d.Set("analytical_storage_enabled", props.EnableAnalyticalStorage)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == documentdb.PublicNetworkAccessEnabled)
-		d.Set("default_identity", props.DefaultIdentity)
+		d.Set("default_identity_type", props.DefaultIdentity)
 
 		if v := resp.IsVirtualNetworkFilterEnabled; v != nil {
 			d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)
@@ -926,8 +926,8 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.Set("enable_multiple_write_locations", props.EnableMultipleWriteLocations)
 		}
 
-		if err := d.Set("analytical_storage_configuration", flattenCosmosDBAccountAnalyticalStorageConfiguration(props.AnalyticalStorageConfiguration)); err != nil {
-			return fmt.Errorf("setting `analytical_storage_configuration`: %+v", err)
+		if err := d.Set("analytical_storage", flattenCosmosDBAccountAnalyticalStorageConfiguration(props.AnalyticalStorageConfiguration)); err != nil {
+			return fmt.Errorf("setting `analytical_storage`: %+v", err)
 		}
 
 		if err := d.Set("capacity", flattenCosmosDBAccountCapacity(props.Capacity)); err != nil {

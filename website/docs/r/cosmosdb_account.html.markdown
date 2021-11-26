@@ -80,11 +80,11 @@ The following arguments are supported:
 
 * `offer_type` - (Required) Specifies the Offer Type to use for this CosmosDB Account - currently this can only be set to `Standard`.
 
-* `analytical_storage_configuration` - (Optional) An `analytical_storage_configuration` block as defined below.
+* `analytical_storage` - (Optional) An `analytical_storage` block as defined below.
 
 * `capacity` - (Optional) A `capacity` block as defined below.
 
-* `default_identity` - (Optional) The default identity for accessing Key Vault. Possible values are `FirstPartyIdentity`, `SystemAssignedIdentity` or start with `UserAssignedIdentity`. Defaults to `FirstPartyIdentity`.
+* `default_identity_type` - (Optional) The default identity for accessing Key Vault. Possible values are `FirstPartyIdentity`, `SystemAssignedIdentity` or start with `UserAssignedIdentity`. Defaults to `FirstPartyIdentity`.
 
 * `kind` - (Optional) Specifies the Kind of CosmosDB to create - possible values are `GlobalDocumentDB` and `MongoDB`. Defaults to `GlobalDocumentDB`. Changing this forces a new resource to be created.
 
@@ -170,16 +170,15 @@ The following arguments are supported:
 
 ---
 
-A `analytical_storage_configuration` block supports the following:
+A `analytical_storage` block supports the following:
 
 * `schema_type` - (Required) The schema type of the Analytical Storage for this Cosmos DB account. Possible values are `FullFidelity` and `WellDefined`.
 
 ---
 
-
 A `capacity` block supports the following:
 
-* `total_throughput_limit` - (Required) The total throughput limit imposed on this Cosmos DB account. Possible values are at least `-1`.
+* `total_throughput_limit` - (Required) The total throughput limit imposed on this Cosmos DB account (RU/s). Possible values are at least `-1`. `-1` means no limit.
 
 ---
 
