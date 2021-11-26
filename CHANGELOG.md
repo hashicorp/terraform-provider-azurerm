@@ -1,5 +1,9 @@
 ## 2.88.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_mysql_flexible_database` [GH-14285]
+
 ENHANCEMENTS:
 
 * compute: `storagecache` to use API Version `2021-09-01` [GH-14311]
