@@ -53,14 +53,14 @@ resource "azurerm_synapse_sql_pool" "example" {
 }
 
 resource "azurerm_synapse_sql_pool_workload_group" "example" {
-  name                             = "example"
-  sql_pool_id                      = azurerm_synapse_sql_pool.example.id
-  importance                       = "normal"
-  max_resource_percent             = 100
-  min_resource_percent             = 0
-  max_resource_percent_per_request = 3
-  min_resource_percent_per_request = 3
-  query_execution_timeout          = 0
+  name                               = "example"
+  sql_pool_id                        = azurerm_synapse_sql_pool.example.id
+  importance                         = "normal"
+  max_resource_percent               = 100
+  min_resource_percent               = 0
+  max_resource_percent_per_request   = 3
+  min_resource_percent_per_request   = 3
+  query_execution_timeout_in_seconds = 0
 }
 ```
 
@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `min_resource_percent_per_request` - (Optional) The workload group request minimum grant percentage.
 
-* `query_execution_timeout` - (Optional) The workload group query execution timeout.
+* `query_execution_timeout_in_seconds` - (Optional) The workload group query execution timeout.
 
 ## Attributes Reference
 

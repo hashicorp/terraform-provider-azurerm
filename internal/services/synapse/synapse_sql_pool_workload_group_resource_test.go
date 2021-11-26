@@ -142,14 +142,14 @@ func (r SynapseWorkloadGroupResource) complete(data acceptance.TestData) string 
 %s
 
 resource "azurerm_synapse_sql_pool_workload_group" "test" {
-  name                             = "acctestWG%s"
-  sql_pool_id                      = azurerm_synapse_sql_pool.test.id
-  importance                       = "normal"
-  max_resource_percent             = 100
-  min_resource_percent             = 0
-  max_resource_percent_per_request = 3
-  min_resource_percent_per_request = 3
-  query_execution_timeout          = 0
+  name                               = "acctestWG%s"
+  sql_pool_id                        = azurerm_synapse_sql_pool.test.id
+  importance                         = "normal"
+  max_resource_percent               = 100
+  min_resource_percent               = 0
+  max_resource_percent_per_request   = 3
+  min_resource_percent_per_request   = 3
+  query_execution_timeout_in_seconds = 0
 }
 `, template, data.RandomString)
 }

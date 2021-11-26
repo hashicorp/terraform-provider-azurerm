@@ -56,8 +56,9 @@ func resourceSynapseSQLPoolWorkloadGroup() *pluginsdk.Resource {
 			},
 
 			"min_resource_percent": {
-				Type:     pluginsdk.TypeInt,
-				Required: true,
+				Type:         pluginsdk.TypeInt,
+				Required:     true,
+				ValidateFunc: validation.IntBetween(0, 100),
 			},
 
 			"importance": {
@@ -68,19 +69,22 @@ func resourceSynapseSQLPoolWorkloadGroup() *pluginsdk.Resource {
 			},
 
 			"max_resource_percent_per_request": {
-				Type:     pluginsdk.TypeFloat,
-				Optional: true,
-				Default:  3,
+				Type:         pluginsdk.TypeFloat,
+				Optional:     true,
+				Default:      3,
+				ValidateFunc: validation.IntBetween(0, 100),
 			},
 
 			"min_resource_percent_per_request": {
-				Type:     pluginsdk.TypeFloat,
-				Optional: true,
+				Type:         pluginsdk.TypeFloat,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 100),
 			},
 
-			"query_execution_timeout": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
+			"query_execution_timeout_in_seconds": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 		},
 	}
@@ -94,7 +98,6 @@ func resourceSynapseSQLPoolWorkloadGroupCreateUpdate(d *pluginsdk.ResourceData, 
 	if err != nil {
 		return err
 	}
-
 	id := parse.NewSqlPoolWorkloadGroupID(sqlPoolId.SubscriptionId, sqlPoolId.ResourceGroup, sqlPoolId.WorkspaceName, sqlPoolId.Name, d.Get("name").(string))
 
 	if d.IsNewResource() {
@@ -119,7 +122,7 @@ func resourceSynapseSQLPoolWorkloadGroupCreateUpdate(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	if timeout, ok := d.GetOk("query_execution_timeout"); ok {
+	if timeout, ok := d.GetOk("query_execution_timeout_in_seconds"); ok {
 		parameters.WorkloadGroupProperties.QueryExecutionTimeout = utils.Int32(int32(timeout.(int)))
 	}
 
@@ -163,7 +166,7 @@ func resourceSynapseSQLPoolWorkloadGroupRead(d *pluginsdk.ResourceData, meta int
 		d.Set("max_resource_percent_per_request", props.MaxResourcePercentPerRequest)
 		d.Set("min_resource_percent", props.MinResourcePercent)
 		d.Set("min_resource_percent_per_request", props.MinResourcePercentPerRequest)
-		d.Set("query_execution_timeout", props.QueryExecutionTimeout)
+		d.Set("query_execution_timeout_in_seconds", props.QueryExecutionTimeout)
 	}
 	return nil
 }
