@@ -82,10 +82,15 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO: Remove in 3.0
 			"features": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Computed: true,
+				Type:       pluginsdk.TypeSet,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "Deprecated in favour of `connectivity_logs_enabled`, `messaging_logs_enabled` and `service_mode`",
+				ConflictsWith: []string{
+					"connectivity_logs_enabled", "messaging_logs_enabled", "service_mode",
+				},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"flag": {
@@ -104,6 +109,46 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"connectivity_logs_enabled": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ConflictsWith: []string{
+					"features",
+				},
+				ValidateFunc: validation.StringInSlice([]string{
+					"True",
+					"False",
+				}, false),
+			},
+
+			"messaging_logs_enabled": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ConflictsWith: []string{
+					"features",
+				},
+				ValidateFunc: validation.StringInSlice([]string{
+					"True",
+					"False",
+				}, false),
+			},
+
+			"service_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ConflictsWith: []string{
+					"features",
+				},
+				ValidateFunc: validation.StringInSlice([]string{
+					"Serverless",
+					"Classic",
+					"Default",
+				}, false),
 			},
 
 			"upstream_endpoint": {
@@ -235,10 +280,14 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	sku := d.Get("sku").([]interface{})
 	featureFlags := d.Get("features").(*pluginsdk.Set).List()
+	connectivityLogsEnabled := d.Get("connectivity_logs_enabled").(string)
+	messagingLogsEnabled := d.Get("messaging_logs_enabled").(string)
+	serviceMode := d.Get("service_mode").(string)
+
 	cors := d.Get("cors").([]interface{})
 	upstreamSettings := d.Get("upstream_endpoint").(*pluginsdk.Set).List()
 
-	expandedFeatures := expandSignalRFeatures(featureFlags)
+	expandedFeatures := expandSignalRFeatures(featureFlags, connectivityLogsEnabled, messagingLogsEnabled, serviceMode)
 
 	// Upstream configurations are only allowed when the SignalR service is in `Serverless` mode
 	if len(upstreamSettings) > 0 && !signalRIsInServerlessMode(expandedFeatures) {
@@ -310,6 +359,18 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `features`: %+v", err)
 			}
 
+			for _, feature := range *props.Features {
+				if feature.Flag == signalr.FeatureFlagsEnableConnectivityLogs {
+					d.Set("connectivity_logs_enabled", feature.Value)
+				}
+				if feature.Flag == signalr.FeatureFlagsEnableMessagingLogs {
+					d.Set("messaging_logs_enabled", feature.Value)
+				}
+				if feature.Flag == signalr.FeatureFlagsServiceMode {
+					d.Set("service_mode", feature.Value)
+				}
+			}
+
 			if err := d.Set("cors", flattenSignalRCors(props.Cors)); err != nil {
 				return fmt.Errorf("setting `cors`: %+v", err)
 			}
@@ -354,9 +415,12 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 			resourceType.Properties.Cors = expandSignalRCors(corsRaw)
 		}
 
-		if d.HasChange("features") {
+		if d.HasChange("features") || d.HasChange("connectivity_logs_enabled") || d.HasChange("messaging_logs_enabled") || d.HasChange("service_mode") {
 			featuresRaw := d.Get("features").(*pluginsdk.Set).List()
-			resourceType.Properties.Features = expandSignalRFeatures(featuresRaw)
+			connectivityLogsEnabled := d.Get("connectivity_logs_enabled").(string)
+			messagingLogsEnabled := d.Get("messaging_logs_enabled").(string)
+			serviceMode := d.Get("service_mode").(string)
+			resourceType.Properties.Features = expandSignalRFeatures(featuresRaw, connectivityLogsEnabled, messagingLogsEnabled, serviceMode)
 		}
 
 		if d.HasChange("upstream_endpoint") {
@@ -421,20 +485,34 @@ func signalRIsInServerlessMode(features *[]signalr.SignalRFeature) bool {
 	return false
 }
 
-func expandSignalRFeatures(input []interface{}) *[]signalr.SignalRFeature {
+func expandSignalRFeatures(featureFlags []interface{}, connectivityLogsEnabled string, messagingLogsEnabled string, serviceMode string) *[]signalr.SignalRFeature {
 	features := make([]signalr.SignalRFeature, 0)
-	for _, featureValue := range input {
-		value := featureValue.(map[string]interface{})
-
-		feature := signalr.SignalRFeature{
-			Flag:  signalr.FeatureFlags(value["flag"].(string)),
-			Value: value["value"].(string),
+	if len(featureFlags) > 0 {
+		for _, featureValue := range featureFlags {
+			value := featureValue.(map[string]interface{})
+			features = append(features, signalRFeature(signalr.FeatureFlags(value["flag"].(string)), value["value"].(string)))
+		}
+	} else {
+		if connectivityLogsEnabled != "" {
+			features = append(features, signalRFeature(signalr.FeatureFlagsEnableConnectivityLogs, connectivityLogsEnabled))
+		}
+		if messagingLogsEnabled != "" {
+			features = append(features, signalRFeature(signalr.FeatureFlagsEnableMessagingLogs, messagingLogsEnabled))
+		}
+		if serviceMode != "" {
+			features = append(features, signalRFeature(signalr.FeatureFlagsServiceMode, serviceMode))
 		}
 
-		features = append(features, feature)
 	}
 
 	return &features
+}
+
+func signalRFeature(featureFlag signalr.FeatureFlags, value string) signalr.SignalRFeature {
+	return signalr.SignalRFeature{
+		Flag:  featureFlag,
+		Value: value,
+	}
 }
 
 func flattenSignalRFeatures(features *[]signalr.SignalRFeature) []interface{} {
