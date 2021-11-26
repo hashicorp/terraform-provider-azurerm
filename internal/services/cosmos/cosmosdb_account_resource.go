@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
+	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -108,6 +110,17 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.DatabaseAccountOfferTypeStandard),
 				}, true),
+			},
+
+			"create_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(documentdb.CreateModeDefault),
+					string(documentdb.CreateModeRestore),
+				}, false),
 			},
 
 			"kind": {
@@ -405,6 +418,58 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 
 			"cors_rule": common.SchemaCorsRule(),
 
+			"restore": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"restore_source": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ForceNew: true,
+							ValidateFunc: validation.All(
+								validation.StringMatch(regexp.MustCompile(`^(.)+/restorableDatabaseAccounts/(.)+$`), "It includes the segment `/restorableDatabaseAccounts/`"),
+								azure.ValidateResourceID,
+							),
+						},
+
+						"restore_timestamp_in_utc": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.IsRFC3339Time,
+						},
+
+						"database_to_restore": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"database_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"collection_names": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										ForceNew: true,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			// computed
 			"endpoint": {
 				Type:     pluginsdk.TypeString,
@@ -580,6 +645,16 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Tags: tags.Expand(t),
 	}
 
+	var createMode string
+	if v, ok := d.GetOk("create_mode"); ok {
+		createMode = v.(string)
+		account.DatabaseAccountCreateUpdateProperties.CreateMode = documentdb.CreateMode(createMode)
+	}
+
+	if v, ok := d.GetOk("restore"); ok {
+		account.DatabaseAccountCreateUpdateProperties.RestoreParameters = expandCosmosdbAccountRestoreParameters(v.([]interface{}))
+	}
+
 	if v, ok := d.GetOk("mongo_server_version"); ok {
 		account.DatabaseAccountCreateUpdateProperties.APIProperties = &documentdb.APIProperties{
 			ServerVersion: documentdb.ServerVersion(v.(string)),
@@ -587,11 +662,13 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if v, ok := d.GetOk("backup"); ok {
-		policy, err := expandCosmosdbAccountBackup(v.([]interface{}), false)
+		policy, err := expandCosmosdbAccountBackup(v.([]interface{}), false, createMode)
 		if err != nil {
 			return fmt.Errorf("expanding `backup`: %+v", err)
 		}
 		account.DatabaseAccountCreateUpdateProperties.BackupPolicy = policy
+	} else if createMode != "" {
+		return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
 	}
 
 	if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
@@ -714,6 +791,16 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Tags: tags.Expand(t),
 	}
 
+	var createMode string
+	if v, ok := d.GetOk("create_mode"); ok {
+		createMode = v.(string)
+		account.DatabaseAccountCreateUpdateProperties.CreateMode = documentdb.CreateMode(createMode)
+	}
+
+	if v, ok := d.GetOk("restore"); ok {
+		account.DatabaseAccountCreateUpdateProperties.RestoreParameters = expandCosmosdbAccountRestoreParameters(v.([]interface{}))
+	}
+
 	if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
 		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
 		if err != nil {
@@ -729,11 +816,13 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if v, ok := d.GetOk("backup"); ok {
-		policy, err := expandCosmosdbAccountBackup(v.([]interface{}), d.HasChange("backup.0.type"))
+		policy, err := expandCosmosdbAccountBackup(v.([]interface{}), d.HasChange("backup.0.type"), createMode)
 		if err != nil {
 			return fmt.Errorf("expanding `backup`: %+v", err)
 		}
 		account.DatabaseAccountCreateUpdateProperties.BackupPolicy = policy
+	} else if createMode != "" {
+		return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
 	}
 
 	if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
@@ -832,6 +921,11 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("enable_free_tier", props.EnableFreeTier)
 		d.Set("analytical_storage_enabled", props.EnableAnalyticalStorage)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == documentdb.PublicNetworkAccessEnabled)
+		d.Set("create_mode", props.CreateMode)
+
+		if err := d.Set("restore", flattenCosmosdbAccountRestoreParameters(props.RestoreParameters)); err != nil {
+			return fmt.Errorf("setting `restore`: %+v", err)
+		}
 
 		if v := resp.IsVirtualNetworkFilterEnabled; v != nil {
 			d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)
@@ -1303,7 +1397,7 @@ func resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash(v interface{}) int {
 	return pluginsdk.HashString(buf.String())
 }
 
-func expandCosmosdbAccountBackup(input []interface{}, backupHasChange bool) (documentdb.BasicBackupPolicy, error) {
+func expandCosmosdbAccountBackup(input []interface{}, backupHasChange bool, createMode string) (documentdb.BasicBackupPolicy, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
@@ -1322,6 +1416,9 @@ func expandCosmosdbAccountBackup(input []interface{}, backupHasChange bool) (doc
 		}, nil
 
 	case string(documentdb.TypePeriodic):
+		if createMode != "" {
+			return nil, fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
+		}
 		return documentdb.PeriodicModeBackupPolicy{
 			Type: documentdb.TypePeriodic,
 			PeriodicModeProperties: &documentdb.PeriodicModeProperties{
@@ -1407,4 +1504,80 @@ func flattenAzureRmdocumentdbMachineIdentity(identity *documentdb.ManagedService
 		"tenant_id":    tenantID,
 	},
 	}
+}
+
+func expandCosmosdbAccountRestoreParameters(input []interface{}) *documentdb.RestoreParameters {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+
+	restoreTimestampInUtc, _ := time.Parse(time.RFC3339, v["restore_timestamp_in_utc"].(string))
+
+	return &documentdb.RestoreParameters{
+		RestoreMode:           documentdb.RestoreModePointInTime,
+		RestoreSource:         utils.String(v["restore_source"].(string)),
+		RestoreTimestampInUtc: &date.Time{Time: restoreTimestampInUtc},
+		DatabasesToRestore:    expandCosmosdbAccountDatabasesToRestore(v["database_to_restore"].(*schema.Set).List()),
+	}
+}
+
+func expandCosmosdbAccountDatabasesToRestore(input []interface{}) *[]documentdb.DatabaseRestoreResource {
+	results := make([]documentdb.DatabaseRestoreResource, 0)
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		results = append(results, documentdb.DatabaseRestoreResource{
+			DatabaseName:    utils.String(v["database_name"].(string)),
+			CollectionNames: utils.ExpandStringSlice(v["collection_names"].(*schema.Set).List()),
+		})
+	}
+
+	return &results
+}
+
+func flattenCosmosdbAccountRestoreParameters(input *documentdb.RestoreParameters) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	var restoreSource string
+	if input.RestoreSource != nil {
+		restoreSource = *input.RestoreSource
+	}
+
+	var restoreTimestampInUtc string
+	if input.RestoreTimestampInUtc != nil {
+		restoreTimestampInUtc = input.RestoreTimestampInUtc.Format(time.RFC3339)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"database_to_restore":      flattenCosmosdbAccountDatabasesToRestore(input.DatabasesToRestore),
+			"restore_source":           restoreSource,
+			"restore_timestamp_in_utc": restoreTimestampInUtc,
+		},
+	}
+}
+
+func flattenCosmosdbAccountDatabasesToRestore(input *[]documentdb.DatabaseRestoreResource) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		var databaseName string
+		if item.DatabaseName != nil {
+			databaseName = *item.DatabaseName
+		}
+
+		results = append(results, map[string]interface{}{
+			"collection_names": utils.FlattenStringSlice(item.CollectionNames),
+			"database_name":    databaseName,
+		})
+	}
+
+	return results
 }

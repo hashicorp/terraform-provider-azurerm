@@ -3,6 +3,7 @@ package cosmos_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"regexp"
 	"strconv"
 	"testing"
@@ -132,6 +133,39 @@ func TestAccCosmosDBAccount_keyVaultUriUpdateConsistancy(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.key_vault_uri(data, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelSession),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelSession, 1),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDBAccount_defaultCreateMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.defaultCreateMode(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDBAccount_restoreCreateMode(t *testing.T) {
+	if ok := skipRestoreCreateMode(); ok {
+		t.Skip("Skipping as one of `ARM_TEST_RESTORE_SOURCE`, `ARM_TEST_RESTORE_TIMESTAMP_IN_UTC`, `ARM_TEST_DATABASE_NAME` AND `ARM_TEST_COLLECTION_NAME` was not specified")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.restoreCreateMode(data, documentdb.DatabaseAccountKindMongoDB, documentdb.DefaultConsistencyLevelSession),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelSession, 1),
 			),
@@ -2296,4 +2330,96 @@ resource "azurerm_cosmosdb_account" "test" {
   local_authentication_disabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+}
+
+func (CosmosDBAccountResource) defaultCreateMode(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+  create_mode         = "Default"
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  backup {
+    type = "Continuous"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+}
+
+func (CosmosDBAccountResource) restoreCreateMode(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+  create_mode         = "Restore"
+
+  capabilities {
+    name = "EnableMongo"
+  }
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  backup {
+    type = "Continuous"
+  }
+
+  restore {
+    restore_source           = "%s"
+    restore_timestamp_in_utc = "%s"
+
+    database_to_restore {
+      database_name    = "%s"
+      collection_names = ["%s"]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency), os.Getenv("ARM_TEST_RESTORE_SOURCE"), os.Getenv("ARM_TEST_RESTORE_TIMESTAMP_IN_UTC"), os.Getenv("ARM_TEST_DATABASE_NAME"), os.Getenv("ARM_TEST_COLLECTION_NAME"))
+}
+
+func skipRestoreCreateMode() bool {
+	if os.Getenv("ARM_TEST_RESTORE_SOURCE") == "" || os.Getenv("ARM_TEST_RESTORE_TIMESTAMP_IN_UTC") == "" || os.Getenv("ARM_TEST_DATABASE_NAME") == "" || os.Getenv("ARM_TEST_COLLECTION_NAME") == "" {
+		return true
+	}
+
+	return false
 }
