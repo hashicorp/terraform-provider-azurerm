@@ -33,8 +33,8 @@ resource "azurerm_signalr_service" "example" {
   }
 
   connectivity_logs_enabled = "True"
-  messaging_logs_enabled = "True"
-  service_mode = "Default"
+  messaging_logs_enabled    = "True"
+  service_mode              = "Default"
 
   upstream_endpoint {
     category_pattern = ["connections", "messages"]

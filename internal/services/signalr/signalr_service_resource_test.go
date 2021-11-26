@@ -614,8 +614,8 @@ resource "azurerm_signalr_service" "test" {
   }
 
   connectivity_logs_enabled = "True"
-  messaging_logs_enabled = "True"
-  service_mode = "Default"
+  messaging_logs_enabled    = "True"
+  service_mode              = "Default"
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
