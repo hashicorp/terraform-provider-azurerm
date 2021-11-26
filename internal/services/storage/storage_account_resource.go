@@ -937,10 +937,10 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	envName := meta.(*clients.Client).Account.Environment.Name
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.AccountsClient
+	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
 	id := parse.NewStorageAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
@@ -1106,8 +1106,16 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("waiting for Azure Storage Account %q to be created: %+v", id.Name, err)
 	}
 
-	log.Printf("[INFO] storage account %q ID: %q", id.Name, id.ID())
 	d.SetId(id.ID())
+
+	// populate the cache
+	account, err := client.GetProperties(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+	if err := storageClient.AddToCache(id.Name, account); err != nil {
+		return fmt.Errorf("populating cache for %s: %+v", id, err)
+	}
 
 	if val, ok := d.GetOk("blob_properties"); ok {
 		// FileStorage does not support blob settings
