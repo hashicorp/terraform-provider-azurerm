@@ -64,7 +64,7 @@ func dataSourceSpatialAnchorsAccountRead(d *pluginsdk.ResourceData, meta interfa
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("%s was not found", id, err)
+			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
