@@ -34,8 +34,8 @@ BUG FIXES:
 * `azurerm_function_app_slot` - fix a bug in `app_settings` for `WEBSITE_CONTENTSHARE` incorrectly updating ([#14211](https://github.com/hashicorp/terraform-provider-azurerm/issues/14211))
 * `azurerm_monitor_diagnostic_setting` - Swap Relay parser and validator with EventHub ([#14277](https://github.com/hashicorp/terraform-provider-azurerm/issues/14277))
 * `azurerm_stream_analytics_stream_input_eventhub` - correctly support creation with the default `eventhub_consumer_group_name` ([#14264](https://github.com/hashicorp/terraform-provider-azurerm/issues/14264))
-* `azurerm_synapse_workspace` - fix a crash during update when `sql_aad_admin` was configured ([#14275](https://github.com/hashicorp/terraform-provider-azurerm/issues/14275))
-* `azurerm_linux_virtual_machine` - `patch_mode` is now properly supported [GH0-14042]
+* `azurerm_synapse_workspace` - fix a crash during updates when `sql_aad_admin` was configured ([#14275](https://github.com/hashicorp/terraform-provider-azurerm/issues/14275))
+* `azurerm_linux_virtual_machine` - the `patch_mode` property is now properly supported [GH0-14042]
 
 ## 2.86.0 (November 19, 2021)
 
