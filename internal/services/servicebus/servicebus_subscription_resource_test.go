@@ -204,7 +204,7 @@ func TestAccServiceBusSubscription_status(t *testing.T) {
 	})
 }
 
-func TestAccServiceBusSubscription_DuplicateDetectionHistoryTimeWindow(t *testing.T) {
+func TestAccServiceBusSubscription_duplicateDetectionHistoryTimeWindow(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
 	r := ServiceBusSubscriptionResource{}
 
@@ -214,7 +214,27 @@ func TestAccServiceBusSubscription_DuplicateDetectionHistoryTimeWindow(t *testin
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			ExpectNonEmptyPlan: true,
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccServiceBusSubscription_updateDuplicateDetectionHistoryTimeWindow(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
+	r := ServiceBusSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.duplicate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("duplicate_detection_history_time_window").HasValue("PT1H"),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -283,8 +303,7 @@ resource "azurerm_servicebus_subscription" "import" {
 
 func (r ServiceBusSubscriptionResource) duplicate(data acceptance.TestData) string {
 	return fmt.Sprintf(testAccServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
-		"duplicate_detection_history_time_window = \"PT1H\"\n",
-	)
+		"duplicate_detection_history_time_window = \"PT1H\"\n")
 }
 
 func (ServiceBusSubscriptionResource) withDefaultTtl(data acceptance.TestData) string {

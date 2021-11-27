@@ -66,6 +66,11 @@ func dataSourceServiceBusSubscription() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"duplicate_detection_history_time_window": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"enable_batched_operations": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -122,6 +127,7 @@ func dataSourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("requires_session", props.RequiresSession)
 		d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
 		d.Set("forward_to", props.ForwardTo)
+		d.Set("duplicate_detection_history_time_window", props.DuplicateDetectionHistoryTimeWindow)
 
 		maxDeliveryCount := 0
 		if props.MaxDeliveryCount != nil {

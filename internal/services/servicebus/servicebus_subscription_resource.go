@@ -170,8 +170,8 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 		},
 	}
 
-	if duplicate_detection_history_time_window := d.Get("duplicate_detection_history_time_window"); duplicate_detection_history_time_window != "" {
-		parameters.DuplicateDetectionHistoryTimeWindow = utils.String(d.Get("duplicate_detection_history_time_window").(string))
+	if duplicateDetectionHistoryTimeWindow := d.Get("duplicate_detection_history_time_window").(string); duplicateDetectionHistoryTimeWindow != "" {
+		parameters.SBSubscriptionProperties.DuplicateDetectionHistoryTimeWindow = &duplicateDetectionHistoryTimeWindow
 	}
 
 	if autoDeleteOnIdle := d.Get("auto_delete_on_idle").(string); autoDeleteOnIdle != "" {
@@ -237,7 +237,10 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("forward_to", props.ForwardTo)
 		d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
 		d.Set("status", utils.String(string(props.Status)))
-		d.Set("duplicate_detection_history_time_window", props.DuplicateDetectionHistoryTimeWindow)
+
+		if window := props.DuplicateDetectionHistoryTimeWindow; window != nil && *window != "" {
+			d.Set("duplicate_detection_history_time_window", window)
+		}
 
 		if count := props.MaxDeliveryCount; count != nil {
 			d.Set("max_delivery_count", int(*count))
