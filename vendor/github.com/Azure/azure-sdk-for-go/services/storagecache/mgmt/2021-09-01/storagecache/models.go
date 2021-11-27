@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-09-01/storagecache"
 
 // APIOperation REST API operation description: see
 // https://github.com/Azure/azure-rest-api-specs/blob/master/documentation/openapi-authoring-automated-guidelines.md#r3023-operationsapiimplementation
@@ -601,7 +601,7 @@ type CacheActiveDirectorySettings struct {
 	DomainNetBiosName *string `json:"domainNetBiosName,omitempty"`
 	// CacheNetBiosName - The NetBIOS name to assign to the HPC Cache when it joins the Active Directory domain as a server. Length must 1-15 characters from the class [-0-9a-zA-Z].
 	CacheNetBiosName *string `json:"cacheNetBiosName,omitempty"`
-	// DomainJoined - READ-ONLY; True if the HPC Cache is joined to the Active Directory domain. Possible values include: 'Yes', 'No', 'Error'
+	// DomainJoined - READ-ONLY; True if the HPC Cache is joined to the Active Directory domain. Possible values include: 'DomainJoinedTypeYes', 'DomainJoinedTypeNo', 'DomainJoinedTypeError'
 	DomainJoined DomainJoinedType `json:"domainJoined,omitempty"`
 	// Credentials - Active Directory admin credentials used to join the HPC Cache to a domain.
 	Credentials *CacheActiveDirectorySettingsCredentials `json:"credentials,omitempty"`
@@ -652,12 +652,14 @@ type CacheDirectorySettings struct {
 type CacheEncryptionSettings struct {
 	// KeyEncryptionKey - Specifies the location of the key encryption key in Key Vault.
 	KeyEncryptionKey *KeyVaultKeyReference `json:"keyEncryptionKey,omitempty"`
+	// RotationToLatestKeyVersionEnabled - Specifies whether the service will automatically rotate to the newest version of the key in the Key Vault.
+	RotationToLatestKeyVersionEnabled *bool `json:"rotationToLatestKeyVersionEnabled,omitempty"`
 }
 
 // CacheHealth an indication of Cache health. Gives more information about health than just that related to
 // provisioning.
 type CacheHealth struct {
-	// State - List of Cache health states. Possible values include: 'Unknown', 'Healthy', 'Degraded', 'Down', 'Transitioning', 'Stopping', 'Stopped', 'Upgrading', 'Flushing'
+	// State - List of Cache health states. Possible values include: 'HealthStateTypeUnknown', 'HealthStateTypeHealthy', 'HealthStateTypeDegraded', 'HealthStateTypeDown', 'HealthStateTypeTransitioning', 'HealthStateTypeStopping', 'HealthStateTypeStopped', 'HealthStateTypeUpgrading', 'HealthStateTypeFlushing'
 	State HealthStateType `json:"state,omitempty"`
 	// StatusDescription - Describes explanation of state.
 	StatusDescription *string `json:"statusDescription,omitempty"`
@@ -679,12 +681,14 @@ func (ch CacheHealth) MarshalJSON() ([]byte, error) {
 
 // CacheIdentity cache identity properties.
 type CacheIdentity struct {
-	// PrincipalID - READ-ONLY; The principal id of the cache.
+	// PrincipalID - READ-ONLY; The principal ID for the system-assigned identity of the cache.
 	PrincipalID *string `json:"principalId,omitempty"`
-	// TenantID - READ-ONLY; The tenant id associated with the cache.
+	// TenantID - READ-ONLY; The tenant ID associated with the cache.
 	TenantID *string `json:"tenantId,omitempty"`
-	// Type - The type of identity used for the cache. Possible values include: 'SystemAssigned', 'None'
+	// Type - The type of identity used for the cache. Possible values include: 'CacheIdentityTypeSystemAssigned', 'CacheIdentityTypeUserAssigned', 'CacheIdentityTypeSystemAssignedUserAssigned', 'CacheIdentityTypeNone'
 	Type CacheIdentityType `json:"type,omitempty"`
+	// UserAssignedIdentities - A dictionary where each key is a user assigned identity resource ID, and each key's value is an empty dictionary.
+	UserAssignedIdentities map[string]*CacheIdentityUserAssignedIdentitiesValue `json:"userAssignedIdentities"`
 }
 
 // MarshalJSON is the custom marshaler for CacheIdentity.
@@ -693,6 +697,23 @@ func (ci CacheIdentity) MarshalJSON() ([]byte, error) {
 	if ci.Type != "" {
 		objectMap["type"] = ci.Type
 	}
+	if ci.UserAssignedIdentities != nil {
+		objectMap["userAssignedIdentities"] = ci.UserAssignedIdentities
+	}
+	return json.Marshal(objectMap)
+}
+
+// CacheIdentityUserAssignedIdentitiesValue ...
+type CacheIdentityUserAssignedIdentitiesValue struct {
+	// PrincipalID - READ-ONLY; The principal ID of the user-assigned identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// ClientID - READ-ONLY; The client ID of the user-assigned identity.
+	ClientID *string `json:"clientId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CacheIdentityUserAssignedIdentitiesValue.
+func (ciAiv CacheIdentityUserAssignedIdentitiesValue) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
 }
 
@@ -736,11 +757,11 @@ type CacheProperties struct {
 	Health *CacheHealth `json:"health,omitempty"`
 	// MountAddresses - READ-ONLY; Array of IP addresses that can be used by clients mounting this Cache.
 	MountAddresses *[]string `json:"mountAddresses,omitempty"`
-	// ProvisioningState - ARM provisioning state, see https://github.com/Azure/azure-resource-manager-rpc/blob/master/v1.0/Addendum.md#provisioningstate-property. Possible values include: 'Succeeded', 'Failed', 'Cancelled', 'Creating', 'Deleting', 'Updating'
+	// ProvisioningState - READ-ONLY; ARM provisioning state, see https://github.com/Azure/azure-resource-manager-rpc/blob/master/v1.0/Addendum.md#provisioningstate-property. Possible values include: 'ProvisioningStateTypeSucceeded', 'ProvisioningStateTypeFailed', 'ProvisioningStateTypeCancelled', 'ProvisioningStateTypeCreating', 'ProvisioningStateTypeDeleting', 'ProvisioningStateTypeUpdating'
 	ProvisioningState ProvisioningStateType `json:"provisioningState,omitempty"`
 	// Subnet - Subnet used for the Cache.
 	Subnet *string `json:"subnet,omitempty"`
-	// UpgradeStatus - Upgrade status of the Cache.
+	// UpgradeStatus - READ-ONLY; Upgrade status of the Cache.
 	UpgradeStatus *CacheUpgradeStatus `json:"upgradeStatus,omitempty"`
 	// NetworkSettings - Specifies network settings of the cache.
 	NetworkSettings *CacheNetworkSettings `json:"networkSettings,omitempty"`
@@ -758,14 +779,8 @@ func (c CacheProperties) MarshalJSON() ([]byte, error) {
 	if c.CacheSizeGB != nil {
 		objectMap["cacheSizeGB"] = c.CacheSizeGB
 	}
-	if c.ProvisioningState != "" {
-		objectMap["provisioningState"] = c.ProvisioningState
-	}
 	if c.Subnet != nil {
 		objectMap["subnet"] = c.Subnet
-	}
-	if c.UpgradeStatus != nil {
-		objectMap["upgradeStatus"] = c.UpgradeStatus
 	}
 	if c.NetworkSettings != nil {
 		objectMap["networkSettings"] = c.NetworkSettings
@@ -1219,7 +1234,7 @@ func (future *CachesUpgradeFirmwareFuture) result(client CachesClient) (ar autor
 type CacheUpgradeStatus struct {
 	// CurrentFirmwareVersion - READ-ONLY; Version string of the firmware currently installed on this Cache.
 	CurrentFirmwareVersion *string `json:"currentFirmwareVersion,omitempty"`
-	// FirmwareUpdateStatus - READ-ONLY; True if there is a firmware update ready to install on this Cache. The firmware will automatically be installed after firmwareUpdateDeadline if not triggered earlier via the upgrade operation. Possible values include: 'Available', 'Unavailable'
+	// FirmwareUpdateStatus - READ-ONLY; True if there is a firmware update ready to install on this Cache. The firmware will automatically be installed after firmwareUpdateDeadline if not triggered earlier via the upgrade operation. Possible values include: 'FirmwareStatusTypeAvailable', 'FirmwareStatusTypeUnavailable'
 	FirmwareUpdateStatus FirmwareStatusType `json:"firmwareUpdateStatus,omitempty"`
 	// FirmwareUpdateDeadline - READ-ONLY; Time at which the pending firmware update will automatically be installed on the Cache.
 	FirmwareUpdateDeadline *date.Time `json:"firmwareUpdateDeadline,omitempty"`
@@ -1433,7 +1448,7 @@ type NfsAccessPolicy struct {
 
 // NfsAccessRule rule to place restrictions on portions of the cache namespace being presented to clients.
 type NfsAccessRule struct {
-	// Scope - Scope for this rule. The scope and filter determine which clients match the rule. Possible values include: 'Default', 'Network', 'Host'
+	// Scope - Scope for this rule. The scope and filter determine which clients match the rule. Possible values include: 'NfsAccessRuleScopeDefault', 'NfsAccessRuleScopeNetwork', 'NfsAccessRuleScopeHost'
 	Scope NfsAccessRuleScope `json:"scope,omitempty"`
 	// Filter - Filter applied to the scope for this rule. The filter's format depends on its scope. 'default' scope matches all clients and has no filter value. 'network' scope takes a filter in CIDR format (for example, 10.99.1.0/24). 'host' takes an IP address or fully qualified domain name as filter. If a client does not match any filter rule and there is no default rule, access is denied.
 	Filter *string `json:"filter,omitempty"`
@@ -1675,7 +1690,7 @@ type Restriction struct {
 	Type *string `json:"type,omitempty"`
 	// Values - READ-ONLY; The value of restrictions. If the restriction type is set to location, then this would be the different locations where the SKU is restricted.
 	Values *[]string `json:"values,omitempty"`
-	// ReasonCode - The reason for the restriction. As of now this can be "QuotaId" or "NotAvailableForSubscription". "QuotaId" is set when the SKU has requiredQuotas parameter as the subscription does not belong to that quota. "NotAvailableForSubscription" is related to capacity at the datacenter. Possible values include: 'QuotaID', 'NotAvailableForSubscription'
+	// ReasonCode - The reason for the restriction. As of now this can be "QuotaId" or "NotAvailableForSubscription". "QuotaId" is set when the SKU has requiredQuotas parameter as the subscription does not belong to that quota. "NotAvailableForSubscription" is related to capacity at the datacenter. Possible values include: 'ReasonCodeQuotaID', 'ReasonCodeNotAvailableForSubscription'
 	ReasonCode ReasonCode `json:"reasonCode,omitempty"`
 }
 
@@ -1783,14 +1798,53 @@ func (st *StorageTarget) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// StorageTargetFlushFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type StorageTargetFlushFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StorageTargetClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *StorageTargetFlushFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for StorageTargetFlushFuture.Result.
+func (future *StorageTargetFlushFuture) result(client StorageTargetClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "storagecache.StorageTargetFlushFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("storagecache.StorageTargetFlushFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // StorageTargetProperties properties of the Storage Target.
 type StorageTargetProperties struct {
 	// Junctions - List of Cache namespace junctions to target for namespace associations.
 	Junctions *[]NamespaceJunction `json:"junctions,omitempty"`
 	// TargetType - Type of the Storage Target. Possible values include: 'StorageTargetTypeNfs3', 'StorageTargetTypeClfs', 'StorageTargetTypeUnknown', 'StorageTargetTypeBlobNfs'
 	TargetType StorageTargetType `json:"targetType,omitempty"`
-	// ProvisioningState - ARM provisioning state, see https://github.com/Azure/azure-resource-manager-rpc/blob/master/v1.0/Addendum.md#provisioningstate-property. Possible values include: 'Succeeded', 'Failed', 'Cancelled', 'Creating', 'Deleting', 'Updating'
+	// ProvisioningState - READ-ONLY; ARM provisioning state, see https://github.com/Azure/azure-resource-manager-rpc/blob/master/v1.0/Addendum.md#provisioningstate-property. Possible values include: 'ProvisioningStateTypeSucceeded', 'ProvisioningStateTypeFailed', 'ProvisioningStateTypeCancelled', 'ProvisioningStateTypeCreating', 'ProvisioningStateTypeDeleting', 'ProvisioningStateTypeUpdating'
 	ProvisioningState ProvisioningStateType `json:"provisioningState,omitempty"`
+	// State - Storage target operational state. Possible values include: 'OperationalStateTypeReady', 'OperationalStateTypeBusy', 'OperationalStateTypeSuspended', 'OperationalStateTypeFlushing'
+	State OperationalStateType `json:"state,omitempty"`
 	// Nfs3 - Properties when targetType is nfs3.
 	Nfs3 *Nfs3Target `json:"nfs3,omitempty"`
 	// Clfs - Properties when targetType is clfs.
@@ -1799,6 +1853,33 @@ type StorageTargetProperties struct {
 	Unknown *UnknownTarget `json:"unknown,omitempty"`
 	// BlobNfs - Properties when targetType is blobNfs.
 	BlobNfs *BlobNfsTarget `json:"blobNfs,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StorageTargetProperties.
+func (stp StorageTargetProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if stp.Junctions != nil {
+		objectMap["junctions"] = stp.Junctions
+	}
+	if stp.TargetType != "" {
+		objectMap["targetType"] = stp.TargetType
+	}
+	if stp.State != "" {
+		objectMap["state"] = stp.State
+	}
+	if stp.Nfs3 != nil {
+		objectMap["nfs3"] = stp.Nfs3
+	}
+	if stp.Clfs != nil {
+		objectMap["clfs"] = stp.Clfs
+	}
+	if stp.Unknown != nil {
+		objectMap["unknown"] = stp.Unknown
+	}
+	if stp.BlobNfs != nil {
+		objectMap["blobNfs"] = stp.BlobNfs
+	}
+	return json.Marshal(objectMap)
 }
 
 // StorageTargetResource resource used by a Cache.
@@ -1819,6 +1900,43 @@ type StorageTargetResource struct {
 func (str StorageTargetResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
+}
+
+// StorageTargetResumeFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type StorageTargetResumeFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StorageTargetClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *StorageTargetResumeFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for StorageTargetResumeFuture.Result.
+func (future *StorageTargetResumeFuture) result(client StorageTargetClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "storagecache.StorageTargetResumeFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("storagecache.StorageTargetResumeFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
 }
 
 // StorageTargetsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -2097,17 +2215,54 @@ func NewStorageTargetsResultPage(cur StorageTargetsResult, getNextPage func(cont
 	}
 }
 
+// StorageTargetSuspendFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type StorageTargetSuspendFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StorageTargetClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *StorageTargetSuspendFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for StorageTargetSuspendFuture.Result.
+func (future *StorageTargetSuspendFuture) result(client StorageTargetClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "storagecache.StorageTargetSuspendFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("storagecache.StorageTargetSuspendFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // SystemData metadata pertaining to creation and last modification of the resource.
 type SystemData struct {
 	// CreatedBy - The identity that created the resource.
 	CreatedBy *string `json:"createdBy,omitempty"`
-	// CreatedByType - The type of identity that created the resource. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
 	CreatedByType CreatedByType `json:"createdByType,omitempty"`
 	// CreatedAt - The timestamp of resource creation (UTC).
 	CreatedAt *date.Time `json:"createdAt,omitempty"`
 	// LastModifiedBy - The identity that last modified the resource.
 	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
-	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
 	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
 	// LastModifiedAt - The timestamp of resource last modification (UTC)
 	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`

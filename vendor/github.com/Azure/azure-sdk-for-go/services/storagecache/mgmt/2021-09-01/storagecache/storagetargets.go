@@ -62,7 +62,7 @@ func (client StorageTargetsClient) CreateOrUpdate(ctx context.Context, resourceG
 				Chain: []validation.Constraint{{Target: "storagetarget.StorageTargetProperties", Name: validation.Null, Rule: false,
 					Chain: []validation.Constraint{{Target: "storagetarget.StorageTargetProperties.Nfs3", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "storagetarget.StorageTargetProperties.Nfs3.Target", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "storagetarget.StorageTargetProperties.Nfs3.Target", Name: validation.Pattern, Rule: `^[-.0-9a-zA-Z]+$`, Chain: nil}}},
+							Chain: []validation.Constraint{{Target: "storagetarget.StorageTargetProperties.Nfs3.Target", Name: validation.Pattern, Rule: `^[-.,0-9a-zA-Z]+$`, Chain: nil}}},
 						}},
 					}},
 				}}}}}); err != nil {
@@ -93,7 +93,7 @@ func (client StorageTargetsClient) CreateOrUpdatePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-03-01"
+	const APIVersion = "2021-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -148,7 +148,9 @@ func (client StorageTargetsClient) CreateOrUpdateResponder(resp *http.Response) 
 // cacheName - name of Cache. Length of name must not be greater than 80 and chars must be from the
 // [-0-9a-zA-Z_] char class.
 // storageTargetName - name of Storage Target.
-func (client StorageTargetsClient) Delete(ctx context.Context, resourceGroupName string, cacheName string, storageTargetName string) (result StorageTargetsDeleteFuture, err error) {
+// force - boolean value requesting the force delete operation for a storage target. Force delete discards
+// unwritten-data in the cache instead of flushing it to back-end storage.
+func (client StorageTargetsClient) Delete(ctx context.Context, resourceGroupName string, cacheName string, storageTargetName string, force string) (result StorageTargetsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/StorageTargetsClient.Delete")
 		defer func() {
@@ -167,7 +169,7 @@ func (client StorageTargetsClient) Delete(ctx context.Context, resourceGroupName
 		return result, validation.NewError("storagecache.StorageTargetsClient", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, cacheName, storageTargetName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, cacheName, storageTargetName, force)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagecache.StorageTargetsClient", "Delete", nil, "Failure preparing request")
 		return
@@ -183,7 +185,7 @@ func (client StorageTargetsClient) Delete(ctx context.Context, resourceGroupName
 }
 
 // DeletePreparer prepares the Delete request.
-func (client StorageTargetsClient) DeletePreparer(ctx context.Context, resourceGroupName string, cacheName string, storageTargetName string) (*http.Request, error) {
+func (client StorageTargetsClient) DeletePreparer(ctx context.Context, resourceGroupName string, cacheName string, storageTargetName string, force string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"cacheName":         autorest.Encode("path", cacheName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -191,9 +193,12 @@ func (client StorageTargetsClient) DeletePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-03-01"
+	const APIVersion = "2021-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(force) > 0 {
+		queryParameters["force"] = autorest.Encode("query", force)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -280,7 +285,7 @@ func (client StorageTargetsClient) DNSRefreshPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-03-01"
+	const APIVersion = "2021-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -376,7 +381,7 @@ func (client StorageTargetsClient) GetPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-03-01"
+	const APIVersion = "2021-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -464,7 +469,7 @@ func (client StorageTargetsClient) ListByCachePreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-03-01"
+	const APIVersion = "2021-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

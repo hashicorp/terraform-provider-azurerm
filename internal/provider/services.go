@@ -116,6 +116,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		mssql.Registration{},
 		policy.Registration{},
 		resource.Registration{},
+		sentinel.Registration{},
 		servicefabricmanaged.Registration{},
 		storage.Registration{},
 		streamanalytics.Registration{},
