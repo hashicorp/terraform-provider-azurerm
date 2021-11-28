@@ -290,11 +290,6 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	secretId, err := parse.ParseNestedItemID(*cert.Sid)
-	if err != nil {
-		return err
-	}
-
 	d.Set("name", id.Name)
 
 	certificatePolicy := flattenKeyVaultCertificatePolicyForDataSource(cert.Policy)
@@ -305,7 +300,14 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("version", id.Version)
 	d.Set("secret_id", cert.Sid)
 	d.Set("versionless_id", id.VersionlessID())
-	d.Set("versionless_secret_id", secretId.VersionlessID())
+
+	if cert.Sid != nil {
+		secretId, err := parse.ParseNestedItemID(*cert.Sid)
+		if err != nil {
+			return err
+		}
+		d.Set("versionless_secret_id", secretId.VersionlessID())
+	}
 
 	certificateData := ""
 	if contents := cert.Cer; contents != nil {

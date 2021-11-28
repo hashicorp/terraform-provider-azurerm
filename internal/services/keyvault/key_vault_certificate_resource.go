@@ -616,11 +616,6 @@ func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("reading Key Vault Certificate: %+v", err)
 	}
 
-	secretId, err := parse.ParseNestedItemID(*cert.Sid)
-	if err != nil {
-		return err
-	}
-
 	d.Set("name", id.Name)
 
 	certificatePolicy := flattenKeyVaultCertificatePolicy(cert.Policy, cert.Cer)
@@ -636,7 +631,14 @@ func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("version", id.Version)
 	d.Set("secret_id", cert.Sid)
 	d.Set("versionless_id", id.VersionlessID())
-	d.Set("versionless_secret_id", secretId.VersionlessID())
+
+	if cert.Sid != nil {
+		secretId, err := parse.ParseNestedItemID(*cert.Sid)
+		if err != nil {
+			return err
+		}
+		d.Set("versionless_secret_id", secretId.VersionlessID())
+	}
 
 	certificateData := ""
 	if contents := cert.Cer; contents != nil {
