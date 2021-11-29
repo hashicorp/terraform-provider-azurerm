@@ -757,21 +757,38 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	// workaround: azure backend fails with 500 error when trying to change the password of an instance in replica mode.
+	// if instance type is changed from replica to default, the password will be updated after that
+	updates := []*postgresql.ServerUpdateParameters{&properties}
+
 	if d.HasChange("administrator_login_password") {
-		properties.ServerUpdateParametersProperties.AdministratorLoginPassword = utils.String(d.Get("administrator_login_password").(string))
+		if old, new := d.GetChange("create_mode"); postgresql.CreateMode(old.(string)) == postgresql.CreateModeReplica && postgresql.CreateMode(new.(string)) == postgresql.CreateModeDefault {
+			updates = append(updates, &postgresql.ServerUpdateParameters{
+				Identity: expandServerIdentity(d.Get("identity").([]interface{})),
+				ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
+					AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
+				},
+				Sku:  sku,
+				Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+			})
+		} else {
+			properties.ServerUpdateParametersProperties.AdministratorLoginPassword = utils.String(d.Get("administrator_login_password").(string))
+		}
 	}
 
 	if old, new := d.GetChange("create_mode"); postgresql.CreateMode(old.(string)) == postgresql.CreateModeReplica && postgresql.CreateMode(new.(string)) == postgresql.CreateModeDefault {
 		properties.ServerUpdateParametersProperties.ReplicationRole = utils.String("None")
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
-	if err != nil {
-		return fmt.Errorf("updating PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
+	for _, props := range updates {
+		future, err := client.Update(ctx, id.ResourceGroup, id.Name, *props)
+		if err != nil {
+			return fmt.Errorf("updating PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for update of PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
 	}
 
 	if v, ok := d.GetOk("threat_detection_policy"); ok {
