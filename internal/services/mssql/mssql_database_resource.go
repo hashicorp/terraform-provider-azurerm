@@ -3,6 +3,7 @@ package mssql
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"log"
 	"strings"
 	"time"
@@ -599,10 +600,10 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 			c, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 			if err != nil {
-				return pluginsdk.NonRetryableError(fmt.Errorf("while polling cluster %s for status: %+v", id.String(), err))
+				return resource.NonRetryableError(fmt.Errorf("while polling cluster %s for status: %+v", id.String(), err))
 			}
 			if c.DatabaseProperties.Status == sql.DatabaseStatusScaling {
-				return pluginsdk.RetryableError(fmt.Errorf("database %s is still scaling", id.String()))
+				return resource.RetryableError(fmt.Errorf("database %s is still scaling", id.String()))
 			}
 
 			return nil
