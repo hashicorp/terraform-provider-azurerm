@@ -72,13 +72,13 @@ func resourceSynapseSQLPoolWorkloadGroup() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
 				Default:      3,
-				ValidateFunc: validation.IntBetween(0, 100),
+				ValidateFunc: validation.FloatBetween(0, 100),
 			},
 
 			"min_resource_percent_per_request": {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(0, 100),
+				ValidateFunc: validation.FloatBetween(0, 100),
 			},
 
 			"query_execution_timeout_in_seconds": {
