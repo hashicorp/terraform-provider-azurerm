@@ -137,7 +137,7 @@ func (c ConsumerGroupsClient) preparerForListByEventHub(ctx context.Context, id 
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsGet(),
 		autorest.WithBaseURL(c.baseUri),
-		autorest.WithPath(fmt.Sprintf("%s/consumergroups", id.ID())),
+		autorest.WithPath(fmt.Sprintf("%s/consumerGroups", id.ID())),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }

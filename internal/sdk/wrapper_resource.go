@@ -147,6 +147,12 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 
 		resource.DeprecationMessage = message
 	}
+
+	if v, ok := rw.resource.(ResourceWithStateMigration); ok {
+		stateUpgradeData := v.StateUpgraders()
+		resource.SchemaVersion = stateUpgradeData.SchemaVersion
+		resource.StateUpgraders = pluginsdk.StateUpgrades(stateUpgradeData.Upgraders)
+	}
 	// TODO: State Migrations
 
 	return &resource, nil

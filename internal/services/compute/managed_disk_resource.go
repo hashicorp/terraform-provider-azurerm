@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -147,13 +147,27 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
+			"disk_iops_read_only": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntAtLeast(1),
+			},
+
+			"disk_mbps_read_only": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntAtLeast(1),
+			},
+
 			"disk_encryption_set_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
 				//       https://github.com/Azure/azure-rest-api-specs/issues/8132
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     azure.ValidateResourceID,
+				ValidateFunc:     validate.DiskEncryptionSetID,
 			},
 
 			"encryption_settings": encryptionSettingsSchema(),
@@ -176,6 +190,12 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 			},
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -193,6 +213,11 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
+			},
+
+			"on_demand_bursting_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
 			},
 
 			"tags": tags.Schema(),
@@ -229,6 +254,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	createOption := compute.DiskCreateOption(d.Get("create_option").(string))
 	storageAccountType := d.Get("storage_account_type").(string)
 	osType := d.Get("os_type").(string)
+	maxShares := d.Get("max_shares").(int)
 
 	t := d.Get("tags").(map[string]interface{})
 	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
@@ -244,13 +270,13 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		},
 	}
 
-	if v := d.Get("disk_size_gb"); v != 0 {
-		diskSize := int32(v.(int))
-		props.DiskSizeGB = &diskSize
+	diskSizeGB := d.Get("disk_size_gb").(int)
+	if diskSizeGB != 0 {
+		props.DiskSizeGB = utils.Int32(int32(diskSizeGB))
 	}
 
-	if v, ok := d.GetOk("max_shares"); ok {
-		props.MaxShares = utils.Int32(int32(v.(int)))
+	if maxShares != 0 {
+		props.MaxShares = utils.Int32(int32(maxShares))
 	}
 
 	if storageAccountType == string(compute.StorageAccountTypesUltraSSDLRS) {
@@ -266,11 +292,27 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			props.DiskMBpsReadWrite = &diskMBps
 		}
 
+		if v, ok := d.GetOk("disk_iops_read_only"); ok {
+			if maxShares == 0 {
+				return fmt.Errorf("[ERROR] disk_iops_read_only is only available for UltraSSD disks with shared disk enabled")
+			}
+
+			props.DiskIOPSReadOnly = utils.Int64(int64(v.(int)))
+		}
+
+		if v, ok := d.GetOk("disk_mbps_read_only"); ok {
+			if maxShares == 0 {
+				return fmt.Errorf("[ERROR] disk_mbps_read_only is only available for UltraSSD disks with shared disk enabled")
+			}
+
+			props.DiskMBpsReadOnly = utils.Int64(int64(v.(int)))
+		}
+
 		if v, ok := d.GetOk("logical_sector_size"); ok {
 			props.CreationData.LogicalSectorSize = utils.Int32(int32(v.(int)))
 		}
-	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") || d.HasChange("logical_sector_size") {
-		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write and logical_sector_size are only available for UltraSSD disks")
+	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") || d.HasChange("disk_iops_read_only") || d.HasChange("disk_mbps_read_only") || d.HasChange("logical_sector_size") {
+		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only, disk_mbps_read_only and logical_sector_size are only available for UltraSSD disks")
 	}
 
 	if createOption == compute.DiskCreateOptionImport {
@@ -313,8 +355,13 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
+		encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
+		if err != nil {
+			return err
+		}
+
 		props.Encryption = &compute.Encryption{
-			Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
+			Type:                *encryptionType,
 			DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 		}
 	}
@@ -336,6 +383,12 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
+	if d.Get("public_network_access_enabled").(bool) {
+		props.PublicNetworkAccess = compute.PublicNetworkAccessEnabled
+	} else {
+		props.PublicNetworkAccess = compute.PublicNetworkAccessDisabled
+	}
+
 	if tier := d.Get("tier").(string); tier != "" {
 		if storageAccountType != string(compute.StorageAccountTypesPremiumZRS) && storageAccountType != string(compute.StorageAccountTypesPremiumLRS) {
 			return fmt.Errorf("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
@@ -354,6 +407,21 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		default:
 			return fmt.Errorf("trusted_launch_enabled cannot be set to true with create_option %q. Supported Create Options when Trusted Launch is enabled are FromImage, Import", createOption)
 		}
+	}
+
+	if d.Get("on_demand_bursting_enabled").(bool) {
+		switch storageAccountType {
+		case string(compute.StorageAccountTypesPremiumLRS):
+		case string(compute.StorageAccountTypesPremiumZRS):
+		default:
+			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
+		}
+
+		if diskSizeGB != 0 && diskSizeGB <= 512 {
+			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `disk_size_gb` is larger than 512GB")
+		}
+
+		props.BurstingEnabled = utils.Bool(true)
 	}
 
 	createDisk := compute.Disk{
@@ -398,7 +466,10 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	maxShares := d.Get("max_shares").(int)
 	storageAccountType := d.Get("storage_account_type").(string)
+	diskSizeGB := d.Get("disk_size_gb").(int)
+	onDemandBurstingEnabled := d.Get("on_demand_bursting_enabled").(bool)
 	shouldShutDown := false
 
 	disk, err := client.Get(ctx, resourceGroup, name)
@@ -415,9 +486,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("max_shares") {
-		v := d.Get("max_shares")
-		maxShares := int32(v.(int))
-		diskUpdate.MaxShares = &maxShares
+		diskUpdate.MaxShares = utils.Int32(int32(maxShares))
 		var skuName compute.DiskStorageAccountTypes
 		for _, v := range compute.PossibleDiskStorageAccountTypesValues() {
 			if strings.EqualFold(storageAccountType, string(v)) {
@@ -468,8 +537,27 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			diskMBps := int64(v.(int))
 			diskUpdate.DiskMBpsReadWrite = &diskMBps
 		}
-	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") {
-		return fmt.Errorf("[ERROR] disk_iops_read_write and disk_mbps_read_write are only available for UltraSSD disks")
+
+		if d.HasChange("disk_iops_read_only") {
+			if maxShares == 0 {
+				return fmt.Errorf("[ERROR] disk_iops_read_only is only available for UltraSSD disks with shared disk enabled")
+			}
+
+			v := d.Get("disk_iops_read_only")
+			diskUpdate.DiskIOPSReadOnly = utils.Int64(int64(v.(int)))
+		}
+
+		if d.HasChange("disk_mbps_read_only") {
+			if maxShares == 0 {
+				return fmt.Errorf("[ERROR] disk_mbps_read_only is only available for UltraSSD disks with shared disk enabled")
+			}
+
+			v := d.Get("disk_mbps_read_only")
+			diskUpdate.DiskMBpsReadOnly = utils.Int64(int64(v.(int)))
+		}
+
+	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") || d.HasChange("disk_iops_read_only") || d.HasChange("disk_mbps_read_only") {
+		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only and disk_mbps_read_only are only available for UltraSSD disks")
 	}
 
 	if d.HasChange("os_type") {
@@ -488,8 +576,13 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if d.HasChange("disk_encryption_set_id") {
 		shouldShutDown = true
 		if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
+			encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
+			if err != nil {
+				return err
+			}
+
 			diskUpdate.Encryption = &compute.Encryption{
-				Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
+				Type:                *encryptionType,
 				DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 			}
 		} else {
@@ -512,6 +605,32 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		default:
 			diskUpdate.DiskAccessID = nil
 		}
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		if d.Get("public_network_access_enabled").(bool) {
+			diskUpdate.PublicNetworkAccess = compute.PublicNetworkAccessEnabled
+		} else {
+			diskUpdate.PublicNetworkAccess = compute.PublicNetworkAccessDisabled
+		}
+	}
+
+	if onDemandBurstingEnabled {
+		switch storageAccountType {
+		case string(compute.StorageAccountTypesPremiumLRS):
+		case string(compute.StorageAccountTypesPremiumZRS):
+		default:
+			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
+		}
+
+		if diskSizeGB != 0 && diskSizeGB <= 512 {
+			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `disk_size_gb` is larger than 512GB")
+		}
+	}
+
+	if d.HasChange("on_demand_bursting_enabled") {
+		shouldShutDown = true
+		diskUpdate.BurstingEnabled = utils.Bool(onDemandBurstingEnabled)
 	}
 
 	// whilst we need to shut this down, if we're not attached to anything there's no point
@@ -585,7 +704,8 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		// De-allocate
 		if shouldDeallocate {
 			log.Printf("[DEBUG] Deallocating Virtual Machine %q (Resource Group %q)..", virtualMachine.Name, virtualMachine.ResourceGroup)
-			deAllocFuture, err := vmClient.Deallocate(ctx, virtualMachine.ResourceGroup, virtualMachine.Name)
+			// Upgrading to 2021-07-01 exposed a new hibernate paramater to the Deallocate method
+			deAllocFuture, err := vmClient.Deallocate(ctx, virtualMachine.ResourceGroup, virtualMachine.Name, utils.Bool(false))
 			if err != nil {
 				return fmt.Errorf("Deallocating to Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
 			}
@@ -687,6 +807,8 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("disk_size_gb", props.DiskSizeGB)
 		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
+		d.Set("disk_iops_read_only", props.DiskIOPSReadOnly)
+		d.Set("disk_mbps_read_only", props.DiskMBpsReadOnly)
 		d.Set("os_type", props.OsType)
 		d.Set("tier", props.Tier)
 		d.Set("max_shares", props.MaxShares)
@@ -695,6 +817,8 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("network_access_policy", props.NetworkAccessPolicy)
 		}
 		d.Set("disk_access_id", props.DiskAccessID)
+
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == compute.PublicNetworkAccessEnabled)
 
 		diskEncryptionSetId := ""
 		if props.Encryption != nil && props.Encryption.DiskEncryptionSetID != nil {
@@ -713,6 +837,12 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			}
 		}
 		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
+
+		onDemandBurstingEnabled := false
+		if props.BurstingEnabled != nil {
+			onDemandBurstingEnabled = *props.BurstingEnabled
+		}
+		d.Set("on_demand_bursting_enabled", onDemandBurstingEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

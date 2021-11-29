@@ -44,13 +44,6 @@ resource "azurerm_mssql_server" "example" {
     object_id      = "00000000-0000-0000-0000-000000000000"
   }
 
-  extended_auditing_policy {
-    storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
-    storage_account_access_key              = azurerm_storage_account.example.primary_access_key
-    storage_account_access_key_is_secondary = true
-    retention_in_days                       = 6
-  }
-
   tags = {
     environment = "production"
   }
@@ -73,8 +66,6 @@ The following arguments are supported:
 * `administrator_login_password` - (Required) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx)
 
 * `azuread_administrator` - (Optional) An `azuread_administrator` block as defined below.
-
-* `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
 
 * `connection_policy` - (Optional) The connection policy the server will use. Possible values are `Default`, `Proxy`, and `Redirect`. Defaults to `Default`.
 
@@ -100,6 +91,18 @@ An `identity` block supports the following:
 
 * `user_assigned_identity_ids` - (Optional) Specifies a list of User Assigned Identity IDs to be assigned. Required if `type` is `UserAssigned` and should be combined with `primary_user_assigned_identity_id`.
 
+---
+
+An `azuread_administrator` block supports the following:
+
+* `login_username` - (Required)  The login username of the Azure AD Administrator of this SQL Server.
+
+* `object_id` - (Required) The object id of the Azure AD Administrator of this SQL Server.
+
+* `tenant_id` - (Optional) The tenant id of the Azure AD Administrator of this SQL Server.
+
+* `azuread_authentication_only` - (Optional) Specifies whether only AD Users and administrators (like `azuread_administrator.0.login_username`) can be used to login or also local database users (like `administrator_login`).
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -119,32 +122,6 @@ The following attributes are exported:
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Server.
 
 -> You can access the Principal ID via `azurerm_mssql_server.example.identity.0.principal_id` and the Tenant ID via `azurerm_mssql_server.example.identity.0.tenant_id`
-
----
-
-An `azuread_administrator` block supports the following:
-
-* `login_username` - (Required)  The login username of the Azure AD Administrator of this SQL Server.
-
-* `object_id` - (Required) The object id of the Azure AD Administrator of this SQL Server.
-
-* `tenant_id` - (Optional) The tenant id of the Azure AD Administrator of this SQL Server.
-
-* `azuread_authentication_only` - (Optional) Specifies whether only AD Users and administrators (like `azuread_administrator.0.login_username`) can be used to login or also local database users (like `administrator_login`).
-
----
-
-An `extended_auditing_policy` block supports the following:
-
-* `storage_account_access_key` - (Optional)  Specifies the access key to use for the auditing storage account.
-
-* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
-
-* `storage_account_access_key_is_secondary` - (Optional) Specifies whether `storage_account_access_key` value is the storage's secondary key.
-
-* `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
-
-* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its main database audit events to Azure Monitor.
 
 ### Timeouts
 

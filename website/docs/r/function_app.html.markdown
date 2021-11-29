@@ -345,6 +345,14 @@ A `microsoft` block supports the following:
 
 ---
 
+A `twitter` block supports the following:
+
+* `consumer_key` - The OAuth 1.0a consumer key of the Twitter application used for sign-in.
+
+* `consumer_secret` - The OAuth 1.0a consumer secret of the Twitter application used for sign-in.
+
+---
+
 A `ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.

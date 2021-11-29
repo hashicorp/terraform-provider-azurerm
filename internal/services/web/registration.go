@@ -44,6 +44,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_app_service_hybrid_connection":                     resourceAppServiceHybridConnection(),
 		"azurerm_app_service_managed_certificate":                   resourceAppServiceManagedCertificate(),
 		"azurerm_app_service_plan":                                  resourceAppServicePlan(),
+		"azurerm_app_service_public_certificate":                    resourceAppServicePublicCertificate(),
 		"azurerm_app_service_slot":                                  resourceAppServiceSlot(),
 		"azurerm_app_service_slot_virtual_network_swift_connection": resourceAppServiceSlotVirtualNetworkSwiftConnection(),
 		"azurerm_app_service_source_control_token":                  resourceAppServiceSourceControlToken(),
@@ -52,6 +53,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_function_app":                                      resourceFunctionApp(),
 		"azurerm_function_app_slot":                                 resourceFunctionAppSlot(),
 		"azurerm_static_site":                                       resourceStaticSite(),
+		"azurerm_static_site_custom_domain":                         resourceStaticSiteCustomDomain(),
 	}
 }
 

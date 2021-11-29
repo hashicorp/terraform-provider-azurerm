@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -63,6 +63,17 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 			"auto_key_rotation_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+			},
+
+			"encryption_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(compute.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey),
+					string(compute.DiskEncryptionSetTypeEncryptionAtRestWithPlatformAndCustomerKeys),
+				}, false),
 			},
 
 			"identity": {
@@ -132,6 +143,7 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	rotationToLatestKeyVersionEnabled := d.Get("auto_key_rotation_enabled").(bool)
+	encryptionType := d.Get("encryption_type").(string)
 	identityRaw := d.Get("identity").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
 
@@ -145,6 +157,7 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 				},
 			},
 			RotationToLatestKeyVersionEnabled: utils.Bool(rotationToLatestKeyVersionEnabled),
+			EncryptionType:                    compute.DiskEncryptionSetType(encryptionType),
 		},
 		Identity: expandDiskEncryptionSetIdentity(identityRaw),
 		Tags:     tags.Expand(t),
@@ -203,6 +216,12 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 		d.Set("key_vault_key_id", keyVaultKeyId)
 		d.Set("auto_key_rotation_enabled", props.RotationToLatestKeyVersionEnabled)
+
+		encryptionType := string(compute.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey)
+		if props.EncryptionType != "" {
+			encryptionType = string(props.EncryptionType)
+		}
+		d.Set("encryption_type", encryptionType)
 	}
 
 	if err := d.Set("identity", flattenDiskEncryptionSetIdentity(resp.Identity)); err != nil {

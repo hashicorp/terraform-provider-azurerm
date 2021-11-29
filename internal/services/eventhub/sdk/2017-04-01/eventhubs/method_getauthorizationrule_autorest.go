@@ -14,7 +14,7 @@ type GetAuthorizationRuleResponse struct {
 }
 
 // GetAuthorizationRule ...
-func (c EventHubsClient) GetAuthorizationRule(ctx context.Context, id AuthorizationRuleId) (result GetAuthorizationRuleResponse, err error) {
+func (c EventHubsClient) GetAuthorizationRule(ctx context.Context, id EventhubAuthorizationRuleId) (result GetAuthorizationRuleResponse, err error) {
 	req, err := c.preparerForGetAuthorizationRule(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhubs.EventHubsClient", "GetAuthorizationRule", nil, "Failure preparing request")
@@ -37,7 +37,7 @@ func (c EventHubsClient) GetAuthorizationRule(ctx context.Context, id Authorizat
 }
 
 // preparerForGetAuthorizationRule prepares the GetAuthorizationRule request.
-func (c EventHubsClient) preparerForGetAuthorizationRule(ctx context.Context, id AuthorizationRuleId) (*http.Request, error) {
+func (c EventHubsClient) preparerForGetAuthorizationRule(ctx context.Context, id EventhubAuthorizationRuleId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

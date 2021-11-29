@@ -48,6 +48,12 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
+			"stream_analytics_cluster_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"compatibility_level": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -56,9 +62,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 					// values found in the other API the portal uses
 					string(streamanalytics.OneFullStopZero),
 					"1.1",
-					// TODO: support for 1.2 when this is fixed:
-					// https://github.com/Azure/azure-rest-api-specs/issues/5604
-					// "1.2",
+					"1.2",
 				}, false),
 			},
 
@@ -155,19 +159,19 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
 	transformationsClient := meta.(*clients.Client).StreamAnalytics.TransformationsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Job creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewStreamingJobID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Stream Analytics Job %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
@@ -196,7 +200,7 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	props := streamanalytics.StreamingJob{
-		Name:     utils.String(name),
+		Name:     utils.String(id.Name),
 		Location: utils.String(location),
 		StreamingJobProperties: &streamanalytics.StreamingJobProperties{
 			Sku: &streamanalytics.StreamingJobSku{
@@ -211,6 +215,16 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		Tags: tags.Expand(t),
 	}
 
+	if streamAnalyticsCluster := d.Get("stream_analytics_cluster_id"); streamAnalyticsCluster != "" {
+		props.StreamingJobProperties.Cluster = &streamanalytics.ClusterInfo{
+			ID: utils.String(streamAnalyticsCluster.(string)),
+		}
+	} else {
+		props.StreamingJobProperties.Cluster = &streamanalytics.ClusterInfo{
+			ID: nil,
+		}
+	}
+
 	if dataLocale, ok := d.GetOk("data_locale"); ok {
 		props.StreamingJobProperties.DataLocale = utils.String(dataLocale.(string))
 	}
@@ -222,37 +236,29 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	if d.IsNewResource() {
 		props.StreamingJobProperties.Transformation = &transformation
 
-		future, err := client.CreateOrReplace(ctx, props, resourceGroup, name, "", "")
+		future, err := client.CreateOrReplace(ctx, props, id.ResourceGroup, id.Name, "", "")
 		if err != nil {
-			return fmt.Errorf("Creating Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for creation of Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 		}
 
-		read, err := client.Get(ctx, resourceGroup, name, "")
-		if err != nil {
-			return err
-		}
-		if read.ID == nil {
-			return fmt.Errorf("Cannot read ID of Stream Analytics Job %q (Resource Group %q)", name, resourceGroup)
-		}
-
-		d.SetId(*read.ID)
+		d.SetId(id.ID())
 	} else {
-		if _, err := client.Update(ctx, props, resourceGroup, name, ""); err != nil {
-			return fmt.Errorf("Updating Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if _, err := client.Update(ctx, props, id.ResourceGroup, id.Name, ""); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 
-		job, err := client.Get(ctx, resourceGroup, name, "transformation")
+		job, err := client.Get(ctx, id.ResourceGroup, id.Name, "transformation")
 		if err != nil {
 			return err
 		}
 
 		if readTransformation := job.Transformation; readTransformation != nil {
-			if _, err := transformationsClient.Update(ctx, transformation, resourceGroup, name, *readTransformation.Name, ""); err != nil {
-				return fmt.Errorf("Updating Transformation for Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+			if _, err := transformationsClient.Update(ctx, transformation, id.ResourceGroup, id.Name, *readTransformation.Name, ""); err != nil {
+				return fmt.Errorf("updating transformation for %s: %+v", id, err)
 			}
 		}
 	}
@@ -273,12 +279,12 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "transformation")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] %s was not found - removing from state!", id)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -300,6 +306,9 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 		if props.EventsOutOfOrderMaxDelayInSeconds != nil {
 			d.Set("events_out_of_order_max_delay_in_seconds", int(*props.EventsOutOfOrderMaxDelayInSeconds))
+		}
+		if props.Cluster != nil {
+			d.Set("stream_analytics_cluster_id", props.Cluster.ID)
 		}
 		d.Set("events_out_of_order_policy", string(props.EventsOutOfOrderPolicy))
 		d.Set("output_error_policy", string(props.OutputErrorPolicy))
@@ -330,11 +339,11 @@ func resourceStreamAnalyticsJobDelete(d *pluginsdk.ResourceData, meta interface{
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

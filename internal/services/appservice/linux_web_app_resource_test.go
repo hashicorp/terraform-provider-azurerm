@@ -52,6 +52,14 @@ func TestAccLinuxWebApp_completeUpdated(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.basicWithStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -62,6 +70,14 @@ func TestAccLinuxWebApp_completeUpdated(t *testing.T) {
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
@@ -1039,6 +1055,25 @@ resource "azurerm_linux_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
+func (r LinuxWebAppResource) basicWithStorage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+}
+`, r.templateWithStorageAccount(data), data.RandomInteger)
+}
+
 func (r LinuxWebAppResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1308,18 +1343,19 @@ resource "azurerm_linux_web_app" "test" {
       "third.aspx",
       "hostingstart.html",
     ]
-    http2_enabled               = false
-    scm_use_main_ip_restriction = false
-    local_mysql                 = false
-    managed_pipeline_mode       = "Integrated"
-    remote_debugging            = true
-    remote_debugging_version    = "VS2017"
-    websockets_enabled          = true
-    ftps_state                  = "FtpsOnly"
-    health_check_path           = "/health2"
-    number_of_workers           = 2
-    minimum_tls_version         = "1.2"
-    scm_minimum_tls_version     = "1.2"
+    http2_enabled                     = false
+    scm_use_main_ip_restriction       = false
+    local_mysql                       = false
+    managed_pipeline_mode             = "Integrated"
+    remote_debugging                  = true
+    remote_debugging_version          = "VS2017"
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health2"
+    health_check_eviction_time_in_min = 7
+    number_of_workers                 = 2
+    minimum_tls_version               = "1.2"
+    scm_minimum_tls_version           = "1.2"
     cors {
       allowed_origins = [
         "http://www.contoso.com",
@@ -1348,7 +1384,8 @@ resource "azurerm_linux_web_app" "test" {
         minimum_process_execution_time = "00:05:00"
       }
     }
-    // auto_swap_slot_name = // TODO - Not supported yet
+
+    vnet_route_all_enabled = true
   }
 
   storage_account {

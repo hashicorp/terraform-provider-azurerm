@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache"
+	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-09-01/storagecache"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -282,9 +282,9 @@ func resourceHPCCache() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(storagecache.Default),
-											string(storagecache.Network),
-											string(storagecache.Host),
+											string(storagecache.NfsAccessRuleScopeDefault),
+											string(storagecache.NfsAccessRuleScopeNetwork),
+											string(storagecache.NfsAccessRuleScopeHost),
 										}, false),
 									},
 
@@ -465,7 +465,7 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 			if ad == nil {
 				return fmt.Errorf("Unexpected nil `activeDirectory` in response")
 			}
-			if ad.DomainJoined != storagecache.Yes {
+			if ad.DomainJoined != storagecache.DomainJoinedTypeYes {
 				return fmt.Errorf("failed to join domain, current status: %s", ad.DomainJoined)
 			}
 		} else {

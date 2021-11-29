@@ -7,6 +7,7 @@ type PrivateLinkResourcePredicate struct {
 }
 
 func (p PrivateLinkResourcePredicate) Matches(input PrivateLinkResource) bool {
+
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false
 	}
@@ -30,6 +31,7 @@ type SignalRResourcePredicate struct {
 }
 
 func (p SignalRResourcePredicate) Matches(input SignalRResource) bool {
+
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false
 	}
@@ -57,6 +59,7 @@ type SignalRUsagePredicate struct {
 }
 
 func (p SignalRUsagePredicate) Matches(input SignalRUsage) bool {
+
 	if p.CurrentValue != nil && (input.CurrentValue == nil && *p.CurrentValue != *input.CurrentValue) {
 		return false
 	}

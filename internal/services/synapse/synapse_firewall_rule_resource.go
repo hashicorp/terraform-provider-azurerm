@@ -70,22 +70,22 @@ func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	workspaceId, err := parse.WorkspaceID(d.Get("synapse_workspace_id").(string))
 	if err != nil {
 		return err
 	}
 
+	id := parse.NewFirewallRuleID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Synapse Firewall Rule %q (Resource Group %q / Workspace %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_synapse_firewall_rule", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_synapse_firewall_rule", id.ID())
 		}
 	}
 
@@ -96,21 +96,15 @@ func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, workspaceId.ResourceGroup, workspaceId.Name, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating Synapse Firewall Rule %q (Resource Group %q / Workspace %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creation/updation for Synapse Firewall Rule %q (Resource Group %q / Workspace %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
+		return fmt.Errorf("waiting on creation/update of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Synapse Firewall Rule %q (Resource Group %q / Workspace %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceSynapseFirewallRuleRead(d, meta)
 }
 
@@ -159,11 +153,11 @@ func resourceSynapseFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Synapse Firewall Rule %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Synapse Firewall Rule %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

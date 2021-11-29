@@ -99,7 +99,7 @@ func resourceArmRelayHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating Hybrid Connection %q (Namespace %q Resource Group %q): %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -126,9 +126,9 @@ func resourceArmRelayHybridConnectionRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.HybridConnectionName)
 	d.Set("relay_namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -151,7 +151,7 @@ func resourceArmRelayHybridConnectionDelete(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if _, err := client.Delete(ctx, *id); err != nil {
-		return fmt.Errorf("deleting Hybrid Connection %q (Namespace %q / Resource Group %q): %+v", id.NamespaceName, id.NamespaceName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	// we can't make use of the Future here due to a bug where 404 isn't tracked as Successful

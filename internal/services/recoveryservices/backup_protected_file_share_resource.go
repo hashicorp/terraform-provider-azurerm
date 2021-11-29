@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -76,8 +77,10 @@ func resourceBackupProtectedFileShare() *pluginsdk.Resource {
 func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	protectedClient := meta.(*clients.Client).RecoveryServices.ProtectedItemsGroupClient
 	protectableClient := meta.(*clients.Client).RecoveryServices.ProtectableItemsClient
+	protectionContainerClient := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	opClient := meta.(*clients.Client).RecoveryServices.BackupOperationStatusesClient
+	opResultClient := meta.(*clients.Client).RecoveryServices.ProtectionContainerOperationResultsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -94,12 +97,59 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("[ERROR] Unable to parse source_storage_account_id '%s': %+v", storageAccountID, err)
 	}
 
+	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, parsedStorageAccountID.Name)
+	log.Printf("[DEBUG] creating/updating Recovery Service Protected File Share %q (Container Name %q)", fileShareName, containerName)
+
 	// the fileshare has a user defined name, but its system name (fileShareSystemName) is only known to Azure Backup
 	fileShareSystemName := ""
 	// @aristosvo: preferred filter would be like below but the 'and' expression seems to fail
 	//   filter := fmt.Sprintf("backupManagementType eq 'AzureStorage' and friendlyName eq '%s'", fileShareName)
 	// this means which means we have to do it client side and loop over backupProtectedItems en backupProtectableItems until share is found
 	filter := "backupManagementType eq 'AzureStorage'"
+
+	// There is an issue https://github.com/hashicorp/terraform-provider-azurerm/issues/11184 (When a new file share is added to an exist storage account,
+	// it cannot be listed by Backup Protectable Items - List API after the storage account is registered with a RSV).
+	// After confirming with the service team, whenever new file shares are added, we need to run an 'inquire' API. but inquiry APIs are long running APIs and hence can't be included in GET API's (Backup Protectable Items - List) response.
+	// Therefore, add 'inquire' API to inquire all unprotected files shares under a storage account to fix this usecase.
+	respContainer, err := protectionContainerClient.Inquire(ctx, vaultName, resourceGroup, "Azure", containerName, filter)
+	if err != nil {
+		return fmt.Errorf("inquire all unprotected files shares under a storage account %q (Resource Group %q): %+v", parsedStorageAccountID.Name, resourceGroup, err)
+	}
+
+	locationURL, err := respContainer.Response.Location()
+	if err != nil || locationURL == nil {
+		return fmt.Errorf("inquire all unprotected files shares %q (Vault %q): Location header missing or empty", containerName, vaultName)
+	}
+
+	opResourceID := handleAzureSdkForGoBug2824(locationURL.Path)
+
+	parsedLocation, err := azure.ParseAzureResourceID(opResourceID)
+	if err != nil {
+		return err
+	}
+	operationID := parsedLocation.Path["operationResults"]
+
+	// `inquire` API is an async operation and the results should be tracked using location header or Azure-async-url.
+	//  The Azure-AsyncOperation is not included in swagger, so call location (https://docs.microsoft.com/en-us/rest/api/backup/protection-container-operation-results/get)
+	//  to wait the operation successfully completes.
+	state := &pluginsdk.StateChangeConf{
+		MinTimeout: 10 * time.Second,
+		Delay:      10 * time.Second,
+		Pending:    []string{"202"},
+		Target:     []string{"200", "204"},
+		Refresh:    protectionContainerOperationResultsRefreshFunc(ctx, opResultClient, vaultName, resourceGroup, containerName, operationID),
+	}
+
+	if d.IsNewResource() {
+		state.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
+	} else {
+		state.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
+	}
+
+	if _, err := state.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for Recovery Service Protection Container operation %q (Vault %q in Resource Group %q): %+v", operationID, vaultName, resourceGroup, err)
+	}
+
 	backupProtectableItemsResponse, err := protectableClient.List(ctx, vaultName, resourceGroup, filter, "")
 	if err != nil {
 		return fmt.Errorf("checking for protectable fileshares in Recovery Service Vault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
@@ -142,9 +192,6 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("[ERROR] fileshare '%s' not found in protectable or protected fileshares, make sure Storage Account %q is registered with Recovery Service Vault %q (Resource Group %q)", fileShareName, parsedStorageAccountID.Name, vaultName, resourceGroup)
 	}
 
-	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, parsedStorageAccountID.Name)
-	log.Printf("[DEBUG] creating/updating Recovery Service Protected File Share %q (Container Name %q)", fileShareName, containerName)
-
 	if d.IsNewResource() {
 		existing, err2 := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, fileShareSystemName, "")
 		if err2 != nil {
@@ -173,18 +220,18 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("creating/updating Recovery Service Protected File Share %q (Resource Group %q): %+v", fileShareName, resourceGroup, err)
 	}
 
-	locationURL, err := resp.Response.Location()
+	locationURL, err = resp.Response.Location()
 	if err != nil || locationURL == nil {
 		return fmt.Errorf("creating/updating Azure File Share backup item %q (Vault %q): Location header missing or empty", containerName, vaultName)
 	}
 
-	opResourceID := handleAzureSdkForGoBug2824(locationURL.Path)
+	opResourceID = handleAzureSdkForGoBug2824(locationURL.Path)
 
-	parsedLocation, err := azure.ParseAzureResourceID(opResourceID)
+	parsedLocation, err = azure.ParseAzureResourceID(opResourceID)
 	if err != nil {
 		return err
 	}
-	operationID := parsedLocation.Path["operationResults"]
+	operationID = parsedLocation.Path["operationResults"]
 
 	if _, err := resourceBackupProtectedFileShareWaitForOperation(ctx, opClient, vaultName, resourceGroup, operationID, d); err != nil {
 		return err
@@ -323,5 +370,16 @@ func resourceBackupProtectedFileShareCheckOperation(ctx context.Context, client 
 
 		log.Printf("[DEBUG] Backup operation %s status is %s", operationID, string(resp.Status))
 		return resp, string(resp.Status), err
+	}
+}
+
+func protectionContainerOperationResultsRefreshFunc(ctx context.Context, client *backup.ProtectionContainerOperationResultsClient, vaultName, resourceGroup, containerName string, operationID string) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, operationID)
+		if err != nil {
+			return nil, "Error", fmt.Errorf("making Read request on Recovery Service Protection Container operation %q (Vault %q in Resource Group %q): %+v", operationID, vaultName, resourceGroup, err)
+		}
+
+		return resp, strconv.Itoa(resp.StatusCode), err
 	}
 }

@@ -40,6 +40,7 @@ type SiteConfigWindows struct {
 	WebSockets               bool                      `tfschema:"websockets_enabled"`
 	FtpsState                string                    `tfschema:"ftps_state"`
 	HealthCheckPath          string                    `tfschema:"health_check_path"`
+	HealthCheckEvictionTime  int                       `tfschema:"health_check_eviction_time_in_min"`
 	NumberOfWorkers          int                       `tfschema:"number_of_workers"`
 	ApplicationStack         []ApplicationStackWindows `tfschema:"application_stack"`
 	VirtualApplications      []VirtualApplication      `tfschema:"virtual_application"`
@@ -49,6 +50,7 @@ type SiteConfigWindows struct {
 	Cors                     []CorsSetting             `tfschema:"cors"`
 	DetailedErrorLogging     bool                      `tfschema:"detailed_error_logging"`
 	WindowsFxVersion         string                    `tfschema:"windows_fx_version"`
+	VnetRouteAllEnabled      bool                      `tfschema:"vnet_route_all_enabled"`
 	// TODO new properties / blocks
 	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - ASE related for limiting App resource consumption
 	// PushSettings - Supported in SDK, but blocked by manual step needed for connecting app to notification hub.
@@ -78,6 +80,7 @@ type SiteConfigLinux struct {
 	WebSockets              bool                    `tfschema:"websockets_enabled"`
 	FtpsState               string                  `tfschema:"ftps_state"`
 	HealthCheckPath         string                  `tfschema:"health_check_path"`
+	HealthCheckEvictionTime int                     `tfschema:"health_check_eviction_time_in_min"`
 	NumberOfWorkers         int                     `tfschema:"number_of_workers"`
 	ApplicationStack        []ApplicationStackLinux `tfschema:"application_stack"`
 	MinTlsVersion           string                  `tfschema:"minimum_tls_version"`
@@ -86,6 +89,7 @@ type SiteConfigLinux struct {
 	Cors                    []CorsSetting           `tfschema:"cors"`
 	DetailedErrorLogging    bool                    `tfschema:"detailed_error_logging"`
 	LinuxFxVersion          string                  `tfschema:"linux_fx_version"`
+	VnetRouteAllEnabled     bool                    `tfschema:"vnet_route_all_enabled"`
 	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - New block to (possibly) support? No way to configure this in the portal?
 }
 
@@ -222,7 +226,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"use_32_bit_worker": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Default:  false,
+					Computed: true, // Variable default value depending on several factors, such as plan type.
 				},
 
 				"websockets_enabled": {
@@ -245,6 +249,14 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"health_check_path": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+				},
+
+				"health_check_eviction_time_in_min": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntBetween(2, 10),
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"number_of_workers": {
@@ -279,6 +291,13 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"cors": CorsSettingsSchema(),
 
 				"virtual_application": virtualApplicationsSchema(),
+
+				"vnet_route_all_enabled": {
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+				},
 
 				"auto_swap_slot_name": {
 					Type:     pluginsdk.TypeString,
@@ -422,6 +441,11 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
+				"health_check_eviction_time_in_min": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
 				"number_of_workers": {
 					Type:     pluginsdk.TypeInt,
 					Computed: true,
@@ -453,6 +477,11 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 
 				"windows_fx_version": {
 					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"vnet_route_all_enabled": {
+					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
 			},
@@ -593,7 +622,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"use_32_bit_worker": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Default:  false,
+					Default:  true,
 				},
 
 				"websockets_enabled": {
@@ -616,6 +645,14 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"health_check_path": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+				},
+
+				"health_check_eviction_time_in_min": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntBetween(2, 10),
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"number_of_workers": {
@@ -653,6 +690,13 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					// TODO - Add slot name validation here?
+				},
+
+				"vnet_route_all_enabled": {
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
 				},
 
 				"detailed_error_logging": {
@@ -786,6 +830,11 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
+				"health_check_eviction_time_in_min": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
 				"number_of_workers": {
 					Type:     pluginsdk.TypeInt,
 					Computed: true,
@@ -815,6 +864,11 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 
 				"linux_fx_version": {
 					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"vnet_route_all_enabled": {
+					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
 			},
@@ -2723,7 +2777,9 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 
 	winSiteConfig := siteConfig[0]
 
-	expanded.AlwaysOn = utils.Bool(winSiteConfig.AlwaysOn)
+	if metadata.ResourceData.HasChange("site_config.0.always_on") {
+		expanded.AlwaysOn = utils.Bool(winSiteConfig.AlwaysOn)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
 		expanded.APIManagementConfig = &web.APIManagementConfig{
@@ -2762,7 +2818,9 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.VirtualApplications = expandVirtualApplications(winSiteConfig.VirtualApplications)
 	}
 
-	expanded.AcrUseManagedIdentityCreds = utils.Bool(winSiteConfig.UseManagedIdentityACR)
+	if metadata.ResourceData.HasChange("site_config.0.container_registry_use_managed_identity") {
+		expanded.AcrUseManagedIdentityCreds = utils.Bool(winSiteConfig.UseManagedIdentityACR)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
 		expanded.AcrUserManagedIdentityID = utils.String(winSiteConfig.ContainerRegistryUserMSI)
@@ -2772,7 +2830,9 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.DefaultDocuments = &winSiteConfig.DefaultDocuments
 	}
 
-	expanded.HTTP20Enabled = utils.Bool(winSiteConfig.Http2Enabled)
+	if metadata.ResourceData.HasChange("site_config.0.http2_enabled") {
+		expanded.HTTP20Enabled = utils.Bool(winSiteConfig.Http2Enabled)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
 		ipRestrictions, err := ExpandIpRestrictions(winSiteConfig.IpRestriction)
@@ -2782,7 +2842,9 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
-	expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(winSiteConfig.ScmUseMainIpRestriction)
+	if metadata.ResourceData.HasChange("site_config.0.scm_use_main_ip_restriction") {
+		expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(winSiteConfig.ScmUseMainIpRestriction)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
 		scmIpRestrictions, err := ExpandIpRestrictions(winSiteConfig.ScmIpRestriction)
@@ -2792,7 +2854,9 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
 
-	expanded.LocalMySQLEnabled = utils.Bool(winSiteConfig.LocalMysql)
+	if metadata.ResourceData.HasChange("site_config.0.local_mysql") {
+		expanded.LocalMySQLEnabled = utils.Bool(winSiteConfig.LocalMysql)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
 		expanded.LoadBalancing = web.SiteLoadBalancing(winSiteConfig.LoadBalancing)
@@ -2810,13 +2874,17 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.RemoteDebuggingVersion = utils.String(winSiteConfig.RemoteDebuggingVersion)
 	}
 
-	expanded.Use32BitWorkerProcess = utils.Bool(winSiteConfig.Use32BitWorker)
+	if metadata.ResourceData.HasChange("site_config.0.use_32_bit_worker") {
+		expanded.Use32BitWorkerProcess = utils.Bool(winSiteConfig.Use32BitWorker)
+	}
 
-	expanded.WebSocketsEnabled = utils.Bool(winSiteConfig.WebSockets)
+	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
+		expanded.WebSocketsEnabled = utils.Bool(winSiteConfig.WebSockets)
+	}
 
-	// if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
-	// }
-	expanded.FtpsState = web.FtpsState(winSiteConfig.FtpsState)
+	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
+		expanded.FtpsState = web.FtpsState(winSiteConfig.FtpsState)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
 		expanded.HealthCheckPath = utils.String(winSiteConfig.HealthCheckPath)
@@ -2839,7 +2907,14 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
-		expanded.Cors = ExpandCorsSettings(winSiteConfig.Cors)
+		cors := ExpandCorsSettings(winSiteConfig.Cors)
+		if cors == nil {
+			cors = &web.CorsSettings{
+				AllowedOrigins: &[]string{},
+			}
+		}
+		expanded.Cors = cors
+
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal") {
@@ -2848,6 +2923,10 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal_setting") {
 		expanded.AutoHealRules = expandAutoHealSettingsWindows(winSiteConfig.AutoHealSettings)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+		expanded.VnetRouteAllEnabled = utils.Bool(winSiteConfig.VnetRouteAllEnabled)
 	}
 
 	return expanded, &currentStack, nil
@@ -2864,7 +2943,9 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 
 	linuxSiteConfig := siteConfig[0]
 
-	expanded.AlwaysOn = utils.Bool(linuxSiteConfig.AlwaysOn)
+	if metadata.ResourceData.HasChange("site_config.0.always_on") {
+		expanded.AlwaysOn = utils.Bool(linuxSiteConfig.AlwaysOn)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
 		expanded.APIManagementConfig = &web.APIManagementConfig{
@@ -2925,7 +3006,9 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 		expanded.DefaultDocuments = &linuxSiteConfig.DefaultDocuments
 	}
 
-	expanded.HTTP20Enabled = utils.Bool(linuxSiteConfig.Http2Enabled)
+	if metadata.ResourceData.HasChange("site_config.0.http2_enabled") {
+		expanded.HTTP20Enabled = utils.Bool(linuxSiteConfig.Http2Enabled)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
 		ipRestrictions, err := ExpandIpRestrictions(linuxSiteConfig.IpRestriction)
@@ -2945,7 +3028,9 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
 
-	expanded.LocalMySQLEnabled = utils.Bool(linuxSiteConfig.LocalMysql)
+	if metadata.ResourceData.HasChange("site_config.0.local_mysql") {
+		expanded.LocalMySQLEnabled = utils.Bool(linuxSiteConfig.LocalMysql)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
 		expanded.LoadBalancing = web.SiteLoadBalancing(linuxSiteConfig.LoadBalancing)
@@ -2955,15 +3040,21 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 		expanded.ManagedPipelineMode = web.ManagedPipelineMode(linuxSiteConfig.ManagedPipelineMode)
 	}
 
-	expanded.RemoteDebuggingEnabled = utils.Bool(linuxSiteConfig.RemoteDebugging)
+	if metadata.ResourceData.HasChange("site_config.0.remote_debugging") {
+		expanded.RemoteDebuggingEnabled = utils.Bool(linuxSiteConfig.RemoteDebugging)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
 		expanded.RemoteDebuggingVersion = utils.String(linuxSiteConfig.RemoteDebuggingVersion)
 	}
 
-	expanded.Use32BitWorkerProcess = utils.Bool(linuxSiteConfig.Use32BitWorker)
+	if metadata.ResourceData.HasChange("site_config.0.use_32_bit_worker") {
+		expanded.Use32BitWorkerProcess = utils.Bool(linuxSiteConfig.Use32BitWorker)
+	}
 
-	expanded.WebSocketsEnabled = utils.Bool(linuxSiteConfig.WebSockets)
+	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
+		expanded.WebSocketsEnabled = utils.Bool(linuxSiteConfig.WebSockets)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
 		expanded.FtpsState = web.FtpsState(linuxSiteConfig.FtpsState)
@@ -2990,13 +3081,25 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
-		expanded.Cors = ExpandCorsSettings(linuxSiteConfig.Cors)
+		cors := ExpandCorsSettings(linuxSiteConfig.Cors)
+		if cors == nil {
+			cors = &web.CorsSettings{
+				AllowedOrigins: &[]string{},
+			}
+		}
+		expanded.Cors = cors
 	}
 
-	expanded.AutoHealEnabled = utils.Bool(linuxSiteConfig.AutoHeal)
+	if metadata.ResourceData.HasChange("site_config.0.auto_heal") {
+		expanded.AutoHealEnabled = utils.Bool(linuxSiteConfig.AutoHeal)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal_setting") {
 		expanded.AutoHealRules = expandAutoHealSettingsLinux(linuxSiteConfig.AutoHealSettings)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+		expanded.VnetRouteAllEnabled = utils.Bool(linuxSiteConfig.VnetRouteAllEnabled)
 	}
 
 	return expanded, nil
@@ -3352,21 +3455,38 @@ func onlyDefaultLoggingConfig(props web.SiteLogsConfigProperties) bool {
 	return true
 }
 
-func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string) []SiteConfigWindows {
+func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string, healthCheckCount *int) []SiteConfigWindows {
 	if appSiteConfig == nil {
 		return nil
 	}
 
 	siteConfig := SiteConfigWindows{
-		ManagedPipelineMode: string(appSiteConfig.ManagedPipelineMode),
-		ScmType:             string(appSiteConfig.ScmType),
-		FtpsState:           string(appSiteConfig.FtpsState),
-		MinTlsVersion:       string(appSiteConfig.MinTLSVersion),
-		ScmMinTlsVersion:    string(appSiteConfig.ScmMinTLSVersion),
-	}
-
-	if appSiteConfig.AlwaysOn != nil {
-		siteConfig.AlwaysOn = *appSiteConfig.AlwaysOn
+		AlwaysOn:                 utils.NormaliseNilableBool(appSiteConfig.AlwaysOn),
+		AppCommandLine:           utils.NormalizeNilableString(appSiteConfig.AppCommandLine),
+		AutoHeal:                 utils.NormaliseNilableBool(appSiteConfig.AutoHealEnabled),
+		AutoHealSettings:         flattenAutoHealSettingsWindows(appSiteConfig.AutoHealRules),
+		ContainerRegistryUserMSI: utils.NormalizeNilableString(appSiteConfig.AcrUserManagedIdentityID),
+		DetailedErrorLogging:     utils.NormaliseNilableBool(appSiteConfig.DetailedErrorLoggingEnabled),
+		FtpsState:                string(appSiteConfig.FtpsState),
+		HealthCheckPath:          utils.NormalizeNilableString(appSiteConfig.HealthCheckPath),
+		HealthCheckEvictionTime:  utils.NormaliseNilableInt(healthCheckCount),
+		Http2Enabled:             utils.NormaliseNilableBool(appSiteConfig.HTTP20Enabled),
+		IpRestriction:            FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions),
+		LoadBalancing:            string(appSiteConfig.LoadBalancing),
+		LocalMysql:               utils.NormaliseNilableBool(appSiteConfig.LocalMySQLEnabled),
+		ManagedPipelineMode:      string(appSiteConfig.ManagedPipelineMode),
+		MinTlsVersion:            string(appSiteConfig.MinTLSVersion),
+		NumberOfWorkers:          int(utils.NormaliseNilableInt32(appSiteConfig.NumberOfWorkers)),
+		RemoteDebugging:          utils.NormaliseNilableBool(appSiteConfig.RemoteDebuggingEnabled),
+		RemoteDebuggingVersion:   strings.ToUpper(utils.NormalizeNilableString(appSiteConfig.RemoteDebuggingVersion)),
+		ScmIpRestriction:         FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions),
+		ScmMinTlsVersion:         string(appSiteConfig.ScmMinTLSVersion),
+		ScmType:                  string(appSiteConfig.ScmType),
+		ScmUseMainIpRestriction:  utils.NormaliseNilableBool(appSiteConfig.ScmIPSecurityRestrictionsUseMain),
+		Use32BitWorker:           utils.NormaliseNilableBool(appSiteConfig.Use32BitWorkerProcess),
+		UseManagedIdentityACR:    utils.NormaliseNilableBool(appSiteConfig.AcrUseManagedIdentityCreds),
+		VirtualApplications:      flattenVirtualApplications(appSiteConfig.VirtualApplications),
+		WebSockets:               utils.NormaliseNilableBool(appSiteConfig.WebSocketsEnabled),
 	}
 
 	if appSiteConfig.APIManagementConfig != nil && appSiteConfig.APIManagementConfig.ID != nil {
@@ -3377,65 +3497,8 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		siteConfig.ApiDefinition = *appSiteConfig.APIDefinition.URL
 	}
 
-	if appSiteConfig.AppCommandLine != nil {
-		siteConfig.AppCommandLine = *appSiteConfig.AppCommandLine
-	}
-
 	if appSiteConfig.DefaultDocuments != nil {
 		siteConfig.DefaultDocuments = *appSiteConfig.DefaultDocuments
-	}
-
-	if appSiteConfig.AcrUseManagedIdentityCreds != nil {
-		siteConfig.UseManagedIdentityACR = *appSiteConfig.AcrUseManagedIdentityCreds
-	}
-
-	siteConfig.ContainerRegistryUserMSI = utils.NormalizeNilableString(appSiteConfig.AcrUserManagedIdentityID)
-
-	if v := appSiteConfig.DetailedErrorLoggingEnabled; v != nil {
-		siteConfig.DetailedErrorLogging = *v
-	}
-
-	if v := appSiteConfig.HTTP20Enabled; v != nil {
-		siteConfig.Http2Enabled = *v
-	}
-
-	if appSiteConfig.IPSecurityRestrictions != nil {
-		siteConfig.IpRestriction = FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions)
-	}
-
-	if v := appSiteConfig.ScmIPSecurityRestrictionsUseMain; v != nil {
-		siteConfig.ScmUseMainIpRestriction = *v
-	}
-
-	if appSiteConfig.ScmIPSecurityRestrictions != nil {
-		siteConfig.ScmIpRestriction = FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions)
-	}
-
-	if v := appSiteConfig.LocalMySQLEnabled; v != nil {
-		siteConfig.LocalMysql = *v
-	}
-
-	siteConfig.LoadBalancing = string(appSiteConfig.LoadBalancing)
-
-	if v := appSiteConfig.RemoteDebuggingEnabled; v != nil {
-		siteConfig.RemoteDebugging = *v
-	}
-
-	if appSiteConfig.RemoteDebuggingVersion != nil {
-		// Note - this response is sometimes returned in lower case, so to avoid a diff func we ToUpper it here
-		siteConfig.RemoteDebuggingVersion = strings.ToUpper(*appSiteConfig.RemoteDebuggingVersion)
-	}
-
-	if appSiteConfig.Use32BitWorkerProcess != nil {
-		siteConfig.Use32BitWorker = *appSiteConfig.Use32BitWorkerProcess
-	}
-
-	if appSiteConfig.WebSocketsEnabled != nil {
-		siteConfig.WebSockets = *appSiteConfig.WebSocketsEnabled
-	}
-
-	if appSiteConfig.HealthCheckPath != nil {
-		siteConfig.HealthCheckPath = *appSiteConfig.HealthCheckPath
 	}
 
 	if appSiteConfig.NumberOfWorkers != nil {
@@ -3464,10 +3527,6 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 
 	siteConfig.ApplicationStack = []ApplicationStackWindows{winAppStack}
 
-	siteConfig.VirtualApplications = flattenVirtualApplications(appSiteConfig.VirtualApplications)
-
-	siteConfig.AutoSwapSlotName = utils.NormalizeNilableString(appSiteConfig.AutoSwapSlotName)
-
 	if appSiteConfig.Cors != nil {
 		cors := CorsSetting{}
 		corsSettings := appSiteConfig.Cors
@@ -3475,38 +3534,47 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 			cors.SupportCredentials = *corsSettings.SupportCredentials
 		}
 
-		if corsSettings.AllowedOrigins != nil {
+		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
+			siteConfig.Cors = []CorsSetting{cors}
 		}
-		siteConfig.Cors = []CorsSetting{cors}
 	}
-
-	autoHeal := false
-	if appSiteConfig.AutoHealEnabled != nil {
-		autoHeal = *appSiteConfig.AutoHealEnabled
-	}
-	siteConfig.AutoHeal = autoHeal
-
-	siteConfig.AutoHealSettings = flattenAutoHealSettingsWindows(appSiteConfig.AutoHealRules)
 
 	return []SiteConfigWindows{siteConfig}
 }
 
-func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
+func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int) []SiteConfigLinux {
 	if appSiteConfig == nil {
 		return nil
 	}
 
 	siteConfig := SiteConfigLinux{
-		ManagedPipelineMode: string(appSiteConfig.ManagedPipelineMode),
-		ScmType:             string(appSiteConfig.ScmType),
-		FtpsState:           string(appSiteConfig.FtpsState),
-		MinTlsVersion:       string(appSiteConfig.MinTLSVersion),
-		ScmMinTlsVersion:    string(appSiteConfig.ScmMinTLSVersion),
-	}
-
-	if appSiteConfig.AlwaysOn != nil {
-		siteConfig.AlwaysOn = *appSiteConfig.AlwaysOn
+		AlwaysOn:                utils.NormaliseNilableBool(appSiteConfig.AlwaysOn),
+		AppCommandLine:          utils.NormalizeNilableString(appSiteConfig.AppCommandLine),
+		AutoHeal:                utils.NormaliseNilableBool(appSiteConfig.AutoHealEnabled),
+		AutoHealSettings:        flattenAutoHealSettingsLinux(appSiteConfig.AutoHealRules),
+		ContainerRegistryMSI:    utils.NormalizeNilableString(appSiteConfig.AcrUserManagedIdentityID),
+		DetailedErrorLogging:    utils.NormaliseNilableBool(appSiteConfig.DetailedErrorLoggingEnabled),
+		Http2Enabled:            utils.NormaliseNilableBool(appSiteConfig.HTTP20Enabled),
+		IpRestriction:           FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions),
+		ManagedPipelineMode:     string(appSiteConfig.ManagedPipelineMode),
+		ScmType:                 string(appSiteConfig.ScmType),
+		FtpsState:               string(appSiteConfig.FtpsState),
+		HealthCheckPath:         utils.NormalizeNilableString(appSiteConfig.HealthCheckPath),
+		HealthCheckEvictionTime: utils.NormaliseNilableInt(healthCheckCount),
+		LoadBalancing:           string(appSiteConfig.LoadBalancing),
+		LocalMysql:              utils.NormaliseNilableBool(appSiteConfig.LocalMySQLEnabled),
+		MinTlsVersion:           string(appSiteConfig.MinTLSVersion),
+		NumberOfWorkers:         int(utils.NormaliseNilableInt32(appSiteConfig.NumberOfWorkers)),
+		RemoteDebugging:         utils.NormaliseNilableBool(appSiteConfig.RemoteDebuggingEnabled),
+		RemoteDebuggingVersion:  strings.ToUpper(utils.NormalizeNilableString(appSiteConfig.RemoteDebuggingVersion)),
+		ScmIpRestriction:        FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions),
+		ScmMinTlsVersion:        string(appSiteConfig.ScmMinTLSVersion),
+		ScmUseMainIpRestriction: utils.NormaliseNilableBool(appSiteConfig.ScmIPSecurityRestrictionsUseMain),
+		Use32BitWorker:          utils.NormaliseNilableBool(appSiteConfig.Use32BitWorkerProcess),
+		UseManagedIdentityACR:   utils.NormaliseNilableBool(appSiteConfig.AcrUseManagedIdentityCreds),
+		WebSockets:              utils.NormaliseNilableBool(appSiteConfig.WebSocketsEnabled),
+		VnetRouteAllEnabled:     utils.NormaliseNilableBool(appSiteConfig.VnetRouteAllEnabled),
 	}
 
 	if appSiteConfig.APIManagementConfig != nil && appSiteConfig.APIManagementConfig.ID != nil {
@@ -3517,71 +3585,8 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
 		siteConfig.ApiDefinition = *appSiteConfig.APIDefinition.URL
 	}
 
-	if appSiteConfig.AppCommandLine != nil {
-		siteConfig.AppCommandLine = *appSiteConfig.AppCommandLine
-	}
-
-	if appSiteConfig.AcrUseManagedIdentityCreds != nil {
-		siteConfig.UseManagedIdentityACR = *appSiteConfig.AcrUseManagedIdentityCreds
-	}
-
-	if appSiteConfig.AcrUseManagedIdentityCreds != nil && *appSiteConfig.AcrUseManagedIdentityCreds && appSiteConfig.AcrUserManagedIdentityID != nil {
-		siteConfig.ContainerRegistryMSI = *appSiteConfig.AcrUserManagedIdentityID
-	}
-
 	if appSiteConfig.DefaultDocuments != nil {
 		siteConfig.DefaultDocuments = *appSiteConfig.DefaultDocuments
-	}
-
-	if appSiteConfig.DetailedErrorLoggingEnabled != nil {
-		siteConfig.DetailedErrorLogging = *appSiteConfig.DetailedErrorLoggingEnabled
-	}
-
-	if appSiteConfig.HTTP20Enabled != nil {
-		siteConfig.Http2Enabled = *appSiteConfig.HTTP20Enabled
-	}
-
-	if appSiteConfig.IPSecurityRestrictions != nil {
-		siteConfig.IpRestriction = FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions)
-	}
-
-	if appSiteConfig.ScmIPSecurityRestrictionsUseMain != nil {
-		siteConfig.ScmUseMainIpRestriction = *appSiteConfig.ScmIPSecurityRestrictionsUseMain
-	}
-
-	if appSiteConfig.ScmIPSecurityRestrictions != nil {
-		siteConfig.ScmIpRestriction = FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions)
-	}
-
-	if appSiteConfig.LocalMySQLEnabled != nil {
-		siteConfig.LocalMysql = *appSiteConfig.LocalMySQLEnabled
-	}
-
-	siteConfig.LoadBalancing = string(appSiteConfig.LoadBalancing)
-
-	if appSiteConfig.RemoteDebuggingEnabled != nil {
-		siteConfig.RemoteDebugging = *appSiteConfig.RemoteDebuggingEnabled
-	}
-
-	if appSiteConfig.RemoteDebuggingVersion != nil {
-		// Note - This is sometimes returned in lower case, so we ToUpper it to avoid the need for a diff suppression
-		siteConfig.RemoteDebuggingVersion = strings.ToUpper(*appSiteConfig.RemoteDebuggingVersion)
-	}
-
-	if appSiteConfig.Use32BitWorkerProcess != nil {
-		siteConfig.Use32BitWorker = *appSiteConfig.Use32BitWorkerProcess
-	}
-
-	if appSiteConfig.WebSocketsEnabled != nil {
-		siteConfig.WebSockets = *appSiteConfig.WebSocketsEnabled
-	}
-
-	if appSiteConfig.HealthCheckPath != nil {
-		siteConfig.HealthCheckPath = *appSiteConfig.HealthCheckPath
-	}
-
-	if appSiteConfig.NumberOfWorkers != nil {
-		siteConfig.NumberOfWorkers = int(*appSiteConfig.NumberOfWorkers)
 	}
 
 	if appSiteConfig.LinuxFxVersion != nil {
@@ -3592,14 +3597,6 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
 		siteConfig.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
 	}
 
-	if appSiteConfig.LinuxFxVersion != nil {
-		siteConfig.LinuxFxVersion = *appSiteConfig.LinuxFxVersion
-	}
-
-	if appSiteConfig.AutoSwapSlotName != nil {
-		siteConfig.AutoSwapSlotName = *appSiteConfig.AutoSwapSlotName
-	}
-
 	if appSiteConfig.Cors != nil {
 		corsSettings := appSiteConfig.Cors
 		cors := CorsSetting{}
@@ -3607,17 +3604,11 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
 			cors.SupportCredentials = *corsSettings.SupportCredentials
 		}
 
-		if corsSettings.AllowedOrigins != nil {
+		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
+			siteConfig.Cors = []CorsSetting{cors}
 		}
-		siteConfig.Cors = []CorsSetting{cors}
 	}
-
-	if appSiteConfig.AutoHealEnabled != nil {
-		siteConfig.AutoHeal = *appSiteConfig.AutoHealEnabled
-	}
-
-	siteConfig.AutoHealSettings = flattenAutoHealSettingsLinux(appSiteConfig.AutoHealRules)
 
 	return []SiteConfigLinux{siteConfig}
 }
@@ -3684,22 +3675,29 @@ func ExpandAppSettings(settings map[string]string) *web.StringDictionary {
 	}
 }
 
-func FlattenAppSettings(input web.StringDictionary) map[string]string {
+func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {
+	maxPingFailures := "WEBSITE_HEALTHCHECK_MAXPINGFAILURE"
 	unmanagedSettings := []string{
 		"DIAGNOSTICS_AZUREBLOBCONTAINERSASURL",
 		"DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS",
 		"WEBSITE_HTTPLOGGING_CONTAINER_URL",
 		"WEBSITE_HTTPLOGGING_RETENTION_DAYS",
+		maxPingFailures,
 	}
 
+	var healthCheckCount *int
 	appSettings := FlattenWebStringDictionary(input)
+	if v, ok := appSettings[maxPingFailures]; ok {
+		h, _ := strconv.Atoi(v)
+		healthCheckCount = &h
+	}
 
 	// Remove the settings the service adds for legacy reasons when logging settings are specified.
 	for _, v := range unmanagedSettings { //nolint:typecheck
 		delete(appSettings, v)
 	}
 
-	return appSettings
+	return appSettings, healthCheckCount
 }
 
 func flattenVirtualApplications(appVirtualApplications *[]web.VirtualApplication) []VirtualApplication {

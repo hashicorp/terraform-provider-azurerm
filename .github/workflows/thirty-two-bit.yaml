@@ -8,16 +8,18 @@ on:
       - 'vendor/**'
       - '.github/workflows/**'
 
+concurrency:
+  group: 'thirtytwo-${{ github.head_ref }}'
+  cancel-in-progress: true
+
 jobs:
   compatibility-32bit-test:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
-          go-version: '1.16.7'
+          go-version: '1.17.3'
       - run: bash scripts/gogetcookie.sh
       - run: make tools
       - run: GOARCH=386 GOOS=linux go build -o 32bitbuild .

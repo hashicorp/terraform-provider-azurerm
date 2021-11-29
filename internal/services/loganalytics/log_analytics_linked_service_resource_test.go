@@ -6,10 +6,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -102,18 +102,14 @@ func TestAccLogAnalyticsLinkedService_withWriteAccessResourceId(t *testing.T) {
 }
 
 func (t LogAnalyticsLinkedServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.LogAnalyticsLinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceGroup := id.ResourceGroup
-	workspaceName := id.Path["workspaces"]
-	serviceType := id.Path["linkedServices"]
-
-	resp, err := clients.LogAnalytics.LinkedServicesClient.Get(ctx, resourceGroup, workspaceName, serviceType)
+	resp, err := clients.LogAnalytics.LinkedServicesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.LinkedServiceName)
 	if err != nil {
-		return nil, fmt.Errorf("readingLog Analytics Linked Service (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

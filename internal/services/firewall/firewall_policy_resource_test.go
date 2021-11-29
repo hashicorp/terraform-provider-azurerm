@@ -245,7 +245,7 @@ resource "azurerm_firewall_policy" "test" {
   location                 = azurerm_resource_group.test.location
   threat_intelligence_mode = "Off"
   threat_intelligence_allowlist {
-    ip_addresses = ["1.1.1.1", "2.2.2.2"]
+    ip_addresses = ["1.1.1.1", "2.2.2.2", "10.0.0.0/16"]
     fqdns        = ["foo.com", "bar.com"]
   }
   dns {
@@ -271,7 +271,7 @@ resource "azurerm_firewall_policy" "test" {
   sku                      = "Premium"
   threat_intelligence_mode = "Off"
   threat_intelligence_allowlist {
-    ip_addresses = ["1.1.1.1", "2.2.2.2"]
+    ip_addresses = ["1.1.1.1", "2.2.2.2", "10.0.0.0/16"]
     fqdns        = ["foo.com", "bar.com"]
   }
   dns {

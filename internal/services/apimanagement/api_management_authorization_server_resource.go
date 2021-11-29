@@ -23,8 +23,10 @@ func resourceApiManagementAuthorizationServer() *pluginsdk.Resource {
 		Read:   resourceApiManagementAuthorizationServerRead,
 		Update: resourceApiManagementAuthorizationServerCreateUpdate,
 		Delete: resourceApiManagementAuthorizationServerDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.AuthorizationServerID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -186,18 +188,17 @@ func resourceApiManagementAuthorizationServer() *pluginsdk.Resource {
 
 func resourceApiManagementAuthorizationServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.AuthorizationServersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("api_management_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewAuthorizationServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Authorization Server %q (API Management Service %q / Resource Group %q): %s", name, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -261,20 +262,12 @@ func resourceApiManagementAuthorizationServerCreateUpdate(d *pluginsdk.ResourceD
 		params.AuthorizationServerContractProperties.TokenEndpoint = utils.String(tokenEndpoint)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, params, ""); err != nil {
-		return fmt.Errorf("creating/updating Authorization Server %q (API Management Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.Name, params, ""); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, serviceName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Authorization Server %q (API Management Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
-	}
+	d.SetId(id.ID())
 
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID for Authorization Server %q (API Management Service %q / Resource Group %q)", name, serviceName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
 	return resourceApiManagementAuthorizationServerRead(d, meta)
 }
 
@@ -288,24 +281,20 @@ func resourceApiManagementAuthorizationServerRead(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	name := id.Name
-
-	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Authorization Server %q (API Management Service %q / Resource Group %q) does not exist - removing from state!", name, serviceName, resourceGroup)
+			log.Printf("[DEBUG] %s does not exist - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Authorization Server %q (API Management Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("api_management_name", serviceName)
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("api_management_name", id.ServiceName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.AuthorizationServerContractProperties; props != nil {
 		d.Set("authorization_endpoint", props.AuthorizationEndpoint)
@@ -355,13 +344,9 @@ func resourceApiManagementAuthorizationServerDelete(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	name := id.Name
-
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting Authorization Server %q (API Management Service %q / Resource Group %q): %s", name, serviceName, resourceGroup, err)
+			return fmt.Errorf("deleting %s: %s", *id, err)
 		}
 	}
 

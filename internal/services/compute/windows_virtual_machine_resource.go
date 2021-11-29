@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -242,6 +242,12 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			"secret": windowsSecretSchema(),
 
+			"secure_boot_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"source_image_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -280,6 +286,12 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ForceNew:     true,
 				RequiredWith: []string{"virtual_machine_scale_set_id"},
 				ValidateFunc: validation.IntAtLeast(-1),
+			},
+
+			"vtpm_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"winrm_listener": winRmListenerSchema(),
@@ -480,19 +492,53 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
-		params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
-			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
+		if params.SecurityProfile == nil {
+			params.SecurityProfile = &compute.SecurityProfile{}
 		}
+		params.SecurityProfile.EncryptionAtHost = utils.Bool(encryptionAtHostEnabled.(bool))
+	}
+
+	if securebootEnabled, ok := d.GetOk("secure_boot_enabled"); ok {
+		if params.SecurityProfile == nil {
+			params.SecurityProfile = &compute.SecurityProfile{}
+		}
+
+		if params.SecurityProfile.UefiSettings == nil {
+			params.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		}
+
+		secureboot := d.Get("secure_boot_enabled").(bool)
+		if secureboot {
+			params.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+		}
+
+		params.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(securebootEnabled.(bool))
+	}
+
+	if vtpmEnabled, ok := d.GetOk("vtpm_enabled"); ok {
+		if params.SecurityProfile == nil {
+			params.SecurityProfile = &compute.SecurityProfile{}
+		}
+
+		if params.SecurityProfile.UefiSettings == nil {
+			params.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		}
+		vtpm := d.Get("vtpm_enabled").(bool)
+		if vtpm {
+			params.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+		}
+
+		params.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled.(bool))
 	}
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
 		if params.Priority != compute.VirtualMachinePriorityTypesSpot {
-			return fmt.Errorf("An `eviction_policy` can only be specified when `priority` is set to `Spot`")
+			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 
 		params.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string))
 	} else if priority == compute.VirtualMachinePriorityTypesSpot {
-		return fmt.Errorf("An `eviction_policy` must be specified when `priority` is set to `Spot`")
+		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
 	if v, ok := d.GetOk("license_type"); ok {
@@ -725,10 +771,26 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	encryptionAtHostEnabled := false
-	if props.SecurityProfile != nil && props.SecurityProfile.EncryptionAtHost != nil {
-		encryptionAtHostEnabled = *props.SecurityProfile.EncryptionAtHost
+	vtpmEnabled := false
+	secureBootEnabled := false
+
+	if secprofile := props.SecurityProfile; secprofile != nil {
+		if secprofile.EncryptionAtHost != nil {
+			encryptionAtHostEnabled = *secprofile.EncryptionAtHost
+		}
+		if uefi := props.SecurityProfile.UefiSettings; uefi != nil {
+			if uefi.VTpmEnabled != nil {
+				vtpmEnabled = *uefi.VTpmEnabled
+			}
+			if uefi.SecureBootEnabled != nil {
+				secureBootEnabled = *uefi.SecureBootEnabled
+			}
+		}
 	}
+
 	d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
+	d.Set("vtpm_enabled", vtpmEnabled)
+	d.Set("secure_boot_enabled", secureBootEnabled)
 
 	d.Set("virtual_machine_id", props.VMID)
 
@@ -1009,10 +1071,11 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	if d.HasChange("encryption_at_host_enabled") {
 		shouldUpdate = true
 		shouldDeallocate = true // API returns the following error if not deallocate: 'securityProfile.encryptionAtHost' can be updated only when VM is in deallocated state
-
-		update.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
-			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
+		if update.SecurityProfile == nil {
+			update.SecurityProfile = &compute.SecurityProfile{}
 		}
+		update.SecurityProfile.EncryptionAtHost = utils.Bool(d.Get("encryption_at_host_enabled").(bool))
+
 	}
 
 	if d.HasChange("license_type") {
@@ -1076,9 +1139,10 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	if shouldDeallocate {
 		if !hasEphemeralOSDisk {
 			log.Printf("[DEBUG] Deallocating Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-			future, err := client.Deallocate(ctx, id.ResourceGroup, id.Name)
+			// Upgrading to the 2021-07-01 exposed a new hibernate parameter in the Deallocate method
+			future, err := client.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
 			if err != nil {
-				return fmt.Errorf("Deallocating Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("deallocating Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -1125,12 +1189,17 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			diskName := d.Get("os_disk.0.name").(string)
 			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %q..", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
 
+			encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
+			if err != nil {
+				return err
+			}
+
 			disksClient := meta.(*clients.Client).Compute.DisksClient
 
 			update := compute.DiskUpdate{
 				DiskUpdateProperties: &compute.DiskUpdateProperties{
 					Encryption: &compute.Encryption{
-						Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
+						Type:                *encryptionType,
 						DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 					},
 				},
@@ -1147,7 +1216,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 
 			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %q.", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
 		} else {
-			return fmt.Errorf("Once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
+			return fmt.Errorf("once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
 		}
 	}
 

@@ -7,102 +7,118 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+var _ resourceids.ResourceId = WorkspaceId{}
+
+// WorkspaceId is a struct representing the Resource ID for a Workspace
 type WorkspaceId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	Name           string
+	SubscriptionId    string
+	ResourceGroupName string
+	WorkspaceName     string
 }
 
-func NewWorkspaceID(subscriptionId, resourceGroup, name string) WorkspaceId {
+// NewWorkspaceID returns a new WorkspaceId struct
+func NewWorkspaceID(subscriptionId string, resourceGroupName string, workspaceName string) WorkspaceId {
 	return WorkspaceId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourceGroup,
-		Name:           name,
+		SubscriptionId:    subscriptionId,
+		ResourceGroupName: resourceGroupName,
+		WorkspaceName:     workspaceName,
 	}
 }
 
-func (id WorkspaceId) String() string {
-	segments := []string{
-		fmt.Sprintf("Name %q", id.Name),
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+// ParseWorkspaceID parses 'input' into a WorkspaceId
+func ParseWorkspaceID(input string) (*WorkspaceId, error) {
+	parser := resourceids.NewParserFromResourceIdType(WorkspaceId{})
+	parsed, err := parser.Parse(input, false)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
-	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Workspace", segmentsStr)
+
+	var ok bool
+	id := WorkspaceId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'workspaceName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
 }
 
+// ParseWorkspaceIDInsensitively parses 'input' case-insensitively into a WorkspaceId
+// note: this method should only be used for API response data and not user input
+func ParseWorkspaceIDInsensitively(input string) (*WorkspaceId, error) {
+	parser := resourceids.NewParserFromResourceIdType(WorkspaceId{})
+	parsed, err := parser.Parse(input, true)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	var ok bool
+	id := WorkspaceId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'workspaceName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
+}
+
+// ValidateWorkspaceID checks that 'input' can be parsed as a Workspace ID
+func ValidateWorkspaceID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	if _, err := ParseWorkspaceID(v); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
+}
+
+// ID returns the formatted Workspace ID
 func (id WorkspaceId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Databricks/workspaces/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 }
 
-// ParseWorkspaceID parses a Workspace ID into an WorkspaceId struct
-func ParseWorkspaceID(input string) (*WorkspaceId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// Segments returns a slice of Resource ID Segments which comprise this Workspace ID
+func (id WorkspaceId) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
+		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
+		resourceids.StaticSegment("resourceGroups", "resourceGroups", "resourceGroups"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
+		resourceids.StaticSegment("providers", "providers", "providers"),
+		resourceids.ResourceProviderSegment("microsoftDatabricks", "Microsoft.Databricks", "Microsoft.Databricks"),
+		resourceids.StaticSegment("workspaces", "workspaces", "workspaces"),
+		resourceids.UserSpecifiedSegment("workspaceName", "workspaceValue"),
 	}
-
-	resourceId := WorkspaceId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	if resourceId.Name, err = id.PopSegment("workspaces"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
 }
 
-// ParseWorkspaceIDInsensitively parses an Workspace ID into an WorkspaceId struct, insensitively
-// This should only be used to parse an ID for rewriting to a consistent casing,
-// the ParseWorkspaceID method should be used instead for validation etc.
-func ParseWorkspaceIDInsensitively(input string) (*WorkspaceId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// String returns a human-readable description of this Workspace ID
+func (id WorkspaceId) String() string {
+	components := []string{
+		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
+		fmt.Sprintf("Workspace Name: %q", id.WorkspaceName),
 	}
-
-	resourceId := WorkspaceId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	// find the correct casing for the 'workspaces' segment
-	workspacesKey := "workspaces"
-	for key := range id.Path {
-		if strings.EqualFold(key, workspacesKey) {
-			workspacesKey = key
-			break
-		}
-	}
-	if resourceId.Name, err = id.PopSegment(workspacesKey); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
+	return fmt.Sprintf("Workspace (%s)", strings.Join(components, "\n"))
 }

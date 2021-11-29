@@ -265,6 +265,10 @@ func eventSubscriptionSchemaStorageQueueEndpoint(conflictsWith []string) *plugin
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+				"queue_message_time_to_live_in_seconds": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+				},
 			},
 		},
 	}
@@ -833,7 +837,12 @@ func eventSubscriptionSchemaIdentity() *schema.Schema {
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(eventgrid.SystemAssigned),
+						string(eventgrid.UserAssigned),
 					}, false),
+				},
+				"user_assigned_identity": {
+					Type:     schema.TypeString,
+					Optional: true,
 				},
 			},
 		},
@@ -929,13 +938,19 @@ func expandEventGridEventSubscriptionStorageQueueEndpoint(d *pluginsdk.ResourceD
 	props := d.Get("storage_queue_endpoint").([]interface{})[0].(map[string]interface{})
 	storageAccountID := props["storage_account_id"].(string)
 	queueName := props["queue_name"].(string)
+	storageQueueEventSubscriptionDestinationProperties := &eventgrid.StorageQueueEventSubscriptionDestinationProperties{
+		ResourceID: &storageAccountID,
+		QueueName:  &queueName,
+	}
+
+	if v, ok := d.GetOk("storage_queue_endpoint.0.queue_message_time_to_live_in_seconds"); ok {
+		queueMessageTimeToLiveInSeconds := int64(v.(int))
+		storageQueueEventSubscriptionDestinationProperties.QueueMessageTimeToLiveInSeconds = &queueMessageTimeToLiveInSeconds
+	}
 
 	return eventgrid.StorageQueueEventSubscriptionDestination{
 		EndpointType: eventgrid.EndpointTypeStorageQueue,
-		StorageQueueEventSubscriptionDestinationProperties: &eventgrid.StorageQueueEventSubscriptionDestinationProperties{
-			ResourceID: &storageAccountID,
-			QueueName:  &queueName,
-		},
+		StorageQueueEventSubscriptionDestinationProperties: storageQueueEventSubscriptionDestinationProperties,
 	}
 }
 
@@ -1244,20 +1259,27 @@ func expandEventGridEventSubscriptionRetryPolicy(d *pluginsdk.ResourceData) *eve
 	return nil
 }
 
-func expandEventGridEventSubscriptionIdentity(input []interface{}) *eventgrid.EventSubscriptionIdentity {
+func expandEventGridEventSubscriptionIdentity(input []interface{}) (*eventgrid.EventSubscriptionIdentity, error) {
 	if len(input) == 0 || input[0] == nil {
 		return &eventgrid.EventSubscriptionIdentity{
 			Type: eventgrid.EventSubscriptionIdentityType("None"),
-		}
+		}, nil
 	}
+
 	identity := input[0].(map[string]interface{})
 	identityType := eventgrid.EventSubscriptionIdentityType(identity["type"].(string))
-
 	eventgridIdentity := eventgrid.EventSubscriptionIdentity{
 		Type: identityType,
 	}
 
-	return &eventgridIdentity
+	userAssignedIdentity := identity["user_assigned_identity"].(string)
+	if identityType == eventgrid.UserAssigned {
+		eventgridIdentity.UserAssignedIdentity = utils.String(userAssignedIdentity)
+	} else if len(userAssignedIdentity) > 0 {
+		return nil, fmt.Errorf("`user_assigned_identity` can only be specified when `type` is `UserAssigned`; but `type` is currently %q", identityType)
+	}
+
+	return &eventgridIdentity, nil
 }
 
 func flattenEventGridEventSubscriptionEventhubEndpoint(input *eventgrid.EventHubEventSubscriptionDestination) []interface{} {
@@ -1353,6 +1375,10 @@ func flattenEventGridEventSubscriptionStorageQueueEndpoint(input *eventgrid.Stor
 	}
 	if input.QueueName != nil {
 		result["queue_name"] = *input.QueueName
+	}
+
+	if input.QueueMessageTimeToLiveInSeconds != nil {
+		result["queue_message_time_to_live_in_seconds"] = *input.QueueMessageTimeToLiveInSeconds
 	}
 
 	return []interface{}{result}
@@ -1663,9 +1689,15 @@ func flattenEventGridEventSubscriptionIdentity(input *eventgrid.EventSubscriptio
 		return []interface{}{}
 	}
 
+	result := map[string]interface{}{
+		"type": string(input.Type),
+	}
+
+	if input.UserAssignedIdentity != nil {
+		result["user_assigned_identity"] = *input.UserAssignedIdentity
+	}
+
 	return []interface{}{
-		map[string]interface{}{
-			"type": string(input.Type),
-		},
+		result,
 	}
 }

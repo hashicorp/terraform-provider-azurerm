@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -336,7 +337,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 							Optional: true,
 							Default:  string(frontdoors.FrontDoorHealthProbeMethodGET),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(frontdoors.FrontDoorProtocolHttp),
+								string(frontdoors.FrontDoorHealthProbeMethodGET),
 								string(frontdoors.FrontDoorHealthProbeMethodHEAD),
 							}, false),
 						},
@@ -617,7 +618,7 @@ func resourceFrontDoorCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 			LoadBalancingSettings: expandFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, id),
 			EnabledState:          &enabledState,
 		},
-		Tags: expandTags(t),
+		Tags: tagsHelper.Expand(t),
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, frontDoorParameters); err != nil {
@@ -710,7 +711,7 @@ func resourceFrontDoorUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	if d.HasChanges("tags") {
-		existingModel.Tags = expandTags(d.Get("tags").(map[string]interface{}))
+		existingModel.Tags = tagsHelper.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	// If the explicitResourceOrder is empty and it's not a new resource set the mapping table to the state file and return an error.
@@ -904,7 +905,7 @@ func resourceFrontDoorRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 		}
 
-		return tags.FlattenAndSet(d, flattenTags(model.Tags))
+		return tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags))
 	}
 
 	return nil

@@ -59,8 +59,8 @@ func dataSourceEventHubClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ClusterName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		d.Set("sku_name", flattenEventHubClusterSkuName(model.Sku))

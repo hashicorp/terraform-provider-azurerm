@@ -61,7 +61,7 @@ Further [usage documentation is available on the Terraform website](https://regi
 ## Developer Requirements
 
 * [Terraform](https://www.terraform.io/downloads.html) version 0.12.x + (but 1.x is recommended)
-* [Go](https://golang.org/doc/install) version 1.16.x (to build the provider plugin)
+* [Go](https://golang.org/doc/install) version 1.17.x (to build the provider plugin)
 
 ### On Windows
 

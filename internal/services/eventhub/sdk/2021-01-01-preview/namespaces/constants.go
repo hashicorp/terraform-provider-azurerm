@@ -1,5 +1,7 @@
 package namespaces
 
+import "strings"
+
 type CreatedByType string
 
 const (
@@ -8,6 +10,31 @@ const (
 	CreatedByTypeManagedIdentity CreatedByType = "ManagedIdentity"
 	CreatedByTypeUser            CreatedByType = "User"
 )
+
+func PossibleValuesForCreatedByType() []string {
+	return []string{
+		string(CreatedByTypeApplication),
+		string(CreatedByTypeKey),
+		string(CreatedByTypeManagedIdentity),
+		string(CreatedByTypeUser),
+	}
+}
+
+func parseCreatedByType(input string) (*CreatedByType, error) {
+	vals := map[string]CreatedByType{
+		"application":     CreatedByTypeApplication,
+		"key":             CreatedByTypeKey,
+		"managedidentity": CreatedByTypeManagedIdentity,
+		"user":            CreatedByTypeUser,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := CreatedByType(input)
+	return &out, nil
+}
 
 type EndPointProvisioningState string
 
@@ -20,11 +47,59 @@ const (
 	EndPointProvisioningStateUpdating  EndPointProvisioningState = "Updating"
 )
 
+func PossibleValuesForEndPointProvisioningState() []string {
+	return []string{
+		string(EndPointProvisioningStateCanceled),
+		string(EndPointProvisioningStateCreating),
+		string(EndPointProvisioningStateDeleting),
+		string(EndPointProvisioningStateFailed),
+		string(EndPointProvisioningStateSucceeded),
+		string(EndPointProvisioningStateUpdating),
+	}
+}
+
+func parseEndPointProvisioningState(input string) (*EndPointProvisioningState, error) {
+	vals := map[string]EndPointProvisioningState{
+		"canceled":  EndPointProvisioningStateCanceled,
+		"creating":  EndPointProvisioningStateCreating,
+		"deleting":  EndPointProvisioningStateDeleting,
+		"failed":    EndPointProvisioningStateFailed,
+		"succeeded": EndPointProvisioningStateSucceeded,
+		"updating":  EndPointProvisioningStateUpdating,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := EndPointProvisioningState(input)
+	return &out, nil
+}
+
 type KeySource string
 
 const (
 	KeySourceMicrosoftPointKeyVault KeySource = "Microsoft.KeyVault"
 )
+
+func PossibleValuesForKeySource() []string {
+	return []string{
+		string(KeySourceMicrosoftPointKeyVault),
+	}
+}
+
+func parseKeySource(input string) (*KeySource, error) {
+	vals := map[string]KeySource{
+		"microsoft.keyvault": KeySourceMicrosoftPointKeyVault,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := KeySource(input)
+	return &out, nil
+}
 
 type PrivateLinkConnectionStatus string
 
@@ -35,6 +110,31 @@ const (
 	PrivateLinkConnectionStatusRejected     PrivateLinkConnectionStatus = "Rejected"
 )
 
+func PossibleValuesForPrivateLinkConnectionStatus() []string {
+	return []string{
+		string(PrivateLinkConnectionStatusApproved),
+		string(PrivateLinkConnectionStatusDisconnected),
+		string(PrivateLinkConnectionStatusPending),
+		string(PrivateLinkConnectionStatusRejected),
+	}
+}
+
+func parsePrivateLinkConnectionStatus(input string) (*PrivateLinkConnectionStatus, error) {
+	vals := map[string]PrivateLinkConnectionStatus{
+		"approved":     PrivateLinkConnectionStatusApproved,
+		"disconnected": PrivateLinkConnectionStatusDisconnected,
+		"pending":      PrivateLinkConnectionStatusPending,
+		"rejected":     PrivateLinkConnectionStatusRejected,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := PrivateLinkConnectionStatus(input)
+	return &out, nil
+}
+
 type SkuName string
 
 const (
@@ -43,6 +143,29 @@ const (
 	SkuNameStandard SkuName = "Standard"
 )
 
+func PossibleValuesForSkuName() []string {
+	return []string{
+		string(SkuNameBasic),
+		string(SkuNamePremium),
+		string(SkuNameStandard),
+	}
+}
+
+func parseSkuName(input string) (*SkuName, error) {
+	vals := map[string]SkuName{
+		"basic":    SkuNameBasic,
+		"premium":  SkuNamePremium,
+		"standard": SkuNameStandard,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := SkuName(input)
+	return &out, nil
+}
+
 type SkuTier string
 
 const (
@@ -50,3 +173,26 @@ const (
 	SkuTierPremium  SkuTier = "Premium"
 	SkuTierStandard SkuTier = "Standard"
 )
+
+func PossibleValuesForSkuTier() []string {
+	return []string{
+		string(SkuTierBasic),
+		string(SkuTierPremium),
+		string(SkuTierStandard),
+	}
+}
+
+func parseSkuTier(input string) (*SkuTier, error) {
+	vals := map[string]SkuTier{
+		"basic":    SkuTierBasic,
+		"premium":  SkuTierPremium,
+		"standard": SkuTierStandard,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := SkuTier(input)
+	return &out, nil
+}

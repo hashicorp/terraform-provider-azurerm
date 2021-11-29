@@ -129,7 +129,7 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.Any(validation.IsIPv4Range, validation.IsIPv4Address),
+								ValidateFunc: validation.Any(validation.IsCIDR, validation.IsIPv4Address),
 							},
 							AtLeastOneOf: []string{"threat_intelligence_allowlist.0.ip_addresses", "threat_intelligence_allowlist.0.fqdns"},
 						},

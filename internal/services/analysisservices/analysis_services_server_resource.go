@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -161,7 +162,7 @@ func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interf
 			Name: d.Get("sku").(string),
 		},
 		Properties: serverProperties,
-		Tags:       expandTags(d.Get("tags").(map[string]interface{})),
+		Tags:       tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.CreateThenPoll(ctx, id, analysisServicesServer); err != nil {
@@ -224,7 +225,7 @@ func resourceAnalysisServicesServerRead(d *pluginsdk.ResourceData, meta interfac
 			}
 		}
 
-		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err := tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags)); err != nil {
 			return err
 		}
 	}
@@ -277,7 +278,7 @@ func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interf
 		Sku: &servers.ResourceSku{
 			Name: sku,
 		},
-		Tags:       expandTags(t),
+		Tags:       tagsHelper.Expand(t),
 		Properties: serverProperties,
 	}
 

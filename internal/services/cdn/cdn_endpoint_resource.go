@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -210,24 +212,22 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	endpointsClient := meta.(*clients.Client).Cdn.EndpointsClient
 	profilesClient := meta.(*clients.Client).Cdn.ProfilesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM CDN EndPoint creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	profileName := d.Get("profile_name").(string)
-
-	existing, err := endpointsClient.Get(ctx, resourceGroup, profileName, name)
+	id := parse.NewEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("profile_name").(string), d.Get("name").(string))
+	existing, err := endpointsClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing CDN Endpoint %q (Profile %q / Resource Group %q): %s", name, profileName, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_cdn_endpoint", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_cdn_endpoint", id.ID())
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -282,9 +282,9 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		endpoint.EndpointProperties.Origins = &origins
 	}
 
-	profile, err := profilesClient.Get(ctx, resourceGroup, profileName)
+	profile, err := profilesClient.Get(ctx, id.ResourceGroup, id.ProfileName)
 	if err != nil {
-		return fmt.Errorf("creating CDN Endpoint %q while getting CDN Profile (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
+		return fmt.Errorf("retrieving parent CDN Profile for %s: %+v", id, err)
 	}
 
 	if profile.Sku != nil {
@@ -304,32 +304,22 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	future, err := endpointsClient.Create(ctx, resourceGroup, profileName, name, endpoint)
+	future, err := endpointsClient.Create(ctx, id.ResourceGroup, id.ProfileName, id.Name, endpoint)
 	if err != nil {
-		return fmt.Errorf("creating CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, endpointsClient.Client); err != nil {
-		return fmt.Errorf("waiting for CDN Endpoint %q (Profile %q / Resource Group %q) to finish creating: %+v", name, profileName, resourceGroup, err)
-	}
-
-	read, err := endpointsClient.Get(ctx, resourceGroup, profileName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
-	}
-
-	id, err := parse.EndpointID(*read.ID)
-	if err != nil {
-		return err
+		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
-
 	return resourceCdnEndpointRead(d, meta)
 }
 
 func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	endpointsClient := meta.(*clients.Client).Cdn.EndpointsClient
+	profilesClient := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -382,13 +372,9 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		endpoint.EndpointPropertiesUpdateParameters.ProbePath = utils.String(probePath)
 	}
 
-	profilesClient := meta.(*clients.Client).Cdn.ProfilesClient
-	profileGetCtx, profileGetCancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	defer profileGetCancel()
-
-	profile, err := profilesClient.Get(profileGetCtx, id.ResourceGroup, id.ProfileName)
+	profile, err := profilesClient.Get(ctx, id.ResourceGroup, id.ProfileName)
 	if err != nil {
-		return fmt.Errorf("creating CDN Endpoint %q while getting CDN Profile (Profile %q / Resource Group %q): %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving parent CDN Profile for %s: %+v", *id, err)
 	}
 
 	if profile.Sku != nil {
@@ -410,11 +396,11 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	future, err := endpointsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.Name, endpoint)
 	if err != nil {
-		return fmt.Errorf("updating CDN Endpoint %q (Profile %q / Resource Group %q): %s", id.Name, id.ProfileName, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, endpointsClient.Client); err != nil {
-		return fmt.Errorf("waiting for the CDN Endpoint %q (Profile %q / Resource Group %q) to finish updating: %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
 	return resourceCdnEndpointRead(d, meta)
@@ -430,8 +416,6 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	log.Printf("[INFO] Retrieving CDN Endpoint %q (Profile %q / Resource Group %q)", id.Name, id.ProfileName, id.ResourceGroup)
-
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -439,16 +423,13 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure CDN Endpoint %q (Profile %q / Resource Group %q): %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("profile_name", id.ProfileName)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.EndpointProperties; props != nil {
 		d.Set("host_name", props.HostName)
@@ -460,11 +441,13 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("probe_path", props.ProbePath)
 		d.Set("optimization_type", string(props.OptimizationType))
 
+		compressionEnabled := false
 		if _, ok := d.GetOk("is_compression_enabled"); ok {
-			if compressionEnabled := props.IsCompressionEnabled; compressionEnabled != nil {
-				d.Set("is_compression_enabled", compressionEnabled)
+			if v := props.IsCompressionEnabled; v != nil {
+				compressionEnabled = *v
 			}
 		}
+		d.Set("is_compression_enabled", compressionEnabled)
 
 		contentTypes := flattenAzureRMCdnEndpointContentTypes(props.ContentTypesToCompress)
 		if err := d.Set("content_types_to_compress", contentTypes); err != nil {
@@ -481,7 +464,7 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return fmt.Errorf("setting `origin`: %+v", err)
 		}
 
-		flattenedDeliveryPolicies, err := flattenArmCdnEndpointDeliveryPolicy(props.DeliveryPolicy)
+		flattenedDeliveryPolicies, err := flattenEndpointDeliveryPolicy(props.DeliveryPolicy)
 		if err != nil {
 			return err
 		}
@@ -508,11 +491,11 @@ func resourceCdnEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting CDN Endpoint %q (Profile %q / Resource Group %q): %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for CDN Endpoint %q (Profile %q / Resource Group %q) to be deleted: %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
@@ -701,7 +684,7 @@ type flattenedEndpointDeliveryPolicies struct {
 	deliveryRules       []interface{}
 }
 
-func flattenArmCdnEndpointDeliveryPolicy(input *cdn.EndpointPropertiesUpdateParametersDeliveryPolicy) (*flattenedEndpointDeliveryPolicies, error) {
+func flattenEndpointDeliveryPolicy(input *cdn.EndpointPropertiesUpdateParametersDeliveryPolicy) (*flattenedEndpointDeliveryPolicies, error) {
 	output := flattenedEndpointDeliveryPolicies{
 		globalDeliveryRules: make([]interface{}, 0),
 		deliveryRules:       make([]interface{}, 0),

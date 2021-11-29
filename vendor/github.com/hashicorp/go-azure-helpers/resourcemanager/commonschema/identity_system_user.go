@@ -7,7 +7,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func SystemAssignedUserAssignedIdentitySchema() *schema.Schema {
+// NOTE: there's two different types of SystemAssignedUserAssignedIdentity supported by Azure:
+// The first (List) represents the IdentityIDs as a List of Strings
+// The other (Map) represents the IdentityIDs as a Map of String : Object (containing Client/PrincipalID)
+// from a users perspective however, these should both be represented using the same schema
+// so we have a single schema and separate Expand/Flatten functions
+
+func SystemAssignedUserAssignedIdentity() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -44,7 +50,7 @@ func SystemAssignedUserAssignedIdentitySchema() *schema.Schema {
 	}
 }
 
-func SystemAssignedUserAssignedIdentitySchemaDataSource() *schema.Schema {
+func SystemAssignedUserAssignedIdentityDataSource() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Computed: true,
