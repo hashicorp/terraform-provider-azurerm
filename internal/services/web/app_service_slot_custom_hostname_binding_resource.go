@@ -58,7 +58,6 @@ func resourceAppServiceSlotCustomHostnameBinding() *pluginsdk.Resource {
 					string(web.SslStateIPBasedEnabled),
 					string(web.SslStateSniEnabled),
 				}, false),
-				RequiredWith: []string{"thumbprint"},
 			},
 
 			"thumbprint": {
@@ -67,7 +66,6 @@ func resourceAppServiceSlotCustomHostnameBinding() *pluginsdk.Resource {
 				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				RequiredWith: []string{"ssl_state"},
 			},
 
 			"virtual_ip": {
