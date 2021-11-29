@@ -683,23 +683,6 @@ func testAccKubernetesClusterNodePool_spot(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesClusterNodePool_spot_without_taints_and_eviction_policy(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_spot_without_taints_and_eviction_policy(t)
-}
-
-func testAccKubernetesClusterNodePool_spot_without_taints_and_eviction_policy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
-	r := KubernetesClusterNodePoolResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.spotConfigWithoutEvictionPolicyAndTaints(data),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccKubernetesClusterNodePool_upgradeSettings(t)

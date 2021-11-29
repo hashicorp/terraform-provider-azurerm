@@ -108,7 +108,6 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerservice.ScaleSetEvictionPolicyDelete),
 					string(containerservice.ScaleSetEvictionPolicyDeallocate),
@@ -185,7 +184,6 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
-				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
