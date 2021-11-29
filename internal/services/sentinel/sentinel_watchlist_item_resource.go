@@ -67,9 +67,7 @@ func (r WatchlistItemResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r WatchlistItemResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			return r.createUpdate(ctx, metadata)
-		},
+		Func:    r.createUpdate,
 	}
 }
 
@@ -134,9 +132,7 @@ func (r WatchlistItemResource) Delete() sdk.ResourceFunc {
 func (r WatchlistItemResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			return r.createUpdate(ctx, metadata)
-		},
+		Func:    r.createUpdate,
 	}
 }
 
