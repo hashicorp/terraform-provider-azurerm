@@ -404,18 +404,27 @@ func expandBatchPoolCertificateReference(ref map[string]interface{}) (*batch.Cer
 // ExpandBatchPoolStartTask expands Batch pool start task
 func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 	if len(list) == 0 {
-		return nil, fmt.Errorf("Error: batch pool start task should be defined")
+		return nil, fmt.Errorf("batch pool start task should be defined")
 	}
 
 	startTaskValue := list[0].(map[string]interface{})
 
 	startTaskCmdLine := startTaskValue["command_line"].(string)
-	maxTaskRetryCount := int32(startTaskValue["max_task_retry_count"].(int))
+
+	var maxTaskRetryCount int32
+	if v := startTaskValue["task_retry_maximum"]; v != nil {
+		maxTaskRetryCount = int32(v.(int))
+	} else if v := startTaskValue["max_task_retry_count"]; v != nil {
+		maxTaskRetryCount = int32(v.(int))
+	} else {
+		maxTaskRetryCount = 1
+	}
+
 	waitForSuccess := startTaskValue["wait_for_success"].(bool)
 
 	userIdentityList := startTaskValue["user_identity"].([]interface{})
 	if len(userIdentityList) == 0 {
-		return nil, fmt.Errorf("Error: batch pool start task user identity should be defined")
+		return nil, fmt.Errorf("batch pool start task user identity should be defined")
 	}
 
 	userIdentityValue := userIdentityList[0].(map[string]interface{})
@@ -434,7 +443,7 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 		userName := userNameValue.(string)
 		userIdentity.UserName = &userName
 	} else {
-		return nil, fmt.Errorf("Error: either auto_user or user_name should be speicfied for Batch pool start task")
+		return nil, fmt.Errorf("either auto_user or user_name should be specified for Batch pool start task")
 	}
 
 	resourceFileList := startTaskValue["resource_file"].([]interface{})
@@ -493,25 +502,30 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 	}
 
 	// populate environment settings, if defined
-	if environment := startTaskValue["environment"]; environment != nil {
-		envMap := environment.(map[string]interface{})
-		envSettings := make([]batch.EnvironmentSetting, 0)
-
-		for k, v := range envMap {
-			theValue := v.(string)
-			theKey := k
-			envSetting := batch.EnvironmentSetting{
-				Name:  &theKey,
-				Value: &theValue,
-			}
-
-			envSettings = append(envSettings, envSetting)
-		}
-
-		startTask.EnvironmentSettings = &envSettings
+	if v := startTaskValue["common_environment_properties"]; v != nil {
+		startTask.EnvironmentSettings = expandCommonEnvironmentProperties(v)
+	} else if v := startTaskValue["environment"]; v != nil {
+		startTask.EnvironmentSettings = expandCommonEnvironmentProperties(v)
 	}
 
 	return startTask, nil
+}
+
+func expandCommonEnvironmentProperties(env interface{}) *[]batch.EnvironmentSetting {
+	envMap := env.(map[string]interface{})
+	envSettings := make([]batch.EnvironmentSetting, 0)
+
+	for k, v := range envMap {
+		theValue := v.(string)
+		theKey := k
+		envSetting := batch.EnvironmentSetting{
+			Name:  &theKey,
+			Value: &theValue,
+		}
+
+		envSettings = append(envSettings, envSetting)
+	}
+	return &envSettings
 }
 
 // ExpandBatchMetaData expands Batch pool metadata
