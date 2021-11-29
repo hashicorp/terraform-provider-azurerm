@@ -455,6 +455,10 @@ output "principal_id" {
 * `name` - (Required) The name of the public ip address configuration
 * `idle_timeout` - (Required) The idle timeout in minutes. This value must be between 4 and 30.
 * `domain_name_label` - (Required) The domain name label for the dns settings.
+* `sku` - (Optional) Describes the public IP Sku. Consists of two entities:
+
+* - `name` (Optional) One of `Basic` or `Standard`.
+* - `tier` (Optional) One of `Global` or `Regional`. 
 
 `storage_profile_os_disk` supports the following:
 

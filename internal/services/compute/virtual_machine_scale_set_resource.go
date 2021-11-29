@@ -523,6 +523,35 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeString,
 													Required: true,
 												},
+
+												"sku": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*pluginsdk.Schema{
+															"name": {
+																Type:     pluginsdk.TypeString,
+																Optional: true,
+																Computed: true,
+																ValidateFunc: validation.StringInSlice([]string{
+																	"Basic",
+																	"Standard",
+																}, false),
+															},
+
+															"tier": {
+																Type:     pluginsdk.TypeString,
+																Optional: true,
+																Computed: true,
+																ValidateFunc: validation.StringInSlice([]string{
+																	"Global",
+																	"Regional",
+																}, false),
+															},
+														},
+													},
+												},
 											},
 										},
 									},
@@ -1391,6 +1420,12 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 						if publicIpName := publicIpInfo.Name; publicIpName != nil {
 							publicIpConfig["name"] = *publicIpName
 						}
+						if publicIpSKU := publicIpInfo.Sku; publicIpSKU != nil {
+							publicIpConfig["sku"] = []interface{}{map[string]interface{}{
+								"name": publicIpSKU.Name,
+								"tier": publicIpSKU.Tier,
+							}}
+						}
 						if publicIpProperties := publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties; publicIpProperties != nil {
 							if dns := publicIpProperties.DNSSettings; dns != nil {
 								publicIpConfig["domain_name_label"] = *dns.DomainNameLabel
@@ -1635,6 +1670,9 @@ func resourceVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) int {
 				}
 				if appPoolId, ok := config["application_gateway_backend_address_pool_ids"]; ok {
 					buf.WriteString(fmt.Sprintf("%s-", appPoolId.(*pluginsdk.Set).List()))
+				}
+				if appSecGroup, ok := config["application_security_group_ids"]; ok {
+					buf.WriteString(fmt.Sprintf("%s-", appSecGroup.(*pluginsdk.Set).List()))
 				}
 				if appSecGroup, ok := config["application_security_group_ids"]; ok {
 					buf.WriteString(fmt.Sprintf("%s-", appSecGroup.(*pluginsdk.Set).List()))
@@ -1884,6 +1922,14 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *pluginsdk.ResourceData
 					config := compute.VirtualMachineScaleSetPublicIPAddressConfiguration{
 						Name: &publicIPConfigName,
 						VirtualMachineScaleSetPublicIPAddressConfigurationProperties: &prop,
+					}
+
+					if v := publicIpConfig["sku"].([]interface{}); v != nil {
+						sku := v[0].(map[string]interface{})
+						config.Sku = &compute.PublicIPAddressSku{
+							Name: compute.PublicIPAddressSkuName(sku["name"].(string)),
+							Tier: compute.PublicIPAddressSkuTier(sku["tier"].(string)),
+						}
 					}
 					ipConfiguration.PublicIPAddressConfiguration = &config
 				}
