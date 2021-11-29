@@ -250,9 +250,12 @@ func TestAccBatchPool_startTask_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("fixed_scale.0.target_low_priority_nodes").HasValue("0"),
 				check.That(data.ResourceName).Key("start_task.#").HasValue("1"),
 				check.That(data.ResourceName).Key("start_task.0.max_task_retry_count").HasValue("1"),
-				check.That(data.ResourceName).Key("start_task.0.common_environment_properties.%").HasValue("2"),
-				check.That(data.ResourceName).Key("start_task.0.common_environment_properties.env").HasValue("TEST"),
-				check.That(data.ResourceName).Key("start_task.0.common_environment_properties.bu").HasValue("Research&Dev"),
+				//check.That(data.ResourceName).Key("start_task.0.common_environment_properties.%").HasValue("2"),
+				//check.That(data.ResourceName).Key("start_task.0.common_environment_properties.env").HasValue("TEST"),
+				//check.That(data.ResourceName).Key("start_task.0.common_environment_properties.bu").HasValue("Research&Dev"),
+				check.That(data.ResourceName).Key("start_task.0.environment.%").HasValue("2"),
+				check.That(data.ResourceName).Key("start_task.0.environment.env").HasValue("TEST"),
+				check.That(data.ResourceName).Key("start_task.0.environment.bu").HasValue("Research&Dev"),
 				check.That(data.ResourceName).Key("start_task.0.user_identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("start_task.0.user_identity.0.auto_user.#").HasValue("1"),
 				check.That(data.ResourceName).Key("start_task.0.user_identity.0.auto_user.0.scope").HasValue("Task"),
@@ -300,7 +303,7 @@ func TestAccBatchPool_validateResourceFileWithoutSource(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.validateResourceFileWithoutSource(data),
-			ExpectError: regexp.MustCompile("Exactly one of auto_storage_container_name, storage_container_url and http_url must be specified"),
+			ExpectError: regexp.MustCompile("exactly one of auto_storage_container_name, storage_container_url and http_url must be specified"),
 		},
 	})
 }
@@ -336,7 +339,7 @@ func TestAccBatchPool_validateResourceFileWithMultipleSources(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.validateResourceFileWithMultipleSources(data),
-			ExpectError: regexp.MustCompile("Exactly one of auto_storage_container_name, storage_container_url and http_url must be specified"),
+			ExpectError: regexp.MustCompile("exactly one of auto_storage_container_name, storage_container_url and http_url must be specified"),
 		},
 	})
 }
@@ -783,7 +786,7 @@ resource "azurerm_batch_pool" "test" {
     task_retry_maximum = 1
     wait_for_success   = true
 
-    common_environment_properties = {
+    environment = {
       env = "TEST"
       bu  = "Research&Dev"
     }
@@ -1148,7 +1151,7 @@ resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
-  node_agent_sku_id   = "batch.node.ubuntu 18.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
   vm_size             = "Standard_A1"
 
   fixed_scale {
@@ -1158,7 +1161,7 @@ resource "azurerm_batch_pool" "test" {
   storage_image_reference {
     publisher = "microsoft-azure-batch"
     offer     = "ubuntu-server-container"
-    sku       = "16-04-lts"
+    sku       = "20-04-lts"
     version   = "latest"
   }
 
