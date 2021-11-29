@@ -10,7 +10,6 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -49,15 +48,6 @@ func (client CertificatesClient) CreateOrUpdate(ctx context.Context, resourceGro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: certificateResource,
-			Constraints: []validation.Constraint{{Target: "certificateResource.Properties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "certificateResource.Properties.VaultURI", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "certificateResource.Properties.KeyVaultCertName", Name: validation.Null, Rule: true, Chain: nil},
-				}}}}}); err != nil {
-		return result, validation.NewError("appplatform.CertificatesClient", "CreateOrUpdate", err.Error())
-	}
-
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serviceName, certificateName, certificateResource)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CertificatesClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -82,7 +72,7 @@ func (client CertificatesClient) CreateOrUpdatePreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01-preview"
+	const APIVersion = "2021-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -166,7 +156,7 @@ func (client CertificatesClient) DeletePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01-preview"
+	const APIVersion = "2021-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -254,7 +244,7 @@ func (client CertificatesClient) GetPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01-preview"
+	const APIVersion = "2021-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -336,7 +326,7 @@ func (client CertificatesClient) ListPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01-preview"
+	const APIVersion = "2021-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

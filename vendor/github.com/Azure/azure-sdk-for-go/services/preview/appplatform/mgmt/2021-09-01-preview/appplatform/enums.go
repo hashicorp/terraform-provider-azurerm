@@ -46,6 +46,25 @@ func PossibleConfigServerStateValues() []ConfigServerState {
 	return []ConfigServerState{ConfigServerStateDeleted, ConfigServerStateFailed, ConfigServerStateNotAvailable, ConfigServerStateSucceeded, ConfigServerStateUpdating}
 }
 
+// CreatedByType enumerates the values for created by type.
+type CreatedByType string
+
+const (
+	// CreatedByTypeApplication ...
+	CreatedByTypeApplication CreatedByType = "Application"
+	// CreatedByTypeKey ...
+	CreatedByTypeKey CreatedByType = "Key"
+	// CreatedByTypeManagedIdentity ...
+	CreatedByTypeManagedIdentity CreatedByType = "ManagedIdentity"
+	// CreatedByTypeUser ...
+	CreatedByTypeUser CreatedByType = "User"
+)
+
+// PossibleCreatedByTypeValues returns an array of possible values for the CreatedByType const type.
+func PossibleCreatedByTypeValues() []CreatedByType {
+	return []CreatedByType{CreatedByTypeApplication, CreatedByTypeKey, CreatedByTypeManagedIdentity, CreatedByTypeUser}
+}
+
 // DeploymentResourceProvisioningState enumerates the values for deployment resource provisioning state.
 type DeploymentResourceProvisioningState string
 
@@ -126,6 +145,21 @@ const (
 // PossibleMonitoringSettingStateValues returns an array of possible values for the MonitoringSettingState const type.
 func PossibleMonitoringSettingStateValues() []MonitoringSettingState {
 	return []MonitoringSettingState{MonitoringSettingStateFailed, MonitoringSettingStateNotAvailable, MonitoringSettingStateSucceeded, MonitoringSettingStateUpdating}
+}
+
+// PowerState enumerates the values for power state.
+type PowerState string
+
+const (
+	// PowerStateRunning ...
+	PowerStateRunning PowerState = "Running"
+	// PowerStateStopped ...
+	PowerStateStopped PowerState = "Stopped"
+)
+
+// PossiblePowerStateValues returns an array of possible values for the PowerState const type.
+func PossiblePowerStateValues() []PowerState {
+	return []PowerState{PowerStateRunning, PowerStateStopped}
 }
 
 // ProvisioningState enumerates the values for provisioning state.
@@ -221,6 +255,21 @@ func PossibleSkuScaleTypeValues() []SkuScaleType {
 	return []SkuScaleType{SkuScaleTypeAutomatic, SkuScaleTypeManual, SkuScaleTypeNone}
 }
 
+// StorageType enumerates the values for storage type.
+type StorageType string
+
+const (
+	// StorageTypeStorageAccount ...
+	StorageTypeStorageAccount StorageType = "StorageAccount"
+	// StorageTypeStorageProperties ...
+	StorageTypeStorageProperties StorageType = "StorageProperties"
+)
+
+// PossibleStorageTypeValues returns an array of possible values for the StorageType const type.
+func PossibleStorageTypeValues() []StorageType {
+	return []StorageType{StorageTypeStorageAccount, StorageTypeStorageProperties}
+}
+
 // SupportedRuntimePlatform enumerates the values for supported runtime platform.
 type SupportedRuntimePlatform string
 
@@ -281,6 +330,38 @@ const (
 // PossibleTrafficDirectionValues returns an array of possible values for the TrafficDirection const type.
 func PossibleTrafficDirectionValues() []TrafficDirection {
 	return []TrafficDirection{TrafficDirectionInbound, TrafficDirectionOutbound}
+}
+
+// Type enumerates the values for type.
+type Type string
+
+const (
+	// TypeAzureFileVolume ...
+	TypeAzureFileVolume Type = "AzureFileVolume"
+	// TypeCustomPersistentDiskProperties ...
+	TypeCustomPersistentDiskProperties Type = "CustomPersistentDiskProperties"
+)
+
+// PossibleTypeValues returns an array of possible values for the Type const type.
+func PossibleTypeValues() []Type {
+	return []Type{TypeAzureFileVolume, TypeCustomPersistentDiskProperties}
+}
+
+// TypeBasicCertificateProperties enumerates the values for type basic certificate properties.
+type TypeBasicCertificateProperties string
+
+const (
+	// TypeBasicCertificatePropertiesTypeCertificateProperties ...
+	TypeBasicCertificatePropertiesTypeCertificateProperties TypeBasicCertificateProperties = "CertificateProperties"
+	// TypeBasicCertificatePropertiesTypeContentCertificate ...
+	TypeBasicCertificatePropertiesTypeContentCertificate TypeBasicCertificateProperties = "ContentCertificate"
+	// TypeBasicCertificatePropertiesTypeKeyVaultCertificate ...
+	TypeBasicCertificatePropertiesTypeKeyVaultCertificate TypeBasicCertificateProperties = "KeyVaultCertificate"
+)
+
+// PossibleTypeBasicCertificatePropertiesValues returns an array of possible values for the TypeBasicCertificateProperties const type.
+func PossibleTypeBasicCertificatePropertiesValues() []TypeBasicCertificateProperties {
+	return []TypeBasicCertificateProperties{TypeBasicCertificatePropertiesTypeCertificateProperties, TypeBasicCertificatePropertiesTypeContentCertificate, TypeBasicCertificatePropertiesTypeKeyVaultCertificate}
 }
 
 // UserSourceType enumerates the values for user source type.
