@@ -1252,7 +1252,6 @@ resource "azurerm_mssql_database" "test" {
   name      = "acctest-db-%[1]d"
   server_id = azurerm_mssql_server.test.id
 }
-
 `, data.RandomInteger, data.Locations.Primary)
 }
 
@@ -1288,7 +1287,6 @@ resource "azurerm_mssql_database" "restore" {
   create_mode                 = "Restore"
   restore_dropped_database_id = azurerm_mssql_server.test.restorable_dropped_database_ids[0]
 }
-
 `, data.RandomInteger, data.Locations.Primary)
 }
 
@@ -1736,7 +1734,6 @@ resource "azurerm_mssql_database" "test" {
   sku_name                            = "DW100c"
   transparent_data_encryption_enabled = %t
 }
-
 `, r.template(data), data.RandomInteger, state)
 }
 
@@ -1749,6 +1746,5 @@ resource "azurerm_mssql_database" "test" {
   server_id                           = azurerm_mssql_server.test.id
   transparent_data_encryption_enabled = false
 }
-
 `, r.template(data), data.RandomInteger)
 }

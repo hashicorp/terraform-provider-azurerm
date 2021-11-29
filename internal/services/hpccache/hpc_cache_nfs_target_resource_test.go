@@ -415,6 +415,5 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   custom_data = base64encode(local.custom_data)
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
 }

@@ -1695,7 +1695,6 @@ resource "azurerm_linux_web_app" "test" {
     }
   }
 }
-
 `, r.templateWithStorageAccount(data), data.RandomInteger)
 }
 
@@ -1956,7 +1955,6 @@ resource "azurerm_linux_web_app" "test" {
     }
   }
 }
-
 `, r.baseTemplate(data), data.RandomInteger, dotNetVersion)
 }
 
@@ -1980,7 +1978,6 @@ resource "azurerm_linux_web_app" "test" {
     }
   }
 }
-
 `, r.baseTemplate(data), data.RandomInteger, phpVersion)
 }
 
@@ -2004,7 +2001,6 @@ resource "azurerm_linux_web_app" "test" {
     }
   }
 }
-
 `, r.baseTemplate(data), data.RandomInteger, pythonVersion)
 }
 
@@ -2028,7 +2024,6 @@ resource "azurerm_linux_web_app" "test" {
     }
   }
 }
-
 `, r.baseTemplate(data), data.RandomInteger, nodeVersion)
 }
 
@@ -2054,7 +2049,6 @@ resource "azurerm_linux_web_app" "test" {
     }
   }
 }
-
 `, r.baseTemplate(data), data.RandomInteger, javaVersion, javaServer, javaServerVersion)
 }
 
@@ -2080,7 +2074,6 @@ resource "azurerm_linux_web_app" "test" {
     }
   }
 }
-
 `, r.premiumV3PlanTemplate(data), data.RandomInteger, javaVersion, javaServer, javaServerVersion)
 }
 
@@ -2113,7 +2106,6 @@ resource "azurerm_linux_web_app" "test" {
     }
   }
 }
-
 `, r.baseTemplate(data), data.RandomInteger, containerImage, containerTag)
 }
 

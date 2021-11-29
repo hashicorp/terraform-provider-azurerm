@@ -1909,7 +1909,6 @@ data "azurerm_storage_account_sas" "test" {
     process = false
   }
 }
-
 `, r.template(data, planSku))
 }
 
@@ -1922,6 +1921,5 @@ resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
-
 `, r.template(data, planSku), data.RandomInteger)
 }

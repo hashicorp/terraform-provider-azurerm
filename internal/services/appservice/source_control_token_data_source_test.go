@@ -38,6 +38,5 @@ func (AppServiceGithubTokenDataSource) basic(token string) string {
 data azurerm_source_control_token test {
   type = azurerm_source_control_token.test.type
 }
-
 `, AppServiceGitHubTokenResource{}.basic(token))
 }
