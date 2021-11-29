@@ -244,8 +244,7 @@ func resourceNetAppSnapshotPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	_, err := client.Create(ctx, parameters, resourceGroup, accountName, name)
-	if err != nil {
+	if _, err := client.Create(ctx, parameters, resourceGroup, accountName, name); err != nil {
 		return fmt.Errorf("creating NetApp SnapshotPolicy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -299,8 +298,7 @@ func resourceNetAppSnapshotPolicyUpdate(d *pluginsdk.ResourceData, meta interfac
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	_, err := client.Update(ctx, parameters, resourceGroup, accountName, name)
-	if err != nil {
+	if _, err := client.Update(ctx, parameters, resourceGroup, accountName, name); err != nil {
 		return fmt.Errorf("updating NetApp SnapshotPolicy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
