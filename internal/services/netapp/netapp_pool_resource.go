@@ -77,6 +77,7 @@ func resourceNetAppPool() *pluginsdk.Resource {
 			"qos_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(netapp.QosTypeAuto),
 					string(netapp.QosTypeManual),
