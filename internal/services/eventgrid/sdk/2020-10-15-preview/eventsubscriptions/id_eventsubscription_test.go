@@ -32,7 +32,7 @@ func TestFormatEventSubscriptionID(t *testing.T) {
 	actual := NewEventSubscriptionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "systemTopicValue", "eventSubscriptionValue").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.EventGrid/systemTopics/systemTopicValue/eventSubscriptions/eventSubscriptionValue"
 	if actual != expected {
-		t.Fatalf("Expected the Formatted ID to be %q but got %q", actual, expected)
+		t.Fatalf("Expected the Formatted ID to be %q but got %q", expected, actual)
 	}
 }
 

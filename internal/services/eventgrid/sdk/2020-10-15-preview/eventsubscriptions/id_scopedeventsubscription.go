@@ -86,7 +86,7 @@ func ValidateScopedEventSubscriptionID(input interface{}, key string) (warnings 
 // ID returns the formatted Scoped Event Subscription ID
 func (id ScopedEventSubscriptionId) ID() string {
 	fmtString := "/%s/providers/Microsoft.EventGrid/eventSubscriptions/%s"
-	return fmt.Sprintf(fmtString, id.Scope, id.EventSubscriptionName)
+	return fmt.Sprintf(fmtString, strings.TrimPrefix(id.Scope, "/"), id.EventSubscriptionName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Scoped Event Subscription ID

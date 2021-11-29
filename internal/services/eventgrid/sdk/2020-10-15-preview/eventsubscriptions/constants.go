@@ -245,21 +245,24 @@ func parseEventDeliverySchema(input string) (*EventDeliverySchema, error) {
 type EventSubscriptionIdentityType string
 
 const (
-	EventSubscriptionIdentityTypeSystemAssigned EventSubscriptionIdentityType = "SystemAssigned"
-	EventSubscriptionIdentityTypeUserAssigned   EventSubscriptionIdentityType = "UserAssigned"
+	EventSubscriptionIdentityTypeSystemAssigned             EventSubscriptionIdentityType = "SystemAssigned"
+	EventSubscriptionIdentityTypeSystemAssignedUserAssigned EventSubscriptionIdentityType = "SystemAssigned, UserAssigned"
+	EventSubscriptionIdentityTypeUserAssigned               EventSubscriptionIdentityType = "UserAssigned"
 )
 
 func PossibleValuesForEventSubscriptionIdentityType() []string {
 	return []string{
 		string(EventSubscriptionIdentityTypeSystemAssigned),
+		string(EventSubscriptionIdentityTypeSystemAssignedUserAssigned),
 		string(EventSubscriptionIdentityTypeUserAssigned),
 	}
 }
 
 func parseEventSubscriptionIdentityType(input string) (*EventSubscriptionIdentityType, error) {
 	vals := map[string]EventSubscriptionIdentityType{
-		"systemassigned": EventSubscriptionIdentityTypeSystemAssigned,
-		"userassigned":   EventSubscriptionIdentityTypeUserAssigned,
+		"systemassigned":               EventSubscriptionIdentityTypeSystemAssigned,
+		"systemassigned, userassigned": EventSubscriptionIdentityTypeSystemAssignedUserAssigned,
+		"userassigned":                 EventSubscriptionIdentityTypeUserAssigned,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

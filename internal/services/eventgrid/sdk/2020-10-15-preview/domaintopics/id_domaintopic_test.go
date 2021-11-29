@@ -32,7 +32,7 @@ func TestFormatDomainTopicID(t *testing.T) {
 	actual := NewDomainTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "domainValue", "domainTopicValue").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.EventGrid/domains/domainValue/topics/domainTopicValue"
 	if actual != expected {
-		t.Fatalf("Expected the Formatted ID to be %q but got %q", actual, expected)
+		t.Fatalf("Expected the Formatted ID to be %q but got %q", expected, actual)
 	}
 }
 

@@ -20,7 +20,7 @@ func TestFormatScopeID(t *testing.T) {
 	actual := NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group"
 	if actual != expected {
-		t.Fatalf("Expected the Formatted ID to be %q but got %q", actual, expected)
+		t.Fatalf("Expected the Formatted ID to be %q but got %q", expected, actual)
 	}
 }
 
@@ -41,11 +41,6 @@ func TestParseScopeID(t *testing.T) {
 			Expected: &ScopeId{
 				Scope: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group",
 			},
-		},
-		{
-			// Invalid (Valid Uri with Extra segment)
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group/extra",
-			Error: true,
 		},
 	}
 	for _, v := range testData {
@@ -89,21 +84,11 @@ func TestParseScopeIDInsensitively(t *testing.T) {
 			},
 		},
 		{
-			// Invalid (Valid Uri with Extra segment)
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group/extra",
-			Error: true,
-		},
-		{
 			// Valid URI (mIxEd CaSe since this is insensitive)
 			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/sOmE-ReSoUrCe-gRoUp",
 			Expected: &ScopeId{
 				Scope: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/sOmE-ReSoUrCe-gRoUp",
 			},
-		},
-		{
-			// Invalid (Valid Uri with Extra segment - mIxEd CaSe since this is insensitive)
-			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/sOmE-ReSoUrCe-gRoUp/extra",
-			Error: true,
 		},
 	}
 	for _, v := range testData {

@@ -76,7 +76,7 @@ func ValidateScopeID(input interface{}, key string) (warnings []string, errors [
 // ID returns the formatted Scope ID
 func (id ScopeId) ID() string {
 	fmtString := "/%s"
-	return fmt.Sprintf(fmtString, id.Scope)
+	return fmt.Sprintf(fmtString, strings.TrimPrefix(id.Scope, "/"))
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Scope ID

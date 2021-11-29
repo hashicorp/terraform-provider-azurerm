@@ -28,7 +28,7 @@ func TestFormatPartnerRegistrationID(t *testing.T) {
 	actual := NewPartnerRegistrationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerRegistrationValue").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.EventGrid/partnerRegistrations/partnerRegistrationValue"
 	if actual != expected {
-		t.Fatalf("Expected the Formatted ID to be %q but got %q", actual, expected)
+		t.Fatalf("Expected the Formatted ID to be %q but got %q", expected, actual)
 	}
 }
 

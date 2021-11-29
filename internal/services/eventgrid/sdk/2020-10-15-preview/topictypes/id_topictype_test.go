@@ -20,7 +20,7 @@ func TestFormatTopicTypeID(t *testing.T) {
 	actual := NewTopicTypeID("topicTypeValue").ID()
 	expected := "/providers/Microsoft.EventGrid/topicTypes/topicTypeValue"
 	if actual != expected {
-		t.Fatalf("Expected the Formatted ID to be %q but got %q", actual, expected)
+		t.Fatalf("Expected the Formatted ID to be %q but got %q", expected, actual)
 	}
 }
 

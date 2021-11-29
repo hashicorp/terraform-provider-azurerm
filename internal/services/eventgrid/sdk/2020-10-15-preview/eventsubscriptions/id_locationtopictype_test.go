@@ -28,7 +28,7 @@ func TestFormatLocationTopicTypeID(t *testing.T) {
 	actual := NewLocationTopicTypeID("12345678-1234-9876-4563-123456789012", "locationValue", "topicTypeValue").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.EventGrid/locations/locationValue/topicTypes/topicTypeValue"
 	if actual != expected {
-		t.Fatalf("Expected the Formatted ID to be %q but got %q", actual, expected)
+		t.Fatalf("Expected the Formatted ID to be %q but got %q", expected, actual)
 	}
 }
 

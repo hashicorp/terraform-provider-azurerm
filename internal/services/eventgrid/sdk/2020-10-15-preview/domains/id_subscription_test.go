@@ -20,7 +20,7 @@ func TestFormatSubscriptionID(t *testing.T) {
 	actual := NewSubscriptionID("12345678-1234-9876-4563-123456789012").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012"
 	if actual != expected {
-		t.Fatalf("Expected the Formatted ID to be %q but got %q", actual, expected)
+		t.Fatalf("Expected the Formatted ID to be %q but got %q", expected, actual)
 	}
 }
 
