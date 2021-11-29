@@ -1117,7 +1117,6 @@ resource "azurerm_windows_web_app" "test" {
 
   site_config {}
 }
-
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
@@ -1852,7 +1851,6 @@ resource "azurerm_windows_web_app" "test" {
     }
   }
 }
-
 `, r.baseTemplate(data), data.RandomInteger, dotNetVersion)
 }
 
@@ -1885,7 +1883,6 @@ resource "azurerm_windows_web_app" "test" {
     }
   }
 }
-
 `, r.premiumV3PlanContainerTemplate(data), data.RandomInteger, "mcr.microsoft.com", "azure-app-service/samples/aspnethelloworld", "latest")
 }
 
@@ -1910,7 +1907,6 @@ resource "azurerm_windows_web_app" "test" {
     }
   }
 }
-
 `, r.baseTemplate(data), data.RandomInteger, nodeVersion)
 }
 
@@ -1935,7 +1931,6 @@ resource "azurerm_windows_web_app" "test" {
     }
   }
 }
-
 `, r.baseTemplate(data), data.RandomInteger, phpVersion)
 }
 
@@ -1960,7 +1955,6 @@ resource "azurerm_windows_web_app" "test" {
     }
   }
 }
-
 `, r.baseTemplate(data), data.RandomInteger, pythonVersion)
 }
 
@@ -1996,7 +1990,6 @@ resource "azurerm_windows_web_app" "test" {
     }
   }
 }
-
 `, r.baseTemplate(data), data.RandomInteger, javaVersion, javaContainerStr, javaContainerVersionStr)
 }
 
@@ -2025,7 +2018,6 @@ resource "azurerm_windows_web_app" "test" {
     }
   }
 }
-
 `, r.baseTemplate(data), data.RandomInteger, "v4.0", "7.4", "2.7", "1.8", "TOMCAT", "9.0")
 }
 
@@ -2063,7 +2055,6 @@ resource "azurerm_windows_web_app" "test" {
 
   site_config {}
 }
-
 `, r.templateWithStorageAccount(data), data.RandomInteger)
 }
 

@@ -9,11 +9,14 @@ ENHANCEMENTS:
 * compute: `storagecache` to use API Version `2021-09-01` [GH-14311]
 * `azurerm_linux_virtual_machine` - support the `secure_boot_enabled` and `vtpm_enabled` properties [GH-13842]
 * `azurerm_linux_virtual_machine_scale_set` - support the `secure_boot_enabled` and `vtpm_enabled` properties [GH-13842]
+* `azurerm_mssql_database` - add support for transparent data encryption, behind a 3.0 feature flag [GH-13748] 
 * `azurerm_point_to_site_vpn_gateway` - support for the `internet_security_enabled` property [GH-14345]
 
 BUG FIXES:
 
 * `azurerm_storage_account` - populating the account cache on creation, which fixes an issue when the storage account occasionally couldn't be found [GH-14361]
+* `azurerm_kubernetes_cluster` - handle incorrect casing of kubernetes cluster resource ID with a state migration [GH-14241]
+* `azurerm_kubernetes_cluster_node_pool` - handle incorrect casing of kubernetes cluster resource ID with a state migration [GH-14241]
 
 ## 2.87.0 (November 26, 2021)
 

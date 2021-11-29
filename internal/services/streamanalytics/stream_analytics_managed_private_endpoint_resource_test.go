@@ -73,7 +73,6 @@ resource "azurerm_stream_analytics_managed_private_endpoint" "test" {
   target_resource_id            = azurerm_storage_account.test.id
   subresource_name              = "blob"
 }
-
 `, template, data.RandomInteger)
 }
 
@@ -119,6 +118,5 @@ resource "azurerm_stream_analytics_cluster" "test" {
   location            = azurerm_resource_group.test.location
   streaming_capacity  = 36
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

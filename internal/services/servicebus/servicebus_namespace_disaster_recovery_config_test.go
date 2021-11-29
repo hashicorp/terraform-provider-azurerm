@@ -81,6 +81,5 @@ resource "azurerm_servicebus_namespace_disaster_recovery_config" "pairing_test" 
   primary_namespace_id = azurerm_servicebus_namespace.primary_namespace_test.id
   partner_namespace_id = azurerm_servicebus_namespace.secondary_namespace_test.id
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }

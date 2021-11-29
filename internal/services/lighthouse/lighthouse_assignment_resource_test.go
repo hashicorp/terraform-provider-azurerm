@@ -134,7 +134,6 @@ resource "azurerm_lighthouse_assignment" "test" {
   scope                    = data.azurerm_subscription.primary.id
   lighthouse_definition_id = azurerm_lighthouse_definition.test.id
 }
-
 `, data.RandomInteger, secondTenantID, principalID, id)
 }
 

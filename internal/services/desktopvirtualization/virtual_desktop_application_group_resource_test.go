@@ -171,7 +171,6 @@ resource "azurerm_virtual_desktop_application_group" "test" {
     Purpose = "Acceptance-Testing"
   }
 }
-
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8))
 }
 

@@ -181,7 +181,6 @@ resource "azurerm_service_fabric_managed_cluster" "test1" {
     Test = "value"
   }
 }
-
 `, r.basic(data, nt), data.RandomString, nt)
 }
 

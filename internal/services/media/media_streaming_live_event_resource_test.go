@@ -95,7 +95,6 @@ resource "azurerm_media_live_event" "test" {
     }
   }
 }
-
 `, r.template(data))
 }
 
@@ -119,7 +118,6 @@ resource "azurerm_media_live_event" "import" {
     }
   }
 }
-
 `, r.basic(data))
 }
 
@@ -162,7 +160,6 @@ resource "azurerm_media_live_event" "test" {
   hostname_prefix         = "special-event"
   transcription_languages = ["en-US"]
 }
-
 `, r.template(data))
 }
 
