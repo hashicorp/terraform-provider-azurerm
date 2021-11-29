@@ -265,7 +265,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			},
 
 			"throughput_in_mibps": {
-				Type:     pluginsdk.TypeInt,
+				Type:     pluginsdk.TypeFloat,
 				Optional: true,
 			},
 		},
