@@ -5519,7 +5519,6 @@ resource "azurerm_app_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
   app_service_plan_id = azurerm_app_service_plan.test.id
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 

@@ -228,7 +228,6 @@ resource "azurerm_machine_learning_compute_cluster" "import" {
     type = "SystemAssigned"
   }
 }
-
 `, template)
 }
 

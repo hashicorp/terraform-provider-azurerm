@@ -123,7 +123,6 @@ resource "azurerm_virtual_desktop_workspace" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
-
 `, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }
 
@@ -145,7 +144,6 @@ resource "azurerm_virtual_desktop_workspace" "test" {
   friendly_name       = "Acceptance Test!"
   description         = "Acceptance Test by creating acctws%d"
 }
-
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8), data.RandomInteger)
 }
 

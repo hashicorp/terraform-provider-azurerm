@@ -134,7 +134,6 @@ resource "azurerm_media_job" "test" {
     name = azurerm_media_asset.output.name
   }
 }
-
 `, r.template(data))
 }
 
@@ -154,7 +153,6 @@ resource "azurerm_media_job" "import" {
     name = azurerm_media_job.test.output_asset[0].name
   }
 }
-
 `, r.basic(data))
 }
 
@@ -178,7 +176,6 @@ resource "azurerm_media_job" "test" {
     label = "Output"
   }
 }
-
 `, r.template(data))
 }
 
