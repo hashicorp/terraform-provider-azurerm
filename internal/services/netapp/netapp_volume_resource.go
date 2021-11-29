@@ -339,7 +339,7 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	// Validating that snapshot policies are not being created in a data protection volume
 	if dataProtectionSnapshotPolicy.Snapshot != nil && volumeType != "" {
-		return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, NetApp Volume %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, NetApp Volume %q (Resource Group %q)", id.Name, id.ResourceGroup)
 	}
 
 	snapshotDirectoryVisible := d.Get("snapshot_directory_visible").(bool)
