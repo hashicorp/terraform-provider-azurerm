@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -78,6 +79,16 @@ func resourceBastionHost() *pluginsdk.Resource {
 				},
 			},
 
+			"sku": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.BastionHostSkuNameBasic),
+					string(network.BastionHostSkuNameStandard),
+				}, false),
+				Default: string(network.BastionHostSkuNameBasic),
+			},
+
 			"dns_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -117,6 +128,9 @@ func resourceBastionHostCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Location: &location,
 		BastionHostPropertiesFormat: &network.BastionHostPropertiesFormat{
 			IPConfigurations: expandBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
+		},
+		Sku: &network.Sku{
+			Name: network.BastionHostSkuName(d.Get("sku").(string)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -165,6 +179,10 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku", sku.Name)
 	}
 
 	if props := resp.BastionHostPropertiesFormat; props != nil {
