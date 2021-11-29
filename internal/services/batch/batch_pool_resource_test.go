@@ -31,7 +31,7 @@ func TestAccBatchPool_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 18.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("18.04-lts"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("1"),
@@ -70,7 +70,7 @@ func TestAccBatchPool_identityUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 18.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("18.04-lts"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("1"),
@@ -93,7 +93,7 @@ func TestAccBatchPool_identityUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 18.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("18.04-lts"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("1"),
@@ -117,7 +117,7 @@ func TestAccBatchPool_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 18.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("18.04-lts"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("1"),
@@ -145,7 +145,7 @@ func TestAccBatchPool_fixedScale_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 18.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("18.04-lts"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
 				check.That(data.ResourceName).Key("auto_scale.#").HasValue("0"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
@@ -172,7 +172,7 @@ func TestAccBatchPool_autoScale_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 18.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("18.04-lts"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("0"),
 				check.That(data.ResourceName).Key("auto_scale.#").HasValue("1"),
@@ -197,7 +197,7 @@ func TestAccBatchPool_completeUpdated(t *testing.T) {
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 18.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("18.04-lts"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
 				check.That(data.ResourceName).Key("auto_scale.#").HasValue("0"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
@@ -216,7 +216,7 @@ func TestAccBatchPool_completeUpdated(t *testing.T) {
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 18.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16.04.0-LTS"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("18.04-lts"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("0"),
 				check.That(data.ResourceName).Key("auto_scale.#").HasValue("1"),
@@ -1251,7 +1251,7 @@ resource "azurerm_virtual_machine" "testsource" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-lts"
     version   = "latest"
   }
 
