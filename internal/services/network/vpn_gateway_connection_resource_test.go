@@ -253,7 +253,7 @@ resource "azurerm_vpn_gateway_connection" "test" {
   vpn_gateway_id     = azurerm_vpn_gateway.test.id
   remote_vpn_site_id = azurerm_vpn_site.test.id
   routing {
-    associated_route_table  = azurerm_virtual_hub_route_table.test.id
+    associated_route_table = azurerm_virtual_hub_route_table.test.id
 
     propagated_route_table {
       route_table_ids = [azurerm_virtual_hub_route_table.test.id]
@@ -309,7 +309,7 @@ resource "azurerm_vpn_gateway_connection" "test" {
   vpn_gateway_id     = azurerm_vpn_gateway.test.id
   remote_vpn_site_id = azurerm_vpn_site.test.id
   routing {
-    associated_route_table  = azurerm_virtual_hub_route_table.test2.id
+    associated_route_table = azurerm_virtual_hub_route_table.test2.id
 
     propagated_route_table {
       route_table_ids = [azurerm_virtual_hub_route_table.test2.id]
