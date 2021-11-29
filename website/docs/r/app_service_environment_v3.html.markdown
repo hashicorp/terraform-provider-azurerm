@@ -113,6 +113,8 @@ A `cluster_setting` block supports the following:
 
 In addition to the Arguments above, the following Attributes are exported:
 
+* `id` - The ID of the App Service Environment.
+
 * `dns_suffix` - the DNS suffix for this App Service Environment V3. 
 
 * `external_inbound_ip_addresses` - The external outbound IP addresses of the App Service Environment V3.
