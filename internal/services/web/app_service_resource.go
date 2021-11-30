@@ -86,6 +86,7 @@ func resourceAppService() *pluginsdk.Resource {
 			"client_cert_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(web.ClientCertModeOptional),
 					string(web.ClientCertModeRequired),
