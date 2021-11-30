@@ -1760,25 +1760,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, r.templateConfig(data))
 }
 
-func (r KubernetesClusterNodePoolResource) spotConfigWithoutEvictionPolicyAndTaints(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "internal"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
-  node_count            = 1
-  priority              = "Spot"
-  spot_max_price        = 0.5 # high, but this is a maximum (we pay less) so ensures this won't fail
-}
-`, r.templateConfig(data))
-}
-
 func (r KubernetesClusterNodePoolResource) upgradeSettingsConfig(data acceptance.TestData, maxSurge string) string {
 	template := r.templateConfig(data)
 	if maxSurge != "" {

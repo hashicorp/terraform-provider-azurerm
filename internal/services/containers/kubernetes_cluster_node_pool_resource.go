@@ -180,6 +180,8 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				RequiredWith: []string{"enable_node_public_ip"},
 			},
 
+			// Node Taints control the behaviour of the Node Pool, as such they should not be computed and
+			// must be specified/reconciled as required
 			"node_taints": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
