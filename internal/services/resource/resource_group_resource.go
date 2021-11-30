@@ -40,6 +40,8 @@ func resourceResourceGroup() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"name": azure.SchemaResourceGroupName(),
 
+			"subscription_id": azure.SchemaSubscriptionId(),
+
 			"location": azure.SchemaLocation(),
 
 			"tags": tags.Schema(),
@@ -55,6 +57,12 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	name := d.Get("name").(string)
 	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
+
+	if v, ok := d.GetOk("subscription_id"); ok {
+		newclient := *client
+		newclient.SubscriptionID = v.(string)
+		client = &newclient
+	}
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, name)
@@ -93,6 +101,12 @@ func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	if v, ok := d.GetOk("subscription_id"); ok {
+		newclient := *client
+		newclient.SubscriptionID = v.(string)
+		client = &newclient
+	}
+
 	id, err := parse.ResourceGroupID(d.Id())
 	if err != nil {
 		return err
@@ -118,6 +132,12 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	client := meta.(*clients.Client).Resource.GroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	if v, ok := d.GetOk("subscription_id"); ok {
+		newclient := *client
+		newclient.SubscriptionID = v.(string)
+		client = &newclient
+	}
 
 	id, err := parse.ResourceGroupID(d.Id())
 	if err != nil {
