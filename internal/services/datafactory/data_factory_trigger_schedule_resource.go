@@ -244,7 +244,8 @@ func resourceDataFactoryTriggerScheduleCreateUpdate(d *pluginsdk.ResourceData, m
 		t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
 		props.Recurrence.StartTime = &date.Time{Time: t}
 	} else {
-		props.Recurrence.StartTime = &date.Time{Time: time.Now()}
+		t, _ := time.Parse(time.RFC3339, time.Now().UTC().Format(time.RFC3339))
+		props.Recurrence.StartTime = &date.Time{Time: t}
 	}
 
 	if v, ok := d.GetOk("end_time"); ok {

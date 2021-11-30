@@ -218,8 +218,6 @@ resource "azurerm_data_factory_trigger_schedule" "test" {
   annotations = ["test1", "test2", "test3"]
   activated   = true
   frequency   = "Week"
-  end_time    = "2022-09-22T00:00:00Z"
-  start_time  = "2022-09-21T00:00:00Z"
 
   schedule {
     minutes      = [0, 30, 59]
@@ -267,8 +265,6 @@ resource "azurerm_data_factory_trigger_schedule" "test" {
   frequency   = "Month"
   interval    = 1
   activated   = true
-  end_time    = "2022-09-22T00:00:00Z"
-  start_time  = "2022-09-21T00:00:00Z"
 
   schedule {
     hours         = [0, 12, 23]
