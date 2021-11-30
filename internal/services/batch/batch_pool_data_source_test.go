@@ -31,7 +31,7 @@ func TestAccBatchPoolDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("max_tasks_per_node").HasValue("2"),
 				check.That(data.ResourceName).Key("start_task.#").HasValue("1"),
-				check.That(data.ResourceName).Key("start_task.0.task_retry_maximum").HasValue("1"),
+				check.That(data.ResourceName).Key("start_task.0.task_retry_maximum").HasValue("5"),
 				check.That(data.ResourceName).Key("start_task.0.common_environment_properties.%").HasValue("1"),
 				check.That(data.ResourceName).Key("start_task.0.common_environment_properties.env").HasValue("TEST"),
 				check.That(data.ResourceName).Key("start_task.0.user_identity.#").HasValue("1"),
@@ -132,7 +132,7 @@ resource "azurerm_batch_pool" "test" {
 
   start_task {
     command_line         = "echo 'Hello World from $env'"
-    task_retry_maximum   = 1
+    task_retry_maximum   = 5
     wait_for_success     = true
 
     common_environment_properties = {

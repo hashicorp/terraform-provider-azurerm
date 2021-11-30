@@ -303,6 +303,8 @@ func resourceBatchPool() *pluginsdk.Resource {
 						"max_task_retry_count": {
 							Type:       pluginsdk.TypeInt,
 							Optional:   true,
+							Computed:	true, // Remove in 3.0
+							// Need to default this in the expand function for this block for the deprecation
 							Deprecated: "Deprecated in favour of `task_retry_maximum`",
 							ConflictsWith: []string{
 								"start_task.0.task_retry_maximum",
@@ -312,6 +314,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 						"task_retry_maximum": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
+							Computed: true, // Remove in 3.0
 							ConflictsWith: []string{
 								"start_task.0.max_task_retry_count",
 							},
@@ -327,6 +330,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 						"environment": {
 							Type:     pluginsdk.TypeMap,
 							Optional: true,
+							Computed: true, // Remove in 3.0
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -339,6 +343,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 						"common_environment_properties": {
 							Type:     pluginsdk.TypeMap,
 							Optional: true,
+							Computed: true, // Remove in 3.0
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -538,6 +543,17 @@ func resourceBatchPool() *pluginsdk.Resource {
 				},
 			},
 		},
+
+		// TODO: Remove in 3.0
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			if d.HasChange("start_task.0.max_task_retry_count") || d.HasChange("start_task.0.task_retry_maximum") {
+				_, newMax := d.GetChange("start_task.0.task_retry_maximum")
+				d.SetNew("start_task.0.max_task_retry_count", newMax)
+				d.SetNew("start_task.0.task_retry_maximum", newMax)
+			}
+
+			return nil
+		}),
 	}
 }
 

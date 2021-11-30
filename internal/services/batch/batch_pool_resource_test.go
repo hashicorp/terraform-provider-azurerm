@@ -249,13 +249,10 @@ func TestAccBatchPool_startTask_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("fixed_scale.0.resize_timeout").HasValue("PT15M"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_low_priority_nodes").HasValue("0"),
 				check.That(data.ResourceName).Key("start_task.#").HasValue("1"),
-				check.That(data.ResourceName).Key("start_task.0.max_task_retry_count").HasValue("1"),
-				//check.That(data.ResourceName).Key("start_task.0.common_environment_properties.%").HasValue("2"),
-				//check.That(data.ResourceName).Key("start_task.0.common_environment_properties.env").HasValue("TEST"),
-				//check.That(data.ResourceName).Key("start_task.0.common_environment_properties.bu").HasValue("Research&Dev"),
-				check.That(data.ResourceName).Key("start_task.0.environment.%").HasValue("2"),
-				check.That(data.ResourceName).Key("start_task.0.environment.env").HasValue("TEST"),
-				check.That(data.ResourceName).Key("start_task.0.environment.bu").HasValue("Research&Dev"),
+				check.That(data.ResourceName).Key("start_task.0.task_retry_maximum").HasValue("5"),
+				check.That(data.ResourceName).Key("start_task.0.common_environment_properties.%").HasValue("2"),
+				check.That(data.ResourceName).Key("start_task.0.common_environment_properties.env").HasValue("TEST"),
+				check.That(data.ResourceName).Key("start_task.0.common_environment_properties.bu").HasValue("Research&Dev"),
 				check.That(data.ResourceName).Key("start_task.0.user_identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("start_task.0.user_identity.0.auto_user.#").HasValue("1"),
 				check.That(data.ResourceName).Key("start_task.0.user_identity.0.auto_user.0.scope").HasValue("Task"),
@@ -783,10 +780,9 @@ resource "azurerm_batch_pool" "test" {
 
   start_task {
     command_line       = "echo 'Hello World from $env'"
-    task_retry_maximum = 1
     wait_for_success   = true
-
-    environment = {
+	task_retry_maximum = 5
+    common_environment_properties = {
       env = "TEST"
       bu  = "Research&Dev"
     }
