@@ -800,17 +800,16 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 						"data": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 							Sensitive:    true,
 						},
 
-						// TODO required soft delete on the keyvault
-						/*"key_vault_secret_id": {
+						"key_vault_secret_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: azure.ValidateKeyVaultChildId,
-						},*/
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+						},
 
 						"id": {
 							Type:     pluginsdk.TypeString,
@@ -1471,7 +1470,10 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	t := d.Get("tags").(map[string]interface{})
 
 	// Gateway ID is needed to link sub-resources together in expand functions
-	trustedRootCertificates := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").([]interface{}))
+	trustedRootCertificates, err := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `trusted_root_certificate`: %+v", err)
+	}
 
 	requestRoutingRules, err := expandApplicationGatewayRequestRoutingRules(d, id.ID())
 	if err != nil {
@@ -1890,7 +1892,7 @@ func expandApplicationGatewayAuthenticationCertificates(certs []interface{}) *[]
 	return &results
 }
 
-func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) *[]network.ApplicationGatewayTrustedRootCertificate {
+func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) (*[]network.ApplicationGatewayTrustedRootCertificate, error) {
 	results := make([]network.ApplicationGatewayTrustedRootCertificate, 0)
 
 	for _, raw := range certs {
@@ -1898,20 +1900,27 @@ func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) *[]net
 
 		name := v["name"].(string)
 		data := v["data"].(string)
+		kvsid := v["key_vault_secret_id"].(string)
 
 		output := network.ApplicationGatewayTrustedRootCertificate{
 			Name: utils.String(name),
 			ApplicationGatewayTrustedRootCertificatePropertiesFormat: &network.ApplicationGatewayTrustedRootCertificatePropertiesFormat{},
 		}
 
-		if data != "" {
+		if data != "" && kvsid != "" {
+			return nil, fmt.Errorf("only one of `key_vault_secret_id` or `data` must be specified for the `trusted_root_certificate` block %q", name)
+		} else if data != "" {
 			output.ApplicationGatewayTrustedRootCertificatePropertiesFormat.Data = utils.String(utils.Base64EncodeIfNot(data))
+		} else if kvsid != "" {
+			output.ApplicationGatewayTrustedRootCertificatePropertiesFormat.KeyVaultSecretID = utils.String(kvsid)
+		} else {
+			return nil, fmt.Errorf("either `key_vault_secret_id` or `data` must be specified for the `trusted_root_certificate` block %q", name)
 		}
 
 		results = append(results, output)
 	}
 
-	return &results
+	return &results, nil
 }
 
 func flattenApplicationGatewayAuthenticationCertificates(certs *[]network.ApplicationGatewayAuthenticationCertificate, d *pluginsdk.ResourceData) []interface{} {
@@ -1973,13 +1982,13 @@ func flattenApplicationGatewayTrustedRootCertificates(certs *[]network.Applicati
 			output["id"] = *v
 		}
 
-		/*kvsid := ""
+		kvsid := ""
 		if props := cert.ApplicationGatewayTrustedRootCertificatePropertiesFormat; props != nil {
 			if v := props.KeyVaultSecretID; v != nil {
 				kvsid = *v
-				output["key_vault_secret_id"] = *v
 			}
-		}*/
+		}
+		output["key_vault_secret_id"] = kvsid
 
 		if v := cert.Name; v != nil {
 			output["name"] = *v
