@@ -138,8 +138,6 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			},
 
 			// This time can only be  represented in UTC.
-			// An issue has been filed in the SDK for the timezone attribute that doesn't seem to work
-			// https://github.com/Azure/azure-sdk-for-go/issues/6244
 			"start_time": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
@@ -149,8 +147,6 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			},
 
 			// This time can only be  represented in UTC.
-			// An issue has been filed in the SDK for the timezone attribute that doesn't seem to work
-			// https://github.com/Azure/azure-sdk-for-go/issues/6244
 			"end_time": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
@@ -406,11 +402,18 @@ func expandDataFactorySchedule(input []interface{}) *datafactory.RecurrenceSched
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
+
+	schedule := datafactory.RecurrenceSchedule{}
+
 	value := input[0].(map[string]interface{})
 	weekDays := make([]datafactory.DaysOfWeek, 0)
 	for _, v := range value["days_of_week"].([]interface{}) {
 		weekDays = append(weekDays, datafactory.DaysOfWeek(v.(string)))
 	}
+	if len(weekDays) > 0 {
+		schedule.WeekDays = &weekDays
+	}
+
 	monthlyOccurrences := make([]datafactory.RecurrenceScheduleOccurrence, 0)
 	for _, v := range value["monthly"].([]interface{}) {
 		value := v.(map[string]interface{})
@@ -419,13 +422,21 @@ func expandDataFactorySchedule(input []interface{}) *datafactory.RecurrenceSched
 			Occurrence: utils.Int32(int32(value["week"].(int))),
 		})
 	}
-	return &datafactory.RecurrenceSchedule{
-		Minutes:            utils.ExpandInt32Slice(value["minutes"].([]interface{})),
-		Hours:              utils.ExpandInt32Slice(value["hours"].([]interface{})),
-		WeekDays:           &weekDays,
-		MonthDays:          utils.ExpandInt32Slice(value["days_of_month"].([]interface{})),
-		MonthlyOccurrences: &monthlyOccurrences,
+	if len(monthlyOccurrences) > 0 {
+		schedule.MonthlyOccurrences = &monthlyOccurrences
 	}
+
+	if monthdays := value["days_of_month"].([]interface{}); len(monthdays) > 0 {
+		schedule.MonthDays = utils.ExpandInt32Slice(monthdays)
+	}
+	if minutes := value["minutes"].([]interface{}); len(minutes) > 0 {
+		schedule.Minutes = utils.ExpandInt32Slice(minutes)
+	}
+	if hours := value["hours"].([]interface{}); len(hours) > 0 {
+		schedule.Hours = utils.ExpandInt32Slice(hours)
+	}
+
+	return &schedule
 }
 
 func flattenDataFactorySchedule(schedule *datafactory.RecurrenceSchedule) []interface{} {
