@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `eviction_policy` - (Optional) The Eviction Policy which should be used for Virtual Machines within the Virtual Machine Scale Set powering this Node Pool. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 
--> **Note:** An Eviction Policy can only be configured when `priority` is set to `Spot`.
+~> **Note:** An Eviction Policy can only be configured when `priority` is set to `Spot` and will default to `Delete` unless otherwise specified. 
 
 * `kubelet_config` - (Optional) A `kubelet_config` block as defined below.
 
@@ -91,7 +91,7 @@ The following arguments are supported:
 
 * `fips_enabled` - (Optional) Should the nodes in this Node Pool have Federal Information Processing Standard enabled? Changing this forces a new resource to be created.
 
-~> NOTE: FIPS support is in Public Preview - more information and details on how to opt into the Preview can be found in [this article](https://docs.microsoft.com/en-us/azure/aks/use-multiple-node-pools#add-a-fips-enabled-node-pool-preview).
+~> **Note:** FIPS support is in Public Preview - more information and details on how to opt into the Preview can be found in [this article](https://docs.microsoft.com/en-us/azure/aks/use-multiple-node-pools#add-a-fips-enabled-node-pool-preview).
 
 * `kubelet_disk_type` - (Optional) The type of disk used by kubelet. Possible Values are `OS`.
 
