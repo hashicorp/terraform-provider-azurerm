@@ -757,37 +757,35 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	// workaround: azure backend fails with 500 error when trying to change the password of an instance in replica mode.
-	// if instance type is changed from replica to default, the password will be updated after that
-	updates := []*postgresql.ServerUpdateParameters{&properties}
-
-	if d.HasChange("administrator_login_password") {
-		if old, new := d.GetChange("create_mode"); postgresql.CreateMode(old.(string)) == postgresql.CreateModeReplica && postgresql.CreateMode(new.(string)) == postgresql.CreateModeDefault {
-			updates = append(updates, &postgresql.ServerUpdateParameters{
-				Identity: expandServerIdentity(d.Get("identity").([]interface{})),
-				ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
-					AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
-				},
-				Sku:  sku,
-				Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-			})
-		} else {
-			properties.ServerUpdateParametersProperties.AdministratorLoginPassword = utils.String(d.Get("administrator_login_password").(string))
-		}
-	}
-
-	if old, new := d.GetChange("create_mode"); postgresql.CreateMode(old.(string)) == postgresql.CreateModeReplica && postgresql.CreateMode(new.(string)) == postgresql.CreateModeDefault {
+	oldCreateMode, newCreateMode := d.GetChange("create_mode")
+	replicaUpdatedToDefault := postgresql.CreateMode(oldCreateMode.(string)) == postgresql.CreateModeReplica && postgresql.CreateMode(newCreateMode.(string)) == postgresql.CreateModeDefault
+	if replicaUpdatedToDefault {
 		properties.ServerUpdateParametersProperties.ReplicationRole = utils.String("None")
 	}
 
-	for _, props := range updates {
-		future, err := client.Update(ctx, id.ResourceGroup, id.Name, *props)
-		if err != nil {
-			return fmt.Errorf("updating PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-		}
+	// Update Admin Password in the separate call when Replication is stopped: https://github.com/Azure/azure-rest-api-specs/issues/16898
+	if d.HasChange("administrator_login_password") && !replicaUpdatedToDefault {
+		properties.ServerUpdateParametersProperties.AdministratorLoginPassword = utils.String(d.Get("administrator_login_password").(string))
+	}
 
+	future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
+	if err != nil {
+		return fmt.Errorf("updating %q: %+v", id, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of %q: %+v", id, err)
+	}
+
+	// Update Admin Password in a separate call when Replication is stopped: https://github.com/Azure/azure-rest-api-specs/issues/16898
+	if d.HasChange("administrator_login_password") && replicaUpdatedToDefault {
+		properties.ServerUpdateParametersProperties.AdministratorLoginPassword = utils.String(d.Get("administrator_login_password").(string))
+
+		future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
+		if err != nil {
+			return fmt.Errorf("updating Admin Password of %q: %+v", id, err)
+		}
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for update of PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for Admin Password update of %q: %+v", id, err)
 		}
 	}
 
