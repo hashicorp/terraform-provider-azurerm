@@ -161,6 +161,8 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 ~> **Note:** The Files & Table Storage API's do not support authenticating via AzureAD and will continue to use a SharedKey to access the API's.
 
+* `use_msal` - (Optional) When `true`, and when using service principal authentication, the provider will obtain [v2 authentication tokens](https://docs.microsoft.com/en-us/azure/active-directory/develop/access-tokens#token-formats-and-ownership) from the Microsoft Identity Platform. This behaviour will be the default in version 3.0 of the AzureRM Provider. Has no effect when authenticating via Managed Identity or the Azure CLI. Can also be set via the `ARM_USE_MSAL` or `ARM_USE_MSGRAPH` environment variables.
+
 It's also possible to use multiple Provider blocks within a single Terraform configuration, for example, to work with resources across multiple Subscriptions - more information can be found [in the documentation for Providers](https://www.terraform.io/docs/configuration/providers.html#multiple-provider-instances).
 
 ## Features
