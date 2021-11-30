@@ -3,12 +3,12 @@ package resource
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -21,8 +21,11 @@ func resourceManagementLock() *pluginsdk.Resource {
 		Create: resourceManagementLockCreateUpdate,
 		Read:   resourceManagementLockRead,
 		Delete: resourceManagementLockDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ParseManagementLockID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -71,46 +74,32 @@ func resourceManagementLockCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Management Lock creation.")
 
-	name := d.Get("name").(string)
-	scope := d.Get("scope").(string)
-
+	id := parse.NewManagementLockID(d.Get("scope").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.GetByScope(ctx, scope, name)
+		existing, err := client.GetByScope(ctx, id.Scope, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Management Lock %q (Scope %q): %s", name, scope, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_management_lock", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_management_lock", id.ID())
 		}
 	}
 
-	lockLevel := d.Get("lock_level").(string)
-	notes := d.Get("notes").(string)
-
 	lock := locks.ManagementLockObject{
 		ManagementLockProperties: &locks.ManagementLockProperties{
-			Level: locks.LockLevel(lockLevel),
-			Notes: utils.String(notes),
+			Level: locks.LockLevel(d.Get("lock_level").(string)),
+			Notes: utils.String(d.Get("notes").(string)),
 		},
 	}
 
-	if _, err := client.CreateOrUpdateByScope(ctx, scope, name, lock); err != nil {
-		return err
+	if _, err := client.CreateOrUpdateByScope(ctx, id.Scope, id.Name, lock); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	read, err := client.GetByScope(ctx, scope, name)
-	if err != nil {
-		return err
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID of AzureRM Management Lock %q (Scope %q)", name, scope)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.Name)
 	return resourceManagementLockRead(d, meta)
 }
 
@@ -119,7 +108,7 @@ func resourceManagementLockRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAzureRMLockId(d.Id())
+	id, err := parse.ParseManagementLockID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -130,10 +119,11 @@ func resourceManagementLockRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on AzureRM Management Lock %q (Scope %q): %+v", id.Name, id.Scope, err)
+
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("scope", id.Scope)
 
 	if props := resp.ManagementLockProperties; props != nil {
@@ -149,39 +139,20 @@ func resourceManagementLockDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAzureRMLockId(d.Id())
+	id, err := parse.ParseManagementLockID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.DeleteByScope(ctx, id.Scope, id.Name)
-	if err != nil {
+	if resp, err := client.DeleteByScope(ctx, id.Scope, id.Name); err != nil {
+		// @tombuildsstuff: this is intentionally here in case the parent is gone, since we're under a scope
+		// which isn't ideal (as this shouldn't be present for most resources) but should for this one
 		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 
-		return fmt.Errorf("issuing AzureRM delete request for Management Lock %q (Scope %q): %+v", id.Name, id.Scope, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
-}
-
-type AzureManagementLockId struct {
-	Scope string
-	Name  string
-}
-
-func ParseAzureRMLockId(id string) (*AzureManagementLockId, error) {
-	segments := strings.Split(id, "/providers/Microsoft.Authorization/locks/")
-	if len(segments) != 2 {
-		return nil, fmt.Errorf("Expected ID to be in the format `{scope}/providers/Microsoft.Authorization/locks/{name} - got %d segments", len(segments))
-	}
-
-	scope := segments[0]
-	name := segments[1]
-	lockId := AzureManagementLockId{
-		Scope: scope,
-		Name:  name,
-	}
-	return &lockId, nil
 }
