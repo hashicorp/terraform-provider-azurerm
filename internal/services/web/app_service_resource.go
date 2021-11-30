@@ -77,10 +77,9 @@ func resourceAppService() *pluginsdk.Resource {
 			},
 
 			"client_cert_enabled": {
-				Type:         pluginsdk.TypeBool,
-				Optional:     true,
-				Default:      false,
-				RequiredWith: []string{"client_cert_mode"},
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"client_cert_mode": {
