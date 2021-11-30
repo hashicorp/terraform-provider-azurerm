@@ -837,7 +837,8 @@ resource "azurerm_subnet" "test" {
     name = "delegation"
 
     service_delegation {
-      name = "Microsoft.Kusto/clusters"
+      name    = "Microsoft.Kusto/clusters"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action", "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"]
     }
   }
 }
