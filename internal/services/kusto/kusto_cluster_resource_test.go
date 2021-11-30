@@ -862,7 +862,7 @@ resource "azurerm_network_security_group" "test" {
 
 resource "azurerm_network_security_rule" "test_allow_management_inbound" {
   name                        = "AllowAzureDataExplorerManagement"
-  priority                    = 100
+  priority                    = 106
   direction                   = "Inbound"
   access                      = "Allow"
   protocol                    = "Tcp"
