@@ -1518,31 +1518,37 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 		Tags: tags.Expand(t),
 		ApplicationGatewayPropertiesFormat: &network.ApplicationGatewayPropertiesFormat{
-			AutoscaleConfiguration:         expandApplicationGatewayAutoscaleConfiguration(d),
-			AuthenticationCertificates:     expandApplicationGatewayAuthenticationCertificates(d.Get("authentication_certificate").([]interface{})),
-			TrustedRootCertificates:        trustedRootCertificates,
-			CustomErrorConfigurations:      expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{})),
-			BackendAddressPools:            expandApplicationGatewayBackendAddressPools(d),
-			BackendHTTPSettingsCollection:  expandApplicationGatewayBackendHTTPSettings(d, id.ID()),
-			EnableFips:                     utils.Bool(d.Get("fips_enabled").(bool)),
-			ForceFirewallPolicyAssociation: utils.Bool(d.Get("force_firewall_policy_association").(bool)),
-			EnableHTTP2:                    utils.Bool(enablehttp2),
-			FrontendIPConfigurations:       expandApplicationGatewayFrontendIPConfigurations(d),
-			FrontendPorts:                  expandApplicationGatewayFrontendPorts(d),
-			GatewayIPConfigurations:        gatewayIPConfigurations,
-			HTTPListeners:                  httpListeners,
-			Probes:                         expandApplicationGatewayProbes(d),
-			RequestRoutingRules:            requestRoutingRules,
-			RedirectConfigurations:         redirectConfigurations,
-			Sku:                            expandApplicationGatewaySku(d),
-			SslCertificates:                sslCertificates,
-			TrustedClientCertificates:      trustedClientCertificates,
-			SslProfiles:                    sslProfiles,
-			SslPolicy:                      expandApplicationGatewaySslPolicy(d.Get("ssl_policy").([]interface{})),
+			AutoscaleConfiguration:        expandApplicationGatewayAutoscaleConfiguration(d),
+			AuthenticationCertificates:    expandApplicationGatewayAuthenticationCertificates(d.Get("authentication_certificate").([]interface{})),
+			TrustedRootCertificates:       trustedRootCertificates,
+			CustomErrorConfigurations:     expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{})),
+			BackendAddressPools:           expandApplicationGatewayBackendAddressPools(d),
+			BackendHTTPSettingsCollection: expandApplicationGatewayBackendHTTPSettings(d, id.ID()),
+			EnableHTTP2:                   utils.Bool(enablehttp2),
+			FrontendIPConfigurations:      expandApplicationGatewayFrontendIPConfigurations(d),
+			FrontendPorts:                 expandApplicationGatewayFrontendPorts(d),
+			GatewayIPConfigurations:       gatewayIPConfigurations,
+			HTTPListeners:                 httpListeners,
+			Probes:                        expandApplicationGatewayProbes(d),
+			RequestRoutingRules:           requestRoutingRules,
+			RedirectConfigurations:        redirectConfigurations,
+			Sku:                           expandApplicationGatewaySku(d),
+			SslCertificates:               sslCertificates,
+			TrustedClientCertificates:     trustedClientCertificates,
+			SslProfiles:                   sslProfiles,
+			SslPolicy:                     expandApplicationGatewaySslPolicy(d.Get("ssl_policy").([]interface{})),
 
 			RewriteRuleSets: rewriteRuleSets,
 			URLPathMaps:     urlPathMaps,
 		},
+	}
+
+	if v, ok := d.GetOk("fips_enabled"); ok {
+		gateway.ApplicationGatewayPropertiesFormat.EnableFips = utils.Bool(v.(bool))
+	}
+
+	if v, ok := d.GetOk("force_firewall_policy_association"); ok {
+		gateway.ApplicationGatewayPropertiesFormat.ForceFirewallPolicyAssociation = utils.Bool(v.(bool))
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
