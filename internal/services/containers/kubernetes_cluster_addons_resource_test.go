@@ -389,7 +389,7 @@ func TestAccKubernetesCluster_addonProfileAzureKeyvaultSecretsProvider(t *testin
 				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.rotation_interval").HasValue("2m"),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation_interval").HasValue("2m"),
 			),
 		},
 		data.ImportStep(),
@@ -1238,9 +1238,9 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   addon_profile {
     azure_keyvault_secrets_provider {
-      enabled                 = %t
-      secret_rotation_enabled = %t
-      rotation_interval       = %s
+      enabled                  = %t
+      secret_rotation_enabled  = %t
+      secret_rotation_interval = "%s"
     }
   }
 
