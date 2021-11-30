@@ -110,7 +110,7 @@ func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 	result["wait_for_success"] = waitForSuccess
 
 	maxTaskRetryCount := int32(0)
-	if startTask.MaxTaskRetryCount != nil  {
+	if startTask.MaxTaskRetryCount != nil {
 		maxTaskRetryCount = *startTask.MaxTaskRetryCount
 	}
 

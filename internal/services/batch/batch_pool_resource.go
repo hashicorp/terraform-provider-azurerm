@@ -301,9 +301,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 
 						// TODO: Remove in 3.0
 						"max_task_retry_count": {
-							Type:       pluginsdk.TypeInt,
-							Optional:   true,
-							Computed:	true, // Remove in 3.0
+							Type:     pluginsdk.TypeInt,
+							Optional: true,
+							Computed: true, // Remove in 3.0
 							// Need to default this in the expand function for this block for the deprecation
 							Deprecated: "Deprecated in favour of `task_retry_maximum`",
 							ConflictsWith: []string{

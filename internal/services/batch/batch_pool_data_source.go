@@ -2,11 +2,11 @@ package batch
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -165,7 +165,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:         pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"store_location": {
@@ -173,14 +173,14 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 							Computed: true,
 						},
 						"store_name": {
-							Type:         pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"visibility": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
-								Type:     pluginsdk.TypeString,
+								Type: pluginsdk.TypeString,
 							},
 						},
 					},
