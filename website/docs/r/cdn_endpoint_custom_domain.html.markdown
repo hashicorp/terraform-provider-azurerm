@@ -81,15 +81,15 @@ The following arguments are supported:
 
 ~> **NOTE** Only one of `cdn_managed_https` and `user_managed_https` can be specified.
 
-!> **Warning** It is allowed to update the HTTPS settings on the CDN Endpoint Custom Domain only by toggling it. In-place update on HTTPS settings is not allowed. This is because setting different HTTPS settings will need a disable-then-enable process. When HTTPS settings got disabled, the service will take ~8 hours to clean up your previous enablement request for the same custom domain and there is no way to get notification when that clean up has done.
+!> **Warning** Due to the way the Azure API handles in-place updates on HTTPS settings for the Custom Domain of a CDN Endpoint, it is only possible to toggle these settings between disabled and enabled individually.
 
 ---
 
 A `cdn_managed_https` block supports the following:
 
-* `certificate_type` - (Required) The type of the HTTPS certificate. Possible values are `Shared` and `Dedicated`.
+* `certificate_type` - (Required) The type of HTTPS certificate. Possible values are `Shared` and `Dedicated`.
 * 
-* `protocol_type` - (Required) The type of the protocol. Possible values are `ServerNameIndication` and `IPBased`.
+* `protocol_type` - (Required) The type of protocol. Possible values are `ServerNameIndication` and `IPBased`.
 
 ---
 
@@ -97,9 +97,9 @@ A `user_managed_https` block supports the following:
 
 * `key_vault_id` - (Required) The ID of the Key Vault that contains the HTTPS certificate.
 
-* `secret_name` - (Required) The name of Key Vault Certificate that contains the HTTPS certificate.
+* `secret_name` - (Required) The name of the Key Vault Certificate that contains the HTTPS certificate.
 
-* `secret_version` - (Required) The version of Key Vault Certificate that contains the HTTPS certificate.
+* `secret_version` - (Required) The version of the Key Vault Certificate that contains the HTTPS certificate.
 
 ## Attributes Reference
 

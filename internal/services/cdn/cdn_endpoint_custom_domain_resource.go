@@ -206,12 +206,10 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 			// Rollback the creation
 			future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
 			if err != nil {
-				return fmt.Errorf("%+v. Addtionally, failed to delete (rollback) Cdn Endpoint Custom Domain %q: %+v",
-					enableErr, id, err)
+				return fmt.Errorf("provisioning failed: %+v. Deleting %s: %+v", enableErr, id, err)
 			}
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("%+v. Additionally, failed to wait for deletion (rollback) of Cdn Endpoint Custom Domain %q: %+v",
-					enableErr, id, err)
+				return fmt.Errorf("provisioning failed: %+v. Waiting for deletion of %s: %+v", enableErr, id, err)
 			}
 			return enableErr
 		}
