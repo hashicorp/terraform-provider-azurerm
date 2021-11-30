@@ -911,7 +911,10 @@ resource "azurerm_kusto_cluster" "test" {
     data_management_public_ip_id = azurerm_public_ip.management_pip.id
   }
 
-  depends_on = [azurerm_subnet_route_table_association.test]
+  depends_on = [
+    azurerm_subnet_route_table_association.test,
+    azurerm_subnet_network_security_group_association.test,
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
