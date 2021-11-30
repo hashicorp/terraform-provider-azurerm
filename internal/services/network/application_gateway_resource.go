@@ -823,7 +823,17 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			//lintignore:XS003
 			"ssl_policy": sslProfileSchema(true),
 
+			"fips_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"enable_http2": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"force_firewall_policy_association": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
@@ -1508,25 +1518,27 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 		Tags: tags.Expand(t),
 		ApplicationGatewayPropertiesFormat: &network.ApplicationGatewayPropertiesFormat{
-			AutoscaleConfiguration:        expandApplicationGatewayAutoscaleConfiguration(d),
-			AuthenticationCertificates:    expandApplicationGatewayAuthenticationCertificates(d.Get("authentication_certificate").([]interface{})),
-			TrustedRootCertificates:       trustedRootCertificates,
-			CustomErrorConfigurations:     expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{})),
-			BackendAddressPools:           expandApplicationGatewayBackendAddressPools(d),
-			BackendHTTPSettingsCollection: expandApplicationGatewayBackendHTTPSettings(d, id.ID()),
-			EnableHTTP2:                   utils.Bool(enablehttp2),
-			FrontendIPConfigurations:      expandApplicationGatewayFrontendIPConfigurations(d),
-			FrontendPorts:                 expandApplicationGatewayFrontendPorts(d),
-			GatewayIPConfigurations:       gatewayIPConfigurations,
-			HTTPListeners:                 httpListeners,
-			Probes:                        expandApplicationGatewayProbes(d),
-			RequestRoutingRules:           requestRoutingRules,
-			RedirectConfigurations:        redirectConfigurations,
-			Sku:                           expandApplicationGatewaySku(d),
-			SslCertificates:               sslCertificates,
-			TrustedClientCertificates:     trustedClientCertificates,
-			SslProfiles:                   sslProfiles,
-			SslPolicy:                     expandApplicationGatewaySslPolicy(d.Get("ssl_policy").([]interface{})),
+			AutoscaleConfiguration:         expandApplicationGatewayAutoscaleConfiguration(d),
+			AuthenticationCertificates:     expandApplicationGatewayAuthenticationCertificates(d.Get("authentication_certificate").([]interface{})),
+			TrustedRootCertificates:        trustedRootCertificates,
+			CustomErrorConfigurations:      expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{})),
+			BackendAddressPools:            expandApplicationGatewayBackendAddressPools(d),
+			BackendHTTPSettingsCollection:  expandApplicationGatewayBackendHTTPSettings(d, id.ID()),
+			EnableFips:                     utils.Bool(d.Get("fips_enabled").(bool)),
+			ForceFirewallPolicyAssociation: utils.Bool(d.Get("force_firewall_policy_association").(bool)),
+			EnableHTTP2:                    utils.Bool(enablehttp2),
+			FrontendIPConfigurations:       expandApplicationGatewayFrontendIPConfigurations(d),
+			FrontendPorts:                  expandApplicationGatewayFrontendPorts(d),
+			GatewayIPConfigurations:        gatewayIPConfigurations,
+			HTTPListeners:                  httpListeners,
+			Probes:                         expandApplicationGatewayProbes(d),
+			RequestRoutingRules:            requestRoutingRules,
+			RedirectConfigurations:         redirectConfigurations,
+			Sku:                            expandApplicationGatewaySku(d),
+			SslCertificates:                sslCertificates,
+			TrustedClientCertificates:      trustedClientCertificates,
+			SslProfiles:                    sslProfiles,
+			SslPolicy:                      expandApplicationGatewaySslPolicy(d.Get("ssl_policy").([]interface{})),
 
 			RewriteRuleSets: rewriteRuleSets,
 			URLPathMaps:     urlPathMaps,
@@ -1680,7 +1692,9 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("setting `ssl_policy`: %+v", setErr)
 		}
 
+		d.Set("fips_enabled", props.EnableFips)
 		d.Set("enable_http2", props.EnableHTTP2)
+		d.Set("force_firewall_policy_association", props.ForceFirewallPolicyAssociation)
 
 		httpListeners, err := flattenApplicationGatewayHTTPListeners(props.HTTPListeners)
 		if err != nil {

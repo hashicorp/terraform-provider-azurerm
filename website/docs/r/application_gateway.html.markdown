@@ -157,7 +157,11 @@ The following arguments are supported:
 
 * `ssl_policy` - (Optional) a `ssl policy` block as defined below.
 
+* `fips_enabled` - (Optional) Is FIPS enabled on the Application Gateway?
+
 * `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
+
+* `force_firewall_policy_association` - (Optional) Is the Firewall Policy associated with the Application Gateway?
 
 * `probe` - (Optional) One or more `probe` blocks as defined below.
 
