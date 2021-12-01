@@ -17,9 +17,10 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* `azurerm_storage_account` - populating the account cache on creation, which fixes an issue when the storage account occasionally couldn't be found [GH-14361]
+* `azurerm_monitor_aad_diagnostic_setting` - fixing the id validator to use the eventhub auth rule id rather than the relay id [GH-14406]
 * `azurerm_kubernetes_cluster` - handle incorrect casing of kubernetes cluster resource ID with a state migration [GH-14241]
 * `azurerm_kubernetes_cluster_node_pool` - handle incorrect casing of kubernetes cluster resource ID with a state migration [GH-14241]
+* `azurerm_storage_account` - populating the account cache on creation, which fixes an issue when the storage account occasionally couldn't be found [GH-14361]
 
 ## 2.87.0 (November 26, 2021)
 
