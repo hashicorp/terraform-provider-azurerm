@@ -996,7 +996,7 @@ func TestAccCosmosDBAccount_defaultCreateMode(t *testing.T) {
 
 func TestAccCosmosDBAccount_restoreCreateMode(t *testing.T) {
 	if ok := skipRestoreCreateMode(); ok {
-		t.Skip("Skipping as one of `ARM_TEST_RESTORE_SOURCE`, `ARM_TEST_RESTORE_TIMESTAMP_IN_UTC`, `ARM_TEST_DATABASE_NAME` AND `ARM_TEST_COLLECTION_NAME` was not specified")
+		t.Skip("Skipping as one of `ARM_TEST_SOURCE_COSMOSDB_ACCOUNT_ID`, `ARM_TEST_RESTORE_TIMESTAMP_IN_UTC`, `ARM_TEST_DATABASE_NAME` AND `ARM_TEST_COLLECTION_NAME` was not specified")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
@@ -2652,20 +2652,20 @@ resource "azurerm_cosmosdb_account" "test" {
   create_mode = "Restore"
 
   restore {
-    restore_source           = "%s"
-    restore_timestamp_in_utc = "%s"
+    source_cosmosdb_account_id = "%s"
+    restore_timestamp_in_utc   = "%s"
 
-    database_to_restore {
-      database_name    = "%s"
+    database {
+      name             = "%s"
       collection_names = ["%s"]
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency), os.Getenv("ARM_TEST_RESTORE_SOURCE"), os.Getenv("ARM_TEST_RESTORE_TIMESTAMP_IN_UTC"), os.Getenv("ARM_TEST_DATABASE_NAME"), os.Getenv("ARM_TEST_COLLECTION_NAME"))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency), os.Getenv("ARM_TEST_SOURCE_COSMOSDB_ACCOUNT_ID"), os.Getenv("ARM_TEST_RESTORE_TIMESTAMP_IN_UTC"), os.Getenv("ARM_TEST_DATABASE_NAME"), os.Getenv("ARM_TEST_COLLECTION_NAME"))
 }
 
 func skipRestoreCreateMode() bool {
-	if os.Getenv("ARM_TEST_RESTORE_SOURCE") == "" || os.Getenv("ARM_TEST_RESTORE_TIMESTAMP_IN_UTC") == "" || os.Getenv("ARM_TEST_DATABASE_NAME") == "" || os.Getenv("ARM_TEST_COLLECTION_NAME") == "" {
+	if os.Getenv("ARM_TEST_SOURCE_COSMOSDB_ACCOUNT_ID") == "" || os.Getenv("ARM_TEST_RESTORE_TIMESTAMP_IN_UTC") == "" || os.Getenv("ARM_TEST_DATABASE_NAME") == "" || os.Getenv("ARM_TEST_COLLECTION_NAME") == "" {
 		return true
 	}
 

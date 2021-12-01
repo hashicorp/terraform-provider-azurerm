@@ -224,19 +224,19 @@ A `identity` block supports the following:
 
 A `restore` block supports the following:
 
-* `restore_source` - (Required) The resource ID of the restorable database account from which the restore has to be initiated. The example is `/subscriptions/{subscriptionId}/providers/Microsoft.DocumentDB/locations/{location}/restorableDatabaseAccounts/{restorableDatabaseAccountName}`. Changing this forces a new resource to be created.
+* `source_cosmosdb_account_id` - (Required) The resource ID of the restorable database account from which the restore has to be initiated. The example is `/subscriptions/{subscriptionId}/providers/Microsoft.DocumentDB/locations/{location}/restorableDatabaseAccounts/{restorableDatabaseAccountName}`. Changing this forces a new resource to be created.
 
 **NOTE:** The restorable database account is not a tracked resource because any database account with `continuousModeBackupPolicy` (live account or accounts deleted in last 30 days) are the restorable database accounts. So there cannot be Create/Update/Delete operations on the restorable database accounts. They can only be read.
 
 * `restore_timestamp_in_utc` - (Required) The creation time of the database or the collection (Datetime Format `RFC 3339`). Changing this forces a new resource to be created.
 
-* `database_to_restore` - (Optional) A `database_to_restore` block as defined below. Changing this forces a new resource to be created.
+* `database` - (Optional) A `database` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
-A `database_to_restore` block supports the following:
+A `database` block supports the following:
 
-* `database_name` - (Required) The database name for the restore request. Changing this forces a new resource to be created.
+* `name` - (Required) The database name for the restore request. Changing this forces a new resource to be created.
 
 * `collection_names` - (Optional) A list of the collection names for the restore request. Changing this forces a new resource to be created.
 

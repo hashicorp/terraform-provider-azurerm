@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"log"
 	"net/http"
 	"regexp"
@@ -482,14 +483,11 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"restore_source": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.All(
-								validation.StringMatch(regexp.MustCompile(`^(.)+/restorableDatabaseAccounts/(.)+$`), "It includes the segment `/restorableDatabaseAccounts/`"),
-								azure.ValidateResourceID,
-							),
+						"source_cosmosdb_account_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.RestorableCosmosdbAccountID,
 						},
 
 						"restore_timestamp_in_utc": {
@@ -499,13 +497,13 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 							ValidateFunc: validation.IsRFC3339Time,
 						},
 
-						"database_to_restore": {
+						"database": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							ForceNew: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"database_name": {
+									"name": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ForceNew:     true,
@@ -1669,9 +1667,9 @@ func expandCosmosdbAccountRestoreParameters(input []interface{}) *documentdb.Res
 
 	return &documentdb.RestoreParameters{
 		RestoreMode:           documentdb.RestoreModePointInTime,
-		RestoreSource:         utils.String(v["restore_source"].(string)),
+		RestoreSource:         utils.String(v["source_cosmosdb_account_id"].(string)),
 		RestoreTimestampInUtc: &date.Time{Time: restoreTimestampInUtc},
-		DatabasesToRestore:    expandCosmosdbAccountDatabasesToRestore(v["database_to_restore"].(*pluginsdk.Set).List()),
+		DatabasesToRestore:    expandCosmosdbAccountDatabasesToRestore(v["database"].(*pluginsdk.Set).List()),
 	}
 }
 
@@ -1682,7 +1680,7 @@ func expandCosmosdbAccountDatabasesToRestore(input []interface{}) *[]documentdb.
 		v := item.(map[string]interface{})
 
 		results = append(results, documentdb.DatabaseRestoreResource{
-			DatabaseName:    utils.String(v["database_name"].(string)),
+			DatabaseName:    utils.String(v["name"].(string)),
 			CollectionNames: utils.ExpandStringSlice(v["collection_names"].(*pluginsdk.Set).List()),
 		})
 	}
@@ -1707,9 +1705,9 @@ func flattenCosmosdbAccountRestoreParameters(input *documentdb.RestoreParameters
 
 	return []interface{}{
 		map[string]interface{}{
-			"database_to_restore":      flattenCosmosdbAccountDatabasesToRestore(input.DatabasesToRestore),
-			"restore_source":           restoreSource,
-			"restore_timestamp_in_utc": restoreTimestampInUtc,
+			"database":                   flattenCosmosdbAccountDatabasesToRestore(input.DatabasesToRestore),
+			"source_cosmosdb_account_id": restoreSource,
+			"restore_timestamp_in_utc":   restoreTimestampInUtc,
 		},
 	}
 }
@@ -1728,7 +1726,7 @@ func flattenCosmosdbAccountDatabasesToRestore(input *[]documentdb.DatabaseRestor
 
 		results = append(results, map[string]interface{}{
 			"collection_names": utils.FlattenStringSlice(item.CollectionNames),
-			"database_name":    databaseName,
+			"name":             databaseName,
 		})
 	}
 
