@@ -1907,13 +1907,14 @@ func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) (*[]ne
 			ApplicationGatewayTrustedRootCertificatePropertiesFormat: &network.ApplicationGatewayTrustedRootCertificatePropertiesFormat{},
 		}
 
-		if data != "" && kvsid != "" {
+		switch {
+		case data != "" && kvsid != "":
 			return nil, fmt.Errorf("only one of `key_vault_secret_id` or `data` must be specified for the `trusted_root_certificate` block %q", name)
-		} else if data != "" {
+		case data != "":
 			output.ApplicationGatewayTrustedRootCertificatePropertiesFormat.Data = utils.String(utils.Base64EncodeIfNot(data))
-		} else if kvsid != "" {
+		case kvsid != "":
 			output.ApplicationGatewayTrustedRootCertificatePropertiesFormat.KeyVaultSecretID = utils.String(kvsid)
-		} else {
+		default:
 			return nil, fmt.Errorf("either `key_vault_secret_id` or `data` must be specified for the `trusted_root_certificate` block %q", name)
 		}
 
