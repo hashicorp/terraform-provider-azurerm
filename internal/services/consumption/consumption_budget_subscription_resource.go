@@ -52,7 +52,7 @@ func resourceArmConsumptionBudgetSubscriptionRead(d *pluginsdk.ResourceData, met
 
 	subscriptionId := subscriptionParse.NewSubscriptionId(consumptionBudgetId.SubscriptionId)
 
-	err = resourceArmConsumptionBudgetRead(d, meta, subscriptionId.ID(), consumptionBudgetId.BudgetName)
+	err = resourceArmConsumptionBudgetRead(d, meta, subscriptionId.ID(), consumptionBudgetId.BudgetName, SchemaConsumptionBudgetNotificationElement, FlattenConsumptionBudgetNotifications)
 	if err != nil {
 		return err
 	}

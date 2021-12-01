@@ -12,7 +12,10 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func resourceArmConsumptionBudgetRead(d *pluginsdk.ResourceData, meta interface{}, scope, name string) error {
+type schemaNotificationElementFunc func() *pluginsdk.Resource
+type flattenNotificationElementFunc func(input map[string]*consumption.Notification) []interface{}
+
+func resourceArmConsumptionBudgetRead(d *pluginsdk.ResourceData, meta interface{}, scope, name string, schemaFunc schemaNotificationElementFunc, flattenFunc flattenNotificationElementFunc) error {
 	client := meta.(*clients.Client).Consumption.BudgetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -34,7 +37,7 @@ func resourceArmConsumptionBudgetRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("etag", resp.ETag)
 	d.Set("time_grain", string(resp.TimeGrain))
 	d.Set("time_period", FlattenConsumptionBudgetTimePeriod(resp.TimePeriod))
-	d.Set("notification", pluginsdk.NewSet(pluginsdk.HashResource(SchemaConsumptionBudgetNotificationElement()), FlattenConsumptionBudgetNotifications(resp.Notifications)))
+	d.Set("notification", pluginsdk.NewSet(pluginsdk.HashResource(schemaFunc()), flattenFunc(resp.Notifications)))
 	d.Set("filter", FlattenConsumptionBudgetFilter(resp.Filter))
 
 	return nil
