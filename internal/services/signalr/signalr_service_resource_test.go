@@ -286,7 +286,7 @@ func TestAccSignalRService_skuAndCapacityUpdate(t *testing.T) {
 }
 
 func TestAccSignalRService_serviceMode(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "tes`zx 1q	a`t")
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{

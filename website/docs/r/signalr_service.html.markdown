@@ -63,9 +63,9 @@ The following arguments are supported:
 
 ~> **NOTE:** The `features` block is deprecated, use `connectivity_logs_enabled`, `messaging_logs_enabled` and `service_mode` instead.
 
-* `connectivity_logs_enabled`- (Optional) Specifies if Connectivity Logs are enabled. Possible values are `True` and `False`.
+* `connectivity_logs_enabled`- (Optional) Specifies if Connectivity Logs are enabled or not.
 
-* `messaging_logs_enabled`- (Optional) Specifies if Messaging Logs are enabled. Possible values are `True` and `False`.
+* `messaging_logs_enabled`- (Optional) Specifies if Messaging Logs are enabled or not. 
 
 * `service_mode`- (Optional) Specifies the service mode. Possible values are `Classic`, `Default` and `Serverless`.
 
