@@ -105,9 +105,10 @@ func (r VirtualHubIPResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_virtual_hub_ip" "test" {
-  name           = "acctest-vhubipconfig-%d"
-  virtual_hub_id = azurerm_virtual_hub.test.id
-  subnet_id      = azurerm_subnet.test.id
+  name                 = "acctest-vhubipconfig-%d"
+  virtual_hub_id       = azurerm_virtual_hub.test.id
+  public_ip_address_id = azurerm_public_ip.test.id
+  subnet_id            = azurerm_subnet.test.id
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -117,9 +118,10 @@ func (r VirtualHubIPResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_virtual_hub_ip" "import" {
-  name           = azurerm_virtual_hub_ip.test.name
-  virtual_hub_id = azurerm_virtual_hub_ip.test.virtual_hub_id
-  subnet_id      = azurerm_virtual_hub_ip.test.subnet_id
+  name                 = azurerm_virtual_hub_ip.test.name
+  virtual_hub_id       = azurerm_virtual_hub_ip.test.virtual_hub_id
+  public_ip_address_id = azurerm_virtual_hub_ip.test.public_ip_address_id
+  subnet_id            = azurerm_virtual_hub_ip.test.subnet_id
 }
 `, r.basic(data))
 }
@@ -161,7 +163,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-pip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network" "test" {
