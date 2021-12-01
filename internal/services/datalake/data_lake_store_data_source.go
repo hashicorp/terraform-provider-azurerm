@@ -80,8 +80,8 @@ func dataSourceArmDateLakeStoreAccountRead(d *pluginsdk.ResourceData, meta inter
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.AccountName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		if location := model.Location; location != nil {

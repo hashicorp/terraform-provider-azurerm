@@ -5,12 +5,14 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/sdk/datalakestore/2016-11-01/accounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/validate"
@@ -118,7 +120,7 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": identity.SystemAssigned{}.Schema(),
+			"identity": commonschema.SystemAssignedIdentity(),
 
 			"tags": tags.Schema(),
 		},
@@ -157,10 +159,15 @@ func resourceArmDateLakeStoreCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	log.Printf("[INFO] preparing arguments for Data Lake Store creation %s", id)
 
+	identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	dateLakeStore := accounts.CreateDataLakeStoreAccountParameters{
 		Location: location,
 		Tags:     tagsHelper.Expand(t),
-		Identity: expandDataLakeStoreIdentity(d.Get("identity").([]interface{})),
+		Identity: identity,
 		Properties: &accounts.CreateDataLakeStoreAccountProperties{
 			NewTier:               &tier,
 			FirewallState:         &firewallState,
@@ -233,15 +240,15 @@ func resourceArmDateLakeStoreRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retreiving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.AccountName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		if location := model.Location; location != nil {
 			d.Set("location", azure.NormalizeLocation(*location))
 		}
 
-		if err := d.Set("identity", flattenDataLakeStoreIdentity(model.Identity)); err != nil {
+		if err := d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
 			return fmt.Errorf("flattening identity on Data Lake Store %s: %+v", id, err)
 		}
 
@@ -297,40 +304,4 @@ func resourceArmDateLakeStoreDelete(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	return nil
-}
-
-func expandDataLakeStoreIdentity(input []interface{}) *identity.SystemAssignedIdentity {
-	if len(input) == 0 {
-		return nil
-	}
-
-	v := input[0].(map[string]interface{})
-
-	return &identity.SystemAssignedIdentity{
-		Type: identity.Type(v["type"].(string)),
-	}
-}
-
-func flattenDataLakeStoreIdentity(identity *identity.SystemAssignedIdentity) []interface{} {
-	if identity == nil {
-		return []interface{}{}
-	}
-
-	principalID := ""
-	if identity.PrincipalId != nil {
-		principalID = *identity.PrincipalId
-	}
-
-	tenantID := ""
-	if identity.TenantId != nil {
-		tenantID = *identity.TenantId
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         identity.Type,
-			"principal_id": principalID,
-			"tenant_id":    tenantID,
-		},
-	}
 }
