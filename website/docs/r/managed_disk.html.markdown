@@ -113,9 +113,9 @@ The following arguments are supported:
 
 * `hyper_v_generation` - (Optional) The HyperV Generation of the Disk when the source of an `Import` or `Copy` operation targets a source that contains an operating system. Possible values are `V1` and `V2`. Changing this forces a new resource to be created.
 
-* `image_reference_id` - (Optional) ID of an existing platform/marketplace disk image or gallery image version to copy when `create_option` is `FromImage`.
+* `image_reference_id` - (Optional) ID of an existing platform/marketplace disk image to copy when `create_option` is `FromImage`. This field cannot be specified if gallery_image_reference_id is specified.
 
-* `image_reference_lun` - (Optional) Index of the data disk in the image when copying from a data disk. Defaults to `-1`, which means to copy from os disk.
+* `gallery_image_reference_id` - (Optional) ID of a Gallery Image Version to copy when `create_option` is `FromImage`. This field cannot be specified if image_reference_id is specified.
 
 * `logical_sector_size` - (Optional) Logical Sector Size. Possible values are: `512` and `4096`. Defaults to `4096`. Changing this forces a new resource to be created.
 

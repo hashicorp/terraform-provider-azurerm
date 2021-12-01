@@ -120,13 +120,13 @@ func TestAccManagedDisk_fromPlatformImage(t *testing.T) {
 	})
 }
 
-func TestAccManagedDisk_fromGalleryImageDataDisk(t *testing.T) {
+func TestAccManagedDisk_fromGalleryImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.galleryImageDataDisk(data),
+			Config: r.galleryImage(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -903,7 +903,7 @@ resource "azurerm_managed_disk" "test" {
 `, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r ManagedDiskResource) galleryImageDataDisk(data acceptance.TestData) string {
+func (r ManagedDiskResource) galleryImage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -933,22 +933,6 @@ resource "azurerm_linux_virtual_machine" "test" {
     sku       = "16.04-LTS"
     version   = "latest"
   }
-}
-
-resource "azurerm_managed_disk" "test" {
-  name                 = "%d-disk1"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_type = "Standard_LRS"
-  create_option        = "Empty"
-  disk_size_gb         = 10
-}
-
-resource "azurerm_virtual_machine_data_disk_attachment" "test" {
-  managed_disk_id    = azurerm_managed_disk.test.id
-  virtual_machine_id = azurerm_linux_virtual_machine.test.id
-  lun                = "0"
-  caching            = "None"
 }
 
 resource "azurerm_shared_image_gallery" "test" {
@@ -988,23 +972,18 @@ resource "azurerm_shared_image_version" "test" {
   tags = {
     "foo" = "bar"
   }
-
-  depends_on = [
-    azurerm_virtual_machine_data_disk_attachment.test,
-  ]
 }
 
-resource "azurerm_managed_disk" "test2" {
-  name                 = "acctestd-%d"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  os_type              = "Linux"
-  create_option        = "FromImage"
-  image_reference_id   = azurerm_shared_image_version.test.id
-  image_reference_lun  = 0
-  storage_account_type = "Standard_LRS"
+resource "azurerm_managed_disk" "test" {
+  name                       = "acctestd-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  os_type                    = "Linux"
+  create_option              = "FromImage"
+  gallery_image_reference_id = azurerm_shared_image_version.test.id
+  storage_account_type       = "Standard_LRS"
 }
-`, LinuxVirtualMachineResource{}.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, LinuxVirtualMachineResource{}.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (ManagedDiskResource) encryption(data acceptance.TestData) string {
