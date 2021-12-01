@@ -2061,7 +2061,7 @@ resource "azurerm_key_vault_certificate" "test" {
 }
 
 resource "azurerm_key_vault_certificate" "test2" {
-  name         = "acctest%[3]d"
+  name         = "acctestkvc%[2]d"
   key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate {
@@ -2149,7 +2149,7 @@ resource "azurerm_application_gateway" "test" {
     backend_http_settings_name = "${local.http_setting_name}"
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ApplicationGatewayResource) trustedRootCertificate(data acceptance.TestData) string {
