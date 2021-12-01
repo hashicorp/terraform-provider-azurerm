@@ -200,6 +200,5 @@ resource "azurerm_mssql_database" "test" {
   name      = "acctest-db-%[1]d"
   server_id = azurerm_mssql_server.test.id
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

@@ -108,7 +108,6 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerservice.ScaleSetEvictionPolicyDelete),
 					string(containerservice.ScaleSetEvictionPolicyDeallocate),
@@ -181,11 +180,12 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				RequiredWith: []string{"enable_node_public_ip"},
 			},
 
+			// Node Taints control the behaviour of the Node Pool, as such they should not be computed and
+			// must be specified/reconciled as required
 			"node_taints": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
-				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},

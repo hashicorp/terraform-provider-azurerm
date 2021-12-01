@@ -110,24 +110,21 @@ func resourceStreamAnalyticsFunctionUDF() *pluginsdk.Resource {
 
 func resourceStreamAnalyticsFunctionUDFCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.FunctionsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Function Javascript UDF creation.")
-	name := d.Get("name").(string)
-	jobName := d.Get("stream_analytics_job_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
+	id := parse.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, jobName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Stream Analytics Function Javascript UDF %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_function_javascript_udf", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_stream_analytics_function_javascript_udf", id.ID())
 		}
 	}
 
@@ -155,21 +152,13 @@ func resourceStreamAnalyticsFunctionUDFCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, function, resourceGroup, jobName, name, "", ""); err != nil {
-			return fmt.Errorf("Creating Stream Analytics Function Javascript UDF %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		if _, err := client.CreateOrReplace(ctx, function, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
-		read, err := client.Get(ctx, resourceGroup, jobName, name)
-		if err != nil {
-			return fmt.Errorf("retrieving Stream Analytics Function Javascript UDF %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
-		}
-		if read.ID == nil {
-			return fmt.Errorf("Cannot read ID of Stream Analytics Function Javascript UDF %q (Job %q / Resource Group %q)", name, jobName, resourceGroup)
-		}
-
-		d.SetId(*read.ID)
-	} else if _, err := client.Update(ctx, function, resourceGroup, jobName, name, ""); err != nil {
-		return fmt.Errorf("Updating Stream Analytics Function Javascript UDF %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		d.SetId(id.ID())
+	} else if _, err := client.Update(ctx, function, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceStreamAnalyticsFunctionUDFRead(d, meta)
