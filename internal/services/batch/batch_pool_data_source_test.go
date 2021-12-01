@@ -22,18 +22,18 @@ func TestAccBatchPoolDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("microsoft-azure-batch"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("16-04-lts"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("20-04-lts"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("ubuntu-server-container"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("2"),
 				check.That(data.ResourceName).Key("fixed_scale.0.resize_timeout").HasValue("PT15M"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_low_priority_nodes").HasValue("0"),
-				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 16.04"),
+				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 20.04"),
 				check.That(data.ResourceName).Key("max_tasks_per_node").HasValue("2"),
 				check.That(data.ResourceName).Key("start_task.#").HasValue("1"),
-				check.That(data.ResourceName).Key("start_task.0.max_task_retry_count").HasValue("1"),
-				check.That(data.ResourceName).Key("start_task.0.environment.%").HasValue("1"),
-				check.That(data.ResourceName).Key("start_task.0.environment.env").HasValue("TEST"),
+				check.That(data.ResourceName).Key("start_task.0.task_retry_maximum").HasValue("5"),
+				check.That(data.ResourceName).Key("start_task.0.common_environment_properties.%").HasValue("1"),
+				check.That(data.ResourceName).Key("start_task.0.common_environment_properties.env").HasValue("TEST"),
 				check.That(data.ResourceName).Key("start_task.0.user_identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("start_task.0.user_identity.0.auto_user.#").HasValue("1"),
 				check.That(data.ResourceName).Key("start_task.0.user_identity.0.auto_user.0.scope").HasValue("Task"),
@@ -100,7 +100,7 @@ resource "azurerm_batch_pool" "test" {
   account_name        = azurerm_batch_account.test.name
   display_name        = "Test Acc Pool"
   vm_size             = "Standard_A1"
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
   max_tasks_per_node  = 2
 
   fixed_scale {
@@ -111,7 +111,7 @@ resource "azurerm_batch_pool" "test" {
   storage_image_reference {
     publisher = "microsoft-azure-batch"
     offer     = "ubuntu-server-container"
-    sku       = "16-04-lts"
+    sku       = "20-04-lts"
     version   = "latest"
   }
 
@@ -131,11 +131,11 @@ resource "azurerm_batch_pool" "test" {
   }
 
   start_task {
-    command_line         = "echo 'Hello World from $env'"
-    max_task_retry_count = 1
-    wait_for_success     = true
+    command_line       = "echo 'Hello World from $env'"
+    task_retry_maximum = 5
+    wait_for_success   = true
 
-    environment = {
+    common_environment_properties = {
       env = "TEST"
     }
 
