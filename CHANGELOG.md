@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_mysql_flexible_database` [GH-14285]
+* **New Resource:** `azurerm_synapse_sql_pool_workload_group` [GH-13658]
 
 ENHANCEMENTS:
 
