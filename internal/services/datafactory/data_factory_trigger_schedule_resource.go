@@ -138,6 +138,8 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			},
 
 			// This time can only be  represented in UTC.
+			// An issue has been filed in the SDK for the timezone attribute that doesn't seem to work
+			// https://github.com/Azure/azure-sdk-for-go/issues/6244
 			"start_time": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
@@ -147,6 +149,8 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			},
 
 			// This time can only be  represented in UTC.
+			// An issue has been filed in the SDK for the timezone attribute that doesn't seem to work
+			// https://github.com/Azure/azure-sdk-for-go/issues/6244
 			"end_time": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
