@@ -153,7 +153,7 @@ func resourceMySQLServerKeyRead(d *pluginsdk.ResourceData, meta interface{}) err
 	resp, err := keysClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] %s was not found - removing from state", *id, err)
+			log.Printf("[WARN] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
