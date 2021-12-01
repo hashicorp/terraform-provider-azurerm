@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * `azurerm_linux_virtual_machine_scale_set` - support the `secure_boot_enabled` and `vtpm_enabled` properties [GH-13842]
 * `azurerm_mssql_database` - add support for transparent data encryption, behind a 3.0 feature flag [GH-13748] 
 * `azurerm_point_to_site_vpn_gateway` - support for the `internet_security_enabled` property [GH-14345]
+* `azurerm_bastion_host` - support for `sku` property [GH-14370]
 
 BUG FIXES:
 
