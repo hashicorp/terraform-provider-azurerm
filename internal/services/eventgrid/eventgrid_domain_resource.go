@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -140,6 +140,8 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 
 			"public_network_access_enabled": eventSubscriptionPublicNetworkAccessEnabled(),
 
+			"local_auth_enabled": localAuthEnabled(),
+
 			"inbound_ip_rule": eventSubscriptionInboundIPRule(),
 
 			"endpoint": {
@@ -193,6 +195,7 @@ func resourceEventGridDomainCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		InputSchema:         eventgrid.InputSchema(d.Get("input_schema").(string)),
 		PublicNetworkAccess: expandPublicNetworkAccess(d),
 		InboundIPRules:      expandInboundIPRules(d),
+		DisableLocalAuth:    utils.Bool(!d.Get("local_auth_enabled").(bool)),
 	}
 
 	domain := eventgrid.Domain{
@@ -291,6 +294,13 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 		if err := d.Set("inbound_ip_rule", inboundIPRules); err != nil {
 			return fmt.Errorf("setting `inbound_ip_rule` in EventGrid Domain %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
+
+		localAuthEnabled := true
+		if props.DisableLocalAuth != nil {
+			localAuthEnabled = !*props.DisableLocalAuth
+		}
+
+		d.Set("local_auth_enabled", localAuthEnabled)
 	}
 
 	keys, err := client.ListSharedAccessKeys(ctx, id.ResourceGroup, id.Name)

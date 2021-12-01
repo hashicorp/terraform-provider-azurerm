@@ -50,6 +50,8 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
+* `local_auth_enabled` - (Optional) Whether local authentication methods is enabled for the EventGrid Domain. Defaults to `true`.
+
 * `inbound_ip_rule` - (Optional) One or more `inbound_ip_rule` blocks as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
