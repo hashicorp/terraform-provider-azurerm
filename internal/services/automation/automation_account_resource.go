@@ -86,14 +86,13 @@ func resourceAutomationAccountCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	log.Printf("[INFO] preparing arguments for Automation Account create/update.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewAutomationAccountID(client.SubscriptionID, d.Get("name").(string), d.Get("resource_group_name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Automation Account %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -113,20 +112,11 @@ func resourceAutomationAccountCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		Tags:     tags.Expand(t),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("creating/updating Automation Account %q (Resource Group %q) %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Automation Account %q (Resource Group %q) %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Automation Account %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceAutomationAccountRead(d, meta)
 }

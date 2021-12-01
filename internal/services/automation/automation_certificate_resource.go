@@ -86,16 +86,14 @@ func resourceAutomationCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Certificate creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("automation_account_name").(string)
+	id := parse.NewCertificateID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 	exportable := d.Get("exportable").(bool)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, accountName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Automation Certificate %q (Account %q / Resource Group %q): %s", name, accountName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -107,7 +105,7 @@ func resourceAutomationCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 	description := d.Get("description").(string)
 
 	parameters := automation.CertificateCreateOrUpdateParameters{
-		Name: &name,
+		Name: &id.Name,
 		CertificateCreateOrUpdateProperties: &automation.CertificateCreateOrUpdateProperties{
 			Description:  &description,
 			IsExportable: &exportable,
@@ -119,20 +117,11 @@ func resourceAutomationCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 		parameters.CertificateCreateOrUpdateProperties.Base64Value = &base64
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, name, parameters); err != nil {
-		return fmt.Errorf("creating/updating Certificate %q (Automation Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, accountName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Certificate %q (Automation Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("ID was nil for Automation Certificate %q (Automation Account %q / Resource Group %q)", name, accountName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceAutomationCertificateRead(d, meta)
 }
