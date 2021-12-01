@@ -115,6 +115,7 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 			"connectivity_logs_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Computed: true, // TODO remove in 3.0
 				ConflictsWith: []string{
 					"features",
 				},
@@ -123,6 +124,7 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 			"messaging_logs_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Computed: true, // TODO remove in 3.0
 				ConflictsWith: []string{
 					"features",
 				},
@@ -131,6 +133,7 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 			"service_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Computed: true, // TODO remove in 3.0
 				ConflictsWith: []string{
 					"features",
 				},
