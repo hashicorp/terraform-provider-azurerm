@@ -8,15 +8,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type WebAppBotServiceResource struct {
+type AzureBotServiceResource struct {
 	base botBaseResource
 }
 
-var _ sdk.Resource = WebAppBotServiceResource{}
+var _ sdk.Resource = AzureBotServiceResource{}
 
-var _ sdk.ResourceWithUpdate = WebAppBotServiceResource{}
+var _ sdk.ResourceWithUpdate = AzureBotServiceResource{}
 
-func (r WebAppBotServiceResource) Arguments() map[string]*pluginsdk.Schema {
+func (r AzureBotServiceResource) Arguments() map[string]*pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -28,34 +28,34 @@ func (r WebAppBotServiceResource) Arguments() map[string]*pluginsdk.Schema {
 	return r.base.arguments(schema)
 }
 
-func (r WebAppBotServiceResource) Attributes() map[string]*pluginsdk.Schema {
+func (r AzureBotServiceResource) Attributes() map[string]*pluginsdk.Schema {
 	return r.base.attributes()
 }
 
-func (r WebAppBotServiceResource) ModelObject() interface{} {
+func (r AzureBotServiceResource) ModelObject() interface{} {
 	return nil
 }
 
-func (r WebAppBotServiceResource) ResourceType() string{
-	return "azurerm_bot_service_web_app"
+func (r AzureBotServiceResource) ResourceType() string{
+	return "azurerm_bot_service_azure_bot"
 }
 
-func (r WebAppBotServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r AzureBotServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.BotServiceID
 }
 
-func (r WebAppBotServiceResource) Create() sdk.ResourceFunc {
+func (r AzureBotServiceResource) Create() sdk.ResourceFunc {
 	return r.base.createFunc(r.ResourceType(), string(botservice.KindAzurebot))
 }
 
-func (r WebAppBotServiceResource) Read() sdk.ResourceFunc {
+func (r AzureBotServiceResource) Read() sdk.ResourceFunc {
 	return r.base.readFunc()
 }
 
-func (r WebAppBotServiceResource) Delete() sdk.ResourceFunc {
+func (r AzureBotServiceResource) Delete() sdk.ResourceFunc {
 	return r.base.deleteFunc()
 }
 
-func (r WebAppBotServiceResource) Update() sdk.ResourceFunc {
+func (r AzureBotServiceResource) Update() sdk.ResourceFunc {
 	return r.base.updateFunc()
 }
