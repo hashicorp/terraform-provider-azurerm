@@ -128,6 +128,7 @@ func (r SynapseWorkloadClassifierResource) requiresImport(data acceptance.TestDa
 resource "azurerm_synapse_sql_pool_workload_classifier" "import" {
   name              = azurerm_synapse_sql_pool_workload_classifier.test.name
   workload_group_id = azurerm_synapse_sql_pool_workload_classifier.test.workload_group_id
+  member_name       = "dbo"
 }
 `, config)
 }
