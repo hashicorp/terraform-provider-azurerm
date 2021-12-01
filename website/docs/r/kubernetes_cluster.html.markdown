@@ -237,7 +237,7 @@ A `addon_profile` block supports the following:
 
 * `azure_keyvault_secrets_provider` - (Optional) An `azure_keyvault_secrets_provider` block as defined below. For more details, please visit [Azure Keyvault Secrets Provider for AKS](https://docs.microsoft.com/en-us/azure/aks/csi-secrets-store-driver).
 
--> **NOTE.** At this time the Azure Keyvault Secrets Provider is not supported in Azure US government or Azure China.
+~> **NOTE.** At this time the Azure KeyVault Secrets Provider is not supported in Azure China/Azure US Government.
 
 ---
 
@@ -836,11 +836,11 @@ The `oms_agent_identity` block exports the following:
 
 The `azure_keyvault_secrets_provider` block exports the following:
 
-* `azure_keyvault_secrets_provider_identity` - An `azure_keyvault_secrets_provider_identity` block is exported. The exported attributes are defined below.  
+* `secret_provider_identity` - An `secret_provider_identity` block is exported. The exported attributes are defined below.  
 
 ---
 
-The `azure_keyvault_secrets_provider_identity` block exports the following:
+The `secret_provider_identity` block exports the following:
 
 * `client_id` - The Client ID of the user-defined Managed Identity used by the Secret Provider.
 

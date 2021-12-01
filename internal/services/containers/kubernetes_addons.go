@@ -260,7 +260,7 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 								Default:      "2m",
 								ValidateFunc: containerValidate.Duration,
 							},
-							"azure_keyvault_secrets_provider_identity": {
+							"secret_provider_identity": {
 								Type:     pluginsdk.TypeList,
 								Computed: true,
 								Elem: &pluginsdk.Resource{
@@ -632,10 +632,10 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 		azureKeyvaultSecretsProviderIdentity := flattenKubernetesClusterAddOnIdentityProfile(azureKeyvaultSecretsProvider.Identity)
 
 		azureKeyvaultSecretsProviders = append(azureKeyvaultSecretsProviders, map[string]interface{}{
-			"enabled":                                  enabled,
-			"secret_rotation_enabled":                  enableSecretRotation,
-			"secret_rotation_interval":                 rotationPollInterval,
-			"azure_keyvault_secrets_provider_identity": azureKeyvaultSecretsProviderIdentity,
+			"enabled":                  enabled,
+			"secret_rotation_enabled":  enableSecretRotation,
+			"secret_rotation_interval": rotationPollInterval,
+			"secret_provider_identity": azureKeyvaultSecretsProviderIdentity,
 		})
 
 	}

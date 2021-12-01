@@ -300,7 +300,7 @@ An `open_service_mesh` block supports the following:
 
 ---
 
-An `azure_keyvault_secrets_provider` block supports the following:
+An `azure_keyvault_secrets_provider` block exports the following:
 
 * `enabled` - Is the Azure Keyvault Secrets Provider enabled?
 
@@ -309,7 +309,8 @@ An `azure_keyvault_secrets_provider` block supports the following:
 * `secret_rotation_interval` - The interval to poll for secret rotation.
 
 ---
-The `azure_keyvault_secrets_provider_identity` block exports the following:
+
+The `secret_provider_identity` block exports the following:
 
 * `client_id` - The Client ID of the user-defined Managed Identity used by the Secret Provider.
 
