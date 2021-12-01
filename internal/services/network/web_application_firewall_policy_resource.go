@@ -275,7 +275,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 						"max_request_body_size_in_kb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(8, 128),
+							ValidateFunc: validation.IntBetween(8, 2000),
 							Default:      128,
 						},
 					},
