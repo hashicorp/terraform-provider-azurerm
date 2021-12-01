@@ -107,7 +107,7 @@ func resourceLogAnalyticsSolutionCreateUpdate(d *pluginsdk.ResourceData, meta in
 	log.Printf("[INFO] preparing arguments for Log Analytics Solution creation.")
 
 	id := loganalyticsParse.NewLogAnalyticsSolutionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("solution_name").(string))
-	resGroup := d.Get("resource_group_name").(string)
+	//resGroup := d.Get("resource_group_name").(string)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.SolutionName)
