@@ -105,20 +105,18 @@ func resourceAutomationWebhookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	accountName := d.Get("automation_account_name").(string)
+	id := parse.NewWebhookID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 	expiryTime := d.Get("expiry_time").(string)
 	enabled := d.Get("enabled").(bool)
 	runbookName := d.Get("runbook_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
 	runOn := d.Get("run_on_worker_group").(string)
 	webhookParameters := utils.ExpandMapStringPtrString(d.Get("parameters").(map[string]interface{}))
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, resourceGroup, accountName, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for present of existing Automation Webhook %q (Automation Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 			}
 		}
 
@@ -129,7 +127,7 @@ func resourceAutomationWebhookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	t, _ := time.Parse(time.RFC3339, expiryTime) // should be validated by the schema
 	parameters := automation.WebhookCreateOrUpdateParameters{
-		Name: utils.String(name),
+		Name: utils.String(id.Name),
 		WebhookCreateOrUpdateProperties: &automation.WebhookCreateOrUpdateProperties{
 			IsEnabled:  utils.Bool(enabled),
 			ExpiryTime: &date.Time{Time: t},
@@ -146,9 +144,9 @@ func resourceAutomationWebhookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		if v := d.Get("uri"); v != nil && v.(string) != "" {
 			uri = v.(string)
 		} else {
-			resp, err := client.GenerateURI(ctx, resourceGroup, accountName)
+			resp, err := client.GenerateURI(ctx, id.ResourceGroup, id.AutomationAccountName)
 			if err != nil {
-				return fmt.Errorf("unable to generate URI for Automation Webhook %q (Automattion Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+				return fmt.Errorf("unable to generate URI for %s: %+v", id, err)
 			}
 			parameters.WebhookCreateOrUpdateProperties.URI = resp.Value
 			uri = *resp.Value
@@ -159,18 +157,11 @@ func resourceAutomationWebhookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, name, parameters); err != nil {
-		return fmt.Errorf("creating Automation Webhook %q (Automation Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, accountName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Automation Webook %q (Automation Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("cannot read Automation Webhook %q (Automation Account Name %q / Resource Group %q) ID", name, accountName, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 	// URI is not present in the response from Azure, so it's set now, as there was no error returned
 	if uri != "" {
 		d.Set("uri", uri)

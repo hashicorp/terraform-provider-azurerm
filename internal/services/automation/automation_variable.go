@@ -129,16 +129,15 @@ func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("automation_account_name").(string)
 	varTypeLower := strings.ToLower(varType)
 
+	id := parse.NewVariableID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
+
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, resourceGroup, accountName, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for present of existing Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, name, accountName, resourceGroup, err)
+				return fmt.Errorf("checking for present of existing Automation %s Variable %s: %+v", varType, id, err)
 			}
 		}
 
@@ -167,7 +166,7 @@ func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	parameters := automation.VariableCreateOrUpdateParameters{
-		Name: utils.String(name),
+		Name: utils.String(id.Name),
 		VariableCreateOrUpdateProperties: &automation.VariableCreateOrUpdateProperties{
 			Description: utils.String(description),
 			IsEncrypted: utils.Bool(encrypted),
@@ -178,18 +177,11 @@ func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		parameters.VariableCreateOrUpdateProperties.Value = utils.String(value)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, name, parameters); err != nil {
-		return fmt.Errorf("creating Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, name, accountName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating Automation %s Variable %s: %+v", varType, id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, accountName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, name, accountName, resourceGroup, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Automation %s Variable %q (Automation Account Name %q / Resource Group %q) ID", varType, name, accountName, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceAutomationVariableRead(d, meta, varType)
 }
@@ -244,26 +236,24 @@ func dataSourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("automation_account_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewVariableID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 	varTypeLower := strings.ToLower(varType)
 
-	resp, err := client.Get(ctx, resourceGroup, accountName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Automation %s Variable %q does not exist - removing from state", varType, d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, name, accountName, resourceGroup, err)
+		return fmt.Errorf("reading Automation %s Variable %s: %+v", varType, id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("automation_account_name", accountName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("automation_account_name", id.AutomationAccountName)
 	if properties := resp.VariableProperties; properties != nil {
 		d.Set("description", properties.Description)
 		d.Set("encrypted", properties.IsEncrypted)
