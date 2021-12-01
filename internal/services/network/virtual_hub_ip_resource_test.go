@@ -120,7 +120,7 @@ func (r VirtualHubIPResource) requiresImport(data acceptance.TestData) string {
 resource "azurerm_virtual_hub_ip" "import" {
   name                 = azurerm_virtual_hub_ip.test.name
   virtual_hub_id       = azurerm_virtual_hub_ip.test.virtual_hub_id
-  public_ip_address_id = azurerm_virtual_hub_ip.public_ip_address_id
+  public_ip_address_id = azurerm_virtual_hub_ip.test.public_ip_address_id
   subnet_id            = azurerm_virtual_hub_ip.test.subnet_id
 }
 `, r.basic(data))
