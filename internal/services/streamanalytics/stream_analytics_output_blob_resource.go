@@ -107,24 +107,21 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 
 func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Output Blob creation.")
-	name := d.Get("name").(string)
-	jobName := d.Get("stream_analytics_job_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
+	id := parse.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, jobName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Stream Analytics Output Blob %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_output_blob", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_stream_analytics_output_blob", id.ID())
 		}
 	}
 
@@ -142,7 +139,7 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	props := streamanalytics.Output{
-		Name: utils.String(name),
+		Name: utils.String(id.Name),
 		OutputProperties: &streamanalytics.OutputProperties{
 			Datasource: &streamanalytics.BlobOutputDataSource{
 				Type: streamanalytics.TypeMicrosoftStorageBlob,
@@ -174,25 +171,17 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 	// timeWindow and sizeWindow must be set for Parquet serialization
 	_, isParquet := serialization.AsParquetSerialization()
 	if isParquet && (props.TimeWindow == nil || props.SizeWindow == nil) {
-		return fmt.Errorf("cannot create Stream Analytics Output Blob %q (Job %q / Resource Group %q): batch_min_rows and batch_time_window must be set for Parquet serialization", name, jobName, resourceGroup)
+		return fmt.Errorf("cannot create %s: batch_min_rows and batch_time_window must be set for Parquet serialization", id)
 	}
 
 	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, props, resourceGroup, jobName, name, "", ""); err != nil {
-			return fmt.Errorf("Creating Stream Analytics Output Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		if _, err := client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
-		read, err := client.Get(ctx, resourceGroup, jobName, name)
-		if err != nil {
-			return fmt.Errorf("retrieving Stream Analytics Output Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
-		}
-		if read.ID == nil {
-			return fmt.Errorf("Cannot read ID of Stream Analytics Output Blob %q (Job %q / Resource Group %q)", name, jobName, resourceGroup)
-		}
-
-		d.SetId(*read.ID)
-	} else if _, err := client.Update(ctx, props, resourceGroup, jobName, name, ""); err != nil {
-		return fmt.Errorf("Updating Stream Analytics Output Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		d.SetId(id.ID())
+	} else if _, err := client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceStreamAnalyticsOutputBlobRead(d, meta)
