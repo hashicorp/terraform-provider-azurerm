@@ -134,7 +134,7 @@ func resourceSqlActiveDirectoryAdministratorCreateUpdate(d *pluginsdk.ResourceDa
 		}
 		aadOnlyEnabledFuture, err := aadOnlyAuthClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, aadOnlyAuthentictionsParams)
 		if err != nil {
-			return fmt.Errorf("setting AAD only authentication for %s: %+v", serverId)
+			return fmt.Errorf("setting AAD only authentication for %s: %+v", serverId, err)
 		}
 
 		if err = aadOnlyEnabledFuture.WaitForCompletionRef(ctx, aadOnlyAuthClient.Client); err != nil {
