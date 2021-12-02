@@ -20,6 +20,9 @@ import (
 var appServiceResourceName = "azurerm_app_service"
 
 func resourceAppServiceIpRestriction() *pluginsdk.Resource {
+	restrictionSchemaElement := schemaAppServiceIpRestrictionElement()
+	restrictionSchemaElement["name"].Optional = false
+	restrictionSchemaElement["name"].Required = true
 	return &pluginsdk.Resource{
 		Create: resourceAppServiceIpRestrictionCreate,
 		Read:   resourceAppServiceIpRestrictionRead,
@@ -48,7 +51,7 @@ func resourceAppServiceIpRestriction() *pluginsdk.Resource {
 				MaxItems:   1,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
-					Schema: schemaAppServiceIpRestrictionElement(),
+					Schema: restrictionSchemaElement,
 				},
 			},
 		},
