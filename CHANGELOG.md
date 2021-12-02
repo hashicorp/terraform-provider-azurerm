@@ -24,6 +24,7 @@ BUG FIXES:
 * `azurerm_kubernetes_cluster_node_pool` - handle incorrect casing of kubernetes cluster resource ID with a state migration [GH-14241]
 * `azurerm_storage_account` - populating the account cache on creation, which fixes an issue when the storage account occasionally couldn't be found [GH-14361]
 * `azurerm_kubernetes_nodepool` reverting the computed behaviour of `node_taints` and `eviction_policy` [GH-14378]
+* `azurerm_container_group` - allow `search_domains` and `options` under the `dns_config` block to be optional since they are not required by the API [GH-14419]
 
 ## 2.87.0 (November 26, 2021)
 
