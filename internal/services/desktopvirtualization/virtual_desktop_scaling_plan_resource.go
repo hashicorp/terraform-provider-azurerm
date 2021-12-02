@@ -255,7 +255,7 @@ func resourceVirtualDesktopScalingPlanCreate(d *pluginsdk.ResourceData, meta int
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Virtual Desktop Scaling Plan %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s): %+v", id, err)
 			}
 		}
 
@@ -283,7 +283,7 @@ func resourceVirtualDesktopScalingPlanCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if _, err := client.Create(ctx, id.ResourceGroup, id.Name, context); err != nil {
-		return fmt.Errorf("Creating Virtual Desktop Scaling Plan %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -318,7 +318,7 @@ func resourceVirtualDesktopScalingPlanUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, &context); err != nil {
-		return fmt.Errorf("Creating Virtual Desktop Scaling Plan %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourceVirtualDesktopScalingPlanRead(d, meta)
@@ -337,12 +337,11 @@ func resourceVirtualDesktopScalingPlanRead(d *pluginsdk.ResourceData, meta inter
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Virtual Desktop Scaling Plan %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
-
-		return fmt.Errorf("making Read request on %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -374,7 +373,7 @@ func resourceVirtualDesktopScalingPlanDelete(d *pluginsdk.ResourceData, meta int
 	}
 
 	if _, err = client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("deleting Virtual Desktop Scaling Plan %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
