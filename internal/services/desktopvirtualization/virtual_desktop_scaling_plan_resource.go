@@ -482,24 +482,72 @@ func flattenScalingPlanSchedule(input *[]desktopvirtualization.ScalingSchedule) 
 	}
 
 	for _, item := range *input {
+		name := ""
+		if item.Name != nil {
+			name = *item.Name
+		}
+		rampUpStartTime := ""
+		if item.RampUpStartTime != nil && item.RampUpStartTime.Hour != nil && item.RampUpStartTime.Minute != nil {
+			rampUpStartTime = fmt.Sprintf("%02d:%02d", *item.RampUpStartTime.Hour, *item.RampUpStartTime.Minute)
+		}
+		rampUpMinimumHostsPct := int32(0)
+		if item.RampUpMinimumHostsPct != nil {
+			rampUpMinimumHostsPct = *item.RampUpMinimumHostsPct
+		}
+		rampUpCapacityThresholdPct := int32(0)
+		if item.RampUpCapacityThresholdPct != nil {
+			rampUpCapacityThresholdPct = *item.RampUpCapacityThresholdPct
+		}
+		peakStartTime := ""
+		if item.PeakStartTime != nil && item.PeakStartTime.Hour != nil && item.PeakStartTime.Minute != nil {
+			peakStartTime = fmt.Sprintf("%02d:%02d", *item.PeakStartTime.Hour, *item.PeakStartTime.Minute)
+		}
+		rampDownStartTime := ""
+		if item.RampDownStartTime != nil && item.RampDownStartTime.Hour != nil && item.RampDownStartTime.Minute != nil {
+			rampDownStartTime = fmt.Sprintf("%02d:%02d", *item.RampDownStartTime.Hour, *item.RampDownStartTime.Minute)
+		}
+		rampDownMinimumHostsPct := int32(0)
+		if item.RampDownMinimumHostsPct != nil {
+			rampDownMinimumHostsPct = *item.RampDownMinimumHostsPct
+		}
+		rampDownCapacityThresholdPct := int32(0)
+		if item.RampDownCapacityThresholdPct != nil {
+			rampDownCapacityThresholdPct = *item.RampDownCapacityThresholdPct
+		}
+		rampDownForceLogoffUsers := false
+		if item.RampDownForceLogoffUsers != nil {
+			rampDownForceLogoffUsers = *item.RampDownForceLogoffUsers
+		}
+		rampDownWaitTimeMinutes := int32(0)
+		if item.RampDownWaitTimeMinutes != nil {
+			rampDownWaitTimeMinutes = *item.RampDownWaitTimeMinutes
+		}
+		rampDownNotificationMessage := ""
+		if item.RampDownNotificationMessage != nil {
+			rampDownNotificationMessage = *item.RampDownNotificationMessage
+		}
+		offPeakStartTime := ""
+		if item.OffPeakStartTime != nil && item.OffPeakStartTime.Hour != nil && item.OffPeakStartTime.Minute != nil {
+			offPeakStartTime = fmt.Sprintf("%02d:%02d", *item.OffPeakStartTime.Hour, *item.OffPeakStartTime.Minute)
+		}
 		results = append(results, map[string]interface{}{
-			"name":                                 item.Name,
+			"name":                                 name,
 			"days_of_week":                         utils.FlattenStringSlice(item.DaysOfWeek),
-			"ramp_up_start_time":                   utils.String(fmt.Sprintf("%02d:%02d", *item.RampUpStartTime.Hour, *item.RampUpStartTime.Minute)),
+			"ramp_up_start_time":                   rampUpStartTime,
 			"ramp_up_load_balancing_algorithm":     item.RampUpLoadBalancingAlgorithm,
-			"ramp_up_minimum_hosts_percent":        item.RampUpMinimumHostsPct,
-			"ramp_up_capacity_threshold_percent":   item.RampUpCapacityThresholdPct,
-			"peak_start_time":                      utils.String(fmt.Sprintf("%02d:%02d", *item.PeakStartTime.Hour, *item.PeakStartTime.Minute)),
+			"ramp_up_minimum_hosts_percent":        rampUpMinimumHostsPct,
+			"ramp_up_capacity_threshold_percent":   rampUpCapacityThresholdPct,
+			"peak_start_time":                      peakStartTime,
 			"peak_load_balancing_algorithm":        item.PeakLoadBalancingAlgorithm,
-			"ramp_down_start_time":                 utils.String(fmt.Sprintf("%02d:%02d", *item.RampDownStartTime.Hour, *item.RampDownStartTime.Minute)),
+			"ramp_down_start_time":                 rampDownStartTime,
 			"ramp_down_load_balancing_algorithm":   item.RampDownLoadBalancingAlgorithm,
-			"ramp_down_minimum_hosts_percent":      item.RampDownMinimumHostsPct,
-			"ramp_down_capacity_threshold_percent": item.RampDownCapacityThresholdPct,
-			"ramp_down_force_logoff_users":         item.RampDownForceLogoffUsers,
+			"ramp_down_minimum_hosts_percent":      rampDownMinimumHostsPct,
+			"ramp_down_capacity_threshold_percent": rampDownCapacityThresholdPct,
+			"ramp_down_force_logoff_users":         rampDownForceLogoffUsers,
 			"ramp_down_stop_hosts_when":            item.RampDownStopHostsWhen,
-			"ramp_down_wait_time_minutes":          item.RampDownWaitTimeMinutes,
-			"ramp_down_notification_message":       item.RampDownNotificationMessage,
-			"off_peak_start_time":                  utils.String(fmt.Sprintf("%02d:%02d", *item.OffPeakStartTime.Hour, *item.OffPeakStartTime.Minute)),
+			"ramp_down_wait_time_minutes":          rampDownWaitTimeMinutes,
+			"ramp_down_notification_message":       rampDownNotificationMessage,
+			"off_peak_start_time":                  offPeakStartTime,
 			"off_peak_load_balancing_algorithm":    item.OffPeakLoadBalancingAlgorithm,
 		})
 	}
@@ -514,9 +562,17 @@ func flattenScalingHostpoolReference(input *[]desktopvirtualization.ScalingHostP
 	}
 
 	for _, item := range *input {
+		hostPoolArmPath := ""
+		if item.HostPoolArmPath != nil {
+			hostPoolArmPath = *item.HostPoolArmPath
+		}
+		scalingPlanEnabled := false
+		if item.ScalingPlanEnabled != nil {
+			scalingPlanEnabled = *item.ScalingPlanEnabled
+		}
 		results = append(results, map[string]interface{}{
-			"hostpool_id":          item.HostPoolArmPath,
-			"scaling_plan_enabled": item.ScalingPlanEnabled,
+			"hostpool_id":          hostPoolArmPath,
+			"scaling_plan_enabled": scalingPlanEnabled,
 		})
 	}
 	return results
