@@ -14,12 +14,16 @@ ENHANCEMENTS:
 * `azurerm_linux_virtual_machine_scale_set` - support the `secure_boot_enabled` and `vtpm_enabled` properties [GH-13842]
 * `azurerm_mssql_database` - add support for transparent data encryption, behind a 3.0 feature flag [GH-13748] 
 * `azurerm_point_to_site_vpn_gateway` - support for the `internet_security_enabled` property [GH-14345]
+* `azurerm_bastion_host` - support for `sku` property [GH-14370]
+* `azurerm_batch_pool` - deprecate `max_task_retry_count` and `environment` in favour of `task_retry_maximum` and `common_environment_properties` for consistency across batch resources [GH-14368]
 
 BUG FIXES:
 
-* `azurerm_storage_account` - populating the account cache on creation, which fixes an issue when the storage account occasionally couldn't be found [GH-14361]
+* `azurerm_monitor_aad_diagnostic_setting` - fixing the id validator to use the eventhub auth rule id rather than the relay id [GH-14406]
 * `azurerm_kubernetes_cluster` - handle incorrect casing of kubernetes cluster resource ID with a state migration [GH-14241]
 * `azurerm_kubernetes_cluster_node_pool` - handle incorrect casing of kubernetes cluster resource ID with a state migration [GH-14241]
+* `azurerm_storage_account` - populating the account cache on creation, which fixes an issue when the storage account occasionally couldn't be found [GH-14361]
+* `azurerm_kubernetes_nodepool` reverting the computed behaviour of `node_taints` and `eviction_policy` [GH-14378]
 
 ## 2.87.0 (November 26, 2021)
 

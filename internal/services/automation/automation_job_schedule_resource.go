@@ -95,9 +95,6 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Job Schedule creation.")
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("automation_account_name").(string)
-
 	runbookName := d.Get("runbook_name").(string)
 	scheduleName := d.Get("schedule_name").(string)
 
@@ -109,11 +106,13 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 		jobScheduleUUID = uuid.FromStringOrNil(jobScheduleID.(string))
 	}
 
+	id := parse.NewJobScheduleID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), jobScheduleUUID.String())
+
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, accountName, jobScheduleUUID)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, jobScheduleUUID)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Automation Job Schedule %q (Account %q / Resource Group %q): %s", jobScheduleUUID, accountName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -125,21 +124,21 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 	// fix issue: https://github.com/hashicorp/terraform-provider-azurerm/issues/7130
 	// When the runbook has some updates, it'll update all related job schedule id, so the elder job schedule will not exist
 	// We need to delete the job schedule id if exists to recreate the job schedule
-	for jsIterator, err := client.ListByAutomationAccountComplete(ctx, resourceGroup, accountName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
+	for jsIterator, err := client.ListByAutomationAccountComplete(ctx, id.ResourceGroup, id.AutomationAccountName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
 		if err != nil {
-			return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", accountName, err)
+			return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", id.AutomationAccountName, err)
 		}
 		if props := jsIterator.Value().JobScheduleProperties; props != nil {
 			if props.Schedule.Name != nil && *props.Schedule.Name == scheduleName && props.Runbook.Name != nil && *props.Runbook.Name == runbookName {
 				if jsIterator.Value().JobScheduleID == nil || *jsIterator.Value().JobScheduleID == "" {
-					return fmt.Errorf("job schedule Id is nil or empty listed by Automation Account %q Job Schedule List: %+v", accountName, err)
+					return fmt.Errorf("job schedule Id is nil or empty listed by Automation Account %q Job Schedule List: %+v", id.AutomationAccountName, err)
 				}
 				jsId, err := uuid.FromString(*jsIterator.Value().JobScheduleID)
 				if err != nil {
-					return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List:%v", accountName, err)
+					return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List:%v", id.AutomationAccountName, err)
 				}
-				if _, err := client.Delete(ctx, resourceGroup, accountName, jsId); err != nil {
-					return fmt.Errorf("deleting job schedule Id listed by Automation Account %q Job Schedule List:%v", accountName, err)
+				if _, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, jsId); err != nil {
+					return fmt.Errorf("deleting job schedule Id listed by Automation Account %q Job Schedule List:%v", id.AutomationAccountName, err)
 				}
 			}
 		}
@@ -172,20 +171,11 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 		properties.RunOn = &value
 	}
 
-	if _, err := client.Create(ctx, resourceGroup, accountName, jobScheduleUUID, parameters); err != nil {
+	if _, err := client.Create(ctx, id.ResourceGroup, id.AutomationAccountName, jobScheduleUUID, parameters); err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, resourceGroup, accountName, jobScheduleUUID)
-	if err != nil {
-		return err
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Automation Job Schedule '%s' (Account %q / Resource Group %s) ID", jobScheduleUUID, accountName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceAutomationJobScheduleRead(d, meta)
 }

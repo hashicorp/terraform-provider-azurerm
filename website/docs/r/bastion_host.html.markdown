@@ -66,6 +66,8 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.  Review [Azure Bastion Host FAQ](https://docs.microsoft.com/en-us/azure/bastion/bastion-faq) for supported locations.
 
+* `sku` - (Optional) The SKU of the Bastion Host. Accepted values are `Basic` and `Standard`. Defaults to `Basic`.
+
 * `ip_configuration` - (Required) A `ip_configuration` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
