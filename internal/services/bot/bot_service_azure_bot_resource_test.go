@@ -56,6 +56,23 @@ func TestAccBotServiceAzureBot_completeUpdate(t *testing.T) {
 	})
 }
 
+func TestAccBotServiceAzureBot_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
+	r := BotServiceAzureBotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_bot_service_azure_bot"),
+		},
+	})
+}
 
 func (t BotServiceAzureBotResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.BotServiceID(state.ID)
@@ -142,4 +159,19 @@ resource "azurerm_bot_service_azure_bot" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (BotServiceAzureBotResource) requiresImport(data acceptance.TestData) string {
+	template := BotServiceAzureBotResource{}.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_bot_service_azure_bot" "import" {
+  name                = azurerm_bot_service_azure_bot.test.name
+  resource_group_name = azurerm_bot_service_azure_bot.test.resource_group_name
+  location            = azurerm_bot_service_azure_bot.test.location
+  sku                 = azurerm_bot_service_azure_bot.test.sku
+  microsoft_app_id    = azurerm_bot_service_azure_bot.test.microsoft_app_id
+}
+`, template)
 }
