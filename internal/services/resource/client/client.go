@@ -17,7 +17,10 @@ type Client struct {
 	ProvidersClient             *providers.ProvidersClient
 	ResourceProvidersClient     *resources.ProvidersClient
 	ResourcesClient             *resources.Client
+	TagsClient                  *resources.TagsClient
 	TemplateSpecsVersionsClient *templatespecs.VersionsClient
+
+	options *common.ClientOptions
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -47,6 +50,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	templatespecsVersionsClient := templatespecs.NewVersionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&templatespecsVersionsClient.Client, o.ResourceManagerAuthorizer)
 
+	tagsClient := resources.NewTagsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&tagsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		GroupsClient:                &groupsClient,
 		DeploymentsClient:           &deploymentsClient,
@@ -55,6 +61,15 @@ func NewClient(o *common.ClientOptions) *Client {
 		ProvidersClient:             &providersClient,
 		ResourceProvidersClient:     &resourceProvidersClient,
 		ResourcesClient:             &resourcesClient,
+		TagsClient:                  &tagsClient,
 		TemplateSpecsVersionsClient: &templatespecsVersionsClient,
+
+		options: o,
 	}
+}
+
+func (c Client) TagsClientForSubscription(subscriptionID string) *resources.TagsClient {
+	tagsClient := resources.NewTagsClientWithBaseURI(c.options.ResourceManagerEndpoint, subscriptionID)
+	c.options.ConfigureClient(&tagsClient.Client, c.options.ResourceManagerAuthorizer)
+	return &tagsClient
 }
