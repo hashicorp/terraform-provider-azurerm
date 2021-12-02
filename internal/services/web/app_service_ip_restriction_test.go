@@ -64,6 +64,7 @@ resource "azurerm_app_service_ip_restriction" "test" {
   app_service_id = azurerm_app_service.test.id
 
   ip_restriction {
+	name       = "basic"
 	ip_address = "10.10.10.10/32"
 	action     = "Allow"
   }
@@ -99,13 +100,5 @@ resource "azurerm_app_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
   app_service_plan_id = azurerm_app_service_plan.test.id
 }
-
-resource "azurerm_app_service_slot" "test" {
-  name                = "acctestASSlot-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
-  app_service_name    = azurerm_app_service.test.name
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
