@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 function checkForAzCoreUsages {
   result=$(grep -R "github.com/Azure/azure-sdk-for-go/sdk/azcore" go.mod go.sum)
