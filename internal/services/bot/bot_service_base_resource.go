@@ -58,22 +58,23 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 		"developer_app_insights_key": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			//Computed:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 
 		"developer_app_insights_api_key": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			//Computed:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
+			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+				// This field for the api key isn't returned at all from Azure
+				return (new == d.Get(k).(string)) && (old == "")
+			},
 		},
 
 		"developer_app_insights_application_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			//Computed:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 
@@ -308,5 +309,27 @@ func (br botBaseResource) updateFunc() sdk.ResourceFunc {
 
 			return nil
 		},
+	}
+}
+
+func (br botBaseResource) importerFunc(expectKind string) sdk.ResourceRunFunc {
+	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Bot.BotClient
+
+			id, err := parse.BotServiceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if actualKind := string(resp.Kind); actualKind != expectKind {
+				return fmt.Errorf("bot has mismatched type, expected: %q, got %q", expectKind, actualKind)
+			}
+
+			return nil
 	}
 }

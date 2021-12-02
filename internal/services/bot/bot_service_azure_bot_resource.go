@@ -12,9 +12,9 @@ type AzureBotServiceResource struct {
 	base botBaseResource
 }
 
-var _ sdk.Resource = AzureBotServiceResource{}
-
 var _ sdk.ResourceWithUpdate = AzureBotServiceResource{}
+
+var _ sdk.ResourceWithCustomImporter = AzureBotServiceResource{}
 
 func (r AzureBotServiceResource) Arguments() map[string]*pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{
@@ -58,4 +58,8 @@ func (r AzureBotServiceResource) Delete() sdk.ResourceFunc {
 
 func (r AzureBotServiceResource) Update() sdk.ResourceFunc {
 	return r.base.updateFunc()
+}
+
+func (r AzureBotServiceResource) CustomImporter() sdk.ResourceRunFunc {
+	return r.base.importerFunc(string(botservice.KindAzurebot))
 }
