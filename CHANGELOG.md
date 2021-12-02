@@ -9,13 +9,15 @@ ENHANCEMENTS:
 
 * compute: `storagecache` to use API Version `2021-09-01` [GH-14311]
 * `azurerm_app_service` - support for the `client_cert_mode` property [GH-14395]
+* `azurerm_bastion_host` - support for `sku` property [GH-14370]
+* `azurerm_batch_pool` - deprecate `max_task_retry_count` and `environment` in favour of `task_retry_maximum` and `common_environment_properties` for consistency across batch resources [GH-14368]
 * `azurerm_data_factory_managed_private_endpoint` - support for the `fqdns` property [GH-14355]
 * `azurerm_linux_virtual_machine` - support the `secure_boot_enabled` and `vtpm_enabled` properties [GH-13842]
 * `azurerm_linux_virtual_machine_scale_set` - support the `secure_boot_enabled` and `vtpm_enabled` properties [GH-13842]
 * `azurerm_mssql_database` - add support for transparent data encryption, behind a 3.0 feature flag [GH-13748] 
 * `azurerm_point_to_site_vpn_gateway` - support for the `internet_security_enabled` property [GH-14345]
-* `azurerm_bastion_host` - support for `sku` property [GH-14370]
-* `azurerm_batch_pool` - deprecate `max_task_retry_count` and `environment` in favour of `task_retry_maximum` and `common_environment_properties` for consistency across batch resources [GH-14368]
+* `azurerm_subscription` - the `tags` property can now be set and updated [GH-14445]
+
 
 BUG FIXES:
 
