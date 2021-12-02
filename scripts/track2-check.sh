@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-function checkForAzCoreUsages() {
+function checkForAzCoreUsages {
   result=$(grep -R "github.com/Azure/azure-sdk-for-go/sdk/azcore" go.mod go.sum)
   if [ "$result" != "" ];
   then
@@ -23,7 +23,7 @@ function checkForAzCoreUsages() {
   fi
 }
 
-function checkForAzIdentityUsages() {
+function checkForAzIdentityUsages {
   result=$(grep -R "github.com/Azure/azure-sdk-for-go/sdk/azidentity" go.mod go.sum)
   if [ "$result" != "" ];
   then
