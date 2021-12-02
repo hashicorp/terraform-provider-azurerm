@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2021-09-03-preview/desktopvirtualization"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -104,10 +105,9 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 						},
 
 						"ramp_up_start_time": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringMatch(regexp.MustCompile(`^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$`),
-								`The time must be in the format HH:MM.`),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validateTime(),
 						},
 
 						"ramp_up_load_balancing_algorithm": {
@@ -132,10 +132,9 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 						},
 
 						"peak_start_time": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringMatch(regexp.MustCompile(`^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$`),
-								`The time must be in the format HH:MM.`),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validateTime(),
 						},
 
 						"peak_load_balancing_algorithm": {
@@ -148,10 +147,9 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 						},
 
 						"ramp_down_start_time": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringMatch(regexp.MustCompile(`^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$`),
-								`The time must be in the format HH:MM.`),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validateTime(),
 						},
 
 						"ramp_down_load_balancing_algorithm": {
@@ -200,10 +198,9 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 						},
 
 						"off_peak_start_time": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringMatch(regexp.MustCompile(`^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$`),
-								`The time must be in the format HH:MM.`),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validateTime(),
 						},
 
 						"off_peak_load_balancing_algorithm": {
@@ -239,6 +236,10 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 		},
 	}
+}
+
+func validateTime() schema.SchemaValidateFunc {
+	return validation.StringMatch(regexp.MustCompile(`^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$`), `The time must be in the format HH:MM.`)
 }
 
 func resourceVirtualDesktopScalingPlanCreate(d *pluginsdk.ResourceData, meta interface{}) error {
