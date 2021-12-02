@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type FlexibleDatabaseId struct {
@@ -42,7 +42,7 @@ func (id FlexibleDatabaseId) ID() string {
 
 // FlexibleDatabaseID parses a FlexibleDatabase ID into an FlexibleDatabaseId struct
 func FlexibleDatabaseID(input string) (*FlexibleDatabaseId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

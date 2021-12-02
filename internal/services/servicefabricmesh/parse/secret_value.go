@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type SecretValueId struct {
@@ -42,7 +42,7 @@ func (id SecretValueId) ID() string {
 
 // SecretValueID parses a SecretValue ID into an SecretValueId struct
 func SecretValueID(input string) (*SecretValueId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

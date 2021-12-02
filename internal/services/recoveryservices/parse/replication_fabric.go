@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ReplicationFabricId struct {
@@ -42,7 +42,7 @@ func (id ReplicationFabricId) ID() string {
 
 // ReplicationFabricID parses a ReplicationFabric ID into an ReplicationFabricId struct
 func ReplicationFabricID(input string) (*ReplicationFabricId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

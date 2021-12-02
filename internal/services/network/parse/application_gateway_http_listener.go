@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ApplicationGatewayHTTPListenerId struct {
@@ -42,7 +42,7 @@ func (id ApplicationGatewayHTTPListenerId) ID() string {
 
 // ApplicationGatewayHTTPListenerID parses a ApplicationGatewayHTTPListener ID into an ApplicationGatewayHTTPListenerId struct
 func ApplicationGatewayHTTPListenerID(input string) (*ApplicationGatewayHTTPListenerId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

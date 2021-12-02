@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type SpatialAnchorsAccountId struct {
@@ -39,7 +39,7 @@ func (id SpatialAnchorsAccountId) ID() string {
 
 // SpatialAnchorsAccountID parses a SpatialAnchorsAccount ID into an SpatialAnchorsAccountId struct
 func SpatialAnchorsAccountID(input string) (*SpatialAnchorsAccountId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

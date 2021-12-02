@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type NotebookWorkspaceId struct {
@@ -42,7 +42,7 @@ func (id NotebookWorkspaceId) ID() string {
 
 // NotebookWorkspaceID parses a NotebookWorkspace ID into an NotebookWorkspaceId struct
 func NotebookWorkspaceID(input string) (*NotebookWorkspaceId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

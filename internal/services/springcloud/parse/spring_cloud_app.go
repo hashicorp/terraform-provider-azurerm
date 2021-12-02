@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type SpringCloudAppId struct {
@@ -42,7 +42,7 @@ func (id SpringCloudAppId) ID() string {
 
 // SpringCloudAppID parses a SpringCloudApp ID into an SpringCloudAppId struct
 func SpringCloudAppID(input string) (*SpringCloudAppId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
