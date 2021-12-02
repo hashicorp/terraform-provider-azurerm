@@ -12,11 +12,11 @@ Manages a Windows Virtual Machine Scale Set.
 
 ## Disclaimers
 
-~> **Note**: All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
+~> **NOTE**: All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
--> **Note** Terraform will automatically update & reimage the nodes in the Scale Set (if Required) during an Update - this behaviour can be configured [using the `features` setting within the Provider block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features).
+-> **NOTE** Terraform will automatically update & reimage the nodes in the Scale Set (if Required) during an Update - this behaviour can be configured [using the `features` setting within the Provider block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features).
 
-~> **Note:** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use [the `azurerm_virtual_machine_scale_set` resource](virtual_machine_scale_set.html) instead
+~> **NOTE:** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use [the `azurerm_virtual_machine_scale_set` resource](virtual_machine_scale_set.html) instead
 
 ## Example Usage
 
@@ -308,7 +308,7 @@ An `extension` block supports the following:
 
 ~> **NOTE:** Keys within the `protected_settings` block are notoriously case-sensitive, where the casing required (e.g. TitleCase vs snakeCase) depends on the Extension being used. Please refer to the documentation for the specific Virtual Machine Extension you're looking to use for more information.
 
--> **Note:** Rather than defining JSON inline [you can use the `jsonencode` interpolation function](https://www.terraform.io/docs/configuration/functions/jsonencode.html) to define this in a cleaner way.
+-> **NOTE:** Rather than defining JSON inline [you can use the `jsonencode` interpolation function](https://www.terraform.io/docs/configuration/functions/jsonencode.html) to define this in a cleaner way.
 
 * `provision_after_extensions` - (Optional) An ordered list of Extension names which this should be provisioned after.
 
@@ -316,7 +316,7 @@ An `extension` block supports the following:
 
 ~> **NOTE:** Keys within the `settings` block are notoriously case-sensitive, where the casing required (e.g. TitleCase vs snakeCase) depends on the Extension being used. Please refer to the documentation for the specific Virtual Machine Extension you're looking to use for more information.
 
--> **Note:** Rather than defining JSON inline [you can use the `jsonencode` interpolation function](https://www.terraform.io/docs/configuration/functions/jsonencode.html) to define this in a cleaner way.
+-> **NOTE:** Rather than defining JSON inline [you can use the `jsonencode` interpolation function](https://www.terraform.io/docs/configuration/functions/jsonencode.html) to define this in a cleaner way.
 
 ---
 
@@ -428,7 +428,11 @@ A `public_ip_address` block supports the following:
 
 * `domain_name_label` - (Optional) The Prefix which should be used for the Domain Name Label for each Virtual Machine Instance. Azure concatenates the Domain Name Label and Virtual Machine Index to create a unique Domain Name Label for each Virtual Machine.
 
-* `idle_timeout_in_minutes` - (Optional) The Idle Timeout in Minutes for the Public IP Address. Possible values are in the range `4` to `32`.
+* `idle_timeout_in_minutes` - (Optional) The Idle Timeout in Minutes for the Public IP Address. Possible values range from `4` to `32`.
+
+* `sku_name` - (Optional) The Public IP Address `sku` to be created for each Virtual Machine Instance. The format for this field is the sku `name` and `tier` separated by an underscore(\_). Possible values are `Basic_Global`, `Basic_Regional`, `Standard_Global` and `Standard_Regional`.
+
+-> **NOTE:** The `sku_name` field connot be changed once it has been created.
 
 * `ip_tag` - (Optional) One or more `ip_tag` blocks as defined above.
 

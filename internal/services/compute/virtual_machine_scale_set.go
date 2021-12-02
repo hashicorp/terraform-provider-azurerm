@@ -3,6 +3,7 @@ package compute
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -409,6 +410,16 @@ func virtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(4, 32),
 				},
+				"sku_name": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						strings.Join([]string{string(compute.PublicIPAddressSkuNameBasic), string(compute.PublicIPAddressSkuTierRegional)}, "_"),
+						strings.Join([]string{string(compute.PublicIPAddressSkuNameBasic), string(compute.PublicIPAddressSkuTierGlobal)}, "_"),
+						strings.Join([]string{string(compute.PublicIPAddressSkuNameStandard), string(compute.PublicIPAddressSkuTierRegional)}, "_"),
+						strings.Join([]string{string(compute.PublicIPAddressSkuNameStandard), string(compute.PublicIPAddressSkuTierGlobal)}, "_"),
+					}, false),
+				},
 				"ip_tag": {
 					// TODO: does this want to be a Set?
 					Type:     pluginsdk.TypeList,
@@ -587,11 +598,12 @@ func expandVirtualMachineScaleSetIPConfiguration(raw map[string]interface{}) (*c
 func expandVirtualMachineScaleSetPublicIPAddress(raw map[string]interface{}) *compute.VirtualMachineScaleSetPublicIPAddressConfiguration {
 	ipTagsRaw := raw["ip_tag"].([]interface{})
 	ipTags := make([]compute.VirtualMachineScaleSetIPTag, 0)
-	for _, ipTagV := range ipTagsRaw {
-		ipTagRaw := ipTagV.(map[string]interface{})
+
+	for _, v := range ipTagsRaw {
+		m := v.(map[string]interface{})
 		ipTags = append(ipTags, compute.VirtualMachineScaleSetIPTag{
-			Tag:       utils.String(ipTagRaw["tag"].(string)),
-			IPTagType: utils.String(ipTagRaw["type"].(string)),
+			Tag:       utils.String(m["tag"].(string)),
+			IPTagType: utils.String(m["type"].(string)),
 		})
 	}
 
@@ -600,6 +612,19 @@ func expandVirtualMachineScaleSetPublicIPAddress(raw map[string]interface{}) *co
 		VirtualMachineScaleSetPublicIPAddressConfigurationProperties: &compute.VirtualMachineScaleSetPublicIPAddressConfigurationProperties{
 			IPTags: &ipTags,
 		},
+	}
+
+	if skuRaw := raw["sku_name"].(string); skuRaw != "" {
+		v := strings.Split(skuRaw, "_")
+
+		if len(v) == 2 {
+			sku := compute.PublicIPAddressSku{
+				Name: compute.PublicIPAddressSkuName(v[0]),
+				Tier: compute.PublicIPAddressSkuTier(v[1]),
+			}
+
+			publicIPAddressConfig.Sku = &sku
+		}
 	}
 
 	if domainNameLabel := raw["domain_name_label"].(string); domainNameLabel != "" {
@@ -862,10 +887,16 @@ func flattenVirtualMachineScaleSetPublicIPAddress(input compute.VirtualMachineSc
 		idleTimeoutInMinutes = int(*input.IdleTimeoutInMinutes)
 	}
 
+	var sku string
+	if input.Sku != nil {
+		sku = strings.Join([]string{string(input.Sku.Name), string(input.Sku.Tier)}, "_")
+	}
+
 	return map[string]interface{}{
 		"name":                    name,
 		"domain_name_label":       domainNameLabel,
 		"idle_timeout_in_minutes": idleTimeoutInMinutes,
+		"sku_name":                sku,
 		"ip_tag":                  ipTags,
 		"public_ip_prefix_id":     publicIPPrefixId,
 	}
