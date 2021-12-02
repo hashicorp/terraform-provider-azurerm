@@ -14,7 +14,7 @@ Manages a Virtual Desktop Scaling Plan.
 
 -> **Note** Scaling Plans are currently in preview and are only supported in a limited number of regions. Both the Scaling Plan and any referenced Host Pools must be deployed in a supported region. [Autoscale (preview) for Azure Virtual Desktop host pools](https://docs.microsoft.com/en-us/azure/virtual-desktop/autoscale-scaling-plan).
 
--> **Note** Scaling Plans require specific permissions to be granted to the Windows Virtual Desktop application before a 'hostpool_reference' can be configured. [Required Permissions for Scaling Plans](https://docs.microsoft.com/en-us/azure/virtual-desktop/autoscale-scaling-plan#create-a-custom-rbac-role).
+-> **Note** Scaling Plans require specific permissions to be granted to the Windows Virtual Desktop application before a 'host_pool' can be configured. [Required Permissions for Scaling Plans](https://docs.microsoft.com/en-us/azure/virtual-desktop/autoscale-scaling-plan#create-a-custom-rbac-role).
 
 ## Example Usage
 
@@ -133,7 +133,7 @@ resource "azurerm_virtual_desktop_scaling_plan" "example" {
     off_peak_load_balancing_algorithm    = "DepthFirst"
   }
 
-  hostpool_reference {
+  host_pool {
     hostpool_id          = azurerm_virtual_desktop_host_pool.example.id
     scaling_plan_enabled = true
   }
@@ -158,7 +158,7 @@ The following arguments are supported:
 
 * `schedule` - (Required) One or more `schedule` blocks as defined below.
 
-* `hostpool_reference` - (Required) One or more `hostpool_reference` blocks as defined below.
+* `host_pool` - (Required) One or more `host_pool` blocks as defined below.
 
 * `time_zone` - (Required) Specifies the Time Zone which should be used by the Scaling Plan for time based events, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/).
 
@@ -170,13 +170,13 @@ The following arguments are supported:
 
 * `friendly_name` - (Optional) Friendly name of the Scaling Plan.
 
-* `hostpool_reference` - (Optional) One or more `hostpool_reference` blocks as defined below.
+* `host_pool` - (Optional) One or more `host_pool` blocks as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Virtual Desktop Scaling Plan .
 
 ---
 
-A `hostpool_reference` block supports the following:
+A `host_pool` block supports the following:
 
 * `hostpool_id` - (Required) The ID of the HostPool to assign the Scaling Plan to. Note: During preview only HostPool's in EU and US regions are supported.
 

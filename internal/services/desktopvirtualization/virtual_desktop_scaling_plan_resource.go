@@ -215,7 +215,7 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 				},
 			},
 
-			"hostpool_reference": {
+			"host_pool": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
@@ -278,7 +278,7 @@ func resourceVirtualDesktopScalingPlanCreate(d *pluginsdk.ResourceData, meta int
 			HostPoolType:       desktopvirtualization.ScalingHostPoolTypePooled, // Only one possible value for this
 			ExclusionTag:       utils.String(d.Get("exclusion_tag").(string)),
 			Schedules:          expandScalingPlanSchedule(d.Get("schedule").([]interface{})),
-			HostPoolReferences: expandScalingPlanHostpoolReference(d.Get("hostpool_reference").([]interface{})),
+			HostPoolReferences: expandScalingPlanHostpoolReference(d.Get("host_pool").([]interface{})),
 		},
 	}
 
@@ -313,7 +313,7 @@ func resourceVirtualDesktopScalingPlanUpdate(d *pluginsdk.ResourceData, meta int
 			TimeZone:           utils.String(d.Get("time_zone").(string)),
 			ExclusionTag:       utils.String(d.Get("exclusion_tag").(string)),
 			Schedules:          expandScalingPlanSchedule(d.Get("schedule").([]interface{})),
-			HostPoolReferences: expandScalingPlanHostpoolReference(d.Get("hostpool_reference").([]interface{})),
+			HostPoolReferences: expandScalingPlanHostpoolReference(d.Get("host_pool").([]interface{})),
 		},
 	}
 
@@ -357,7 +357,7 @@ func resourceVirtualDesktopScalingPlanRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("time_zone", props.TimeZone)
 		d.Set("exclusion_tag", props.ExclusionTag)
 		d.Set("schedule", flattenScalingPlanSchedule(props.Schedules))
-		d.Set("hostpool_reference", flattenScalingHostpoolReference(props.HostPoolReferences))
+		d.Set("host_pool", flattenScalingHostpoolReference(props.HostPoolReferences))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
