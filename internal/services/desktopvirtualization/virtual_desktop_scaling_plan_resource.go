@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2021-09-03-preview/desktopvirtualization"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -238,7 +237,7 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 	}
 }
 
-func validateTime() schema.SchemaValidateFunc {
+func validateTime() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(regexp.MustCompile(`^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$`), `The time must be in the format HH:MM.`)
 }
 
