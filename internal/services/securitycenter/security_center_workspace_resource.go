@@ -5,11 +5,13 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
+	logAnalyticsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -28,8 +30,10 @@ func resourceSecurityCenterWorkspace() *pluginsdk.Resource {
 		Update: resourceSecurityCenterWorkspaceCreateUpdate,
 		Delete: resourceSecurityCenterWorkspaceDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.WorkspaceID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -58,26 +62,28 @@ func resourceSecurityCenterWorkspace() *pluginsdk.Resource {
 }
 
 func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	// TODO: split this create/update
+
 	client := meta.(*clients.Client).SecurityCenter.WorkspaceClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := securityCenterWorkspaceName
-
+	id := parse.NewWorkspaceID(subscriptionId, securityCenterWorkspaceName)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, name)
+		existing, err := client.Get(ctx, id.WorkspaceSettingName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Checking for presence of existing Security Center Workspace: %+v", err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_security_center_workspace", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_security_center_workspace", id.ID())
 		}
 	}
 
-	workspaceID, err := parse.LogAnalyticsWorkspaceID(d.Get("workspace_id").(string))
+	logAnalyticsWorkspaceId, err := logAnalyticsParse.LogAnalyticsWorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
 		return err
 	}
@@ -85,25 +91,30 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 	contact := security.WorkspaceSetting{
 		WorkspaceSettingProperties: &security.WorkspaceSettingProperties{
 			Scope:       utils.String(d.Get("scope").(string)),
-			WorkspaceID: utils.String(workspaceID.ID()),
+			WorkspaceID: utils.String(logAnalyticsWorkspaceId.ID()),
 		},
 	}
 
 	if d.IsNewResource() {
-		if _, err = client.Create(ctx, name, contact); err != nil {
+		if _, err = client.Create(ctx, id.WorkspaceSettingName, contact); err != nil {
 			return fmt.Errorf("Creating Security Center Workspace: %+v", err)
 		}
-	} else if _, err = client.Update(ctx, name, contact); err != nil {
+	} else if _, err = client.Update(ctx, id.WorkspaceSettingName, contact); err != nil {
 		return fmt.Errorf("Updating Security Center Workspace: %+v", err)
 	}
 
 	// api returns "" for workspace id after an create/update and eventually the new value
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Waiting"},
 		Target:     []string{"Populated"},
 		MinTimeout: 30 * time.Second,
+		Timeout:    time.Until(deadline),
 		Refresh: func() (interface{}, string, error) {
-			resp, err2 := client.Get(ctx, name)
+			resp, err2 := client.Get(ctx, id.WorkspaceSettingName)
 			if err2 != nil {
 				return resp, "Error", fmt.Errorf("Reading Security Center Workspace: %+v", err2)
 			}
@@ -118,19 +129,12 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-	} else {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
-	}
-
-	resp, err := stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		return fmt.Errorf("Waiting: %+v", err)
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
 	if d.IsNewResource() {
-		d.SetId(*resp.(security.WorkspaceSetting).ID)
+		d.SetId(id.ID())
 	}
 
 	return resourceSecurityCenterWorkspaceRead(d, meta)
@@ -156,7 +160,7 @@ func resourceSecurityCenterWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("scope", properties.Scope)
 		workspaceId := ""
 		if properties.WorkspaceID != nil {
-			id, err := parse.LogAnalyticsWorkspaceID(*properties.WorkspaceID)
+			id, err := logAnalyticsParse.LogAnalyticsWorkspaceID(*properties.WorkspaceID)
 			if err != nil {
 				return fmt.Errorf("Reading Security Center Log Analytics Workspace ID: %+v", err)
 			}

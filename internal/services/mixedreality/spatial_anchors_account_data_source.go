@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality/parse"
@@ -59,21 +61,19 @@ func dataSourceSpatialAnchorsAccountRead(d *pluginsdk.ResourceData, meta interfa
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	id := parse.NewSpatialAnchorsAccountID(subscriptionId, resourceGroup, name)
-
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return nil
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("retrieving Spatial Anchors Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
 	d.SetId(id.ID())
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.AccountProperties; props != nil {
 		d.Set("account_domain", props.AccountDomain)

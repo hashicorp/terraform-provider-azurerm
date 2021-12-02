@@ -1,29 +1,69 @@
-## 2.87.0 (Unreleased)
+## 2.88.0 (Unreleased)
 
 FEATURES:
 
-* **New Resource:** `azurerm_service_fabric_managed_cluster` [GH-14131]
-* **New Resource:** `azurerm_stream_analytics_cluster` [GH-14082]
-* **New Resource:** `azurerm_stream_analytics_managed_private_endpoint` [GH-14082]
+* **New Resource:** `azurerm_mysql_flexible_database` [GH-14285]
+* **New Resource:** `azurerm_synapse_sql_pool_workload_group` [GH-13658]
 
 ENHANCEMENTS:
 
-* dependencies: upgrading to `v0.18.0` of `github.com/hashicorp/go-azure-helpers` [GH-14261]
-* `azurerm_automation_rule` - support for the `expiration` property [GH-14262]
-* `azurerm_managed_disk` - support for the `public_network_access_enabled` property [GH-14199]
-* `azurerm_mssql_elasticpool` - support for the `DC` family [GH-14270]
-* `azurerm_mssql_server` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 [GH-14229]
-* `azurerm_mysql_server` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 [GH-14229]
-* `azurerm_postgresql_server` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 [GH-14229]
-* `azurerm_redis_cache` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 [GH-14229]
-* `azurerm_storage_account` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 [GH-14229]
-* `azurerm_stream_analytics_job` - `compatibility_level` now accepts 1.2 [GH-14294]
+* compute: `storagecache` to use API Version `2021-09-01` [GH-14311]
+* `azurerm_app_service` - support for the `client_cert_mode` property [GH-14395]
+* `azurerm_data_factory_managed_private_endpoint` - support for the `fqdns` property [GH-14355]
+* `azurerm_linux_virtual_machine` - support the `secure_boot_enabled` and `vtpm_enabled` properties [GH-13842]
+* `azurerm_linux_virtual_machine_scale_set` - support the `secure_boot_enabled` and `vtpm_enabled` properties [GH-13842]
+* `azurerm_mssql_database` - add support for transparent data encryption, behind a 3.0 feature flag [GH-13748] 
+* `azurerm_point_to_site_vpn_gateway` - support for the `internet_security_enabled` property [GH-14345]
+* `azurerm_bastion_host` - support for `sku` property [GH-14370]
+* `azurerm_batch_pool` - deprecate `max_task_retry_count` and `environment` in favour of `task_retry_maximum` and `common_environment_properties` for consistency across batch resources [GH-14368]
+
+BUG FIXES:
+
+* `azurerm_monitor_aad_diagnostic_setting` - fixing the id validator to use the eventhub auth rule id rather than the relay id [GH-14406]
+* `azurerm_kubernetes_cluster` - handle incorrect casing of kubernetes cluster resource ID with a state migration [GH-14241]
+* `azurerm_kubernetes_cluster_node_pool` - handle incorrect casing of kubernetes cluster resource ID with a state migration [GH-14241]
+* `azurerm_storage_account` - populating the account cache on creation, which fixes an issue when the storage account occasionally couldn't be found [GH-14361]
+* `azurerm_kubernetes_nodepool` reverting the computed behaviour of `node_taints` and `eviction_policy` [GH-14378]
+* `azurerm_container_group` - allow `search_domains` and `options` under the `dns_config` block to be optional since they are not required by the API [GH-14419]
+
+## 2.87.0 (November 26, 2021)
+
+FEATURES:
+
+* **New Resource:** `azurerm_api_management_notification_recipient_user` ([#14239](https://github.com/hashicorp/terraform-provider-azurerm/issues/14239))
+* **New Resource:** `azurerm_app_service_public_certificate` ([#14337](https://github.com/hashicorp/terraform-provider-azurerm/issues/14337))
+* **New Resource:** `azurerm_service_fabric_managed_cluster` ([#14131](https://github.com/hashicorp/terraform-provider-azurerm/issues/14131))
+* **New Resource:** `azurerm_sentinel_watchlist` ([#14258](https://github.com/hashicorp/terraform-provider-azurerm/issues/14258))
+* **New Resource:** `azurerm_static_site_custom_domain` ([#12764](https://github.com/hashicorp/terraform-provider-azurerm/issues/12764))
+* **New Resource:** `azurerm_stream_analytics_cluster` ([#14082](https://github.com/hashicorp/terraform-provider-azurerm/issues/14082))
+* **New Resource:** `azurerm_stream_analytics_managed_private_endpoint` ([#14082](https://github.com/hashicorp/terraform-provider-azurerm/issues/14082))
+
+ENHANCEMENTS:
+
+* dependencies: upgrading to `v0.18.0` of `github.com/hashicorp/go-azure-helpers` ([#14261](https://github.com/hashicorp/terraform-provider-azurerm/issues/14261))
+* `azurerm_automation_rule` - support for the `expiration` property ([#14262](https://github.com/hashicorp/terraform-provider-azurerm/issues/14262))
+* `azurerm_cosmosdb_account` - support for the `analytical_storage` and `capacity` blocks, `default_identity_type` and `storage_redundancy` properties ([#14346](https://github.com/hashicorp/terraform-provider-azurerm/issues/14346))
+* `azurerm_eventgrid_event_subscription` - support the `queue_message_time_to_live_in_seconds` and `user_assigned_identity` properties ([#14318](https://github.com/hashicorp/terraform-provider-azurerm/issues/14318))
+* `azurerm_firewall_policy` - allow cidr ranges for the `threat_intelligence_allowlist` property ([#14340](https://github.com/hashicorp/terraform-provider-azurerm/issues/14340))
+* `azurerm_managed_disk` - support for the `public_network_access_enabled` property ([#14199](https://github.com/hashicorp/terraform-provider-azurerm/issues/14199))
+* `azurerm_mssql_elasticpool` - support for the `DC` family ([#14270](https://github.com/hashicorp/terraform-provider-azurerm/issues/14270))
+* `azurerm_mssql_server` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 ([#14229](https://github.com/hashicorp/terraform-provider-azurerm/issues/14229))
+* `azurerm_mysql_server` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 ([#14229](https://github.com/hashicorp/terraform-provider-azurerm/issues/14229))
+* `azurerm_orchestrated_virtual_machine_scale_set` - add extension support ([#14236](https://github.com/hashicorp/terraform-provider-azurerm/issues/14236))
+* `azurerm_postgresql_server` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 ([#14229](https://github.com/hashicorp/terraform-provider-azurerm/issues/14229))
+* `azurerm_redis_cache` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 ([#14229](https://github.com/hashicorp/terraform-provider-azurerm/issues/14229))
+* `azurerm_service_plan` (beta) - add Logic App SKUs to validation. ([#14288](https://github.com/hashicorp/terraform-provider-azurerm/issues/14288))
+* `azurerm_site_recovery_replication_policy` - now supports disabling of snapshots and their retention ([#14329](https://github.com/hashicorp/terraform-provider-azurerm/issues/14329))
+* `azurerm_storage_account` - groundwork for the (currently disabled) 3.0 feature to set the default TLS version to 1.2 ([#14229](https://github.com/hashicorp/terraform-provider-azurerm/issues/14229))
+* `azurerm_stream_analytics_job` - `compatibility_level` now accepts 1.2 ([#14294](https://github.com/hashicorp/terraform-provider-azurerm/issues/14294))
 
 BUG FIXES: 
 
-* `azurerm_monitor_diagnostic_setting` - Swap Relay parser and validator with EventHub [GH-14277]
-* `azurerm_stream_analytics_stream_input_eventhub` - correctly support creation with the default `eventhub_consumer_group_name` [GH-14264]
-* `azurerm_synapse_workspace` - fix a crash during update when `sql_aad_admin` was configured [GH-14275]
+* `azurerm_function_app_slot` - fix a bug in `app_settings` for `WEBSITE_CONTENTSHARE` incorrectly updating ([#14211](https://github.com/hashicorp/terraform-provider-azurerm/issues/14211))
+* `azurerm_monitor_diagnostic_setting` - Swap Relay parser and validator with EventHub ([#14277](https://github.com/hashicorp/terraform-provider-azurerm/issues/14277))
+* `azurerm_stream_analytics_stream_input_eventhub` - correctly support creation with the default `eventhub_consumer_group_name` ([#14264](https://github.com/hashicorp/terraform-provider-azurerm/issues/14264))
+* `azurerm_synapse_workspace` - fix a crash during updates when `sql_aad_admin` was configured ([#14275](https://github.com/hashicorp/terraform-provider-azurerm/issues/14275))
+* `azurerm_linux_virtual_machine` - the `patch_mode` property is now properly supported [GH0-14042]
 
 ## 2.86.0 (November 19, 2021)
 

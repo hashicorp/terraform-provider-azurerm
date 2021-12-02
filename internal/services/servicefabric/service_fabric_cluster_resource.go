@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2021-06-01/servicefabric"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -559,31 +561,21 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 
 func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabric.ClustersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Service Fabric Cluster creation.")
-
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-	location := d.Get("location").(string)
-	reliabilityLevel := d.Get("reliability_level").(string)
-	managementEndpoint := d.Get("management_endpoint").(string)
-	upgradeMode := d.Get("upgrade_mode").(string)
-	clusterCodeVersion := d.Get("cluster_code_version").(string)
-	vmImage := d.Get("vm_image").(string)
-	t := d.Get("tags").(map[string]interface{})
-
+	id := parse.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", id.ID())
 		}
 	}
 
@@ -604,6 +596,14 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	nodeTypesRaw := d.Get("node_type").([]interface{})
 	nodeTypes := expandServiceFabricClusterNodeTypes(nodeTypesRaw)
+
+	location := d.Get("location").(string)
+	reliabilityLevel := d.Get("reliability_level").(string)
+	managementEndpoint := d.Get("management_endpoint").(string)
+	upgradeMode := d.Get("upgrade_mode").(string)
+	clusterCodeVersion := d.Get("cluster_code_version").(string)
+	vmImage := d.Get("vm_image").(string)
+	t := d.Get("tags").(map[string]interface{})
 
 	cluster := servicefabric.Cluster{
 		Location: utils.String(location),
@@ -656,25 +656,16 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 		cluster.ClusterProperties.ClusterCodeVersion = utils.String(clusterCodeVersion)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, cluster)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, cluster)
 	if err != nil {
-		return fmt.Errorf("creating Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID of Service Fabric Cluster %q (Resource Group %q)", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceServiceFabricClusterRead(d, meta)
 }
 
@@ -701,9 +692,7 @@ func resourceServiceFabricClusterRead(d *pluginsdk.ResourceData, meta interface{
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.ClusterProperties; props != nil {
 		d.Set("cluster_code_version", props.ClusterCodeVersion)

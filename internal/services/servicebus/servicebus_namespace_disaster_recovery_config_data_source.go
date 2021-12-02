@@ -73,7 +73,6 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 	defer cancel()
 
 	id := parse.NewNamespaceDisasterRecoveryConfigID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
-
 	resp, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -87,10 +86,9 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("namespace_name", id.NamespaceName)
 	d.Set("partner_namespace_id", resp.ArmDisasterRecoveryProperties.PartnerNamespace)
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.NamespaceName, id.DisasterRecoveryConfigName, serviceBusNamespaceDefaultAuthorizationRule)
-
 	if err != nil {
 		log.Printf("[WARN] listing default keys for %s: %+v", id, err)
 	} else {

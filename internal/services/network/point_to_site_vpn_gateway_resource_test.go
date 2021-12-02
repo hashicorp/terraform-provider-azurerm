@@ -71,6 +71,21 @@ func TestAccPointToSiteVPNGateway_update(t *testing.T) {
 	})
 }
 
+func TestAccPointToSiteVPNGateway_enableInternetSecurity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
+	r := PointToSiteVPNGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.enableInternetSecurity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccPointToSiteVPNGateway_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
 	r := PointToSiteVPNGatewayResource{}
@@ -117,6 +132,30 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
     vpn_client_address_pool {
       address_prefixes = ["172.100.0.0/14"]
     }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r PointToSiteVPNGatewayResource) enableInternetSecurity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_point_to_site_vpn_gateway" "test" {
+  name                        = "acctestp2sVPNG-%d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  virtual_hub_id              = azurerm_virtual_hub.test.id
+  vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
+  scale_unit                  = 1
+
+  connection_configuration {
+    name = "first"
+    vpn_client_address_pool {
+      address_prefixes = ["172.100.0.0/14"]
+    }
+
+    internet_security_enabled = true
   }
 }
 `, r.template(data), data.RandomInteger)

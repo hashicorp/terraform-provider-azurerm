@@ -79,7 +79,6 @@ data "azurerm_blueprint_definition" "test" {
   name     = "testAcc_basicSubscription"
   scope_id = data.azurerm_subscription.current.id
 }
-
 `, subscription)
 }
 
@@ -97,7 +96,6 @@ data "azurerm_blueprint_definition" "test" {
   name     = "testAcc_staticStubManagementGroup"
   scope_id = data.azurerm_management_group.test.id
 }
-
 `, managementGroup)
 }
 

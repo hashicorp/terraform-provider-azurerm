@@ -225,7 +225,6 @@ resource "azurerm_key_vault_certificate_issuer" "import" {
   password      = "test"
   provider_name = azurerm_key_vault_certificate_issuer.test.provider_name
 }
-
 `, r.basic(data))
 }
 

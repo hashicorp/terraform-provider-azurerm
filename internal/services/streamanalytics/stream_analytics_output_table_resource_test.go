@@ -130,7 +130,6 @@ resource "azurerm_stream_analytics_output_table" "test" {
   row_key                   = "rowkeyupdated"
   batch_size                = 50
 }
-
 `, template, data.RandomString, data.RandomInteger)
 }
 

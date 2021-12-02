@@ -16,8 +16,6 @@ Manages an Orchestrated Virtual Machine Scale Set.
 
 ~> **NOTE:** Orchestrated Virtual Machine Scale Sets are in Public Preview and it may receive breaking changes - [more details can be found in the Azure Documentation](https://docs.microsoft.com/azure/virtual-machine-scale-sets/orchestration-modes).
 
-~> **NOTE:** Due to a bug in the service code `extensions` are not currently supported in the `azurerm_orchestrated_virtual_machine_scale_set` resource. The ETA for `extensions` support is tentatively set for January 15, 2022.
-
 ## Example Usage
 
 ```hcl
@@ -66,13 +64,10 @@ The following arguments are supported:
 * `computer_name_prefix` - (Optional) The prefix which should be used for the name of the Virtual Machines in this Scale Set. If unspecified this defaults to the value for the name field. If the value of the name field is not a valid `computer_name_prefix`, then you must specify `computer_name_prefix`.
 
 * `data_disk` - (Optional) One or more `data_disk` blocks as defined below.
-<!--
+
 * `extension` - (Optional) One or more `extension` blocks as defined below
 
-~> **NOTE:** The `extension` block is only available in the Opt-In beta and requires that the Environment Variable `ARM_PROVIDER_VMSS_EXTENSIONS_BETA` is set to `true` to be used.
-
 * `extensions_time_budget` - (Optional) Specifies the time alloted for all extensions to start. The time duration should be between 15 minutes and 120 minutes (inclusive) and should be specified in ISO 8601 format. The default value is 90 minutes (PT1H30M).
--->
 
 * `eviction_policy` - (Optional) The Policy which should be used Virtual Machines are Evicted from the Scale Set. Changing this forces a new resource to be created.
 
@@ -237,10 +232,8 @@ A `data_disk` block supports the following:
 * `storage_account_type` - (Required) The Type of Storage Account which should back this Data Disk. Possible values include Standard_LRS, StandardSSD_LRS, Premium_LRS and UltraSSD_LRS. 
 
 ---
-<!--
-An `extension` block supports the following: 
 
-~> **NOTE:** This block is only available in the Opt-In beta and requires that the Environment Variable `ARM_PROVIDER_VMSS_EXTENSIONS_BETA` is set to `true` to be used. 
+An `extension` block supports the following: 
 
 * `name` - (Required) The name for the Virtual Machine Scale Set Extension. 
 
@@ -250,16 +243,17 @@ An `extension` block supports the following:
 
 * `type_handler_version` - (Required) Specifies the version of the extension to use, available versions can be found using the Azure CLI. 
 
-* `auto_upgrade_minor_version` - (Optional) Should the latest version of the Extension be used at Deployment Time, if one is available? This won't auto-update the extension on existing installation. Defaults to true. 
+* `auto_upgrade_minor_version_enabled` - (Optional) Should the latest version of the Extension be used at Deployment Time, if one is available? This won't auto-update the extension on existing installation. Defaults to true. 
 
-* `force_update_tag` - (Optional) A value which, when different to the previous value can be used to force-run the Extension even if the Extension Configuration hasn't changed. 
+* `extensions_to_provision_after_vm_creation` - (Optional) An ordered list of Extension names which Orchestrated Virtual Machine Scale Set should provision after VM creation.
+
+* `force_extension_execution_on_change` - (Optional) A value which, when different to the previous value can be used to force-run the Extension even if the Extension Configuration hasn't changed. 
 
 * `protected_settings` - (Optional) A JSON String which specifies Sensitive Settings (such as Passwords) for the Extension. 
 
 ~> **NOTE:** Keys within the `protected_settings` block are notoriously case-sensitive, where the casing required (e.g. `TitleCase` vs `snakeCase`) depends on the Extension being used. Please refer to the documentation for the specific Orchestrated Virtual Machine Extension you're looking to use for more information. 
 
 ---
--->
 
 A `ip_configuration` block supports the following:
 

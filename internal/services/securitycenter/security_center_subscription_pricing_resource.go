@@ -23,7 +23,7 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 		Delete: resourceSecurityCenterSubscriptionPricingDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SecurityCenterSubscriptionPricingID(id)
+			_, err := parse.PricingID(id)
 			return err
 		}),
 
@@ -72,34 +72,24 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 
 func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.PricingClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// not doing import check as afaik it always exists (cannot be deleted)
-	// all this resource does is flip a boolean
+	// TODO: add a requires import check ensuring this is != Free (meaning we should likely remove Free as a SKU option?)
 
+	id := parse.NewPricingID(subscriptionId, d.Get("resource_type").(string))
 	pricing := security.Pricing{
 		PricingProperties: &security.PricingProperties{
 			PricingTier: security.PricingTier(d.Get("tier").(string)),
 		},
 	}
 
-	resource_type := d.Get("resource_type").(string)
-
-	if _, err := client.Update(ctx, resource_type, pricing); err != nil {
-		return fmt.Errorf("Creating/updating Security Center Subscription pricing: %+v", err)
+	if _, err := client.Update(ctx, id.Name, pricing); err != nil {
+		return fmt.Errorf("setting %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resource_type)
-	if err != nil {
-		return fmt.Errorf("Reading Security Center Subscription pricing: %+v", err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Security Center Subscription pricing ID is nil")
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceSecurityCenterSubscriptionPricingRead(d, meta)
 }
 
@@ -108,31 +98,33 @@ func resourceSecurityCenterSubscriptionPricingRead(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SecurityCenterSubscriptionPricingID(d.Id())
+	id, err := parse.PricingID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceType)
+	resp, err := client.Get(ctx, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] %q Security Center Subscription was not found: %v", id.ResourceType, err)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Reading %q Security Center Subscription pricing: %+v", id.ResourceType, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	d.Set("resource_type", id.Name)
 	if properties := resp.PricingProperties; properties != nil {
 		d.Set("tier", properties.PricingTier)
 	}
-	d.Set("resource_type", id.ResourceType)
 
 	return nil
 }
 
 func resourceSecurityCenterSubscriptionPricingDelete(_ *pluginsdk.ResourceData, _ interface{}) error {
+	// TODO: reset this back to Free
+
 	log.Printf("[DEBUG] Security Center Subscription deletion invocation")
-	return nil // cannot be deleted.
+	return nil
 }

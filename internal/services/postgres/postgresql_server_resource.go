@@ -446,6 +446,15 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 				}
 				return false
 			}),
+			pluginsdk.ForceNewIfChange("create_mode", func(ctx context.Context, old, new, meta interface{}) bool {
+				oldMode := postgresql.CreateMode(old.(string))
+				newMode := postgresql.CreateMode(new.(string))
+				// Instance could not be changed from Default to Replica
+				if oldMode == postgresql.CreateModeDefault && newMode == postgresql.CreateModeReplica {
+					return true
+				}
+				return false
+			}),
 		),
 	}
 }

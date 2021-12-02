@@ -515,7 +515,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 						},
 						"search_domains": {
 							Type:     pluginsdk.TypeSet,
-							Required: true,
+							Optional: true,
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
@@ -524,7 +524,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 						},
 						"options": {
 							Type:     pluginsdk.TypeSet,
-							Required: true,
+							Optional: true,
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,

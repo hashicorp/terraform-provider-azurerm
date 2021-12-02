@@ -24,12 +24,7 @@ func TestAccResourceGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	testResource := ResourceGroupResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		{
-			Config: testResource.basicConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(testResource),
-			),
-		},
+		data.ApplyStep(testResource.basicConfig, testResource),
 		data.ImportStep(),
 	})
 }
@@ -38,19 +33,13 @@ func TestAccResourceGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	testResource := ResourceGroupResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		{
-			Config: testResource.basicConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(testResource),
-			),
-		},
+		data.ApplyStep(testResource.basicConfig, testResource),
 		data.RequiresImportErrorStep(testResource.requiresImportConfig),
 	})
 }
 
 func TestAccResourceGroup_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
-
 	testResource := ResourceGroupResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
@@ -62,7 +51,6 @@ func TestAccResourceGroup_disappears(t *testing.T) {
 
 func TestAccResourceGroup_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
-
 	testResource := ResourceGroupResource{}
 	assert := check.That(data.ResourceName)
 	data.ResourceTest(t, testResource, []acceptance.TestStep{

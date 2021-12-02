@@ -29,6 +29,7 @@ type Client struct {
 	LoggerClient                     *apimanagement.LoggerClient
 	NamedValueClient                 *apimanagement.NamedValueClient
 	NotificationRecipientEmailClient *apimanagement.NotificationRecipientEmailClient
+	NotificationRecipientUserClient  *apimanagement.NotificationRecipientUserClient
 	OpenIdConnectClient              *apimanagement.OpenIDConnectProviderClient
 	PolicyClient                     *apimanagement.PolicyClient
 	ProductsClient                   *apimanagement.ProductClient
@@ -111,6 +112,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	notificationRecipientEmailClient := apimanagement.NewNotificationRecipientEmailClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&notificationRecipientEmailClient.Client, o.ResourceManagerAuthorizer)
 
+	notificationRecipientUserClient := apimanagement.NewNotificationRecipientUserClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&notificationRecipientUserClient.Client, o.ResourceManagerAuthorizer)
+
 	loggerClient := apimanagement.NewLoggerClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&loggerClient.Client, o.ResourceManagerAuthorizer)
 
@@ -177,6 +181,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		LoggerClient:                     &loggerClient,
 		NamedValueClient:                 &namedValueClient,
 		NotificationRecipientEmailClient: &notificationRecipientEmailClient,
+		NotificationRecipientUserClient:  &notificationRecipientUserClient,
 		OpenIdConnectClient:              &openIdConnectClient,
 		PolicyClient:                     &policyClient,
 		ProductsClient:                   &productsClient,
