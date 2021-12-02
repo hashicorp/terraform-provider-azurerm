@@ -47,9 +47,9 @@ func TestAccBotServiceAzureBot_completeUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.completeUpdate(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceType).ExistsInAzure(r),
+				check.That(data.ResourceName).ExistsInAzure(r),
 				),
 		},
 		data.ImportStep(),
@@ -99,7 +99,7 @@ resource "azurerm_bot_service_azure_bot" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (BotServiceAzureBotResource) completeUpdate(data acceptance.TestData) string {
+func (BotServiceAzureBotResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
