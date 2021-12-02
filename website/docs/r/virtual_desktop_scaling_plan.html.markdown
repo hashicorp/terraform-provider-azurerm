@@ -20,19 +20,14 @@ Manages a Virtual Desktop Scaling Plan.
 
 ```hcl
 
-resource "random_uuid" "example" {
-}
-
 resource "azurerm_resource_group" "example" {
-  name     = "RG-vdesktop-example"
-  location = "westeurope"
+  name     = "example-resources"
+  location = "West Europe"
 }
-
 resource "azurerm_role_definition" "example" {
   name        = "AVD-AutoScale"
   scope       = azurerm_resource_group.example.id
   description = "AVD AutoScale Role"
-
   permissions {
     actions = [
       "Microsoft.Insights/eventtypes/values/read",
@@ -52,28 +47,20 @@ resource "azurerm_role_definition" "example" {
     ]
     not_actions = []
   }
-
   assignable_scopes = [
     azurerm_resource_group.example.id,
   ]
-
-  depends_on = [azurerm_resource_group.example]
 }
-
 data "azuread_service_principal" "example" {
   display_name = "Windows Virtual Desktop"
 }
-
 resource "azurerm_role_assignment" "example" {
   name                             = random_uuid.example.result
   scope                            = azurerm_resource_group.example.id
   role_definition_id               = azurerm_role_definition.example.role_definition_resource_id
   principal_id                     = data.azuread_service_principal.example.application_id
   skip_service_principal_aad_check = true
-
-  depends_on = [azurerm_role_definition.example]
 }
-
 resource "azurerm_virtual_desktop_host_pool" "example" {
   name                 = "example-hostpool"
   location             = azurerm_resource_group.example.location
@@ -82,15 +69,13 @@ resource "azurerm_virtual_desktop_host_pool" "example" {
   validate_environment = true
   load_balancer_type   = "BreadthFirst"
 }
-
 resource "azurerm_virtual_desktop_scaling_plan" "example" {
-  name                = "scalingPlan"
-  location            = "westeurope"
+  name                = "example-scaling-plan"
+  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   friendly_name       = "Scaling Plan Example"
   description         = "Example Scaling Plan"
   time_zone           = "GMT Standard Time"
-
   schedule {
     name                                 = "Weekdays"
     days_of_week                         = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
@@ -111,36 +96,9 @@ resource "azurerm_virtual_desktop_scaling_plan" "example" {
     off_peak_start_time                  = "22:00"
     off_peak_load_balancing_algorithm    = "DepthFirst"
   }
-
-  schedule {
-    name                                 = "Weekend"
-    days_of_week                         = ["Saturday", "Sunday"]
-    ramp_up_start_time                   = "09:00"
-    ramp_up_load_balancing_algorithm     = "BreadthFirst"
-    ramp_up_minimum_hosts_percent        = 30
-    ramp_up_capacity_threshold_percent   = 10
-    peak_start_time                      = "10:00"
-    peak_load_balancing_algorithm        = "BreadthFirst"
-    ramp_down_start_time                 = "16:00"
-    ramp_down_load_balancing_algorithm   = "DepthFirst"
-    ramp_down_minimum_hosts_percent      = 10
-    ramp_down_force_logoff_users         = false
-    ramp_down_wait_time_minutes          = 45
-    ramp_down_notification_message       = "Please log off in the next 45 minutes..."
-    ramp_down_capacity_threshold_percent = 5
-    ramp_down_stop_hosts_when            = "ZeroSessions"
-    off_peak_start_time                  = "20:00"
-    off_peak_load_balancing_algorithm    = "DepthFirst"
-  }
-
-  host_pool {
+  hostpool_reference {
     hostpool_id          = azurerm_virtual_desktop_host_pool.example.id
     scaling_plan_enabled = true
-  }
-
-
-  tags = {
-    Name = "value"
   }
 }
 ```
@@ -150,7 +108,7 @@ resource "azurerm_virtual_desktop_scaling_plan" "example" {
 The following arguments are supported:
 
 
-* `location` - (Required) The Azure Region where the Virtual Desktop Scaling Plan  should exist. Changing this forces a new Virtual Desktop Scaling Plan to be created. **Note**: During preview only EU and US regions are supported.
+* `location` - (Required) The Azure Region where the Virtual Desktop Scaling Plan  should exist. Changing this forces a new Virtual Desktop Scaling Plan to be created.
 
 * `name` - (Required) The name which should be used for this Virtual Desktop Scaling Plan . Changing this forces a new Virtual Desktop Scaling Plan to be created.
 
@@ -178,9 +136,9 @@ The following arguments are supported:
 
 A `host_pool` block supports the following:
 
-* `hostpool_id` - (Required) The ID of the HostPool to assign the Scaling Plan to. Note: During preview only HostPool's in EU and US regions are supported.
+* `hostpool_id` - (Required) The ID of the HostPool to assign the Scaling Plan to.
 
-* `scaling_plan_enabled` - (Required) (boolean) Whether the scaling plan is enabled or disabled for the HostPool.
+* `scaling_plan_enabled` - (Required) Specifies if the scaling plan is enabled or disabled for the HostPool.
 
 ---
 
@@ -204,7 +162,7 @@ A `schedule` block supports the following:
 
 * `ramp_down_load_balancing_algorithm` - (Required) The load Balancing Algorithm to use during the Ramp-Down period. Possible values are `DepthFirst` and `BreadthFirst`.
 
-* `ramp_down_minimum_hosts_percent` - (Required) The minimum percentage of session host virtual machines that you would like to get to for ramp-down and off-peak hours. For example, if Minimum percentage of hosts is sepecified as 10% and total number of session hosts in your host pool is 10 , autoscale will ensure a minimum of 1 session host is available to take user connections..
+* `ramp_down_minimum_hosts_percent` - (Required) The minimum percentage of session host virtual machines that you would like to get to for ramp-down and off-peak hours. For example, if Minimum percentage of hosts is specified as 10% and total number of session hosts in your host pool is 10, autoscale will ensure a minimum of 1 session host is available to take user connections.
 
 * `ramp_down_notification_message` - (Required) The notification message to send to users during Ramp-Down period when they are required to log-off.
 
@@ -218,7 +176,7 @@ A `schedule` block supports the following:
 
 * `ramp_up_start_time` - (Required) The time at which Ramp-Up scaling will begin. This is also the end-time for the Ramp-Up period. The time must be specified in "HH:MM" format.
 
-* `ramp_up_capacity_threshold_percent` - (Optional) Specify minimum percentage of session host virtual machines to start for ramp-up and peak hours. For example, if Minimum percentage of hosts is sepecified as 10% and total number of session hosts in your host pool is 10 , autoscale will ensure a minimum of 1 session host is available to take user connections.
+* `ramp_up_capacity_threshold_percent` - (Optional) Specify minimum percentage of session host virtual machines to start for ramp-up and peak hours. For example, if Minimum percentage of hosts is specified as 10% and total number of session hosts in your host pool is 10, autoscale will ensure a minimum of 1 session host is available to take user connections.
 
 * `ramp_up_minimum_hosts_percent` - (Optional) This is the value of percentage of used host pool capacity that will be considered to evaluate whether to turn on/off virtual machines during the ramp-up and peak hours. For example, if capacity threshold is specified as 60% and your total host pool capacity is 100 sessions, autoscale will turn on additional session hosts once the host pool exceeds a load of 60 sessions.
 
