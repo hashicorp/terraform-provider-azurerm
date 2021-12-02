@@ -149,6 +149,8 @@ The following arguments are supported:
 
 -> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).  They are also only supported for [v2 SKUs](https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
 
+* `private_link_configuration` - (Optional) One or more `private_link_configuration` blocks as defined below.
+
 ---
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
@@ -274,6 +276,8 @@ A `frontend_ip_configuration` block supports the following:
 
 * `private_ip_address_allocation` - (Optional) The Allocation Method for the Private IP Address. Possible values are `Dynamic` and `Static`.
 
+* `private_link_configuration_name` - (Optional) The name of the Private Link Configuration on the Application Gateway.
+
 ---
 
 A `frontend_port` block supports the following:
@@ -351,6 +355,14 @@ A `path_rule` block supports the following:
 * `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
 
 * `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used as a HTTP Listener.
+
+---
+
+A `private_link_configuration` block supports the following:
+
+* `name` - (Required) The Name of the Private Link Configuration on the Application Gateway.
+
+* `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined below.
 
 ---
 
@@ -795,6 +807,18 @@ A `redirect_configuration` block exports the following:
 A `rewrite_rule_set` block exports the following:
 
 * `id` - The ID of the Rewrite Rule Set
+
+---
+
+A `ip_configuration` block supports the following:
+
+* `name` - (Required) The name of the Private Link IP Configuration on the Application Gateway.
+
+* `subnet_id` - (Required) The resource ID of the Subnet for the Private Link IP Configuration.
+
+* `is_primary` - (Optional) Is the Private Link IP Configuration primary?
+
+-> **NOTE:** It doesn't support to directly update `is_primary`.
 
 ## Timeouts
 
