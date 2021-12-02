@@ -7502,7 +7502,7 @@ resource "azurerm_application_gateway" "test" {
 
     ip_configuration {
       name       = "testIPConfig2"
-      is_primary = false
+      is_primary = true
       subnet_id  = azurerm_subnet.test2.id
     }
   }

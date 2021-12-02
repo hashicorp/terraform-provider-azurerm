@@ -371,8 +371,9 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 
 						"private_link_configuration_name": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: networkValidate.PrivateLinkConfigurationName,
 						},
 
 						"id": {
@@ -653,8 +654,9 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: networkValidate.PrivateLinkConfigurationName,
 						},
 
 						"ip_configuration": {
@@ -663,8 +665,9 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"subnet_id": {
