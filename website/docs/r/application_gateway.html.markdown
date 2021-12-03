@@ -818,7 +818,7 @@ A `ip_configuration` block supports the following:
 
 * `is_primary` - (Optional) Is the Private Link IP Configuration primary?
 
--> **NOTE:** It doesn't support to directly update `is_primary`.
+-> **NOTE:** It doesn't support to directly update `is_primary`. It can be updated by removing and re-adding `ip_configuration` or `private_link_configuration`.
 
 ## Timeouts
 

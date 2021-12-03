@@ -7313,13 +7313,12 @@ resource "azurerm_public_ip" "test" {
 
 # since these variables are re-used - a locals block makes this more maintainable
 locals {
-  backend_address_pool_name       = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name              = "${azurerm_virtual_network.test.name}-feport"
-  frontend_ip_configuration_name  = "${azurerm_virtual_network.test.name}-feip"
-  http_setting_name               = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name                   = "${azurerm_virtual_network.test.name}-httplstn"
-  request_routing_rule_name       = "${azurerm_virtual_network.test.name}-rqrt"
-  private_link_configuration_name = "${azurerm_virtual_network.test.name}-plc"
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -7376,7 +7375,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   private_link_configuration {
-    name = local.private_link_configuration_name
+    name = "plc"
 
     ip_configuration {
       name       = "testIPConfig"
@@ -7434,14 +7433,12 @@ resource "azurerm_public_ip" "test" {
 
 # since these variables are re-used - a locals block makes this more maintainable
 locals {
-  backend_address_pool_name        = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name               = "${azurerm_virtual_network.test.name}-feport"
-  frontend_ip_configuration_name   = "${azurerm_virtual_network.test.name}-feip"
-  http_setting_name                = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name                    = "${azurerm_virtual_network.test.name}-httplstn"
-  request_routing_rule_name        = "${azurerm_virtual_network.test.name}-rqrt"
-  private_link_configuration_name  = "${azurerm_virtual_network.test.name}-plc"
-  private_link_configuration_name2 = "${azurerm_virtual_network.test.name}-plc2"
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -7498,11 +7495,17 @@ resource "azurerm_application_gateway" "test" {
   }
 
   private_link_configuration {
-    name = local.private_link_configuration_name2
+    name = "updateplc"
 
     ip_configuration {
       name       = "testIPConfig2"
       is_primary = true
+      subnet_id  = azurerm_subnet.test2.id
+    }
+
+    ip_configuration {
+      name       = "testIPConfig3"
+      is_primary = false
       subnet_id  = azurerm_subnet.test2.id
     }
   }
@@ -7553,7 +7556,7 @@ locals {
   http_setting_name               = "${azurerm_virtual_network.test.name}-be-htst"
   listener_name                   = "${azurerm_virtual_network.test.name}-httplstn"
   request_routing_rule_name       = "${azurerm_virtual_network.test.name}-rqrt"
-  private_link_configuration_name = "${azurerm_virtual_network.test.name}-plc"
+  private_link_configuration_name = "plc"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -7675,8 +7678,8 @@ locals {
   http_setting_name                = "${azurerm_virtual_network.test.name}-be-htst"
   listener_name                    = "${azurerm_virtual_network.test.name}-httplstn"
   request_routing_rule_name        = "${azurerm_virtual_network.test.name}-rqrt"
-  private_link_configuration_name  = "${azurerm_virtual_network.test.name}-plc"
-  private_link_configuration_name2 = "${azurerm_virtual_network.test.name}-plc2"
+  private_link_configuration_name  = "plc"
+  private_link_configuration_name2 = "updateplc"
 }
 
 resource "azurerm_application_gateway" "test" {
