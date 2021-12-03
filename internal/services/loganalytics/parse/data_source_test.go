@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = LogAnalyticsDataSourceWindowsEventId{}
+var _ resourceid.Formatter = DataSourceId{}
 
-func TestLogAnalyticsDataSourceWindowsEventIDFormatter(t *testing.T) {
-	actual := NewLogAnalyticsDataSourceWindowsEventID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "dataSource1").ID()
+func TestDataSourceIDFormatter(t *testing.T) {
+	actual := NewDataSourceID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "dataSource1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/dataSources/dataSource1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestLogAnalyticsDataSourceWindowsEventID(t *testing.T) {
+func TestDataSourceID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *LogAnalyticsDataSourceWindowsEventId
+		Expected *DataSourceId
 	}{
 
 		{
@@ -68,13 +68,13 @@ func TestLogAnalyticsDataSourceWindowsEventID(t *testing.T) {
 		},
 
 		{
-			// missing DataSourceName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/",
 			Error: true,
 		},
 
 		{
-			// missing value for DataSourceName
+			// missing value for Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/dataSources/",
 			Error: true,
 		},
@@ -82,11 +82,11 @@ func TestLogAnalyticsDataSourceWindowsEventID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/dataSources/dataSource1",
-			Expected: &LogAnalyticsDataSourceWindowsEventId{
+			Expected: &DataSourceId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
 				WorkspaceName:  "workspace1",
-				DataSourceName: "dataSource1",
+				Name:           "dataSource1",
 			},
 		},
 
@@ -100,7 +100,7 @@ func TestLogAnalyticsDataSourceWindowsEventID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := LogAnalyticsDataSourceWindowsEventID(v.Input)
+		actual, err := DataSourceID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -121,8 +121,8 @@ func TestLogAnalyticsDataSourceWindowsEventID(t *testing.T) {
 		if actual.WorkspaceName != v.Expected.WorkspaceName {
 			t.Fatalf("Expected %q but got %q for WorkspaceName", v.Expected.WorkspaceName, actual.WorkspaceName)
 		}
-		if actual.DataSourceName != v.Expected.DataSourceName {
-			t.Fatalf("Expected %q but got %q for DataSourceName", v.Expected.DataSourceName, actual.DataSourceName)
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }

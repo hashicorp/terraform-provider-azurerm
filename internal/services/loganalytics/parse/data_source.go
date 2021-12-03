@@ -9,45 +9,45 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-type LogAnalyticsDataSourceWindowsEventId struct {
+type DataSourceId struct {
 	SubscriptionId string
 	ResourceGroup  string
 	WorkspaceName  string
-	DataSourceName string
+	Name           string
 }
 
-func NewLogAnalyticsDataSourceWindowsEventID(subscriptionId, resourceGroup, workspaceName, dataSourceName string) LogAnalyticsDataSourceWindowsEventId {
-	return LogAnalyticsDataSourceWindowsEventId{
+func NewDataSourceID(subscriptionId, resourceGroup, workspaceName, name string) DataSourceId {
+	return DataSourceId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		WorkspaceName:  workspaceName,
-		DataSourceName: dataSourceName,
+		Name:           name,
 	}
 }
 
-func (id LogAnalyticsDataSourceWindowsEventId) String() string {
+func (id DataSourceId) String() string {
 	segments := []string{
-		fmt.Sprintf("Data Source Name %q", id.DataSourceName),
+		fmt.Sprintf("Name %q", id.Name),
 		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Log Analytics Data Source Windows Event", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Data Source", segmentsStr)
 }
 
-func (id LogAnalyticsDataSourceWindowsEventId) ID() string {
+func (id DataSourceId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/dataSources/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.DataSourceName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.Name)
 }
 
-// LogAnalyticsDataSourceWindowsEventID parses a LogAnalyticsDataSourceWindowsEvent ID into an LogAnalyticsDataSourceWindowsEventId struct
-func LogAnalyticsDataSourceWindowsEventID(input string) (*LogAnalyticsDataSourceWindowsEventId, error) {
+// DataSourceID parses a DataSource ID into an DataSourceId struct
+func DataSourceID(input string) (*DataSourceId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := LogAnalyticsDataSourceWindowsEventId{
+	resourceId := DataSourceId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -63,7 +63,7 @@ func LogAnalyticsDataSourceWindowsEventID(input string) (*LogAnalyticsDataSource
 	if resourceId.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
-	if resourceId.DataSourceName, err = id.PopSegment("dataSources"); err != nil {
+	if resourceId.Name, err = id.PopSegment("dataSources"); err != nil {
 		return nil, err
 	}
 
