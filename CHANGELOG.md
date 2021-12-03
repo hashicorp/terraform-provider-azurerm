@@ -1,3 +1,13 @@
+## 2.89.0 (Unreleased)
+
+FEATURES:
+
+ENHANCEMENTS:
+
+BUG FIXES:
+
+* `iothub_endpoint_storage_container` - remove the default value of false from the `file_name_format` property and add the correct validation function for it [GH-14458]
+
 ## 2.88.0 (December 02, 2021)
 
 FEATURES:
