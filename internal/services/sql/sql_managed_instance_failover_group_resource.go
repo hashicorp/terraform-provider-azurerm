@@ -54,23 +54,14 @@ func resourceSqlInstanceFailoverGroup() *pluginsdk.Resource {
 				ValidateFunc: validate.ValidateMsSqlServerName,
 			},
 
-			"partner_managed_instances": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-					},
-				},
+			"partner_managed_instance_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"partner_regions": {
+			"partner_region": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
@@ -85,23 +76,10 @@ func resourceSqlInstanceFailoverGroup() *pluginsdk.Resource {
 				},
 			},
 
-			"readonly_endpoint_failover_policy": {
-				Type:     pluginsdk.TypeList,
+			"readonly_endpoint_failover_policy_enabled": {
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"mode": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(sql.ReadOnlyEndpointFailoverPolicyDisabled),
-								string(sql.ReadOnlyEndpointFailoverPolicyEnabled),
-							}, false),
-						},
-					},
-				},
+				Default:  true,
 			},
 
 			"read_write_endpoint_failover_policy": {
@@ -158,24 +136,19 @@ func resourceSqlInstanceFailoverGroupCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	partnerRegions := make([]sql.PartnerRegionInfo, 0)
-	for _, partnerManagedInstance := range d.Get("partner_managed_instances").([]interface{}) {
-		partner := partnerManagedInstance.(map[string]interface{})
-
-		partnerId, err := parse.ManagedInstanceID(partner["id"].(string))
-		if err != nil {
-			return err
-		}
-
-		resp, err := instanceClient.Get(ctx, partnerId.ResourceGroup, partnerId.Name, "")
-		if err != nil || resp.Location == nil || *resp.Location == "" {
-			return fmt.Errorf("checking for existence and region of Partner of %q: %+v", id, err)
-		}
-
-		regionInfo := sql.PartnerRegionInfo{
-			Location: utils.String(*resp.Location),
-		}
-		partnerRegions = append(partnerRegions, regionInfo)
+	partnerId, err := parse.ManagedInstanceID(d.Get("partner_managed_instance_id").(string))
+	if err != nil {
+		return err
 	}
+	resp, err := instanceClient.Get(ctx, partnerId.ResourceGroup, partnerId.Name, "")
+	if err != nil || resp.Location == nil || *resp.Location == "" {
+		return fmt.Errorf("checking for existence and region of Partner of %q: %+v", id, err)
+	}
+
+	regionInfo := sql.PartnerRegionInfo{
+		Location: utils.String(*resp.Location),
+	}
+	partnerRegions = append(partnerRegions, regionInfo)
 
 	primaryInstanceId := parse.NewManagedInstanceID(subscriptionId, id.ResourceGroup, d.Get("managed_instance_name").(string))
 	properties := sql.InstanceFailoverGroup{
@@ -238,18 +211,22 @@ func resourceSqlInstanceFailoverGroupRead(d *pluginsdk.ResourceData, meta interf
 			return fmt.Errorf("setting `read_write_endpoint_failover_policy`: %+v", err)
 		}
 
-		if err := d.Set("readonly_endpoint_failover_policy", flattenSqlInstanceFailoverGroupReadOnlyPolicy(props.ReadOnlyEndpoint)); err != nil {
-			return fmt.Errorf("setting `read_only_endpoint_failover_policy`: %+v", err)
+		if err := d.Set("readonly_endpoint_failover_policy_enabled", props.ReadOnlyEndpoint.FailoverPolicy == sql.ReadOnlyEndpointFailoverPolicyEnabled); err != nil {
+			return fmt.Errorf("setting `readonly_endpoint_failover_policy_enabled`: %+v", err)
 		}
 
 		d.Set("role", string(props.ReplicationRole))
 
-		if err := d.Set("partner_managed_instances", flattenSqlInstanceFailoverGroupManagedInstancePairs(props.ManagedInstancePairs)); err != nil {
-			return fmt.Errorf("setting `partner_managed_instances`: %+v", err)
+		partnerManagedInstanceId, err := flattenSqlInstanceFailoverGroupManagedInstance(props.ManagedInstancePairs)
+		if err != nil {
+			return fmt.Errorf("flatten `partner_managed_instance_id`: %+v", err)
+		}
+		if err := d.Set("partner_managed_instance_id", partnerManagedInstanceId); err != nil {
+			return fmt.Errorf("setting `partner_managed_instance_id`: %+v", err)
 		}
 
-		if err := d.Set("partner_regions", flattenSqlInstanceFailoverGroupPartnerRegions(props.PartnerRegions)); err != nil {
-			return fmt.Errorf("setting `partner_regions`: %+v", err)
+		if err := d.Set("partner_region", flattenSqlInstanceFailoverGroupPartnerRegions(props.PartnerRegions)); err != nil {
+			return fmt.Errorf("setting `partner_region`: %+v", err)
 		}
 	}
 
@@ -312,30 +289,14 @@ func flattenSqlInstanceFailoverGroupReadWritePolicy(input *sql.InstanceFailoverG
 }
 
 func expandSqlInstanceFailoverGroupReadOnlyPolicy(d *pluginsdk.ResourceData) *sql.InstanceFailoverGroupReadOnlyEndpoint {
-	vs := d.Get("readonly_endpoint_failover_policy").([]interface{})
-	if len(vs) == 0 || vs[0] == nil {
-		return nil
+	mode := sql.ReadOnlyEndpointFailoverPolicyDisabled
+	if d.Get("readonly_endpoint_failover_policy_enabled").(bool) {
+		mode = sql.ReadOnlyEndpointFailoverPolicyEnabled
 	}
-
-	v := vs[0].(map[string]interface{})
-	mode := sql.ReadOnlyEndpointFailoverPolicy(v["mode"].(string))
-
 	return &sql.InstanceFailoverGroupReadOnlyEndpoint{
 		FailoverPolicy: mode,
 	}
 }
-
-func flattenSqlInstanceFailoverGroupReadOnlyPolicy(input *sql.InstanceFailoverGroupReadOnlyEndpoint) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	policy := make(map[string]interface{})
-	policy["mode"] = string(input.FailoverPolicy)
-
-	return []interface{}{policy}
-}
-
 func expandSqlInstanceFailoverGroupManagedInstancePairs(d *pluginsdk.ResourceData, primaryID parse.ManagedInstanceId) *[]sql.ManagedInstancePairInfo {
 	instances := d.Get("partner_managed_instances").([]interface{})
 	partners := make([]sql.ManagedInstancePairInfo, 0)
@@ -372,21 +333,12 @@ func flattenSqlInstanceFailoverGroupPrimaryInstance(input *[]sql.ManagedInstance
 	return managedInstanceId.Name, nil
 }
 
-func flattenSqlInstanceFailoverGroupManagedInstancePairs(input *[]sql.ManagedInstancePairInfo) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0)
-
-	if input != nil {
-		for _, instance := range *input {
-			info := make(map[string]interface{})
-
-			if v := instance.PartnerManagedInstanceID; v != nil {
-				info["id"] = *v
-			}
-
-			result = append(result, info)
-		}
+func flattenSqlInstanceFailoverGroupManagedInstance(input *[]sql.ManagedInstancePairInfo) (string, error) {
+	if input == nil || len(*input) != 1 || (*input)[0].PartnerManagedInstanceID != nil {
+		return "", fmt.Errorf("invalid number of `partner_managed_instance_id` instances found")
 	}
-	return result
+
+	return *(*input)[0].PartnerManagedInstanceID, nil
 }
 
 func flattenSqlInstanceFailoverGroupPartnerRegions(input *[]sql.PartnerRegionInfo) []map[string]interface{} {
