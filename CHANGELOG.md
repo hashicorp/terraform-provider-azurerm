@@ -6,6 +6,7 @@ ENHANCEMENTS:
 
 * databricks: updating the Embedded SDK [GH-14430]
 * `azurerm_managed_disk` - support for the `hyper_v_generation` property [GH-13825]
+* `azurerm_key_vault_certificate` - support for the `versionless_id` and `versionless_secret_id` properties [GH-14287]
 
 BUG FIXES:
 
