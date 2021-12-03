@@ -72,7 +72,7 @@ func (CustomHttpsConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 func (CustomHttpsConfigurationV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-		// this was: fmt.Sprintf("%s/customHttpsConfiguration/%s", frontEndEndpointId, frontendEndpointName
+		// this was: fmt.Sprintf("%s/customHttpsConfiguration/%s", frontDoorId, frontendEndpointName
 		oldId := rawState["id"].(string)
 		id, err := parse.CustomHttpsConfigurationIDInsensitively(oldId)
 		if err != nil {
