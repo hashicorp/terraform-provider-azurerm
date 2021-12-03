@@ -7369,9 +7369,15 @@ resource "azurerm_application_gateway" "test" {
     backend_http_settings_name = local.http_setting_name
   }
 
+  ssl_policy {
+    policy_name = "AppGwSslPolicy20150501"
+    policy_type = "Predefined"
+  }
+
   frontend_ip_configuration {
-    name                 = local.frontend_ip_configuration_name
-    public_ip_address_id = azurerm_public_ip.test.id
+    name                          = local.frontend_ip_configuration_name
+    public_ip_address_id          = azurerm_public_ip.test.id
+    private_ip_address_allocation = "Dynamic"
   }
 
   private_link_configuration {
@@ -7489,9 +7495,15 @@ resource "azurerm_application_gateway" "test" {
     backend_http_settings_name = local.http_setting_name
   }
 
+  ssl_policy {
+    policy_name = "AppGwSslPolicy20150501"
+    policy_type = "Predefined"
+  }
+
   frontend_ip_configuration {
-    name                 = local.frontend_ip_configuration_name
-    public_ip_address_id = azurerm_public_ip.test.id
+    name                          = local.frontend_ip_configuration_name
+    public_ip_address_id          = azurerm_public_ip.test.id
+    private_ip_address_allocation = "Dynamic"
   }
 
   private_link_configuration {
@@ -7607,9 +7619,15 @@ resource "azurerm_application_gateway" "test" {
     backend_http_settings_name = local.http_setting_name
   }
 
+  ssl_policy {
+    policy_name = "AppGwSslPolicy20150501"
+    policy_type = "Predefined"
+  }
+
   frontend_ip_configuration {
     name                            = local.frontend_ip_configuration_name
     public_ip_address_id            = azurerm_public_ip.test.id
+    private_ip_address_allocation   = "Dynamic"
     private_link_configuration_name = local.private_link_configuration_name
   }
 
@@ -7730,9 +7748,15 @@ resource "azurerm_application_gateway" "test" {
     backend_http_settings_name = local.http_setting_name
   }
 
+  ssl_policy {
+    policy_name = "AppGwSslPolicy20150501"
+    policy_type = "Predefined"
+  }
+
   frontend_ip_configuration {
     name                            = local.frontend_ip_configuration_name
     public_ip_address_id            = azurerm_public_ip.test.id
+    private_ip_address_allocation   = "Dynamic"
     private_link_configuration_name = local.private_link_configuration_name2
   }
 
