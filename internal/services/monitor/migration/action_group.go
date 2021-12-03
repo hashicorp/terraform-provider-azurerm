@@ -2,14 +2,11 @@ package migration
 
 import (
 	"context"
-	"fmt"
-	"log"
-	"strings"
-
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"log"
 )
 
 var _ pluginsdk.StateUpgrade = ActionGroupUpgradeV0ToV1{}
@@ -26,28 +23,15 @@ func (ActionGroupUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/actionGroups/actionGroup1
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/actionGroups/actionGroup1
-		oldId, err := azure.ParseAzureResourceID(rawState["id"].(string))
+		oldId := rawState["id"].(string)
+		id, err := parse.ActionGroupIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}
 
-		groupName := ""
-		for key, value := range oldId.Path {
-			if strings.EqualFold(key, "actionGroups") {
-				groupName = value
-				break
-			}
-		}
-
-		if groupName == "" {
-			return rawState, fmt.Errorf("couldn't find the `actionGroups` segment in the old resource id %q", oldId)
-		}
-
-		newId := parse.NewActionGroupID(oldId.SubscriptionID, oldId.ResourceGroup, groupName)
-
-		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId.ID())
-
-		rawState["id"] = newId.ID()
+		newId := id.ID()
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+		rawState["id"] = newId
 
 		return rawState, nil
 	}
