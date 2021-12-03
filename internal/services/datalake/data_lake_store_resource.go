@@ -3,11 +3,11 @@ package datalake
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -162,6 +162,12 @@ func resourceArmDateLakeStoreCreate(d *pluginsdk.ResourceData, meta interface{})
 	identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	// @tombuildsstuff: the Data Lake Store API doesn't support 'None' and expects null instead
+	// https://github.com/Azure/azure-rest-api-specs/issues/16962
+	if strings.EqualFold(string(identity.Type), "None") {
+		identity = nil
 	}
 
 	dateLakeStore := accounts.CreateDataLakeStoreAccountParameters{
