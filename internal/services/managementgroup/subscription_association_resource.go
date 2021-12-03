@@ -2,6 +2,7 @@ package managementgroup
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"log"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	subscriptionParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/parse"
-	subscriptionValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -46,7 +46,7 @@ func resourceManagementGroupSubscriptionAssociation() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: subscriptionValidate.SubscriptionID,
+				ValidateFunc: commonids.ValidateSubscriptionID,
 			},
 		},
 	}

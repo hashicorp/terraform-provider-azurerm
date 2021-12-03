@@ -3,6 +3,7 @@ package authorization
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"log"
 	"strings"
 	"time"
@@ -15,9 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
-	managementGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
-	resourceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
-	subscriptionValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -55,9 +53,9 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.Any(
 					billingValidate.EnrollmentID,
-					managementGroupValidate.ManagementGroupID,
-					subscriptionValidate.SubscriptionID,
-					resourceValidate.ResourceGroupID,
+					commonids.ValidateManagementGroupID,
+					commonids.ValidateSubscriptionID,
+					commonids.ValidateResourceGroupID,
 					azure.ValidateResourceID,
 				),
 			},

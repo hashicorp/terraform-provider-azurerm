@@ -2,6 +2,7 @@ package lighthouse
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"log"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -53,7 +53,7 @@ func resourceLighthouseDefinition() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SubscriptionID,
+				ValidateFunc: commonids.ValidateSubscriptionID,
 			},
 
 			"authorization": {
