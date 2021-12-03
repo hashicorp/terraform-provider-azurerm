@@ -2,14 +2,11 @@ package migration
 
 import (
 	"context"
-	"fmt"
-	"log"
-	"strings"
-
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"log"
 )
 
 var _ pluginsdk.StateUpgrade = WebTestUpgradeV0ToV1{}
@@ -26,28 +23,15 @@ func (WebTestUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/webtests/test1
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/webTests/test1
-		oldId, err := azure.ParseAzureResourceID(rawState["id"].(string))
+		oldIdRaw := rawState["id"].(string)
+		id, err := parse.WebTestIDInsensitively(oldIdRaw)
 		if err != nil {
 			return rawState, err
 		}
 
-		testName := ""
-		for key, value := range oldId.Path {
-			if strings.EqualFold(key, "webtests") {
-				testName = value
-				break
-			}
-		}
-
-		if testName == "" {
-			return rawState, fmt.Errorf("couldn't find the `webtests` segment in the old resource id %q", oldId)
-		}
-
-		newId := parse.NewWebTestID(oldId.SubscriptionID, oldId.ResourceGroup, testName)
-
-		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId.ID())
-
-		rawState["id"] = newId.ID()
+		newId := id.ID()
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldIdRaw, newId)
+		rawState["id"] = newId
 
 		return rawState, nil
 	}
