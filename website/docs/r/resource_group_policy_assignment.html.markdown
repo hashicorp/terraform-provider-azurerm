@@ -52,9 +52,6 @@ resource "azurerm_resource_group_policy_assignment" "example" {
       }
 PARAMS
 }
-
-Running `az policy assignment list --resource-group XXX` should uncover the mystery.
-
 ```
 
 ## Arguments Reference
