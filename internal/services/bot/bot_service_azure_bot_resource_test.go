@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BotServiceAzureBotResource struct{
+type BotServiceAzureBotResource struct {
 }
 
 func TestAccBotServiceAzureBot_basic(t *testing.T) {
@@ -50,7 +50,7 @@ func TestAccBotServiceAzureBot_completeUpdate(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				),
+			),
 		},
 		data.ImportStep(),
 	})

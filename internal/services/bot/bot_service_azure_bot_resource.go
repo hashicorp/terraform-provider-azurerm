@@ -36,7 +36,7 @@ func (r AzureBotServiceResource) ModelObject() interface{} {
 	return nil
 }
 
-func (r AzureBotServiceResource) ResourceType() string{
+func (r AzureBotServiceResource) ResourceType() string {
 	return "azurerm_bot_service_azure_bot"
 }
 

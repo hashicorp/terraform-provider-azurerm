@@ -26,7 +26,7 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 		"location": azure.SchemaLocation(),
 
 		"sku": {
-			Type: pluginsdk.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
@@ -36,22 +36,22 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 		},
 
 		"microsoft_app_id": {
-			Type: pluginsdk.TypeString,
-			ForceNew: true,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			ForceNew:     true,
+			Required:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 
 		"display_name": {
-			Type: pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"endpoint": {
-			Type: pluginsdk.TypeString,
-			Optional: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -110,7 +110,7 @@ func (br botBaseResource) attributes() map[string]*pluginsdk.Schema {
 
 func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 *time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Bot.BotClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
@@ -139,7 +139,7 @@ func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceF
 				},
 				Kind: botservice.Kind(botKind),
 				Properties: &botservice.BotProperties{
-					DisplayName: utils.String(displayName),
+					DisplayName:                       utils.String(displayName),
 					Endpoint:                          utils.String(metadata.ResourceData.Get("endpoint").(string)),
 					MsaAppID:                          utils.String(metadata.ResourceData.Get("microsoft_app_id").(string)),
 					DeveloperAppInsightKey:            utils.String(metadata.ResourceData.Get("developer_app_insights_key").(string)),
@@ -233,7 +233,7 @@ func (br botBaseResource) readFunc() sdk.ResourceFunc {
 				if v := props.LuisAppIds; v != nil {
 					luisAppIds = *v
 				}
-				metadata.ResourceData.Set("luis_app_ids",  utils.FlattenStringSlice(&luisAppIds))
+				metadata.ResourceData.Set("luis_app_ids", utils.FlattenStringSlice(&luisAppIds))
 			}
 
 			return nil
@@ -252,7 +252,7 @@ func (br botBaseResource) deleteFunc() sdk.ResourceFunc {
 			}
 
 			if _, err = client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-				fmt.Errorf("deleting %s: %+v", *id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
@@ -314,22 +314,22 @@ func (br botBaseResource) updateFunc() sdk.ResourceFunc {
 
 func (br botBaseResource) importerFunc(expectKind string) sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Bot.BotClient
+		client := metadata.Client.Bot.BotClient
 
-			id, err := parse.BotServiceID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
+		id, err := parse.BotServiceID(metadata.ResourceData.Id())
+		if err != nil {
+			return err
+		}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", *id, err)
+		}
 
-			if actualKind := string(resp.Kind); actualKind != expectKind {
-				return fmt.Errorf("bot has mismatched type, expected: %q, got %q", expectKind, actualKind)
-			}
+		if actualKind := string(resp.Kind); actualKind != expectKind {
+			return fmt.Errorf("bot has mismatched type, expected: %q, got %q", expectKind, actualKind)
+		}
 
-			return nil
+		return nil
 	}
 }
