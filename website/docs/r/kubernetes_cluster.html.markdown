@@ -792,11 +792,11 @@ provider "kubernetes" {
 
 The `addon_profile` block exports the following:
 
+* `azure_keyvault_secrets_provider` - An `azure_keyvault_secrets_provider` block as defined below.
+
 * `ingress_application_gateway` - An `ingress_application_gateway` block as defined below.
 
 * `oms_agent` - An `oms_agent` block as defined below.
-
-* `azure_keyvault_secrets_provider` - An `azure_keyvault_secrets_provider` block as defined below.
 
 ---
 
