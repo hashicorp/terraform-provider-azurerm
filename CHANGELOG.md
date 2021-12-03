@@ -5,10 +5,11 @@ FEATURES:
 ENHANCEMENTS:
 
 * databricks: updating the Embedded SDK [GH-14430]
+* `azurerm_managed_disk` - support for the `hyper_v_generation` property [GH-13825]
 
 BUG FIXES:
 
-* `azurerm_iothub_endpoint_storage_container` - remove the default value of false from the `file_name_format` property and add the correct validation function for it [GH-14458]
+* `azurerm_iothub_endpoint_storage_container` - remove the default value `false` from the `file_name_format` property and add the correct validation function for it [GH-14458]
 
 ## 2.88.1 (December 03, 2021)
 
