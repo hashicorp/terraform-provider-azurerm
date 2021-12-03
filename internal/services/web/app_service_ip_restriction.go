@@ -22,12 +22,22 @@ var appServiceResourceName = "azurerm_app_service"
 func resourceAppServiceIpRestriction() *pluginsdk.Resource {
 	restrictionSchemaElement := schemaAppServiceIpRestrictionElement()
 	restrictionSchemaElement["name"].Optional = false
+	restrictionSchemaElement["name"].Computed = false
 	restrictionSchemaElement["name"].Required = true
+	restrictionSchemaElement["name"].ForceNew = true
 	return &pluginsdk.Resource{
 		Create: resourceAppServiceIpRestrictionCreate,
 		Read:   resourceAppServiceIpRestrictionRead,
 		Update: resourceAppServiceIpRestrictionUpdate,
 		Delete: resourceAppServiceIpRestrictionDelete,
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.AppServiceIPRestrictionID(id)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -60,7 +70,7 @@ func resourceAppServiceIpRestriction() *pluginsdk.Resource {
 
 func resourceAppServiceIpRestrictionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	appServiceId := d.Get("app_service_id").(string)
@@ -69,7 +79,11 @@ func resourceAppServiceIpRestrictionCreate(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+	// Locking to prevent parallel changes causing issues
+	locks.ByName(id.SiteName, appServiceResourceName)
+	defer locks.UnlockByName(id.SiteName, appServiceResourceName)
+
+	resp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("error checking for presence of existing App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
@@ -77,12 +91,8 @@ func resourceAppServiceIpRestrictionCreate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if resp.SiteConfig == nil || resp.SiteConfig.IPSecurityRestrictions == nil {
-		return fmt.Errorf("failed reading IP Restrictions for %q (resource group %q)", id.SiteName, id.ResourceGroup)
+		return fmt.Errorf("resourceAppServiceIpRestrictionCreate: failed reading IP Restrictions for %q (resource group %q)", id.SiteName, id.ResourceGroup)
 	}
-
-	// Locking to prevent parallel changes causing issues
-	locks.ByName(id.SiteName, appServiceResourceName)
-	defer locks.UnlockByName(id.SiteName, appServiceResourceName)
 
 	ipRestrictionArr, err := expandAppServiceIpRestriction(d.Get("ip_restriction"))
 	if err != nil {
@@ -98,7 +108,7 @@ func resourceAppServiceIpRestrictionCreate(d *pluginsdk.ResourceData, meta inter
 	// In order to compensate for this and allow importing of this resource we are artificially
 	// creating an identity for an app service ip restriction object
 	// /subscriptions/<guid>/resourceGroups/<rg-name>/providers/Microsoft.Web/sites/<site-name>/ipRestriction/<restriction-name>
-	resourceId := fmt.Sprintf("%s/ipRestriction/%s", *resp.ID, *name)
+	resourceId := fmt.Sprintf("%s/ipRestriction/%s", appServiceId, *name)
 	_, ipRestriction := FindIPRestriction(resp.SiteConfig.IPSecurityRestrictions, *name)
 	if ipRestriction != nil {
 		return tf.ImportAsExistsError("azurerm_app_service_ip_restriction", resourceId)
@@ -124,37 +134,36 @@ func resourceAppServiceIpRestrictionRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AppServiceIPRestrictionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	siteName := id.Path["sites"]
-	restrictionName := id.Path["ipRestriction"]
-
-	resp, err := client.Get(ctx, id.ResourceGroup, siteName)
+	resp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("error checking for presence of existing App Service %q (Resource Group %q): %s", siteName, id.ResourceGroup, err)
+			return fmt.Errorf("error checking for presence of existing App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 		}
 	}
 
 	if resp.SiteConfig == nil || resp.SiteConfig.IPSecurityRestrictions == nil {
-		return fmt.Errorf("failed reading IP Restrictions for %q (resource group %q)", siteName, id.ResourceGroup)
+		return fmt.Errorf("resourceAppServiceIpRestrictionRead: failed reading IP Restrictions for %q (resource group %q)", id.SiteName, id.ResourceGroup)
 	}
 
-	_, restriction := FindIPRestriction(resp.SiteConfig.IPSecurityRestrictions, restrictionName)
+	_, restriction := FindIPRestriction(resp.SiteConfig.IPSecurityRestrictions, id.IpRestrictionName)
 
 	if restriction == nil {
-		log.Printf("[INFO] IP Restriction %q was not found in App Service %q (Resource Group %q) - removing from state", restrictionName, siteName, id.ResourceGroup)
+		log.Printf("[INFO] IP Restriction %q was not found in App Service %q (Resource Group %q) - removing from state", id.IpRestrictionName, id.SiteName, id.ResourceGroup)
 		d.SetId("")
 		return nil
 	}
 
+	d.Set("app_service_id", strings.TrimSuffix(*resp.ID, "/config/web"))
+
 	restrictionArr := []web.IPSecurityRestriction{*restriction}
 	appServiceIpRestriction := flattenAppServiceIpRestriction(&restrictionArr)
 	if len(appServiceIpRestriction) != 1 {
-		return fmt.Errorf("failed to flatten IP Restriction %q for App Service %q (resource group %q)", restrictionName, siteName, id.ResourceGroup)
+		return fmt.Errorf("failed to flatten IP Restriction %q for App Service %q (resource group %q)", id.IpRestrictionName, id.SiteName, id.ResourceGroup)
 	}
 	d.Set("ip_restriction", appServiceIpRestriction)
 
@@ -163,7 +172,7 @@ func resourceAppServiceIpRestrictionRead(d *pluginsdk.ResourceData, meta interfa
 
 func resourceAppServiceIpRestrictionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	appServiceId := d.Get("app_service_id").(string)
@@ -172,7 +181,11 @@ func resourceAppServiceIpRestrictionUpdate(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+	// Locking to prevent parallel changes causing issues
+	locks.ByName(id.SiteName, appServiceResourceName)
+	defer locks.UnlockByName(id.SiteName, appServiceResourceName)
+
+	resp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("error checking for presence of existing App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
@@ -180,12 +193,8 @@ func resourceAppServiceIpRestrictionUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if resp.SiteConfig == nil || resp.SiteConfig.IPSecurityRestrictions == nil {
-		return fmt.Errorf("failed reading IP Restrictions for %q (resource group %q)", id.SiteName, id.ResourceGroup)
+		return fmt.Errorf("resourceAppServiceIpRestrictionUpdate: failed reading IP Restrictions for %q (resource group %q)", id.SiteName, id.ResourceGroup)
 	}
-
-	// Locking to prevent parallel changes causing issues
-	locks.ByName(id.SiteName, appServiceResourceName)
-	defer locks.UnlockByName(id.SiteName, appServiceResourceName)
 
 	if d.HasChange("ip_restriction") {
 
@@ -217,12 +226,12 @@ func resourceAppServiceIpRestrictionUpdate(d *pluginsdk.ResourceData, meta inter
 		}
 	}
 
-	return nil
+	return resourceAppServiceIpRestrictionRead(d, meta)
 }
 
 func resourceAppServiceIpRestrictionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	appServiceId := d.Get("app_service_id").(string)
@@ -230,21 +239,6 @@ func resourceAppServiceIpRestrictionDelete(d *pluginsdk.ResourceData, meta inter
 	if err != nil {
 		return err
 	}
-
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("error checking for presence of existing App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
-		}
-	}
-
-	if resp.SiteConfig == nil || resp.SiteConfig.IPSecurityRestrictions == nil {
-		return fmt.Errorf("failed reading IP Restrictions for %q (resource group %q)", id.SiteName, id.ResourceGroup)
-	}
-
-	// Locking to prevent parallel changes causing issues
-	locks.ByName(id.SiteName, appServiceResourceName)
-	defer locks.UnlockByName(id.SiteName, appServiceResourceName)
 
 	ipRestrictionArr, err := expandAppServiceIpRestriction(d.Get("ip_restriction"))
 	if err != nil {
@@ -254,6 +248,23 @@ func resourceAppServiceIpRestrictionDelete(d *pluginsdk.ResourceData, meta inter
 	name := ipRestrictionArr[0].Name
 	if name == nil || *name == "" {
 		return fmt.Errorf("no name specified for IP restriction for App Service %q (Resource Group %q)", id.SiteName, id.ResourceGroup)
+	}
+
+	// Locking to prevent parallel changes causing issues
+	locks.ByName(id.SiteName, appServiceResourceName)
+	defer locks.UnlockByName(id.SiteName, appServiceResourceName)
+
+	resp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("error checking for presence of existing App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
+		}
+	}
+
+	if resp.SiteConfig == nil || resp.SiteConfig.IPSecurityRestrictions == nil {
+		log.Printf("[INFO] AppService for %q (resource group %q) does not define an site config - removing IP Restriction %q from state", id.SiteName, id.ResourceGroup, *name)
+		d.SetId("")
+		return nil
 	}
 
 	restrictions, itemToRemove := removeIPRestriction(resp.SiteConfig.IPSecurityRestrictions, *name)
@@ -291,6 +302,7 @@ func removeIPRestriction(restrictions *[]web.IPSecurityRestriction, name string)
 }
 
 func FindIPRestriction(restrictions *[]web.IPSecurityRestriction, name string) (int, *web.IPSecurityRestriction) {
+	log.Printf("FindIPRestriction")
 	if restrictions == nil || len(*restrictions) == 0 {
 		return -1, nil
 	}
