@@ -39,10 +39,22 @@ POLICY_RULE
 }
 
 resource "azurerm_resource_group_policy_assignment" "example" {
-  name                 = "example"
-  resource_group_id    = azurerm_resource_group.example.id
+  name = "example"
+  resource_group_id = azurerm_resource_group.example.id
   policy_definition_id = azurerm_policy_definition.example.id
+  
+  parameters = <<PARAMS
+      "tagName": {
+        "value": "Business Unit"
+      },
+      "tagValue": {
+        "value": "BU"
+      }
+PARAMS
 }
+
+Running `az policy assignment list --resource-group XXX` should uncover the mystery.
+
 ```
 
 ## Arguments Reference
