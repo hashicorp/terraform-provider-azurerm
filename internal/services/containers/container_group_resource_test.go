@@ -407,7 +407,7 @@ func TestAccContainerGroup_SystemAssignedIdentityVirtualNetwork(t *testing.T) {
 				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
 			),
 		},
-		data.ImportStep("identity.0.principal_id"),
+		data.ImportStep("identity.0.principal_id", "network_profile_id"),
 	})
 }
 
