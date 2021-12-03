@@ -2,13 +2,9 @@ package migration
 
 import (
 	"context"
-	"fmt"
-	"log"
-	"strings"
-
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"log"
 )
 
 var _ pluginsdk.StateUpgrade = FrontDoorUpgradeV0ToV1{}
@@ -42,30 +38,14 @@ func (FrontDoorUpgradeV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/frontDoors/{frontDoorName}
 		oldId := rawState["id"].(string)
-		oldParsedId, err := azure.ParseAzureResourceID(oldId)
+		id, err := parse.FrontDoorIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}
 
-		resourceGroup := oldParsedId.ResourceGroup
-		frontDoorName := ""
-		for key, value := range oldParsedId.Path {
-			if strings.EqualFold(key, "frontDoors") {
-				frontDoorName = value
-				break
-			}
-		}
-
-		if frontDoorName == "" {
-			return rawState, fmt.Errorf("couldn't find the `frontDoors` segment in the old resource id %q", oldId)
-		}
-
-		newId := parse.NewFrontDoorID(oldParsedId.SubscriptionID, resourceGroup, frontDoorName)
-		newIdStr := newId.ID()
-
-		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newIdStr)
-
-		rawState["id"] = newIdStr
+		newId := id.ID()
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+		rawState["id"] = newId
 
 		return rawState, nil
 	}
