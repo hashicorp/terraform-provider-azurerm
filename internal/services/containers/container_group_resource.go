@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"log"
 	"strings"
 	"time"
@@ -782,22 +783,18 @@ func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if networkProfileId != "" {
-		// TODO update with NetworkProfile parser when this has been added
-		parsedProfileId, err := azure.ParseAzureResourceID(networkProfileId)
+		networkProfileClient := meta.(*clients.Client).Network.ProfileClient
+		networkProfileId, err := networkParse.NetworkProfileID(networkProfileId)
 		if err != nil {
 			return err
 		}
-
-		networkProfileClient := meta.(*clients.Client).Network.ProfileClient
-		networkProfileResourceGroup := parsedProfileId.ResourceGroup
-		networkProfileName := parsedProfileId.Path["networkProfiles"]
 
 		// TODO: remove when https://github.com/Azure/azure-sdk-for-go/issues/5082 has been fixed
 		log.Printf("[DEBUG] Waiting for Container Group %q (Resource Group %q) to be finish deleting", id.Name, id.ResourceGroup)
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending:                   []string{"Attached"},
 			Target:                    []string{"Detached"},
-			Refresh:                   containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx, networkProfileClient, networkProfileResourceGroup, networkProfileName, id.ResourceGroup, id.Name),
+			Refresh:                   containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx, networkProfileClient, networkProfileId.ResourceGroup, networkProfileId.Name, id.ResourceGroup, id.Name),
 			MinTimeout:                15 * time.Second,
 			ContinuousTargetOccurence: 5,
 			Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
