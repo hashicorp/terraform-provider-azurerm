@@ -74,7 +74,7 @@ func (CustomHttpsConfigurationV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc 
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		// this was: fmt.Sprintf("%s/customHttpsConfiguration/%s", frontEndEndpointId, frontendEndpointName
 		oldId := rawState["id"].(string)
-		id, err := parse.FrontendEndpointIDInsensitively(oldId)
+		id, err := parse.CustomHttpsConfigurationIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}
