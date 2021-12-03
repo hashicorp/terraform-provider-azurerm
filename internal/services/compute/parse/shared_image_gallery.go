@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type SharedImageGalleryId struct {
@@ -39,7 +39,7 @@ func (id SharedImageGalleryId) ID() string {
 
 // SharedImageGalleryID parses a SharedImageGallery ID into an SharedImageGalleryId struct
 func SharedImageGalleryID(input string) (*SharedImageGalleryId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

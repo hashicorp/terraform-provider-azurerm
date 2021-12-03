@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type MetricAlertId struct {
@@ -39,7 +39,7 @@ func (id MetricAlertId) ID() string {
 
 // MetricAlertID parses a MetricAlert ID into an MetricAlertId struct
 func MetricAlertID(input string) (*MetricAlertId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

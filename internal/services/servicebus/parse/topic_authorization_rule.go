@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type TopicAuthorizationRuleId struct {
@@ -45,7 +45,7 @@ func (id TopicAuthorizationRuleId) ID() string {
 
 // TopicAuthorizationRuleID parses a TopicAuthorizationRule ID into an TopicAuthorizationRuleId struct
 func TopicAuthorizationRuleID(input string) (*TopicAuthorizationRuleId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

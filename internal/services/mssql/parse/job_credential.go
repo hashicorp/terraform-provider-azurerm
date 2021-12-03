@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type JobCredentialId struct {
@@ -45,7 +45,7 @@ func (id JobCredentialId) ID() string {
 
 // JobCredentialID parses a JobCredential ID into an JobCredentialId struct
 func JobCredentialID(input string) (*JobCredentialId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type EventSourceId struct {
@@ -42,7 +42,7 @@ func (id EventSourceId) ID() string {
 
 // EventSourceID parses a EventSource ID into an EventSourceId struct
 func EventSourceID(input string) (*EventSourceId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

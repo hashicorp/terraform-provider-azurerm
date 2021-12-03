@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type SubnetId struct {
@@ -42,7 +42,7 @@ func (id SubnetId) ID() string {
 
 // SubnetID parses a Subnet ID into an SubnetId struct
 func SubnetID(input string) (*SubnetId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func SubnetID(input string) (*SubnetId, error) {
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
 func SubnetIDInsensitively(input string) (*SubnetId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

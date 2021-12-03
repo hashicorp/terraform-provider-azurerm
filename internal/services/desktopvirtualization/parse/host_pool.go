@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type HostPoolId struct {
@@ -39,7 +39,7 @@ func (id HostPoolId) ID() string {
 
 // HostPoolID parses a HostPool ID into an HostPoolId struct
 func HostPoolID(input string) (*HostPoolId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func HostPoolID(input string) (*HostPoolId, error) {
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
 func HostPoolIDInsensitively(input string) (*HostPoolId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

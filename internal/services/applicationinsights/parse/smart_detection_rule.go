@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type SmartDetectionRuleId struct {
@@ -42,7 +42,7 @@ func (id SmartDetectionRuleId) ID() string {
 
 // SmartDetectionRuleID parses a SmartDetectionRule ID into an SmartDetectionRuleId struct
 func SmartDetectionRuleID(input string) (*SmartDetectionRuleId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
