@@ -25,7 +25,7 @@ func (DevTestLabScheduleUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/schedules/{scheduleName}
 		oldId := rawState["id"].(string)
-		id, err := parse.ScheduleIDInsensitively(oldId)
+		id, err := parse.DevTestLabScheduleIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}
