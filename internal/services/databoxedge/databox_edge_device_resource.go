@@ -18,12 +18,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceDataboxEdgeDevice() *pluginsdk.Resource {
+func resourceDevice() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataboxEdgeDeviceCreate,
-		Read:   resourceDataboxEdgeDeviceRead,
-		Update: resourceDataboxEdgeDeviceUpdate,
-		Delete: resourceDataboxEdgeDeviceDelete,
+		Create: resourceDeviceCreate,
+		Read:   resourceDeviceRead,
+		Update: resourceDeviceUpdate,
+		Delete: resourceDeviceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -33,7 +33,7 @@ func resourceDataboxEdgeDevice() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DataboxEdgeDeviceID(id)
+			_, err := parse.DeviceID(id)
 			return err
 		}),
 
@@ -127,23 +127,22 @@ func resourceDataboxEdgeDevice() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataboxEdgeDeviceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDeviceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DataboxEdge.DeviceClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	existing, err := client.Get(ctx, name, resourceGroup)
+	id := parse.NewDeviceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	// sdk method is Get(ctx context.Context, deviceName string, resourceGroupName string)
+	existing, err := client.Get(ctx, id.DataBoxEdgeDeviceName, id.ResourceGroup)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Databox Edge Device %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_databox_edge_device", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_databox_edge_device", id.ID())
 	}
 
 	dataBoxEdgeDevice := databoxedge.Device{
@@ -151,61 +150,46 @@ func resourceDataboxEdgeDeviceCreate(d *pluginsdk.ResourceData, meta interface{}
 		Sku:      expandDeviceSku(d.Get("sku_name").(string)),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
-	future, err := client.CreateOrUpdate(ctx, name, dataBoxEdgeDevice, resourceGroup)
+	future, err := client.CreateOrUpdate(ctx, id.DataBoxEdgeDeviceName, dataBoxEdgeDevice, id.ResourceGroup)
 	if err != nil {
-		return fmt.Errorf("creating Databox Edge Device %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating future for Databox Edge Device %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, name, resourceGroup)
-	if err != nil {
-		return fmt.Errorf("retrieving Databox Edge Device %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Databox Edge Device %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	id, err := parse.DataboxEdgeDeviceID(*resp.ID)
-	if err != nil {
-		return err
-	}
-
-	d.SetId(id.ID(subscriptionId))
-
-	return resourceDataboxEdgeDeviceRead(d, meta)
+	d.SetId(id.ID())
+	return resourceDeviceRead(d, meta)
 }
 
-func resourceDataboxEdgeDeviceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDeviceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataboxEdge.DeviceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataboxEdgeDeviceID(d.Id())
+	id, err := parse.DeviceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.Name, id.ResourceGroup)
+	resp, err := client.Get(ctx, id.DataBoxEdgeDeviceName, id.ResourceGroup)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] databoxedge %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Databox Edge Device %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.DataBoxEdgeDeviceName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.DeviceProperties; props != nil {
 		if err := d.Set("device_properties", flattenDeviceProperties(props)); err != nil {
-			return fmt.Errorf("flattening 'device_properties' Databox Edge Device %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("flattening 'device_properties': %+v", err)
 		}
 	}
 
@@ -216,12 +200,12 @@ func resourceDataboxEdgeDeviceRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceDataboxEdgeDeviceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDeviceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataboxEdge.DeviceClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataboxEdgeDeviceID(d.Id())
+	id, err := parse.DeviceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -231,30 +215,30 @@ func resourceDataboxEdgeDeviceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if _, err := client.Update(ctx, id.Name, parameters, id.ResourceGroup); err != nil {
-		return fmt.Errorf("updating Databox Edge Device %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err := client.Update(ctx, id.DataBoxEdgeDeviceName, parameters, id.ResourceGroup); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	return resourceDataboxEdgeDeviceRead(d, meta)
+	return resourceDeviceRead(d, meta)
 }
 
-func resourceDataboxEdgeDeviceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDeviceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataboxEdge.DeviceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataboxEdgeDeviceID(d.Id())
+	id, err := parse.DeviceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.Name, id.ResourceGroup)
+	future, err := client.Delete(ctx, id.DataBoxEdgeDeviceName, id.ResourceGroup)
 	if err != nil {
-		return fmt.Errorf("deleting Databox Edge Device %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on deleting future for Databox Edge Device %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 	return nil
 }

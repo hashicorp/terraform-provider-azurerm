@@ -98,14 +98,14 @@ func TestAccDataboxEdgeDevice_update(t *testing.T) {
 }
 
 func (DataboxEdgeDeviceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DataboxEdgeDeviceID(state.ID)
+	id, err := parse.DeviceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DataboxEdge.DeviceClient.Get(ctx, id.Name, id.ResourceGroup)
+	resp, err := clients.DataboxEdge.DeviceClient.Get(ctx, id.DataBoxEdgeDeviceName, id.ResourceGroup)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Databox Edge Device Name %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.DeviceProperties != nil), nil
