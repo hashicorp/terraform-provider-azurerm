@@ -1877,7 +1877,7 @@ func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservic
 
 		userAssignedIdentityId := ""
 		if resourceid := kubeletidentity.ResourceID; resourceid != nil {
-			parsedId, err := msiparse.UserAssignedIdentityID(*resourceid)
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(*resourceid)
 			if err != nil {
 				return nil, err
 			}
@@ -2493,7 +2493,7 @@ func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.Mana
 			keys = append(keys, key)
 		}
 		if len(keys) > 0 {
-			parsedId, err := msiparse.UserAssignedIdentityID(keys[0])
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(keys[0])
 			if err != nil {
 				return nil, err
 			}
