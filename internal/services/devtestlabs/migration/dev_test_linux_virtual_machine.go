@@ -2,13 +2,11 @@ package migration
 
 import (
 	"context"
-	"log"
-	"strings"
-
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"log"
 )
 
 var _ pluginsdk.StateUpgrade = DevTestLinuxVirtualMachineUpgradeV0ToV1{}
@@ -26,26 +24,15 @@ func (DevTestLinuxVirtualMachineUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgr
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/virtualMachines/{virtualMachineName}
 
-		oldId, err := azure.ParseAzureResourceID(strings.Replace(rawState["id"].(string), "/virtualmachines/", "/virtualMachines/", 1))
+		oldId := rawState["id"].(string)
+		id, err := parse.DevTestVirtualMachineIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}
 
-		labName, err := oldId.PopSegment("labs")
-		if err != nil {
-			return rawState, err
-		}
-
-		vmName, err := oldId.PopSegment("virtualMachines")
-		if err != nil {
-			return rawState, err
-		}
-
-		newId := parse.NewDevTestVirtualMachineID(oldId.SubscriptionID, oldId.ResourceGroup, labName, vmName)
-
-		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId.ID())
-
-		rawState["id"] = newId.ID()
+		newId := id.ID()
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+		rawState["id"] = newId
 
 		return rawState, nil
 	}
