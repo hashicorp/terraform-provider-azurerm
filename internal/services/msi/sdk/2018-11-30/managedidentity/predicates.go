@@ -8,7 +8,6 @@ type IdentityPredicate struct {
 }
 
 func (p IdentityPredicate) Matches(input Identity) bool {
-
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false
 	}

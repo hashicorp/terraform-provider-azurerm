@@ -2,7 +2,6 @@ package managedidentity
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -15,8 +14,8 @@ type SystemAssignedIdentitiesGetByScopeResponse struct {
 }
 
 // SystemAssignedIdentitiesGetByScope ...
-func (c ManagedIdentityClient) SystemAssignedIdentitiesGetByScope(ctx context.Context, id ScopeId) (result SystemAssignedIdentitiesGetByScopeResponse, err error) {
-	req, err := c.preparerForSystemAssignedIdentitiesGetByScope(ctx, id)
+func (c ManagedIdentityClient) SystemAssignedIdentitiesGetByScope(ctx context.Context) (result SystemAssignedIdentitiesGetByScopeResponse, err error) {
+	req, err := c.preparerForSystemAssignedIdentitiesGetByScope(ctx)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedidentity.ManagedIdentityClient", "SystemAssignedIdentitiesGetByScope", nil, "Failure preparing request")
 		return
@@ -38,7 +37,7 @@ func (c ManagedIdentityClient) SystemAssignedIdentitiesGetByScope(ctx context.Co
 }
 
 // preparerForSystemAssignedIdentitiesGetByScope prepares the SystemAssignedIdentitiesGetByScope request.
-func (c ManagedIdentityClient) preparerForSystemAssignedIdentitiesGetByScope(ctx context.Context, id ScopeId) (*http.Request, error) {
+func (c ManagedIdentityClient) preparerForSystemAssignedIdentitiesGetByScope(ctx context.Context) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -47,7 +46,7 @@ func (c ManagedIdentityClient) preparerForSystemAssignedIdentitiesGetByScope(ctx
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsGet(),
 		autorest.WithBaseURL(c.baseUri),
-		autorest.WithPath(fmt.Sprintf("%s/providers/Microsoft.ManagedIdentity/identities/default", id.ID())),
+		autorest.WithPath("/{scope}/providers/Microsoft.ManagedIdentity/identities/default"),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
