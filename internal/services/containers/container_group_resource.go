@@ -1284,7 +1284,7 @@ func flattenContainerGroupIdentity(identity *containerinstance.ContainerGroupIde
 			}
 		*/
 		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
 			if err != nil {
 				return nil, err
 			}

@@ -587,7 +587,7 @@ func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) (interfac
 	var identityIds []string
 	if identity.UserAssignedIdentities != nil {
 		for key := range identity.UserAssignedIdentities {
-			id, err := msiParse.UserAssignedIdentityID(key)
+			id, err := msiParse.UserAssignedIdentityIDInsensitively(key)
 			if err != nil {
 				return nil, err
 			}
