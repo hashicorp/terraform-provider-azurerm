@@ -7,8 +7,26 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `iothub_endpoint_storage_container` - remove the default value of false from the `file_name_format` property and add the correct validation function for it [GH-14458]
-* `azurerm_automation_account` - pass the arguments for the ID parser in the correct order [GH-14464]
-* Data Source: `azurerm_automation_account` - pass the arguments for the ID parser in the correct order [GH-14464]
+
+## 2.88.1 (December 03, 2021)
+
+BUG FIXES
+
+* Data Source: `azurerm_automation_account` - fixing a bug where the Resource Group and Name were set in the wrong order [GH-14464]
+* Data Source: `azurerm_api_management` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* Data Source: `azurerm_kubernetes_cluster` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_api_management` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_app_service` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_app_service_slot` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_application_gateway` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_automation_account` - fixing a bug where the Resource Group and Name were set in the wrong order [GH-14464]
+* `azurerm_container_group` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_data_factory` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_function_app` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_function_app_slot` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_kubernetes_cluster` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_kusto_cluster` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_mssql_server` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
 
 ## 2.88.0 (December 02, 2021)
 
