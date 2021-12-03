@@ -13,28 +13,26 @@ const (
 
 func PossibleValuesForPeeringProvisioningState() []string {
 	return []string{
-		"Deleting",
-		"Failed",
-		"Succeeded",
-		"Updating",
+		string(PeeringProvisioningStateDeleting),
+		string(PeeringProvisioningStateFailed),
+		string(PeeringProvisioningStateSucceeded),
+		string(PeeringProvisioningStateUpdating),
 	}
 }
 
 func parsePeeringProvisioningState(input string) (*PeeringProvisioningState, error) {
 	vals := map[string]PeeringProvisioningState{
-		"deleting":  "Deleting",
-		"failed":    "Failed",
-		"succeeded": "Succeeded",
-		"updating":  "Updating",
+		"deleting":  PeeringProvisioningStateDeleting,
+		"failed":    PeeringProvisioningStateFailed,
+		"succeeded": PeeringProvisioningStateSucceeded,
+		"updating":  PeeringProvisioningStateUpdating,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := PeeringProvisioningState(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := PeeringProvisioningState(input)
 	return &out, nil
 }
 
@@ -48,25 +46,23 @@ const (
 
 func PossibleValuesForPeeringState() []string {
 	return []string{
-		"Connected",
-		"Disconnected",
-		"Initiated",
+		string(PeeringStateConnected),
+		string(PeeringStateDisconnected),
+		string(PeeringStateInitiated),
 	}
 }
 
 func parsePeeringState(input string) (*PeeringState, error) {
 	vals := map[string]PeeringState{
-		"connected":    "Connected",
-		"disconnected": "Disconnected",
-		"initiated":    "Initiated",
+		"connected":    PeeringStateConnected,
+		"disconnected": PeeringStateDisconnected,
+		"initiated":    PeeringStateInitiated,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := PeeringState(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := PeeringState(input)
 	return &out, nil
 }
