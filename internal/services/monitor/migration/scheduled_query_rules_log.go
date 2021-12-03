@@ -2,14 +2,11 @@ package migration
 
 import (
 	"context"
-	"fmt"
-	"log"
-	"strings"
-
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"log"
 )
 
 var _ pluginsdk.StateUpgrade = ScheduledQueryRulesLogUpgradeV0ToV1{}
@@ -26,28 +23,15 @@ func (ScheduledQueryRulesLogUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgrader
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/scheduledQueryRules/rule1
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/scheduledQueryRules/rule1
-		oldId, err := azure.ParseAzureResourceID(rawState["id"].(string))
+		oldId := rawState["id"].(string)
+		id, err := parse.ScheduledQueryRulesIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}
 
-		queryRule := ""
-		for key, value := range oldId.Path {
-			if strings.EqualFold(key, "scheduledQueryRules") {
-				queryRule = value
-				break
-			}
-		}
-
-		if queryRule == "" {
-			return rawState, fmt.Errorf("couldn't find the `scheduledQueryRules` segment in the old resource id %q", oldId)
-		}
-
-		newId := parse.NewScheduledQueryRulesID(oldId.SubscriptionID, oldId.ResourceGroup, queryRule)
-
-		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId.ID())
-
-		rawState["id"] = newId.ID()
+		newId := id.ID()
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+		rawState["id"] = newId
 
 		return rawState, nil
 	}
