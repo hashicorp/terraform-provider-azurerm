@@ -63,9 +63,9 @@ func resourceIotHubEndpointStorageContainer() *pluginsdk.Resource {
 			},
 
 			"file_name_format": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  false,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: iothubValidate.FileNameFormat,
 			},
 
 			"batch_frequency_in_seconds": {
