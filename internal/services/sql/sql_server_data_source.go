@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
+
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -76,33 +79,27 @@ func dataSourceSqlServer() *pluginsdk.Resource {
 
 func dataSourceArmSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ServersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Sql Server %q was not found in Resource Group %q", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("retrieving Sql Server %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if id := resp.ID; id != nil {
-		d.SetId(*resp.ID)
-	}
+	d.SetId(id.ID())
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-
+	d.Set("location", location.NormalizeNilable(resp.Location))
 	if props := resp.ServerProperties; props != nil {
+		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("fqdn", props.FullyQualifiedDomainName)
 		d.Set("version", props.Version)
-		d.Set("administrator_login", props.AdministratorLogin)
 	}
 
 	if err := d.Set("identity", flattenAzureRmSqlServerIdentity(resp.Identity)); err != nil {
