@@ -24,7 +24,7 @@ data "azurerm_database_migration_project" "example" {
 }
 
 output "name" {
-  value = "${data.azurerm_database_migration_project.example.name}"
+  value = data.azurerm_database_migration_project.example.name
 }
 ```
 
