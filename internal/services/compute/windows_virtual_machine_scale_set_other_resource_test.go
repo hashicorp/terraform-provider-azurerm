@@ -39,9 +39,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// Removed
 			Config: r.otherBootDiagnosticsDisabled(data),
@@ -49,9 +47,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// Enabled
 			Config: r.otherBootDiagnostics(data),
@@ -59,9 +55,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -77,9 +71,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherBootDiagnosticsMananged(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// Removed
 			Config: r.otherBootDiagnosticsDisabled(data),
@@ -87,9 +79,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherBootDiagnosticsMananged(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// Enabled
 			Config: r.otherBootDiagnosticsManaged(data),
@@ -97,9 +87,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherBootDiagnosticsMananged(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -114,9 +102,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherComputerNamePrefix(t *testing.T) 
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -182,9 +168,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherForceDelete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -199,9 +183,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherEnableAutomaticUpdatesDisabled(t 
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// enabled
 			Config: r.authPassword(data),
@@ -209,18 +191,14 @@ func TestAccWindowsVirtualMachineScaleSet_otherEnableAutomaticUpdatesDisabled(t 
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherEnableAutomaticUpdatesDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -235,9 +213,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherPrioritySpotDeallocate(t *testing
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -252,9 +228,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherPrioritySpotDelete(t *testing.T) 
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -270,18 +244,14 @@ func TestAccWindowsVirtualMachineScaleSet_otherPrioritySpotMaxBidPrice(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherPrioritySpotMaxBidPrice(data, "-1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -296,9 +266,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherPriorityRegular(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -331,9 +299,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherSecret(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// update
 			Config: r.otherSecretUpdated(data),
@@ -341,9 +307,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherSecret(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 
 		{
 			// removed
@@ -352,9 +316,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherSecret(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -369,9 +331,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherTags(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// add one
 			Config: r.otherTagsUpdated(data),
@@ -379,9 +339,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherTags(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// remove all
 			Config: r.authPassword(data),
@@ -389,9 +347,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherTags(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -406,9 +362,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherTimeZone(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -423,9 +377,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherVMAgent(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -440,9 +392,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherVMAgentDisabled(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -457,9 +407,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherWinRMHTTP(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -474,9 +422,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherWinRMHTTPS(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -530,9 +476,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherScaleInPolicy(t *testing.T) {
 				check.That(data.ResourceName).Key("scale_in_policy").HasValue("Default"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -550,9 +494,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherTerminateNotification(t *testing.
 				check.That(data.ResourceName).Key("terminate_notification.0.enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		// turn terminate notification off
 		{
 			Config: r.otherTerminateNotification(data, false),
@@ -562,9 +504,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherTerminateNotification(t *testing.
 				check.That(data.ResourceName).Key("terminate_notification.0.enabled").HasValue("false"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		// turn terminate notification on again
 		{
 			Config: r.otherTerminateNotification(data, true),
@@ -574,9 +514,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherTerminateNotification(t *testing.
 				check.That(data.ResourceName).Key("terminate_notification.0.enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -592,9 +530,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		// turn automatic repair off
 		{
 			Config: r.otherAutomaticRepairsPolicy(data, false),
@@ -602,9 +538,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		// turn automatic repair on again
 		{
 			Config: r.otherAutomaticRepairsPolicy(data, true),
@@ -612,9 +546,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -733,18 +665,14 @@ func TestAccWindowsVirtualMachineScaleSet_otherRollingUpgradePolicyUpdate(t *tes
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherRollingUpgradePolicyUpdate(data, 30, 100, 100, "PT1S"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -787,9 +715,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherLicenseTypeUpdated(t *testing.T) 
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherLicenseType(data, "Windows_Client"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -797,18 +723,14 @@ func TestAccWindowsVirtualMachineScaleSet_otherLicenseTypeUpdated(t *testing.T) 
 				check.That(data.ResourceName).Key("license_type").HasValue("Windows_Client"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherLicenseTypeDefault(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
