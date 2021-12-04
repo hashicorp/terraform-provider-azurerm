@@ -1643,7 +1643,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
-  domain_name_label   = %[3]s
+  domain_name_label   = "%[3]s"
 
   sku = "Standard"
 }
