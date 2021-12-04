@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	azweb "github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -32,6 +33,39 @@ func TestAccAppServiceIpRestriction_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccAppServiceIpRestriction_disappears(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_ip_restriction", "test")
+	r := AppServiceIpRestrictionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
+	})
+}
+
+func TestAccAppServiceIpRestriction_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_ip_restriction", "test")
+	r := AppServiceIpRestrictionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_restriction.0.name").HasValue("basic-restriction"),
+				check.That(data.ResourceName).Key("ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
+				check.That(data.ResourceName).Key("ip_restriction.0.action").HasValue("Allow"),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_app_service_ip_restriction"),
+		},
 	})
 }
 
@@ -101,9 +135,11 @@ func TestAccAppServiceIpRestriction_multipleResources(t *testing.T) {
 		{
 			Config: r.multipleResources(data),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_app_service_ip_restriction.test").ExistsInAzure(r),
 				check.That("azurerm_app_service_ip_restriction.test").Key("ip_restriction.0.name").HasValue("basic-restriction"),
 				check.That("azurerm_app_service_ip_restriction.test").Key("ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
 				check.That("azurerm_app_service_ip_restriction.test").Key("ip_restriction.0.action").HasValue("Allow"),
+				check.That("azurerm_app_service_ip_restriction.test-1").ExistsInAzure(r),
 				check.That("azurerm_app_service_ip_restriction.test-1").Key("ip_restriction.0.ip_address").HasValue("20.20.20.20/32"),
 				check.That("azurerm_app_service_ip_restriction.test-1").Key("ip_restriction.0.name").HasValue("headers-restriction"),
 				check.That("azurerm_app_service_ip_restriction.test-1").Key("ip_restriction.0.priority").HasValue("123"),
@@ -124,28 +160,53 @@ func TestAccAppServiceIpRestriction_multipleResources(t *testing.T) {
 }
 
 func (t AppServiceIpRestrictionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.AppServiceIPRestrictionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	siteName := id.Path["sites"]
-	restrictionName := id.Path["ipRestriction"]
-
-	if restrictionName == "" {
-		return nil, fmt.Errorf("ID was missing the 'ipRestriction' element")
-	}
-
-	resp, err := clients.Web.AppServicesClient.GetConfiguration(ctx, id.ResourceGroup, siteName)
+	resp, err := clients.Web.AppServicesClient.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return nil, fmt.Errorf("reading App Service %q (Resource Group %q): %s", siteName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("reading App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 	}
 	if resp.SiteConfig == nil || resp.SiteConfig.IPSecurityRestrictions == nil {
-		return utils.Bool(false), fmt.Errorf("failed reading IP Restrictions for %q (resource group %q)", siteName, id.ResourceGroup)
+		return utils.Bool(false), fmt.Errorf("failed reading IP Restrictions for %q (resource group %q)", id.SiteName, id.ResourceGroup)
 	}
 
-	idx, _ := web.FindIPRestriction(resp.SiteConfig.IPSecurityRestrictions, restrictionName)
+	idx, _ := web.FindIPRestriction(resp.SiteConfig.IPSecurityRestrictions, id.IpRestrictionName)
 	return utils.Bool(idx >= 0), nil
+}
+
+func (r AppServiceIpRestrictionResource) Destroy(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.AppServiceIPRestrictionID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := clients.Web.AppServicesClient.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
+	if err != nil {
+		return nil, fmt.Errorf("reading App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
+	}
+	if resp.SiteConfig == nil || resp.SiteConfig.IPSecurityRestrictions == nil {
+		return nil, fmt.Errorf("failed reading IP Restrictions for %q (resource group %q)", id.SiteName, id.ResourceGroup)
+	}
+
+	restrictions, itemToRemove := web.RemoveIPRestriction(resp.SiteConfig.IPSecurityRestrictions, id.IpRestrictionName)
+
+	if itemToRemove == nil {
+		return nil, fmt.Errorf("[INFO] IP Restriction %q was not found in App Service %q (Resource Group %q)", id.IpRestrictionName, id.SiteName, id.ResourceGroup)
+	}
+
+	resp.SiteConfig.IPSecurityRestrictions = restrictions
+	siteConfigResource := azweb.SiteConfigResource{
+		SiteConfig: resp.SiteConfig,
+	}
+
+	if _, err := clients.Web.AppServicesClient.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, siteConfigResource); err != nil {
+		return nil, fmt.Errorf("updating Configuration for App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (r AppServiceIpRestrictionResource) basic(data acceptance.TestData) string {
@@ -157,9 +218,9 @@ resource "azurerm_app_service_ip_restriction" "test" {
   app_service_id = azurerm_app_service.test.id
 
   ip_restriction {
-		name       = "basic-restriction"
-		ip_address = "10.10.10.10/32"
-		action     = "Allow"
+    name       = "basic-restriction"
+    ip_address = "10.10.10.10/32"
+    action     = "Allow"
   }
 }
 `, template)
@@ -174,12 +235,29 @@ resource "azurerm_app_service_ip_restriction" "test" {
   app_service_id = azurerm_app_service.test.id
 
   ip_restriction {
-		name       = "basic-restriction"
-		ip_address = "20.20.20.20/32"
-		action     = "Allow"
-		headers {
-			x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
-		}
+    name       = "basic-restriction"
+    ip_address = "20.20.20.20/32"
+    action     = "Allow"
+    headers {
+      x_azure_fdid = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+    }
+  }
+}
+`, template)
+}
+
+func (r AppServiceIpRestrictionResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_ip_restriction" "import" {
+  app_service_id = azurerm_app_service.test.id
+
+  ip_restriction {
+    name       = "basic-restriction"
+    ip_address = "10.10.10.10/32"
+    action     = "Allow"
   }
 }
 `, template)
@@ -191,20 +269,20 @@ func (r AppServiceIpRestrictionResource) headers(data acceptance.TestData) strin
 %s
 
 resource "azurerm_app_service_ip_restriction" "test" {
-	app_service_id = azurerm_app_service.test.id
+  app_service_id = azurerm_app_service.test.id
 
-	ip_restriction {
-		ip_address = "10.10.10.10/32"
-		name       = "headers-restriction"
-		priority   = 123
-		action     = "Allow"
-		headers {
-			x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
-			x_fd_health_probe = ["1"]
-			x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
-			x_forwarded_host  = ["example.com"]
-		}
-	}
+  ip_restriction {
+    ip_address = "10.10.10.10/32"
+    name       = "headers-restriction"
+    priority   = 123
+    action     = "Allow"
+    headers {
+      x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+      x_fd_health_probe = ["1"]
+      x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+      x_forwarded_host  = ["example.com"]
+    }
+  }
 }
 `, template)
 }
@@ -218,27 +296,27 @@ resource "azurerm_app_service_ip_restriction" "test" {
   app_service_id = azurerm_app_service.test.id
 
   ip_restriction {
-		name       = "basic-restriction"
-		ip_address = "10.10.10.10/32"
-		action     = "Allow"
+    name       = "basic-restriction"
+    ip_address = "10.10.10.10/32"
+    action     = "Allow"
   }
 }
 
 resource "azurerm_app_service_ip_restriction" "test-1" {
-	app_service_id = azurerm_app_service.test.id
+  app_service_id = azurerm_app_service.test.id
 
-	ip_restriction {
-		ip_address = "20.20.20.20/32"
-		name       = "headers-restriction"
-		priority   = 123
-		action     = "Allow"
-		headers {
-			x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
-			x_fd_health_probe = ["1"]
-			x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
-			x_forwarded_host  = ["example.com"]
-		}
-	}
+  ip_restriction {
+    ip_address = "20.20.20.20/32"
+    name       = "headers-restriction"
+    priority   = 123
+    action     = "Allow"
+    headers {
+      x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+      x_fd_health_probe = ["1"]
+      x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+      x_forwarded_host  = ["example.com"]
+    }
+  }
 }
 
 `, template)

@@ -267,7 +267,7 @@ func resourceAppServiceIpRestrictionDelete(d *pluginsdk.ResourceData, meta inter
 		return nil
 	}
 
-	restrictions, itemToRemove := removeIPRestriction(resp.SiteConfig.IPSecurityRestrictions, *name)
+	restrictions, itemToRemove := RemoveIPRestriction(resp.SiteConfig.IPSecurityRestrictions, *name)
 
 	if itemToRemove == nil {
 		log.Printf("[INFO] IP Restriction %q was not found in App Service %q (Resource Group %q) - removing from state", *name, id.SiteName, id.ResourceGroup)
@@ -288,13 +288,14 @@ func resourceAppServiceIpRestrictionDelete(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func removeIPRestriction(restrictions *[]web.IPSecurityRestriction, name string) (*[]web.IPSecurityRestriction, *web.IPSecurityRestriction) {
+func RemoveIPRestriction(restrictions *[]web.IPSecurityRestriction, name string) (*[]web.IPSecurityRestriction, *web.IPSecurityRestriction) {
 	if restrictions == nil || len(*restrictions) == 0 {
 		return nil, nil
 	}
 	for i, item := range *restrictions {
 		if item.Name != nil && strings.EqualFold(*item.Name, name) {
-			arr := append((*restrictions)[:i], (*restrictions)[i+1:]...)
+			arr := (*restrictions)[:i]
+			arr = append(arr, (*restrictions)[i+1:]...)
 			return &arr, &item
 		}
 	}
