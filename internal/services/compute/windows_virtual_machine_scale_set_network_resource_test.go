@@ -20,9 +20,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkAcceleratedNetworking(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -37,27 +35,21 @@ func TestAccWindowsVirtualMachineScaleSet_networkAcceleratedNetworkingUpdated(t 
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.networkAcceleratedNetworking(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.networkAcceleratedNetworking(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -72,9 +64,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkApplicationGateway(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -89,9 +79,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkApplicationSecurityGroup(t *tes
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -107,9 +95,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkApplicationSecurityGroupUpdate(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// one
 			Config: r.networkApplicationSecurityGroup(data),
@@ -117,9 +103,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkApplicationSecurityGroupUpdate(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// another
 			Config: r.networkApplicationSecurityGroupUpdated(data),
@@ -127,9 +111,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkApplicationSecurityGroupUpdate(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// none
 			Config: r.networkPrivate(data),
@@ -137,9 +119,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkApplicationSecurityGroupUpdate(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -154,18 +134,14 @@ func TestAccWindowsVirtualMachineScaleSet_networkDNSServers(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.networkDNSServersUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -181,9 +157,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkIPForwarding(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// disabled
 			Config: r.networkPrivate(data),
@@ -191,9 +165,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkIPForwarding(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// enabled
 			Config: r.networkIPForwarding(data),
@@ -201,9 +173,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkIPForwarding(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -233,9 +203,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkLoadBalancer(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -250,9 +218,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkMultipleIPConfigurations(t *tes
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -267,9 +233,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkMultipleIPConfigurationsIPv6(t 
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -284,9 +248,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkMultipleNICs(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -301,9 +263,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkMultipleNICsMultipleIPConfigura
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -318,9 +278,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkMultipleNICsMultiplePublicIPs(t
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -335,9 +293,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkMultipleNICsWithDifferentDNSSer
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -352,9 +308,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkNetworkSecurityGroup(t *testing
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -370,9 +324,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkNetworkSecurityGroupUpdate(t *t
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// add one
 			Config: r.networkNetworkSecurityGroup(data),
@@ -380,9 +332,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkNetworkSecurityGroupUpdate(t *t
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// change it
 			Config: r.networkNetworkSecurityGroupUpdated(data),
@@ -390,9 +340,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkNetworkSecurityGroupUpdate(t *t
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// remove it
 			Config: r.networkPrivate(data),
@@ -400,9 +348,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkNetworkSecurityGroupUpdate(t *t
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -417,9 +363,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkPrivate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -434,9 +378,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkPublicIP(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -451,9 +393,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkPublicIPDomainNameLabel(t *test
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -468,9 +408,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkPublicIPFromPrefix(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -485,9 +423,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkPublicIPTags(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
