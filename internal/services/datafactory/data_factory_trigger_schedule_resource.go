@@ -248,7 +248,8 @@ func resourceDataFactoryTriggerScheduleCreateUpdate(d *pluginsdk.ResourceData, m
 		t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
 		props.Recurrence.StartTime = &date.Time{Time: t}
 	} else {
-		props.Recurrence.StartTime = &date.Time{Time: time.Now()}
+		t, _ := time.Parse(time.RFC3339, time.Now().UTC().Format(time.RFC3339))
+		props.Recurrence.StartTime = &date.Time{Time: t}
 	}
 
 	if v, ok := d.GetOk("end_time"); ok {
@@ -406,11 +407,18 @@ func expandDataFactorySchedule(input []interface{}) *datafactory.RecurrenceSched
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
+
+	schedule := datafactory.RecurrenceSchedule{}
+
 	value := input[0].(map[string]interface{})
 	weekDays := make([]datafactory.DaysOfWeek, 0)
 	for _, v := range value["days_of_week"].([]interface{}) {
 		weekDays = append(weekDays, datafactory.DaysOfWeek(v.(string)))
 	}
+	if len(weekDays) > 0 {
+		schedule.WeekDays = &weekDays
+	}
+
 	monthlyOccurrences := make([]datafactory.RecurrenceScheduleOccurrence, 0)
 	for _, v := range value["monthly"].([]interface{}) {
 		value := v.(map[string]interface{})
@@ -419,13 +427,21 @@ func expandDataFactorySchedule(input []interface{}) *datafactory.RecurrenceSched
 			Occurrence: utils.Int32(int32(value["week"].(int))),
 		})
 	}
-	return &datafactory.RecurrenceSchedule{
-		Minutes:            utils.ExpandInt32Slice(value["minutes"].([]interface{})),
-		Hours:              utils.ExpandInt32Slice(value["hours"].([]interface{})),
-		WeekDays:           &weekDays,
-		MonthDays:          utils.ExpandInt32Slice(value["days_of_month"].([]interface{})),
-		MonthlyOccurrences: &monthlyOccurrences,
+	if len(monthlyOccurrences) > 0 {
+		schedule.MonthlyOccurrences = &monthlyOccurrences
 	}
+
+	if monthdays := value["days_of_month"].([]interface{}); len(monthdays) > 0 {
+		schedule.MonthDays = utils.ExpandInt32Slice(monthdays)
+	}
+	if minutes := value["minutes"].([]interface{}); len(minutes) > 0 {
+		schedule.Minutes = utils.ExpandInt32Slice(minutes)
+	}
+	if hours := value["hours"].([]interface{}); len(hours) > 0 {
+		schedule.Hours = utils.ExpandInt32Slice(hours)
+	}
+
+	return &schedule
 }
 
 func flattenDataFactorySchedule(schedule *datafactory.RecurrenceSchedule) []interface{} {
