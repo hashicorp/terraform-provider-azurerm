@@ -15,7 +15,9 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_data_fatory_trigger_schedule` - correctly set `schedule` when `frequency` is `Month/Week` [GH-14391]
 * `azurerm_iothub_endpoint_storage_container` - remove the default value `false` from the `file_name_format` property and add the correct validation function for it [GH-14458]
+
 
 ## 2.88.1 (December 03, 2021)
 
