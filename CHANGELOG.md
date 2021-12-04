@@ -4,7 +4,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* databricks: updating the Embedded SDK [GH-14430]
+* dependencies: updating the Embedded SDK for `databricks` [GH-14430]
+* dependencies: updating the Embedded SDK for `datalake` [GH-14429]
 * `azurerm_managed_disk` - support for the `hyper_v_generation` property [GH-13825]
 * `azurerm_key_vault_certificate` - support for the `versionless_id` and `versionless_secret_id` properties [GH-14287]
 * `azurerm_netapp_pool` - support for `qos_type` property [GH-14372]
