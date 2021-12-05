@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type InstanceFailoverGroupId struct {
@@ -42,7 +42,7 @@ func (id InstanceFailoverGroupId) ID() string {
 
 // InstanceFailoverGroupID parses a InstanceFailoverGroup ID into an InstanceFailoverGroupId struct
 func InstanceFailoverGroupID(input string) (*InstanceFailoverGroupId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

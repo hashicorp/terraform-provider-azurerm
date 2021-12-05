@@ -78,7 +78,7 @@ resource "azurerm_sql_managed_instance_failover_group" "test" {
   managed_instance_name = azurerm_sql_managed_instance.test.name
 
   partner_managed_instance_id = azurerm_sql_managed_instance.secondary.id
-  
+
 
   read_write_endpoint_failover_policy {
     mode = "Manual"
