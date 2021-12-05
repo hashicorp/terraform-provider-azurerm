@@ -2721,34 +2721,38 @@ func expandKubernetesClusterHttpProxyConfig(input []interface{}) *containerservi
 }
 
 func flattenKubernetesClusterHttpProxyConfig(props *containerservice.ManagedClusterProperties) []interface{} {
-	results := make(map[string]interface{})
-	httpProxyConfig := props.HTTPProxyConfig
-	if httpProxyConfig != nil {
-		httpProxy := ""
-		if httpProxyConfig.HTTPProxy != nil {
-			httpProxy = *httpProxyConfig.HTTPProxy
-		}
-		results["http_proxy"] = httpProxy
-
-		httpsProxy := ""
-		if httpProxyConfig.HTTPSProxy != nil {
-			httpsProxy = *httpProxyConfig.HTTPSProxy
-		}
-		results["https_proxy"] = httpsProxy
-
-		noProxyList := make([]string, 0)
-		if httpProxyConfig.NoProxy != nil {
-			noProxyList = append(noProxyList, *httpProxyConfig.NoProxy...)
-		}
-		results["no_proxy"] = noProxyList
-
-		trustedCa := ""
-		if httpProxyConfig.TrustedCa != nil {
-			trustedCa = *httpProxyConfig.TrustedCa
-		}
-		results["trusted_ca"] = trustedCa
+	if props == nil || props.HTTPProxyConfig == nil {
+		return []interface{}{}
 	}
 
-	return []interface{}{results}
+	httpProxyConfig := props.HTTPProxyConfig
+
+	httpProxy := ""
+	if httpProxyConfig.HTTPProxy != nil {
+		httpProxy = *httpProxyConfig.HTTPProxy
+	}
+
+	httpsProxy := ""
+	if httpProxyConfig.HTTPSProxy != nil {
+		httpsProxy = *httpProxyConfig.HTTPSProxy
+	}
+
+	noProxyList := make([]string, 0)
+	if httpProxyConfig.NoProxy != nil {
+		noProxyList = append(noProxyList, *httpProxyConfig.NoProxy...)
+	}
+
+	trustedCa := ""
+	if httpProxyConfig.TrustedCa != nil {
+		trustedCa = *httpProxyConfig.TrustedCa
+	}
+
+	results := []interface{}{}
+	return append(results, map[string]interface{}{
+		"http_proxy":  httpProxy,
+		"https_proxy": httpsProxy,
+		"no_proxy":    noProxyList,
+		"trusted_ca":  trustedCa,
+	})
 
 }
