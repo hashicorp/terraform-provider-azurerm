@@ -65,7 +65,7 @@ func resourceSqlManagedInstanceAdministrator() *pluginsdk.Resource {
 			"azuread_authentication_only": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Default:  false,
 			},
 		},
 	}
@@ -126,20 +126,18 @@ func resourceSqlManagedInstanceActiveDirectoryAdministratorCreateUpdate(d *plugi
 		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
-	if aadOnlyAuthentictionsEnabled := d.Get("azuread_authentication_only").(bool); aadOnlyAuthentictionsEnabled {
-		aadOnlyAuthentictionsParams := sql.ManagedInstanceAzureADOnlyAuthentication{
-			ManagedInstanceAzureADOnlyAuthProperties: &sql.ManagedInstanceAzureADOnlyAuthProperties{
-				AzureADOnlyAuthentication: utils.Bool(aadOnlyAuthentictionsEnabled),
-			},
-		}
-		aadOnlyEnabledFuture, err := aadOnlyAuthentictionsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedInstanceName, aadOnlyAuthentictionsParams)
-		if err != nil {
-			return fmt.Errorf("setting AAD only authentication for %s: %+v", id.String(), err)
-		}
+	aadOnlyAuthentictionsParams := sql.ManagedInstanceAzureADOnlyAuthentication{
+		ManagedInstanceAzureADOnlyAuthProperties: &sql.ManagedInstanceAzureADOnlyAuthProperties{
+			AzureADOnlyAuthentication: utils.Bool(d.Get("azuread_authentication_only").(bool)),
+		},
+	}
+	aadOnlyEnabledFuture, err := aadOnlyAuthentictionsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedInstanceName, aadOnlyAuthentictionsParams)
+	if err != nil {
+		return fmt.Errorf("setting AAD only authentication for %s: %+v", id.String(), err)
+	}
 
-		if err = aadOnlyEnabledFuture.WaitForCompletionRef(ctx, aadOnlyAuthentictionsClient.Client); err != nil {
-			return fmt.Errorf("waiting for setting of AAD only authentication for %s: %+v", id.String(), err)
-		}
+	if err = aadOnlyEnabledFuture.WaitForCompletionRef(ctx, aadOnlyAuthentictionsClient.Client); err != nil {
+		return fmt.Errorf("waiting for setting of AAD only authentication for %s: %+v", id.String(), err)
 	}
 
 	d.SetId(id.ID())

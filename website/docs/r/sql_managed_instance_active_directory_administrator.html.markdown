@@ -56,6 +56,8 @@ The following arguments are supported:
 
 * `tenant_id` - (Required) The Azure Tenant ID
 
+* `azuread_authentication_only` - (Optional) Specifies whether only AD Users and administrators can be used to login (`true`) or also local database users (`false`). Defaults to `false`.
+
 ## Attributes Reference
 
 The following attributes are exported:
