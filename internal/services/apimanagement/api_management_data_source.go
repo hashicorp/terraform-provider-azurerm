@@ -364,7 +364,7 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagement.Ad
 }
 
 func flattenApiManagementDataSourceIdentity(identity *apimanagement.ServiceIdentity) ([]interface{}, error) {
-	if identity == nil || identity.Type == apimanagement.None {
+	if identity == nil || identity.Type == apimanagement.ApimIdentityTypeNone {
 		return make([]interface{}, 0), nil
 	}
 

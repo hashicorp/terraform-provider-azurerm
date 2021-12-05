@@ -66,10 +66,10 @@ func resourceApiManagementIdentityProviderGoogleCreateUpdate(d *pluginsdk.Resour
 	clientSecret := d.Get("client_secret").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Google)
+		existing, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderTypeGoogle)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Identity Provider %q (API Management Service %q / Resource Group %q): %s", apimanagement.Google, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Identity Provider %q (API Management Service %q / Resource Group %q): %s", apimanagement.IdentityProviderTypeGoogle, serviceName, resourceGroup, err)
 			}
 		}
 
@@ -82,20 +82,20 @@ func resourceApiManagementIdentityProviderGoogleCreateUpdate(d *pluginsdk.Resour
 		IdentityProviderCreateContractProperties: &apimanagement.IdentityProviderCreateContractProperties{
 			ClientID:     utils.String(clientID),
 			ClientSecret: utils.String(clientSecret),
-			Type:         apimanagement.Google,
+			Type:         apimanagement.IdentityProviderTypeGoogle,
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apimanagement.Google, parameters, ""); err != nil {
-		return fmt.Errorf("creating or updating Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.Google, resourceGroup, serviceName, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderTypeGoogle, parameters, ""); err != nil {
+		return fmt.Errorf("creating or updating Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.IdentityProviderTypeGoogle, resourceGroup, serviceName, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Google)
+	resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderTypeGoogle)
 	if err != nil {
-		return fmt.Errorf("retrieving Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.Google, resourceGroup, serviceName, err)
+		return fmt.Errorf("retrieving Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.IdentityProviderTypeGoogle, resourceGroup, serviceName, err)
 	}
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Identity Provider %q (Resource Group %q / API Management Service %q)", apimanagement.Google, resourceGroup, serviceName)
+		return fmt.Errorf("Cannot read ID for Identity Provider %q (Resource Group %q / API Management Service %q)", apimanagement.IdentityProviderTypeGoogle, resourceGroup, serviceName)
 	}
 	d.SetId(*resp.ID)
 

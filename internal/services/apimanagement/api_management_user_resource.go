@@ -65,8 +65,8 @@ func resourceApiManagementUser() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.Invite),
-					string(apimanagement.Signup),
+					string(apimanagement.ConfirmationInvite),
+					string(apimanagement.ConfirmationSignup),
 				}, false),
 			},
 
@@ -206,7 +206,7 @@ func resourceApiManagementUserDelete(d *pluginsdk.ResourceData, meta interface{}
 	log.Printf("[DEBUG] Deleting %s", *id)
 	deleteSubscriptions := utils.Bool(true)
 	notify := utils.Bool(false)
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, "", deleteSubscriptions, notify, apimanagement.DeveloperPortal)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, "", deleteSubscriptions, notify, apimanagement.AppTypeDeveloperPortal)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)

@@ -119,10 +119,10 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.Res
 	profileEditingPolicy := d.Get("profile_editing_policy").(string)
 	passwordResetPolicy := d.Get("password_reset_policy").(string)
 
-	id := parse.NewIdentityProviderID(client.SubscriptionID, resourceGroup, serviceName, string(apimanagement.AadB2C))
+	id := parse.NewIdentityProviderID(client.SubscriptionID, resourceGroup, serviceName, string(apimanagement.IdentityProviderTypeAadB2C))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.AadB2C)
+		existing, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderTypeAadB2C)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id.String(), err)
@@ -136,7 +136,7 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.Res
 		IdentityProviderCreateContractProperties: &apimanagement.IdentityProviderCreateContractProperties{
 			ClientID:                 utils.String(clientID),
 			ClientSecret:             utils.String(clientSecret),
-			Type:                     apimanagement.AadB2C,
+			Type:                     apimanagement.IdentityProviderTypeAadB2C,
 			AllowedTenants:           utils.ExpandStringSlice([]interface{}{allowedTenant}),
 			SigninTenant:             utils.String(signinTenant),
 			Authority:                utils.String(authority),
@@ -147,8 +147,8 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.Res
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apimanagement.AadB2C, parameters, ""); err != nil {
-		return fmt.Errorf("creating or updating Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.AadB2C, resourceGroup, serviceName, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderTypeAadB2C, parameters, ""); err != nil {
+		return fmt.Errorf("creating or updating Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.IdentityProviderTypeAadB2C, resourceGroup, serviceName, err)
 	}
 
 	d.SetId(id.ID())

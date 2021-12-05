@@ -88,7 +88,7 @@ func resourceApiManagementAPIPolicyCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	if xmlLink != "" {
 		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			Format: apimanagement.RawxmlLink,
+			Format: apimanagement.PolicyContentFormatRawxmlLink,
 			Value:  utils.String(xmlLink),
 		}
 	} else if xmlContent != "" {
@@ -100,7 +100,7 @@ func resourceApiManagementAPIPolicyCreateUpdate(d *pluginsdk.ResourceData, meta 
 		}
 
 		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			Format: apimanagement.Rawxml,
+			Format: apimanagement.PolicyContentFormatRawxml,
 			Value:  utils.String(xmlContent),
 		}
 	}

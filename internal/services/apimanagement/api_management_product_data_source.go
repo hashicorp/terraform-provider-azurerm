@@ -90,7 +90,7 @@ func dataSourceApiManagementProductRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("approval_required", props.ApprovalRequired)
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
-		d.Set("published", props.State == apimanagement.Published)
+		d.Set("published", props.State == apimanagement.ProductStatePublished)
 		d.Set("subscriptions_limit", props.SubscriptionsLimit)
 		d.Set("subscription_required", props.SubscriptionRequired)
 		d.Set("terms", props.Terms)
