@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ManagedInstanceAzureActiveDirectoryAdministratorId struct {
@@ -42,7 +42,7 @@ func (id ManagedInstanceAzureActiveDirectoryAdministratorId) ID() string {
 
 // ManagedInstanceAzureActiveDirectoryAdministratorID parses a ManagedInstanceAzureActiveDirectoryAdministrator ID into an ManagedInstanceAzureActiveDirectoryAdministratorId struct
 func ManagedInstanceAzureActiveDirectoryAdministratorID(input string) (*ManagedInstanceAzureActiveDirectoryAdministratorId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
