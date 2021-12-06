@@ -204,7 +204,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
   name                = "linkkv"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
+  data_factory_name   = azurerm_data_factory.test.name
   key_vault_id        = azurerm_key_vault.test.id
 }
 

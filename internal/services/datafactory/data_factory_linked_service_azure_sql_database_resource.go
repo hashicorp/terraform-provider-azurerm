@@ -50,7 +50,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabase() *pluginsdk.Resource {
 				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryName(),
-				Deprecated:   "Deprecated in favour of `data_factory_id`",
+				Deprecated:   "`data_factory_name` is deprecated in favour of `data_factory_id` and will be removed in version 3.0 of the AzureRM provider",
 				ExactlyOneOf: []string{"data_factory_id"},
 			},
 

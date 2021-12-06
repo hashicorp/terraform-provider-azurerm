@@ -158,7 +158,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_mysql" "test" {
   name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
+  data_factory_name   = azurerm_data_factory.test.name
   connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
   annotations         = ["test1", "test2"]
   description         = "test description 2"
