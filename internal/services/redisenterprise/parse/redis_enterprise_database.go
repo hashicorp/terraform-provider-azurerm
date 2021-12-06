@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type RedisEnterpriseDatabaseId struct {
@@ -42,7 +42,7 @@ func (id RedisEnterpriseDatabaseId) ID() string {
 
 // RedisEnterpriseDatabaseID parses a RedisEnterpriseDatabase ID into an RedisEnterpriseDatabaseId struct
 func RedisEnterpriseDatabaseID(input string) (*RedisEnterpriseDatabaseId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

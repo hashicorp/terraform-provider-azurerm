@@ -13,28 +13,26 @@ const (
 
 func PossibleValuesForCreatedByType() []string {
 	return []string{
-		"Application",
-		"Key",
-		"ManagedIdentity",
-		"User",
+		string(CreatedByTypeApplication),
+		string(CreatedByTypeKey),
+		string(CreatedByTypeManagedIdentity),
+		string(CreatedByTypeUser),
 	}
 }
 
 func parseCreatedByType(input string) (*CreatedByType, error) {
 	vals := map[string]CreatedByType{
-		"application":     "Application",
-		"key":             "Key",
-		"managedidentity": "ManagedIdentity",
-		"user":            "User",
+		"application":     CreatedByTypeApplication,
+		"key":             CreatedByTypeKey,
+		"managedidentity": CreatedByTypeManagedIdentity,
+		"user":            CreatedByTypeUser,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := CreatedByType(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := CreatedByType(input)
 	return &out, nil
 }
 
@@ -48,26 +46,24 @@ const (
 
 func PossibleValuesForCustomParameterType() []string {
 	return []string{
-		"Bool",
-		"Object",
-		"String",
+		string(CustomParameterTypeBool),
+		string(CustomParameterTypeObject),
+		string(CustomParameterTypeString),
 	}
 }
 
 func parseCustomParameterType(input string) (*CustomParameterType, error) {
 	vals := map[string]CustomParameterType{
-		"bool":   "Bool",
-		"object": "Object",
-		"string": "String",
+		"bool":   CustomParameterTypeBool,
+		"object": CustomParameterTypeObject,
+		"string": CustomParameterTypeString,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := CustomParameterType(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := CustomParameterType(input)
 	return &out, nil
 }
 
@@ -79,22 +75,20 @@ const (
 
 func PossibleValuesForEncryptionKeySource() []string {
 	return []string{
-		"Microsoft.Keyvault",
+		string(EncryptionKeySourceMicrosoftPointKeyvault),
 	}
 }
 
 func parseEncryptionKeySource(input string) (*EncryptionKeySource, error) {
 	vals := map[string]EncryptionKeySource{
-		"microsoftpointkeyvault": "Microsoft.Keyvault",
+		"microsoft.keyvault": EncryptionKeySourceMicrosoftPointKeyvault,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := EncryptionKeySource(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := EncryptionKeySource(input)
 	return &out, nil
 }
 
@@ -107,24 +101,22 @@ const (
 
 func PossibleValuesForKeySource() []string {
 	return []string{
-		"Default",
-		"Microsoft.Keyvault",
+		string(KeySourceDefault),
+		string(KeySourceMicrosoftPointKeyvault),
 	}
 }
 
 func parseKeySource(input string) (*KeySource, error) {
 	vals := map[string]KeySource{
-		"default":                "Default",
-		"microsoftpointkeyvault": "Microsoft.Keyvault",
+		"default":            KeySourceDefault,
+		"microsoft.keyvault": KeySourceMicrosoftPointKeyvault,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := KeySource(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := KeySource(input)
 	return &out, nil
 }
 
@@ -140,30 +132,28 @@ const (
 
 func PossibleValuesForPrivateEndpointConnectionProvisioningState() []string {
 	return []string{
-		"Creating",
-		"Deleting",
-		"Failed",
-		"Succeeded",
-		"Updating",
+		string(PrivateEndpointConnectionProvisioningStateCreating),
+		string(PrivateEndpointConnectionProvisioningStateDeleting),
+		string(PrivateEndpointConnectionProvisioningStateFailed),
+		string(PrivateEndpointConnectionProvisioningStateSucceeded),
+		string(PrivateEndpointConnectionProvisioningStateUpdating),
 	}
 }
 
 func parsePrivateEndpointConnectionProvisioningState(input string) (*PrivateEndpointConnectionProvisioningState, error) {
 	vals := map[string]PrivateEndpointConnectionProvisioningState{
-		"creating":  "Creating",
-		"deleting":  "Deleting",
-		"failed":    "Failed",
-		"succeeded": "Succeeded",
-		"updating":  "Updating",
+		"creating":  PrivateEndpointConnectionProvisioningStateCreating,
+		"deleting":  PrivateEndpointConnectionProvisioningStateDeleting,
+		"failed":    PrivateEndpointConnectionProvisioningStateFailed,
+		"succeeded": PrivateEndpointConnectionProvisioningStateSucceeded,
+		"updating":  PrivateEndpointConnectionProvisioningStateUpdating,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := PrivateEndpointConnectionProvisioningState(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := PrivateEndpointConnectionProvisioningState(input)
 	return &out, nil
 }
 
@@ -178,28 +168,26 @@ const (
 
 func PossibleValuesForPrivateLinkServiceConnectionStatus() []string {
 	return []string{
-		"Approved",
-		"Disconnected",
-		"Pending",
-		"Rejected",
+		string(PrivateLinkServiceConnectionStatusApproved),
+		string(PrivateLinkServiceConnectionStatusDisconnected),
+		string(PrivateLinkServiceConnectionStatusPending),
+		string(PrivateLinkServiceConnectionStatusRejected),
 	}
 }
 
 func parsePrivateLinkServiceConnectionStatus(input string) (*PrivateLinkServiceConnectionStatus, error) {
 	vals := map[string]PrivateLinkServiceConnectionStatus{
-		"approved":     "Approved",
-		"disconnected": "Disconnected",
-		"pending":      "Pending",
-		"rejected":     "Rejected",
+		"approved":     PrivateLinkServiceConnectionStatusApproved,
+		"disconnected": PrivateLinkServiceConnectionStatusDisconnected,
+		"pending":      PrivateLinkServiceConnectionStatusPending,
+		"rejected":     PrivateLinkServiceConnectionStatusRejected,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := PrivateLinkServiceConnectionStatus(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := PrivateLinkServiceConnectionStatus(input)
 	return &out, nil
 }
 
@@ -221,42 +209,40 @@ const (
 
 func PossibleValuesForProvisioningState() []string {
 	return []string{
-		"Accepted",
-		"Canceled",
-		"Created",
-		"Creating",
-		"Deleted",
-		"Deleting",
-		"Failed",
-		"Ready",
-		"Running",
-		"Succeeded",
-		"Updating",
+		string(ProvisioningStateAccepted),
+		string(ProvisioningStateCanceled),
+		string(ProvisioningStateCreated),
+		string(ProvisioningStateCreating),
+		string(ProvisioningStateDeleted),
+		string(ProvisioningStateDeleting),
+		string(ProvisioningStateFailed),
+		string(ProvisioningStateReady),
+		string(ProvisioningStateRunning),
+		string(ProvisioningStateSucceeded),
+		string(ProvisioningStateUpdating),
 	}
 }
 
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
-		"accepted":  "Accepted",
-		"canceled":  "Canceled",
-		"created":   "Created",
-		"creating":  "Creating",
-		"deleted":   "Deleted",
-		"deleting":  "Deleting",
-		"failed":    "Failed",
-		"ready":     "Ready",
-		"running":   "Running",
-		"succeeded": "Succeeded",
-		"updating":  "Updating",
+		"accepted":  ProvisioningStateAccepted,
+		"canceled":  ProvisioningStateCanceled,
+		"created":   ProvisioningStateCreated,
+		"creating":  ProvisioningStateCreating,
+		"deleted":   ProvisioningStateDeleted,
+		"deleting":  ProvisioningStateDeleting,
+		"failed":    ProvisioningStateFailed,
+		"ready":     ProvisioningStateReady,
+		"running":   ProvisioningStateRunning,
+		"succeeded": ProvisioningStateSucceeded,
+		"updating":  ProvisioningStateUpdating,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := ProvisioningState(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := ProvisioningState(input)
 	return &out, nil
 }
 
@@ -269,24 +255,22 @@ const (
 
 func PossibleValuesForPublicNetworkAccess() []string {
 	return []string{
-		"Disabled",
-		"Enabled",
+		string(PublicNetworkAccessDisabled),
+		string(PublicNetworkAccessEnabled),
 	}
 }
 
 func parsePublicNetworkAccess(input string) (*PublicNetworkAccess, error) {
 	vals := map[string]PublicNetworkAccess{
-		"disabled": "Disabled",
-		"enabled":  "Enabled",
+		"disabled": PublicNetworkAccessDisabled,
+		"enabled":  PublicNetworkAccessEnabled,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := PublicNetworkAccess(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := PublicNetworkAccess(input)
 	return &out, nil
 }
 
@@ -300,25 +284,23 @@ const (
 
 func PossibleValuesForRequiredNsgRules() []string {
 	return []string{
-		"AllRules",
-		"NoAzureDatabricksRules",
-		"NoAzureServiceRules",
+		string(RequiredNsgRulesAllRules),
+		string(RequiredNsgRulesNoAzureDatabricksRules),
+		string(RequiredNsgRulesNoAzureServiceRules),
 	}
 }
 
 func parseRequiredNsgRules(input string) (*RequiredNsgRules, error) {
 	vals := map[string]RequiredNsgRules{
-		"allrules":               "AllRules",
-		"noazuredatabricksrules": "NoAzureDatabricksRules",
-		"noazureservicerules":    "NoAzureServiceRules",
+		"allrules":               RequiredNsgRulesAllRules,
+		"noazuredatabricksrules": RequiredNsgRulesNoAzureDatabricksRules,
+		"noazureservicerules":    RequiredNsgRulesNoAzureServiceRules,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := RequiredNsgRules(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := RequiredNsgRules(input)
 	return &out, nil
 }

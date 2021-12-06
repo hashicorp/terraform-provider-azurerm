@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type VideoAnalyzerId struct {
@@ -39,7 +39,7 @@ func (id VideoAnalyzerId) ID() string {
 
 // VideoAnalyzerID parses a VideoAnalyzer ID into an VideoAnalyzerId struct
 func VideoAnalyzerID(input string) (*VideoAnalyzerId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

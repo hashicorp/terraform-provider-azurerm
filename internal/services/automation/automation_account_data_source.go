@@ -51,7 +51,7 @@ func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewAutomationAccountID(client.SubscriptionID, d.Get("name").(string), d.Get("resource_group_name").(string))
+	id := parse.NewAutomationAccountID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {

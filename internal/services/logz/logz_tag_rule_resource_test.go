@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,9 +20,10 @@ type LogzTagRuleResource struct{}
 func TestAccLogzTagRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logz_tag_rule", "test")
 	r := LogzTagRuleResource{}
+	email := uuid.New().String()
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, email),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -33,23 +35,28 @@ func TestAccLogzTagRule_basic(t *testing.T) {
 func TestAccLogzTagRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logz_tag_rule", "test")
 	r := LogzTagRuleResource{}
+	email := uuid.New().String()
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, email),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiresImport),
+		{
+			Config:      r.requiresImport(data, email),
+			ExpectError: acceptance.RequiresImportError(data.ResourceType),
+		},
 	})
 }
 
 func TestAccLogzTagRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logz_tag_rule", "test")
 	r := LogzTagRuleResource{}
+	email := uuid.New().String()
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, email),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -61,23 +68,24 @@ func TestAccLogzTagRule_complete(t *testing.T) {
 func TestAccLogzTagRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logz_tag_rule", "test")
 	r := LogzTagRuleResource{}
+	email := uuid.New().String()
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, email),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, email),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, email),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -101,7 +109,7 @@ func (r LogzTagRuleResource) Exists(ctx context.Context, clients *clients.Client
 	return utils.Bool(true), nil
 }
 
-func (r LogzTagRuleResource) template(data acceptance.TestData) string {
+func (r LogzTagRuleResource) template(data acceptance.TestData, email string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -124,17 +132,17 @@ resource "azurerm_logz_monitor" "test" {
   }
 
   user {
-    email        = "e081a27c-bc01-4159-bc06-7f9f711e3b3a@example.com"
+    email        = "%s@example.com"
     first_name   = "first"
     last_name    = "last"
     phone_number = "123456"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, getLogzInstanceName(data.RandomInteger), getEffectiveDate())
+`, data.RandomInteger, data.Locations.Primary, getLogzInstanceName(data.RandomInteger), getEffectiveDate(), email)
 }
 
-func (r LogzTagRuleResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
+func (r LogzTagRuleResource) basic(data acceptance.TestData, email string) string {
+	template := r.template(data, email)
 	return fmt.Sprintf(`
 %s
 
@@ -144,8 +152,8 @@ resource "azurerm_logz_tag_rule" "test" {
 `, template)
 }
 
-func (r LogzTagRuleResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
+func (r LogzTagRuleResource) requiresImport(data acceptance.TestData, email string) string {
+	config := r.basic(data, email)
 	return fmt.Sprintf(`
 %s
 
@@ -155,8 +163,8 @@ resource "azurerm_logz_tag_rule" "import" {
 `, config)
 }
 
-func (r LogzTagRuleResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
+func (r LogzTagRuleResource) complete(data acceptance.TestData, email string) string {
+	template := r.template(data, email)
 	return fmt.Sprintf(`
 %s
 

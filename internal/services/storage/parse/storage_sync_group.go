@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type StorageSyncGroupId struct {
@@ -42,7 +42,7 @@ func (id StorageSyncGroupId) ID() string {
 
 // StorageSyncGroupID parses a StorageSyncGroup ID into an StorageSyncGroupId struct
 func StorageSyncGroupID(input string) (*StorageSyncGroupId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

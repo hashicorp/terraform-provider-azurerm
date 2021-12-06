@@ -132,6 +132,12 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(100, 102400),
 			},
 
+			"throughput_in_mibps": {
+				Type:     pluginsdk.TypeFloat,
+				Optional: true,
+				Computed: true,
+			},
+
 			"export_policy_rule": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -432,7 +438,12 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if throughputMibps, ok := d.GetOk("throughput_in_mibps"); ok {
+		parameters.VolumeProperties.ThroughputMibps = utils.Float(throughputMibps.(float64))
+	}
+
 	future, err := client.CreateOrUpdate(ctx, parameters, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name)
+
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -517,6 +528,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("protocols", props.ProtocolTypes)
 		d.Set("security_style", props.SecurityStyle)
 		d.Set("snapshot_directory_visible", props.SnapshotDirectoryVisible)
+		d.Set("throughput_in_mibps", props.ThroughputMibps)
 		if props.UsageThreshold != nil {
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
 		}

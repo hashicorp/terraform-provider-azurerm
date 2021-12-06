@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type PrivateEndpointId struct {
@@ -39,7 +39,7 @@ func (id PrivateEndpointId) ID() string {
 
 // PrivateEndpointID parses a PrivateEndpoint ID into an PrivateEndpointId struct
 func PrivateEndpointID(input string) (*PrivateEndpointId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

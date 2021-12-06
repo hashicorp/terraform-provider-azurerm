@@ -20,9 +20,7 @@ func TestAccLinuxVirtualMachineScaleSet_identityNone(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -38,9 +36,7 @@ func TestAccLinuxVirtualMachineScaleSet_identitySystemAssigned(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// disable it
 			Config: r.authPassword(data),
@@ -49,9 +45,7 @@ func TestAccLinuxVirtualMachineScaleSet_identitySystemAssigned(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.identitySystemAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -59,9 +53,7 @@ func TestAccLinuxVirtualMachineScaleSet_identitySystemAssigned(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -76,9 +68,7 @@ func TestAccLinuxVirtualMachineScaleSet_identityUserAssigned(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// disable it
 			Config: r.authPassword(data),
@@ -87,18 +77,14 @@ func TestAccLinuxVirtualMachineScaleSet_identityUserAssigned(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.identityUserAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// second
 			Config: r.identityUserAssignedUpdated(data),
@@ -106,9 +92,7 @@ func TestAccLinuxVirtualMachineScaleSet_identityUserAssigned(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -124,9 +108,7 @@ func TestAccLinuxVirtualMachineScaleSet_identitySystemAssignedUserAssigned(t *te
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// disable it
 			Config: r.authPassword(data),
@@ -135,9 +117,7 @@ func TestAccLinuxVirtualMachineScaleSet_identitySystemAssignedUserAssigned(t *te
 				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.identitySystemAssignedUserAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -145,9 +125,7 @@ func TestAccLinuxVirtualMachineScaleSet_identitySystemAssignedUserAssigned(t *te
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 

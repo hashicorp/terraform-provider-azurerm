@@ -1833,7 +1833,7 @@ func flattenRmApplicationGatewayIdentity(identity *network.ManagedServiceIdentit
 	identityIds := make([]string, 0)
 	if identity.UserAssignedIdentities != nil {
 		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiParse.UserAssignedIdentityID(key)
+			parsedId, err := msiParse.UserAssignedIdentityIDInsensitively(key)
 			if err != nil {
 				return nil, err
 			}

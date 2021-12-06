@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type VirtualWanId struct {
@@ -39,7 +39,7 @@ func (id VirtualWanId) ID() string {
 
 // VirtualWanID parses a VirtualWan ID into an VirtualWanId struct
 func VirtualWanID(input string) (*VirtualWanId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
