@@ -185,7 +185,7 @@ func TestAccStorageContainer_web(t *testing.T) {
 	})
 }
 
-func TestAccStorageContainer_resourceManangerBasic(t *testing.T) {
+func TestAccStorageContainer_resourceManagerBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{useResourceManager: true}
 
@@ -200,7 +200,7 @@ func TestAccStorageContainer_resourceManangerBasic(t *testing.T) {
 	})
 }
 
-func TestAccStorageContainer_resourceManangerUpdate(t *testing.T) {
+func TestAccStorageContainer_resourceManagerUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{useResourceManager: true}
 
@@ -224,7 +224,7 @@ func TestAccStorageContainer_resourceManangerUpdate(t *testing.T) {
 	})
 }
 
-func TestAccStorageContainer_resourceManangerMetaData(t *testing.T) {
+func TestAccStorageContainer_resourceManagerMetaData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{useResourceManager: true}
 
@@ -253,7 +253,7 @@ func TestAccStorageContainer_resourceManangerMetaData(t *testing.T) {
 	})
 }
 
-func TestAccStorageContainer_resourceManangerRoot(t *testing.T) {
+func TestAccStorageContainer_resourceManagerRoot(t *testing.T) {
 	// TODO: The mgmt plane API is forbidden to destroy a root container.
 	// See: https://github.com/Azure/azure-rest-api-specs/issues/16783
 	// Once that issue is fixed, we can enable this test case.
@@ -274,7 +274,7 @@ func TestAccStorageContainer_resourceManangerRoot(t *testing.T) {
 	})
 }
 
-func TestAccStorageContainer_resourceManangerWeb(t *testing.T) {
+func TestAccStorageContainer_resourceManagerWeb(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{useResourceManager: true}
 
