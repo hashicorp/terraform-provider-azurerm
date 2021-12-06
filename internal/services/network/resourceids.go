@@ -20,6 +20,8 @@ package network
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkGatewayConnection -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/connections/connection1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=DdosProtectionPlan -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/ddosProtectionPlans/ddosProtectionPlan1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=SecurityRule -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkSecurityGroups/acceptanceTestSecurityGroup1/securityRules/securityRules1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=PrivateLinkService -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/privateLinkServices/privateLinkService1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=LocalNetworkGateway -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/localNetworkGateways/localNetworkGateway1
 
 // Application Gateway
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontendPort -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/frontendPorts/feport1

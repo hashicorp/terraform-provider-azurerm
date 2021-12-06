@@ -38,5 +38,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_kusto_eventhub_data_connection":        resourceKustoEventHubDataConnection(),
 		"azurerm_kusto_iothub_data_connection":          resourceKustoIotHubDataConnection(),
 		"azurerm_kusto_attached_database_configuration": resourceKustoAttachedDatabaseConfiguration(),
+		"azurerm_kusto_script":                          resourceKustoDatabaseScript(),
 	}
 }

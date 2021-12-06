@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ApiKeyId struct {
@@ -36,13 +36,13 @@ func (id ApiKeyId) String() string {
 }
 
 func (id ApiKeyId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s/apikeys/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Insights/components/%s/apiKeys/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ComponentName, id.Name)
 }
 
 // ApiKeyID parses a ApiKey ID into an ApiKeyId struct
 func ApiKeyID(input string) (*ApiKeyId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func ApiKeyID(input string) (*ApiKeyId, error) {
 	if resourceId.ComponentName, err = id.PopSegment("components"); err != nil {
 		return nil, err
 	}
-	if resourceId.Name, err = id.PopSegment("apikeys"); err != nil {
+	if resourceId.Name, err = id.PopSegment("apiKeys"); err != nil {
 		return nil, err
 	}
 

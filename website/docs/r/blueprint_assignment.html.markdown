@@ -112,7 +112,7 @@ resource "azurerm_blueprint_assignment" "example" {
 
 * `location` - (Required) The Azure location of the Assignment.
 
-* `identitiy` - (Required) an identity block, as detailed below.
+* `identity` - (Required) An `identity` block as defined below.
 
 * `version_id` - (Required) The ID of the Published Version of the blueprint to be assigned.
 

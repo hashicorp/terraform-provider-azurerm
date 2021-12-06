@@ -106,13 +106,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				ConfigMode:    pluginsdk.SchemaConfigModeAttr, // TODO -- remove in 3.0, because this property is optional and computed, it has to be declared as empty array to remove existed values
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"location": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							ValidateFunc:     location.EnhancedValidate,
-							StateFunc:        location.StateFunc,
-							DiffSuppressFunc: location.DiffSuppressFunc,
-						},
+						"location": location.SchemaWithoutForceNew(),
 
 						"zone_redundancy_enabled": {
 							Type:     pluginsdk.TypeBool,
@@ -136,10 +130,13 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			// TODO 3.0 - Remove this property as all the Classic sku instances are now deprecated and out of support at the serice side.
 			"storage_account_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:       pluginsdk.TypeString,
+				Optional:   true,
+				Computed:   true,
+				ForceNew:   true,
+				Deprecated: "this attribute is no longer recognized by the API and is not functional anymore, thus this property will be removed in v3.0",
 			},
 
 			"login_server": {
@@ -340,6 +337,26 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"anonymous_pull_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"data_endpoint_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"network_rule_bypass_option": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerregistry.NetworkRuleBypassOptionsAzureServices),
+					string(containerregistry.NetworkRuleBypassOptionsNone),
+				}, false),
+				Default: string(containerregistry.NetworkRuleBypassOptionsAzureServices),
+			},
+
 			"tags": tags.Schema(),
 		},
 
@@ -384,6 +401,16 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				if ok && zoneRedundancyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
 					return fmt.Errorf("ACR zone redundancy can only be applied when using the Premium Sku")
 				}
+			}
+
+			// anonymous pull is only available for Standard/Premium Sku.
+			if d.Get("anonymous_pull_enabled").(bool) && (!strings.EqualFold(sku, string(containerregistry.Standard)) && !strings.EqualFold(sku, string(containerregistry.Premium))) {
+				return fmt.Errorf("`anonymous_pull_enabled` can only be applied when using the Standard/Premium Sku")
+			}
+
+			// data endpoint is only available for Premium Sku.
+			if d.Get("data_endpoint_enabled").(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+				return fmt.Errorf("`data_endpoint_enabled` can only be applied when using the Premium Sku")
 			}
 
 			return nil
@@ -478,23 +505,14 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 				RetentionPolicy:  retentionPolicy,
 				TrustPolicy:      trustPolicy,
 			},
-			PublicNetworkAccess: publicNetworkAccess,
-			ZoneRedundancy:      zoneRedundancy,
+			PublicNetworkAccess:      publicNetworkAccess,
+			ZoneRedundancy:           zoneRedundancy,
+			AnonymousPullEnabled:     utils.Bool(d.Get("anonymous_pull_enabled").(bool)),
+			DataEndpointEnabled:      utils.Bool(d.Get("data_endpoint_enabled").(bool)),
+			NetworkRuleBypassOptions: containerregistry.NetworkRuleBypassOptions(d.Get("network_rule_bypass_option").(string)),
 		},
 
 		Tags: tags.Expand(t),
-	}
-
-	if v, ok := d.GetOk("storage_account_id"); ok {
-		if !strings.EqualFold(sku, string(containerregistry.Classic)) {
-			return fmt.Errorf("`storage_account_id` can only be specified for a Classic (unmanaged) Sku.")
-		}
-
-		parameters.StorageAccount = &containerregistry.StorageAccountProperties{
-			ID: utils.String(v.(string)),
-		}
-	} else if strings.EqualFold(sku, string(containerregistry.Classic)) {
-		return fmt.Errorf("`storage_account_id` must be specified for a Classic (unmanaged) Sku.")
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, parameters)
@@ -599,8 +617,11 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 				RetentionPolicy:  retentionPolicy,
 				TrustPolicy:      trustPolicy,
 			},
-			PublicNetworkAccess: publicNetworkAccess,
-			Encryption:          encryption,
+			PublicNetworkAccess:      publicNetworkAccess,
+			Encryption:               encryption,
+			AnonymousPullEnabled:     utils.Bool(d.Get("anonymous_pull_enabled").(bool)),
+			DataEndpointEnabled:      utils.Bool(d.Get("data_endpoint_enabled").(bool)),
+			NetworkRuleBypassOptions: containerregistry.NetworkRuleBypassOptions(d.Get("network_rule_bypass_option").(string)),
 		},
 		Identity: identity,
 		Tags:     tags.Expand(t),
@@ -776,14 +797,13 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `encryption`: %+v", err)
 		}
 		d.Set("zone_redundancy_enabled", properties.ZoneRedundancy == containerregistry.ZoneRedundancyEnabled)
+		d.Set("anonymous_pull_enabled", properties.AnonymousPullEnabled)
+		d.Set("data_endpoint_enabled", properties.DataEndpointEnabled)
+		d.Set("network_rule_bypass_option", string(properties.NetworkRuleBypassOptions))
 	}
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Tier))
-	}
-
-	if account := resp.StorageAccount; account != nil {
-		d.Set("storage_account_id", account.ID)
 	}
 
 	if *resp.AdminUserEnabled {
@@ -826,6 +846,10 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	d.Set("georeplication_locations", geoReplicationLocations)
 	d.Set("georeplications", geoReplications)
+
+	// Deprecated as it is not returned by the API now.
+	d.Set("storage_account_id", "")
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 

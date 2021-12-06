@@ -505,7 +505,7 @@ func (ApiManagementResource) Exists(ctx context.Context, clients *clients.Client
 
 	resp, err := clients.ApiManagement.ServiceClient.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return nil, fmt.Errorf("reading ApiManagement (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -1068,8 +1068,9 @@ resource "azurerm_api_management" "test" {
     }
 
     developer_portal {
-      host_name   = "developer-portal.terraform.io"
-      certificate = filebase64("testdata/api_management_developer_portal_test.pfx")
+      host_name            = "developer-portal.terraform.io"
+      certificate          = filebase64("testdata/api_management_developer_portal_test.pfx")
+      certificate_password = "terraform"
     }
   }
 
@@ -1186,8 +1187,9 @@ resource "azurerm_api_management" "test" {
     }
 
     developer_portal {
-      host_name   = "developer-portal.terraform.io"
-      certificate = filebase64("testdata/api_management_developer_portal_test.pfx")
+      host_name            = "developer-portal.terraform.io"
+      certificate          = filebase64("testdata/api_management_developer_portal_test.pfx")
+      certificate_password = "terraform"
     }
   }
 

@@ -44,8 +44,26 @@ func resourceSynapseWorkspaceKey() *pluginsdk.Resource {
 			},
 
 			"cusomter_managed_key_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Type:       pluginsdk.TypeString,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "As this property name contained a typo originally, please switch to using 'customer_managed_key_name' instead.",
+				AtLeastOneOf: []string{
+					"cusomter_managed_key_name",
+					"customer_managed_key_name",
+				},
+				ConflictsWith: []string{"customer_managed_key_name"},
+			},
+
+			"customer_managed_key_name": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"cusomter_managed_key_name"},
+				AtLeastOneOf: []string{
+					"cusomter_managed_key_name",
+					"customer_managed_key_name",
+				},
 			},
 
 			"customer_managed_key_versionless_id": {
@@ -75,7 +93,8 @@ func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	key := d.Get("customer_managed_key_versionless_id")
-	keyName := d.Get("cusomter_managed_key_name").(string)
+	keyName := d.Get("customer_managed_key_name").(string)
+	keyNameTypoed := d.Get("cusomter_managed_key_name").(string)
 	isActiveCMK := d.Get("active").(bool)
 
 	log.Printf("[INFO] Is active CMK: %t", isActiveCMK)
@@ -89,7 +108,14 @@ func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta in
 		KeyProperties: &keyProperties,
 	}
 
-	keyresult, err := client.CreateOrUpdate(ctx, workspaceId.ResourceGroup, workspaceId.Name, keyName, synapseKey)
+	actualKeyName := ""
+	if keyName != "" {
+		actualKeyName = keyName
+	} else {
+		actualKeyName = keyNameTypoed
+	}
+
+	keyresult, err := client.CreateOrUpdate(ctx, workspaceId.ResourceGroup, workspaceId.Name, actualKeyName, synapseKey)
 	if err != nil {
 		return fmt.Errorf("creating Synapse Workspace Key %q (Workspace %q): %+v", workspaceId.Name, workspaceId.Name, err)
 	}
@@ -100,14 +126,14 @@ func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	// If the state of the key in the response (from Azure) is not equal to the desired target state (from plan/config), we'll wait until that change is complete
 	if isActiveCMK != *keyresult.KeyProperties.IsActiveCMK {
-		updateWait := synapseKeysWaitForStateChange(ctx, meta, d.Timeout(pluginsdk.TimeoutUpdate), workspaceId.ResourceGroup, workspaceId.Name, keyName, strconv.FormatBool(*keyresult.KeyProperties.IsActiveCMK), strconv.FormatBool(isActiveCMK))
+		updateWait := synapseKeysWaitForStateChange(ctx, meta, d.Timeout(pluginsdk.TimeoutUpdate), workspaceId.ResourceGroup, workspaceId.Name, actualKeyName, strconv.FormatBool(*keyresult.KeyProperties.IsActiveCMK), strconv.FormatBool(isActiveCMK))
 
 		if _, err := updateWait.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for Synapse Keys to finish updating '%q' (Workspace Group %q): %v", keyName, workspaceId.Name, err)
+			return fmt.Errorf("waiting for Synapse Keys to finish updating '%q' (Workspace Group %q): %v", actualKeyName, workspaceId.Name, err)
 		}
 	}
 
-	id := parse.NewWorkspaceKeysID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, keyName)
+	id := parse.NewWorkspaceKeysID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, actualKeyName)
 	d.SetId(id.ID())
 
 	return resourceSynapseWorkspaceKeyRead(d, meta)
@@ -134,6 +160,7 @@ func resourceSynapseWorkspaceKeyRead(d *pluginsdk.ResourceData, meta interface{}
 	// Set the properties
 	d.Set("synapse_workspace_id", workspaceID.ID())
 	d.Set("active", resp.KeyProperties.IsActiveCMK)
+	d.Set("customer_managed_key_name", id.KeyName)
 	d.Set("cusomter_managed_key_name", id.KeyName)
 	d.Set("customer_managed_key_versionless_id", resp.KeyProperties.KeyVaultURL)
 

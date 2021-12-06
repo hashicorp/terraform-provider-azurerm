@@ -19,7 +19,7 @@ data "azurerm_cognitive_account" "test" {
 }
 
 output "primary_access_key" {
-  value = "${data.azurerm_cognitive_account.test.primary_access_key}"
+  value = data.azurerm_cognitive_account.test.primary_access_key
 }
 ```
 ## Argument Reference

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type NotificationHubId struct {
@@ -42,7 +42,7 @@ func (id NotificationHubId) ID() string {
 
 // NotificationHubID parses a NotificationHub ID into an NotificationHubId struct
 func NotificationHubID(input string) (*NotificationHubId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func NotificationHubID(input string) (*NotificationHubId, error) {
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
 func NotificationHubIDInsensitively(input string) (*NotificationHubId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

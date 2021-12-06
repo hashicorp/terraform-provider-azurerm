@@ -139,22 +139,13 @@ func (r SentinelAutomationRuleResource) complete(data acceptance.TestData) strin
 
 data "azurerm_client_config" "current" {}
 
-data "azuread_service_principal" "securityinsights" {
-  display_name = "Azure Security Insights"
-}
-
-resource "azurerm_role_assignment" "sentinel" {
-  scope                = azurerm_resource_group.test.id
-  role_definition_name = "Azure Sentinel Automation Contributor"
-  principal_id         = data.azuread_service_principal.securityinsights.object_id
-}
-
 resource "azurerm_sentinel_automation_rule" "test" {
   name                       = "%s"
   log_analytics_workspace_id = azurerm_log_analytics_solution.sentinel.workspace_resource_id
   display_name               = "acctest-SentinelAutoRule-%d-update"
   order                      = 2
   enabled                    = false
+  expiration                 = "2022-11-20T15:44:52Z"
   condition {
     property = "IncidentTitle"
     operator = "Contains"
@@ -188,8 +179,6 @@ resource "azurerm_sentinel_automation_rule" "test" {
     order    = 4
     owner_id = data.azurerm_client_config.current.object_id
   }
-
-  depends_on = [azurerm_role_assignment.sentinel]
 }
 `, template, r.uuid, data.RandomInteger)
 }

@@ -200,46 +200,42 @@ func resourceHealthcareService() *pluginsdk.Resource {
 
 func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Healthcare Service creation.")
-
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
-
-	kind := d.Get("kind").(string)
-
+	id := parse.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Healthcare Service %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_healthcare_service", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_healthcare_service", id.ID())
 		}
 	}
 
-	cosmosDbConfiguration, err := expandAzureRMhealthcareapisCosmosDbConfiguration(d)
+	cosmosDbConfiguration, err := expandsCosmosDBConfiguration(d)
 	if err != nil {
 		return fmt.Errorf("expanding cosmosdb_configuration: %+v", err)
 	}
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	t := d.Get("tags").(map[string]interface{})
+	kind := d.Get("kind").(string)
 
 	healthcareServiceDescription := healthcareapis.ServicesDescription{
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
 		Kind:     healthcareapis.Kind(kind),
 		Properties: &healthcareapis.ServicesProperties{
-			AccessPolicies:              expandAzureRMhealthcareapisAccessPolicyEntries(d),
+			AccessPolicies:              expandAccessPolicyEntries(d),
 			CosmosDbConfiguration:       cosmosDbConfiguration,
-			CorsConfiguration:           expandAzureRMhealthcareapisCorsConfiguration(d),
-			AuthenticationConfiguration: expandAzureRMhealthcareapisAuthentication(d),
+			CorsConfiguration:           expandCorsConfiguration(d),
+			AuthenticationConfiguration: expandAuthentication(d),
 		},
 	}
 
@@ -250,25 +246,16 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		healthcareServiceDescription.Properties.PublicNetworkAccess = healthcareapis.Enabled
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, healthcareServiceDescription)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, healthcareServiceDescription)
 	if err != nil {
-		return fmt.Errorf("Creating/Updating Healthcare Service %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Creating/Updating Healthcare Service %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("Retrieving Healthcare Service %q (Resource Group %q): %+v", name, resGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Healthcare Service %q (resource group %q) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceHealthcareServiceRead(d, meta)
 }
 
@@ -285,12 +272,12 @@ func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Healthcare Service %q was not found (Resource Group %q)", id.Name, id.ResourceGroup)
+			log.Printf("[WARN] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure Healthcare Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -303,7 +290,7 @@ func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("kind", kind)
 	}
 	if props := resp.Properties; props != nil {
-		if err := d.Set("access_policy_object_ids", flattenHealthcareAccessPolicies(props.AccessPolicies)); err != nil {
+		if err := d.Set("access_policy_object_ids", flattenAccessPolicies(props.AccessPolicies)); err != nil {
 			return fmt.Errorf("setting `access_policy_object_ids`: %+v", err)
 		}
 
@@ -325,11 +312,11 @@ func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("public_network_access_enabled", false)
 		}
 
-		if err := d.Set("authentication_configuration", flattenHealthcareAuthConfig(props.AuthenticationConfiguration)); err != nil {
+		if err := d.Set("authentication_configuration", flattenAuthentication(props.AuthenticationConfiguration)); err != nil {
 			return fmt.Errorf("setting `authentication_configuration`: %+v", err)
 		}
 
-		if err := d.Set("cors_configuration", flattenHealthcareCorsConfig(props.CorsConfiguration)); err != nil {
+		if err := d.Set("cors_configuration", flattenCorsConfig(props.CorsConfiguration)); err != nil {
 			return fmt.Errorf("setting `cors_configuration`: %+v", err)
 		}
 	}
@@ -359,7 +346,7 @@ func resourceHealthcareServiceDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func expandAzureRMhealthcareapisAccessPolicyEntries(d *pluginsdk.ResourceData) *[]healthcareapis.ServiceAccessPolicyEntry {
+func expandAccessPolicyEntries(d *pluginsdk.ResourceData) *[]healthcareapis.ServiceAccessPolicyEntry {
 	accessPolicyObjectIds := d.Get("access_policy_object_ids").(*pluginsdk.Set).List()
 	svcAccessPolicyArray := make([]healthcareapis.ServiceAccessPolicyEntry, 0)
 
@@ -371,7 +358,7 @@ func expandAzureRMhealthcareapisAccessPolicyEntries(d *pluginsdk.ResourceData) *
 	return &svcAccessPolicyArray
 }
 
-func expandAzureRMhealthcareapisCorsConfiguration(d *pluginsdk.ResourceData) *healthcareapis.ServiceCorsConfigurationInfo {
+func expandCorsConfiguration(d *pluginsdk.ResourceData) *healthcareapis.ServiceCorsConfigurationInfo {
 	corsConfigRaw := d.Get("cors_configuration").([]interface{})
 
 	if len(corsConfigRaw) == 0 {
@@ -396,7 +383,7 @@ func expandAzureRMhealthcareapisCorsConfiguration(d *pluginsdk.ResourceData) *he
 	return cors
 }
 
-func expandAzureRMhealthcareapisAuthentication(d *pluginsdk.ResourceData) *healthcareapis.ServiceAuthenticationConfigurationInfo {
+func expandAuthentication(d *pluginsdk.ResourceData) *healthcareapis.ServiceAuthenticationConfigurationInfo {
 	authConfigRaw := d.Get("authentication_configuration").([]interface{})
 
 	if len(authConfigRaw) == 0 {
@@ -416,7 +403,7 @@ func expandAzureRMhealthcareapisAuthentication(d *pluginsdk.ResourceData) *healt
 	return auth
 }
 
-func expandAzureRMhealthcareapisCosmosDbConfiguration(d *pluginsdk.ResourceData) (*healthcareapis.ServiceCosmosDbConfigurationInfo, error) {
+func expandsCosmosDBConfiguration(d *pluginsdk.ResourceData) (*healthcareapis.ServiceCosmosDbConfigurationInfo, error) {
 	throughput := int32(d.Get("cosmosdb_throughput").(int))
 
 	cosmosdb := &healthcareapis.ServiceCosmosDbConfigurationInfo{
@@ -434,7 +421,7 @@ func expandAzureRMhealthcareapisCosmosDbConfiguration(d *pluginsdk.ResourceData)
 	return cosmosdb, nil
 }
 
-func flattenHealthcareAccessPolicies(policies *[]healthcareapis.ServiceAccessPolicyEntry) []string {
+func flattenAccessPolicies(policies *[]healthcareapis.ServiceAccessPolicyEntry) []string {
 	result := make([]string, 0)
 
 	if policies == nil {
@@ -450,7 +437,7 @@ func flattenHealthcareAccessPolicies(policies *[]healthcareapis.ServiceAccessPol
 	return result
 }
 
-func flattenHealthcareAuthConfig(input *healthcareapis.ServiceAuthenticationConfigurationInfo) []interface{} {
+func flattenAuthentication(input *healthcareapis.ServiceAuthenticationConfigurationInfo) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -476,7 +463,7 @@ func flattenHealthcareAuthConfig(input *healthcareapis.ServiceAuthenticationConf
 	}
 }
 
-func flattenHealthcareCorsConfig(input *healthcareapis.ServiceCorsConfigurationInfo) []interface{} {
+func flattenCorsConfig(input *healthcareapis.ServiceCorsConfigurationInfo) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}

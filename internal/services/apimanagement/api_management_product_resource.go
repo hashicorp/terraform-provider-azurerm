@@ -23,8 +23,10 @@ func resourceApiManagementProduct() *pluginsdk.Resource {
 		Read:   resourceApiManagementProductRead,
 		Update: resourceApiManagementProductCreateUpdate,
 		Delete: resourceApiManagementProductDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ProductID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -81,14 +83,13 @@ func resourceApiManagementProduct() *pluginsdk.Resource {
 
 func resourceApiManagementProductCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for API Management Product creation.")
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("api_management_name").(string)
-	productId := d.Get("product_id").(string)
+	id := parse.NewProductID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_id").(string))
 
 	displayName := d.Get("display_name").(string)
 	description := d.Get("description").(string)
@@ -99,10 +100,10 @@ func resourceApiManagementProductCreateUpdate(d *pluginsdk.ResourceData, meta in
 	published := d.Get("published").(bool)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, productId)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Product %q (API Management Service %q / Resource Group %q): %s", productId, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -134,20 +135,11 @@ func resourceApiManagementProductCreateUpdate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("`subscription_required` must be true and `subscriptions_limit` must be greater than 0 to use `approval_required`")
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, productId, properties, ""); err != nil {
-		return fmt.Errorf("creating/updating Product %q (API Management Service %q / Resource Group %q): %+v", productId, serviceName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.Name, properties, ""); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, productId)
-	if err != nil {
-		return fmt.Errorf("retrieving Product %q (API Management Service %q / Resource Group %q): %+v", productId, serviceName, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Product %q (API Management Service %q / Resource Group %q)", productId, serviceName, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceApiManagementProductRead(d, meta)
 }
@@ -162,24 +154,20 @@ func resourceApiManagementProductRead(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	productId := id.Name
-
-	resp, err := client.Get(ctx, resourceGroup, serviceName, productId)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("Product %q was not found in API Management Service %q / Resource Group %q - removing from state!", productId, serviceName, resourceGroup)
+			log.Printf("%s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Product %q (API Management Service %q / Resource Group %q): %+v", productId, serviceName, resourceGroup, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
-	d.Set("product_id", productId)
-	d.Set("api_management_name", serviceName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("product_id", id.Name)
+	d.Set("api_management_name", id.ServiceName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.ProductContractProperties; props != nil {
 		d.Set("approval_required", props.ApprovalRequired)
@@ -203,16 +191,13 @@ func resourceApiManagementProductDelete(d *pluginsdk.ResourceData, meta interfac
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	productId := id.Name
 
-	log.Printf("[DEBUG] Deleting Product %q (API Management Service %q / Resource Grouo %q)", productId, serviceName, resourceGroup)
+	log.Printf("[DEBUG] Deleting %s", *id)
 	deleteSubscriptions := true
-	resp, err := client.Delete(ctx, resourceGroup, serviceName, productId, "", utils.Bool(deleteSubscriptions))
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, "", utils.Bool(deleteSubscriptions))
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting Product %q (API Management Service %q / Resource Group %q): %+v", productId, serviceName, resourceGroup, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

@@ -47,7 +47,7 @@ func (c ConfigurationStoresClient) preparerForRegenerateKey(ctx context.Context,
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(c.baseUri),
-		autorest.WithPath(fmt.Sprintf("%s/RegenerateKey", id.ID())),
+		autorest.WithPath(fmt.Sprintf("%s/regenerateKey", id.ID())),
 		autorest.WithJSON(input),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))

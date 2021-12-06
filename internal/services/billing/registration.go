@@ -20,6 +20,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_billing_enrollment_account_scope": dataSourceBillingEnrollmentAccountScope(),
 		"azurerm_billing_mca_account_scope":        dataSourceBillingMCAAccountScope(),
+		"azurerm_billing_mpa_account_scope":        dataSourceBillingMPAAccountScope(),
 	}
 }
 

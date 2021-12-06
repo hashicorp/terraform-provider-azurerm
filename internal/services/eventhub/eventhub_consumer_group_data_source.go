@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/consumergroups"
 
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
@@ -63,7 +63,7 @@ func EventHubConsumerGroupDataSourceRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := consumergroups.NewConsumergroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("eventhub_name").(string), d.Get("name").(string))
+	id := consumergroups.NewConsumerGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("eventhub_name").(string), d.Get("name").(string))
 
 	resp, err := client.Get(ctx, id)
 	if err != nil {
@@ -75,10 +75,10 @@ func EventHubConsumerGroupDataSourceRead(d *pluginsdk.ResourceData, meta interfa
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
-	d.Set("eventhub_name", id.EventhubName)
+	d.Set("name", id.ConsumerGroupName)
+	d.Set("eventhub_name", id.EventHubName)
 	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

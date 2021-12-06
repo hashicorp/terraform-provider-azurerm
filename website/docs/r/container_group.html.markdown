@@ -30,7 +30,7 @@ resource "azurerm_container_group" "example" {
 
   container {
     name   = "hello-world"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "1.5"
 
@@ -42,7 +42,7 @@ resource "azurerm_container_group" "example" {
 
   container {
     name   = "sidecar"
-    image  = "microsoft/aci-tutorial-sidecar"
+    image  = "mcr.microsoft.com/azuredocs/aci-tutorial-sidecar"
     cpu    = "0.5"
     memory = "1.5"
   }
@@ -280,9 +280,9 @@ The `dns_config` block supports:
 
 * `nameservers` - (Required) A list of nameservers the containers will search out to resolve requests.
 
-* `search_domains` - (Required) A list of search domains that DNS requests will search along.
+* `search_domains` - (Optional) A list of search domains that DNS requests will search along.
 
-* `options` - (Required) A list of [resolver configuration options](https://man7.org/linux/man-pages/man5/resolv.conf.5.html).
+* `options` - (Optional) A list of [resolver configuration options](https://man7.org/linux/man-pages/man5/resolv.conf.5.html).
 
 ## Attributes Reference
 

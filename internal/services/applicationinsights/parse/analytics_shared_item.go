@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type AnalyticsSharedItemId struct {
@@ -36,13 +36,13 @@ func (id AnalyticsSharedItemId) String() string {
 }
 
 func (id AnalyticsSharedItemId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s/analyticsItems/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Insights/components/%s/analyticsItems/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ComponentName, id.AnalyticsItemName)
 }
 
 // AnalyticsSharedItemID parses a AnalyticsSharedItem ID into an AnalyticsSharedItemId struct
 func AnalyticsSharedItemID(input string) (*AnalyticsSharedItemId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

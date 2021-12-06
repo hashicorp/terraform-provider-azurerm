@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the resource group in which the Monitor Smart Detector Alert Rule should exist. Changing this forces a new resource to be created.
 
-* `detector_type` - (Required) Specifies the Built-In Smart Detector type that this alert rule will use. Currently the only possible value is `FailureAnomaliesDetector`.
+* `detector_type` - (Required) Specifies the Built-In Smart Detector type that this alert rule will use. Currently the only possible values are `FailureAnomaliesDetector`, `RequestPerformanceDegradationDetector`, `DependencyPerformanceDegradationDetector`, `ExceptionVolumeChangedDetector`, `TraceSeverityDetector`, `MemoryLeakDetector`.
 
 * `scope_resource_ids` - (Required) Specifies the scopes of this Smart Detector Alert Rule.
 

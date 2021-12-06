@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
@@ -76,6 +76,11 @@ func resourceVirtualMachineScaleSetExtension() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"automatic_upgrade_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
 			},
 
 			"force_update_tag": {
@@ -161,6 +166,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 			Type:                     utils.String(d.Get("type").(string)),
 			TypeHandlerVersion:       utils.String(d.Get("type_handler_version").(string)),
 			AutoUpgradeMinorVersion:  utils.Bool(d.Get("auto_upgrade_minor_version").(bool)),
+			EnableAutomaticUpgrade:   utils.Bool(d.Get("automatic_upgrade_enabled").(bool)),
 			ProtectedSettings:        protectedSettings,
 			ProvisionAfterExtensions: provisionAfterExtensions,
 			Settings:                 settings,
@@ -201,6 +207,7 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 	props := compute.VirtualMachineScaleSetExtensionProperties{
 		// if this isn't specified it defaults to false
 		AutoUpgradeMinorVersion: utils.Bool(d.Get("auto_upgrade_minor_version").(bool)),
+		EnableAutomaticUpgrade:  utils.Bool(d.Get("automatic_upgrade_enabled").(bool)),
 	}
 
 	if d.HasChange("force_update_tag") {
@@ -278,7 +285,8 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
-	vmss, err := vmssClient.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	vmss, err := vmssClient.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(vmss.Response) {
 			log.Printf("Virtual Machine Scale Set %q was not found in Resource Group %q - removing Extension from state!", id.VirtualMachineScaleSetName, id.ResourceGroup)
@@ -305,6 +313,7 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 
 	if props := resp.VirtualMachineScaleSetExtensionProperties; props != nil {
 		d.Set("auto_upgrade_minor_version", props.AutoUpgradeMinorVersion)
+		d.Set("automatic_upgrade_enabled", props.EnableAutomaticUpgrade)
 		d.Set("force_update_tag", props.ForceUpdateTag)
 		d.Set("provision_after_extensions", utils.FlattenStringSlice(props.ProvisionAfterExtensions))
 		d.Set("publisher", props.Publisher)

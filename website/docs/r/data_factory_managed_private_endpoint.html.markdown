@@ -52,7 +52,9 @@ The following arguments are supported:
 
 * `target_resource_id` - (Required) The ID of the Private Link Enabled Remote Resource which this Data Factory Private Endpoint should be connected to. Changing this forces a new resource to be created.
 
-* `subresource_name` - (Required) Specifies the sub resource name which the Data Factory Private Endpoint is able to connect to. Changing this forces a new resource to be created.
+* `subresource_name` - (Optional) Specifies the sub resource name which the Data Factory Private Endpoint is able to connect to. Changing this forces a new resource to be created.
+
+* `fqdns` - (Optional) Fully qualified domain names. Changing this forces a new resource to be created.
 
 -> **NOTE:** Possible values are listed in [documentation](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview#dns-configuration).
 

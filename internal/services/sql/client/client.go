@@ -3,6 +3,7 @@ package client
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
 	msi "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2018-06-01-preview/sql"
+	sqlv5 "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -13,12 +14,13 @@ type Client struct {
 	DatabaseExtendedBlobAuditingPoliciesClient *sql.ExtendedDatabaseBlobAuditingPoliciesClient
 	FirewallRulesClient                        *sql.FirewallRulesClient
 	FailoverGroupsClient                       *sql.FailoverGroupsClient
-	ManagedInstancesClient                     *msi.ManagedInstancesClient
+	ManagedInstancesClient                     *sqlv5.ManagedInstancesClient
 	ManagedDatabasesClient                     *msi.ManagedDatabasesClient
 	ServersClient                              *sql.ServersClient
 	ServerExtendedBlobAuditingPoliciesClient   *sql.ExtendedServerBlobAuditingPoliciesClient
 	ServerConnectionPoliciesClient             *sql.ServerConnectionPoliciesClient
-	ServerAzureADAdministratorsClient          *sql.ServerAzureADAdministratorsClient
+	ServerAzureADAdministratorsClient          *sqlv5.ServerAzureADAdministratorsClient
+	ServerAzureADOnlyAuthenticationsClient     *sqlv5.ServerAzureADOnlyAuthenticationsClient
 	ServerSecurityAlertPoliciesClient          *sql.ServerSecurityAlertPoliciesClient
 	VirtualNetworkRulesClient                  *sql.VirtualNetworkRulesClient
 }
@@ -43,7 +45,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	firewallRulesClient := sql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&firewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	managedInstancesClient := msi.NewManagedInstancesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	managedInstancesClient := sqlv5.NewManagedInstancesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&managedInstancesClient.Client, o.ResourceManagerAuthorizer)
 
 	managedDatabasesClient := msi.NewManagedDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
@@ -55,8 +57,11 @@ func NewClient(o *common.ClientOptions) *Client {
 	serverConnectionPoliciesClient := sql.NewServerConnectionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverConnectionPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
-	serverAzureADAdministratorsClient := sql.NewServerAzureADAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	serverAzureADAdministratorsClient := sqlv5.NewServerAzureADAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverAzureADAdministratorsClient.Client, o.ResourceManagerAuthorizer)
+
+	serverAzureADOnlyAuthenticationsClient := sqlv5.NewServerAzureADOnlyAuthenticationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&serverAzureADOnlyAuthenticationsClient.Client, o.ResourceManagerAuthorizer)
 
 	virtualNetworkRulesClient := sql.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&virtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
@@ -78,6 +83,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ManagedDatabasesClient:                     &managedDatabasesClient,
 		ServersClient:                              &serversClient,
 		ServerAzureADAdministratorsClient:          &serverAzureADAdministratorsClient,
+		ServerAzureADOnlyAuthenticationsClient:     &serverAzureADOnlyAuthenticationsClient,
 		ServerConnectionPoliciesClient:             &serverConnectionPoliciesClient,
 		ServerExtendedBlobAuditingPoliciesClient:   &serverExtendedBlobAuditingPoliciesClient,
 		ServerSecurityAlertPoliciesClient:          &serverSecurityAlertPoliciesClient,

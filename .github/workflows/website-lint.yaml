@@ -10,13 +10,11 @@ on:
 jobs:
   website-lint:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
-          go-version: '1.16.7'
+          go-version: '1.17.3'
       - run: bash scripts/gogetcookie.sh
       - run: make tools
       - run: make website-lint

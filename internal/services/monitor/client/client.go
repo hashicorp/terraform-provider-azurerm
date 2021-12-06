@@ -27,6 +27,8 @@ type Client struct {
 	DiagnosticSettingsCategoryClient *classic.DiagnosticSettingsCategoryClient
 	LogProfilesClient                *classic.LogProfilesClient
 	MetricAlertsClient               *classic.MetricAlertsClient
+	PrivateLinkScopesClient          *classic.PrivateLinkScopesClient
+	PrivateLinkScopedResourcesClient *classic.PrivateLinkScopedResourcesClient
 	ScheduledQueryRulesClient        *classic.ScheduledQueryRulesClient
 }
 
@@ -64,6 +66,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	MetricAlertsClient := classic.NewMetricAlertsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&MetricAlertsClient.Client, o.ResourceManagerAuthorizer)
 
+	PrivateLinkScopesClient := classic.NewPrivateLinkScopesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&PrivateLinkScopesClient.Client, o.ResourceManagerAuthorizer)
+
+	PrivateLinkScopedResourcesClient := classic.NewPrivateLinkScopedResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&PrivateLinkScopedResourcesClient.Client, o.ResourceManagerAuthorizer)
+
 	ScheduledQueryRulesClient := classic.NewScheduledQueryRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ScheduledQueryRulesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -79,6 +87,8 @@ func NewClient(o *common.ClientOptions) *Client {
 		DiagnosticSettingsCategoryClient: &DiagnosticSettingsCategoryClient,
 		LogProfilesClient:                &LogProfilesClient,
 		MetricAlertsClient:               &MetricAlertsClient,
+		PrivateLinkScopesClient:          &PrivateLinkScopesClient,
+		PrivateLinkScopedResourcesClient: &PrivateLinkScopedResourcesClient,
 		ScheduledQueryRulesClient:        &ScheduledQueryRulesClient,
 	}
 }

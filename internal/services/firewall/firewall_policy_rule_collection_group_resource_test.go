@@ -303,6 +303,15 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       translated_address  = "192.168.0.1"
       translated_port     = "8080"
     }
+    rule {
+      name                = "nat_rule_collection1_rule3"
+      protocols           = ["TCP", "UDP"]
+      source_addresses    = ["10.0.0.1", "10.0.0.2"]
+      destination_address = "192.168.1.1"
+      destination_ports   = ["80"]
+      translated_fqdn     = "time.microsoft.com"
+      translated_port     = "8080"
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

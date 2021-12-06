@@ -119,7 +119,7 @@ The following arguments are supported:
 
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
 
-* `identity` - (Optional) A `identity` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `blob_properties` - (Optional) A `blob_properties` block as defined below.
 
@@ -138,6 +138,11 @@ The following arguments are supported:
 * `azure_files_authentication` - (Optional) A `azure_files_authentication` block as defined below.
 
 * `routing` - (Optional) A `routing` block as defined below.
+
+* `queue_encryption_key_type` - (Optional) The encryption type of the queue service. Possible values are `Service` and `Account`. Changing this forces a new resource to be created. Default value is `Service`. 
+* `table_encryption_key_type` - (Optional) The encryption type of the table service. Possible values are `Service` and `Account`. Changing this forces a new resource to be created. Default value is `Service`. 
+
+~> **NOTE**: For  the `queue_encryption_key_type` and `table_encryption_key_type`, the `Account` key type is only allowed when the `account_kind` is set to `StorageV2`
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

@@ -59,6 +59,7 @@ import (
 	loadbalancers "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/client"
 	loganalytics "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/client"
 	logic "github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/client"
+	logz "github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/client"
 	machinelearning "github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/client"
 	maintenance "github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/client"
 	managedapplication "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/client"
@@ -90,6 +91,7 @@ import (
 	sentinel "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
 	serviceBus "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/client"
 	serviceFabric "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric/client"
+	serviceFabricManaged "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged/client"
 	serviceFabricMesh "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmesh/client"
 	signalr "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/client"
 	appPlatform "github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/client"
@@ -164,6 +166,7 @@ type Client struct {
 	LoadBalancers         *loadbalancers.Client
 	LogAnalytics          *loganalytics.Client
 	Logic                 *logic.Client
+	Logz                  *logz.Client
 	MachineLearning       *machinelearning.Client
 	Maintenance           *maintenance.Client
 	ManagedApplication    *managedapplication.Client
@@ -196,6 +199,7 @@ type Client struct {
 	ServiceBus            *serviceBus.Client
 	ServiceFabric         *serviceFabric.Client
 	ServiceFabricMesh     *serviceFabricMesh.Client
+	ServiceFabricManaged  *serviceFabricManaged.Client
 	SignalR               *signalr.Client
 	Storage               *storage.Client
 	StreamAnalytics       *streamAnalytics.Client
@@ -271,6 +275,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.LogAnalytics = loganalytics.NewClient(o)
 	client.LoadBalancers = loadbalancers.NewClient(o)
 	client.Logic = logic.NewClient(o)
+	client.Logz = logz.NewClient(o)
 	client.MachineLearning = machinelearning.NewClient(o)
 	client.Maintenance = maintenance.NewClient(o)
 	client.ManagedApplication = managedapplication.NewClient(o)
@@ -302,6 +307,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Sentinel = sentinel.NewClient(o)
 	client.ServiceBus = serviceBus.NewClient(o)
 	client.ServiceFabric = serviceFabric.NewClient(o)
+	client.ServiceFabricManaged = serviceFabricManaged.NewClient(o)
 	client.ServiceFabricMesh = serviceFabricMesh.NewClient(o)
 	client.SignalR = signalr.NewClient(o)
 	client.Sql = sql.NewClient(o)

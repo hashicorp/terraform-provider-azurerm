@@ -12,7 +12,7 @@ var _ resourceid.Formatter = SmartDetectionRuleId{}
 
 func TestSmartDetectionRuleIDFormatter(t *testing.T) {
 	actual := NewSmartDetectionRuleID("12345678-1234-9876-4563-123456789012", "group1", "component1", "rule1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/components/component1/SmartDetectionRule/rule1"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/smartDetectionRule/rule1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -57,31 +57,31 @@ func TestSmartDetectionRuleID(t *testing.T) {
 
 		{
 			// missing ComponentName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/",
 			Error: true,
 		},
 
 		{
 			// missing value for ComponentName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/components/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/",
 			Error: true,
 		},
 
 		{
 			// missing SmartDetectionRuleName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/components/component1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/",
 			Error: true,
 		},
 
 		{
 			// missing value for SmartDetectionRuleName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/components/component1/SmartDetectionRule/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/smartDetectionRule/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/components/component1/SmartDetectionRule/rule1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/smartDetectionRule/rule1",
 			Expected: &SmartDetectionRuleId{
 				SubscriptionId:         "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:          "group1",

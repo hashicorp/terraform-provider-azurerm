@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/sdk/datalakeanalytics/2016-11-01/firewallrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -101,17 +101,17 @@ func TestAccDataLakeAnalyticsFirewallRule_azureServices(t *testing.T) {
 }
 
 func (t DataLakeAnalyticsFirewallRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AnalyticsFirewallRuleID(state.ID)
+	id, err := firewallrules.ParseFirewallRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Datalake.AnalyticsFirewallRulesClient.Get(ctx, id.ResourceGroup, id.AccountName, id.FirewallRuleName)
+	resp, err := clients.Datalake.AnalyticsFirewallRulesClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Date Lake Analytics Firewall Rule %s: %v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %v", id, err)
 	}
 
-	return utils.Bool(resp.FirewallRuleProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (DataLakeAnalyticsFirewallRuleResource) basic(data acceptance.TestData, startIP, endIP string) string {

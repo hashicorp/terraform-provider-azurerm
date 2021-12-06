@@ -115,11 +115,11 @@ A `cluster_setting` block supports the following:
 
 * `dns_suffix` - the DNS suffix for this App Service Environment V3. 
 
-* `external_inbound_ip_addresses` - The external outbound IP addresses of the App Service Environment V3. 
+* `external_inbound_ip_addresses` - The external inbound IP addresses of the App Service Environment V3. 
 
 * `inbound_network_dependencies` - An Inbound Network Dependencies block as defined below.
 
-* `internal_inbound_ip_addresses` - The internal outbound IP addresses of the App Service Environment V3.
+* `internal_inbound_ip_addresses` - The internal inbound IP addresses of the App Service Environment V3.
 
 * `ip_ssl_address_count` - The number of IP SSL addresses reserved for the App Service Environment V3.
 
@@ -155,5 +155,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 A 3rd Generation (v3) App Service Environment can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_service_environment.myAppServiceEnv /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myResourceGroup/providers/Microsoft.Web/hostingEnvironments/myAppServiceEnv
+terraform import azurerm_app_service_environment_v3.myAppServiceEnv /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myResourceGroup/providers/Microsoft.Web/hostingEnvironments/myAppServiceEnv
 ```

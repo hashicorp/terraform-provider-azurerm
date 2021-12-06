@@ -67,5 +67,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Virtual Network DNS Servers can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_virtual_network.exampleNetwork /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1/dnsServers/default
+terraform import azurerm_virtual_network_dns_servers.exampleNetwork /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1/dnsServers/default
 ```

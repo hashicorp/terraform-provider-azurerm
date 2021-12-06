@@ -52,7 +52,6 @@ data "azurerm_mssql_database" "test" {
   name      = azurerm_mssql_database.test.name
   server_id = azurerm_sql_server.test.id
 }
-
 `, MsSqlDatabaseResource{}.basic(data))
 }
 
@@ -64,6 +63,5 @@ data "azurerm_mssql_database" "test" {
   name      = azurerm_mssql_database.test.name
   server_id = azurerm_sql_server.test.id
 }
-
 `, MsSqlDatabaseResource{}.complete(data))
 }

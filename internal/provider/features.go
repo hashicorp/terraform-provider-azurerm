@@ -9,7 +9,7 @@ import (
 func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 	// NOTE: if there's only one nested field these want to be Required (since there's no point
 	//       specifying the block otherwise) - however for 2+ they should be optional
-	features := map[string]*pluginsdk.Schema{
+	featuresMap := map[string]*pluginsdk.Schema{
 		// lintignore:XS003
 		"api_management": {
 			Type:     pluginsdk.TypeList,
@@ -57,6 +57,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
+
 		"log_analytics_workspace": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -159,6 +160,57 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 		},
 	}
 
+	if features.ThreePointOh() {
+		f := featuresMap["key_vault"].Elem.(*pluginsdk.Resource)
+		// TODO: Add this to 3.0 Upgrade guide
+		// `recover_soft_deleted_keys` - (Default: true) when enabled soft-deleted `azurerm_key_vault_key` resources will be restored, instead of creating new ones.
+		f.Schema["recover_soft_deleted_keys"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		}
+
+		// TODO: Add this to 3.0 Upgrade guide
+		// `purge_soft_deleted_keys_on_destroy` - (Default: true) when enabled soft-deleted `azurerm_key_vault_key` resources will be permanently deleted (e.g purged), when destroyed.
+		f.Schema["purge_soft_deleted_keys_on_destroy"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		}
+
+		// TODO: Add this to 3.0 Upgrade guide
+		// `recover_soft_deleted_certificates` - (Default: true) when enabled soft-deleted `azurerm_key_vault_certificate` resources will be restored, instead of creating new ones.
+		f.Schema["recover_soft_deleted_certificates"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		}
+
+		// TODO: Add this to 3.0 Upgrade guide
+		// `purge_soft_deleted_certificates_on_destroy` - (Default: true) when enabled soft-deleted `azurerm_key_vault_certificate` resources will be permanently deleted (e.g purged), when destroyed.
+		f.Schema["purge_soft_deleted_certificates_on_destroy"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		}
+
+		// TODO: Add this to 3.0 Upgrade guide
+		// `recover_soft_deleted_secrets` - (Default: true) when enabled soft-deleted `azurerm_key_vault_secret` resources will be restored, instead of creating new ones.
+		f.Schema["recover_soft_deleted_secrets"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		}
+
+		// TODO: Add this to 3.0 Upgrade guide
+		// `purge_soft_deleted_secrets_on_destroy` - (Default: true) when enabled soft-deleted `azurerm_key_vault_secret` resources will be permanently deleted (e.g purged), when destroyed.
+		f.Schema["purge_soft_deleted_secrets_on_destroy"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		}
+	}
+
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
 	// rather than doing it as a big-bang and breaking all open PR's
 	if supportLegacyTestSuite {
@@ -166,7 +218,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
-				Schema: features,
+				Schema: featuresMap,
 			},
 		}
 	}
@@ -177,17 +229,17 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 		MaxItems: 1,
 		MinItems: 1,
 		Elem: &pluginsdk.Resource{
-			Schema: features,
+			Schema: featuresMap,
 		},
 	}
 }
 
 func expandFeatures(input []interface{}) features.UserFeatures {
 	// these are the defaults if omitted from the config
-	features := features.Default()
+	featuresMap := features.Default()
 
 	if len(input) == 0 || input[0] == nil {
-		return features
+		return featuresMap
 	}
 
 	val := input[0].(map[string]interface{})
@@ -197,7 +249,7 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		if len(items) > 0 && items[0] != nil {
 			apimRaw := items[0].(map[string]interface{})
 			if v, ok := apimRaw["purge_soft_delete_on_destroy"]; ok {
-				features.ApiManagement.PurgeSoftDeleteOnDestroy = v.(bool)
+				featuresMap.ApiManagement.PurgeSoftDeleteOnDestroy = v.(bool)
 			}
 		}
 	}
@@ -207,7 +259,7 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		if len(items) > 0 && items[0] != nil {
 			cognitiveRaw := items[0].(map[string]interface{})
 			if v, ok := cognitiveRaw["purge_soft_delete_on_destroy"]; ok {
-				features.CognitiveAccount.PurgeSoftDeleteOnDestroy = v.(bool)
+				featuresMap.CognitiveAccount.PurgeSoftDeleteOnDestroy = v.(bool)
 			}
 		}
 	}
@@ -217,10 +269,41 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		if len(items) > 0 && items[0] != nil {
 			keyVaultRaw := items[0].(map[string]interface{})
 			if v, ok := keyVaultRaw["purge_soft_delete_on_destroy"]; ok {
-				features.KeyVault.PurgeSoftDeleteOnDestroy = v.(bool)
+				featuresMap.KeyVault.PurgeSoftDeleteOnDestroy = v.(bool)
 			}
 			if v, ok := keyVaultRaw["recover_soft_deleted_key_vaults"]; ok {
-				features.KeyVault.RecoverSoftDeletedKeyVaults = v.(bool)
+				featuresMap.KeyVault.RecoverSoftDeletedKeyVaults = v.(bool)
+			}
+			// Inherit Key Vault recovery setting by default. If we're on 3.0 then the code below will overwrite
+			// these values as needed.
+			// TODO: Remove in 3.0
+			featuresMap.KeyVault.RecoverSoftDeletedCerts = featuresMap.KeyVault.RecoverSoftDeletedKeyVaults
+			featuresMap.KeyVault.RecoverSoftDeletedSecrets = featuresMap.KeyVault.RecoverSoftDeletedKeyVaults
+			featuresMap.KeyVault.RecoverSoftDeletedKeys = featuresMap.KeyVault.RecoverSoftDeletedKeyVaults
+			featuresMap.KeyVault.PurgeSoftDeletedKeysOnDestroy = featuresMap.KeyVault.PurgeSoftDeleteOnDestroy
+			featuresMap.KeyVault.PurgeSoftDeletedCertsOnDestroy = featuresMap.KeyVault.PurgeSoftDeleteOnDestroy
+			featuresMap.KeyVault.PurgeSoftDeletedSecretsOnDestroy = featuresMap.KeyVault.PurgeSoftDeleteOnDestroy
+
+			if features.ThreePointOh() {
+				if v, ok := keyVaultRaw["recover_soft_deleted_certificates"]; ok {
+					featuresMap.KeyVault.RecoverSoftDeletedCerts = v.(bool)
+				}
+				if v, ok := keyVaultRaw["purge_soft_deleted_certificates_on_destroy"]; ok {
+					featuresMap.KeyVault.PurgeSoftDeletedCertsOnDestroy = v.(bool)
+				}
+				if v, ok := keyVaultRaw["recover_soft_deleted_secrets"]; ok {
+					featuresMap.KeyVault.RecoverSoftDeletedSecrets = v.(bool)
+				}
+				if v, ok := keyVaultRaw["purge_soft_deleted_secrets_on_destroy"]; ok {
+					featuresMap.KeyVault.PurgeSoftDeletedSecretsOnDestroy = v.(bool)
+				}
+				if v, ok := keyVaultRaw["recover_soft_deleted_keys"]; ok {
+					featuresMap.KeyVault.RecoverSoftDeletedKeys = v.(bool)
+				}
+				if v, ok := keyVaultRaw["purge_soft_deleted_keys_on_destroy"]; ok {
+					featuresMap.KeyVault.PurgeSoftDeletedKeysOnDestroy = v.(bool)
+				}
+
 			}
 		}
 	}
@@ -230,7 +313,7 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		if len(items) > 0 {
 			logAnalyticsWorkspaceRaw := items[0].(map[string]interface{})
 			if v, ok := logAnalyticsWorkspaceRaw["permanently_delete_on_destroy"]; ok {
-				features.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = v.(bool)
+				featuresMap.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = v.(bool)
 			}
 		}
 	}
@@ -240,7 +323,7 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		if len(items) > 0 {
 			networkRaw := items[0].(map[string]interface{})
 			if v, ok := networkRaw["relaxed_locking"]; ok {
-				features.Network.RelaxedLocking = v.(bool)
+				featuresMap.Network.RelaxedLocking = v.(bool)
 			}
 		}
 	}
@@ -250,7 +333,7 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		if len(items) > 0 {
 			templateRaw := items[0].(map[string]interface{})
 			if v, ok := templateRaw["delete_nested_items_during_deletion"]; ok {
-				features.TemplateDeployment.DeleteNestedItemsDuringDeletion = v.(bool)
+				featuresMap.TemplateDeployment.DeleteNestedItemsDuringDeletion = v.(bool)
 			}
 		}
 	}
@@ -260,13 +343,13 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		if len(items) > 0 && items[0] != nil {
 			virtualMachinesRaw := items[0].(map[string]interface{})
 			if v, ok := virtualMachinesRaw["delete_os_disk_on_deletion"]; ok {
-				features.VirtualMachine.DeleteOSDiskOnDeletion = v.(bool)
+				featuresMap.VirtualMachine.DeleteOSDiskOnDeletion = v.(bool)
 			}
 			if v, ok := virtualMachinesRaw["graceful_shutdown"]; ok {
-				features.VirtualMachine.GracefulShutdown = v.(bool)
+				featuresMap.VirtualMachine.GracefulShutdown = v.(bool)
 			}
 			if v, ok := virtualMachinesRaw["skip_shutdown_and_force_delete"]; ok {
-				features.VirtualMachine.SkipShutdownAndForceDelete = v.(bool)
+				featuresMap.VirtualMachine.SkipShutdownAndForceDelete = v.(bool)
 			}
 		}
 	}
@@ -276,13 +359,13 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		if len(items) > 0 {
 			scaleSetRaw := items[0].(map[string]interface{})
 			if v, ok := scaleSetRaw["roll_instances_when_required"]; ok {
-				features.VirtualMachineScaleSet.RollInstancesWhenRequired = v.(bool)
+				featuresMap.VirtualMachineScaleSet.RollInstancesWhenRequired = v.(bool)
 			}
 			if v, ok := scaleSetRaw["force_delete"]; ok {
-				features.VirtualMachineScaleSet.ForceDelete = v.(bool)
+				featuresMap.VirtualMachineScaleSet.ForceDelete = v.(bool)
 			}
 			if v, ok := scaleSetRaw["scale_to_zero_before_deletion"]; ok {
-				features.VirtualMachineScaleSet.ScaleToZeroOnDelete = v.(bool)
+				featuresMap.VirtualMachineScaleSet.ScaleToZeroOnDelete = v.(bool)
 			}
 		}
 	}
@@ -292,10 +375,10 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		if len(items) > 0 {
 			resourceGroupRaw := items[0].(map[string]interface{})
 			if v, ok := resourceGroupRaw["prevent_deletion_if_contains_resources"]; ok {
-				features.ResourceGroup.PreventDeletionIfContainsResources = v.(bool)
+				featuresMap.ResourceGroup.PreventDeletionIfContainsResources = v.(bool)
 			}
 		}
 	}
 
-	return features
+	return featuresMap
 }

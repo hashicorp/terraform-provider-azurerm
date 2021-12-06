@@ -280,7 +280,8 @@ func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(con
 		}
 
 		log.Printf("[DEBUG] Deallocating VM..")
-		future, err := client.Compute.VMClient.Deallocate(ctx, id.ResourceGroup, id.Name)
+		// Upgrading to the 2021-07-01 exposed a new hibernate parameter in the GET method
+		future, err := client.Compute.VMClient.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
 		if err != nil {
 			return fmt.Errorf("Bad: deallocating vm: %+v", err)
 		}
@@ -322,7 +323,8 @@ func (ImageResource) virtualMachineScaleSetExists(ctx context.Context, client *c
 		return err
 	}
 
-	resp, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	resp, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s does not exist", *id)

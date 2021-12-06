@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -24,7 +25,7 @@ func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
 		Delete: resourceApplicationInsightsAnalyticsItemDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			if strings.Contains(id, string(insights.ItemScopePathMyanalyticsItems)) {
+			if strings.Contains(id, "myAnalyticsItems") {
 				_, err := parse.AnalyticsUserItemID(id)
 				return err
 			} else {
@@ -32,6 +33,11 @@ func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
 				_, err := parse.AnalyticsSharedItemID(id)
 				return err
 			}
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.AnalyticsItemUpgradeV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -250,14 +256,14 @@ func resourceApplicationInsightsAnalyticsItemDelete(d *pluginsdk.ResourceData, m
 func ResourcesArmApplicationInsightsAnalyticsItemParseID(id string) (string, string, string, insights.ItemScopePath, string, error) {
 	// The generated ID format differs depending on scope
 	// <appinsightsID>/analyticsItems/<itemID>     [for shared scope items]
-	// <appinsightsID>/myanalyticsItems/<itemID>   [for user scope items]
+	// <appinsightsID>/myAnalyticsItems/<itemID>   [for user scope items]
 	switch {
-	case strings.Contains(id, string(insights.ItemScopePathMyanalyticsItems)):
+	case strings.Contains(id, "myAnalyticsItems"):
 		id, err := parse.AnalyticsUserItemID(id)
 		if err != nil {
 			return "", "", "", "", "", err
 		}
-		return id.String(), id.ResourceGroup, id.ComponentName, insights.ItemScopePathMyanalyticsItems, id.MyanalyticsItemName, nil
+		return id.String(), id.ResourceGroup, id.ComponentName, insights.ItemScopePathMyanalyticsItems, id.MyAnalyticsItemName, nil
 	case strings.Contains(id, string(insights.ItemScopePathAnalyticsItems)):
 		id, err := parse.AnalyticsSharedItemID(id)
 		if err != nil {

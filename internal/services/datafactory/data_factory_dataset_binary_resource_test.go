@@ -298,7 +298,6 @@ resource "azurerm_data_factory_dataset_binary" "test" {
     filename = "**"
   }
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
@@ -362,6 +361,5 @@ resource "azurerm_data_factory_dataset_binary" "test" {
     foo = "test1"
   }
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	devTestValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,8 +26,15 @@ func resourceDevTestLabSchedules() *pluginsdk.Resource {
 		Read:   resourceDevTestLabSchedulesRead,
 		Update: resourceDevTestLabSchedulesCreateUpdate,
 		Delete: resourceDevTestLabSchedulesDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.DevTestLabScheduleID(id)
+			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.DevTestLabScheduleUpgradeV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -179,18 +188,17 @@ func resourceDevTestLabSchedules() *pluginsdk.Resource {
 
 func resourceDevTestLabSchedulesCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.LabSchedulesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	devTestLabName := d.Get("lab_name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	id := parse.NewDevTestLabScheduleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("lab_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, devTestLabName, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.LabName, id.ScheduleName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Schedule %q (Dev Test Lab %q / Resource Group %q): %s", name, devTestLabName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -246,20 +254,11 @@ func resourceDevTestLabSchedulesCreateUpdate(d *pluginsdk.ResourceData, meta int
 		schedule.NotificationSettings = notificationSettings
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resGroup, devTestLabName, name, schedule); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LabName, id.ScheduleName, schedule); err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, devTestLabName, name, "")
-	if err != nil {
-		return err
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read  Dev Test Lab Schedule %s (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceDevTestLabSchedulesRead(d, meta)
 }
@@ -269,29 +268,26 @@ func resourceDevTestLabSchedulesRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DevTestLabScheduleID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	devTestLabName := id.Path["labs"]
-	name := id.Path["schedules"]
 
-	resp, err := client.Get(ctx, resGroup, devTestLabName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.LabName, id.ScheduleName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Dev Test Lab Schedule %s: %s", name, err)
+		return fmt.Errorf("making Read request %s: %s", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.ScheduleName)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	d.Set("lab_name", devTestLabName)
-	d.Set("resource_group_name", resGroup)
+	d.Set("lab_name", id.LabName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("task_type", resp.TaskType)
 
 	if props := resp.ScheduleProperties; props != nil {
@@ -324,15 +320,12 @@ func resourceDevTestLabSchedulesDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DevTestLabScheduleID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["schedules"]
-	devTestLabName := id.Path["labs"]
 
-	future, err := client.Delete(ctx, resGroup, devTestLabName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.LabName, id.ScheduleName)
 	if err != nil {
 		return err
 	}

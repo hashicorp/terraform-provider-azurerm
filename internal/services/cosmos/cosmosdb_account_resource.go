@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-06-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -47,26 +47,34 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 		Read:   resourceCosmosDbAccountRead,
 		Update: resourceCosmosDbAccountUpdate,
 		Delete: resourceCosmosDbAccountDelete,
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-			caps := diff.Get("capabilities")
-			mongo34found := false
-			enableMongo := false
-			for _, cap := range caps.(*pluginsdk.Set).List() {
-				m := cap.(map[string]interface{})
-				if v, ok := m["name"].(string); ok {
-					if v == "MongoDBv3.4" {
-						mongo34found = true
-					} else if v == "EnableMongo" {
-						enableMongo = true
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("backup.0.type", func(ctx context.Context, old, new, _ interface{}) bool {
+				// backup type can only change from Periodic to Continuous
+				return old.(string) == string(documentdb.TypeContinuous) && new.(string) == string(documentdb.TypePeriodic)
+			}),
+
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				caps := diff.Get("capabilities")
+				mongo34found := false
+				enableMongo := false
+				for _, cap := range caps.(*pluginsdk.Set).List() {
+					m := cap.(map[string]interface{})
+					if v, ok := m["name"].(string); ok {
+						if v == "MongoDBv3.4" {
+							mongo34found = true
+						} else if v == "EnableMongo" {
+							enableMongo = true
+						}
 					}
 				}
-			}
 
-			if mongo34found && !enableMongo {
-				return fmt.Errorf("capability EnableMongo must be enabled if MongoDBv3.4 is also enabled")
-			}
-			return nil
-		}),
+				if mongo34found && !enableMongo {
+					return fmt.Errorf("capability EnableMongo must be enabled if MongoDBv3.4 is also enabled")
+				}
+				return nil
+			}),
+		),
+
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
@@ -100,6 +108,53 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.DatabaseAccountOfferTypeStandard),
 				}, true),
+			},
+
+			"analytical_storage": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"schema_type": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(documentdb.AnalyticalStorageSchemaTypeWellDefined),
+								string(documentdb.AnalyticalStorageSchemaTypeFullFidelity),
+							}, false),
+						},
+					},
+				},
+			},
+
+			"capacity": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"total_throughput_limit": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntAtLeast(-1),
+						},
+					},
+				},
+			},
+
+			"default_identity_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  "FirstPartyIdentity",
+				ValidateFunc: validation.Any(
+					validation.StringMatch(regexp.MustCompile(`^UserAssignedIdentity(.)+$`), "It may start with `UserAssignedIdentity`"),
+					validation.StringInSlice([]string{
+						"FirstPartyIdentity",
+						"SystemAssignedIdentity",
+					}, false),
+				),
 			},
 
 			"kind": {
@@ -237,6 +292,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"capabilities": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -343,7 +399,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						"type": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(documentdb.TypeContinuous),
 								string(documentdb.TypePeriodic),
@@ -362,6 +417,17 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validation.IntBetween(8, 720),
+						},
+
+						"storage_redundancy": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(documentdb.BackupStorageRedundancyGeo),
+								string(documentdb.BackupStorageRedundancyLocal),
+								string(documentdb.BackupStorageRedundancyZone),
+							}, false),
 						},
 					},
 				},
@@ -568,8 +634,17 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			NetworkACLBypass:                   networkByPass,
 			NetworkACLBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
 			DisableLocalAuth:                   utils.Bool(disableLocalAuthentication),
+			DefaultIdentity:                    utils.String(d.Get("default_identity_type").(string)),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("analytical_storage"); ok {
+		account.DatabaseAccountCreateUpdateProperties.AnalyticalStorageConfiguration = expandCosmosDBAccountAnalyticalStorageConfiguration(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("capacity"); ok {
+		account.DatabaseAccountCreateUpdateProperties.Capacity = expandCosmosDBAccountCapacity(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("mongo_server_version"); ok {
@@ -579,7 +654,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if v, ok := d.GetOk("backup"); ok {
-		policy, err := expandCosmosdbAccountBackup(v.([]interface{}))
+		policy, err := expandCosmosdbAccountBackup(v.([]interface{}), false)
 		if err != nil {
 			return fmt.Errorf("expanding `backup`: %+v", err)
 		}
@@ -702,8 +777,17 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			NetworkACLBypass:                   networkByPass,
 			NetworkACLBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
 			DisableLocalAuth:                   utils.Bool(disableLocalAuthentication),
+			DefaultIdentity:                    utils.String(d.Get("default_identity_type").(string)),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("analytical_storage"); ok {
+		account.DatabaseAccountCreateUpdateProperties.AnalyticalStorageConfiguration = expandCosmosDBAccountAnalyticalStorageConfiguration(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("capacity"); ok {
+		account.DatabaseAccountCreateUpdateProperties.Capacity = expandCosmosDBAccountCapacity(v.([]interface{}))
 	}
 
 	if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
@@ -721,7 +805,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if v, ok := d.GetOk("backup"); ok {
-		policy, err := expandCosmosdbAccountBackup(v.([]interface{}))
+		policy, err := expandCosmosdbAccountBackup(v.([]interface{}), d.HasChange("backup.0.type"))
 		if err != nil {
 			return fmt.Errorf("expanding `backup`: %+v", err)
 		}
@@ -824,6 +908,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("enable_free_tier", props.EnableFreeTier)
 		d.Set("analytical_storage_enabled", props.EnableAnalyticalStorage)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == documentdb.PublicNetworkAccessEnabled)
+		d.Set("default_identity_type", props.DefaultIdentity)
 
 		if v := resp.IsVirtualNetworkFilterEnabled; v != nil {
 			d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)
@@ -839,6 +924,14 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 		if v := resp.EnableMultipleWriteLocations; v != nil {
 			d.Set("enable_multiple_write_locations", props.EnableMultipleWriteLocations)
+		}
+
+		if err := d.Set("analytical_storage", flattenCosmosDBAccountAnalyticalStorageConfiguration(props.AnalyticalStorageConfiguration)); err != nil {
+			return fmt.Errorf("setting `analytical_storage`: %+v", err)
+		}
+
+		if err := d.Set("capacity", flattenCosmosDBAccountCapacity(props.Capacity)); err != nil {
+			return fmt.Errorf("setting `capacity`: %+v", err)
 		}
 
 		if err = d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(props.ConsistencyPolicy)); err != nil {
@@ -1295,7 +1388,7 @@ func resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash(v interface{}) int {
 	return pluginsdk.HashString(buf.String())
 }
 
-func expandCosmosdbAccountBackup(input []interface{}) (documentdb.BasicBackupPolicy, error) {
+func expandCosmosdbAccountBackup(input []interface{}, backupHasChange bool) (documentdb.BasicBackupPolicy, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
@@ -1303,11 +1396,14 @@ func expandCosmosdbAccountBackup(input []interface{}) (documentdb.BasicBackupPol
 
 	switch attr["type"].(string) {
 	case string(documentdb.TypeContinuous):
-		if v := attr["interval_in_minutes"].(int); v != 0 {
-			return nil, fmt.Errorf("`interval_in_minutes` can not be set when `type` in`backup` is `Continuous` ")
+		if v := attr["interval_in_minutes"].(int); v != 0 && !backupHasChange {
+			return nil, fmt.Errorf("`interval_in_minutes` can not be set when `type` in `backup` is `Continuous`")
 		}
-		if v := attr["retention_in_hours"].(int); v != 0 {
-			return nil, fmt.Errorf("`retention_in_hours` can not be set when `type` in`backup` is `Continuous` ")
+		if v := attr["retention_in_hours"].(int); v != 0 && !backupHasChange {
+			return nil, fmt.Errorf("`retention_in_hours` can not be set when `type` in `backup` is `Continuous`")
+		}
+		if v := attr["storage_redundancy"].(string); v != "" && !backupHasChange {
+			return nil, fmt.Errorf("`storage_redundancy` can not be set when `type` in `backup` is `Continuous`")
 		}
 		return documentdb.ContinuousModeBackupPolicy{
 			Type: documentdb.TypeContinuous,
@@ -1319,6 +1415,7 @@ func expandCosmosdbAccountBackup(input []interface{}) (documentdb.BasicBackupPol
 			PeriodicModeProperties: &documentdb.PeriodicModeProperties{
 				BackupIntervalInMinutes:        utils.Int32(int32(attr["interval_in_minutes"].(int))),
 				BackupRetentionIntervalInHours: utils.Int32(int32(attr["retention_in_hours"].(int))),
+				BackupStorageRedundancy:        documentdb.BackupStorageRedundancy(attr["storage_redundancy"].(string)),
 			},
 		}, nil
 
@@ -1352,11 +1449,16 @@ func flattenCosmosdbAccountBackup(input documentdb.BasicBackupPolicy) ([]interfa
 		if v := policy.PeriodicModeProperties.BackupRetentionIntervalInHours; v != nil {
 			retention = int(*v)
 		}
+		var storageRedundancy documentdb.BackupStorageRedundancy
+		if policy.PeriodicModeProperties.BackupStorageRedundancy != "" {
+			storageRedundancy = policy.PeriodicModeProperties.BackupStorageRedundancy
+		}
 		return []interface{}{
 			map[string]interface{}{
 				"type":                string(documentdb.TypePeriodic),
 				"interval_in_minutes": interval,
 				"retention_in_hours":  retention,
+				"storage_redundancy":  storageRedundancy,
 			},
 		}, nil
 
@@ -1398,5 +1500,63 @@ func flattenAzureRmdocumentdbMachineIdentity(identity *documentdb.ManagedService
 		"principal_id": principalID,
 		"tenant_id":    tenantID,
 	},
+	}
+}
+
+func expandCosmosDBAccountAnalyticalStorageConfiguration(input []interface{}) *documentdb.AnalyticalStorageConfiguration {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	return &documentdb.AnalyticalStorageConfiguration{
+		SchemaType: documentdb.AnalyticalStorageSchemaType(v["schema_type"].(string)),
+	}
+}
+
+func expandCosmosDBAccountCapacity(input []interface{}) *documentdb.Capacity {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	return &documentdb.Capacity{
+		TotalThroughputLimit: utils.Int32(int32(v["total_throughput_limit"].(int))),
+	}
+}
+
+func flattenCosmosDBAccountAnalyticalStorageConfiguration(input *documentdb.AnalyticalStorageConfiguration) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	var schemaType documentdb.AnalyticalStorageSchemaType
+	if input.SchemaType != "" {
+		schemaType = input.SchemaType
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"schema_type": schemaType,
+		},
+	}
+}
+
+func flattenCosmosDBAccountCapacity(input *documentdb.Capacity) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	var totalThroughputLimit int32
+	if input.TotalThroughputLimit != nil {
+		totalThroughputLimit = *input.TotalThroughputLimit
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"total_throughput_limit": totalThroughputLimit,
+		},
 	}
 }

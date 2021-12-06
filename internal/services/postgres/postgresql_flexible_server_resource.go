@@ -64,7 +64,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.All(validation.StringIsNotWhiteSpace, validate.AdminUsernames),
 			},
 
 			"administrator_password": {
@@ -103,7 +103,6 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			"zone": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"1",
 					"2",
@@ -207,7 +206,6 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 						"standby_availability_zone": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"1",
 								"2",

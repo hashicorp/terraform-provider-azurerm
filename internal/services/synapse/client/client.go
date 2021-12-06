@@ -24,11 +24,13 @@ type Client struct {
 	SqlPoolTransparentDataEncryptionClient            *synapse.SQLPoolTransparentDataEncryptionsClient
 	SqlPoolVulnerabilityAssessmentsClient             *synapse.SQLPoolVulnerabilityAssessmentsClient
 	SQLPoolVulnerabilityAssessmentRuleBaselinesClient *synapse.SQLPoolVulnerabilityAssessmentRuleBaselinesClient
+	SQLPoolWorkloadGroupClient                        *synapse.SQLPoolWorkloadGroupClient
 	WorkspaceAadAdminsClient                          *synapse.WorkspaceAadAdminsClient
 	WorkspaceClient                                   *synapse.WorkspacesClient
 	WorkspaceExtendedBlobAuditingPoliciesClient       *synapse.WorkspaceManagedSQLServerExtendedBlobAuditingPoliciesClient
 	WorkspaceManagedIdentitySQLControlSettingsClient  *synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	WorkspaceSecurityAlertPolicyClient                *synapse.WorkspaceManagedSQLServerSecurityAlertPolicyClient
+	WorkspaceSQLAadAdminsClient                       *synapse.WorkspaceSQLAadAdminsClient
 	WorkspaceVulnerabilityAssessmentsClient           *synapse.WorkspaceManagedSQLServerVulnerabilityAssessmentsClient
 
 	synapseAuthorizer autorest.Authorizer
@@ -69,6 +71,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	sqlPoolVulnerabilityAssessmentsClient := synapse.NewSQLPoolVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
 
+	sqlPoolWorkloadGroupClient := synapse.NewSQLPoolWorkloadGroupClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&sqlPoolWorkloadGroupClient.Client, o.ResourceManagerAuthorizer)
+
 	sqlPoolVulnerabilityAssessmentRuleBaselinesClient := synapse.NewSQLPoolVulnerabilityAssessmentRuleBaselinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolVulnerabilityAssessmentRuleBaselinesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -87,6 +92,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	workspaceSecurityAlertPolicyClient := synapse.NewWorkspaceManagedSQLServerSecurityAlertPolicyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceSecurityAlertPolicyClient.Client, o.ResourceManagerAuthorizer)
 
+	workspaceSQLAadAdminsClient := synapse.NewWorkspaceSQLAadAdminsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&workspaceSQLAadAdminsClient.Client, o.ResourceManagerAuthorizer)
+
 	workspaceVulnerabilityAssessmentsClient := synapse.NewWorkspaceManagedSQLServerVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -103,11 +111,13 @@ func NewClient(o *common.ClientOptions) *Client {
 		SqlPoolTransparentDataEncryptionClient:            &sqlPoolTransparentDataEncryptionClient,
 		SqlPoolVulnerabilityAssessmentsClient:             &sqlPoolVulnerabilityAssessmentsClient,
 		SQLPoolVulnerabilityAssessmentRuleBaselinesClient: &sqlPoolVulnerabilityAssessmentRuleBaselinesClient,
+		SQLPoolWorkloadGroupClient:                        &sqlPoolWorkloadGroupClient,
 		WorkspaceAadAdminsClient:                          &workspaceAadAdminsClient,
 		WorkspaceClient:                                   &workspaceClient,
 		WorkspaceExtendedBlobAuditingPoliciesClient:       &workspaceExtendedBlobAuditingPoliciesClient,
 		WorkspaceManagedIdentitySQLControlSettingsClient:  &workspaceManagedIdentitySQLControlSettingsClient,
 		WorkspaceSecurityAlertPolicyClient:                &workspaceSecurityAlertPolicyClient,
+		WorkspaceSQLAadAdminsClient:                       &workspaceSQLAadAdminsClient,
 		WorkspaceVulnerabilityAssessmentsClient:           &workspaceVulnerabilityAssessmentsClient,
 
 		synapseAuthorizer: o.SynapseAuthorizer,

@@ -255,7 +255,8 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Publishing Credential information for Linux %s: %+v", id, err)
 			}
 
-			webApp.AppSettings = helpers.FlattenAppSettings(appSettings)
+			var healthCheckCount *int
+			webApp.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
 			webApp.Kind = utils.NormalizeNilableString(existing.Kind)
 			webApp.Location = location.NormalizeNilable(existing.Location)
 			webApp.Tags = tags.ToTypedObject(existing.Tags)
@@ -290,7 +291,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 
 			webApp.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
-			webApp.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig)
+			webApp.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig, healthCheckCount)
 
 			webApp.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 

@@ -53,6 +53,109 @@ resource "azurerm_synapse_workspace" "example" {
 }
 ```
 
+## Example Usage - creating a workspace with Customer Managed Key and Azure AD Admin
+
+```
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "examplestorageacc"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "StorageV2"
+  is_hns_enabled           = "true"
+}
+
+resource "azurerm_storage_data_lake_gen2_filesystem" "example" {
+  name               = "example"
+  storage_account_id = azurerm_storage_account.example.id
+}
+
+resource "azurerm_key_vault" "example" {
+  name                     = "example"
+  location                 = azurerm_resource_group.example.location
+  resource_group_name      = azurerm_resource_group.example.name
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  sku_name                 = "standard"
+  purge_protection_enabled = true
+}
+
+resource "azurerm_key_vault_access_policy" "deployer" {
+  key_vault_id = azurerm_key_vault.example.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "create", "get", "delete", "purge"
+  ]
+}
+
+resource "azurerm_key_vault_key" "example" {
+  name         = "workspaceencryptionkey"
+  key_vault_id = azurerm_key_vault.example.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts = [
+    "unwrapKey",
+    "wrapKey"
+  ]
+  depends_on = [
+    azurerm_key_vault_access_policy.deployer
+  ]
+}
+
+resource "azurerm_synapse_workspace" "example" {
+  name                                 = "example"
+  resource_group_name                  = azurerm_resource_group.example.name
+  location                             = azurerm_resource_group.example.location
+  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.example.id
+  sql_administrator_login              = "sqladminuser"
+  sql_administrator_login_password     = "H@Sh1CoR3!"
+  customer_managed_key {
+    key_versionless_id = azurerm_key_vault_key.example.versionless_id
+    key_name           = "enckey"
+  }
+
+  tags = {
+    Env = "production"
+  }
+}
+
+resource "azurerm_key_vault_access_policy" "workspace_policy" {
+  key_vault_id = azurerm_key_vault.example.id
+  tenant_id    = azurerm_synapse_workspace.example.identity[0].tenant_id
+  object_id    = azurerm_synapse_workspace.example.identity[0].principal_id
+
+  key_permissions = [
+    "Get", "WrapKey", "UnwrapKey"
+  ]
+}
+
+resource "azurerm_synapse_workspace_key" "example" {
+  customer_managed_key_versionless_id = azurerm_key_vault_key.example.versionless_id
+  synapse_workspace_id                = azurerm_synapse_workspace.example.id
+  active                              = true
+  customer_managed_key_name           = "enckey"
+  depends_on                          = [azurerm_key_vault_access_policy.workspace_policy]
+}
+
+resource "azurerm_synapse_workspace_aad_admin" "example" {
+  synapse_workspace_id = azurerm_synapse_workspace.example.id
+  login                = "AzureAD Admin"
+  object_id            = "00000000-0000-0000-0000-000000000000"
+  tenant_id            = "00000000-0000-0000-0000-000000000000"
+
+  depends_on           = [azurerm_synapse_workspace_key.example]
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -69,21 +172,31 @@ The following arguments are supported:
 
 * `sql_administrator_login_password` - (Required) The Password associated with the `sql_administrator_login` for the SQL administrator.
 
+* `linking_allowed_for_aad_tenant_ids` - (Optional) Allowed Aad Tenant Ids For Linking. 
+
+* `compute_subnet_id` - (Optional) Subnet ID used for computes in workspace
+
 * `data_exfiltration_protection_enabled` - (Optional) Is data exfiltration protection enabled in this workspace? If set to `true`, `managed_virtual_network_enabled` must also be set to `true`. Changing this forces a new resource to be created.
 
 * `managed_virtual_network_enabled` - (Optional) Is Virtual Network enabled for all computes in this workspace? Defaults to `false`. Changing this forces a new resource to be created.
+
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for the Cognitive Account. Defaults to `true`.
+
+* `purview_id` - (Optional) The ID of purview account.
 
 * `sql_identity_control_enabled` - (Optional) Are pipelines (running as workspace's system assigned identity) allowed to access SQL pools?
 
 * `managed_resource_group_name` - (Optional) Workspace managed resource group.
 
-* `aad_admin` - (Optional) An `aad_admin` block as defined below.
+* `aad_admin` - (Optional) An `aad_admin` block as defined below. Conflicts with `customer_managed_key`.
 
 * `azure_devops_repo` - (Optional) An `azure_devops_repo` block as defined below.
 
 * `github_repo` - (Optional) A `github_repo` block as defined below.
 
-* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below. Conflicts with `aad_admin`.
+
+* `sql_aad_admin` - (Optional) An `sql_aad_admin` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Workspace.
 
@@ -99,11 +212,23 @@ An `aad_admin` block supports the following:
 
 ---
 
+An `sql_aad_admin` block supports the following:
+
+* `login` - (Required) The login name of the Azure AD Administrator of this Synapse Workspace SQL.
+
+* `object_id` - (Required) The object id of the Azure AD Administrator of this Synapse Workspace SQL.
+
+* `tenant_id` - (Required) The tenant id of the Azure AD Administrator of this Synapse Workspace SQL.
+
+---
+
 An `azure_devops_repo` block supports the following:
 
 * `account_name` - (Required) Specifies the Azure DevOps account name.
 
 * `branch_name` - (Required) Specifies the collaboration branch of the repository to get code from.
+
+* `last_commit_id` - (Optional) The last commit ID.
 
 * `project_name` - (Required) Specifies the name of the Azure DevOps project.
 
@@ -120,6 +245,8 @@ A `github_repo` block supports the following:
 * `account_name` - (Required) Specifies the GitHub account name.
 
 * `branch_name` - (Required) Specifies the collaboration branch of the repository to get code from.
+
+* `last_commit_id` - (Optional) The last commit ID.
 
 * `repository_name` - (Required) Specifies the name of the git repository.
 

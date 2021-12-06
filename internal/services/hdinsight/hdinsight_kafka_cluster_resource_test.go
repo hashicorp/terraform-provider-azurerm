@@ -1289,7 +1289,8 @@ func (r HDInsightKafkaClusterResource) restProxy(data acceptance.TestData) strin
 provider "azuread" {}
 
 resource "azuread_group" "test" {
-  name = "acctesthdi-%d"
+  display_name     = "acctesthdi-%d"
+  security_enabled = true
 }
 
 resource "azurerm_hdinsight_kafka_cluster" "test" {

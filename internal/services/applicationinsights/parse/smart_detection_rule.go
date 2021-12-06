@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type SmartDetectionRuleId struct {
@@ -36,13 +36,13 @@ func (id SmartDetectionRuleId) String() string {
 }
 
 func (id SmartDetectionRuleId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s/SmartDetectionRule/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Insights/components/%s/smartDetectionRule/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ComponentName, id.SmartDetectionRuleName)
 }
 
 // SmartDetectionRuleID parses a SmartDetectionRule ID into an SmartDetectionRuleId struct
 func SmartDetectionRuleID(input string) (*SmartDetectionRuleId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func SmartDetectionRuleID(input string) (*SmartDetectionRuleId, error) {
 	if resourceId.ComponentName, err = id.PopSegment("components"); err != nil {
 		return nil, err
 	}
-	if resourceId.SmartDetectionRuleName, err = id.PopSegment("SmartDetectionRule"); err != nil {
+	if resourceId.SmartDetectionRuleName, err = id.PopSegment("smartDetectionRule"); err != nil {
 		return nil, err
 	}
 

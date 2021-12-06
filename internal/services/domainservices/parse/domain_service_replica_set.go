@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type DomainServiceReplicaSetId struct {
@@ -42,7 +42,7 @@ func (id DomainServiceReplicaSetId) ID() string {
 
 // DomainServiceReplicaSetID parses a DomainServiceReplicaSet ID into an DomainServiceReplicaSetId struct
 func DomainServiceReplicaSetID(input string) (*DomainServiceReplicaSetId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

@@ -14,7 +14,7 @@ type GetAuthorizationRuleResponse struct {
 }
 
 // GetAuthorizationRule ...
-func (c HybridConnectionsClient) GetAuthorizationRule(ctx context.Context, id AuthorizationRuleId) (result GetAuthorizationRuleResponse, err error) {
+func (c HybridConnectionsClient) GetAuthorizationRule(ctx context.Context, id HybridConnectionAuthorizationRuleId) (result GetAuthorizationRuleResponse, err error) {
 	req, err := c.preparerForGetAuthorizationRule(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hybridconnections.HybridConnectionsClient", "GetAuthorizationRule", nil, "Failure preparing request")
@@ -37,7 +37,7 @@ func (c HybridConnectionsClient) GetAuthorizationRule(ctx context.Context, id Au
 }
 
 // preparerForGetAuthorizationRule prepares the GetAuthorizationRule request.
-func (c HybridConnectionsClient) preparerForGetAuthorizationRule(ctx context.Context, id AuthorizationRuleId) (*http.Request, error) {
+func (c HybridConnectionsClient) preparerForGetAuthorizationRule(ctx context.Context, id HybridConnectionAuthorizationRuleId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

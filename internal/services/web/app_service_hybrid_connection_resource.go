@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -120,7 +120,7 @@ func resourceAppServiceHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("parsing relay ID %q: %s", relayArmURI, err)
 	}
 	namespaceName := relayId.NamespaceName
-	relayName := relayId.Name
+	relayName := relayId.HybridConnectionName
 
 	if d.IsNewResource() {
 		existing, err := client.GetHybridConnection(ctx, resourceGroup, name, namespaceName, relayName)
@@ -257,5 +257,5 @@ func findRelayNamespace(ctx context.Context, client *namespaces.NamespacesClient
 	if err != nil {
 		return nil, fmt.Errorf("relay Namespace id not valid: %+v", err)
 	}
-	return &id.ResourceGroup, nil
+	return &id.ResourceGroupName, nil
 }

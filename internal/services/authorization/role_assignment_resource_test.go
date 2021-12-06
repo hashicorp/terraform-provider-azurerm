@@ -519,7 +519,7 @@ data "azurerm_subscription" "current" {
 }
 
 resource "azuread_application" "test" {
-  name = "acctestspa-%d"
+  display_name = "acctestspa-%d"
 }
 
 resource "azuread_service_principal" "test" {
@@ -547,7 +547,7 @@ data "azurerm_subscription" "current" {
 }
 
 resource "azuread_application" "test" {
-  name = "acctestspa-%d"
+  display_name = "acctestspa-%d"
 }
 
 resource "azuread_service_principal" "test" {
@@ -576,7 +576,8 @@ data "azurerm_subscription" "current" {
 }
 
 resource "azuread_group" "test" {
-  name = "acctestspa-%d"
+  display_name     = "acctestspa-%d"
+  security_enabled = true
 }
 
 resource "azurerm_role_assignment" "test" {

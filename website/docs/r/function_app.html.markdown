@@ -163,6 +163,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity Id used for looking up KeyVault secrets. The identity must be assigned to the application. See [Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity) for more information.
+
 * `os_type` - (Optional) A string indicating the Operating System type for this function app. 
 
 ~> **NOTE:** This value will be `linux` for Linux derivatives, or an empty string for Windows (default). When set to `linux` you must also set `azurerm_app_service_plan` arguments as `kind = "Linux"` and `reserved = true`
@@ -340,6 +342,14 @@ A `microsoft` block supports the following:
 * `client_secret` - (Required) The OAuth 2.0 client secret that was created for the app used for authentication.
 
 * `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. https://msdn.microsoft.com/en-us/library/dn631845.aspx
+
+---
+
+A `twitter` block supports the following:
+
+* `consumer_key` - The OAuth 1.0a consumer key of the Twitter application used for sign-in.
+
+* `consumer_secret` - The OAuth 1.0a consumer secret of the Twitter application used for sign-in.
 
 ---
 

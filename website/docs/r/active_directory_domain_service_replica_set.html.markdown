@@ -307,5 +307,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Domain Service Replica Sets can be imported using the resource ID of the parent Domain Service and the Replica Set ID, e.g.
 
 ```shell
-terraform import azurerm_active_directory_domain_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.AAD/domainServices/instance1/replicaSets/00000000-0000-0000-0000-000000000000
+terraform import azurerm_active_directory_domain_service_replica_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.AAD/domainServices/instance1/replicaSets/00000000-0000-0000-0000-000000000000
 ```

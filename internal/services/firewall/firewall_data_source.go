@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -14,9 +16,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func FirewallDataSource() *pluginsdk.Resource {
+func firewallDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: FirewallDataSourceRead,
+		Read: firewallDataSourceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -106,7 +108,9 @@ func FirewallDataSource() *pluginsdk.Resource {
 			"dns_servers": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
 			},
 
 			"virtual_hub": {
@@ -125,7 +129,9 @@ func FirewallDataSource() *pluginsdk.Resource {
 						"public_ip_addresses": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
 						},
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,
@@ -142,26 +148,25 @@ func FirewallDataSource() *pluginsdk.Resource {
 	}
 }
 
-func FirewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func firewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	read, err := client.Get(ctx, resourceGroup, name)
+	id := parse.NewFirewallID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	read, err := client.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			return fmt.Errorf("Firewall %q was not found in Resource Group %q", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("making Read request on Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(*read.ID)
-	d.Set("name", read.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.SetId(id.ID())
+	d.Set("name", id.AzureFirewallName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := read.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))

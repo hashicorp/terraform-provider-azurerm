@@ -147,13 +147,12 @@ func getNetworkInterface(networkInterfaceId string) interface{} {
 
 func getPrivateIpAddress(ctx context.Context, client *network.InterfacesClient, networkInterfaceId string) string {
 	privateIpAddress := ""
-	id, err := azure.ParseAzureResourceID(networkInterfaceId)
+	id, err := parse.NetworkInterfaceID(networkInterfaceId)
 	if err != nil {
 		return privateIpAddress
 	}
-	name := id.Path["networkInterfaces"]
 
-	resp, err := client.Get(ctx, id.ResourceGroup, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return privateIpAddress
 	}

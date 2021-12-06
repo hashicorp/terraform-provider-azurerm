@@ -208,7 +208,6 @@ resource "azurerm_app_service_source_control" "test" {
   branch                 = "master"
   use_manual_integration = true
 }
-
 `, baseWindowsAppTemplate(data))
 }
 
@@ -222,7 +221,6 @@ resource "azurerm_app_service_source_control" "import" {
   branch                 = azurerm_app_service_source_control.test.branch
   use_manual_integration = azurerm_app_service_source_control.test.use_manual_integration
 }
-
 `, r.windowsExternalGit(data))
 }
 
@@ -240,7 +238,6 @@ resource "azurerm_app_service_source_control" "test" {
   branch                 = "master"
   use_manual_integration = true
 }
-
 `, baseLinuxAppTemplate(data))
 }
 
@@ -256,7 +253,6 @@ resource "azurerm_app_service_source_control" "test" {
   app_id        = azurerm_windows_web_app.test.id
   use_local_git = true
 }
-
 `, baseWindowsAppTemplate(data))
 }
 
@@ -272,7 +268,6 @@ resource "azurerm_app_service_source_control" "test" {
   app_id        = azurerm_linux_web_app.test.id
   use_local_git = true
 }
-
 `, baseLinuxAppTemplate(data))
 }
 
@@ -304,7 +299,6 @@ resource "azurerm_app_service_source_control" "test" {
     }
   }
 }
-
 `, baseWindowsAppTemplate(data), token)
 }
 
@@ -331,7 +325,6 @@ resource "azurerm_app_service_source_control" "test" {
     azurerm_source_control_token.test,
   ]
 }
-
 `, baseWindowsAppTemplate(data), token)
 }
 
@@ -363,7 +356,6 @@ resource "azurerm_app_service_source_control" "test" {
     }
   }
 }
-
 `, baseLinuxAppTemplate(data), token)
 }
 
@@ -391,7 +383,6 @@ resource "azurerm_app_service_source_control" "test" {
     azurerm_source_control_token.test,
   ]
 }
-
 `, baseLinuxAppTemplate(data), token)
 }
 
@@ -423,7 +414,6 @@ resource "azurerm_windows_web_app" "test" {
 
   site_config {}
 }
-
 `, data.RandomInteger, data.Locations.Primary)
 }
 

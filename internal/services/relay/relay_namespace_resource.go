@@ -6,7 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -120,7 +121,7 @@ func resourceRelayNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			Tier: &skuTier,
 		},
 		Properties: &namespaces.RelayNamespaceProperties{},
-		Tags:       expandTags(d.Get("tags").(map[string]interface{})),
+		Tags:       tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
@@ -151,14 +152,14 @@ func resourceRelayNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	authRuleId := namespaces.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.Name, "RootManageSharedAccessKey")
+	authRuleId := namespaces.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, "RootManageSharedAccessKey")
 	keysResp, err := client.ListKeys(ctx, authRuleId)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.NamespaceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
@@ -171,7 +172,7 @@ func resourceRelayNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.Set("metric_id", props.MetricId)
 		}
 
-		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err := tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags)); err != nil {
 			return err
 		}
 	}
@@ -201,7 +202,7 @@ func resourceRelayNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	// we can't make use of the Future here due to a bug where 404 isn't tracked as Successful
-	log.Printf("[DEBUG] Waiting for Relay Namespace %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Waiting for %s to be deleted", *id)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Pending"},
 		Target:     []string{"Deleted"},

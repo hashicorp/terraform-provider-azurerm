@@ -62,14 +62,14 @@ func TestAccSecurityCenterSetting_update(t *testing.T) {
 }
 
 func (SecurityCenterSettingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SecurityCenterSettingID(state.ID)
+	id, err := parse.SettingID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.SecurityCenter.SettingClient.Get(ctx, id.SettingName)
+	resp, err := clients.SecurityCenter.SettingClient.Get(ctx, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Security Center Setting (%s): %+v", id.SettingName, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.Value != nil), nil

@@ -248,6 +248,14 @@ A `microsoft` block supports the following:
 
 ---
 
+A `twitter` block supports the following:
+
+* `consumer_key` - (Required) The OAuth 1.0a consumer key of the Twitter application used for sign-in.
+
+* `consumer_secret` - (Optional) The OAuth 1.0a consumer secret of the Twitter application used for sign-in.
+
+---
+
 A `ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
@@ -324,5 +332,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Function Apps Deployment Slots can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_function_app.functionapp1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/functionapp1/slots/staging
+terraform import azurerm_function_app_slot.functionapp1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/functionapp1/slots/staging
 ```

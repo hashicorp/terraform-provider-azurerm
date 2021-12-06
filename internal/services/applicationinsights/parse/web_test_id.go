@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type WebTestId struct {
@@ -33,13 +33,13 @@ func (id WebTestId) String() string {
 }
 
 func (id WebTestId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/webtests/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Insights/webTests/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 // WebTestID parses a WebTest ID into an WebTestId struct
 func WebTestID(input string) (*WebTestId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func WebTestID(input string) (*WebTestId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.Name, err = id.PopSegment("webtests"); err != nil {
+	if resourceId.Name, err = id.PopSegment("webTests"); err != nil {
 		return nil, err
 	}
 

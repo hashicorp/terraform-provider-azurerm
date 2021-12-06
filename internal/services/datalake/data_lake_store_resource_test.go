@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake/sdk/datalakestore/2016-11-01/accounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -172,17 +172,17 @@ func TestAccDataLakeStore_withTags(t *testing.T) {
 }
 
 func (t DataLakeStoreResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AccountID(state.ID)
+	id, err := accounts.ParseAccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Datalake.StoreAccountsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Datalake.StoreAccountsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Date Lake Store %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.DataLakeStoreAccountProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (DataLakeStoreResource) basic(data acceptance.TestData) string {

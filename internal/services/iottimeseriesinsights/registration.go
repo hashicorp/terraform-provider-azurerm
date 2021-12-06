@@ -26,10 +26,11 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_iot_time_series_insights_access_policy":        resourceIoTTimeSeriesInsightsAccessPolicy(),
-		"azurerm_iot_time_series_insights_event_source_iothub":  resourceIoTTimeSeriesInsightsEventSourceIoTHub(),
-		"azurerm_iot_time_series_insights_standard_environment": resourceIoTTimeSeriesInsightsStandardEnvironment(),
-		"azurerm_iot_time_series_insights_gen2_environment":     resourceIoTTimeSeriesInsightsGen2Environment(),
-		"azurerm_iot_time_series_insights_reference_data_set":   resourceIoTTimeSeriesInsightsReferenceDataSet(),
+		"azurerm_iot_time_series_insights_access_policy":         resourceIoTTimeSeriesInsightsAccessPolicy(),
+		"azurerm_iot_time_series_insights_event_source_eventhub": resourceIoTTimeSeriesInsightsEventSourceEventhub(),
+		"azurerm_iot_time_series_insights_event_source_iothub":   resourceIoTTimeSeriesInsightsEventSourceIoTHub(),
+		"azurerm_iot_time_series_insights_standard_environment":  resourceIoTTimeSeriesInsightsStandardEnvironment(),
+		"azurerm_iot_time_series_insights_gen2_environment":      resourceIoTTimeSeriesInsightsGen2Environment(),
+		"azurerm_iot_time_series_insights_reference_data_set":    resourceIoTTimeSeriesInsightsReferenceDataSet(),
 	}
 }

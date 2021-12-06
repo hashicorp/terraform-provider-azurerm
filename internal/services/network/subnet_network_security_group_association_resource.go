@@ -76,23 +76,19 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceDa
 	locks.ByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
 	defer locks.UnlockByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
 
-	subnetName := parsedSubnetId.Name
-	virtualNetworkName := parsedSubnetId.VirtualNetworkName
-	resourceGroup := parsedSubnetId.ResourceGroup
+	locks.ByName(parsedSubnetId.VirtualNetworkName, VirtualNetworkResourceName)
+	defer locks.UnlockByName(parsedSubnetId.VirtualNetworkName, VirtualNetworkResourceName)
 
-	locks.ByName(virtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(virtualNetworkName, VirtualNetworkResourceName)
+	locks.ByName(parsedSubnetId.Name, SubnetResourceName)
+	defer locks.UnlockByName(parsedSubnetId.Name, SubnetResourceName)
 
-	locks.ByName(subnetName, SubnetResourceName)
-	defer locks.UnlockByName(subnetName, SubnetResourceName)
-
-	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
+	subnet, err := client.Get(ctx, parsedSubnetId.ResourceGroup, parsedSubnetId.VirtualNetworkName, parsedSubnetId.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(subnet.Response) {
-			return fmt.Errorf("subnet %q (Virtual Network %q / Resource Group %q) was not found", subnetName, virtualNetworkName, resourceGroup)
+			return fmt.Errorf("%s was not found", *parsedSubnetId)
 		}
 
-		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *parsedSubnetId, err)
 	}
 
 	if props := subnet.SubnetPropertiesFormat; props != nil {
@@ -108,13 +104,13 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceDa
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualNetworkName, subnetName, subnet)
+	future, err := client.CreateOrUpdate(ctx, parsedSubnetId.ResourceGroup, parsedSubnetId.VirtualNetworkName, parsedSubnetId.Name, subnet)
 	if err != nil {
-		return fmt.Errorf("updating Network Security Group Association for Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("updating Network Security Group Association for %s: %+v", *parsedSubnetId, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Network Security Group Association for Subnet %q (VN %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of Network Security Group Association for %s: %+v", *parsedSubnetId, err)
 	}
 
 	timeout, _ := ctx.Deadline()
@@ -127,7 +123,7 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceDa
 		Timeout:    time.Until(timeout),
 	}
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for provisioning state of subnet for Network Security Group Association for Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("waiting for provisioning state of subnet for Network Security Group Association for %s: %+v", *parsedSubnetId, err)
 	}
 
 	vnetId := parse.NewVirtualNetworkID(parsedSubnetId.SubscriptionId, parsedSubnetId.ResourceGroup, parsedSubnetId.VirtualNetworkName)
@@ -139,15 +135,10 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceDa
 		Timeout:    time.Until(timeout),
 	}
 	if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for provisioning state of virtual network for Network Security Group Association for Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("waiting for provisioning state of virtual network for Network Security Group Association for %s: %+v", *parsedSubnetId, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(parsedSubnetId.ID())
 
 	return resourceSubnetNetworkSecurityGroupAssociationRead(d, meta)
 }
@@ -157,32 +148,29 @@ func resourceSubnetNetworkSecurityGroupAssociationRead(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubnetID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	virtualNetworkName := id.Path["virtualNetworks"]
-	subnetName := id.Path["subnets"]
 
-	resp, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) could not be found - removing from state!", subnetName, virtualNetworkName, resourceGroup)
+			log.Printf("[DEBUG] %s could not be found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	props := resp.SubnetPropertiesFormat
 	if props == nil {
-		return fmt.Errorf("`properties` was nil for Subnet %q (Virtual Network %q / Resource Group %q)", subnetName, virtualNetworkName, resourceGroup)
+		return fmt.Errorf("`properties` was nil for %s", *id)
 	}
 
 	securityGroup := props.NetworkSecurityGroup
 	if securityGroup == nil {
-		log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) doesn't have a Network Security Group - removing from state!", subnetName, virtualNetworkName, resourceGroup)
+		log.Printf("[DEBUG] %s doesn't have a Network Security Group - removing from state!", *id)
 		d.SetId("")
 		return nil
 	}
@@ -198,32 +186,29 @@ func resourceSubnetNetworkSecurityGroupAssociationDelete(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubnetID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	virtualNetworkName := id.Path["virtualNetworks"]
-	subnetName := id.Path["subnets"]
 
 	// retrieve the subnet
-	read, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
+	read, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) could not be found - removing from state!", subnetName, virtualNetworkName, resourceGroup)
+			log.Printf("[DEBUG] %s could not be found - removing from state!", *id)
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	props := read.SubnetPropertiesFormat
 	if props == nil {
-		return fmt.Errorf("`Properties` was nil for Subnet %q (Virtual Network %q / Resource Group %q)", subnetName, virtualNetworkName, resourceGroup)
+		return fmt.Errorf("`Properties` was nil for %s", *id)
 	}
 
 	if props.NetworkSecurityGroup == nil || props.NetworkSecurityGroup.ID == nil {
-		log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) has no Network Security Group - removing from state!", subnetName, virtualNetworkName, resourceGroup)
+		log.Printf("[DEBUG] %s has no Network Security Group - removing from state!", *id)
 		return nil
 	}
 
@@ -236,32 +221,32 @@ func resourceSubnetNetworkSecurityGroupAssociationDelete(d *pluginsdk.ResourceDa
 	locks.ByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
 	defer locks.UnlockByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
 
-	locks.ByName(virtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(virtualNetworkName, VirtualNetworkResourceName)
+	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
 
-	locks.ByName(subnetName, SubnetResourceName)
-	defer locks.UnlockByName(subnetName, SubnetResourceName)
+	locks.ByName(id.Name, SubnetResourceName)
+	defer locks.UnlockByName(id.Name, SubnetResourceName)
 
 	// then re-retrieve it to ensure we've got the latest state
-	read, err = client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
+	read, err = client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) could not be found - removing from state!", subnetName, virtualNetworkName, resourceGroup)
+			log.Printf("[DEBUG] %s could not be found - removing from state!", *id)
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	read.SubnetPropertiesFormat.NetworkSecurityGroup = nil
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualNetworkName, subnetName, read)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, read)
 	if err != nil {
-		return fmt.Errorf("removing Network Security Group Association from Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("removing Network Security Group Association from %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for removal of Network Security Group Association from Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("waiting for removal of Network Security Group Association from %s: %+v", *id, err)
 	}
 
 	return nil

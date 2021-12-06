@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -33,9 +33,7 @@ func TestAccWindowsVirtualMachine_imageFromImage(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -50,9 +48,7 @@ func TestAccWindowsVirtualMachine_imageFromPlan(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -75,9 +71,7 @@ func TestAccWindowsVirtualMachine_imageFromSharedImageGallery(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -92,9 +86,7 @@ func TestAccWindowsVirtualMachine_imageFromSourceImageReference(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -384,7 +376,8 @@ func (WindowsVirtualMachineResource) generalizeVirtualMachine(ctx context.Contex
 		return fmt.Errorf("Bad: Error waiting for Windows VM to sysprep: %+v", err)
 	}
 
-	daFuture, err := client.Compute.VMClient.Deallocate(ctx, id.ResourceGroup, id.Name)
+	// Upgrading to the 2021-07-01 exposed a new hibernate parameter in the GET method
+	daFuture, err := client.Compute.VMClient.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
 	if err != nil {
 		return fmt.Errorf("Bad: Deallocation error: %+v", err)
 	}
