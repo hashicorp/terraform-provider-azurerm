@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * `azurerm_netapp_pool` - support for `qos_type` property [GH-14372]
 * `azurerm_netapp_volume` - support for `throughput_in_mibps` property [GH-14372]
 * `azurerm_sql_managed_instance`: Support for `storage_account_type` [GH-14123]
+* `azurerm_kubernetes_cluster` - support for the `http_proxy_config` block which contains the `http_proxy`, `https_proxy`, `no_proxy` and `trusted_ca` properties [GH-14177]
 
 BUG FIXES:
 
