@@ -2,6 +2,8 @@
 
 FEATURES:
 
+**New Resource:** `azurerm_bot_service_azure_bot` [GH-14462]
+
 ENHANCEMENTS:
 
 * dependencies: updating the Embedded SDK for `databricks` [GH-14430]
