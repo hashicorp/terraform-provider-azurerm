@@ -16,7 +16,7 @@ type ResourceManagerStorageShareWrapper struct {
 	client *storage.FileSharesClient
 }
 
-func NewMgmtPlaneStorageShareWrapper(client *storage.FileSharesClient) StorageShareWrapper {
+func NewManagementPlaneStorageShareWrapper(client *storage.FileSharesClient) StorageShareWrapper {
 	return ResourceManagerStorageShareWrapper{
 		client: client,
 	}
@@ -35,15 +35,8 @@ func (w ResourceManagerStorageShareWrapper) Create(ctx context.Context, resource
 }
 
 func (w ResourceManagerStorageShareWrapper) Delete(ctx context.Context, resourceGroup, accountName, shareName string) error {
-	resp, err := w.client.Delete(ctx, resourceGroup, accountName, shareName, "", "")
-	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
-			return nil
-		}
-
-		return err
-	}
-	return nil
+	_, err := w.client.Delete(ctx, resourceGroup, accountName, shareName, "", "")
+	return err
 }
 
 func (w ResourceManagerStorageShareWrapper) Exists(ctx context.Context, resourceGroup, accountName, shareName string) (*bool, error) {

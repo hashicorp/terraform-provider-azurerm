@@ -1,7 +1,9 @@
 package shim
 
+import "github.com/hashicorp/terraform-provider-azurerm/utils"
+
 func mapStringPtrToMapString(input map[string]*string) map[string]string {
-	output := make(map[string]string, len(input))
+	output := make(map[string]string, 0)
 
 	for k, v := range input {
 		if v == nil {
@@ -15,11 +17,10 @@ func mapStringPtrToMapString(input map[string]*string) map[string]string {
 }
 
 func mapStringToMapStringPtr(input map[string]string) map[string]*string {
-	output := make(map[string]*string, len(input))
+	output := make(map[string]*string, 0)
 
 	for k, v := range input {
-		v := v
-		output[k] = &v
+		output[k] = utils.String(v)
 	}
 
 	return output

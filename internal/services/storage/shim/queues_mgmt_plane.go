@@ -13,7 +13,7 @@ type ResourceManagerStorageQueueWrapper struct {
 	client *storage.QueueClient
 }
 
-func NewMgmtPlaneStorageQueueWrapper(client *storage.QueueClient) StorageQueuesWrapper {
+func NewManagementPlaneStorageQueueWrapper(client *storage.QueueClient) StorageQueuesWrapper {
 	return ResourceManagerStorageQueueWrapper{
 		client: client,
 	}
@@ -30,15 +30,8 @@ func (w ResourceManagerStorageQueueWrapper) Create(ctx context.Context, resource
 }
 
 func (w ResourceManagerStorageQueueWrapper) Delete(ctx context.Context, resourceGroup, accountName, queueName string) error {
-	resp, err := w.client.Delete(ctx, resourceGroup, accountName, queueName)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
-			return nil
-		}
-
-		return err
-	}
-	return nil
+	_, err := w.client.Delete(ctx, resourceGroup, accountName, queueName)
+	return err
 }
 
 func (w ResourceManagerStorageQueueWrapper) Exists(ctx context.Context, resourceGroup, accountName, queueName string) (*bool, error) {

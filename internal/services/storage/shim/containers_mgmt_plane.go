@@ -13,7 +13,7 @@ type ResourceManagerStorageContainerWrapper struct {
 	client *storage.BlobContainersClient
 }
 
-func NewMgmtPlaneStorageContainerWrapper(client *storage.BlobContainersClient) StorageContainerWrapper {
+func NewManagementPlaneStorageContainerWrapper(client *storage.BlobContainersClient) StorageContainerWrapper {
 	return ResourceManagerStorageContainerWrapper{
 		client: client,
 	}
@@ -31,15 +31,8 @@ func (w ResourceManagerStorageContainerWrapper) Create(ctx context.Context, reso
 }
 
 func (w ResourceManagerStorageContainerWrapper) Delete(ctx context.Context, resourceGroup, accountName, containerName string) error {
-	resp, err := w.client.Delete(ctx, resourceGroup, accountName, containerName)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
-			return nil
-		}
-
-		return err
-	}
-	return nil
+	_, err := w.client.Delete(ctx, resourceGroup, accountName, containerName)
+	return err
 }
 
 func (w ResourceManagerStorageContainerWrapper) Exists(ctx context.Context, resourceGroup, accountName, containerName string) (*bool, error) {

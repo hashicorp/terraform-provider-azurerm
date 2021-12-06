@@ -2,6 +2,7 @@ package shim
 
 import (
 	"context"
+	"errors"
 
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 
@@ -13,7 +14,7 @@ type ResourceManagerStorageTableWrapper struct {
 	client *storage.TableClient
 }
 
-func NewMgmtPlaneStorageTableWrapper(client *storage.TableClient) StorageTableWrapper {
+func NewManagementPlaneStorageTableWrapper(client *storage.TableClient) StorageTableWrapper {
 	return ResourceManagerStorageTableWrapper{
 		client: client,
 	}
@@ -25,15 +26,8 @@ func (w ResourceManagerStorageTableWrapper) Create(ctx context.Context, resource
 }
 
 func (w ResourceManagerStorageTableWrapper) Delete(ctx context.Context, resourceGroup string, accountName string, tableName string) error {
-	resp, err := w.client.Delete(ctx, resourceGroup, accountName, tableName)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
-			return nil
-		}
-
-		return err
-	}
-	return nil
+	_, err := w.client.Delete(ctx, resourceGroup, accountName, tableName)
+	return err
 }
 
 func (w ResourceManagerStorageTableWrapper) Exists(ctx context.Context, resourceGroup string, accountName string, tableName string) (*bool, error) {
@@ -51,10 +45,10 @@ func (w ResourceManagerStorageTableWrapper) Exists(ctx context.Context, resource
 
 func (w ResourceManagerStorageTableWrapper) GetACLs(ctx context.Context, resourceGroup string, accountName string, tableName string) (*[]tables.SignedIdentifier, error) {
 	// TODO @magodo: support ACLs once API is available
-	panic("implement me")
+	return nil, errors.New("Storage Table management plane API doesn't support ACLs now")
 }
 
 func (w ResourceManagerStorageTableWrapper) UpdateACLs(ctx context.Context, resourceGroup string, accountName string, tableName string, acls []tables.SignedIdentifier) error {
 	// TODO @magodo: support ACLs once API is available
-	panic("implement me")
+	return errors.New("Storage Table management plane API doesn't support ACLs now")
 }

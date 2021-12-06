@@ -84,7 +84,7 @@ func TestAccStorageQueue_metaData(t *testing.T) {
 	})
 }
 
-func TestAccStorageQueue_mgmtBasic(t *testing.T) {
+func TestAccStorageQueue_resourceManagerBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
 	r := StorageQueueResource{useResourceManager: true}
 
@@ -99,7 +99,7 @@ func TestAccStorageQueue_mgmtBasic(t *testing.T) {
 	})
 }
 
-func TestAccStorageQueue_mgmtMetaData(t *testing.T) {
+func TestAccStorageQueue_resourceManagerMetaData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
 	r := StorageQueueResource{useResourceManager: true}
 
@@ -121,7 +121,7 @@ func TestAccStorageQueue_mgmtMetaData(t *testing.T) {
 	})
 }
 
-func TestAccStorageQueue_crossPlaneMetaData(t *testing.T) {
+func TestAccStorageQueue_dataPlaneThenResourceManagerMetaData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
 	r := StorageQueueResource{}
 
@@ -146,6 +146,31 @@ func TestAccStorageQueue_crossPlaneMetaData(t *testing.T) {
 	})
 }
 
+func TestAccStorageQueue_resourceManagerThenDataPlaneMetaData(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
+	r := StorageQueueResource{useResourceManager: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.metaData(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			PreConfig: func() {
+				r.useResourceManager = false
+			},
+			Config: r.metaDataUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StorageQueueResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.StorageQueueDataPlaneID(state.ID)
 	if err != nil {
@@ -158,6 +183,9 @@ func (r StorageQueueResource) Exists(ctx context.Context, client *clients.Client
 	if account == nil {
 		return nil, fmt.Errorf("unable to determine Resource Group for Storage Queue %q (Account %q)", id.Name, id.AccountName)
 	}
+
+	client.Storage.UseResourceManager(r.useResourceManager)
+
 	queuesClient, err := client.Storage.QueuesClient(ctx, *account)
 	if err != nil {
 		return nil, fmt.Errorf("building Queues Client: %+v", err)

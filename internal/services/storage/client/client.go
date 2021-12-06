@@ -128,6 +128,11 @@ func NewClient(options *common.ClientOptions) *Client {
 	return &client
 }
 
+// A setter to manipulate the "useResourceManager" feature flag. This is only meant for the acc test.
+func (client *Client) UseResourceManager(t bool) {
+	client.useResourceManager = t
+}
+
 func (client Client) AccountsDataPlaneClient(ctx context.Context, account accountDetails) (*accounts.Client, error) {
 	if client.storageAdAuth != nil {
 		accountsClient := accounts.NewWithEnvironment(client.Environment)
@@ -176,7 +181,7 @@ func (client Client) ContainersClient(ctx context.Context, account accountDetail
 	if client.useResourceManager {
 		rmClient := storage.NewBlobContainersClientWithBaseURI(client.Environment.ResourceManagerEndpoint, client.SubscriptionId)
 		rmClient.Client.Authorizer = client.resourceManagerAuthorizer
-		return shim.NewMgmtPlaneStorageContainerWrapper(&rmClient), nil
+		return shim.NewManagementPlaneStorageContainerWrapper(&rmClient), nil
 	}
 
 	containersClient, err := client.ContainersDataPlaneClient(ctx, account)
@@ -248,7 +253,7 @@ func (client Client) FileSharesClient(ctx context.Context, account accountDetail
 	if client.useResourceManager {
 		sharesClient := storage.NewFileSharesClientWithBaseURI(client.Environment.ResourceManagerEndpoint, client.SubscriptionId)
 		sharesClient.Client.Authorizer = client.resourceManagerAuthorizer
-		return shim.NewMgmtPlaneStorageShareWrapper(&sharesClient), nil
+		return shim.NewManagementPlaneStorageShareWrapper(&sharesClient), nil
 	}
 
 	sharesClient, err := client.FileSharesDataPlaneClient(ctx, account)
@@ -280,7 +285,7 @@ func (client Client) QueuesClient(ctx context.Context, account accountDetails) (
 	if client.useResourceManager {
 		queueClient := storage.NewQueueClient(client.SubscriptionId)
 		queueClient.Client.Authorizer = client.resourceManagerAuthorizer
-		return shim.NewMgmtPlaneStorageQueueWrapper(&queueClient), nil
+		return shim.NewManagementPlaneStorageQueueWrapper(&queueClient), nil
 	}
 
 	queuesClient, err := client.QueuesDataPlaneClient(ctx, account)
@@ -335,7 +340,7 @@ func (client Client) TablesClient(ctx context.Context, account accountDetails) (
 	//if client.useResourceManager {
 	//	tableClient := storage.NewTableClient(client.SubscriptionId)
 	//	tableClient.Client.Authorizer = client.resourceManagerAuthorizer
-	//	return shim.NewMgmtPlaneStorageTableWrapper(&tableClient), nil
+	//	return shim.NewManagementPlaneStorageTableWrapper(&tableClient), nil
 	//}
 
 	tablesClient, err := client.TablesDataPlaneClient(ctx, account)

@@ -202,7 +202,7 @@ func TestAccStorageShare_nfsProtocol(t *testing.T) {
 	})
 }
 
-func TestAccStorageShare_mgmtBasic(t *testing.T) {
+func TestAccStorageShare_resourceManagerBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{useResourceManager: true}
 
@@ -217,7 +217,7 @@ func TestAccStorageShare_mgmtBasic(t *testing.T) {
 	})
 }
 
-func TestAccStorageShare_mgmtMetaData(t *testing.T) {
+func TestAccStorageShare_resourceManagerMetaData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{useResourceManager: true}
 
@@ -239,45 +239,50 @@ func TestAccStorageShare_mgmtMetaData(t *testing.T) {
 	})
 }
 
-// TODO: uncomment following two test cases after https://github.com/Azure/azure-rest-api-specs/issues/16782 is addressed.
-//func TestAccStorageShare_mgmtAcl(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
-//	r := StorageShareResource{useResourceManager: true}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.acl(data),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//		{
-//			Config: r.aclUpdated(data),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
-//
-//func TestAccStorageShare_mgmtAclGhostedRecall(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
-//	r := StorageShareResource{useResourceManager: true}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.aclGhostedRecall(data),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
+func TestAccStorageShare_resourceManagerAcl(t *testing.T) {
+	// TODO: Once https://github.com/Azure/azure-rest-api-specs/issues/16782 is addressed, we can enable this test case.
+	t.Skip()
 
-func TestAccStorageShare_mgmtUpdateQuota(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{useResourceManager: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.acl(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.aclUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageShare_resourceManagerAclGhostedRecall(t *testing.T) {
+	// TODO: Once https://github.com/Azure/azure-rest-api-specs/issues/16782 is addressed, we can enable this test case.
+	t.Skip()
+
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{useResourceManager: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.aclGhostedRecall(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageShare_resourceManagerUpdateQuota(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{useResourceManager: true}
 
@@ -298,7 +303,7 @@ func TestAccStorageShare_mgmtUpdateQuota(t *testing.T) {
 	})
 }
 
-func TestAccStorageShare_mgmtLargeQuota(t *testing.T) {
+func TestAccStorageShare_resourceManagerLargeQuota(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{useResourceManager: true}
 
@@ -320,7 +325,7 @@ func TestAccStorageShare_mgmtLargeQuota(t *testing.T) {
 	})
 }
 
-func TestAccStorageShare_mgmtNfsProtocol(t *testing.T) {
+func TestAccStorageShare_resourceManagerNfsProtocol(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{useResourceManager: true}
 
@@ -335,7 +340,7 @@ func TestAccStorageShare_mgmtNfsProtocol(t *testing.T) {
 	})
 }
 
-func TestAccStorageShare_crossPlaneMetaData(t *testing.T) {
+func TestAccStorageShare_dataPlaneThenResourceManagerMetaData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{}
 
@@ -360,9 +365,34 @@ func TestAccStorageShare_crossPlaneMetaData(t *testing.T) {
 	})
 }
 
-func TestAccStorageShare_crossPlaneAcl(t *testing.T) {
+func TestAccStorageShare_resourceManagerThenDataPlaneMetaData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
-	r := StorageShareResource{}
+	r := StorageShareResource{useResourceManager: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.metaData(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			PreConfig: func() {
+				r.useResourceManager = false
+			},
+			Config: r.metaDataUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageShare_resourceManagerThenDataPlaneAcl(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{useResourceManager: true}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -374,7 +404,7 @@ func TestAccStorageShare_crossPlaneAcl(t *testing.T) {
 		data.ImportStep(),
 		{
 			PreConfig: func() {
-				r.useResourceManager = true
+				r.useResourceManager = false
 			},
 			Config: r.aclUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -398,6 +428,8 @@ func (r StorageShareResource) Exists(ctx context.Context, client *clients.Client
 	if account == nil {
 		return nil, fmt.Errorf("unable to determine Account %q for Storage Share %q", id.AccountName, id.Name)
 	}
+
+	client.Storage.UseResourceManager(r.useResourceManager)
 
 	sharesClient, err := client.Storage.FileSharesClient(ctx, *account)
 	if err != nil {
@@ -424,6 +456,8 @@ func (r StorageShareResource) Destroy(ctx context.Context, client *clients.Clien
 	if account == nil {
 		return nil, fmt.Errorf("unable to determine Account %q for Storage Share %q", id.AccountName, id.Name)
 	}
+
+	client.Storage.UseResourceManager(r.useResourceManager)
 
 	sharesClient, err := client.Storage.FileSharesClient(ctx, *account)
 	if err != nil {

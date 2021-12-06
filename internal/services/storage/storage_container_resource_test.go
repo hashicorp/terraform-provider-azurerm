@@ -185,7 +185,7 @@ func TestAccStorageContainer_web(t *testing.T) {
 	})
 }
 
-func TestAccStorageContainer_mgmtBasic(t *testing.T) {
+func TestAccStorageContainer_resourceManangerBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{useResourceManager: true}
 
@@ -200,7 +200,7 @@ func TestAccStorageContainer_mgmtBasic(t *testing.T) {
 	})
 }
 
-func TestAccStorageContainer_mgmtUpdate(t *testing.T) {
+func TestAccStorageContainer_resourceManangerUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{useResourceManager: true}
 
@@ -224,7 +224,7 @@ func TestAccStorageContainer_mgmtUpdate(t *testing.T) {
 	})
 }
 
-func TestAccStorageContainer_mgmtMetaData(t *testing.T) {
+func TestAccStorageContainer_resourceManangerMetaData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{useResourceManager: true}
 
@@ -253,25 +253,28 @@ func TestAccStorageContainer_mgmtMetaData(t *testing.T) {
 	})
 }
 
-// TODO: The mgmt plane API is forbidden to destroy a root container.
-// See: https://github.com/Azure/azure-rest-api-specs/issues/16783
-//func TestAccStorageContainer_mgmtRoot(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
-//	r := StorageContainerResource{useResourceManager: true}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.root(data),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("name").HasValue("$root"),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
+func TestAccStorageContainer_resourceManangerRoot(t *testing.T) {
+	// TODO: The mgmt plane API is forbidden to destroy a root container.
+	// See: https://github.com/Azure/azure-rest-api-specs/issues/16783
+	// Once that issue is fixed, we can enable this test case.
+	t.Skip()
 
-func TestAccStorageContainer_mgmtWeb(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{useResourceManager: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.root(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue("$root"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageContainer_resourceManangerWeb(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{useResourceManager: true}
 
@@ -287,7 +290,7 @@ func TestAccStorageContainer_mgmtWeb(t *testing.T) {
 	})
 }
 
-func TestAccStorageContainer_crossPlaneUpdate(t *testing.T) {
+func TestAccStorageContainer_dataPlaneThenResourceManager(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{}
 
@@ -312,6 +315,31 @@ func TestAccStorageContainer_crossPlaneUpdate(t *testing.T) {
 	})
 }
 
+func TestAccStorageContainer_resourceManagerThenDataPlane(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{useResourceManager: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.update(data, "private"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			PreConfig: func() {
+				r.useResourceManager = false
+			},
+			Config: r.update(data, "container"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StorageContainerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.StorageContainerDataPlaneID(state.ID)
 	if err != nil {
@@ -324,6 +352,8 @@ func (r StorageContainerResource) Exists(ctx context.Context, client *clients.Cl
 	if account == nil {
 		return nil, fmt.Errorf("unable to locate Storage Account %q", id.AccountName)
 	}
+
+	client.Storage.UseResourceManager(r.useResourceManager)
 
 	containersClient, err := client.Storage.ContainersClient(ctx, *account)
 	if err != nil {
@@ -348,6 +378,9 @@ func (r StorageContainerResource) Destroy(ctx context.Context, client *clients.C
 	if account == nil {
 		return nil, fmt.Errorf("unable to locate Storage Account %q", id.AccountName)
 	}
+
+	client.Storage.UseResourceManager(r.useResourceManager)
+
 	containersClient, err := client.Storage.ContainersClient(ctx, *account)
 	if err != nil {
 		return nil, fmt.Errorf("building Containers Client: %+v", err)
