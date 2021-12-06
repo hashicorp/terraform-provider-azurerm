@@ -310,7 +310,7 @@ An `azure_keyvault_secrets_provider` block exports the following:
 
 ---
 
-The `secret_provider_identity` block exports the following:
+The `secret_identity` block exports the following:
 
 * `client_id` - The Client ID of the user-defined Managed Identity used by the Secret Provider.
 

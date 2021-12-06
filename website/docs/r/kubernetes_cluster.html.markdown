@@ -836,11 +836,11 @@ The `oms_agent_identity` block exports the following:
 
 The `azure_keyvault_secrets_provider` block exports the following:
 
-* `secret_provider_identity` - An `secret_provider_identity` block is exported. The exported attributes are defined below.  
+* `secret_identity` - An `secret_identity` block is exported. The exported attributes are defined below.  
 
 ---
 
-The `secret_provider_identity` block exports the following:
+The `secret_identity` block exports the following:
 
 * `client_id` - The Client ID of the user-defined Managed Identity used by the Secret Provider.
 
