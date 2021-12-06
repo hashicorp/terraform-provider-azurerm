@@ -2,9 +2,7 @@ package migration
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
@@ -26,28 +24,15 @@ func (AutoscaleSettingUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/autoscalesettings/{settingName}
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/autoscaleSettings/{settingName}
-		oldId, err := azure.ParseAzureResourceID(rawState["id"].(string))
+		oldId := rawState["id"].(string)
+		id, err := parse.AutoscaleSettingIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}
 
-		settingName := ""
-		for key, value := range oldId.Path {
-			if strings.EqualFold(key, "autoscaleSettings") {
-				settingName = value
-				break
-			}
-		}
-
-		if settingName == "" {
-			return rawState, fmt.Errorf("couldn't find the `autoscaleSettings` segment in the old resource id %q", oldId)
-		}
-
-		newId := parse.NewAutoscaleSettingID(oldId.SubscriptionID, oldId.ResourceGroup, settingName)
-
-		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId.ID())
-
-		rawState["id"] = newId.ID()
+		newId := id.ID()
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+		rawState["id"] = newId
 
 		return rawState, nil
 	}

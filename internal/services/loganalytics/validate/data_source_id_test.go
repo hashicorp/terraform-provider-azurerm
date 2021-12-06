@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestLogAnalyticsDataSourceWindowsEventID(t *testing.T) {
+func TestDataSourceID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -53,13 +53,13 @@ func TestLogAnalyticsDataSourceWindowsEventID(t *testing.T) {
 		},
 
 		{
-			// missing DataSourceName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/",
 			Valid: false,
 		},
 
 		{
-			// missing value for DataSourceName
+			// missing value for Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/dataSources/",
 			Valid: false,
 		},
@@ -78,7 +78,7 @@ func TestLogAnalyticsDataSourceWindowsEventID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := LogAnalyticsDataSourceWindowsEventID(tc.Input, "test")
+		_, errors := DataSourceID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
