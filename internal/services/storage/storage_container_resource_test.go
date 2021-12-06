@@ -303,10 +303,10 @@ func TestAccStorageContainer_dataPlaneThenResourceManager(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			PreConfig: func() {
+			Config: func() string {
 				r.useResourceManager = true
-			},
-			Config: r.update(data, "container"),
+				return r.update(data, "container")
+			}(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -328,10 +328,10 @@ func TestAccStorageContainer_resourceManagerThenDataPlane(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			PreConfig: func() {
+			Config: func() string {
 				r.useResourceManager = false
-			},
-			Config: r.update(data, "container"),
+				return r.update(data, "container")
+			}(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

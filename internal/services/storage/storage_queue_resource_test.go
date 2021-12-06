@@ -134,10 +134,10 @@ func TestAccStorageQueue_dataPlaneThenResourceManagerMetaData(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			PreConfig: func() {
+			Config: func() string {
 				r.useResourceManager = true
-			},
-			Config: r.metaDataUpdated(data),
+				return r.metaDataUpdated(data)
+			}(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -159,10 +159,10 @@ func TestAccStorageQueue_resourceManagerThenDataPlaneMetaData(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			PreConfig: func() {
+			Config: func() string {
 				r.useResourceManager = false
-			},
-			Config: r.metaDataUpdated(data),
+				return r.metaDataUpdated(data)
+			}(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

@@ -353,10 +353,10 @@ func TestAccStorageShare_dataPlaneThenResourceManagerMetaData(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			PreConfig: func() {
+			Config: func() string {
 				r.useResourceManager = true
-			},
-			Config: r.metaDataUpdated(data),
+				return r.metaDataUpdated(data)
+			}(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -378,10 +378,38 @@ func TestAccStorageShare_resourceManagerThenDataPlaneMetaData(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			PreConfig: func() {
+			Config: func() string {
 				r.useResourceManager = false
-			},
-			Config: r.metaDataUpdated(data),
+				return r.metaDataUpdated(data)
+			}(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageShare_dataPlaneThenResourceManagerAcl(t *testing.T) {
+	// TODO: Once https://github.com/Azure/azure-rest-api-specs/issues/16782 is addressed, we can enable this test case.
+	t.Skip()
+
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.acl(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: func() string {
+				r.useResourceManager = true
+				return r.aclUpdated(data)
+			}(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -391,6 +419,9 @@ func TestAccStorageShare_resourceManagerThenDataPlaneMetaData(t *testing.T) {
 }
 
 func TestAccStorageShare_resourceManagerThenDataPlaneAcl(t *testing.T) {
+	// TODO: Once https://github.com/Azure/azure-rest-api-specs/issues/16782 is addressed, we can enable this test case.
+	t.Skip()
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{useResourceManager: true}
 
@@ -403,10 +434,10 @@ func TestAccStorageShare_resourceManagerThenDataPlaneAcl(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			PreConfig: func() {
+			Config: func() string {
 				r.useResourceManager = false
-			},
-			Config: r.aclUpdated(data),
+				return r.aclUpdated(data)
+			}(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
