@@ -342,12 +342,12 @@ func (client Client) TableEntityClient(ctx context.Context, account accountDetai
 }
 
 func (client Client) TablesClient(ctx context.Context, account accountDetails) (shim.StorageTableWrapper, error) {
-	//TODO: once mgmt API got ACL support, we can uncomment below
-	//if client.useResourceManager {
+	// TODO: once mgmt API got ACL support, we can uncomment below
+	// if client.useResourceManager {
 	//	tableClient := storage.NewTableClient(client.SubscriptionId)
 	//	tableClient.Client.Authorizer = client.resourceManagerAuthorizer
 	//	return shim.NewManagementPlaneStorageTableWrapper(&tableClient), nil
-	//}
+	// }
 
 	tablesClient, err := client.TablesDataPlaneClient(ctx, account)
 	if err != nil {
