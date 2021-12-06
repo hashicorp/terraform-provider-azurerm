@@ -1530,7 +1530,7 @@ resource "azurerm_linux_function_app" "test" {
       }
     }
     load_balancing_mode      = "LeastResponseTime"
-    remote_debugging         = true
+    remote_debugging_enabled = true
     remote_debugging_version = "VS2019"
 
     scm_ip_restriction {
@@ -1706,7 +1706,7 @@ resource "azurerm_linux_function_app" "test" {
 
     load_balancing_mode       = "LeastResponseTime"
     pre_warmed_instance_count = 2
-    remote_debugging          = true
+    remote_debugging_enabled  = true
     remote_debugging_version  = "VS2017"
 
     scm_ip_restriction {
@@ -1839,7 +1839,7 @@ resource "azurerm_linux_function_app" "test" {
 
     load_balancing_mode       = "LeastResponseTime"
     pre_warmed_instance_count = 2
-    remote_debugging          = true
+    remote_debugging_enabled  = true
     remote_debugging_version  = "VS2017"
 
     scm_ip_restriction {

@@ -36,7 +36,7 @@ type SiteConfigLinuxFunctionApp struct {
 	LoadBalancing                 string                             `tfschema:"load_balancing_mode"` // TODO - Valid for FunctionApps?
 	ManagedPipelineMode           string                             `tfschema:"managed_pipeline_mode"`
 	PreWarmedInstanceCount        int                                `tfschema:"pre_warmed_instance_count"`
-	RemoteDebugging               bool                               `tfschema:"remote_debugging"`
+	RemoteDebugging               bool                               `tfschema:"remote_debugging_enabled"`
 	RemoteDebuggingVersion        string                             `tfschema:"remote_debugging_version"`
 	RuntimeScaleMonitoring        bool                               `tfschema:"runtime_scale_monitoring_enabled"`
 	ScmIpRestriction              []IpRestriction                    `tfschema:"scm_ip_restriction"`
@@ -207,7 +207,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Description: "The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.",
 				},
 
-				"remote_debugging": {
+				"remote_debugging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -350,7 +350,7 @@ type SiteConfigWindowsFunctionApp struct {
 	LoadBalancing                 string                               `tfschema:"load_balancing_mode"` // TODO - Valid for FunctionApps?
 	ManagedPipelineMode           string                               `tfschema:"managed_pipeline_mode"`
 	PreWarmedInstanceCount        int                                  `tfschema:"pre_warmed_instance_count"`
-	RemoteDebugging               bool                                 `tfschema:"remote_debugging"`
+	RemoteDebugging               bool                                 `tfschema:"remote_debugging_enabled"`
 	RemoteDebuggingVersion        string                               `tfschema:"remote_debugging_version"`
 	RuntimeScaleMonitoring        bool                                 `tfschema:"runtime_scale_monitoring_enabled"`
 	ScmIpRestriction              []IpRestriction                      `tfschema:"scm_ip_restriction"`
@@ -507,7 +507,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Description: "The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.",
 				},
 
-				"remote_debugging": {
+				"remote_debugging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -1160,7 +1160,7 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.ManagedPipelineMode = web.ManagedPipelineMode(linuxSiteConfig.ManagedPipelineMode)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.remote_debugging") {
+	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_enabled") {
 		expanded.RemoteDebuggingEnabled = utils.Bool(linuxSiteConfig.RemoteDebugging)
 	}
 
@@ -1387,7 +1387,7 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 		expanded.ManagedPipelineMode = web.ManagedPipelineMode(windowsSiteConfig.ManagedPipelineMode)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.remote_debugging") {
+	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_enabled") {
 		expanded.RemoteDebuggingEnabled = utils.Bool(windowsSiteConfig.RemoteDebugging)
 	}
 

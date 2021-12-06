@@ -387,7 +387,7 @@ A `site_config` block supports the following:
 
 * `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.
 
-* `remote_debugging` - (Optional) Should Remote Debugging be enabled. Defaults to `false`.
+* `remote_debugging_enabled` - (Optional) Should Remote Debugging be enabled. Defaults to `false`.
 
 * `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017` and `VS2019`.
 
