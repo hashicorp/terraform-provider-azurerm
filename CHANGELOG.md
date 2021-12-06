@@ -3,6 +3,7 @@
 FEATURES:
 
 **New Resource:** `azurerm_bot_service_azure_bot` [GH-14462]
+**New Resource:** `azurerm_sql_managed_instance_active_directory_administrator` [GH-14104]
 
 ENHANCEMENTS:
 
