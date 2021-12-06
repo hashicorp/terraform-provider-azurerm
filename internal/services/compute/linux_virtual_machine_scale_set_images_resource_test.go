@@ -19,18 +19,14 @@ func TestAccLinuxVirtualMachineScaleSet_imagesAutomaticUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.imagesAutomaticUpdate(data, "18.04-LTS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -45,18 +41,14 @@ func TestAccLinuxVirtualMachineScaleSet_imagesDisableAutomaticUpdate(t *testing.
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.imagesDisableAutomaticUpdate(data, "18.04-LTS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -84,9 +76,7 @@ func TestAccLinuxVirtualMachineScaleSet_imagesFromCapturedVirtualMachineImage(t 
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// then update the image on this Virtual Machine Scale Set
 			Config: r.imagesFromVirtualMachine(data, "second"),
@@ -97,9 +87,7 @@ func TestAccLinuxVirtualMachineScaleSet_imagesFromCapturedVirtualMachineImage(t 
 				check.That(data.ResourceName).Key("os_disk.0.disk_size_gb").HasValue("50"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -114,18 +102,14 @@ func TestAccLinuxVirtualMachineScaleSet_imagesManualUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.imagesManualUpdate(data, "18.04-LTS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -140,18 +124,14 @@ func TestAccLinuxVirtualMachineScaleSet_imagesManualUpdateExternalRoll(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.imagesManualUpdateExternalRoll(data, "18.04-LTS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -166,18 +146,14 @@ func TestAccLinuxVirtualMachineScaleSet_imagesRollingUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.imagesRollingUpdate(data, "18.04-LTS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -192,9 +168,7 @@ func TestAccLinuxVirtualMachineScaleSet_imagesPlan(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 

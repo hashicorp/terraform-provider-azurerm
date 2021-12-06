@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -252,7 +253,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 			Upstream: expandUpstreamSettings(upstreamSettings),
 		},
 		Sku:  expandSignalRServiceSku(sku),
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, resourceType); err != nil {
@@ -317,7 +318,7 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `upstream_endpoint`: %+v", err)
 			}
 
-			if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+			if err := tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags)); err != nil {
 				return err
 			}
 		}
@@ -371,7 +372,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChange("tags") {
 		tagsRaw := d.Get("tags").(map[string]interface{})
-		resourceType.Tags = expandTags(tagsRaw)
+		resourceType.Tags = tagsHelper.Expand(tagsRaw)
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, resourceType); err != nil {

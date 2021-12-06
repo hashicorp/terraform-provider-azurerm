@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -90,7 +91,7 @@ func resourceEventHubClusterCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	cluster := eventhubsclusters.Cluster{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
-		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
+		Tags:     tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
 		Sku:      expandEventHubClusterSkuName(d.Get("sku_name").(string)),
 	}
 
@@ -130,7 +131,7 @@ func resourceEventHubClusterRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("sku_name", flattenEventHubClusterSkuName(model.Sku))
 		d.Set("location", location.NormalizeNilable(model.Location))
 
-		return tags.FlattenAndSet(d, flattenTags(model.Tags))
+		return tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags))
 	}
 
 	return nil

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type DataSetId struct {
@@ -45,7 +45,7 @@ func (id DataSetId) ID() string {
 
 // DataSetID parses a DataSet ID into an DataSetId struct
 func DataSetID(input string) (*DataSetId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

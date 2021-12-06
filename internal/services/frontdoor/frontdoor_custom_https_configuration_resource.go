@@ -101,7 +101,7 @@ func resourceFrontDoorCustomHttpsConfigurationCreateUpdate(d *pluginsdk.Resource
 		return err
 	}
 
-	customHttpsConfigurationId := parse.NewCustomHttpsConfigurationID(id.SubscriptionId, id.ResourceGroup, id.FrontDoorName, id.Name)
+	customHttpsConfigurationId := parse.NewCustomHttpsConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.FrontDoorName, id.FrontendEndpointName)
 
 	resp, err := client.FrontendEndpointsGet(ctx, *id)
 	if err != nil {
@@ -206,7 +206,7 @@ func resourceFrontDoorCustomHttpsConfigurationDelete(d *pluginsdk.ResourceData, 
 			input.provisioningState = *props.CustomHttpsProvisioningState
 		}
 		if err := updateCustomHttpsConfiguration(ctx, client, input); err != nil {
-			return fmt.Errorf("disabling Custom HTTPS configuration for Frontend Endpoint %q (Front Door %q / Resource Group %q): %+v", id.Name, id.FrontDoorName, id.ResourceGroup, err)
+			return fmt.Errorf("disabling Custom HTTPS configuration for Frontend Endpoint %q (Front Door %q / Resource Group %q): %+v", id.FrontendEndpointName, id.FrontDoorName, id.ResourceGroupName, err)
 		}
 	}
 
@@ -250,14 +250,14 @@ func updateCustomHttpsConfiguration(ctx context.Context, client *frontdoors.Fron
 			if input.provisioningState == frontdoors.CustomHttpsProvisioningStateDisabled || customHTTPSConfigurationUpdate != *input.customHttpsConfigurationCurrent {
 				// Enable Custom Domain HTTPS for the Frontend Endpoint
 				if err := resourceFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx, client, input.frontendEndpointId, true, customHTTPSConfigurationUpdate); err != nil {
-					return fmt.Errorf("unable to enable/update Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", input.frontendEndpointId.Name, input.frontendEndpointId.ResourceGroup, err)
+					return fmt.Errorf("unable to enable/update Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", input.frontendEndpointId.FrontendEndpointName, input.frontendEndpointId.ResourceGroupName, err)
 				}
 			}
 		}
 	} else if !input.customHttpsProvisioningEnabled && input.provisioningState == frontdoors.CustomHttpsProvisioningStateEnabled {
 		// Disable Custom Domain HTTPS for the Frontend Endpoint
 		if err := resourceFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx, client, input.frontendEndpointId, false, frontdoors.CustomHttpsConfiguration{}); err != nil {
-			return fmt.Errorf("unable to disable Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", input.frontendEndpointId.Name, input.frontendEndpointId.ResourceGroup, err)
+			return fmt.Errorf("unable to disable Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", input.frontendEndpointId.FrontendEndpointName, input.frontendEndpointId.ResourceGroupName, err)
 		}
 	}
 

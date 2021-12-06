@@ -19,6 +19,8 @@ var kubernetesNetworkAuthTests = map[string]func(t *testing.T){
 	"standardLoadBalancerComplete":                  testAccKubernetesCluster_standardLoadBalancerComplete,
 	"standardLoadBalancerProfile":                   testAccKubernetesCluster_standardLoadBalancerProfile,
 	"standardLoadBalancerProfileComplete":           testAccKubernetesCluster_standardLoadBalancerProfileComplete,
+	"natGatewayProfile":                             testAccKubernetesCluster_natGatewayProfile,
+	"userAssignedNatGateway":                        testAccKubernetesCluster_userAssignedNatGateway,
 	"advancedNetworkingKubenet":                     testAccKubernetesCluster_advancedNetworkingKubenet,
 	"advancedNetworkingKubenetComplete":             testAccKubernetesCluster_advancedNetworkingKubenetComplete,
 	"advancedNetworkingAzure":                       testAccKubernetesCluster_advancedNetworkingAzure,
@@ -297,6 +299,82 @@ func testAccKubernetesCluster_outboundTypeLoadBalancer(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.outboundTypeLoadBalancerConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_natGatewayProfile(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_natGatewayProfile(t)
+}
+
+func testAccKubernetesCluster_natGatewayProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.natGatewayProfileConfig(data, 3, 10),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.managed_outbound_ip_count").HasValue("3"),
+				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.effective_outbound_ips.#").HasValue("3"),
+				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.idle_timeout_in_minutes").HasValue("10"),
+			),
+		},
+		data.ImportStep(),
+
+		{
+			Config: r.natGatewayProfileConfig(data, 4, 5),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.managed_outbound_ip_count").HasValue("4"),
+				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.idle_timeout_in_minutes").HasValue("5"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_managedNatGateway(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_managedNatGateway(t)
+}
+
+func testAccKubernetesCluster_managedNatGateway(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.managedNatGatewayConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.idle_timeout_in_minutes").HasValue("4"),
+				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.managed_outbound_ip_count").HasValue("1"),
+				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.effective_outbound_ips.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_userAssignedNatGateway(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_userAssignedNatGateway(t)
+}
+
+func testAccKubernetesCluster_userAssignedNatGateway(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.userAssignedNatGatewayConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1096,6 +1174,173 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) managedNatGatewayConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 2
+    vm_size    = "Standard_DS2_v2"
+    max_pods   = 60
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin     = "kubenet"
+    load_balancer_sku  = "Standard"
+    pod_cidr           = "10.244.0.0/16"
+    service_cidr       = "10.0.0.0/16"
+    dns_service_ip     = "10.0.0.10"
+    docker_bridge_cidr = "172.17.0.1/16"
+    outbound_type      = "managedNATGateway"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) natGatewayProfileConfig(data acceptance.TestData, ipCount int, idleTimeOut int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 2
+    vm_size    = "Standard_DS2_v2"
+    max_pods   = 60
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin     = "kubenet"
+    load_balancer_sku  = "Standard"
+    pod_cidr           = "10.244.0.0/16"
+    service_cidr       = "10.0.0.0/16"
+    dns_service_ip     = "10.0.0.10"
+    docker_bridge_cidr = "172.17.0.1/16"
+    outbound_type      = "managedNATGateway"
+    nat_gateway_profile {
+      managed_outbound_ip_count = %d
+      idle_timeout_in_minutes   = %d
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, ipCount, idleTimeOut)
+}
+
+func (KubernetesClusterResource) userAssignedNatGatewayConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  address_space       = ["172.16.0.0/20"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_nat_gateway" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctest-PIP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_nat_gateway_public_ip_association" "test" {
+  nat_gateway_id       = azurerm_nat_gateway.test.id
+  public_ip_address_id = azurerm_public_ip.test.id
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "172.16.0.0/22"
+}
+
+resource "azurerm_subnet_nat_gateway_association" "test" {
+  subnet_id      = azurerm_subnet.test.id
+  nat_gateway_id = azurerm_nat_gateway.test.id
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  depends_on          = [azurerm_nat_gateway_public_ip_association.test]
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
+    max_pods       = 60
+    vnet_subnet_id = azurerm_subnet.test.id
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin     = "kubenet"
+    load_balancer_sku  = "Standard"
+    pod_cidr           = "10.244.0.0/16"
+    service_cidr       = "10.0.0.0/16"
+    dns_service_ip     = "10.0.0.10"
+    docker_bridge_cidr = "172.17.0.1/16"
+    outbound_type      = "userAssignedNATGateway"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) outboundTypeLoadBalancerConfig(data acceptance.TestData) string {

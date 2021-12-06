@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ReplicationProtectionContainerId struct {
@@ -45,7 +45,7 @@ func (id ReplicationProtectionContainerId) ID() string {
 
 // ReplicationProtectionContainerID parses a ReplicationProtectionContainer ID into an ReplicationProtectionContainerId struct
 func ReplicationProtectionContainerID(input string) (*ReplicationProtectionContainerId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

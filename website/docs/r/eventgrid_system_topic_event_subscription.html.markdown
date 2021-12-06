@@ -113,6 +113,8 @@ A `storage_queue_endpoint` supports the following:
 
 * `queue_name` - (Required) Specifies the name of the storage queue where the Event Subscription will receive events.
 
+* `queue_message_time_to_live_in_seconds` - (Optional) Storage queue message time to live in seconds.
+
 ---
 
 An `azure_function_endpoint` supports the following:
@@ -189,13 +191,17 @@ Each nested block consists of a key and a value(s) element.
 
 A `delivery_identity` supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that is used for event delivery. Allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that is used for event delivery. Allowed value is `SystemAssigned`, `UserAssigned`.
+
+* `userAssignedIdentity` - (Optional) The user identity associated with the resource.
 
 ---
 
 A `dead_letter_identity` supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that is used for dead lettering. Allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that is used for dead lettering. Allowed value is `SystemAssigned`, `UserAssigned`.
+
+* `userAssignedIdentity` - (Optional) The user identity associated with the resource.
 
 ---
 

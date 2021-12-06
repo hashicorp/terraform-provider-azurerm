@@ -1646,7 +1646,7 @@ func flattenAppServiceIdentity(identity *web.ManagedServiceIdentity) ([]interfac
 	identityIds := make([]string, 0)
 	if identity.UserAssignedIdentities != nil {
 		for key := range identity.UserAssignedIdentities {
-			parsedId, err := parse.UserAssignedIdentityID(key)
+			parsedId, err := parse.UserAssignedIdentityIDInsensitively(key)
 			if err != nil {
 				return nil, err
 			}

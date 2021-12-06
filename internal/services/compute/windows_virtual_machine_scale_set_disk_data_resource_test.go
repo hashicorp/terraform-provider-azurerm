@@ -19,9 +19,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskBasic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -36,27 +34,21 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskCaching(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.disksDataDiskCaching(data, "ReadOnly"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.disksDataDiskCaching(data, "ReadWrite"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -71,9 +63,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskDiskEncryptionSet(t *test
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -89,9 +79,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskResizing(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// 60GB
 			Config: r.disksDataDiskResize(data, 60),
@@ -99,9 +87,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskResizing(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -116,9 +102,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskMultiple(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -133,18 +117,14 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskRemove(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.authPassword(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -160,9 +140,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskScaling(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// one disk
 			Config: r.disksDataDiskBasic(data),
@@ -170,9 +148,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskScaling(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// two disks
 			Config: r.disksDataDiskMultiple(data),
@@ -180,9 +156,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskScaling(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// no disks
 			Config: r.authPassword(data),
@@ -190,9 +164,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskScaling(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -207,9 +179,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeStandar
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -224,9 +194,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeStandar
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -241,9 +209,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypePremium
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -259,9 +225,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSS
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -277,9 +241,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSS
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -295,9 +257,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSS
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -313,9 +273,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSS
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -330,9 +288,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskWriteAcceleratorEnabled(t
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type VirtualNetworkPeeringId struct {
@@ -42,7 +42,7 @@ func (id VirtualNetworkPeeringId) ID() string {
 
 // VirtualNetworkPeeringID parses a VirtualNetworkPeering ID into an VirtualNetworkPeeringId struct
 func VirtualNetworkPeeringID(input string) (*VirtualNetworkPeeringId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

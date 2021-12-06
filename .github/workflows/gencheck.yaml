@@ -4,12 +4,13 @@ on:
   pull_request:
     types: ['opened', 'synchronize']
     paths:
+      - '.github/**'
       - '**.go'
       - 'azurerm/**'
       - '.github/workflows/**'
 
 concurrency:
-  group: '${{ github.head_ref }}'
+  group: 'gencheck-${{ github.head_ref }}'
   cancel-in-progress: true
 
 jobs:

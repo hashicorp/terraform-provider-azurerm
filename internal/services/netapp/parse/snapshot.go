@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type SnapshotId struct {
@@ -48,7 +48,7 @@ func (id SnapshotId) ID() string {
 
 // SnapshotID parses a Snapshot ID into an SnapshotId struct
 func SnapshotID(input string) (*SnapshotId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

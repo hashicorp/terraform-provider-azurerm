@@ -14,11 +14,32 @@ Manages the registration of a Resource Provider - which allows access to the API
 
 !> **Note:** The errors returned from the Azure API when a Resource Provider is unregistered are unclear (example `API version '2019-01-01' was not found for 'Microsoft.Foo'`) - please ensure that all of the necessary Resource Providers you're using are registered - if in doubt **we strongly recommend letting Terraform register these for you**.
 
+-> **Note:** Adding or Removing a Preview Feature will re-register the Resource Provider.
+
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_provider_registration" "example" {
   name = "Microsoft.PolicyInsights"
+}
+```
+
+## Example Usage (Registering a Preview Feature)
+
+```hcl
+provider "azurerm" {
+  features {}
+
+  skip_provider_registration = true
+}
+
+resource "azurerm_resource_provider_registration" "example" {
+  name = "Microsoft.ContainerService"
+
+  feature {
+    name       = "AKS-DataPlaneAutoApprove"
+    registered = true
+  }
 }
 ```
 
@@ -28,12 +49,27 @@ The following arguments are supported:
 
 * `name` - (Required) The namespace of the Resource Provider which should be registered. Changing this forces a new resource to be created.
 
+* `feature` - (Optional) A list of `feature` blocks as defined below.
+
+~> **Note:** The `feature` block allows a Preview Feature to be explicitly Registered or Unregistered for this Resource Provider - once a Feature has been explicitly Registered or Unregistered, it must be specified in the Terraform Configuration (it's not possible to reset this to the default, unspecified, state).
+
+---
+
+A `feature` block supports the following:
+
+* `name` - (Required) Specifies the name of the feature to register.
+
+~> **Note:** Only Preview Features which have an `ApprovalType` of `AutoApproval` can be managed in Terraform, features which require manual approval by Service Teams are unsupported. [More information on Resource Provider Preview Features can be found in this document](https://docs.microsoft.com/en-us/rest/api/resources/features)
+
+* `registered` - (Required) Should this feature be Registered or Unregistered?
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when registering the Resource Provider.
+* `create` - (Defaults to 120 minutes) Used when registering the Resource Provider/Features.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Resource Provider.
+* `update` - (Defaults to 120 minutes) Used when updating the Resource Provider/Features.
 * `delete` - (Defaults to 30 minutes) Used when unregistering the Resource Provider.
 
 ## Import

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type BotChannelId struct {
@@ -42,7 +42,7 @@ func (id BotChannelId) ID() string {
 
 // BotChannelID parses a BotChannel ID into an BotChannelId struct
 func BotChannelID(input string) (*BotChannelId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

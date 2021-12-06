@@ -20,6 +20,7 @@ type Client struct {
 	RunbookDraftClient          *automation.RunbookDraftClient
 	ScheduleClient              *automation.ScheduleClient
 	VariableClient              *automation.VariableClient
+	WebhookClient               *automation.WebhookClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -65,6 +66,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	variableClient := automation.NewVariableClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&variableClient.Client, o.ResourceManagerAuthorizer)
 
+	webhookClient := automation.NewWebhookClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&webhookClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		AccountClient:               &accountClient,
 		AgentRegistrationInfoClient: &agentRegistrationInfoClient,
@@ -80,5 +84,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		RunbookDraftClient:          &runbookDraftClient,
 		ScheduleClient:              &scheduleClient,
 		VariableClient:              &variableClient,
+		WebhookClient:               &webhookClient,
 	}
 }

@@ -60,6 +60,8 @@ lint:
 	./scripts/run-lint.sh
 
 depscheck:
+	@echo "==> Checking dependencies.."
+	@./scripts/track2-check.sh
 	@echo "==> Checking source code with go mod tidy..."
 	@go mod tidy
 	@git diff --exit-code -- go.mod go.sum || \
