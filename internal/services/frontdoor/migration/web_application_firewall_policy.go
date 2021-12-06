@@ -2,10 +2,11 @@ package migration
 
 import (
 	"context"
+	"log"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"log"
 )
 
 var _ pluginsdk.StateUpgrade = WebApplicationFirewallPolicyV0ToV1{}

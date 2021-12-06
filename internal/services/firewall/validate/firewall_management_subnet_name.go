@@ -2,6 +2,7 @@ package validate
 
 import (
 	"fmt"
+
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 )
 

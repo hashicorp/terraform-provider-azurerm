@@ -3,9 +3,10 @@ package datafactory
 import (
 	"context"
 	"fmt"
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"strings"
 	"time"
+
+	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"

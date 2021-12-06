@@ -2,9 +2,10 @@ package migration
 
 import (
 	"context"
+	"log"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"log"
 )
 
 var _ pluginsdk.StateUpgrade = CustomHttpsConfigurationV0ToV1{}

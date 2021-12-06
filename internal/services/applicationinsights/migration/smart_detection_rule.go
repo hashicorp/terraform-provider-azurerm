@@ -2,9 +2,10 @@ package migration
 
 import (
 	"context"
+	"log"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"log"
 )
 
 var _ pluginsdk.StateUpgrade = SmartDetectionRuleUpgradeV0ToV1{}

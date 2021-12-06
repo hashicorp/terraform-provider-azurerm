@@ -2,11 +2,12 @@ package migration
 
 import (
 	"context"
+	"log"
+
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"log"
 )
 
 var _ pluginsdk.StateUpgrade = ComponentUpgradeV0ToV1{}
