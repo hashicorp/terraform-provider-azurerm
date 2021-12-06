@@ -43,7 +43,7 @@ func resourceDataFactoryLinkedServiceAzureTableStorage() *pluginsdk.Resource {
 				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
-			// TODO 3.0 rename this to data_factory_id
+			// TODO remove in 3.0
 			"data_factory_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
