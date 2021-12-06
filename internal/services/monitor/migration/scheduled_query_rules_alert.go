@@ -2,11 +2,12 @@ package migration
 
 import (
 	"context"
+	"log"
+
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"log"
 )
 
 var _ pluginsdk.StateUpgrade = ScheduledQueryRulesAlertUpgradeV0ToV1{}

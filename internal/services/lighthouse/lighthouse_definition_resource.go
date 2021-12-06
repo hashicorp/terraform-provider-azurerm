@@ -2,9 +2,10 @@ package lighthouse
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"log"
 	"time"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 
 	"github.com/Azure/azure-sdk-for-go/services/managedservices/mgmt/2019-06-01/managedservices"
 	frsUUID "github.com/gofrs/uuid"
