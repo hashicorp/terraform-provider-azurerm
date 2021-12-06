@@ -105,7 +105,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
   name                = "acctestlskv%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   key_vault_id        = azurerm_key_vault.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -142,7 +142,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
   name                = "acctestlskv%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   key_vault_id        = azurerm_key_vault.test.id
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"
