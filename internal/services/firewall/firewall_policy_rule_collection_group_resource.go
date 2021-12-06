@@ -93,12 +93,12 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 									"name": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validate.FirewallPolicyRuleName(),
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"description": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.FirewallPolicyRuleName(),
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"protocols": {
 										Type:     pluginsdk.TypeSet,
@@ -229,7 +229,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 									"name": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validate.FirewallPolicyRuleName(),
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"protocols": {
 										Type:     pluginsdk.TypeSet,
@@ -343,7 +343,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 									"name": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validate.FirewallPolicyRuleName(),
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"protocols": {
 										Type:     pluginsdk.TypeSet,
