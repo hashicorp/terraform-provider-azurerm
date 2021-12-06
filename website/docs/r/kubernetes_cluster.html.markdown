@@ -683,6 +683,8 @@ A `http_proxy_config` block supports the following:
 
 -> **Note:** If you specify the `default_node_pool.0.vnet_subnet_id`, be sure to include the Subnet CIDR in the `no_proxy` list.
 
+-> **Note:** You may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore the changes to this field.
+
 * `trusted_ca` - (Optional) The base64 encoded alternative CA certificate content in PEM format.
 
 ---

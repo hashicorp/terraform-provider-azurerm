@@ -894,7 +894,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ForceNew: true,
 						},
 						"no_proxy": {
-							Type:     pluginsdk.TypeList,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							ForceNew: true,
 							Elem: &schema.Schema{
@@ -2714,7 +2714,7 @@ func expandKubernetesClusterHttpProxyConfig(input []interface{}) *containerservi
 	httpProxyConfig.HTTPSProxy = utils.String(config["https_proxy"].(string))
 	httpProxyConfig.TrustedCa = utils.String(config["trusted_ca"].(string))
 
-	noProxyRaw := config["no_proxy"].([]interface{})
+	noProxyRaw := config["no_proxy"].(*pluginsdk.Set).List()
 	httpProxyConfig.NoProxy = utils.ExpandStringSlice(noProxyRaw)
 
 	return &httpProxyConfig
