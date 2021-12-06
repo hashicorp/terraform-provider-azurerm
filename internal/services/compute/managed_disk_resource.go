@@ -819,8 +819,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				d.Set("logical_sector_size", creationData.LogicalSectorSize)
 			}
 
-			// When galleryImageReference is used, imageReference should be empty, but it is set to the same value as well by API
-			// Check for galleryImageReference first and only set one of gallery_image_reference_id and image_reference_id
+			// imageReference is returned as well when galleryImageRefernece is used, only check imageReference when galleryImageReference is not returned
 			galleryImageReferenceId := ""
 			imageReferenceId := ""
 			if galleryImageReference := creationData.GalleryImageReference; galleryImageReference != nil && galleryImageReference.ID != nil {
