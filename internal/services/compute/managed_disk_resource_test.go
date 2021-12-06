@@ -979,6 +979,7 @@ resource "azurerm_managed_disk" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   os_type                    = "Linux"
+  hyper_v_generation         = "V1"
   create_option              = "FromImage"
   gallery_image_reference_id = azurerm_shared_image_version.test.id
   storage_account_type       = "Standard_LRS"
