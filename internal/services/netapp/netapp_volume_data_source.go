@@ -135,7 +135,7 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.NetAppAccountName)
+	d.Set("name", id.Name)
 	d.Set("pool_name", id.CapacityPoolName)
 	d.Set("account_name", id.NetAppAccountName)
 	d.Set("resource_group_name", id.ResourceGroup)
