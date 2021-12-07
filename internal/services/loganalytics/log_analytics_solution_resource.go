@@ -2,7 +2,7 @@ package loganalytics
 
 import (
 	"fmt"
-	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	loganalyticsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -28,7 +28,7 @@ func resourceLogAnalyticsSolution() *pluginsdk.Resource {
 		Update: resourceLogAnalyticsSolutionCreateUpdate,
 		Delete: resourceLogAnalyticsSolutionDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := loganalyticsParse.LogAnalyticsSolutionID(id)
+			_, err := parse.LogAnalyticsSolutionID(id)
 			return err
 		}),
 
@@ -49,9 +49,10 @@ func resourceLogAnalyticsSolution() *pluginsdk.Resource {
 
 			"workspace_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.LogAnalyticsWorkspaceName,
+				Deprecated:   "`workspace_name` is no longer used, can be safely removed from your configuration, and will be removed in version 3.0 of the AzureRM provider",
 			},
 
 			"workspace_resource_id": {
@@ -59,6 +60,7 @@ func resourceLogAnalyticsSolution() *pluginsdk.Resource {
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     validate.LogAnalyticsWorkspaceID,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -104,11 +106,20 @@ func resourceLogAnalyticsSolutionCreateUpdate(d *pluginsdk.ResourceData, meta in
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for Log Analytics Solution creation.")
+
+	workspaceId, err := parse.LogAnalyticsWorkspaceID(d.Get("workspace_resource_id").(string))
+	if err != nil {
+		return fmt.Errorf("parsing `workspace_resource_id`: %v", err)
+	}
 
 	// The resource requires both .name and .plan.name are set in the format
 	// "SolutionName(WorkspaceName)". Feedback will be submitted to the OMS team as IMO this isn't ideal.
-	id := loganalyticsParse.NewLogAnalyticsSolutionID(subscriptionId, d.Get("resource_group_name").(string), fmt.Sprintf("%s(%s)", d.Get("solution_name").(string), d.Get("workspace_name").(string)))
+	solutionName := d.Get("solution_name").(string)
+	if productParts := strings.Split(d.Get("plan.0.product").(string), "/"); len(productParts) == 2 && strings.EqualFold(productParts[1], solutionName) {
+		solutionName = fmt.Sprintf("%s(%s)", solutionName, workspaceId.WorkspaceName)
+	}
+
+	id := parse.NewLogAnalyticsSolutionID(subscriptionId, d.Get("resource_group_name").(string), solutionName)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.SolutionName)
@@ -124,28 +135,30 @@ func resourceLogAnalyticsSolutionCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	solutionPlan := expandAzureRmLogAnalyticsSolutionPlan(d)
-	solutionPlan.Name = &id.SolutionName
+	if productParts := strings.Split(d.Get("plan.0.product").(string), "/"); len(productParts) == 2 {
+		solutionPlan.Name = utils.String(fmt.Sprintf("%s(%s)", productParts[1], workspaceId.WorkspaceName))
+	} else {
+		solutionPlan.Name = &id.SolutionName
+	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	workspaceID := d.Get("workspace_resource_id").(string)
 
 	parameters := operationsmanagement.Solution{
-		Name:     utils.String(id.SolutionName),
 		Location: utils.String(location),
 		Plan:     &solutionPlan,
 		Properties: &operationsmanagement.SolutionProperties{
-			WorkspaceResourceID: utils.String(workspaceID),
+			WorkspaceResourceID: utils.String(workspaceId.ID()),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SolutionName, parameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating Log Analytics Solution %q (Workspace %q / Resource Group %q): %+v", id.SolutionName, workspaceID, id.ResourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the create/update of Log Analytics Solution %q (Workspace %q / Resource Group %q): %+v", id.SolutionName, workspaceID, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the create/update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -157,7 +170,8 @@ func resourceLogAnalyticsSolutionRead(d *pluginsdk.ResourceData, meta interface{
 	client := meta.(*clients.Client).LogAnalytics.SolutionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := loganalyticsParse.LogAnalyticsSolutionID(d.Id())
+
+	id, err := parse.LogAnalyticsSolutionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -180,31 +194,24 @@ func resourceLogAnalyticsSolutionRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	// Reversing the mapping used to get .solution_name
-	// expecting resp.Name to be in format "SolutionName(WorkspaceName)".
-	if v := resp.Name; v != nil {
-		val := *v
-		segments := strings.Split(*v, "(")
-		if len(segments) != 2 {
-			return fmt.Errorf("Expected %q to match 'Solution(WorkspaceName)'", val)
+	if props := resp.Properties; props != nil && props.WorkspaceResourceID != nil {
+		workspaceId, err := parse.LogAnalyticsWorkspaceID(*props.WorkspaceResourceID)
+		if err != nil {
+			return err
 		}
 
-		solutionName := segments[0]
-		workspaceName := strings.TrimSuffix(segments[1], ")")
+		d.Set("workspace_resource_id", workspaceId.ID())
+		d.Set("workspace_name", workspaceId.WorkspaceName) // TODO: remove in v3.0
+
+		// Reversing the mapping used to get .solution_name
+		// expecting resp.Name to be in format "SolutionName(WorkspaceName)".
+		var solutionName string
+		if match := regexp.MustCompile(fmt.Sprintf(`([^(]+)\(%s\)`, workspaceId.WorkspaceName)).FindStringSubmatch(id.SolutionName); len(match) == 2 {
+			solutionName = match[1]
+		} else {
+			solutionName = id.SolutionName
+		}
 		d.Set("solution_name", solutionName)
-		d.Set("workspace_name", workspaceName)
-	}
-
-	if props := resp.Properties; props != nil {
-		var workspaceId string
-		if props.WorkspaceResourceID != nil {
-			id, err := loganalyticsParse.LogAnalyticsWorkspaceID(*props.WorkspaceResourceID)
-			if err != nil {
-				return err
-			}
-			workspaceId = id.ID()
-		}
-		d.Set("workspace_resource_id", workspaceId)
 	}
 
 	if err := d.Set("plan", flattenAzureRmLogAnalyticsSolutionPlan(resp.Plan)); err != nil {
@@ -218,7 +225,8 @@ func resourceLogAnalyticsSolutionDelete(d *pluginsdk.ResourceData, meta interfac
 	client := meta.(*clients.Client).LogAnalytics.SolutionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := loganalyticsParse.LogAnalyticsSolutionID(d.Id())
+
+	id, err := parse.LogAnalyticsSolutionID(d.Id())
 	if err != nil {
 		return err
 	}

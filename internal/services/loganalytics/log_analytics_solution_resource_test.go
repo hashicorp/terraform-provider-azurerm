@@ -16,13 +16,58 @@ import (
 type LogAnalyticsSolutionResource struct {
 }
 
-func TestAccLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
+func TestAccLogAnalyticsSolution_containerMonitoring(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
 	r := LogAnalyticsSolutionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.containerMonitoring(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogAnalyticsSolution_security(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
+	r := LogAnalyticsSolutionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.security(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogAnalyticsSolution_vmInsights(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
+	r := LogAnalyticsSolutionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vmInsights(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogAnalyticsSolution_custom(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
+	r := LogAnalyticsSolutionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.custom(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -49,22 +94,7 @@ func TestAccLogAnalyticsSolution_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccLogAnalyticsSolution_basicSecurity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
-	r := LogAnalyticsSolutionResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.security(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func (t LogAnalyticsSolutionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r LogAnalyticsSolutionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LogAnalyticsSolutionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -78,23 +108,29 @@ func (t LogAnalyticsSolutionResource) Exists(ctx context.Context, clients *clien
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (LogAnalyticsSolutionResource) containerMonitoring(data acceptance.TestData) string {
+func (LogAnalyticsSolutionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestLAW-%d"
+  name                = "acctestLAW-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
 }
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r LogAnalyticsSolutionResource) containerMonitoring(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
 
 resource "azurerm_log_analytics_solution" "test" {
   solution_name         = "ContainerInsights"
@@ -112,12 +148,69 @@ resource "azurerm_log_analytics_solution" "test" {
     Environment = "Test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, r.template(data))
+}
+
+func (r LogAnalyticsSolutionResource) security(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_log_analytics_solution" "test" {
+  solution_name         = "Security"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/Security"
+  }
+}
+`, r.template(data))
+}
+
+func (r LogAnalyticsSolutionResource) vmInsights(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_log_analytics_solution" "test" {
+  solution_name         = "VMInsights"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/VMInsights"
+  }
+}
+`, r.template(data))
+}
+
+func (r LogAnalyticsSolutionResource) custom(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_log_analytics_solution" "test" {
+  solution_name         = "acctest-Custom-%[2]s"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/VMInsights"
+  }
+}
+`, r.template(data), data.RandomString)
 }
 
 func (r LogAnalyticsSolutionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_log_analytics_solution" "import" {
   solution_name         = azurerm_log_analytics_solution.test.solution_name
@@ -132,37 +225,4 @@ resource "azurerm_log_analytics_solution" "import" {
   }
 }
 `, r.containerMonitoring(data))
-}
-
-func (LogAnalyticsSolutionResource) security(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestLAW-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "PerGB2018"
-}
-
-resource "azurerm_log_analytics_solution" "test" {
-  solution_name         = "Security"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  workspace_name        = azurerm_log_analytics_workspace.test.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/Security"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
