@@ -8,29 +8,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-var kubernetesAddOnTests = map[string]func(t *testing.T){
-	"addonProfileAciConnectorLinux":            testAccKubernetesCluster_addonProfileAciConnectorLinux,
-	"addonProfileAciConnectorLinuxDisabled":    testAccKubernetesCluster_addonProfileAciConnectorLinuxDisabled,
-	"addonProfileAzurePolicy":                  testAccKubernetesCluster_addonProfileAzurePolicy,
-	"addonProfileKubeDashboard":                testAccKubernetesCluster_addonProfileKubeDashboard,
-	"addonProfileOMS":                          testAccKubernetesCluster_addonProfileOMS,
-	"addonProfileOMSToggle":                    testAccKubernetesCluster_addonProfileOMSToggle,
-	"addonProfileRouting":                      testAccKubernetesCluster_addonProfileRoutingToggle,
-	"addonProfileAppGatewayAppGatewayId":       testAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId,
-	"addonProfileAppGatewaySubnetCIDR":         testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR,
-	"addonProfileAppGatewaySubnetID":           testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId,
-	"addonProfileOpenServiceMesh":              testAccKubernetesCluster_addonProfileOpenServiceMesh,
-	"addonProfileAzureKeyvaultSecretsProvider": TestAccKubernetesCluster_addonProfileAzureKeyvaultSecretsProvider,
-}
-
 var addOnAppGatewaySubnetCIDR string = "10.241.0.0/16" // AKS will use 10.240.0.0/16 for the aks subnet so use 10.241.0.0/16 for the app gateway subnet
 
 func TestAccKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileAciConnectorLinux(t)
-}
-
-func testAccKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -50,11 +30,6 @@ func testAccKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t)
-}
-
-func testAccKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -75,11 +50,6 @@ func testAccKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t *testing.T
 }
 
 func TestAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileAzurePolicy(t)
-}
-
-func testAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -118,11 +88,6 @@ func testAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileKubeDashboard(t)
-}
-
-func testAccKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -140,11 +105,6 @@ func testAccKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_addonProfileOMS(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileOMS(t)
-}
-
-func testAccKubernetesCluster_addonProfileOMS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -167,11 +127,6 @@ func testAccKubernetesCluster_addonProfileOMS(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileOMSToggle(t)
-}
-
-func testAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -228,11 +183,6 @@ func testAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_addonProfileRoutingToggle(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileRoutingToggle(t)
-}
-
-func testAccKubernetesCluster_addonProfileRoutingToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -263,11 +213,6 @@ func testAccKubernetesCluster_addonProfileRoutingToggle(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId(t)
-}
-
-func testAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -290,11 +235,6 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId
 }
 
 func TestAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR(t)
-}
-
-func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -322,11 +262,6 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR(t
 }
 
 func TestAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId(t)
-}
-
-func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -344,11 +279,6 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId(t *
 }
 
 func TestAccKubernetesCluster_addonProfileOpenServiceMesh(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileOpenServiceMesh(t)
-}
-
-func testAccKubernetesCluster_addonProfileOpenServiceMesh(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
