@@ -34,6 +34,7 @@ var kubernetesDataSourceTests = map[string]func(t *testing.T){
 	"addOnProfileIngressApplicationGateewaySubnetCIDR": testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetCIDR,
 	"addOnProfileIngressApplicationGateewaySubnetId":   testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySubnetId,
 	"addOnProfileOpenServiceMesh":                      testAccDataSourceKubernetesCluster_addOnProfileOpenServiceMesh,
+	"addOnProfileAzureKeyvaultSecretsProvider":         TestAccDataSourceKubernetesCluster_addOnProfileAzureKeyvaultSecretsProvider,
 	"autoscalingNoAvailabilityZones":                   testAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones,
 	"autoscalingWithAvailabilityZones":                 testAccDataSourceKubernetesCluster_autoscalingWithAvailabilityZones,
 	"nodeLabels":                                       testAccDataSourceKubernetesCluster_nodeLabels,
@@ -577,6 +578,23 @@ func testAccDataSourceKubernetesCluster_addOnProfileOpenServiceMesh(t *testing.T
 	})
 }
 
+func TestAccDataSourceKubernetesCluster_addOnProfileAzureKeyvaultSecretsProvider(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.addOnProfileAzureKeyvaultSecretsProviderConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation_interval").HasValue("2m"),
+			),
+		},
+	})
+}
+
 func TestAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones(t)
@@ -894,6 +912,17 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.addonProfileOpenServiceMeshConfig(data, true))
+}
+
+func (KubernetesClusterDataSource) addOnProfileAzureKeyvaultSecretsProviderConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.addonProfileAzureKeyvaultSecretsProviderConfig(data, true, true, "2m"))
 }
 
 func (KubernetesClusterDataSource) autoScalingNoAvailabilityZonesConfig(data acceptance.TestData) string {
