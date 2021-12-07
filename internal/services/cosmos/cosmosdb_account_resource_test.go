@@ -1004,7 +1004,7 @@ func TestAccCosmosDBAccount_restoreCreateMode(t *testing.T) {
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelSession, 1),
 			),
 		},
-		data.ImportStep("restore.0.restore_timestamp_in_utc"),
+		data.ImportStep(),
 	})
 }
 
@@ -2703,6 +2703,13 @@ resource "azurerm_cosmosdb_account" "test" {
       name             = azurerm_cosmosdb_mongo_database.test.name
       collection_names = [azurerm_cosmosdb_mongo_collection.test.name]
     }
+  }
+
+  // As "restore_timestamp_in_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.
+  lifecycle {
+    ignore_changes = [
+      restore.0.restore_timestamp_in_utc
+    ]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, string(kind), string(consistency))
