@@ -273,6 +273,23 @@ func TestAccFunctionApp_appSettingsVnetRouteAllEnabled(t *testing.T) {
 	})
 }
 
+func TestAccFunctionApp_appSettingsPrivateStorageAccount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appSettingsPrivateStorageAccount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.WEBSITE_VNET_ROUTE_ALL").HasValue("true"),
+				check.That(data.ResourceName).Key("app_settings.WEBSITE_CONTENTOVERVNET").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccFunctionApp_connectionStrings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
@@ -1854,6 +1871,143 @@ resource "azurerm_function_app" "test" {
   app_settings = {
     "WEBSITE_VNET_ROUTE_ALL" = "true"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r FunctionAppResource) appSettingsPrivateStorageAccount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+locals {
+  sa_services = ["blob", "table", "queue", "file"]
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "vnet" {
+  name                = "private-network-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_servers = ["168.63.129.16"]
+}
+
+resource "azurerm_subnet" "service" {
+  name                 = "service"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  enforce_private_link_service_network_policies  = true
+  enforce_private_link_endpoint_network_policies = true
+
+  # Delegate the subnet to "Microsoft.Web/serverFarms"
+  delegation {
+    name = "acctestdelegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet" "endpoint" {
+  name                 = "endpoint"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  enforce_private_link_service_network_policies  = false
+  enforce_private_link_endpoint_network_policies = true
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  network_rules {
+    default_action             = "Deny"
+    virtual_network_subnet_ids = []
+    ip_rules = []
+  }
+}
+
+resource "azurerm_private_endpoint" "endpoint" {
+  count               = length(local.sa_services)
+  name                = "sa-${local.sa_services[count.index]}-endpoint"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.endpoint.id
+
+  private_service_connection {
+    name                           = "sa-${local.sa_services[count.index]}-privateserviceconnection"
+    private_connection_resource_id = azurerm_storage_account.test.id
+    is_manual_connection           = false
+    subresource_names              = [local.sa_services[count.index]]
+  }
+
+  private_dns_zone_group {
+    name = "privatelink-file-core-windows-net"
+    private_dns_zone_ids = [azurerm_private_dns_zone.private[count.index].id]
+  }
+}
+
+resource "azurerm_private_dns_zone" "private" {
+  count               = length(local.sa_services)
+  name                = "privatelink.${local.sa_services[count.index]}.core.windows.net"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "sa" {
+  count                 = length(local.sa_services)
+  name                  = "networklink-${azurerm_private_dns_zone.private[count.index].name}"
+  resource_group_name   = azurerm_resource_group.test.name
+  private_dns_zone_name = azurerm_private_dns_zone.private[count.index].name
+  virtual_network_id    = azurerm_virtual_network.vnet.id
+  registration_enabled  = false
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  kind = "elastic"
+  sku {
+    tier     = "ElasticPremium"
+    size     = "EP1"
+    capacity = 1
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                       = "acctest-%[1]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  app_settings = {
+    "WEBSITE_VNET_ROUTE_ALL"  = "true"
+    "WEBSITE_CONTENTOVERVNET" = "true"
+    "WEBSITE_DNS_SERVER"      = "168.63.129.16"
+  }
+
+  depends_on = [
+    azurerm_private_endpoint.endpoint,
+    azurerm_private_dns_zone_virtual_network_link.sa
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

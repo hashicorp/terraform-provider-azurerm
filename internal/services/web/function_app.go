@@ -293,6 +293,11 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 	contentSharePropName := "WEBSITE_CONTENTSHARE"
 	contentFileConnStringPropName := "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
 
+	websiteVnetRouteAllPropName := "WEBSITE_VNET_ROUTE_ALL"
+	websiteContentOverVnetPropName := "WEBSITE_CONTENTOVERVNET"
+	websiteDnsServerPropName := "WEBSITE_DNS_SERVER"
+	websiteDnsAltServerPropName := "WEBSITE_DNS_ALT_SERVER"
+
 	// TODO 3.0 - remove this logic for determining which storage account connection string to use
 	storageConnection := ""
 	if v, ok := d.GetOk("storage_connection_string"); ok {
@@ -352,6 +357,34 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 	// If there's an existing value for content, we need to send it. This can be the case for PremiumV2/PremiumV3 plans where the value has been previously configured.
 	if contentSharePreviouslySet {
 		return append(basicSettings, consumptionSettings...), nil
+	}
+
+	if websiteVnetRouteAll, ok := existingSettings[websiteVnetRouteAllPropName]; ok {
+		basicSettings = append(basicSettings, web.NameValuePair{
+			Name:  &websiteVnetRouteAllPropName,
+			Value: websiteVnetRouteAll,
+		})
+	}
+
+	if websiteContentOverVnet, ok := existingSettings[websiteContentOverVnetPropName]; ok {
+		basicSettings = append(basicSettings, web.NameValuePair{
+			Name:  &websiteContentOverVnetPropName,
+			Value: websiteContentOverVnet,
+		})
+	}
+
+	if websiteDnsServer, ok := existingSettings[websiteDnsServerPropName]; ok {
+		basicSettings = append(basicSettings, web.NameValuePair{
+			Name:  &websiteDnsServerPropName,
+			Value: websiteDnsServer,
+		})
+	}
+
+	if websiteDnsAltServer, ok := existingSettings[websiteDnsAltServerPropName]; ok {
+		basicSettings = append(basicSettings, web.NameValuePair{
+			Name:  &websiteDnsAltServerPropName,
+			Value: websiteDnsAltServer,
+		})
 	}
 
 	// On consumption and premium plans include WEBSITE_CONTENT components, unless it's a Linux consumption plan

@@ -318,7 +318,8 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix, nil)
+	allSettings := expandAppServiceAppSettings(d)
+	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix, allSettings)
 	if err != nil {
 		return err
 	}
