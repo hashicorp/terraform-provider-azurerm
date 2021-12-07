@@ -1433,7 +1433,8 @@ resource "azurerm_storage_account" "test" {
   tags = {
     environment = "production"
   }
-}`, data.RandomInteger, data.Locations.Primary, data.RandomString, allowFlag)
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, allowFlag)
 }
 
 func (r StorageAccountResource) isHnsEnabledTrue(data acceptance.TestData) string {
