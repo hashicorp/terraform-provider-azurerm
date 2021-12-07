@@ -32,10 +32,9 @@ resource "azurerm_signalr_service" "example" {
     allowed_origins = ["http://www.example.com"]
   }
 
-  features {
-    flag  = "ServiceMode"
-    value = "Default"
-  }
+  connectivity_logs_enabled = "True"
+  messaging_logs_enabled    = "True"
+  service_mode              = "Default"
 
   upstream_endpoint {
     category_pattern = ["connections", "messages"]
@@ -61,6 +60,14 @@ The following arguments are supported:
 * `cors` - (Optional) A `cors` block as documented below.
 
 * `features` - (Optional) A `features` block as documented below.
+
+~> **NOTE:** The `features` block is deprecated, use `connectivity_logs_enabled`, `messaging_logs_enabled` and `service_mode` instead.
+
+* `connectivity_logs_enabled`- (Optional) Specifies if Connectivity Logs are enabled or not.
+
+* `messaging_logs_enabled`- (Optional) Specifies if Messaging Logs are enabled or not. 
+
+* `service_mode`- (Optional) Specifies the service mode. Possible values are `Classic`, `Default` and `Serverless`.
 
 * `upstream_endpoint` - (Optional) An `upstream_endpoint` block as documented below. Using this block requires the SignalR service to be Serverless. When creating multiple blocks they will be processed in the order they are defined in.
 
