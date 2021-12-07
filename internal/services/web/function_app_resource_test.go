@@ -1895,7 +1895,7 @@ resource "azurerm_virtual_network" "vnet" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  dns_servers = ["168.63.129.16"]
+  dns_servers         = ["168.63.129.16"]
 }
 
 resource "azurerm_subnet" "service" {
@@ -1938,7 +1938,7 @@ resource "azurerm_storage_account" "test" {
   network_rules {
     default_action             = "Deny"
     virtual_network_subnet_ids = []
-    ip_rules = []
+    ip_rules                   = []
   }
 }
 
@@ -1957,7 +1957,7 @@ resource "azurerm_private_endpoint" "endpoint" {
   }
 
   private_dns_zone_group {
-    name = "privatelink-file-core-windows-net"
+    name                 = "privatelink-file-core-windows-net"
     private_dns_zone_ids = [azurerm_private_dns_zone.private[count.index].id]
   }
 }
