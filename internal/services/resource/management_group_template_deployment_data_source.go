@@ -1,0 +1,76 @@
+package resource
+
+import (
+	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	mgValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"log"
+	"time"
+)
+
+func dataSourceManagementGroupTemplateDeployment() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Read: dataSourceManagementGroupTemplateDeploymentRead,
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		},
+
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validate.TemplateDeploymentName,
+			},
+
+			"management_group_name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: mgValidate.ManagementGroupName,
+			},
+
+			// Computed
+			"output_content": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+				// NOTE:  outputs can be strings, ints, objects etc - whilst using a nested object was considered
+				// parsing the JSON using `jsondecode` allows the users to interact with/map objects as required
+			},
+		},
+	}
+}
+
+func dataSourceManagementGroupTemplateDeploymentRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Resource.DeploymentsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := parse.NewManagementGroupTemplateDeploymentID(d.Get("management_group_name").(string), d.Get("name").(string))
+
+	resp, err := client.GetAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] Management Group Template Deployment %q was not found", id.DeploymentName)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("retrieving Management Group Template Deployment %q: %+v", id.DeploymentName, err)
+	}
+
+	if props := resp.Properties; props != nil {
+		flattenedOutputs, err := flattenTemplateDeploymentBody(props.Outputs)
+		if err != nil {
+			return fmt.Errorf("flattening `output_content`: %+v", err)
+		}
+		return d.Set("output_content", flattenedOutputs)
+	}
+
+	return nil
+}
