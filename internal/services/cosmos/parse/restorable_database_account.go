@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type RestorableDatabaseAccountId struct {
@@ -39,7 +39,7 @@ func (id RestorableDatabaseAccountId) ID() string {
 
 // RestorableDatabaseAccountID parses a RestorableDatabaseAccount ID into an RestorableDatabaseAccountId struct
 func RestorableDatabaseAccountID(input string) (*RestorableDatabaseAccountId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
