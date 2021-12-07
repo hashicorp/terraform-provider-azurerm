@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * `azurerm_managed_disk` - support for the `hyper_v_generation` property [GH-13825]
 * `azurerm_key_vault_certificate` - support for the `versionless_id` and `versionless_secret_id` properties [GH-14287]
 * `azurerm_kubernetes_cluster` - support for the `http_proxy_config` block which contains the `http_proxy`, `https_proxy`, `no_proxy` and `trusted_ca` properties [GH-14177]
+* `azurerm_kubernetes_cluster` - support for the `azure_keyvault_secrets_provider` addon [GH-14308]
 * `azurerm_netapp_pool` - support for `qos_type` property [GH-14372]
 * `azurerm_netapp_volume` - support for `throughput_in_mibps` property [GH-14372]
 * `azurerm_sql_managed_instance`: Support for `storage_account_type` [GH-14123]
