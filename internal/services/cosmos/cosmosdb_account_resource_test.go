@@ -3,7 +3,6 @@ package cosmos_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"regexp"
 	"strconv"
 	"testing"
@@ -995,9 +994,6 @@ func TestAccCosmosDBAccount_defaultCreateMode(t *testing.T) {
 }
 
 func TestAccCosmosDBAccount_restoreCreateMode(t *testing.T) {
-	if ok := skipRestoreCreateMode(); ok {
-		t.Skip("Skipping as one of `ARM_TEST_SOURCE_COSMOSDB_ACCOUNT_ID`, `ARM_TEST_RESTORE_TIMESTAMP_IN_UTC`, `ARM_TEST_DATABASE_NAME` AND `ARM_TEST_COLLECTION_NAME` was not specified")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
@@ -2625,8 +2621,56 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_cosmosdb_account" "test" {
+resource "azurerm_cosmosdb_account" "test1" {
   name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "MongoDB"
+
+  capabilities {
+    name = "EnableMongo"
+  }
+
+  consistency_policy {
+    consistency_level = "Eventual"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  backup {
+    type = "Continuous"
+  }
+}
+
+resource "azurerm_cosmosdb_mongo_database" "test" {
+  name                = "acctest-mongodb-%d"
+  resource_group_name = azurerm_cosmosdb_account.test1.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test1.name
+}
+
+resource "azurerm_cosmosdb_mongo_collection" "test" {
+  name                = "acctest-mongodb-coll-%d"
+  resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
+  account_name        = azurerm_cosmosdb_mongo_database.test.account_name
+  database_name       = azurerm_cosmosdb_mongo_database.test.name
+
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
+}
+
+data "azurerm_cosmosdb_restorable_database_account" "test" {
+  name     = azurerm_cosmosdb_account.test1.name
+  location = azurerm_resource_group.test.location
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca2-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
@@ -2652,22 +2696,14 @@ resource "azurerm_cosmosdb_account" "test" {
   create_mode = "Restore"
 
   restore {
-    source_cosmosdb_account_id = "%s"
-    restore_timestamp_in_utc   = "%s"
+    source_cosmosdb_account_id = data.azurerm_cosmosdb_restorable_database_account.test.restorable_db_account_ids[0]
+    restore_timestamp_in_utc   = timeadd(timestamp(), "-1s")
 
     database {
-      name             = "%s"
-      collection_names = ["%s"]
+      name             = azurerm_cosmosdb_mongo_database.test.name
+      collection_names = [azurerm_cosmosdb_mongo_collection.test.name]
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency), os.Getenv("ARM_TEST_SOURCE_COSMOSDB_ACCOUNT_ID"), os.Getenv("ARM_TEST_RESTORE_TIMESTAMP_IN_UTC"), os.Getenv("ARM_TEST_DATABASE_NAME"), os.Getenv("ARM_TEST_COLLECTION_NAME"))
-}
-
-func skipRestoreCreateMode() bool {
-	if os.Getenv("ARM_TEST_SOURCE_COSMOSDB_ACCOUNT_ID") == "" || os.Getenv("ARM_TEST_RESTORE_TIMESTAMP_IN_UTC") == "" || os.Getenv("ARM_TEST_DATABASE_NAME") == "" || os.Getenv("ARM_TEST_COLLECTION_NAME") == "" {
-		return true
-	}
-
-	return false
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, string(kind), string(consistency))
 }

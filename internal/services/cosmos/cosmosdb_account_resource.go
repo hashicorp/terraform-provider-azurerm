@@ -487,7 +487,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.RestorableCosmosdbAccountID,
+							ValidateFunc: validate.RestorableDatabaseAccountID,
 						},
 
 						"restore_timestamp_in_utc": {
