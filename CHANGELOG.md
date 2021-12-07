@@ -10,13 +10,14 @@ ENHANCEMENTS:
 * dependencies: updating the Embedded SDK for `databricks` [GH-14430]
 * dependencies: updating the Embedded SDK for `datalake` [GH-14429]
 * dependencies: updating the Embedded SDK for `frontdoor` [GH-14432]
+* `azurerm_app_service_environment_v3` - allow updating of `tags` [GH-14491]
+* `azurerm_data_factory_linked_services_*` - deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory linked service resources [GH-14492]
 * `azurerm_managed_disk` - support for the `hyper_v_generation` property [GH-13825]
 * `azurerm_key_vault_certificate` - support for the `versionless_id` and `versionless_secret_id` properties [GH-14287]
+* `azurerm_kubernetes_cluster` - support for the `http_proxy_config` block which contains the `http_proxy`, `https_proxy`, `no_proxy` and `trusted_ca` properties [GH-14177]
 * `azurerm_netapp_pool` - support for `qos_type` property [GH-14372]
 * `azurerm_netapp_volume` - support for `throughput_in_mibps` property [GH-14372]
 * `azurerm_sql_managed_instance`: Support for `storage_account_type` [GH-14123]
-* `azurerm_kubernetes_cluster` - support for the `http_proxy_config` block which contains the `http_proxy`, `https_proxy`, `no_proxy` and `trusted_ca` properties [GH-14177]
-* `azurerm_data_factory_linked_services_*` - deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory linked service resources [GH-14492]
 
 BUG FIXES:
 
