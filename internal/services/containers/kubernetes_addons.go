@@ -426,13 +426,12 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 		config := make(map[string]*string)
 		enabled := value["enabled"].(bool)
 
-		if secretRotation, ok := value["secret_rotation_enabled"]; ok && secretRotation.(bool) {
-			config["enableSecretRotation"] = utils.String("true")
+		enableSecretRotation := "false"
+		if value["secret_rotation_enabled"].(bool) {
+			enableSecretRotation = "true"
 		}
-
-		if rotationPollInterval, ok := value["secret_rotation_interval"]; ok && rotationPollInterval != "" {
-			config["rotationPollInterval"] = utils.String(rotationPollInterval.(string))
-		}
+		config["enableSecretRotation"] = utils.String(enableSecretRotation)
+		config["rotationPollInterval"] = utils.String(value["secret_rotation_interval"].(string))
 
 		addonProfiles[azureKeyvaultSecretsProviderKey] = &containerservice.ManagedClusterAddonProfile{
 			Enabled: utils.Bool(enabled),
@@ -621,7 +620,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			enabled = *enabledVal
 		}
 		enableSecretRotation := false
-		if v := kubernetesAddonProfilelocateInConfig(azureKeyvaultSecretsProvider.Config, "enableSecretRotation"); v != nil && v != utils.String("false") {
+		if v := kubernetesAddonProfilelocateInConfig(azureKeyvaultSecretsProvider.Config, "enableSecretRotation"); v != nil && *v != "false" {
 			enableSecretRotation = true
 		}
 		rotationPollInterval := ""
