@@ -213,7 +213,11 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(msSqlMinimumTLSVersionDiff),
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(msSqlMinimumTLSVersionDiff),
+
+			pluginsdk.CustomizeDiffShim(msSqlPasswordChangeWhenAADAuthOnly),
+		),
 	}
 }
 
@@ -507,7 +511,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == sql.ServerNetworkAccessFlagEnabled)
 		primaryUserAssignedIdentityID := ""
 		if props.PrimaryUserAssignedIdentityID != nil && *props.PrimaryUserAssignedIdentityID != "" {
-			parsedPrimaryUserAssignedIdentityID, err := msiparse.UserAssignedIdentityID(*props.PrimaryUserAssignedIdentityID)
+			parsedPrimaryUserAssignedIdentityID, err := msiparse.UserAssignedIdentityIDInsensitively(*props.PrimaryUserAssignedIdentityID)
 			if err != nil {
 				return err
 			}
@@ -607,7 +611,7 @@ func flattenSqlServerIdentity(identity *sql.ResourceIdentity) ([]interface{}, er
 	identityIds := make([]string, 0)
 	if identity.UserAssignedIdentities != nil {
 		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
 			if err != nil {
 				return nil, err
 			}
@@ -729,6 +733,14 @@ func msSqlMinimumTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, 
 	old, new := d.GetChange("minimum_tls_version")
 	if old != "" && new == "" {
 		err = fmt.Errorf("`minimum_tls_version` cannot be removed once set, please set a valid value for this property")
+	}
+	return
+}
+
+func msSqlPasswordChangeWhenAADAuthOnly(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
+	old, _ := d.GetChange("azuread_administrator.0.azuread_authentication_only")
+	if old.(bool) && d.HasChange("administrator_login_password") {
+		err = fmt.Errorf("`administrator_login_password` cannot be changed once `azuread_administrator.0.azuread_authentication_only = true`")
 	}
 	return
 }

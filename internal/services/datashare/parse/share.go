@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ShareId struct {
@@ -42,7 +42,7 @@ func (id ShareId) ID() string {
 
 // ShareID parses a Share ID into an ShareId struct
 func ShareID(input string) (*ShareId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

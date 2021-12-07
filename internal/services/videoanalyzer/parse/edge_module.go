@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type EdgeModuleId struct {
@@ -42,7 +42,7 @@ func (id EdgeModuleId) ID() string {
 
 // EdgeModuleID parses a EdgeModule ID into an EdgeModuleId struct
 func EdgeModuleID(input string) (*EdgeModuleId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

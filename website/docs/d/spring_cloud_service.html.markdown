@@ -23,7 +23,7 @@ data "azurerm_spring_cloud_service" "example" {
 }
 
 output "spring_cloud_service_id" {
-  value = "${data.azurerm_spring_cloud_service.example.id}"
+  value = data.azurerm_spring_cloud_service.example.id
 }
 ```
 

@@ -89,6 +89,8 @@ The following arguments are supported:
 
 * `workload` - (Optional) The workload type of the Subscription.  Possible values are `Production` (default) and `DevTest`. Changing this forces a new Subscription to be created.
 
+* `tags` - (Optional) A mapping of tags to assign to the Subscription.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:

@@ -65,7 +65,6 @@ resource "azurerm_management_group_subscription_association" "test" {
   management_group_id = azurerm_management_group.test.id
   subscription_id     = data.azurerm_subscription.test.id
 }
-
 `, os.Getenv("ARM_SUBSCRIPTION_ID_ALT"))
 }
 
@@ -77,7 +76,6 @@ resource "azurerm_management_group_subscription_association" "import" {
   management_group_id = azurerm_management_group_subscription_association.test.management_group_id
   subscription_id     = azurerm_management_group_subscription_association.test.subscription_id
 }
-
 `, r.basic())
 }
 

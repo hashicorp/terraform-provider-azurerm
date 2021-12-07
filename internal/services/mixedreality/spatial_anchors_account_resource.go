@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/mixedreality/mgmt/2021-01-01/mixedreality"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -67,24 +69,24 @@ func resourceSpatialAnchorsAccount() *pluginsdk.Resource {
 
 func resourceSpatialAnchorsAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MixedReality.SpatialAnchorsAccountClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	resourceGroup := d.Get("resource_group_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
+	id := parse.NewSpatialAnchorsAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Spatial Anchors Account %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_spatial_anchors_account", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_spatial_anchors_account", id.ID())
 		}
 	}
 
@@ -93,21 +95,11 @@ func resourceSpatialAnchorsAccountCreateUpdate(d *pluginsdk.ResourceData, meta i
 		Tags:     tags.Expand(t),
 	}
 
-	if _, err := client.Create(ctx, resourceGroup, name, account); err != nil {
-		return fmt.Errorf("creating/updating Spatial Anchors Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.Create(ctx, id.ResourceGroup, id.Name, account); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Spatial Anchors Account %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("cannot read Spatial Anchors Account %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceSpatialAnchorsAccountRead(d, meta)
 }
 
@@ -128,14 +120,12 @@ func resourceSpatialAnchorsAccountRead(d *pluginsdk.ResourceData, meta interface
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Spatial Anchors Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.AccountProperties; props != nil {
 		d.Set("account_domain", props.AccountDomain)
@@ -158,7 +148,7 @@ func resourceSpatialAnchorsAccountDelete(d *pluginsdk.ResourceData, meta interfa
 	response, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting Spatial Anchors Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

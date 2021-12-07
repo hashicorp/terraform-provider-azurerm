@@ -32,7 +32,7 @@ func TestFormatPrivateEndpointConnectionID(t *testing.T) {
 	actual := NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "privateEndpointConnectionValue").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Databricks/workspaces/workspaceValue/privateEndpointConnections/privateEndpointConnectionValue"
 	if actual != expected {
-		t.Fatalf("Expected the Formatted ID to be %q but got %q", actual, expected)
+		t.Fatalf("Expected the Formatted ID to be %q but got %q", expected, actual)
 	}
 }
 
@@ -305,5 +305,20 @@ func TestParsePrivateEndpointConnectionIDInsensitively(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for PrivateEndpointConnectionName", v.Expected.PrivateEndpointConnectionName, actual.PrivateEndpointConnectionName)
 		}
 
+	}
+}
+
+func TestSegmentsForPrivateEndpointConnectionId(t *testing.T) {
+	segments := PrivateEndpointConnectionId{}.Segments()
+	if len(segments) == 0 {
+		t.Fatalf("PrivateEndpointConnectionId has no segments")
+	}
+
+	uniqueNames := make(map[string]struct{}, 0)
+	for _, segment := range segments {
+		uniqueNames[segment.Name] = struct{}{}
+	}
+	if len(uniqueNames) != len(segments) {
+		t.Fatalf("Expected the Segments to be unique but got %q unique segments and %d total segments", len(uniqueNames), len(segments))
 	}
 }

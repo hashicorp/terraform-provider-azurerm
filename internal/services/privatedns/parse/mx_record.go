@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type MxRecordId struct {
@@ -42,7 +42,7 @@ func (id MxRecordId) ID() string {
 
 // MxRecordID parses a MxRecord ID into an MxRecordId struct
 func MxRecordID(input string) (*MxRecordId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

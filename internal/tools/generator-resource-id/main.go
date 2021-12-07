@@ -340,7 +340,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 %s
@@ -470,7 +470,7 @@ func (id ResourceIdGenerator) codeForParser() string {
 	return fmt.Sprintf(`
 // %[1]sID parses a %[1]s ID into an %[1]sId struct 
 func %[1]sID(input string) (*%[1]sId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -544,7 +544,7 @@ func (id ResourceIdGenerator) codeForParserInsensitive() string {
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
 func %[1]sIDInsensitively(input string) (*%[1]sId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

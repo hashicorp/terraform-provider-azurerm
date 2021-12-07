@@ -4,19 +4,19 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"time"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/namespaces"
 
 	"github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
+	authRuleParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
 	logAnalyticsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/namespaces"
 	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -53,17 +53,20 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 
 			// When absent, will use the default eventhub, whilst the Diagnostic Setting API will return this property as an empty string. Therefore, it is useless to make this property as Computed.
 			"eventhub_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: eventhubValidate.ValidateEventHubName(),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,48}[a-zA-Z0-9])?$"),
+					"The event hub name can contain only letters, numbers, periods (.), hyphens (-),and underscores (_), up to 50 characters, and it must begin and end with a letter or number.",
+				),
 			},
 
 			"eventhub_authorization_rule_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: namespaces.ValidateAuthorizationRuleID,
+				ValidateFunc: authRuleParse.ValidateAuthorizationRuleID,
 				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id"},
 			},
 

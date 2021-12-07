@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type DashboardId struct {
@@ -39,7 +39,7 @@ func (id DashboardId) ID() string {
 
 // DashboardID parses a Dashboard ID into an DashboardId struct
 func DashboardID(input string) (*DashboardId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

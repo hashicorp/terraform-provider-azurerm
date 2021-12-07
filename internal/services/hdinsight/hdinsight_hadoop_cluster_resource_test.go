@@ -1528,7 +1528,6 @@ resource "azurerm_network_security_group" "test" {
     },
   ]
 }
-
 `, data.RandomInteger)
 }
 
@@ -1600,7 +1599,6 @@ resource "azurerm_role_assignment" "test" {
   role_definition_name = "Storage Blob Data Owner"
   principal_id         = "${azurerm_user_assigned_identity.test.principal_id}"
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type NamespaceAuthorizationRuleId struct {
@@ -42,7 +42,7 @@ func (id NamespaceAuthorizationRuleId) ID() string {
 
 // NamespaceAuthorizationRuleID parses a NamespaceAuthorizationRule ID into an NamespaceAuthorizationRuleId struct
 func NamespaceAuthorizationRuleID(input string) (*NamespaceAuthorizationRuleId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

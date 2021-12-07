@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ComputeClusterId struct {
@@ -42,7 +42,7 @@ func (id ComputeClusterId) ID() string {
 
 // ComputeClusterID parses a ComputeCluster ID into an ComputeClusterId struct
 func ComputeClusterID(input string) (*ComputeClusterId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

@@ -82,6 +82,17 @@ func resourceAppService() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"client_cert_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(web.ClientCertModeOptional),
+					string(web.ClientCertModeRequired),
+					string(web.ClientCertModeOptionalInteractiveUser),
+				}, false),
+			},
+
 			"connection_string": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -295,6 +306,11 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(d.Get("client_affinity_enabled").(bool))
 
 	siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(d.Get("client_cert_enabled").(bool))
+	if *siteEnvelope.SiteProperties.ClientCertEnabled {
+		if clientCertMode, ok := d.GetOk("client_cert_mode"); ok {
+			siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode.(string))
+		}
+	}
 
 	createFuture, err := client.CreateOrUpdate(ctx, resourceGroup, name, siteEnvelope)
 	if err != nil {
@@ -415,6 +431,12 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(d.Get("client_cert_enabled").(bool))
+
+	if *siteEnvelope.SiteProperties.ClientCertEnabled {
+		if clientCertMode, ok := d.GetOk("client_cert_mode"); ok {
+			siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode.(string))
+		}
+	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
 	if err != nil {
@@ -690,6 +712,7 @@ func resourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("enabled", props.Enabled)
 		d.Set("https_only", props.HTTPSOnly)
 		d.Set("client_cert_enabled", props.ClientCertEnabled)
+		d.Set("client_cert_mode", props.ClientCertMode)
 		d.Set("default_site_hostname", props.DefaultHostName)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		if props.OutboundIPAddresses != nil {

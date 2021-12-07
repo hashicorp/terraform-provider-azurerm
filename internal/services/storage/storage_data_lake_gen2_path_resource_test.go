@@ -358,6 +358,5 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
     azurerm_role_assignment.storageAccountRoleAssignment
   ]
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

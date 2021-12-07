@@ -1068,8 +1068,9 @@ resource "azurerm_api_management" "test" {
     }
 
     developer_portal {
-      host_name   = "developer-portal.terraform.io"
-      certificate = filebase64("testdata/api_management_developer_portal_test.pfx")
+      host_name            = "developer-portal.terraform.io"
+      certificate          = filebase64("testdata/api_management_developer_portal_test.pfx")
+      certificate_password = "terraform"
     }
   }
 
@@ -1186,8 +1187,9 @@ resource "azurerm_api_management" "test" {
     }
 
     developer_portal {
-      host_name   = "developer-portal.terraform.io"
-      certificate = filebase64("testdata/api_management_developer_portal_test.pfx")
+      host_name            = "developer-portal.terraform.io"
+      certificate          = filebase64("testdata/api_management_developer_portal_test.pfx")
+      certificate_password = "terraform"
     }
   }
 

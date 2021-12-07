@@ -53,7 +53,7 @@ func (UserAssignedIdentityV0ToV1) Schema() map[string]*pluginsdk.Schema {
 func (UserAssignedIdentityV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
-		id, err := parse.UserAssignedIdentityID(oldId)
+		id, err := parse.UserAssignedIdentityIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}

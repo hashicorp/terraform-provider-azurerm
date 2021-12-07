@@ -209,15 +209,13 @@ func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Schedule creation.")
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("automation_account_name").(string)
+	id := parse.NewScheduleID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, accountName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Automation Schedule %q (Account %q / Resource Group %q): %s", name, accountName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -231,7 +229,7 @@ func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	description := d.Get("description").(string)
 
 	parameters := automation.ScheduleCreateOrUpdateParameters{
-		Name: &name,
+		Name: &id.Name,
 		ScheduleCreateOrUpdateProperties: &automation.ScheduleCreateOrUpdateProperties{
 			Description: &description,
 			Frequency:   automation.ScheduleFrequency(frequency),
@@ -271,20 +269,11 @@ func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		properties.AdvancedSchedule = expandArmAutomationScheduleAdvanced(d, d.Id() != "")
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resGroup, accountName, name, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, parameters); err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, accountName, name)
-	if err != nil {
-		return err
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Automation Schedule '%s' (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceAutomationScheduleRead(d, meta)
 }

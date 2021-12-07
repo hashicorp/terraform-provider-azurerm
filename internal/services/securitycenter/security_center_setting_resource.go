@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+// TODO: this resource should be split into data_export_setting and alert_sync_setting
+
 func resourceSecurityCenterSetting() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceSecurityCenterSettingUpdate,
@@ -21,8 +23,10 @@ func resourceSecurityCenterSetting() *pluginsdk.Resource {
 		Update: resourceSecurityCenterSettingUpdate,
 		Delete: resourceSecurityCenterSettingDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.SettingID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(10 * time.Minute),
@@ -50,10 +54,13 @@ func resourceSecurityCenterSetting() *pluginsdk.Resource {
 
 func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.SettingClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	settingName := d.Get("setting_name").(string)
+	// TODO: requires import if it's enabled
+
+	id := parse.NewSettingID(subscriptionId, d.Get("setting_name").(string))
 	enabled := d.Get("enabled").(bool)
 	setting := security.DataExportSettings{
 		DataExportSettingProperties: &security.DataExportSettingProperties{
@@ -62,22 +69,11 @@ func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interfa
 		Kind: security.KindDataExportSettings,
 	}
 
-	if _, err := client.Update(ctx, settingName, setting); err != nil {
-		return fmt.Errorf("Creating/updating Security Center pricing: %+v", err)
-	}
-	// TODO: switch to back when Swagger/API bug has been fixed:
-	// https://github.com/Azure/azure-sdk-for-go/issues/12724
-	resp, err := azuresdkhacks.GetSecurityCenterSetting(client, ctx, settingName)
-	if err != nil {
-		return fmt.Errorf("Reading Security Center setting: %+v", err)
+	if _, err := client.Update(ctx, id.Name, setting); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Nil/empty ID returned for Security Center setting %q", settingName)
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceSecurityCenterSettingRead(d, meta)
 }
 
@@ -86,30 +82,29 @@ func resourceSecurityCenterSettingRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SecurityCenterSettingID(d.Id())
+	id, err := parse.SettingID(d.Id())
 	if err != nil {
 		return err
 	}
+
 	// TODO: switch to back when Swagger/API bug has been fixed:
 	// https://github.com/Azure/azure-sdk-for-go/issues/12724 (`Enabled` field missing)
-	resp, err := azuresdkhacks.GetSecurityCenterSetting(client, ctx, id.SettingName)
+	resp, err := azuresdkhacks.GetSecurityCenterSetting(ctx, client, id.Name)
 	if err != nil {
-		return fmt.Errorf("Reading Security Center setting: %+v", err)
-	}
-
-	if err != nil {
-		return fmt.Errorf("Reading Security Center setting: %+v", err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	if properties := resp.DataExportSettingProperties; properties != nil {
 		d.Set("enabled", properties.Enabled)
 	}
-	d.Set("setting_name", id.SettingName)
+	d.Set("setting_name", id.Name)
 
 	return nil
 }
 
 func resourceSecurityCenterSettingDelete(_ *pluginsdk.ResourceData, _ interface{}) error {
+	// TODO: disable this
+
 	log.Printf("[DEBUG] Security Center deletion invocation")
 	return nil // cannot be deleted.
 }

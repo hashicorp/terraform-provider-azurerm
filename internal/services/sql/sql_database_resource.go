@@ -361,42 +361,39 @@ func resourceSqlDatabase() *pluginsdk.Resource {
 
 func resourceSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.DatabasesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	threatClient := meta.(*clients.Client).Sql.DatabaseThreatDetectionPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	serverName := d.Get("server_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	createMode := d.Get("create_mode").(string)
-	auditingPolicies := d.Get("extended_auditing_policy").([]interface{})
-
-	if createMode == string(sql.CreateModeOnlineSecondary) && len(auditingPolicies) > 0 {
-		return fmt.Errorf("could not configure auditing policies on SQL Database %q (Resource Group %q, Server %q) in online secondary create mode", name, resourceGroup, serverName)
-	}
-
-	zoneRedundant := d.Get("zone_redundant").(bool)
-	t := d.Get("tags").(map[string]interface{})
-
+	id := parse.NewDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serverName, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing SQL Database %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_sql_database", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_sql_database", id.ID())
 		}
 	}
+
+	auditingPolicies := d.Get("extended_auditing_policy").([]interface{})
+	createMode := sql.CreateMode(d.Get("create_mode").(string))
+	if createMode == sql.CreateModeOnlineSecondary && len(auditingPolicies) > 0 {
+		return fmt.Errorf("auditing policies are not supported on an online secondary for %s", id)
+	}
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	t := d.Get("tags").(map[string]interface{})
 
 	properties := sql.Database{
 		Location: utils.String(location),
 		DatabaseProperties: &sql.DatabaseProperties{
-			CreateMode:    sql.CreateMode(createMode),
-			ZoneRedundant: utils.Bool(zoneRedundant),
+			CreateMode:    createMode,
+			ZoneRedundant: utils.Bool(d.Get("zone_redundant").(bool)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -476,23 +473,23 @@ func resourceSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		properties.DatabaseProperties.RequestedServiceObjectiveID = nil
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, properties)
 	if err != nil {
-		return fmt.Errorf("issuing create/update request for SQL Database %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on create/update future for SQL Database %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
 	if _, ok := d.GetOk("import"); ok {
-		if !strings.EqualFold(createMode, "default") {
+		if createMode != sql.CreateModeDefault {
 			return fmt.Errorf("import can only be used when create_mode is Default")
 		}
 		importParameters := expandAzureRmSqlDatabaseImport(d)
-		importFuture, err2 := client.CreateImportOperation(ctx, resourceGroup, serverName, name, importParameters)
-		if err2 != nil {
-			return err2
+		importFuture, err := client.CreateImportOperation(ctx, id.ResourceGroup, id.ServerName, id.Name, importParameters)
+		if err != nil {
+			return err
 		}
 
 		if err = importFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -500,24 +497,18 @@ func resourceSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serverName, name, "")
-	if err != nil {
-		return fmt.Errorf("issuing get request for SQL Database %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
-	}
-
-	d.SetId(*resp.ID)
-
-	if _, err = threatClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, *expandArmSqlServerThreatDetectionPolicy(d, location)); err != nil {
+	d.SetId(id.ID())
+	if _, err = threatClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, *expandArmSqlServerThreatDetectionPolicy(d, location)); err != nil {
 		return fmt.Errorf("setting database threat detection policy: %+v", err)
 	}
 
-	if createMode != string(sql.CreateModeOnlineSecondary) {
+	if createMode != sql.CreateModeOnlineSecondary {
 		auditingClient := meta.(*clients.Client).Sql.DatabaseExtendedBlobAuditingPoliciesClient
 		auditingProps := sql.ExtendedDatabaseBlobAuditingPolicy{
 			ExtendedDatabaseBlobAuditingPolicyProperties: helper.ExpandAzureRmSqlDBBlobAuditingPolicies(auditingPolicies),
 		}
-		if _, err = auditingClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, auditingProps); err != nil {
-			return fmt.Errorf("failure in issuing create/update request for SQL Database %q Blob Auditing Policies(SQL Server %q/ Resource Group %q): %+v", name, serverName, resourceGroup, err)
+		if _, err = auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, auditingProps); err != nil {
+			return fmt.Errorf("setting Blob Auditing Policies for %s: %+v", id, err)
 		}
 	}
 
@@ -537,12 +528,12 @@ func resourceSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading SQL Database %q - removing from state", d.Id())
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Sql Database %s: %+v", id.Name, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	threatClient := meta.(*clients.Client).Sql.DatabaseThreatDetectionPoliciesClient
@@ -553,7 +544,13 @@ func resourceSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 	}
 
-	d.Set("name", resp.Name)
+	auditingClient := meta.(*clients.Client).Sql.DatabaseExtendedBlobAuditingPoliciesClient
+	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving Blob Auditing Policies for %s: %+v", *id, err)
+	}
+
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -589,21 +586,8 @@ func resourceSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 
 		d.Set("encryption", flattenEncryptionStatus(props.TransparentDataEncryption))
-
-		readScale := props.ReadScale
-		if readScale == sql.ReadScaleEnabled {
-			d.Set("read_scale", true)
-		} else {
-			d.Set("read_scale", false)
-		}
-
+		d.Set("read_scale", props.ReadScale == sql.ReadScaleEnabled)
 		d.Set("zone_redundant", props.ZoneRedundant)
-	}
-
-	auditingClient := meta.(*clients.Client).Sql.DatabaseExtendedBlobAuditingPoliciesClient
-	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
-	if err != nil {
-		return fmt.Errorf("failure in reading SQL Database %q: %v Blob Auditing Policies", id.Name, err)
 	}
 
 	flattenBlobAuditing := helper.FlattenAzureRmSqlDBBlobAuditingPolicies(&auditingResp, d)

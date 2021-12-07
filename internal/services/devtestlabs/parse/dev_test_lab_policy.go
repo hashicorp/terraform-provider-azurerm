@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type DevTestLabPolicyId struct {
@@ -45,7 +45,7 @@ func (id DevTestLabPolicyId) ID() string {
 
 // DevTestLabPolicyID parses a DevTestLabPolicy ID into an DevTestLabPolicyId struct
 func DevTestLabPolicyID(input string) (*DevTestLabPolicyId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -70,6 +70,74 @@ func DevTestLabPolicyID(input string) (*DevTestLabPolicyId, error) {
 		return nil, err
 	}
 	if resourceId.PolicyName, err = id.PopSegment("policies"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
+
+// DevTestLabPolicyIDInsensitively parses an DevTestLabPolicy ID into an DevTestLabPolicyId struct, insensitively
+// This should only be used to parse an ID for rewriting, the DevTestLabPolicyID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func DevTestLabPolicyIDInsensitively(input string) (*DevTestLabPolicyId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := DevTestLabPolicyId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'labs' segment
+	labsKey := "labs"
+	for key := range id.Path {
+		if strings.EqualFold(key, labsKey) {
+			labsKey = key
+			break
+		}
+	}
+	if resourceId.LabName, err = id.PopSegment(labsKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'policySets' segment
+	policySetsKey := "policySets"
+	for key := range id.Path {
+		if strings.EqualFold(key, policySetsKey) {
+			policySetsKey = key
+			break
+		}
+	}
+	if resourceId.PolicySetName, err = id.PopSegment(policySetsKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'policies' segment
+	policiesKey := "policies"
+	for key := range id.Path {
+		if strings.EqualFold(key, policiesKey) {
+			policiesKey = key
+			break
+		}
+	}
+	if resourceId.PolicyName, err = id.PopSegment(policiesKey); err != nil {
 		return nil, err
 	}
 

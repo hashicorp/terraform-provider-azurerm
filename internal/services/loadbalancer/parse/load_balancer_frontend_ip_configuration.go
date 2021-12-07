@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type LoadBalancerFrontendIpConfigurationId struct {
@@ -42,7 +42,7 @@ func (id LoadBalancerFrontendIpConfigurationId) ID() string {
 
 // LoadBalancerFrontendIpConfigurationID parses a LoadBalancerFrontendIpConfiguration ID into an LoadBalancerFrontendIpConfigurationId struct
 func LoadBalancerFrontendIpConfigurationID(input string) (*LoadBalancerFrontendIpConfigurationId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

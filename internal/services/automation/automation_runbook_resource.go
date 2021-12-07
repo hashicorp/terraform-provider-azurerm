@@ -152,15 +152,13 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Runbook creation.")
 
-	name := d.Get("name").(string)
-	accName := d.Get("automation_account_name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	id := parse.NewRunbookID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, accName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Automation Runbook %q (Account %q / Resource Group %q): %s", name, accName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -196,8 +194,8 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		parameters.RunbookCreateOrUpdateProperties.Draft = &automation.RunbookDraft{}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters); err != nil {
-		return fmt.Errorf("creating/updating Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if v, ok := d.GetOk("content"); ok {
@@ -205,54 +203,45 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		reader := io.NopCloser(bytes.NewBufferString(content))
 		draftClient := meta.(*clients.Client).Automation.RunbookDraftClient
 
-		if _, err := draftClient.ReplaceContent(ctx, resGroup, accName, name, reader); err != nil {
-			return fmt.Errorf("setting the draft Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+		if _, err := draftClient.ReplaceContent(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, reader); err != nil {
+			return fmt.Errorf("setting the draft for %s: %+v", id, err)
 		}
 
-		if _, err := client.Publish(ctx, resGroup, accName, name); err != nil {
-			return fmt.Errorf("publishing the updated Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+		if _, err := client.Publish(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name); err != nil {
+			return fmt.Errorf("publishing the updated %s: %+v", id, err)
 		}
 	}
 
-	read, err := client.Get(ctx, resGroup, accName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
-	}
+	d.SetId(id.ID())
 
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Automation Runbook %q (Account %q / Resource Group %q) ID", name, accName, resGroup)
-	}
-
-	d.SetId(*read.ID)
-
-	for jsIterator, err := jsClient.ListByAutomationAccountComplete(ctx, resGroup, accName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
+	for jsIterator, err := jsClient.ListByAutomationAccountComplete(ctx, id.ResourceGroup, id.AutomationAccountName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
 		if err != nil {
-			return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", accName, err)
+			return fmt.Errorf("loading %s Job Schedule List: %+v", id, err)
 		}
 		if props := jsIterator.Value().JobScheduleProperties; props != nil {
-			if props.Runbook.Name != nil && *props.Runbook.Name == name {
+			if props.Runbook.Name != nil && *props.Runbook.Name == id.Name {
 				if jsIterator.Value().JobScheduleID == nil || *jsIterator.Value().JobScheduleID == "" {
-					return fmt.Errorf("job schedule Id is nil or empty listed by Automation Account %q Job Schedule List: %+v", accName, err)
+					return fmt.Errorf("job schedule Id is nil or empty listed by %s Job Schedule List: %+v", id, err)
 				}
 				jsId, err := uuid.FromString(*jsIterator.Value().JobScheduleID)
 				if err != nil {
-					return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List:%v", accName, err)
+					return fmt.Errorf("parsing job schedule Id listed by %s Job Schedule List:%v", id, err)
 				}
-				if _, err := jsClient.Delete(ctx, resGroup, accName, jsId); err != nil {
-					return fmt.Errorf("deleting job schedule Id listed by Automation Account %q Job Schedule List:%v", accName, err)
+				if _, err := jsClient.Delete(ctx, id.ResourceGroup, id.Name, jsId); err != nil {
+					return fmt.Errorf("deleting job schedule Id listed by %s Job Schedule List:%v", id, err)
 				}
 			}
 		}
 	}
 
 	if v, ok := d.GetOk("job_schedule"); ok {
-		jsMap, err := helper.ExpandAutomationJobSchedule(v.(*pluginsdk.Set).List(), name)
+		jsMap, err := helper.ExpandAutomationJobSchedule(v.(*pluginsdk.Set).List(), id.Name)
 		if err != nil {
 			return err
 		}
 		for jsuuid, js := range *jsMap {
-			if _, err := jsClient.Create(ctx, resGroup, accName, jsuuid, js); err != nil {
-				return fmt.Errorf("creating Automation Runbook %q Job Schedules (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+			if _, err := jsClient.Create(ctx, id.ResourceGroup, id.AutomationAccountName, jsuuid, js); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 		}
 	}

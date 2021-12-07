@@ -273,9 +273,9 @@ func (EventGridSystemTopicEventSubscriptionResource) Exists(ctx context.Context,
 		return nil, err
 	}
 
-	resp, err := clients.EventGrid.SystemTopicEventSubscriptionsClient.Get(ctx, id.ResourceGroup, id.SystemTopic, id.Name)
+	resp, err := clients.EventGrid.SystemTopicEventSubscriptionsClient.Get(ctx, id.ResourceGroup, id.SystemTopicName, id.EventSubscriptionName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving EventGrid System Topic Event Subscription %q (System Topic: %q): %+v", id.Name, id.SystemTopic, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.EventSubscriptionProperties != nil), nil

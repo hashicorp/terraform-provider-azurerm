@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -39,6 +40,11 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.KubernetesClusterNodePoolV0ToV1{},
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -102,7 +108,6 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerservice.ScaleSetEvictionPolicyDelete),
 					string(containerservice.ScaleSetEvictionPolicyDeallocate),
@@ -175,11 +180,12 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				RequiredWith: []string{"enable_node_public_ip"},
 			},
 
+			// Node Taints control the behaviour of the Node Pool, as such they should not be computed and
+			// must be specified/reconciled as required
 			"node_taints": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
-				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -495,16 +501,8 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("waiting for completion of Managed Kubernetes Cluster Node Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	read, err := poolsClient.Get(ctx, resourceGroup, clusterName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Managed Kubernetes Cluster Node Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID for Managed Kubernetes Cluster Node Pool %q (Resource Group %q)", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	id := parse.NewNodePoolID(poolsClient.SubscriptionID, resourceGroup, clusterName, name)
+	d.SetId(id.ID())
 
 	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
@@ -692,7 +690,9 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 	}
 
 	d.Set("name", id.AgentPoolName)
-	d.Set("kubernetes_cluster_id", cluster.ID)
+
+	clusterId := parse.NewClusterID(id.SubscriptionId, id.ResourceGroup, id.ManagedClusterName)
+	d.Set("kubernetes_cluster_id", clusterId.ID())
 
 	if props := resp.ManagedClusterAgentPoolProfileProperties; props != nil {
 		if err := d.Set("availability_zones", utils.FlattenStringSlice(props.AvailabilityZones)); err != nil {

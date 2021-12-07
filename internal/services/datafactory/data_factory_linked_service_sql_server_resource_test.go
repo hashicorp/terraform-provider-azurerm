@@ -118,7 +118,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_sql_server" "test" {
   name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"
@@ -156,7 +156,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_sql_server" "test" {
   name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
   annotations         = ["test1", "test2"]
   description         = "test description 2"
@@ -211,7 +211,7 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
 resource "azurerm_data_factory_linked_service_sql_server" "test" {
   name                = "linksqlserver"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
 
   connection_string = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;"
   key_vault_password {
@@ -252,14 +252,14 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
   name                = "linkkv"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   key_vault_id        = azurerm_key_vault.test.id
 }
 
 resource "azurerm_data_factory_linked_service_sql_server" "test" {
   name                = "linksqlserver"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
 
   key_vault_connection_string {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name

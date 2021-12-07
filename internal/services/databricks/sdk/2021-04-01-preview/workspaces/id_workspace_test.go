@@ -28,7 +28,7 @@ func TestFormatWorkspaceID(t *testing.T) {
 	actual := NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.Databricks/workspaces/workspaceValue"
 	if actual != expected {
-		t.Fatalf("Expected the Formatted ID to be %q but got %q", actual, expected)
+		t.Fatalf("Expected the Formatted ID to be %q but got %q", expected, actual)
 	}
 }
 
@@ -260,5 +260,20 @@ func TestParseWorkspaceIDInsensitively(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for WorkspaceName", v.Expected.WorkspaceName, actual.WorkspaceName)
 		}
 
+	}
+}
+
+func TestSegmentsForWorkspaceId(t *testing.T) {
+	segments := WorkspaceId{}.Segments()
+	if len(segments) == 0 {
+		t.Fatalf("WorkspaceId has no segments")
+	}
+
+	uniqueNames := make(map[string]struct{}, 0)
+	for _, segment := range segments {
+		uniqueNames[segment.Name] = struct{}{}
+	}
+	if len(uniqueNames) != len(segments) {
+		t.Fatalf("Expected the Segments to be unique but got %q unique segments and %d total segments", len(uniqueNames), len(segments))
 	}
 }
