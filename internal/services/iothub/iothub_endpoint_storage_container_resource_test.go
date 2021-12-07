@@ -26,10 +26,25 @@ func TestAccIotHubEndpointStorageContainer_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("file_name_format").HasValue("{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"),
-				check.That(data.ResourceName).Key("batch_frequency_in_seconds").HasValue("60"),
-				check.That(data.ResourceName).Key("max_chunk_size_in_bytes").HasValue("10485760"),
-				check.That(data.ResourceName).Key("encoding").HasValue("JSON"),
+				check.That(data.ResourceName).Key("file_name_format").HasValue("{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}"),
+				check.That(data.ResourceName).Key("batch_frequency_in_seconds").HasValue("300"),
+				check.That(data.ResourceName).Key("max_chunk_size_in_bytes").HasValue("314572800"),
+				check.That(data.ResourceName).Key("encoding").HasValue("Avro"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccIotHubEndpointStorageContainer_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_storage_container", "test")
+	r := IotHubEndpointStorageContainerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -55,6 +70,57 @@ func TestAccIotHubEndpointStorageContainer_requiresImport(t *testing.T) {
 }
 
 func (IotHubEndpointStorageContainerResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-iothub-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acc%[1]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctestcont"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "B1"
+    capacity = "1"
+  }
+
+  tags = {
+    purpose = "testing"
+  }
+}
+
+resource "azurerm_iothub_endpoint_storage_container" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_name         = azurerm_iothub.test.name
+  name                = "acctest"
+
+  container_name    = "acctestcont"
+  connection_string = azurerm_storage_account.test.primary_blob_connection_string
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (IotHubEndpointStorageContainerResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

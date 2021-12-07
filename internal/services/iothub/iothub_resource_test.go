@@ -504,8 +504,6 @@ resource "azurerm_iothub" "test" {
     batch_frequency_in_seconds = 60
     max_chunk_size_in_bytes    = 10485760
     container_name             = azurerm_storage_container.test.name
-    encoding                   = "Avro"
-    file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
     resource_group_name        = azurerm_resource_group.test.name
   }
 
