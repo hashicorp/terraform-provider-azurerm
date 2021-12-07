@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * `azurerm_netapp_volume` - support for `throughput_in_mibps` property [GH-14372]
 * `azurerm_sql_managed_instance`: Support for `storage_account_type` [GH-14123]
 * `azurerm_kubernetes_cluster` - support for the `http_proxy_config` block which contains the `http_proxy`, `https_proxy`, `no_proxy` and `trusted_ca` properties [GH-14177]
+* `azurerm_data_factory_linked_services_*` - deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory linked service resources [GH-14492]
 
 BUG FIXES:
 
