@@ -1004,7 +1004,7 @@ func TestAccCosmosDBAccount_restoreCreateMode(t *testing.T) {
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelSession, 1),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("restore.0.restore_timestamp_in_utc"),
 	})
 }
 
