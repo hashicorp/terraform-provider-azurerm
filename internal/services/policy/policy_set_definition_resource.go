@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -54,10 +54,10 @@ func resourceArmPolicySetDefinition() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(policy.BuiltIn),
-					string(policy.Custom),
-					string(policy.NotSpecified),
-					string(policy.Static),
+					string(policy.TypeBuiltIn),
+					string(policy.TypeCustom),
+					string(policy.TypeNotSpecified),
+					string(policy.TypeStatic),
 				}, false),
 			},
 

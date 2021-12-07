@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -99,8 +99,8 @@ resources and will be removed in version 3.0 of the Azure Provider.
 							Optional: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(policy.None),
-								string(policy.SystemAssigned),
+								string(policy.ResourceIdentityTypeNone),
+								string(policy.ResourceIdentityTypeSystemAssigned),
 							}, false),
 						},
 						"principal_id": {
@@ -346,7 +346,7 @@ func resourceArmPolicyAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("policy_definition_id", props.PolicyDefinitionID)
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
-		d.Set("enforcement_mode", props.EnforcementMode == policy.Default)
+		d.Set("enforcement_mode", props.EnforcementMode == policy.EnforcementModeDefault)
 		d.Set("metadata", flattenJSON(props.Metadata))
 
 		json, err := flattenParameterValuesValueToString(props.Parameters)
