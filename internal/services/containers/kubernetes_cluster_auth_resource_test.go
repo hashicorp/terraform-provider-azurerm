@@ -260,7 +260,6 @@ func TestAccKubernetesCluster_roleBasedAccessControlAADUpdateToManagedSensitive(
 	})
 }
 
-
 func TestAccKubernetesCluster_roleBasedAccessControlAADManaged(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -296,7 +295,6 @@ func TestAccKubernetesCluster_roleBasedAccessControlAADManaged(t *testing.T) {
 		),
 	})
 }
-
 
 func TestAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
