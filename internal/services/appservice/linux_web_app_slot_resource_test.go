@@ -1173,7 +1173,7 @@ resource "azurerm_linux_web_app_slot" "test" {
     scm_use_main_ip_restriction = true
     local_mysql                 = true
     managed_pipeline_mode       = "Integrated"
-    remote_debugging            = true
+    remote_debugging_enabled    = true
     remote_debugging_version    = "VS2019"
     use_32_bit_worker           = true
     websockets_enabled          = true

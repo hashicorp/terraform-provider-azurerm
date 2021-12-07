@@ -31,7 +31,7 @@ type SiteConfigLinuxWebAppSlot struct {
 	LoadBalancing           string                  `tfschema:"load_balancing_mode"`
 	LocalMysql              bool                    `tfschema:"local_mysql"`
 	ManagedPipelineMode     string                  `tfschema:"managed_pipeline_mode"`
-	RemoteDebugging         bool                    `tfschema:"remote_debugging"`
+	RemoteDebugging         bool                    `tfschema:"remote_debugging_enabled"`
 	RemoteDebuggingVersion  string                  `tfschema:"remote_debugging_version"`
 	ScmType                 string                  `tfschema:"scm_type"`
 	Use32BitWorker          bool                    `tfschema:"use_32_bit_worker"`
@@ -109,7 +109,8 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 
@@ -159,7 +160,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 					}, false),
 				},
 
-				"remote_debugging": {
+				"remote_debugging_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -382,7 +383,7 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 		expanded.ManagedPipelineMode = web.ManagedPipelineMode(linuxSlotSiteConfig.ManagedPipelineMode)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.remote_debugging") {
+	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_enabled") {
 		expanded.RemoteDebuggingEnabled = utils.Bool(linuxSlotSiteConfig.RemoteDebugging)
 	}
 
