@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type WebAppSlotId struct {
@@ -42,7 +42,7 @@ func (id WebAppSlotId) ID() string {
 
 // WebAppSlotID parses a WebAppSlot ID into an WebAppSlotId struct
 func WebAppSlotID(input string) (*WebAppSlotId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
