@@ -868,7 +868,7 @@ func TestAccWindowsWebApp_containerRegistryCredentialsUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.container_registry_use_managed_identity").HasValue("true"),
-				check.That(data.ResourceName).Key("site_config.0.container_registry_managed_identity_client_id").HasValue(fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.ManagedIdentity/userAssignedIdentities/acct-%d", data.Client().SubscriptionID, data.RandomInteger, data.RandomInteger)),
+				check.That(data.ResourceName).Key("site_config.0.container_registry_managed_identity_client_id").IsSet(),
 			),
 		},
 		data.ImportStep(),
