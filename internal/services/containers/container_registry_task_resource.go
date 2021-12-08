@@ -37,43 +37,34 @@ type Platform struct {
 	Variant      string `tfschema:"variant"`
 }
 
-type Argument struct {
-	Name     string `tfschema:"name"`
-	Value    string `tfschema:"value"`
-	IsSecret bool   `tfschema:"is_secret"`
-}
-
-type Value struct {
-	Name     string `tfschema:"name"`
-	Value    string `tfschema:"value"`
-	IsSecret bool   `tfschema:"is_secret"`
-}
-
 type DockerStep struct {
-	ContextPath        string     `tfschema:"context_path"`
-	ContextAccessToken string     `tfschema:"context_access_token"`
-	Arguments          []Argument `tfschema:"argument"`
-	DockerfilePath     string     `tfschema:"dockerfile_path"`
-	ImageNames         []string   `tfschema:"image_names"`
-	IsPushEnabled      bool       `tfschema:"is_push_enabled"`
-	IsCacheEnabled     bool       `tfschema:"is_cache_enabled"`
-	Target             string     `tfschema:"target"`
+	ContextPath        string            `tfschema:"context_path"`
+	ContextAccessToken string            `tfschema:"context_access_token"`
+	DockerfilePath     string            `tfschema:"dockerfile_path"`
+	ImageNames         []string          `tfschema:"image_names"`
+	IsPushEnabled      bool              `tfschema:"is_push_enabled"`
+	IsCacheEnabled     bool              `tfschema:"is_cache_enabled"`
+	Target             string            `tfschema:"target"`
+	Arguments          map[string]string `tfschema:"arguments"`
+	SecretArguments    map[string]string `tfschema:"secret_arguments"`
 }
 
 type FileTaskStep struct {
-	ContextPath        string  `tfschema:"context_path"`
-	ContextAccessToken string  `tfschema:"context_access_token"`
-	TaskFilePath       string  `tfschema:"task_file_path"`
-	ValueFilePath      string  `tfschema:"value_file_path"`
-	Values             []Value `tfschema:"value"`
+	ContextPath        string            `tfschema:"context_path"`
+	ContextAccessToken string            `tfschema:"context_access_token"`
+	TaskFilePath       string            `tfschema:"task_file_path"`
+	ValueFilePath      string            `tfschema:"value_file_path"`
+	Values             map[string]string `tfschema:"values"`
+	SecretValues       map[string]string `tfschema:"secret_values"`
 }
 
 type EncodedTaskStep struct {
-	ContextPath        string  `tfschema:"context_path"`
-	ContextAccessToken string  `tfschema:"context_access_token"`
-	TaskContent        string  `tfschema:"task_content"`
-	ValueContent       string  `tfschema:"value_content"`
-	Values             []Value `tfschema:"value"`
+	ContextPath        string            `tfschema:"context_path"`
+	ContextAccessToken string            `tfschema:"context_access_token"`
+	TaskContent        string            `tfschema:"task_content"`
+	ValueContent       string            `tfschema:"value_content"`
+	Values             map[string]string `tfschema:"values"`
+	SecretValues       map[string]string `tfschema:"secret_values"`
 }
 
 type BaseImageTrigger struct {
@@ -243,27 +234,19 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					"argument": {
-						Type:     pluginsdk.TypeList,
+					"arguments": {
+						Type:     pluginsdk.TypeMap,
 						Optional: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*schema.Schema{
-								"name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-								"value": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-								"is_secret": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  false,
-								},
-							},
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+					"secret_arguments": {
+						Type:      pluginsdk.TypeMap,
+						Optional:  true,
+						Sensitive: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
 					},
 				},
@@ -297,27 +280,19 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					"value": {
-						Type:     pluginsdk.TypeList,
+					"values": {
+						Type:     pluginsdk.TypeMap,
 						Optional: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*schema.Schema{
-								"name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-								"value": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-								"is_secret": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  false,
-								},
-							},
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+					"secret_values": {
+						Type:      pluginsdk.TypeMap,
+						Optional:  true,
+						Sensitive: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
 					},
 				},
@@ -353,27 +328,19 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					"value": {
-						Type:     pluginsdk.TypeList,
+					"values": {
+						Type:     pluginsdk.TypeMap,
 						Optional: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*schema.Schema{
-								"name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-								"value": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-								"is_secret": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  false,
-								},
-							},
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+					"secret_values": {
+						Type:      pluginsdk.TypeMap,
+						Optional:  true,
+						Sensitive: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
 					},
 				},
@@ -858,29 +825,6 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 			if state.Enabled {
 				status = legacyacr.TaskStatusEnabled
 			}
-			//patch := legacyacr.TaskUpdateParameters{
-			//	TaskPropertiesUpdateParameters: &legacyacr.TaskPropertiesUpdateParameters{
-			//		Platform: expandRegistryTaskPlatformForUpdate(state.Platform[0]),
-			//		Step:     expandRegistryTaskStepForUpdate(state),
-			//		Trigger:  expandRegistryTaskTriggerForUpdate(state),
-			//		Status:   status,
-			//		Timeout:  utils.Int32(int32(state.TimeoutInSec)),
-			//	},
-			//	Identity: expandRegistryTaskIdentity(state.Identity),
-			//	Tags:     tags.Expand(state.Tags),
-			//}
-			//if len(state.AgentConfig) != 0 {
-			//	agentConfig := state.AgentConfig[0]
-			//	patch.TaskPropertiesUpdateParameters.AgentConfiguration = &legacyacr.AgentProperties{CPU: utils.Int32(int32(agentConfig.CPU))}
-			//}
-			//if state.AgentPoolName != "" {
-			//	patch.TaskPropertiesUpdateParameters.AgentPoolName = &state.AgentPoolName
-			//}
-			//if state.LogTemplate != "" {
-			//	patch.TaskPropertiesUpdateParameters.LogTemplate = &state.LogTemplate
-			//}
-			//
-			//future, err := client.Update(ctx, id.ResourceGroup, id.RegistryName, id.TaskName, patch)
 
 			registryClient := metadata.Client.Containers.RegistriesClient
 			registry, err := registryClient.Get(ctx, id.ResourceGroup, id.RegistryName)
@@ -938,14 +882,6 @@ func expandRegistryTaskTrigger(model ContainerRegistryTaskModel) *legacyacr.Trig
 	}
 }
 
-func expandRegistryTaskTriggerForUpdate(model ContainerRegistryTaskModel) *legacyacr.TriggerUpdateParameters {
-	return &legacyacr.TriggerUpdateParameters{
-		BaseImageTrigger: expandRegistryTaskBaseImageTriggerForUpdate(model.BaseImageTrigger),
-		SourceTriggers:   expandRegistryTaskSourceTriggersForUpdate(model.SourceTrigger),
-		TimerTriggers:    expandRegistryTaskTimerTriggersForUpdate(model.TimerTrigger),
-	}
-}
-
 func expandRegistryTaskBaseImageTrigger(triggers []BaseImageTrigger) *legacyacr.BaseImageTrigger {
 	if len(triggers) == 0 {
 		return nil
@@ -967,36 +903,6 @@ func expandRegistryTaskBaseImageTrigger(triggers []BaseImageTrigger) *legacyacr.
 	if trigger.UpdateTriggerPayloadType != "" {
 		out.UpdateTriggerPayloadType = legacyacr.UpdateTriggerPayloadType(trigger.UpdateTriggerPayloadType)
 	}
-	return out
-}
-
-func expandRegistryTaskBaseImageTriggerForUpdate(triggers []BaseImageTrigger) *legacyacr.BaseImageTriggerUpdateParameters {
-	if len(triggers) == 0 {
-		return nil
-	}
-
-	trigger := triggers[0]
-	status := legacyacr.TriggerStatusDisabled
-	if trigger.Enabled {
-		status = legacyacr.TriggerStatusEnabled
-	}
-	out := &legacyacr.BaseImageTriggerUpdateParameters{
-		Name:                 &trigger.Name,
-		BaseImageTriggerType: legacyacr.BaseImageTriggerType(trigger.Type),
-		Status:               status,
-	}
-	if trigger.UpdateTriggerEndpoint != "" {
-		out.UpdateTriggerEndpoint = &trigger.UpdateTriggerEndpoint
-	} else {
-		out.UpdateTriggerEndpoint = utils.String("")
-	}
-
-	if trigger.UpdateTriggerPayloadType != "" {
-		out.UpdateTriggerPayloadType = legacyacr.UpdateTriggerPayloadType(trigger.UpdateTriggerPayloadType)
-	} else {
-		out.UpdateTriggerPayloadType = ""
-	}
-
 	return out
 }
 
@@ -1050,33 +956,6 @@ func expandRegistryTaskSourceTriggers(triggers []SourceTrigger) *[]legacyacr.Sou
 	return &out
 }
 
-func expandRegistryTaskSourceTriggersForUpdate(triggers []SourceTrigger) *[]legacyacr.SourceTriggerUpdateParameters {
-	if len(triggers) == 0 {
-		return nil
-	}
-	out := make([]legacyacr.SourceTriggerUpdateParameters, 0, len(triggers))
-	for _, trigger := range triggers {
-		status := legacyacr.TriggerStatusDisabled
-		if trigger.Enabled {
-			status = legacyacr.TriggerStatusEnabled
-		}
-		sourceTrigger := legacyacr.SourceTriggerUpdateParameters{
-			Name:             &trigger.Name,
-			Status:           status,
-			SourceRepository: expandRegistryTaskSourceRepositoryForUpdate(trigger.SourceSetting[0]),
-		}
-
-		events := make([]legacyacr.SourceTriggerEvent, 0, len(trigger.Events))
-		for _, event := range trigger.Events {
-			events = append(events, legacyacr.SourceTriggerEvent(event))
-		}
-		sourceTrigger.SourceTriggerEvents = &events
-
-		out = append(out, sourceTrigger)
-	}
-	return &out
-}
-
 func flattenRegistryTaskSourceTriggers(triggers *[]legacyacr.SourceTrigger, model ContainerRegistryTaskModel) []SourceTrigger {
 	if triggers == nil {
 		return nil
@@ -1113,26 +992,6 @@ func expandRegistryTaskSourceRepository(setting SourceSetting) *legacyacr.Source
 	if len(setting.Auth) != 0 {
 		out.SourceControlAuthProperties = expandRegistryTaskAuthInfo(setting.Auth[0])
 	}
-	return &out
-}
-
-func expandRegistryTaskSourceRepositoryForUpdate(setting SourceSetting) *legacyacr.SourceUpdateParameters {
-	out := legacyacr.SourceUpdateParameters{
-		SourceControlType: legacyacr.SourceControlType(setting.SourceType),
-		RepositoryURL:     &setting.RepositoryURL,
-	}
-	if setting.Branch != "" {
-		out.Branch = &setting.Branch
-	} else {
-		out.Branch = utils.String("")
-	}
-
-	if len(setting.Auth) != 0 {
-		out.SourceControlAuthProperties = expandRegistryTaskAuthInfoForUpdate(setting.Auth[0])
-	} else {
-		out.SourceControlAuthProperties = &legacyacr.AuthInfoUpdateParameters{}
-	}
-
 	return &out
 }
 
@@ -1175,33 +1034,6 @@ func expandRegistryTaskAuthInfo(auth Auth) *legacyacr.AuthInfo {
 	return &out
 }
 
-func expandRegistryTaskAuthInfoForUpdate(auth Auth) *legacyacr.AuthInfoUpdateParameters {
-	out := legacyacr.AuthInfoUpdateParameters{
-		TokenType: legacyacr.TokenType(auth.TokenType),
-		Token:     &auth.Token,
-	}
-
-	if auth.RefreshToken != "" {
-		out.RefreshToken = &auth.RefreshToken
-	} else {
-		out.RefreshToken = utils.String("")
-	}
-
-	if auth.Scope != "" {
-		out.Scope = &auth.Scope
-	} else {
-		out.Scope = utils.String("")
-	}
-
-	if auth.ExpireInSec != 0 {
-		out.ExpiresIn = utils.Int32(int32(auth.ExpireInSec))
-	} else {
-		out.ExpiresIn = utils.Int32(0)
-	}
-
-	return &out
-}
-
 func expandRegistryTaskTimerTriggers(triggers []TimerTrigger) *[]legacyacr.TimerTrigger {
 	if len(triggers) == 0 {
 		return nil
@@ -1213,26 +1045,6 @@ func expandRegistryTaskTimerTriggers(triggers []TimerTrigger) *[]legacyacr.Timer
 			status = legacyacr.TriggerStatusEnabled
 		}
 		timerTrigger := legacyacr.TimerTrigger{
-			Name:     &trigger.Name,
-			Schedule: &trigger.Schedule,
-			Status:   status,
-		}
-		out = append(out, timerTrigger)
-	}
-	return &out
-}
-
-func expandRegistryTaskTimerTriggersForUpdate(triggers []TimerTrigger) *[]legacyacr.TimerTriggerUpdateParameters {
-	if len(triggers) == 0 {
-		return nil
-	}
-	out := make([]legacyacr.TimerTriggerUpdateParameters, 0, len(triggers))
-	for _, trigger := range triggers {
-		status := legacyacr.TriggerStatusDisabled
-		if trigger.Enabled {
-			status = legacyacr.TriggerStatusEnabled
-		}
-		timerTrigger := legacyacr.TimerTriggerUpdateParameters{
 			Name:     &trigger.Name,
 			Schedule: &trigger.Schedule,
 			Status:   status,
@@ -1274,24 +1086,13 @@ func expandRegistryTaskStep(model ContainerRegistryTaskModel) legacyacr.BasicTas
 	return nil
 }
 
-func expandRegistryTaskStepForUpdate(model ContainerRegistryTaskModel) legacyacr.BasicTaskStepUpdateParameters {
-	switch {
-	case len(model.DockerStep) != 0:
-		return expandRegistryTaskDockerStepForUpdate(model.DockerStep[0])
-	case len(model.FileTaskStep) != 0:
-		return expandRegistryTaskFileTaskStepForUpdate(model.FileTaskStep[0])
-	case len(model.EncodedTaskStep) != 0:
-		return expandRegistryTaskEncodedTaskStepForUpdate(model.EncodedTaskStep[0])
-	}
-	return nil
-}
-
 func expandRegistryTaskDockerStep(step DockerStep) legacyacr.DockerBuildStep {
 	out := legacyacr.DockerBuildStep{
 		Type:           legacyacr.TypeDocker,
 		DockerFilePath: &step.DockerfilePath,
 		IsPushEnabled:  &step.IsPushEnabled,
 		NoCache:        utils.Bool(!step.IsCacheEnabled),
+		Arguments:      expandRegistryTaskArguments(step.Arguments, step.SecretArguments),
 	}
 	if step.ContextPath != "" {
 		out.ContextPath = &step.ContextPath
@@ -1304,50 +1105,6 @@ func expandRegistryTaskDockerStep(step DockerStep) legacyacr.DockerBuildStep {
 	}
 	if step.Target != "" {
 		out.Target = &step.Target
-	}
-	if len(step.Arguments) != 0 {
-		out.Arguments = expandRegistryTaskArguments(step.Arguments)
-	}
-	return out
-}
-
-func expandRegistryTaskDockerStepForUpdate(step DockerStep) legacyacr.DockerBuildStepUpdateParameters {
-	out := legacyacr.DockerBuildStepUpdateParameters{
-		IsPushEnabled:  &step.IsPushEnabled,
-		NoCache:        utils.Bool(!step.IsCacheEnabled),
-		DockerFilePath: &step.DockerfilePath,
-	}
-
-	if step.ContextPath != "" {
-		out.ContextPath = &step.ContextPath
-	} else {
-		out.ContextPath = utils.String("")
-	}
-
-	if step.ContextAccessToken != "" {
-		out.ContextAccessToken = &step.ContextAccessToken
-	} else {
-		out.ContextAccessToken = utils.String("")
-	}
-
-	if len(step.ImageNames) != 0 {
-		out.ImageNames = &step.ImageNames
-	} else {
-		v := []string{}
-		out.ImageNames = &v
-	}
-
-	if step.Target != "" {
-		out.Target = &step.Target
-	} else {
-		out.Target = utils.String("")
-	}
-
-	if len(step.Arguments) != 0 {
-		out.Arguments = expandRegistryTaskArguments(step.Arguments)
-	} else {
-		v := []legacyacr.Argument{}
-		out.Arguments = &v
 	}
 
 	return out
@@ -1382,9 +1139,12 @@ func flattenRegistryTaskDockerStep(step legacyacr.BasicTaskStepProperties, model
 		obj.Target = *dockerStep.Target
 	}
 
-	// The ContextAccessToken is sensitive and won't return from API, setting it from the config.
 	if len(model.DockerStep) == 1 {
+		// The ContextAccessToken is sensitive and won't return from API, setting it from the config.
 		obj.ContextAccessToken = model.DockerStep[0].ContextAccessToken
+
+		// The SecretArguments is sensitive and won't return from API, setting it from the config.
+		obj.SecretArguments = model.DockerStep[0].SecretArguments
 	}
 
 	return []DockerStep{obj}
@@ -1394,6 +1154,7 @@ func expandRegistryTaskFileTaskStep(step FileTaskStep) legacyacr.FileTaskStep {
 	out := legacyacr.FileTaskStep{
 		Type:         legacyacr.TypeFileTask,
 		TaskFilePath: &step.TaskFilePath,
+		Values:       expandRegistryTaskValues(step.Values, step.SecretValues),
 	}
 	if step.ValueFilePath != "" {
 		out.ValuesFilePath = &step.ValueFilePath
@@ -1405,40 +1166,7 @@ func expandRegistryTaskFileTaskStep(step FileTaskStep) legacyacr.FileTaskStep {
 		out.ContextAccessToken = &step.ContextAccessToken
 	}
 	if len(step.Values) != 0 {
-		out.Values = expandRegistryTaskValues(step.Values)
 	}
-	return out
-}
-
-func expandRegistryTaskFileTaskStepForUpdate(step FileTaskStep) legacyacr.FileTaskStepUpdateParameters {
-	out := legacyacr.FileTaskStepUpdateParameters{
-		TaskFilePath: &step.TaskFilePath,
-	}
-	if step.ValueFilePath != "" {
-		out.ValuesFilePath = &step.ValueFilePath
-	} else {
-		out.ValuesFilePath = utils.String("")
-	}
-
-	if step.ContextPath != "" {
-		out.ContextPath = &step.ContextPath
-	} else {
-		out.ContextPath = utils.String("")
-	}
-
-	if step.ContextAccessToken != "" {
-		out.ContextAccessToken = &step.ContextAccessToken
-	} else {
-		out.ContextAccessToken = utils.String("")
-	}
-
-	if len(step.Values) != 0 {
-		out.Values = expandRegistryTaskValues(step.Values)
-	} else {
-		v := []legacyacr.SetValue{}
-		out.Values = &v
-	}
-
 	return out
 }
 
@@ -1447,9 +1175,11 @@ func flattenRegistryTaskFileTaskStep(step legacyacr.BasicTaskStepProperties, mod
 	if !ok {
 		return nil
 	}
+
 	obj := FileTaskStep{
 		Values: flattenRegistryTaskValues(fileTaskStep.Values),
 	}
+
 	if fileTaskStep.ContextPath != nil {
 		obj.ContextPath = *fileTaskStep.ContextPath
 	}
@@ -1460,9 +1190,12 @@ func flattenRegistryTaskFileTaskStep(step legacyacr.BasicTaskStepProperties, mod
 		obj.ValueFilePath = *fileTaskStep.ValuesFilePath
 	}
 
-	// The ContextAccessToken is sensitive and won't return from API, setting it from the config.
 	if len(model.FileTaskStep) == 1 {
+		// The ContextAccessToken is sensitive and won't return from API, setting it from the config.
 		obj.ContextAccessToken = model.FileTaskStep[0].ContextAccessToken
+
+		// The SecretValues is sensitive and won't return from API, setting it from the config.
+		obj.SecretValues = model.FileTaskStep[0].SecretValues
 	}
 
 	return []FileTaskStep{obj}
@@ -1472,6 +1205,7 @@ func expandRegistryTaskEncodedTaskStep(step EncodedTaskStep) legacyacr.EncodedTa
 	out := legacyacr.EncodedTaskStep{
 		Type:               legacyacr.TypeEncodedTask,
 		EncodedTaskContent: utils.String(utils.Base64EncodeIfNot(step.TaskContent)),
+		Values:             expandRegistryTaskValues(step.Values, step.SecretValues),
 	}
 	if step.ContextPath != "" {
 		out.ContextPath = &step.ContextPath
@@ -1482,41 +1216,6 @@ func expandRegistryTaskEncodedTaskStep(step EncodedTaskStep) legacyacr.EncodedTa
 	if step.ValueContent != "" {
 		out.EncodedValuesContent = utils.String(utils.Base64EncodeIfNot(step.ValueContent))
 	}
-	if len(step.Values) != 0 {
-		out.Values = expandRegistryTaskValues(step.Values)
-	}
-	return out
-}
-
-func expandRegistryTaskEncodedTaskStepForUpdate(step EncodedTaskStep) legacyacr.EncodedTaskStepUpdateParameters {
-	out := legacyacr.EncodedTaskStepUpdateParameters{
-		EncodedTaskContent: utils.String(utils.Base64EncodeIfNot(step.TaskContent)),
-	}
-	if step.ContextPath != "" {
-		out.ContextPath = &step.ContextPath
-	} else {
-		out.ContextPath = utils.String("")
-	}
-
-	if step.ContextAccessToken != "" {
-		out.ContextAccessToken = &step.ContextAccessToken
-	} else {
-		out.ContextAccessToken = utils.String("")
-	}
-
-	if step.ValueContent != "" {
-		out.EncodedValuesContent = utils.String(utils.Base64EncodeIfNot(step.ValueContent))
-	} else {
-		out.EncodedValuesContent = utils.String("")
-	}
-
-	if len(step.Values) != 0 {
-		out.Values = expandRegistryTaskValues(step.Values)
-	} else {
-		v := []legacyacr.SetValue{}
-		out.Values = &v
-	}
-
 	return out
 }
 
@@ -1543,84 +1242,126 @@ func flattenRegistryTaskEncodedTaskStep(step legacyacr.BasicTaskStepProperties, 
 		obj.ValueContent = *encodedTaskStep.EncodedValuesContent
 	}
 
-	// The ContextAccessToken is sensitive and won't return from API, setting it from the config.
 	if len(model.EncodedTaskStep) == 1 {
+		// The ContextAccessToken is sensitive and won't return from API, setting it from the config.
 		obj.ContextAccessToken = model.EncodedTaskStep[0].ContextAccessToken
+
+		// The SecretValues is sensitive and won't return from API, setting it from the config.
+		obj.SecretValues = model.EncodedTaskStep[0].SecretValues
 	}
 
 	return []EncodedTaskStep{obj}
 }
 
-func expandRegistryTaskArguments(arguments []Argument) *[]legacyacr.Argument {
-	if len(arguments) == 0 {
+func expandRegistryTaskArguments(arguments map[string]string, secretArguments map[string]string) *[]legacyacr.Argument {
+	if len(arguments) == 0 && len(secretArguments) == 0 {
 		return nil
 	}
-	out := make([]legacyacr.Argument, 0, len(arguments))
-	for _, argument := range arguments {
+	out := make([]legacyacr.Argument, 0, len(arguments)+len(secretArguments))
+	for k, v := range arguments {
 		out = append(out, legacyacr.Argument{
-			Name:     &argument.Name,
-			Value:    &argument.Value,
-			IsSecret: &argument.IsSecret,
+			Name:     utils.String(k),
+			Value:    utils.String(v),
+			IsSecret: utils.Bool(false),
+		})
+	}
+	for k, v := range secretArguments {
+		out = append(out, legacyacr.Argument{
+			Name:     utils.String(k),
+			Value:    utils.String(v),
+			IsSecret: utils.Bool(true),
 		})
 	}
 	return &out
 }
 
-func flattenRegistryTaskArguments(arguments *[]legacyacr.Argument) []Argument {
+func flattenRegistryTaskArguments(arguments *[]legacyacr.Argument) map[string]string {
 	if arguments == nil {
 		return nil
 	}
-	out := make([]Argument, 0, len(*arguments))
+
+	args := map[string]string{}
+
 	for _, argument := range *arguments {
-		obj := Argument{}
+		var (
+			k        string
+			v        string
+			isSecret bool
+		)
+
 		if argument.Name != nil {
-			obj.Name = *argument.Name
+			k = *argument.Name
 		}
 		if argument.Value != nil {
-			obj.Value = *argument.Value
+			v = *argument.Value
 		}
 		if argument.IsSecret != nil {
-			obj.IsSecret = *argument.IsSecret
+			isSecret = *argument.IsSecret
 		}
-		out = append(out, obj)
+
+		// GET response won't return the value of secret arguments
+		if isSecret {
+			continue
+		}
+
+		args[k] = v
 	}
-	return out
+	return args
 }
 
-func expandRegistryTaskValues(values []Value) *[]legacyacr.SetValue {
-	if len(values) == 0 {
+func expandRegistryTaskValues(values map[string]string, secretValues map[string]string) *[]legacyacr.SetValue {
+	if len(values) == 0 && len(secretValues) == 0 {
 		return nil
 	}
-	out := make([]legacyacr.SetValue, 0, len(values))
-	for _, value := range values {
+	out := make([]legacyacr.SetValue, 0, len(values)+len(secretValues))
+	for k, v := range values {
 		out = append(out, legacyacr.SetValue{
-			Name:     &value.Name,
-			Value:    &value.Value,
-			IsSecret: &value.IsSecret,
+			Name:     utils.String(k),
+			Value:    utils.String(v),
+			IsSecret: utils.Bool(false),
+		})
+	}
+	for k, v := range secretValues {
+		out = append(out, legacyacr.SetValue{
+			Name:     utils.String(k),
+			Value:    utils.String(v),
+			IsSecret: utils.Bool(true),
 		})
 	}
 	return &out
 }
 
-func flattenRegistryTaskValues(values *[]legacyacr.SetValue) []Value {
+func flattenRegistryTaskValues(values *[]legacyacr.SetValue) map[string]string {
 	if values == nil {
 		return nil
 	}
-	out := make([]Value, 0, len(*values))
+
+	vals := map[string]string{}
+
 	for _, value := range *values {
-		obj := Value{}
+		var (
+			k        string
+			v        string
+			isSecret bool
+		)
+
 		if value.Name != nil {
-			obj.Name = *value.Name
+			k = *value.Name
 		}
 		if value.Value != nil {
-			obj.Value = *value.Value
+			v = *value.Value
 		}
 		if value.IsSecret != nil {
-			obj.IsSecret = *value.IsSecret
+			isSecret = *value.IsSecret
 		}
-		out = append(out, obj)
+
+		if isSecret {
+			// GET response won't return the value of secret values
+			continue
+		}
+		vals[k] = v
 	}
-	return out
+	return vals
 }
 
 func expandRegistryTaskIdentity(identities []Identity) *legacyacr.IdentityProperties {
@@ -1680,25 +1421,6 @@ func expandRegistryTaskPlatform(platform Platform) *legacyacr.PlatformProperties
 	if variant := platform.Variant; variant != "" {
 		out.Variant = legacyacr.Variant(variant)
 	}
-	return out
-}
-
-func expandRegistryTaskPlatformForUpdate(platform Platform) *legacyacr.PlatformUpdateParameters {
-	out := &legacyacr.PlatformUpdateParameters{
-		Os: legacyacr.OS(platform.OS),
-	}
-	if arch := platform.Architecture; arch != "" {
-		out.Architecture = legacyacr.Architecture(arch)
-	} else {
-		out.Architecture = ""
-	}
-
-	if variant := platform.Variant; variant != "" {
-		out.Variant = legacyacr.Variant(variant)
-	} else {
-		out.Variant = ""
-	}
-
 	return out
 }
 

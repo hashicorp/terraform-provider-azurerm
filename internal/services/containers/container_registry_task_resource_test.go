@@ -67,7 +67,7 @@ func TestAccContainerRegistryTask_dockerStep(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("docker_step.0.context_access_token"),
+		data.ImportStep("docker_step.0.context_access_token", "docker_step.0.secret_arguments"),
 		{
 			Config: r.dockerStepBasic(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -104,7 +104,7 @@ func TestAccContainerRegistryTask_fileTaskStep(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("file_task_step.0.context_access_token"),
+		data.ImportStep("file_task_step.0.context_access_token", "file_task_step.0.secret_values"),
 		{
 			Config: r.fileTaskStepBasic(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -141,7 +141,7 @@ func TestAccContainerRegistryTask_encodedTaskStep(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("encoded_task_step.0.context_access_token"),
+		data.ImportStep("encoded_task_step.0.context_access_token", "encoded_task_step.0.secret_values"),
 		{
 			Config: r.encodedTaskStepBasic(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -414,9 +414,11 @@ resource "azurerm_container_registry_task" "test" {
 	context_path = "%s"
 	context_access_token = "%s"
 	image_names = ["helloworld:{{.Run.ID}}"]
-    argument {
-      name = "REGISTRY_NAME"
-      value = "some.azurecr.io"
+    arguments = {
+      REGISTRY_NAME = "some.azurecr.io"
+    }
+    secret_arguments = {
+      secret = "secret"
     }
     is_push_enabled = false
     is_cache_enabled = false
@@ -461,9 +463,11 @@ resource "azurerm_container_registry_task" "test" {
     task_file_path = "taskmulti-multiregistry.yaml"
 	context_path = "%s"
 	context_access_token = "%s"
-    value {
-      name = "regDate"
-      value = "mycontainerregistrydate.azurecr.io"
+    values =  {
+      regDate = "mycontainerregistrydate.azurecr.io"
+    }
+    secret_values =  {
+      secret = "secret"
     }
   }
 }
@@ -520,9 +524,11 @@ CMD ["node", "/src/server.js"]
 EOF
 	context_path = "%s"
 	context_access_token = "%s"
-    value {
-      name = "REGISTRY_NAME"
-      value = "some.azurecr.io"
+    values = {
+      REGISTRY_NAME = "some.azurecr.io"
+    }
+    secret_values = {
+      secret = "secret"
     }
   }
 }
