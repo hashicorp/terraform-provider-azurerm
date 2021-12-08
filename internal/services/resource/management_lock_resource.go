@@ -99,7 +99,7 @@ func resourceManagementLockCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	d.SetId(id.Name)
+	d.SetId(id.ID())
 	return resourceManagementLockRead(d, meta)
 }
 
