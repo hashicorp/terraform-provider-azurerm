@@ -14,7 +14,7 @@ type Client struct {
 	DatabaseExtendedBlobAuditingPoliciesClient      *sql.ExtendedDatabaseBlobAuditingPoliciesClient
 	FirewallRulesClient                             *sql.FirewallRulesClient
 	FailoverGroupsClient                            *sql.FailoverGroupsClient
-  InstanceFailoverGroupsClient                    *sqlv5.InstanceFailoverGroupsClient
+	InstanceFailoverGroupsClient                    *sqlv5.InstanceFailoverGroupsClient
 	ManagedInstancesClient                          *sqlv5.ManagedInstancesClient
 	ManagedInstanceAdministratorsClient             *sqlv5.ManagedInstanceAdministratorsClient
 	ManagedInstanceAzureADOnlyAuthenticationsClient *sqlv5.ManagedInstanceAzureADOnlyAuthenticationsClient
