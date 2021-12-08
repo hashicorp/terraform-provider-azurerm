@@ -17,7 +17,7 @@ import (
 type PostgresqlFlexibleServerResource struct {
 }
 
-func TestAccPostgresqlflexibleServer_basic(t *testing.T) {
+func TestAccPostgresqlFlexibleServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -25,7 +25,6 @@ func TestAccPostgresqlflexibleServer_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").IsEmpty(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
@@ -35,7 +34,7 @@ func TestAccPostgresqlflexibleServer_basic(t *testing.T) {
 	})
 }
 
-func TestAccPostgresqlflexibleServer_requiresImport(t *testing.T) {
+func TestAccPostgresqlFlexibleServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -49,7 +48,7 @@ func TestAccPostgresqlflexibleServer_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccPostgresqlflexibleServer_complete(t *testing.T) {
+func TestAccPostgresqlFlexibleServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -65,7 +64,7 @@ func TestAccPostgresqlflexibleServer_complete(t *testing.T) {
 	})
 }
 
-func TestAccPostgresqlflexibleServer_completeUpdate(t *testing.T) {
+func TestAccPostgresqlFlexibleServer_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -90,7 +89,7 @@ func TestAccPostgresqlflexibleServer_completeUpdate(t *testing.T) {
 	})
 }
 
-func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
+func TestAccPostgresqlFlexibleServer_updateMaintenanceWindow(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -98,7 +97,6 @@ func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
@@ -108,7 +106,6 @@ func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 			Config: r.updateMaintenanceWindow(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
@@ -118,7 +115,6 @@ func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 			Config: r.updateMaintenanceWindowUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
@@ -128,7 +124,6 @@ func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
@@ -137,7 +132,7 @@ func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 	})
 }
 
-func TestAccPostgresqlflexibleServer_updateSku(t *testing.T) {
+func TestAccPostgresqlFlexibleServer_updateSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -145,7 +140,6 @@ func TestAccPostgresqlflexibleServer_updateSku(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
@@ -155,7 +149,6 @@ func TestAccPostgresqlflexibleServer_updateSku(t *testing.T) {
 			Config: r.updateSku(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
@@ -165,7 +158,6 @@ func TestAccPostgresqlflexibleServer_updateSku(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
@@ -174,7 +166,7 @@ func TestAccPostgresqlflexibleServer_updateSku(t *testing.T) {
 	})
 }
 
-func TestAccPostgresqlflexibleServer_pitr(t *testing.T) {
+func TestAccPostgresqlFlexibleServer_pointInTimeRestore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -182,7 +174,6 @@ func TestAccPostgresqlflexibleServer_pitr(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
@@ -190,10 +181,9 @@ func TestAccPostgresqlflexibleServer_pitr(t *testing.T) {
 		data.ImportStep("administrator_password", "create_mode"),
 		{
 			PreConfig: func() { time.Sleep(15 * time.Minute) },
-			Config:    r.pitr(data),
+			Config:    r.pointInTimeRestore(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_postgresql_flexible_server.pitr").ExistsInAzure(r),
-				check.That("azurerm_postgresql_flexible_server.pitr").Key("zone").Exists(),
 				check.That("azurerm_postgresql_flexible_server.pitr").Key("fqdn").Exists(),
 				check.That("azurerm_postgresql_flexible_server.pitr").Key("public_network_access_enabled").Exists(),
 			),
@@ -202,7 +192,7 @@ func TestAccPostgresqlflexibleServer_pitr(t *testing.T) {
 	})
 }
 
-func TestAccPostgresqlflexibleServer_failover(t *testing.T) {
+func TestAccPostgresqlFlexibleServer_failover(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
 
@@ -271,6 +261,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   storage_mb             = 32768
   version                = "12"
   sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -288,6 +279,7 @@ resource "azurerm_postgresql_flexible_server" "import" {
   version                = azurerm_postgresql_flexible_server.test.version
   storage_mb             = azurerm_postgresql_flexible_server.test.storage_mb
   sku_name               = azurerm_postgresql_flexible_server.test.sku_name
+  zone                   = azurerm_postgresql_flexible_server.test.zone
 }
 `, r.basic(data))
 }
@@ -338,13 +330,13 @@ resource "azurerm_postgresql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
-  zone                   = "1"
   version                = "13"
   backup_retention_days  = 7
   storage_mb             = 32768
   delegated_subnet_id    = azurerm_subnet.test.id
   private_dns_zone_id    = azurerm_private_dns_zone.test.id
   sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "1"
 
   high_availability {
     mode                      = "ZoneRedundant"
@@ -412,13 +404,18 @@ resource "azurerm_postgresql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "123wsxQAZ"
-  zone                   = "1"
   version                = "13"
   backup_retention_days  = 10
   storage_mb             = 65536
   delegated_subnet_id    = azurerm_subnet.test.id
   private_dns_zone_id    = azurerm_private_dns_zone.test.id
   sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
+
+  high_availability {
+    mode                      = "ZoneRedundant"
+    standby_availability_zone = "1"
+  }
 
   maintenance_window {
     day_of_week  = 0
@@ -448,6 +445,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   version                = "12"
   storage_mb             = 32768
   sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
 
   maintenance_window {
     day_of_week  = 0
@@ -471,6 +469,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   version                = "12"
   storage_mb             = 32768
   sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
 
   maintenance_window {
     day_of_week  = 3
@@ -494,11 +493,12 @@ resource "azurerm_postgresql_flexible_server" "test" {
   version                = "12"
   storage_mb             = 32768
   sku_name               = "MO_Standard_E2s_v3"
+  zone                   = "2"
 }
 `, r.template(data), data.RandomInteger)
 }
 
-func (r PostgresqlFlexibleServerResource) pitr(data acceptance.TestData) string {
+func (r PostgresqlFlexibleServerResource) pointInTimeRestore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -508,12 +508,13 @@ resource "azurerm_postgresql_flexible_server" "pitr" {
   location                          = azurerm_resource_group.test.location
   create_mode                       = "PointInTimeRestore"
   source_server_id                  = azurerm_postgresql_flexible_server.test.id
+  zone                              = "1"
   point_in_time_restore_time_in_utc = "%s"
 }
 `, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
 }
 
-func (r PostgresqlFlexibleServerResource) failover(data acceptance.TestData, parimaryZone string, standbyZone string) string {
+func (r PostgresqlFlexibleServerResource) failover(data acceptance.TestData, primaryZone string, standbyZone string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -540,5 +541,5 @@ resource "azurerm_postgresql_flexible_server" "test" {
     standby_availability_zone = "%s"
   }
 }
-`, r.template(data), data.RandomInteger, parimaryZone, standbyZone)
+`, r.template(data), data.RandomInteger, primaryZone, standbyZone)
 }

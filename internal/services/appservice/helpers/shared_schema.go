@@ -1160,7 +1160,9 @@ func expandIpRestrictionHeaders(headers []IpRestrictionHeaders) map[string][]str
 
 func ExpandCorsSettings(input []CorsSetting) *web.CorsSettings {
 	if len(input) == 0 {
-		return nil
+		return &web.CorsSettings{
+			AllowedOrigins: &[]string{},
+		}
 	}
 	var result web.CorsSettings
 	for _, v := range input {
@@ -1175,7 +1177,9 @@ func ExpandCorsSettings(input []CorsSetting) *web.CorsSettings {
 
 func ExpandIdentity(identities []Identity) *web.ManagedServiceIdentity {
 	if len(identities) == 0 {
-		return nil
+		return &web.ManagedServiceIdentity{
+			Type: web.ManagedServiceIdentityTypeNone,
+		}
 	}
 	var result web.ManagedServiceIdentity
 	for _, v := range identities {

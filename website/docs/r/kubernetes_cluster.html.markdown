@@ -96,6 +96,10 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/en-us/azure/aks/azure-disk-customer-managed-keys).
 
+* `http_proxy_config` - (Optional) A `http_proxy_config` block as defined below.
+
+-> **NOTE:** This requires that the Preview Feature `Microsoft.ContainerService/HTTPProxyConfigPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/http-proxy) for more information.
+
 * `identity` - (Optional) An `identity` block as defined below. One of either `identity` or `service_principal` must be specified.
 
 !> **NOTE:** A migration scenario from `service_principal` to `identity` is supported. When upgrading `service_principal` to `identity`, your cluster's control plane and addon pods will switch to use managed identity, but the kubelets will keep using your configured `service_principal` until you upgrade your Node Pool.
@@ -181,7 +185,6 @@ resource "azurerm_kubernetes_cluster" "example" {
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `windows_profile` - (Optional) A `windows_profile` block as defined below.
-
 ---
 
 A `aci_connector_linux` block supports the following:
@@ -277,7 +280,7 @@ An `auto_scaler_profile` block supports the following:
 
 A `azure_active_directory` block supports the following:
 
-* `managed` - Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration.
+* `managed` - (Optional) Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration.
 
 * `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used.
 
@@ -506,7 +509,9 @@ A `network_profile` block supports the following:
 
 * `docker_bridge_cidr` - (Optional) IP address (in CIDR notation) used as the Docker bridge IP address on nodes. Changing this forces a new resource to be created.
 
-* `outbound_type` - (Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are `loadBalancer` and `userDefinedRouting`. Defaults to `loadBalancer`.
+* `outbound_type` - (Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are `loadBalancer`, `userDefinedRouting`, `managedNATGateway` and `userAssignedNATGateway`. Defaults to `loadBalancer`.
+
+~> **NOTE:** Outbound NAT Gateway is in Public Preview - more information and details on how to opt into the Preview [can be found in this article](https://docs.microsoft.com/azure/aks/nat-gateway#register-the-aks-natgatewaypreview-feature-flag).
 
 * `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. This field can only be set when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
 
@@ -519,6 +524,8 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 * `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `Basic` and `Standard`. Defaults to `Standard`.
 
 * `load_balancer_profile` - (Optional) A `load_balancer_profile` block. This can only be specified when `load_balancer_sku` is set to `Standard`.
+
+* `nat_gateway_profile` - (Optional) A `nat_gateway_profile` block. This can only be specified when `load_balancer_sku` is set to `Standard` and `outbound_type` is set to `managedNATGateway` or `userAssignedNATGateway`.
 
 ---
 
@@ -541,6 +548,14 @@ A `load_balancer_profile` block supports the following:
 * `outbound_ip_address_ids` - (Optional) The ID of the Public IP Addresses which should be used for outbound communication for the cluster load balancer.
 
 -> **NOTE** User has to explicitly set `outbound_ip_address_ids` to empty slice (`[]`) to remove it.
+
+---
+
+A `nat_gateway_profile` block supports the following:
+
+* `idle_timeout_in_minutes` - (Optional) Desired outbound flow idle timeout in minutes for the cluster load balancer. Must be between `4` and `120` inclusive. Defaults to `4`.
+
+* `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the cluster load balancer. Must be between `1` and `100` inclusive.
 
 ---
 
@@ -670,6 +685,22 @@ A `windows_profile` block supports the following:
 
 ---
 
+A `http_proxy_config` block supports the following:
+
+* `http_proxy` - (Optional) The proxy address to be used when communicating over HTTP.
+
+* `https_proxy` - (Optional) The proxy address to be used when communicating over HTTPS.
+
+* `no_proxy` - (Optional) The list of domains that will not use the proxy for communication.
+
+-> **Note:** If you specify the `default_node_pool.0.vnet_subnet_id`, be sure to include the Subnet CIDR in the `no_proxy` list.
+
+-> **Note:** You may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore the changes to this field.
+
+* `trusted_ca` - (Optional) The base64 encoded alternative CA certificate content in PEM format.
+
+---
+
 A `upgrade_settings` block supports the following:
 
 * `max_surge` - (Required) The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
@@ -715,6 +746,12 @@ A `http_application_routing` block exports the following:
 ---
 
 A `load_balancer_profile` block exports the following:
+
+* `effective_outbound_ips` - The outcome (resource IDs) of the specified arguments.
+
+---
+
+A `nat_gateway_profile` block exports the following:
 
 * `effective_outbound_ips` - The outcome (resource IDs) of the specified arguments.
 

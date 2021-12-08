@@ -22,7 +22,7 @@ resource "azurerm_stream_analytics_job" "example" {
   name                                     = "example-job"
   resource_group_name                      = azurerm_resource_group.example.name
   location                                 = azurerm_resource_group.example.location
-  compatibility_level                      = "1.1"
+  compatibility_level                      = "1.2"
   data_locale                              = "en-GB"
   events_late_arrival_max_delay_in_seconds = 60
   events_out_of_order_max_delay_in_seconds = 50
@@ -53,7 +53,9 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region in which the Resource Group exists. Changing this forces a new resource to be created.
 
-* `compatibility_level` - (Required) Specifies the compatibility level for this job - which controls certain runtime behaviours of the streaming job. Possible values are `1.0` and `1.1`.
+* `stream_analytics_cluster_id` - (Optional) The ID of an existing Stream Analytics Cluster where the Stream Analytics Job should run.
+
+* `compatibility_level` - (Optional) Specifies the compatibility level for this job - which controls certain runtime behaviours of the streaming job. Possible values are `1.0`, `1.1` and `1.2`.
 
 -> **NOTE:** Support for Compatibility Level 1.2 is dependent on a new version of the Stream Analytics API, which [being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/5604).
 

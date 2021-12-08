@@ -100,6 +100,12 @@ func resourceVirtualNetwork() *pluginsdk.Resource {
 				},
 			},
 
+			"flow_timeout_in_minutes": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(4, 30),
+			},
+
 			// TODO 3.0: Remove this property
 			"vm_protection_enabled": {
 				Type:       pluginsdk.TypeBool,
@@ -186,6 +192,10 @@ func resourceVirtualNetworkCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		Tags:                           tags.Expand(t),
 	}
 
+	if v, ok := d.GetOk("flow_timeout_in_minutes"); ok {
+		vnet.VirtualNetworkPropertiesFormat.FlowTimeoutInMinutes = utils.Int32(int32(v.(int)))
+	}
+
 	networkSecurityGroupNames := make([]string, 0)
 	for _, subnet := range *vnet.VirtualNetworkPropertiesFormat.Subnets {
 		if subnet.NetworkSecurityGroup != nil {
@@ -257,6 +267,7 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if props := resp.VirtualNetworkPropertiesFormat; props != nil {
 		d.Set("guid", props.ResourceGUID)
+		d.Set("flow_timeout_in_minutes", props.FlowTimeoutInMinutes)
 
 		if space := props.AddressSpace; space != nil {
 			d.Set("address_space", utils.FlattenStringSlice(space.AddressPrefixes))

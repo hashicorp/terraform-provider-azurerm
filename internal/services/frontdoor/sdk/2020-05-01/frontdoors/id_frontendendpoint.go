@@ -7,120 +7,131 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+var _ resourceids.ResourceId = FrontendEndpointId{}
+
+// FrontendEndpointId is a struct representing the Resource ID for a Frontend Endpoint
 type FrontendEndpointId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	FrontDoorName  string
-	Name           string
+	SubscriptionId       string
+	ResourceGroupName    string
+	FrontDoorName        string
+	FrontendEndpointName string
 }
 
-func NewFrontendEndpointID(subscriptionId, resourceGroup, frontDoorName, name string) FrontendEndpointId {
+// NewFrontendEndpointID returns a new FrontendEndpointId struct
+func NewFrontendEndpointID(subscriptionId string, resourceGroupName string, frontDoorName string, frontendEndpointName string) FrontendEndpointId {
 	return FrontendEndpointId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourceGroup,
-		FrontDoorName:  frontDoorName,
-		Name:           name,
+		SubscriptionId:       subscriptionId,
+		ResourceGroupName:    resourceGroupName,
+		FrontDoorName:        frontDoorName,
+		FrontendEndpointName: frontendEndpointName,
 	}
 }
 
-func (id FrontendEndpointId) String() string {
-	segments := []string{
-		fmt.Sprintf("Name %q", id.Name),
-		fmt.Sprintf("Front Door Name %q", id.FrontDoorName),
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+// ParseFrontendEndpointID parses 'input' into a FrontendEndpointId
+func ParseFrontendEndpointID(input string) (*FrontendEndpointId, error) {
+	parser := resourceids.NewParserFromResourceIdType(FrontendEndpointId{})
+	parsed, err := parser.Parse(input, false)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
-	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Frontend Endpoint", segmentsStr)
+
+	var ok bool
+	id := FrontendEndpointId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.FrontDoorName, ok = parsed.Parsed["frontDoorName"]; !ok {
+		return nil, fmt.Errorf("the segment 'frontDoorName' was not found in the resource id %q", input)
+	}
+
+	if id.FrontendEndpointName, ok = parsed.Parsed["frontendEndpointName"]; !ok {
+		return nil, fmt.Errorf("the segment 'frontendEndpointName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
 }
 
+// ParseFrontendEndpointIDInsensitively parses 'input' case-insensitively into a FrontendEndpointId
+// note: this method should only be used for API response data and not user input
+func ParseFrontendEndpointIDInsensitively(input string) (*FrontendEndpointId, error) {
+	parser := resourceids.NewParserFromResourceIdType(FrontendEndpointId{})
+	parsed, err := parser.Parse(input, true)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	var ok bool
+	id := FrontendEndpointId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.FrontDoorName, ok = parsed.Parsed["frontDoorName"]; !ok {
+		return nil, fmt.Errorf("the segment 'frontDoorName' was not found in the resource id %q", input)
+	}
+
+	if id.FrontendEndpointName, ok = parsed.Parsed["frontendEndpointName"]; !ok {
+		return nil, fmt.Errorf("the segment 'frontendEndpointName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
+}
+
+// ValidateFrontendEndpointID checks that 'input' can be parsed as a Frontend Endpoint ID
+func ValidateFrontendEndpointID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	if _, err := ParseFrontendEndpointID(v); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
+}
+
+// ID returns the formatted Frontend Endpoint ID
 func (id FrontendEndpointId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoors/%s/frontendEndpoints/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FrontDoorName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.FrontDoorName, id.FrontendEndpointName)
 }
 
-// ParseFrontendEndpointID parses a FrontendEndpoint ID into an FrontendEndpointId struct
-func ParseFrontendEndpointID(input string) (*FrontendEndpointId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// Segments returns a slice of Resource ID Segments which comprise this Frontend Endpoint ID
+func (id FrontendEndpointId) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
+		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
+		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
+		resourceids.StaticSegment("staticProviders", "providers", "providers"),
+		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
+		resourceids.StaticSegment("staticFrontDoors", "frontDoors", "frontDoors"),
+		resourceids.UserSpecifiedSegment("frontDoorName", "frontDoorValue"),
+		resourceids.StaticSegment("staticFrontendEndpoints", "frontendEndpoints", "frontendEndpoints"),
+		resourceids.UserSpecifiedSegment("frontendEndpointName", "frontendEndpointValue"),
 	}
-
-	resourceId := FrontendEndpointId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	if resourceId.FrontDoorName, err = id.PopSegment("frontDoors"); err != nil {
-		return nil, err
-	}
-	if resourceId.Name, err = id.PopSegment("frontendEndpoints"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
 }
 
-// ParseFrontendEndpointIDInsensitively parses an FrontendEndpoint ID into an FrontendEndpointId struct, insensitively
-// This should only be used to parse an ID for rewriting to a consistent casing,
-// the ParseFrontendEndpointID method should be used instead for validation etc.
-func ParseFrontendEndpointIDInsensitively(input string) (*FrontendEndpointId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// String returns a human-readable description of this Frontend Endpoint ID
+func (id FrontendEndpointId) String() string {
+	components := []string{
+		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
+		fmt.Sprintf("Front Door Name: %q", id.FrontDoorName),
+		fmt.Sprintf("Frontend Endpoint Name: %q", id.FrontendEndpointName),
 	}
-
-	resourceId := FrontendEndpointId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	// find the correct casing for the 'frontDoors' segment
-	frontDoorsKey := "frontDoors"
-	for key := range id.Path {
-		if strings.EqualFold(key, frontDoorsKey) {
-			frontDoorsKey = key
-			break
-		}
-	}
-	if resourceId.FrontDoorName, err = id.PopSegment(frontDoorsKey); err != nil {
-		return nil, err
-	}
-
-	// find the correct casing for the 'frontendEndpoints' segment
-	frontendEndpointsKey := "frontendEndpoints"
-	for key := range id.Path {
-		if strings.EqualFold(key, frontendEndpointsKey) {
-			frontendEndpointsKey = key
-			break
-		}
-	}
-	if resourceId.Name, err = id.PopSegment(frontendEndpointsKey); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
+	return fmt.Sprintf("Frontend Endpoint (%s)", strings.Join(components, "\n"))
 }

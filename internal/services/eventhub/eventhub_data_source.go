@@ -66,9 +66,9 @@ func dataSourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
+	d.Set("name", id.EventHubName)
 	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil && model.Properties != nil {
 		d.Set("partition_count", model.Properties.PartitionCount)

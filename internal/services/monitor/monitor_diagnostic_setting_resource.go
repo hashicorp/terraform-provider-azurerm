@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	eventhubParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/parse"
+	authRuleParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	logAnalyticsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
@@ -67,7 +67,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: eventhubValidate.NamespaceAuthorizationRuleID,
+				ValidateFunc: authRuleParse.ValidateAuthorizationRuleID,
 			},
 
 			"log_analytics_workspace_id": {
@@ -315,7 +315,8 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("eventhub_name", resp.EventHubName)
 	eventhubAuthorizationRuleId := ""
 	if resp.EventHubAuthorizationRuleID != nil && *resp.EventHubAuthorizationRuleID != "" {
-		parsedId, err := eventhubParse.NamespaceAuthorizationRuleIDInsensitively(*resp.EventHubAuthorizationRuleID)
+		authRuleId := utils.NormalizeNilableString(resp.EventHubAuthorizationRuleID)
+		parsedId, err := authRuleParse.ParseAuthorizationRuleID(authRuleId)
 		if err != nil {
 			return err
 		}

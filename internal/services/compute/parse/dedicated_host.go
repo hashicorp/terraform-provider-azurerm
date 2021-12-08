@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type DedicatedHostId struct {
@@ -42,7 +42,7 @@ func (id DedicatedHostId) ID() string {
 
 // DedicatedHostID parses a DedicatedHost ID into an DedicatedHostId struct
 func DedicatedHostID(input string) (*DedicatedHostId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

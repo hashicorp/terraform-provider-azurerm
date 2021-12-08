@@ -146,6 +146,5 @@ resource "azurerm_video_analyzer" "test" {
     azurerm_role_assignment.reader,
   ]
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString)
 }

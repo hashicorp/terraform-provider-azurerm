@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,8 +26,15 @@ func resourceArmDevTestVirtualNetwork() *pluginsdk.Resource {
 		Read:   resourceArmDevTestVirtualNetworkRead,
 		Update: resourceArmDevTestVirtualNetworkUpdate,
 		Delete: resourceArmDevTestVirtualNetworkDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.DevTestVirtualNetworkID(id)
+			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.DevTestVirtualNetworkUpgradeV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -100,20 +109,19 @@ func resourceArmDevTestVirtualNetwork() *pluginsdk.Resource {
 
 func resourceArmDevTestVirtualNetworkCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.VirtualNetworksClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DevTest Virtual Network creation")
 
-	name := d.Get("name").(string)
-	labName := d.Get("lab_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewDevTestVirtualNetworkID(subscriptionId, d.Get("resource_group_name").(string), d.Get("lab_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, labName, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.LabName, id.VirtualNetworkName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Dev Test Virtual Network %q (Lab %q / Resource Group %q): %s", name, labName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -125,9 +133,8 @@ func resourceArmDevTestVirtualNetworkCreate(d *pluginsdk.ResourceData, meta inte
 	description := d.Get("description").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	subnetsRaw := d.Get("subnet").([]interface{})
-	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, name)
+	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, id.ResourceGroup, id.VirtualNetworkName)
 
 	parameters := dtl.VirtualNetwork{
 		Tags: tags.Expand(t),
@@ -137,25 +144,16 @@ func resourceArmDevTestVirtualNetworkCreate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, labName, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LabName, id.VirtualNetworkName, parameters)
 	if err != nil {
-		return fmt.Errorf("creating DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, labName, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read DevTest Virtual Network %q (Lab %q / Resource Group %q) ID", name, labName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceArmDevTestVirtualNetworkUpdate(d, meta)
 }
@@ -165,28 +163,25 @@ func resourceArmDevTestVirtualNetworkRead(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DevTestVirtualNetworkID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	labName := id.Path["labs"]
-	name := id.Path["virtualnetworks"]
 
-	read, err := client.Get(ctx, resourceGroup, labName, name, "")
+	read, err := client.Get(ctx, id.ResourceGroup, id.LabName, id.VirtualNetworkName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			log.Printf("[DEBUG] DevTest Virtual Network %q was not found in Lab %q / Resource Group %q - removing from state!", name, labName, resourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
-	d.Set("name", read.Name)
-	d.Set("lab_name", labName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.VirtualNetworkName)
+	d.Set("lab_name", id.LabName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := read.VirtualNetworkProperties; props != nil {
 		d.Set("description", props.Description)
@@ -205,21 +200,19 @@ func resourceArmDevTestVirtualNetworkRead(d *pluginsdk.ResourceData, meta interf
 
 func resourceArmDevTestVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.VirtualNetworksClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DevTest Virtual Network creation")
 
-	name := d.Get("name").(string)
-	labName := d.Get("lab_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewDevTestVirtualNetworkID(subscriptionId, d.Get("resource_group_name").(string), d.Get("lab_name").(string), d.Get("name").(string))
 
 	description := d.Get("description").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	subnetsRaw := d.Get("subnet").([]interface{})
-	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, name)
+	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, id.ResourceGroup, id.VirtualNetworkName)
 
 	parameters := dtl.VirtualNetwork{
 		Tags: tags.Expand(t),
@@ -229,25 +222,16 @@ func resourceArmDevTestVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, labName, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LabName, id.VirtualNetworkName, parameters)
 	if err != nil {
-		return fmt.Errorf("updating DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, labName, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read DevTest Virtual Network %q (Lab %q / Resource Group %q) ID", name, labName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceArmDevTestVirtualNetworkRead(d, meta)
 }
@@ -257,32 +241,29 @@ func resourceArmDevTestVirtualNetworkDelete(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DevTestVirtualNetworkID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	labName := id.Path["labs"]
-	name := id.Path["virtualnetworks"]
 
-	read, err := client.Get(ctx, resourceGroup, labName, name, "")
+	read, err := client.Get(ctx, id.ResourceGroup, id.LabName, id.VirtualNetworkName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
 			// deleted outside of TF
-			log.Printf("[DEBUG] DevTest Virtual Network %q was not found in Lab %q / Resource Group %q - assuming removed!", name, labName, resourceGroup)
+			log.Printf("[DEBUG] %s was not found - assuming removed!", *id)
 			return nil
 		}
 
-		return fmt.Errorf("retrieving DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	future, err := client.Delete(ctx, resourceGroup, labName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.LabName, id.VirtualNetworkName)
 	if err != nil {
-		return fmt.Errorf("deleting DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return err

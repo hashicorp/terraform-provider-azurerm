@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -162,14 +162,12 @@ func dataSourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta inter
 
 	storageAccountId := d.Get("storage_account_id").(string)
 
-	rid, err := azure.ParseAzureResourceID(storageAccountId)
+	rid, err := parse.StorageAccountID(storageAccountId)
 	if err != nil {
 		return err
 	}
-	resourceGroupName := rid.ResourceGroup
-	storageAccountName := rid.Path["storageAccounts"]
 
-	result, err := client.Get(ctx, resourceGroupName, storageAccountName)
+	result, err := client.Get(ctx, rid.ResourceGroup, rid.Name)
 	if err != nil {
 		return err
 	}

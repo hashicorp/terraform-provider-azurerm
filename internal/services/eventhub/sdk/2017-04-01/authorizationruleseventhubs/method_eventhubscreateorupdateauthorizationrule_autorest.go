@@ -14,7 +14,7 @@ type EventHubsCreateOrUpdateAuthorizationRuleResponse struct {
 }
 
 // EventHubsCreateOrUpdateAuthorizationRule ...
-func (c AuthorizationRulesEventHubsClient) EventHubsCreateOrUpdateAuthorizationRule(ctx context.Context, id AuthorizationRuleId, input AuthorizationRule) (result EventHubsCreateOrUpdateAuthorizationRuleResponse, err error) {
+func (c AuthorizationRulesEventHubsClient) EventHubsCreateOrUpdateAuthorizationRule(ctx context.Context, id EventhubAuthorizationRuleId, input AuthorizationRule) (result EventHubsCreateOrUpdateAuthorizationRuleResponse, err error) {
 	req, err := c.preparerForEventHubsCreateOrUpdateAuthorizationRule(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorizationruleseventhubs.AuthorizationRulesEventHubsClient", "EventHubsCreateOrUpdateAuthorizationRule", nil, "Failure preparing request")
@@ -37,7 +37,7 @@ func (c AuthorizationRulesEventHubsClient) EventHubsCreateOrUpdateAuthorizationR
 }
 
 // preparerForEventHubsCreateOrUpdateAuthorizationRule prepares the EventHubsCreateOrUpdateAuthorizationRule request.
-func (c AuthorizationRulesEventHubsClient) preparerForEventHubsCreateOrUpdateAuthorizationRule(ctx context.Context, id AuthorizationRuleId, input AuthorizationRule) (*http.Request, error) {
+func (c AuthorizationRulesEventHubsClient) preparerForEventHubsCreateOrUpdateAuthorizationRule(ctx context.Context, id EventhubAuthorizationRuleId, input AuthorizationRule) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

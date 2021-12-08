@@ -262,6 +262,5 @@ resource "azurerm_servicebus_topic_authorization_rule" "test" {
     azurerm_servicebus_namespace_disaster_recovery_config.pairing_test
   ]
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }

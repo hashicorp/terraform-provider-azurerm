@@ -15,9 +15,9 @@ Use this data source to access information about an existing Event Hubs Authoriz
 ```hcl
 data "azurerm_eventhub_authorization_rule" "test" {
   name                = "test"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  eventhub_name       = "${azurerm_eventhub.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  eventhub_name       = azurerm_eventhub.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 ```
 

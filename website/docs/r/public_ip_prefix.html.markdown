@@ -49,6 +49,8 @@ The following arguments are supported:
 
 -> **Note**: Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-ip-addresses-overview-arm#standard) and [in select regions](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) at this time. 
 
+* `ip_version` - (Optional) The IP Version to use, `IPv6` or `IPv4`. Changing this forces a new resource to be created. Default is `IPv4`.
+
 * `prefix_length` - (Optional) Specifies the number of bits of the prefix. The value can be set between 0 (4,294,967,296 addresses) and 31 (2 addresses). Defaults to `28`(16 addresses). Changing this forces a new resource to be created.
 
 -> **Please Note**: There may be Public IP address limits on the subscription . [More information available here](https://docs.microsoft.com/en-us/azure/azure-subscription-service-limits?toc=%2fazure%2fvirtual-network%2ftoc.json#publicip-address)

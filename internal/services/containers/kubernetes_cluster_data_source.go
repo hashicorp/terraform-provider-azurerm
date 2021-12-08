@@ -973,7 +973,7 @@ func flattenKubernetesClusterDataSourceAddOnIdentityProfile(profile *containerse
 
 	userAssignedIdentityID := ""
 	if resourceid := profile.ResourceID; resourceid != nil {
-		parsedId, err := msiparse.UserAssignedIdentityID(*resourceid)
+		parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(*resourceid)
 		if err != nil {
 			return nil, err
 		}
@@ -1118,7 +1118,7 @@ func flattenKubernetesClusterDataSourceIdentityProfile(profile map[string]*conta
 
 		userAssignedIdentityId := ""
 		if resourceid := kubeletidentity.ResourceID; resourceid != nil {
-			parsedId, err := msiparse.UserAssignedIdentityID(*resourceid)
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(*resourceid)
 			if err != nil {
 				return nil, err
 			}
@@ -1281,7 +1281,7 @@ func flattenKubernetesClusterDataSourceManagedClusterIdentity(input *containerse
 			keys = append(keys, key)
 		}
 		if len(keys) > 0 {
-			parsedId, err := msiparse.UserAssignedIdentityID(keys[0])
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(keys[0])
 			if err != nil {
 				return nil, err
 			}

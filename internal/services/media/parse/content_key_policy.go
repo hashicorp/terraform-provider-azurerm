@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ContentKeyPolicyId struct {
@@ -42,7 +42,7 @@ func (id ContentKeyPolicyId) ID() string {
 
 // ContentKeyPolicyID parses a ContentKeyPolicy ID into an ContentKeyPolicyId struct
 func ContentKeyPolicyID(input string) (*ContentKeyPolicyId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

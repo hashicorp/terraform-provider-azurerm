@@ -77,6 +77,15 @@ func resourceStreamAnalyticsOutputServiceBusTopic() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"property_columns": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
 			"serialization": schemaStreamAnalyticsOutputSerialization(),
 		},
 	}
@@ -84,19 +93,18 @@ func resourceStreamAnalyticsOutputServiceBusTopic() *pluginsdk.Resource {
 
 func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Output ServiceBus Topic creation.")
-	name := d.Get("name").(string)
-	jobName := d.Get("stream_analytics_job_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, jobName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Stream Analytics Output ServiceBus Topic %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
 
@@ -105,11 +113,6 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 		}
 	}
 
-	topicName := d.Get("topic_name").(string)
-	serviceBusNamespace := d.Get("servicebus_namespace").(string)
-	sharedAccessPolicyKey := d.Get("shared_access_policy_key").(string)
-	sharedAccessPolicyName := d.Get("shared_access_policy_name").(string)
-
 	serializationRaw := d.Get("serialization").([]interface{})
 	serialization, err := expandStreamAnalyticsOutputSerialization(serializationRaw)
 	if err != nil {
@@ -117,15 +120,16 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 	}
 
 	props := streamanalytics.Output{
-		Name: utils.String(name),
+		Name: utils.String(id.Name),
 		OutputProperties: &streamanalytics.OutputProperties{
 			Datasource: &streamanalytics.ServiceBusTopicOutputDataSource{
 				Type: streamanalytics.TypeMicrosoftServiceBusTopic,
 				ServiceBusTopicOutputDataSourceProperties: &streamanalytics.ServiceBusTopicOutputDataSourceProperties{
-					TopicName:              utils.String(topicName),
-					ServiceBusNamespace:    utils.String(serviceBusNamespace),
-					SharedAccessPolicyKey:  utils.String(sharedAccessPolicyKey),
-					SharedAccessPolicyName: utils.String(sharedAccessPolicyName),
+					TopicName:              utils.String(d.Get("topic_name").(string)),
+					ServiceBusNamespace:    utils.String(d.Get("servicebus_namespace").(string)),
+					SharedAccessPolicyKey:  utils.String(d.Get("shared_access_policy_key").(string)),
+					SharedAccessPolicyName: utils.String(d.Get("shared_access_policy_name").(string)),
+					PropertyColumns:        utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
 				},
 			},
 			Serialization: serialization,
@@ -133,22 +137,14 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 	}
 
 	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, props, resourceGroup, jobName, name, "", ""); err != nil {
-			return fmt.Errorf("Creating Stream Analytics Output ServiceBus Topic %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		if _, err := client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
 		}
-
-		read, err := client.Get(ctx, resourceGroup, jobName, name)
-		if err != nil {
-			return fmt.Errorf("retrieving Stream Analytics Output ServiceBus Topic %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
-		}
-		if read.ID == nil {
-			return fmt.Errorf("Cannot read ID of Stream Analytics Output ServiceBus Topic %q (Job %q / Resource Group %q)", name, jobName, resourceGroup)
-		}
-
-		d.SetId(*read.ID)
-	} else if _, err := client.Update(ctx, props, resourceGroup, jobName, name, ""); err != nil {
-		return fmt.Errorf("Updating Stream Analytics Output ServiceBus Topic %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+	} else if _, err := client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
+
+	d.SetId(id.ID())
 
 	return resourceStreamAnalyticsOutputServiceBusTopicRead(d, meta)
 }
@@ -166,12 +162,12 @@ func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData,
 	resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] %s was not found - removing from state!", id)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -187,6 +183,7 @@ func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData,
 		d.Set("topic_name", v.TopicName)
 		d.Set("servicebus_namespace", v.ServiceBusNamespace)
 		d.Set("shared_access_policy_name", v.SharedAccessPolicyName)
+		d.Set("property_columns", v.PropertyColumns)
 
 		if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
 			return fmt.Errorf("setting `serialization`: %+v", err)
@@ -208,7 +205,7 @@ func resourceStreamAnalyticsOutputServiceBusTopicDelete(d *pluginsdk.ResourceDat
 
 	if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.Name); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("deleting %s: %+v", id, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

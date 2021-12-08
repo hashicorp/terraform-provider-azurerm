@@ -72,8 +72,6 @@ The following arguments are supported:
 
 * `stream_analytics_job_name` - (Required) The name of the Stream Analytics Job. Changing this forces a new resource to be created.
 
-* `eventhub_consumer_group_name` - (Required) The name of an Event Hub Consumer Group that should be used to read events from the Event Hub. Specifying distinct consumer group names for multiple inputs allows each of those inputs to receive the same events from the Event Hub.
-
 * `eventhub_name` - (Required) The name of the Event Hub.
 
 * `servicebus_namespace` - (Required) The namespace that is associated with the desired Event Hub, Service Bus Queue, Service Bus Topic, etc.
@@ -83,6 +81,8 @@ The following arguments are supported:
 * `shared_access_policy_name` - (Required) The shared access policy name for the Event Hub, Service Bus Queue, Service Bus Topic, etc.
 
 * `serialization` - (Required) A `serialization` block as defined below.
+
+* `eventhub_consumer_group_name` - (Optional) The name of an Event Hub Consumer Group that should be used to read events from the Event Hub. Specifying distinct consumer group names for multiple inputs allows each of those inputs to receive the same events from the Event Hub. If not set the input will use the Event Hub's default consumer group. 
 
 ---
 

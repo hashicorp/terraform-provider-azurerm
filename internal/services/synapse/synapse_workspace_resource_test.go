@@ -77,7 +77,21 @@ func TestAccSynapseWorkspace_update(t *testing.T) {
 		},
 		data.ImportStep("sql_administrator_login_password"),
 		{
-			Config: r.withUpdateFields(data),
+			Config: r.withAadAdmin(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sql_administrator_login_password"),
+		{
+			Config: r.withAadAdmins(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sql_administrator_login_password"),
+		{
+			Config: r.withSqlAadAdmin(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -268,7 +282,66 @@ resource "azurerm_synapse_workspace" "test" {
 `, template, data.RandomString, data.Locations.Secondary, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func (r SynapseWorkspaceResource) withUpdateFields(data acceptance.TestData) string {
+func (r SynapseWorkspaceResource) withAadAdmin(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_synapse_workspace" "test" {
+  name                                 = "acctestsw%d"
+  resource_group_name                  = azurerm_resource_group.test.name
+  location                             = azurerm_resource_group.test.location
+  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
+  sql_administrator_login              = "sqladminuser"
+  sql_administrator_login_password     = "H@Sh1CoR4!"
+  sql_identity_control_enabled         = true
+  aad_admin {
+    login     = "AzureAD Admin"
+    object_id = data.azurerm_client_config.current.object_id
+    tenant_id = data.azurerm_client_config.current.tenant_id
+  }
+
+  tags = {
+    ENV = "Test2"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r SynapseWorkspaceResource) withSqlAadAdmin(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_synapse_workspace" "test" {
+  name                                 = "acctestsw%d"
+  resource_group_name                  = azurerm_resource_group.test.name
+  location                             = azurerm_resource_group.test.location
+  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
+  sql_administrator_login              = "sqladminuser"
+  sql_administrator_login_password     = "H@Sh1CoR4!"
+  sql_identity_control_enabled         = true
+
+  sql_aad_admin {
+    login     = "AzureAD Admin"
+    object_id = data.azurerm_client_config.current.object_id
+    tenant_id = data.azurerm_client_config.current.tenant_id
+  }
+
+  tags = {
+    ENV = "Test2"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r SynapseWorkspaceResource) withAadAdmins(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s

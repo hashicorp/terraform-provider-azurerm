@@ -66,6 +66,7 @@ resource "azurerm_postgresql_flexible_server" "example" {
   private_dns_zone_id    = azurerm_private_dns_zone.example.id
   administrator_login    = "psqladmin"
   administrator_password = "H@Sh1CoR3!"
+  zone                   = "1"
 
   storage_mb = 32768
 
@@ -91,10 +92,6 @@ The following arguments are supported:
 
 * `administrator_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server. Required when `create_mode` is `Default`.
 
-* `zone` - (Optional) The Availability Zone of the PostgreSQL Flexible Server. Possible values are `1`, `2` and `3`.
-
-~> **NOTE:** The Availability Zones available would change per the region.
-
 * `backup_retention_days` - (Optional) The backup retention days for the PostgreSQL Flexible Server. Possible values are between `7` and `35` days.
 
 * `create_mode` - (Optional) The creation mode which can be used to restore or replicate existing servers. Possible values are `Default` and `PointInTimeRestore`. Changing this forces a new PostgreSQL Flexible Server to be created.
@@ -117,9 +114,15 @@ The following arguments are supported:
 
 * `storage_mb` - (Optional) The max storage allowed for the PostgreSQL Flexible Server. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608`, `16777216`, and `33554432`.
 
+* `tags` - (Optional) A mapping of tags which should be assigned to the PostgreSQL Flexible Server.
+* 
 * `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12` and `13`. Required when `create_mode` is `Default`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the PostgreSQL Flexible Server.
+* `zone` - (Optional) The Availability Zone of the PostgreSQL Flexible Server. Possible values are `1`, `2` and `3`.
+
+-> **Note:** Azure will automatically assign an Availability Zone if one is not specified. If the PostgreSQL Flexible Server fails-over to the Standby Availability Zone, the `zone` will be updated to reflect the current Primary Availability Zone. You can use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore changes to the `zone` and `standby_availability_zone` fields should you wish for Terraform to not migrate the PostgreSQL Flexible Server back to it's primary Availability Zone after a fail-over.
+
+-> **Note:** The Availability Zones available depend on the Azure Region that the PostgreSQL Flexible Server is being deployed into - see [the Azure Availability Zones documentation](https://azure.microsoft.com/global-infrastructure/geographies/#geographies) for more information on which Availability Zones are available in each Azure Region.
 
 ---
 
@@ -138,6 +141,10 @@ A `high_availability` block supports the following:
 * `mode` - (Required) The high availability mode for the PostgreSQL Flexible Server. The only possible value is `ZoneRedundant`.
 
 * `standby_availability_zone` - (Optional) The Availability Zone of the standby Flexible Server. Possible values are `1`, `2` and `3`.
+
+-> **Note:** Azure will automatically assign an Availability Zone if one is not specified. If the PostgreSQL Flexible Server fails-over to the Standby Availability Zone, the `zone` will be updated to reflect the current Primary Availability Zone. You can use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore changes to the `zone` and `standby_availability_zone` fields should you wish for Terraform to not migrate the PostgreSQL Flexible Server back to it's primary Availability Zone after a fail-over.
+
+-> **Note:** The Availability Zones available depend on the Azure Region that the PostgreSQL Flexible Server is being deployed into - see [the Azure Availability Zones documentation](https://azure.microsoft.com/global-infrastructure/geographies/#geographies) for more information on which Availability Zones are available in each Azure Region. 
 
 ## Attributes Reference
 

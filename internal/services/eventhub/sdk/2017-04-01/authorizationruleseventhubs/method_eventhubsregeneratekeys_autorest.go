@@ -15,7 +15,7 @@ type EventHubsRegenerateKeysResponse struct {
 }
 
 // EventHubsRegenerateKeys ...
-func (c AuthorizationRulesEventHubsClient) EventHubsRegenerateKeys(ctx context.Context, id AuthorizationRuleId, input RegenerateAccessKeyParameters) (result EventHubsRegenerateKeysResponse, err error) {
+func (c AuthorizationRulesEventHubsClient) EventHubsRegenerateKeys(ctx context.Context, id EventhubAuthorizationRuleId, input RegenerateAccessKeyParameters) (result EventHubsRegenerateKeysResponse, err error) {
 	req, err := c.preparerForEventHubsRegenerateKeys(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorizationruleseventhubs.AuthorizationRulesEventHubsClient", "EventHubsRegenerateKeys", nil, "Failure preparing request")
@@ -38,7 +38,7 @@ func (c AuthorizationRulesEventHubsClient) EventHubsRegenerateKeys(ctx context.C
 }
 
 // preparerForEventHubsRegenerateKeys prepares the EventHubsRegenerateKeys request.
-func (c AuthorizationRulesEventHubsClient) preparerForEventHubsRegenerateKeys(ctx context.Context, id AuthorizationRuleId, input RegenerateAccessKeyParameters) (*http.Request, error) {
+func (c AuthorizationRulesEventHubsClient) preparerForEventHubsRegenerateKeys(ctx context.Context, id EventhubAuthorizationRuleId, input RegenerateAccessKeyParameters) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

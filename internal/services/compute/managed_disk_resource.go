@@ -167,7 +167,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
 				//       https://github.com/Azure/azure-rest-api-specs/issues/8132
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     azure.ValidateResourceID,
+				ValidateFunc:     validate.DiskEncryptionSetID,
 			},
 
 			"encryption_settings": encryptionSettingsSchema(),
@@ -190,6 +190,12 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 			},
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -207,6 +213,21 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
+			},
+
+			"hyper_v_generation": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true, // Not supported by disk update
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.HyperVGenerationV1),
+					string(compute.HyperVGenerationV2),
+				}, false),
+			},
+
+			"on_demand_bursting_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
 			},
 
 			"tags": tags.Schema(),
@@ -259,9 +280,9 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		},
 	}
 
-	if v := d.Get("disk_size_gb"); v != 0 {
-		diskSize := int32(v.(int))
-		props.DiskSizeGB = &diskSize
+	diskSizeGB := d.Get("disk_size_gb").(int)
+	if diskSizeGB != 0 {
+		props.DiskSizeGB = utils.Int32(int32(diskSizeGB))
 	}
 
 	if maxShares != 0 {
@@ -344,8 +365,13 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
+		encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
+		if err != nil {
+			return err
+		}
+
 		props.Encryption = &compute.Encryption{
-			Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
+			Type:                *encryptionType,
 			DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 		}
 	}
@@ -367,6 +393,12 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
+	if d.Get("public_network_access_enabled").(bool) {
+		props.PublicNetworkAccess = compute.PublicNetworkAccessEnabled
+	} else {
+		props.PublicNetworkAccess = compute.PublicNetworkAccessDisabled
+	}
+
 	if tier := d.Get("tier").(string); tier != "" {
 		if storageAccountType != string(compute.StorageAccountTypesPremiumZRS) && storageAccountType != string(compute.StorageAccountTypesPremiumLRS) {
 			return fmt.Errorf("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
@@ -385,6 +417,25 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		default:
 			return fmt.Errorf("trusted_launch_enabled cannot be set to true with create_option %q. Supported Create Options when Trusted Launch is enabled are FromImage, Import", createOption)
 		}
+	}
+
+	if d.Get("on_demand_bursting_enabled").(bool) {
+		switch storageAccountType {
+		case string(compute.StorageAccountTypesPremiumLRS):
+		case string(compute.StorageAccountTypesPremiumZRS):
+		default:
+			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
+		}
+
+		if diskSizeGB != 0 && diskSizeGB <= 512 {
+			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `disk_size_gb` is larger than 512GB")
+		}
+
+		props.BurstingEnabled = utils.Bool(true)
+	}
+
+	if v, ok := d.GetOk("hyper_v_generation"); ok {
+		props.HyperVGeneration = compute.HyperVGeneration(v.(string))
 	}
 
 	createDisk := compute.Disk{
@@ -431,6 +482,8 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	resourceGroup := d.Get("resource_group_name").(string)
 	maxShares := d.Get("max_shares").(int)
 	storageAccountType := d.Get("storage_account_type").(string)
+	diskSizeGB := d.Get("disk_size_gb").(int)
+	onDemandBurstingEnabled := d.Get("on_demand_bursting_enabled").(bool)
 	shouldShutDown := false
 
 	disk, err := client.Get(ctx, resourceGroup, name)
@@ -537,8 +590,13 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if d.HasChange("disk_encryption_set_id") {
 		shouldShutDown = true
 		if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
+			encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
+			if err != nil {
+				return err
+			}
+
 			diskUpdate.Encryption = &compute.Encryption{
-				Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
+				Type:                *encryptionType,
 				DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 			}
 		} else {
@@ -561,6 +619,32 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		default:
 			diskUpdate.DiskAccessID = nil
 		}
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		if d.Get("public_network_access_enabled").(bool) {
+			diskUpdate.PublicNetworkAccess = compute.PublicNetworkAccessEnabled
+		} else {
+			diskUpdate.PublicNetworkAccess = compute.PublicNetworkAccessDisabled
+		}
+	}
+
+	if onDemandBurstingEnabled {
+		switch storageAccountType {
+		case string(compute.StorageAccountTypesPremiumLRS):
+		case string(compute.StorageAccountTypesPremiumZRS):
+		default:
+			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
+		}
+
+		if diskSizeGB != 0 && diskSizeGB <= 512 {
+			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `disk_size_gb` is larger than 512GB")
+		}
+	}
+
+	if d.HasChange("on_demand_bursting_enabled") {
+		shouldShutDown = true
+		diskUpdate.BurstingEnabled = utils.Bool(onDemandBurstingEnabled)
 	}
 
 	// whilst we need to shut this down, if we're not attached to anything there's no point
@@ -742,11 +826,14 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("os_type", props.OsType)
 		d.Set("tier", props.Tier)
 		d.Set("max_shares", props.MaxShares)
+		d.Set("hyper_v_generation", props.HyperVGeneration)
 
 		if networkAccessPolicy := props.NetworkAccessPolicy; networkAccessPolicy != compute.NetworkAccessPolicyAllowAll {
 			d.Set("network_access_policy", props.NetworkAccessPolicy)
 		}
 		d.Set("disk_access_id", props.DiskAccessID)
+
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == compute.PublicNetworkAccessEnabled)
 
 		diskEncryptionSetId := ""
 		if props.Encryption != nil && props.Encryption.DiskEncryptionSetID != nil {
@@ -765,6 +852,12 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			}
 		}
 		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
+
+		onDemandBurstingEnabled := false
+		if props.BurstingEnabled != nil {
+			onDemandBurstingEnabled = *props.BurstingEnabled
+		}
+		d.Set("on_demand_bursting_enabled", onDemandBurstingEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

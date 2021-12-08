@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
@@ -298,7 +299,12 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			"ssl_minimal_tls_version_enforced": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(postgresql.TLSEnforcementDisabled),
+				Default: func() interface{} {
+					if features.ThreePointOh() {
+						return string(postgresql.TLS12)
+					}
+					return string(postgresql.TLSEnforcementDisabled)
+				}(),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresql.TLSEnforcementDisabled),
 					string(postgresql.TLS10),
@@ -436,6 +442,15 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 				}
 				// Basic tier could not be changed to other tiers
 				if oldTier[0] == "B" || newTier[0] == "B" {
+					return true
+				}
+				return false
+			}),
+			pluginsdk.ForceNewIfChange("create_mode", func(ctx context.Context, old, new, meta interface{}) bool {
+				oldMode := postgresql.CreateMode(old.(string))
+				newMode := postgresql.CreateMode(new.(string))
+				// Instance could not be changed from Default to Replica
+				if oldMode == postgresql.CreateModeDefault && newMode == postgresql.CreateModeReplica {
 					return true
 				}
 				return false

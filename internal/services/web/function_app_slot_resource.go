@@ -362,14 +362,13 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	existing, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
+	var currentAppSettings map[string]*string
+	appSettingsList, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
-		return fmt.Errorf("reading %s: %+v", id, err)
+		return fmt.Errorf("reading App Settings for %s: %+v", id, err)
 	}
-
-	var currentAppSettings *[]web.NameValuePair
-	if existing.AppSettings != nil {
-		currentAppSettings = existing.AppSettings
+	if appSettingsList.Properties != nil {
+		currentAppSettings = appSettingsList.Properties
 	}
 
 	basicAppSettings := getBasicFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix, currentAppSettings)
@@ -632,7 +631,7 @@ func resourceFunctionAppSlotDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func getBasicFunctionAppSlotAppSettings(d *pluginsdk.ResourceData, appServiceTier, endpointSuffix string, existingSettings *[]web.NameValuePair) []web.NameValuePair {
+func getBasicFunctionAppSlotAppSettings(d *pluginsdk.ResourceData, appServiceTier, endpointSuffix string, existingSettings map[string]*string) []web.NameValuePair {
 	// TODO: This is a workaround since there are no public Functions API
 	// You may track the API request here: https://github.com/Azure/azure-rest-api-specs/issues/3750
 	dashboardPropName := "AzureWebJobsDashboard"
@@ -647,17 +646,14 @@ func getBasicFunctionAppSlotAppSettings(d *pluginsdk.ResourceData, appServiceTie
 
 	functionVersion := d.Get("version").(string)
 	var contentShare string
-	if existingSettings == nil {
+	contentSharePreviouslySet := false
+	if currentContentShare, ok := existingSettings[contentSharePropName]; ok {
+		contentShare = *currentContentShare
+		contentSharePreviouslySet = true
+	} else {
 		// generate and use a new value
 		suffix := uuid.New().String()[0:4]
 		contentShare = strings.ToLower(d.Get("name").(string)) + suffix
-	} else {
-		// find and re-use the current
-		for _, v := range *existingSettings {
-			if v.Name != nil && *v.Name == contentSharePropName {
-				contentShare = *v.Name
-			}
-		}
 	}
 
 	basicSettings := []web.NameValuePair{
@@ -675,6 +671,11 @@ func getBasicFunctionAppSlotAppSettings(d *pluginsdk.ResourceData, appServiceTie
 	consumptionSettings := []web.NameValuePair{
 		{Name: &contentSharePropName, Value: &contentShare},
 		{Name: &contentFileConnStringPropName, Value: &storageConnection},
+	}
+
+	// If there's an existing value for content, we need to send it. This can be the case for PremiumV2/PremiumV3 plans where the value has been previously configured.
+	if contentSharePreviouslySet {
+		return append(basicSettings, consumptionSettings...)
 	}
 
 	// On consumption and premium plans include WEBSITE_CONTENT components, unless it's a Linux consumption plan

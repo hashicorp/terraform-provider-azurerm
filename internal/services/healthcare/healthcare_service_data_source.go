@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
+
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -121,27 +123,28 @@ func dataSourceHealthcareService() *pluginsdk.Resource {
 
 func dataSourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	id := parse.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("HealthCare Service %q was not found in Resource Group %q", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("making Read request on Azure Healthcare Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
+
 	if kind := resp.Kind; string(kind) != "" {
 		d.Set("kind", kind)
 	}
 
 	if props := resp.Properties; props != nil {
-		if err := d.Set("access_policy_object_ids", flattenHealthcareAccessPolicies(props.AccessPolicies)); err != nil {
+		if err := d.Set("access_policy_object_ids", flattenAccessPolicies(props.AccessPolicies)); err != nil {
 			return fmt.Errorf("setting `access_policy_object_ids`: %+v", err)
 		}
 
@@ -158,11 +161,11 @@ func dataSourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("cosmosdb_key_vault_key_versionless_id", cosmodDbKeyVaultKeyVersionlessId)
 		d.Set("cosmosdb_throughput", cosmosDbThroughput)
 
-		if err := d.Set("authentication_configuration", flattenHealthcareAuthConfig(props.AuthenticationConfiguration)); err != nil {
+		if err := d.Set("authentication_configuration", flattenAuthentication(props.AuthenticationConfiguration)); err != nil {
 			return fmt.Errorf("setting `authentication_configuration`: %+v", err)
 		}
 
-		if err := d.Set("cors_configuration", flattenHealthcareCorsConfig(props.CorsConfiguration)); err != nil {
+		if err := d.Set("cors_configuration", flattenCorsConfig(props.CorsConfiguration)); err != nil {
 			return fmt.Errorf("setting `cors_configuration`: %+v", err)
 		}
 	}

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
@@ -78,7 +79,7 @@ func dataSourceArmAttestationProviderRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("attestation_uri", props.AttestUri)
 			d.Set("trust_model", props.TrustModel)
 		}
-		return tags.FlattenAndSet(d, flattenTags(resp.Model.Tags))
+		return tags.FlattenAndSet(d, tagsHelper.Flatten(resp.Model.Tags))
 	}
 
 	return nil

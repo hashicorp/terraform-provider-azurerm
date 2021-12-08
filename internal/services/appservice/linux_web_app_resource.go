@@ -3,6 +3,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -281,6 +282,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			siteEnvelope := web.Site{
 				Location: utils.String(webApp.Location),
+				Identity: helpers.ExpandIdentity(webApp.Identity),
 				Tags:     tags.FromTypedObject(webApp.Tags),
 				SiteProperties: &web.SiteProperties{
 					ServerFarmID:          utils.String(webApp.ServicePlanId),
@@ -291,10 +293,6 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:     utils.Bool(webApp.ClientCertEnabled),
 					ClientCertMode:        web.ClientCertMode(webApp.ClientCertMode),
 				},
-			}
-
-			if identity := helpers.ExpandIdentity(webApp.Identity); identity != nil {
-				siteEnvelope.Identity = identity
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
@@ -309,6 +307,10 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			appSettings := helpers.ExpandAppSettings(webApp.AppSettings)
+			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURE"] = utils.String(strconv.Itoa(webApp.SiteConfig[0].HealthCheckEvictionTime))
+			}
+
 			if appSettings.Properties != nil {
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettings); err != nil {
 					return fmt.Errorf("setting App Settings for Linux %s: %+v", id, err)
@@ -435,9 +437,11 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				Name:          id.SiteName,
 				ResourceGroup: id.ResourceGroup,
 				Location:      location.NormalizeNilable(webApp.Location),
-				AppSettings:   helpers.FlattenAppSettings(appSettings),
 				Tags:          tags.ToTypedObject(webApp.Tags),
 			}
+
+			var healthCheckCount *int
+			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
 
 			webAppProps := webApp.SiteProperties
 			if v := webAppProps.ServerFarmID; v != nil {
@@ -496,7 +500,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 
 			state.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
-			state.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig)
+			state.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig, healthCheckCount)
 
 			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
@@ -603,6 +607,9 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
 			if metadata.ResourceData.HasChange("app_settings") {
 				appSettingsUpdate := helpers.ExpandAppSettings(state.AppSettings)
+				if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+					appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURE"] = utils.String(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
+				}
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate); err != nil {
 					return fmt.Errorf("updating App Settings for Linux %s: %+v", id, err)
 				}

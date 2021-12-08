@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/sdk/2021-04-30/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceCognitiveAccount() *pluginsdk.Resource {
@@ -75,37 +75,43 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	id := cognitiveservicesaccounts.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.AccountsGet(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
+	keys, err := client.AccountsListKeys(ctx, id)
 	if err != nil {
 		// TODO: gracefully fail here
 		return fmt.Errorf("retrieving Keys for %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("kind", resp.Kind)
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku_name", sku.Name)
+
+	if model := keys.Model; model != nil {
+		d.Set("primary_access_key", model.Key1)
+		d.Set("secondary_access_key", model.Key2)
 	}
 
-	if props := resp.Properties; props != nil {
-		if apiProps := props.APIProperties; apiProps != nil {
-			d.Set("qna_runtime_endpoint", apiProps.QnaRuntimeEndpoint)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("kind", model.Kind)
+		if sku := model.Sku; sku != nil {
+			d.Set("sku_name", sku.Name)
 		}
-		d.Set("endpoint", props.Endpoint)
+
+		if props := model.Properties; props != nil {
+			if apiProps := props.ApiProperties; apiProps != nil {
+				d.Set("qna_runtime_endpoint", apiProps.QnaRuntimeEndpoint)
+			}
+			d.Set("endpoint", props.Endpoint)
+		}
+
+		return tags.FlattenAndSet(d, flattenTags(model.Tags))
 	}
-
-	d.Set("primary_access_key", keys.Key1)
-	d.Set("secondary_access_key", keys.Key2)
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

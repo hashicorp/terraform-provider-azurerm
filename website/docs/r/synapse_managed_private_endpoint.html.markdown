@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_synapse_managed_private_endpoint
 
-Allows you to Manages a Synapse Managed Private Endpoint.
+Manages a Synapse Managed Private Endpoint.
 
 ## Example Usage
 

@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -28,8 +30,10 @@ func resourceSecurityCenterContact() *pluginsdk.Resource {
 		Update: resourceSecurityCenterContactCreateUpdate,
 		Delete: resourceSecurityCenterContactDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ContactID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -65,22 +69,23 @@ func resourceSecurityCenterContact() *pluginsdk.Resource {
 }
 
 func resourceSecurityCenterContactCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	// TODO: split this Create/Update
 	client := meta.(*clients.Client).SecurityCenter.ContactsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := securityCenterContactName
-
+	id := parse.NewContactID(subscriptionId, securityCenterContactName)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, name)
+		existing, err := client.Get(ctx, id.SubscriptionId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Checking for presence of existing Security Center Contact: %+v", err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_security_center_contact", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_security_center_contact", id.ID())
 		}
 	}
 
@@ -106,20 +111,12 @@ func resourceSecurityCenterContactCreateUpdate(d *pluginsdk.ResourceData, meta i
 	if d.IsNewResource() {
 		// TODO: switch back when the Swagger/API bug has been fixed:
 		// https://github.com/Azure/azure-rest-api-specs/issues/10717 (an undefined 201)
-		if _, err := azuresdkhacks.CreateSecurityCenterContact(client, ctx, name, contact); err != nil {
+		if _, err := azuresdkhacks.CreateSecurityCenterContact(ctx, client, id.SecurityContactName, contact); err != nil {
 			return fmt.Errorf("Creating Security Center Contact: %+v", err)
 		}
 
-		resp, err := client.Get(ctx, name)
-		if err != nil {
-			return fmt.Errorf("Reading Security Center Contact: %+v", err)
-		}
-		if resp.ID == nil {
-			return fmt.Errorf("Security Center Contact ID is nil")
-		}
-
-		d.SetId(*resp.ID)
-	} else if _, err := client.Update(ctx, name, contact); err != nil {
+		d.SetId(id.ID())
+	} else if _, err := client.Update(ctx, id.SecurityContactName, contact); err != nil {
 		return fmt.Errorf("Updating Security Center Contact: %+v", err)
 	}
 
@@ -131,24 +128,27 @@ func resourceSecurityCenterContactRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := securityCenterContactName
+	id, err := parse.ContactID(d.Id())
+	if err != nil {
+		return err
+	}
 
-	resp, err := client.Get(ctx, name)
+	resp, err := client.Get(ctx, id.SecurityContactName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Security Center Subscription Contact was not found: %v", err)
+			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Reading Security Center Contact: %+v", err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if properties := resp.ContactProperties; properties != nil {
-		d.Set("email", properties.Email)
-		d.Set("phone", properties.Phone)
-		d.Set("alert_notifications", properties.AlertNotifications == security.On)
-		d.Set("alerts_to_admins", properties.AlertsToAdmins == security.AlertsToAdminsOn)
+	if props := resp.ContactProperties; props != nil {
+		d.Set("email", props.Email)
+		d.Set("phone", props.Phone)
+		d.Set("alert_notifications", props.AlertNotifications == security.On)
+		d.Set("alerts_to_admins", props.AlertsToAdmins == security.AlertsToAdminsOn)
 	}
 
 	return nil
@@ -159,16 +159,13 @@ func resourceSecurityCenterContactDelete(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := securityCenterContactName
-
-	resp, err := client.Delete(ctx, name)
+	id, err := parse.ContactID(d.Id())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
-			log.Printf("[DEBUG] Security Center Subscription Contact was not found: %v", err)
-			return nil
-		}
+		return err
+	}
 
-		return fmt.Errorf("Deleting Security Center Contact: %+v", err)
+	if _, err := client.Delete(ctx, id.SecurityContactName); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

@@ -14,7 +14,7 @@ type GetResponse struct {
 }
 
 // Get ...
-func (c ConsumerGroupsClient) Get(ctx context.Context, id ConsumergroupId) (result GetResponse, err error) {
+func (c ConsumerGroupsClient) Get(ctx context.Context, id ConsumerGroupId) (result GetResponse, err error) {
 	req, err := c.preparerForGet(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "consumergroups.ConsumerGroupsClient", "Get", nil, "Failure preparing request")
@@ -37,7 +37,7 @@ func (c ConsumerGroupsClient) Get(ctx context.Context, id ConsumergroupId) (resu
 }
 
 // preparerForGet prepares the Get request.
-func (c ConsumerGroupsClient) preparerForGet(ctx context.Context, id ConsumergroupId) (*http.Request, error) {
+func (c ConsumerGroupsClient) preparerForGet(ctx context.Context, id ConsumerGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

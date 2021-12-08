@@ -42,6 +42,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_monitor_log_profile":                 resourceMonitorLogProfile(),
 		"azurerm_monitor_metric_alert":                resourceMonitorMetricAlert(),
 		"azurerm_monitor_private_link_scope":          resourceMonitorPrivateLinkScope(),
+		"azurerm_monitor_private_link_scoped_service": resourceMonitorPrivateLinkScopedService(),
 		"azurerm_monitor_scheduled_query_rules_alert": resourceMonitorScheduledQueryRulesAlert(),
 		"azurerm_monitor_scheduled_query_rules_log":   resourceMonitorScheduledQueryRulesLog(),
 		"azurerm_monitor_smart_detector_alert_rule":   resourceMonitorSmartDetectorAlertRule(),

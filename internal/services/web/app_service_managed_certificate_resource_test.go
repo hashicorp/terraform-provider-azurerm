@@ -99,7 +99,6 @@ func (t AppServiceManagedCertificateResource) basicLinux(data acceptance.TestDat
 resource "azurerm_app_service_managed_certificate" "test" {
   custom_hostname_binding_id = azurerm_app_service_custom_hostname_binding.test.id
 }
-
 `, template)
 }
 
@@ -111,7 +110,6 @@ func (t AppServiceManagedCertificateResource) requiresImport(data acceptance.Tes
 resource "azurerm_app_service_managed_certificate" "import" {
   custom_hostname_binding_id = azurerm_app_service_managed_certificate.test.custom_hostname_binding_id
 }
-
 `, template)
 }
 
@@ -178,7 +176,6 @@ resource "azurerm_app_service_custom_hostname_binding" "test" {
   app_service_name    = azurerm_app_service.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, dnsZone, dataResourceGroup, data.RandomString, data.RandomString)
 }
 
@@ -190,7 +187,6 @@ func (t AppServiceManagedCertificateResource) basicWindows(data acceptance.TestD
 resource "azurerm_app_service_managed_certificate" "test" {
   custom_hostname_binding_id = azurerm_app_service_custom_hostname_binding.test.id
 }
-
 `, template)
 }
 
@@ -254,6 +250,5 @@ resource "azurerm_app_service_custom_hostname_binding" "test" {
   app_service_name    = azurerm_app_service.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, dnsZone, dataResourceGroup, data.RandomString, data.RandomString)
 }

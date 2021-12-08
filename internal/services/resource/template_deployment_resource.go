@@ -9,6 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/migration"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -35,7 +39,12 @@ func resourceTemplateDeployment() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(180 * time.Minute),
 		},
 
-		DeprecationMessage: features.DeprecatedInThreePointOh("The resource 'azurerm_template_deployment' has been superseded by the 'azurerm_resource_group_template_deployment' pluginsdk."),
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.TemplateDeploymentV0ToV1{},
+		}),
+
+		DeprecationMessage: features.DeprecatedInThreePointOh("The resource 'azurerm_template_deployment' has been superseded by the 'azurerm_resource_group_template_deployment' resource."),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -92,29 +101,28 @@ func resourceTemplateDeployment() *pluginsdk.Resource {
 
 func resourceTemplateDeploymentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.DeploymentsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	deploymentMode := d.Get("deployment_mode").(string)
-
+	id := parse.NewResourceGroupTemplateDeploymentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.DeploymentName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Template Deployment %s (resource group %s) %v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_template_deployment", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_template_deployment", id.ID())
 		}
 	}
 
-	log.Printf("[INFO] preparing arguments for AzureRM Template Deployment creation.")
-	properties := resources.DeploymentProperties{
-		Mode: resources.DeploymentMode(deploymentMode),
+	deployment := resources.Deployment{
+		Properties: &resources.DeploymentProperties{
+			Mode: resources.DeploymentMode(d.Get("deployment_mode").(string)),
+		},
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -129,7 +137,7 @@ func resourceTemplateDeploymentCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			}
 		}
 
-		properties.Parameters = &newParams
+		deployment.Properties.Parameters = &newParams
 	}
 
 	if v, ok := d.GetOk("parameters_body"); ok {
@@ -138,7 +146,7 @@ func resourceTemplateDeploymentCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			return err
 		}
 
-		properties.Parameters = &params
+		deployment.Properties.Parameters = &params
 	}
 
 	if v, ok := d.GetOk("template_body"); ok {
@@ -147,61 +155,47 @@ func resourceTemplateDeploymentCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			return err
 		}
 
-		properties.Template = &template
-	}
-
-	deployment := resources.Deployment{
-		Properties: &properties,
+		deployment.Properties.Template = &template
 	}
 
 	if !d.IsNewResource() {
 		d.Partial(true)
 	}
 
-	deploymentValidateFuture, err := client.Validate(ctx, resourceGroup, name, deployment)
+	deploymentValidateFuture, err := client.Validate(ctx, id.ResourceGroup, id.DeploymentName, deployment)
 	if err != nil {
-		return fmt.Errorf("requesting Validation for Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("requesting Validation of %s: %+v", id, err)
 	}
 
 	if err := deploymentValidateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for Validation of Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for Validation of %s: %+v", id, err)
 	}
-
 	validationResult, err := deploymentValidateFuture.Result(*client)
 	if err != nil {
-		return fmt.Errorf("retrieving Validation of Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Validation Result for %s: %+v", id, err)
 	}
 
 	if validationResult.Error != nil {
 		if validationResult.Error.Message != nil {
-			return fmt.Errorf("validating Template for Deployment %q (Resource Group %q): %+v", name, resourceGroup, *validationResult.Error.Message)
+			return fmt.Errorf("validating %s for Deployment: %+v", id, *validationResult.Error.Message)
 		}
-		return fmt.Errorf("validating Template for Deployment %q (Resource Group %q): %+v", name, resourceGroup, *validationResult.Error)
+		return fmt.Errorf("validating %s for Deployment: %+v", id, *validationResult.Error)
 	}
 
 	if !d.IsNewResource() {
 		d.Partial(false)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, deployment)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.DeploymentName, deployment)
 	if err != nil {
-		return fmt.Errorf("creating deployment: %+v", err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deployment: %+v", err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Template Deployment %s (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceTemplateDeploymentRead(d, meta)
 }
 
@@ -210,65 +204,63 @@ func resourceTemplateDeploymentRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ResourceGroupTemplateDeploymentID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["deployments"]
-	if name == "" {
-		name = id.Path["Deployments"]
-	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.DeploymentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Azure RM Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	outputs := make(map[string]string)
-	if outs := resp.Properties.Outputs; outs != nil {
-		outsVal := outs.(map[string]interface{})
-		if len(outsVal) > 0 {
-			for key, output := range outsVal {
-				log.Printf("[DEBUG] Processing deployment output %s", key)
-				outputMap := output.(map[string]interface{})
-				outputValue, ok := outputMap["value"]
-				if !ok {
-					log.Printf("[DEBUG] No value - skipping")
-					continue
+	if props := resp.Properties; props != nil {
+		if outs := props.Outputs; outs != nil {
+			outsVal := outs.(map[string]interface{})
+			if len(outsVal) > 0 {
+				for key, output := range outsVal {
+					log.Printf("[DEBUG] Processing deployment output %s", key)
+					outputMap := output.(map[string]interface{})
+					outputValue, ok := outputMap["value"]
+					if !ok {
+						log.Printf("[DEBUG] No value - skipping")
+						continue
+					}
+					outputType, ok := outputMap["type"]
+					if !ok {
+						log.Printf("[DEBUG] No type - skipping")
+						continue
+					}
+
+					var outputValueString string
+					switch strings.ToLower(outputType.(string)) {
+					case "bool":
+						outputValueString = strconv.FormatBool(outputValue.(bool))
+
+					case "string":
+						outputValueString = outputValue.(string)
+
+					case "int":
+						outputValueString = fmt.Sprint(outputValue)
+
+					default:
+						log.Printf("[WARN] Ignoring output %s: Outputs of type %s are not currently supported in azurerm_template_deployment.",
+							key, outputType)
+						continue
+					}
+					outputs[key] = outputValueString
 				}
-				outputType, ok := outputMap["type"]
-				if !ok {
-					log.Printf("[DEBUG] No type - skipping")
-					continue
-				}
-
-				var outputValueString string
-				switch strings.ToLower(outputType.(string)) {
-				case "bool":
-					outputValueString = strconv.FormatBool(outputValue.(bool))
-
-				case "string":
-					outputValueString = outputValue.(string)
-
-				case "int":
-					outputValueString = fmt.Sprint(outputValue)
-
-				default:
-					log.Printf("[WARN] Ignoring output %s: Outputs of type %s are not currently supported in azurerm_template_deployment.",
-						key, outputType)
-					continue
-				}
-				outputs[key] = outputValueString
 			}
 		}
+		d.Set("outputs", outputs)
 	}
 
-	return d.Set("outputs", outputs)
+	return nil
 }
 
 func resourceTemplateDeploymentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -276,21 +268,20 @@ func resourceTemplateDeploymentDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ResourceGroupTemplateDeploymentID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["deployments"]
-	if name == "" {
-		name = id.Path["Deployments"]
+
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.SubscriptionId); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	if _, err = client.Delete(ctx, resourceGroup, name); err != nil {
-		return err
+	if err := waitForTemplateDeploymentToBeDeleted(ctx, client, *id); err != nil {
+		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 
-	return waitForTemplateDeploymentToBeDeleted(ctx, client, resourceGroup, name, d)
+	return nil
 }
 
 // TODO: move this out into the new `helpers` structure
@@ -310,33 +301,38 @@ func expandTemplateBody(template string) (map[string]interface{}, error) {
 	return templateBody, nil
 }
 
-func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client *resources.DeploymentsClient, resourceGroup, name string, d *pluginsdk.ResourceData) error {
+func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client *resources.DeploymentsClient, id parse.ResourceGroupTemplateDeploymentId) error {
 	// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
-	log.Printf("[DEBUG] Waiting for Template Deployment (%q in Resource Group %q) to be deleted", name, resourceGroup)
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
+
+	log.Printf("[DEBUG] Waiting for %s to be deleted", id)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{"200"},
 		Target:  []string{"404"},
-		Refresh: templateDeploymentStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
-		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
+		Refresh: templateDeploymentStateStatusCodeRefreshFunc(ctx, client, id),
+		Timeout: time.Until(deadline),
 	}
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Template Deployment (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 	}
 
 	return nil
 }
 
-func templateDeploymentStateStatusCodeRefreshFunc(ctx context.Context, client *resources.DeploymentsClient, resourceGroup, name string) pluginsdk.StateRefreshFunc {
+func templateDeploymentStateStatusCodeRefreshFunc(ctx context.Context, client *resources.DeploymentsClient, id parse.ResourceGroupTemplateDeploymentId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroup, name)
+		res, err := client.Get(ctx, id.ResourceGroup, id.DeploymentName)
 
-		log.Printf("Retrieving Template Deployment %q (Resource Group %q) returned Status %d", resourceGroup, name, res.StatusCode)
+		log.Printf("Retrieving %s returned Status %d", id, res.StatusCode)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(res.Response) {
 				return res, strconv.Itoa(res.StatusCode), nil
 			}
-			return nil, "", fmt.Errorf("polling for the status of the Template Deployment %q (RG: %q): %+v", name, resourceGroup, err)
+			return nil, "", fmt.Errorf("polling for the status of %s: %+v", id, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil

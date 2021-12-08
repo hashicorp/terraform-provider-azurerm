@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,8 +25,15 @@ func resourceArmDevTestPolicy() *pluginsdk.Resource {
 		Read:   resourceArmDevTestPolicyRead,
 		Update: resourceArmDevTestPolicyCreateUpdate,
 		Delete: resourceArmDevTestPolicyDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.DevTestLabPolicyID(id)
+			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.DevTestLabPolicyUpgradeV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -100,21 +109,19 @@ func resourceArmDevTestPolicy() *pluginsdk.Resource {
 
 func resourceArmDevTestPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.PoliciesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DevTest Policy creation")
 
-	name := d.Get("name").(string)
-	policySetName := d.Get("policy_set_name").(string)
-	labName := d.Get("lab_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewDevTestLabPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("lab_name").(string), d.Get("policy_set_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, labName, policySetName, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.LabName, id.PolicySetName, id.PolicyName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing DevTest Policy %q (Policy Set %q / Lab %q / Resource Group %q): %s", name, policySetName, labName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -133,7 +140,7 @@ func resourceArmDevTestPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	parameters := dtl.Policy{
 		Tags: tags.Expand(t),
 		PolicyProperties: &dtl.PolicyProperties{
-			FactName:      dtl.PolicyFactName(name),
+			FactName:      dtl.PolicyFactName(id.PolicyName),
 			FactData:      utils.String(factData),
 			Description:   utils.String(description),
 			EvaluatorType: dtl.PolicyEvaluatorType(evaluatorType),
@@ -141,20 +148,11 @@ func resourceArmDevTestPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, labName, policySetName, name, parameters); err != nil {
-		return fmt.Errorf("creating/updating DevTest Policy %q (Policy Set %q / Lab %q / Resource Group %q): %+v", name, policySetName, labName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LabName, id.PolicySetName, id.PolicyName, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, labName, policySetName, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving DevTest Policy %q (Policy Set %q / Lab %q / Resource Group %q): %+v", name, policySetName, labName, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read DevTest Policy %q (Policy Set %q / Lab %q / Resource Group %q) ID", name, policySetName, labName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceArmDevTestPolicyRead(d, meta)
 }
@@ -164,30 +162,26 @@ func resourceArmDevTestPolicyRead(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DevTestLabPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	labName := id.Path["labs"]
-	policySetName := id.Path["policysets"]
-	name := id.Path["policies"]
 
-	read, err := client.Get(ctx, resourceGroup, labName, policySetName, name, "")
+	read, err := client.Get(ctx, id.ResourceGroup, id.LabName, id.PolicySetName, id.PolicyName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			log.Printf("[DEBUG] DevTest Policy %q was not found in Policy Set %q / Lab %q / Resource Group %q - removing from state!", name, policySetName, labName, resourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on DevTest Policy %q (Policy Set %q / Lab %q / Resource Group %q): %+v", name, policySetName, labName, resourceGroup, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
-	d.Set("name", read.Name)
-	d.Set("policy_set_name", policySetName)
-	d.Set("lab_name", labName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.PolicyName)
+	d.Set("policy_set_name", id.PolicySetName)
+	d.Set("lab_name", id.LabName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := read.PolicyProperties; props != nil {
 		d.Set("description", props.Description)
@@ -204,28 +198,24 @@ func resourceArmDevTestPolicyDelete(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DevTestLabPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	labName := id.Path["labs"]
-	policySetName := id.Path["policysets"]
-	name := id.Path["policies"]
 
-	read, err := client.Get(ctx, resourceGroup, labName, policySetName, name, "")
+	read, err := client.Get(ctx, id.ResourceGroup, id.LabName, id.PolicySetName, id.PolicyName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
 			// deleted outside of TF
-			log.Printf("[DEBUG] DevTest Policy %q was not found in Policy Set %q / Lab %q / Resource Group %q - assuming removed!", name, policySetName, labName, resourceGroup)
+			log.Printf("[DEBUG] %s was not found  - assuming removed!", *id)
 			return nil
 		}
 
-		return fmt.Errorf("retrieving DevTest Policy %q (Policy Set %q / Lab %q / Resource Group %q): %+v", name, policySetName, labName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	if _, err = client.Delete(ctx, resourceGroup, labName, policySetName, name); err != nil {
-		return fmt.Errorf("deleting DevTest Policy %q (Policy Set %q / Lab %q / Resource Group %q): %+v", name, policySetName, labName, resourceGroup, err)
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.LabName, id.PolicySetName, id.PolicyName); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return err

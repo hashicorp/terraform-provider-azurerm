@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -193,7 +193,7 @@ func (t StorageEncryptionScopeResource) Exists(ctx context.Context, clients *cli
 
 	enabled := false
 	if resp.EncryptionScopeProperties != nil {
-		enabled = strings.EqualFold(string(resp.EncryptionScopeProperties.State), string(storage.Enabled))
+		enabled = strings.EqualFold(string(resp.EncryptionScopeProperties.State), string(storage.EncryptionScopeStateEnabled))
 	}
 
 	return utils.Bool(enabled), nil
