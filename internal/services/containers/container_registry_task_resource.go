@@ -415,8 +415,8 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice([]string{
-								"commit",
-								"pullrequest",
+								string(legacyacr.Commit),
+								string(legacyacr.Pullrequest),
 							}, false),
 						},
 					},
