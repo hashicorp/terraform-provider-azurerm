@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ContainerRegistryTaskId struct {
@@ -42,7 +42,7 @@ func (id ContainerRegistryTaskId) ID() string {
 
 // ContainerRegistryTaskID parses a ContainerRegistryTask ID into an ContainerRegistryTaskId struct
 func ContainerRegistryTaskID(input string) (*ContainerRegistryTaskId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
