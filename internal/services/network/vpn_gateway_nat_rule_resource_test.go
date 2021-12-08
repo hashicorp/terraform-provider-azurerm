@@ -149,7 +149,7 @@ func (r VPNGatewayNatRuleResource) requiresImport(data acceptance.TestData) stri
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_vpn_gateway_nat_rule" "test" {
+resource "azurerm_vpn_gateway_nat_rule" "import" {
   name                            = azurerm_vpn_gateway_nat_rule.test.name
   resource_group_name             = azurerm_vpn_gateway_nat_rule.test.resource_group_name
   vpn_gateway_id                  = azurerm_vpn_gateway_nat_rule.test.vpn_gateway_id
