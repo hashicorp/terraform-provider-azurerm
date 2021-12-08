@@ -182,7 +182,7 @@ resource "azurerm_virtual_hub" "test" {
   name                = "acctest-vhub-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  address_prefix      = "10.0.0.1/24"
+  address_prefix      = "10.0.2.0/24"
   virtual_wan_id      = azurerm_virtual_wan.test.id
 }
 
