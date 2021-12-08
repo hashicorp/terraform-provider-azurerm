@@ -28,6 +28,17 @@ BUG FIXES:
 * `azurerm_data_fatory_trigger_schedule` - correctly set `schedule` when `frequency` is `Month/Week` [GH-14391]
 * `azurerm_iothub_endpoint_storage_container` - remove the default value `false` from the `file_name_format` property and add the correct validation function for it [GH-14458]
 
+BETA NOTES:
+
+A number of properties in the App Service Beta resources have been renamed for consistency with the rest of the provider. As these are beta resources, this breaking change is not compensated for with deprecations or state migrations. Please update any configurations using these resources with the following details:
+
+* `remote_debugging` renamed to `remote_debugging_enabled`
+* `number_of_workers` renamed to `worker_count`
+* `detailed_error_logging` renamed to `detailed_error_logging_enabled`
+* `auto_heal` renamed to `auto_heal_enabled`
+* `local_mysql` renamed to `local_mysql_enabled`
+* `client_cert_enabled` renamed to `client_certificate_enabled`
+* `client_cert_mode` renamed to `client_certificate_mode`
 
 ## 2.88.1 (December 03, 2021)
 
