@@ -62,7 +62,7 @@ func TestAccContainerRegistryTask_dockerStep(t *testing.T) {
 		},
 		data.ImportStep("docker_step.0.context_access_token"),
 		{
-			Config: r.dockerStepComplete(data),
+			Config: r.dockerStepUpdate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -99,7 +99,7 @@ func TestAccContainerRegistryTask_fileTaskStep(t *testing.T) {
 		},
 		data.ImportStep("file_task_step.0.context_access_token"),
 		{
-			Config: r.fileTaskStepComplete(data),
+			Config: r.fileTaskStepUpdate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -136,7 +136,7 @@ func TestAccContainerRegistryTask_encodedTaskStep(t *testing.T) {
 		},
 		data.ImportStep("encoded_task_step.0.context_access_token"),
 		{
-			Config: r.encodedTaskStepComplete(data),
+			Config: r.encodedTaskStepUpdate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -165,6 +165,20 @@ func TestAccContainerRegistryTask_dockerStepBaseImageTrigger(t *testing.T) {
 	}
 
 	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.dockerStepBaseImageTrigger(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("docker_step.0.context_access_token"),
+		{
+			Config: r.dockerStepBaseImageTriggerUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("docker_step.0.context_access_token", "base_image_trigger.0.update_trigger_endpoint"),
 		{
 			Config: r.dockerStepBaseImageTrigger(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -203,6 +217,36 @@ func TestAccContainerRegistryTask_dockerStepSourceTrigger(t *testing.T) {
 			"source_trigger.0.source_setting.0.auth.0.scope",
 			"source_trigger.0.source_setting.0.auth.0.token",
 		),
+		{
+			Config: r.dockerStepSourceTriggerUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"docker_step.0.context_access_token",
+			"source_trigger.0.source_setting.0.auth.#",
+			"source_trigger.0.source_setting.0.auth.0.%",
+			"source_trigger.0.source_setting.0.auth.0.expire_in_seconds",
+			"source_trigger.0.source_setting.0.auth.0.refresh_token",
+			"source_trigger.0.source_setting.0.auth.0.scope",
+			"source_trigger.0.source_setting.0.auth.0.token",
+		),
+		{
+			Config: r.dockerStepSourceTrigger(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"docker_step.0.context_access_token",
+			"source_trigger.0.source_setting.0.auth.#",
+			"source_trigger.0.source_setting.0.auth.0.%",
+			"source_trigger.0.source_setting.0.auth.0.expire_in_seconds",
+			"source_trigger.0.source_setting.0.auth.0.refresh_token",
+			"source_trigger.0.source_setting.0.auth.0.scope",
+			"source_trigger.0.source_setting.0.auth.0.token",
+		),
 	})
 }
 
@@ -219,6 +263,20 @@ func TestAccContainerRegistryTask_dockerStepTimerTrigger(t *testing.T) {
 	}
 
 	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.dockerStepTimerTrigger(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("docker_step.0.context_access_token"),
+		{
+			Config: r.dockerStepTimerTriggerUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("docker_step.0.context_access_token"),
 		{
 			Config: r.dockerStepTimerTrigger(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -283,7 +341,12 @@ func TestAccContainerRegistryTask_identity(t *testing.T) {
 
 func TestAccContainerRegistryTask_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_task", "test")
-	r := ContainerRegistryTaskResource{}
+	r := ContainerRegistryTaskResource{
+		githubRepo: githubRepo{
+			url:   os.Getenv("ARM_TEST_ACR_TASK_GITHUB_REPO_URL"),
+			token: os.Getenv("ARM_TEST_ACR_TASK_GITHUB_USER_TOKEN"),
+		},
+	}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -335,7 +398,7 @@ resource "azurerm_container_registry_task" "test" {
 `, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
 }
 
-func (r ContainerRegistryTaskResource) dockerStepComplete(data acceptance.TestData) string {
+func (r ContainerRegistryTaskResource) dockerStepUpdate(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -383,7 +446,7 @@ resource "azurerm_container_registry_task" "test" {
 `, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
 }
 
-func (r ContainerRegistryTaskResource) fileTaskStepComplete(data acceptance.TestData) string {
+func (r ContainerRegistryTaskResource) fileTaskStepUpdate(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -434,7 +497,7 @@ EOF
 `, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
 }
 
-func (r ContainerRegistryTaskResource) encodedTaskStepComplete(data acceptance.TestData) string {
+func (r ContainerRegistryTaskResource) encodedTaskStepUpdate(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -491,6 +554,34 @@ resource "azurerm_container_registry_task" "test" {
 `, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
 }
 
+func (r ContainerRegistryTaskResource) dockerStepBaseImageTriggerUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_registry_task" "test" {
+  name                = "testacccrTask%d"
+  container_registry_id = azurerm_container_registry.test.id
+  platform_setting {
+  	os = "Linux"
+  }
+  docker_step {
+    dockerfile_path = "Dockerfile"
+	context_path = "%s"
+	context_access_token = "%s"
+	image_names = ["helloworld:{{.Run.ID}}"]
+  }
+  base_image_trigger {
+    name = "default-update"
+    type = "All"
+	enabled = false
+	update_trigger_endpoint = "https://foo.com"
+	update_trigger_payload_type = "Default"
+  }
+}
+`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+}
+
 func (r ContainerRegistryTaskResource) dockerStepSourceTrigger(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -525,6 +616,41 @@ resource "azurerm_container_registry_task" "test" {
 `, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, r.githubRepo.url, r.githubRepo.token)
 }
 
+func (r ContainerRegistryTaskResource) dockerStepSourceTriggerUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_registry_task" "test" {
+  name                = "testacccrTask%d"
+  container_registry_id = azurerm_container_registry.test.id
+  platform_setting {
+  	os = "Linux"
+  }
+  docker_step {
+    dockerfile_path = "Dockerfile"
+	context_path = "%s"
+	context_access_token = "%s"
+	image_names = ["helloworld:{{.Run.ID}}"]
+  }
+  source_trigger {
+    name = "default-update"
+    events = ["pullrequest"]
+    source_setting {
+      source_type = "Github"    
+      repository_url = "%s"
+      branch = "master"    
+      auth {
+        token_type = "PAT"
+        token = "%s"
+      }
+    }
+    enabled = false
+  }
+}
+`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, r.githubRepo.url, r.githubRepo.token)
+}
+
 func (r ContainerRegistryTaskResource) dockerStepTimerTrigger(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -545,6 +671,32 @@ resource "azurerm_container_registry_task" "test" {
   timer_trigger {
     name = "default"
     schedule = "0 21 * * *"
+  }
+}
+`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+}
+
+func (r ContainerRegistryTaskResource) dockerStepTimerTriggerUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_registry_task" "test" {
+  name                = "testacccrTask%d"
+  container_registry_id = azurerm_container_registry.test.id
+  platform_setting {
+  	os = "Linux"
+  }
+  docker_step {
+    dockerfile_path = "Dockerfile"
+	context_path = "%s"
+	context_access_token = "%s"
+	image_names = ["helloworld:{{.Run.ID}}"]
+  }
+  timer_trigger {
+    name = "default-update"
+    schedule = "0 12 * * *"
+    enabled = false
   }
 }
 `, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)

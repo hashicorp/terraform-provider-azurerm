@@ -407,6 +407,7 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 					"update_trigger_endpoint": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"update_trigger_payload_type": {
@@ -414,7 +415,7 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						Optional: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(legacyacr.UpdateTriggerPayloadTypeDefault),
-							string(legacyacr.UpdateTriggerPayloadTypeDefault),
+							string(legacyacr.UpdateTriggerPayloadTypeToken),
 						}, false),
 					},
 				},
@@ -434,8 +435,11 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						Type:     pluginsdk.TypeList,
 						Required: true,
 						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								"commit",
+								"pullrequest",
+							}, false),
 						},
 					},
 					"source_setting": {
@@ -773,7 +777,7 @@ func (r ContainerRegistryTaskResource) Read() sdk.ResourceFunc {
 				fileTaskStep = flattenRegistryTaskFileTaskStep(props.Step, diffOrStateModel)
 				encodedTaskStep = flattenRegistryTaskEncodedTaskStep(props.Step, diffOrStateModel)
 				if trigger := props.Trigger; trigger != nil {
-					baseImageTrigger = flattenRegistryTaskBaseImageTrigger(trigger.BaseImageTrigger)
+					baseImageTrigger = flattenRegistryTaskBaseImageTrigger(trigger.BaseImageTrigger, diffOrStateModel)
 					sourceTrigger = flattenRegistryTaskSourceTriggers(trigger.SourceTriggers, diffOrStateModel)
 					timerTrigger = flattenRegistryTaskTimerTriggers(trigger.TimerTriggers)
 				}
@@ -911,6 +915,8 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 				params.TaskProperties.LogTemplate = &state.LogTemplate
 			}
 
+			// Due to the fact that the service doesn't honor explicitly set to null fields in the PATCH request,
+			// we can not use PATCH (i.e. the Update) here.
 			future, err := client.Create(ctx, id.ResourceGroup, id.RegistryName, id.TaskName, params)
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
@@ -994,7 +1000,7 @@ func expandRegistryTaskBaseImageTriggerForUpdate(triggers []BaseImageTrigger) *l
 	return out
 }
 
-func flattenRegistryTaskBaseImageTrigger(trigger *legacyacr.BaseImageTrigger) []BaseImageTrigger {
+func flattenRegistryTaskBaseImageTrigger(trigger *legacyacr.BaseImageTrigger, model ContainerRegistryTaskModel) []BaseImageTrigger {
 	if trigger == nil {
 		return nil
 	}
@@ -1008,9 +1014,12 @@ func flattenRegistryTaskBaseImageTrigger(trigger *legacyacr.BaseImageTrigger) []
 	if trigger.Name != nil {
 		obj.Name = *trigger.Name
 	}
-	if trigger.UpdateTriggerEndpoint != nil {
-		obj.UpdateTriggerEndpoint = *trigger.UpdateTriggerEndpoint
+
+	// UpdateTriggerEndpoint is not returned from API, setting it from config.
+	if len(model.BaseImageTrigger) == 1 {
+		obj.UpdateTriggerEndpoint = model.BaseImageTrigger[0].UpdateTriggerEndpoint
 	}
+
 	return []BaseImageTrigger{obj}
 }
 
