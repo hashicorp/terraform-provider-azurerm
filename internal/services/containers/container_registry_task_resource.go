@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
@@ -26,6 +28,7 @@ import (
 type ContainerRegistryTaskResource struct{}
 
 var _ sdk.ResourceWithUpdate = ContainerRegistryTaskResource{}
+var _ sdk.ResourceWithCustomizeDiff = ContainerRegistryTaskResource{}
 
 type AgentConfig struct {
 	CPU int `tfschema:"cpu"`
@@ -110,6 +113,13 @@ type Identity struct {
 	TenantId    string   `tfschema:"tenant_id"`
 }
 
+type RegistryCredential struct {
+	LoginServer string `tfschema:"login_server"`
+	UserName    string `tfschema:"username"`
+	Password    string `tfschema:"password"`
+	Identity    string `tfschema:"identity"`
+}
+
 type ContainerRegistryTaskModel struct {
 	Name                string                 `tfschema:"name"`
 	ContainerRegistryId string                 `tfschema:"container_registry_id"`
@@ -127,6 +137,7 @@ type ContainerRegistryTaskModel struct {
 	BaseImageTrigger    []BaseImageTrigger     `tfschema:"base_image_trigger"`
 	SourceTrigger       []SourceTrigger        `tfschema:"source_trigger"`
 	TimerTrigger        []TimerTrigger         `tfschema:"timer_trigger"`
+	RegistryCredential  []RegistryCredential   `tfschema:"registry_credential"`
 	Tags                map[string]interface{} `tfschema:"tags"`
 }
 
@@ -155,7 +166,7 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 		},
 		"platform_setting": {
 			Type:     pluginsdk.TypeList,
-			Required: true,
+			Optional: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
@@ -538,6 +549,35 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 				},
 			},
 		},
+		"registry_credential": {
+			Type:      pluginsdk.TypeSet,
+			Sensitive: true,
+			Optional:  true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"login_server": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"username": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"password": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"identity": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
 		"agent_setting": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -564,6 +604,7 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 		"is_system_task": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+			ForceNew: true,
 			Default:  false,
 		},
 		"log_template": {
@@ -578,6 +619,44 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 			Default:      3600,
 		},
 		"tags": tags.ForceNewSchema(),
+	}
+}
+
+func (r ContainerRegistryTaskResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+			isSystemTask := rd.Get("is_system_task").(bool)
+
+			if isSystemTask {
+				invalidProps := []string{"platform_setting", "docker_step", "file_task_step", "encoded_task_step", "base_image_trigger", "source_trigger", "timer_trigger"}
+				for _, prop := range invalidProps {
+					if v := rd.Get(prop).([]interface{}); len(v) != 0 {
+						return fmt.Errorf("system task can't specify `%s`", prop)
+					}
+				}
+			} else {
+				if v := rd.Get("platform_setting").([]interface{}); len(v) == 0 {
+					return fmt.Errorf("non-system task have to specify `platform_setting`")
+				}
+
+				dockerStep := rd.Get("docker_step").([]interface{})
+				fileTaskStep := rd.Get("file_task_step").([]interface{})
+				encodedTaskStep := rd.Get("encoded_task_step").([]interface{})
+				if len(dockerStep)+len(fileTaskStep)+len(encodedTaskStep) == 0 {
+					return fmt.Errorf("non-system task have to specify one of `docker_step`, `file_task_step` and `encoded_task_step`")
+				}
+
+				baseImageTrigger := rd.Get("base_image_trigger").([]interface{})
+				sourceTriggers := rd.Get("source_trigger").([]interface{})
+				timerTrigger := rd.Get("timer_trigger").([]interface{})
+				if len(baseImageTrigger)+len(sourceTriggers)+len(timerTrigger) == 0 {
+					return fmt.Errorf("non-system task have to specify at least one of `base_image_trigger`, `source_trigger` and `timer_trigger`")
+				}
+			}
+
+			return nil
+		},
 	}
 }
 
@@ -637,14 +716,12 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 
 			params := legacyacr.Task{
 				TaskProperties: &legacyacr.TaskProperties{
-					Platform:     expandRegistryTaskPlatform(model.Platform[0]),
 					Step:         expandRegistryTaskStep(model),
 					Trigger:      expandRegistryTaskTrigger(model),
 					Status:       status,
 					IsSystemTask: &model.IsSystemTask,
 					Timeout:      utils.Int32(int32(model.TimeoutInSec)),
-					// TODO
-					//Credentials:  nil,
+					Credentials:  expandRegistryTaskCredentials(model.RegistryCredential),
 				},
 
 				// The location of the task must be the same as the registry, otherwise the API will raise error complaining can't find the registry.
@@ -653,6 +730,9 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 				Tags:     tags.Expand(model.Tags),
 			}
 
+			if len(model.Platform) != 0 {
+				params.Platform = expandRegistryTaskPlatform(model.Platform[0])
+			}
 			if len(model.AgentConfig) != 0 {
 				agentConfig := model.AgentConfig[0]
 				params.TaskProperties.AgentConfiguration = &legacyacr.AgentProperties{CPU: utils.Int32(int32(agentConfig.CPU))}
@@ -704,19 +784,20 @@ func (r ContainerRegistryTaskResource) Read() sdk.ResourceFunc {
 			}
 
 			var (
-				agentConfig      []AgentConfig
-				agentPoolName    string
-				isSystemTask     bool
-				logTemplate      string
-				platform         []Platform
-				enabled          bool
-				timeoutInSec     int
-				dockerStep       []DockerStep
-				fileTaskStep     []FileTaskStep
-				encodedTaskStep  []EncodedTaskStep
-				baseImageTrigger []BaseImageTrigger
-				sourceTrigger    []SourceTrigger
-				timerTrigger     []TimerTrigger
+				agentConfig        []AgentConfig
+				agentPoolName      string
+				isSystemTask       bool
+				logTemplate        string
+				platform           []Platform
+				enabled            bool
+				timeoutInSec       int
+				dockerStep         []DockerStep
+				fileTaskStep       []FileTaskStep
+				encodedTaskStep    []EncodedTaskStep
+				baseImageTrigger   []BaseImageTrigger
+				sourceTrigger      []SourceTrigger
+				timerTrigger       []TimerTrigger
+				registryCredential []RegistryCredential
 			)
 			if props := task.TaskProperties; props != nil {
 				if cfg := props.AgentConfiguration; cfg != nil {
@@ -748,6 +829,9 @@ func (r ContainerRegistryTaskResource) Read() sdk.ResourceFunc {
 					sourceTrigger = flattenRegistryTaskSourceTriggers(trigger.SourceTriggers, diffOrStateModel)
 					timerTrigger = flattenRegistryTaskTimerTriggers(trigger.TimerTriggers)
 				}
+
+				// The RegistryCredential is not returned from the API, setting it from the state.
+				registryCredential = diffOrStateModel.RegistryCredential
 			}
 			identity, err := flattenRegistryTaskIdentity(task.Identity)
 			if err != nil {
@@ -770,6 +854,7 @@ func (r ContainerRegistryTaskResource) Read() sdk.ResourceFunc {
 				BaseImageTrigger:    baseImageTrigger,
 				SourceTrigger:       sourceTrigger,
 				TimerTrigger:        timerTrigger,
+				RegistryCredential:  registryCredential,
 				Tags:                tags.Flatten(task.Tags),
 			}
 
@@ -834,20 +919,21 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 
 			params := legacyacr.Task{
 				TaskProperties: &legacyacr.TaskProperties{
-					Platform:     expandRegistryTaskPlatform(state.Platform[0]),
 					Step:         expandRegistryTaskStep(state),
 					Trigger:      expandRegistryTaskTrigger(state),
 					Status:       status,
 					IsSystemTask: &state.IsSystemTask,
 					Timeout:      utils.Int32(int32(state.TimeoutInSec)),
-					// TODO
-					//Credentials:  nil,
+					Credentials:  expandRegistryTaskCredentials(state.RegistryCredential),
 				},
 				Location: utils.String(location.NormalizeNilable(registry.Location)),
 				Identity: expandRegistryTaskIdentity(state.Identity),
 				Tags:     tags.Expand(state.Tags),
 			}
 
+			if len(state.Platform) != 0 {
+				params.Platform = expandRegistryTaskPlatform(state.Platform[0])
+			}
 			if len(state.AgentConfig) != 0 {
 				agentConfig := state.AgentConfig[0]
 				params.TaskProperties.AgentConfiguration = &legacyacr.AgentProperties{CPU: utils.Int32(int32(agentConfig.CPU))}
@@ -875,10 +961,16 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 }
 
 func expandRegistryTaskTrigger(model ContainerRegistryTaskModel) *legacyacr.TriggerProperties {
+	baseImageTrigger := expandRegistryTaskBaseImageTrigger(model.BaseImageTrigger)
+	sourceTriggers := expandRegistryTaskSourceTriggers(model.SourceTrigger)
+	timerTriggers := expandRegistryTaskTimerTriggers(model.TimerTrigger)
+	if baseImageTrigger == nil && sourceTriggers == nil && timerTriggers == nil {
+		return nil
+	}
 	return &legacyacr.TriggerProperties{
-		BaseImageTrigger: expandRegistryTaskBaseImageTrigger(model.BaseImageTrigger),
-		SourceTriggers:   expandRegistryTaskSourceTriggers(model.SourceTrigger),
-		TimerTriggers:    expandRegistryTaskTimerTriggers(model.TimerTrigger),
+		BaseImageTrigger: baseImageTrigger,
+		SourceTriggers:   sourceTriggers,
+		TimerTriggers:    timerTriggers,
 	}
 }
 
@@ -1111,6 +1203,10 @@ func expandRegistryTaskDockerStep(step DockerStep) legacyacr.DockerBuildStep {
 }
 
 func flattenRegistryTaskDockerStep(step legacyacr.BasicTaskStepProperties, model ContainerRegistryTaskModel) []DockerStep {
+	if step == nil {
+		return nil
+	}
+
 	dockerStep, ok := step.AsDockerBuildStep()
 	if !ok {
 		return nil
@@ -1171,6 +1267,10 @@ func expandRegistryTaskFileTaskStep(step FileTaskStep) legacyacr.FileTaskStep {
 }
 
 func flattenRegistryTaskFileTaskStep(step legacyacr.BasicTaskStepProperties, model ContainerRegistryTaskModel) []FileTaskStep {
+	if step == nil {
+		return nil
+	}
+
 	fileTaskStep, ok := step.AsFileTaskStep()
 	if !ok {
 		return nil
@@ -1220,6 +1320,10 @@ func expandRegistryTaskEncodedTaskStep(step EncodedTaskStep) legacyacr.EncodedTa
 }
 
 func flattenRegistryTaskEncodedTaskStep(step legacyacr.BasicTaskStepProperties, model ContainerRegistryTaskModel) []EncodedTaskStep {
+	if step == nil {
+		return nil
+	}
+
 	encodedTaskStep, ok := step.AsEncodedTaskStep()
 	if !ok {
 		return nil
@@ -1433,4 +1537,46 @@ func flattenRegistryTaskPlatform(platform *legacyacr.PlatformProperties) []Platf
 		Architecture: string(platform.Architecture),
 		Variant:      string(platform.Variant),
 	}}
+}
+
+func expandRegistryTaskCredentials(input []RegistryCredential) *legacyacr.Credentials {
+	if len(input) == 0 {
+		return nil
+	}
+
+	out := legacyacr.Credentials{
+		SourceRegistry:   &legacyacr.SourceRegistryCredentials{LoginMode: legacyacr.SourceRegistryLoginModeDefault},
+		CustomRegistries: map[string]*legacyacr.CustomRegistryCredentials{},
+	}
+
+	for _, credential := range input {
+		cred := &legacyacr.CustomRegistryCredentials{}
+
+		if credential.UserName != "" {
+			usernameType := legacyacr.Opaque
+			if _, err := keyVaultParse.ParseNestedItemID(credential.UserName); err == nil {
+				usernameType = legacyacr.Vaultsecret
+			}
+			cred.UserName = &legacyacr.SecretObject{
+				Value: utils.String(credential.UserName),
+				Type:  usernameType,
+			}
+		}
+		if credential.Password != "" {
+			passwordType := legacyacr.Opaque
+			if _, err := keyVaultParse.ParseNestedItemID(credential.Password); err == nil {
+				passwordType = legacyacr.Vaultsecret
+			}
+			cred.UserName = &legacyacr.SecretObject{
+				Value: utils.String(credential.Password),
+				Type:  passwordType,
+			}
+		}
+		if credential.Identity != "" {
+			cred.Identity = utils.String(credential.Identity)
+		}
+		out.CustomRegistries[credential.LoginServer] = cred
+	}
+
+	return &out
 }
