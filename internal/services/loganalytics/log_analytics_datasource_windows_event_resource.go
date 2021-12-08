@@ -29,7 +29,7 @@ func resourceLogAnalyticsDataSourceWindowsEvent() *pluginsdk.Resource {
 		Delete: resourceLogAnalyticsDataSourceWindowsEventDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.LogAnalyticsDataSourceID(id)
+			_, err := parse.DataSourceID(id)
 			return err
 		}, importLogAnalyticsDataSource(operationalinsights.WindowsEvent)),
 
@@ -94,23 +94,21 @@ type dataSourceWindowsEventEventType struct {
 
 func resourceLogAnalyticsDataSourceWindowsEventCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	workspaceName := d.Get("workspace_name").(string)
-
+	id := parse.NewDataSourceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("workspace_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, resourceGroup, workspaceName, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("failed to check for existing Log Analytics Data Source Windows Event  %q (Resource Group %q / Workspace: %q): %+v", name, resourceGroup, workspaceName, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_log_analytics_datasource_windows_event", *resp.ID)
+			return tf.ImportAsExistsError("azurerm_log_analytics_datasource_windows_event", id.ID())
 		}
 	}
 
@@ -122,19 +120,11 @@ func resourceLogAnalyticsDataSourceWindowsEventCreateUpdate(d *pluginsdk.Resourc
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspaceName, name, params); err != nil {
-		return fmt.Errorf("failed to create Log Analytics DataSource Windows Event %q (Resource Group %q / Workspace: %q): %+v", name, resourceGroup, workspaceName, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, params); err != nil {
+		return fmt.Errorf("creating Windows Event %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, workspaceName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Log Analytics Data Source Windows Event  %q (Resource Group %q / Workspace: %q): %+v", name, resourceGroup, workspaceName, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read Log Analytics Data Source Windows Event  %q (Resource Group %q) ID", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceLogAnalyticsDataSourceWindowsEventRead(d, meta)
 }
 
@@ -143,34 +133,34 @@ func resourceLogAnalyticsDataSourceWindowsEventRead(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LogAnalyticsDataSourceID(d.Id())
+	id, err := parse.DataSourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Workspace, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Log Analytics Data Source Windows Event  %q was not found in Resource Group %q in Workspace %q - removing from state!", id.Name, id.ResourceGroup, id.Workspace)
+			log.Printf("[DEBUG] Windows Event %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("failed to retrieve Log Analytics Data Source Windows Event  %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("workspace_name", id.Workspace)
+	d.Set("workspace_name", id.WorkspaceName)
 	if props := resp.Properties; props != nil {
 		propStr, err := pluginsdk.FlattenJsonToString(props.(map[string]interface{}))
 		if err != nil {
-			return fmt.Errorf("failed to flatten properties map to json for Log Analytics DataSource Windows Event %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
+			return fmt.Errorf("failed to flatten properties map to json: %+v", err)
 		}
 
 		prop := dataSourceWindowsEvent{}
 		if err := json.Unmarshal([]byte(propStr), &prop); err != nil {
-			return fmt.Errorf("failed to decode properties json for Log Analytics DataSource Windows Event %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
+			return fmt.Errorf("failed to decode properties json: %+v", err)
 		}
 
 		d.Set("event_log_name", prop.EventLogName)
@@ -185,13 +175,13 @@ func resourceLogAnalyticsDataSourceWindowsEventDelete(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LogAnalyticsDataSourceID(d.Id())
+	id, err := parse.DataSourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Workspace, id.Name); err != nil {
-		return fmt.Errorf("failed to delete Log Analytics DataSource Windows Event %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
+		return fmt.Errorf("deleting Windows Event %s: %+v", *id, err)
 	}
 
 	return nil

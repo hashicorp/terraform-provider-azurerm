@@ -37,7 +37,7 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_stream_analytics_job": dataSourceArmStreamAnalyticsJob(),
+		"azurerm_stream_analytics_job": dataSourceStreamAnalyticsJob(),
 	}
 }
 

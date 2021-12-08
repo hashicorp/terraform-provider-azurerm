@@ -6,9 +6,9 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -161,30 +161,24 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 			},
 			"certificate": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 						"store_location": {
 							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"CurrentUser",
-								"LocalMachine",
-							}, false),
+							Computed: true,
 						},
 						"store_name": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 						"visibility": {
 							Type:     pluginsdk.TypeSet,
-							Optional: true,
+							Computed: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -194,30 +188,44 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 			},
 			"start_task": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"command_line": {
 							Type:     pluginsdk.TypeString,
-							Required: true,
+							Computed: true,
 						},
 
+						// TODO: Remove in 3.0
 						"max_task_retry_count": {
 							Type:     pluginsdk.TypeInt,
-							Optional: true,
-							Default:  1,
+							Computed: true,
+						},
+
+						"task_retry_maximum": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
 						},
 
 						"wait_for_success": {
 							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
+							Computed: true,
 						},
 
+						// TODO: Remove in 3.0
 						"environment": {
 							Type:     pluginsdk.TypeMap,
 							Optional: true,
+							//Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"common_environment_properties": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							//Computed: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -356,26 +364,25 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 
 func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.PoolClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	accountName := d.Get("account_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, accountName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Batch pool %q in account %q (Resource Group %q) was not found", name, accountName, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("making Read request on AzureRM Batch pool %q: %+v", name, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
-	d.Set("name", name)
-	d.Set("account_name", accountName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("account_name", id.BatchAccountName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.PoolProperties; props != nil {
 		d.Set("vm_size", props.VMSize)

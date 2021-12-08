@@ -96,6 +96,5 @@ resource azurerm_source_control_token import {
   type  = azurerm_source_control_token.test.type
   token = azurerm_source_control_token.test.token
 }
-
 `, r.basic(token))
 }

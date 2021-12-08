@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ApplicationGatewayWebApplicationFirewallPolicyId struct {
@@ -39,7 +39,7 @@ func (id ApplicationGatewayWebApplicationFirewallPolicyId) ID() string {
 
 // ApplicationGatewayWebApplicationFirewallPolicyID parses a ApplicationGatewayWebApplicationFirewallPolicy ID into an ApplicationGatewayWebApplicationFirewallPolicyId struct
 func ApplicationGatewayWebApplicationFirewallPolicyID(input string) (*ApplicationGatewayWebApplicationFirewallPolicyId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

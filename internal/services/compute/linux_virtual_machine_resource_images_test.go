@@ -229,7 +229,6 @@ resource "azurerm_linux_virtual_machine" "test" {
     storage_account_type = "Standard_LRS"
   }
 }
-
 `, r.imageFromExistingMachinePrep(data), data.RandomInteger)
 }
 

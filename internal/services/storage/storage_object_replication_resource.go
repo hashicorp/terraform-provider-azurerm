@@ -127,9 +127,11 @@ func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta inte
 			return fmt.Errorf("checking for present of existing Storage Object Replication for destination %q): %+v", dstAccount, err)
 		}
 	}
-	for _, existing := range *existingList.Value {
-		if existing.ID != nil && *existing.ID != "" && existing.SourceAccount != nil && *existing.SourceAccount == srcAccount.Name && existing.DestinationAccount != nil && *existing.DestinationAccount == dstAccount.Name {
-			return tf.ImportAsExistsError("azurerm_storage_object_replication", *existing.ID)
+	if existingList.Value != nil {
+		for _, existing := range *existingList.Value {
+			if existing.ID != nil && *existing.ID != "" && existing.SourceAccount != nil && *existing.SourceAccount == srcAccount.Name && existing.DestinationAccount != nil && *existing.DestinationAccount == dstAccount.Name {
+				return tf.ImportAsExistsError("azurerm_storage_object_replication", *existing.ID)
+			}
 		}
 	}
 

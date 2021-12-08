@@ -70,6 +70,5 @@ data "azurerm_storage_share" "test" {
   name                 = azurerm_storage_share.test.name
   storage_account_name = azurerm_storage_share.test.storage_account_name
 }
-
 `, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }

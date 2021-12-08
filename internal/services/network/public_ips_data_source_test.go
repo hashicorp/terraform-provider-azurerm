@@ -136,7 +136,6 @@ resource "azurerm_nat_gateway_public_ip_association" "test" {
   nat_gateway_id       = azurerm_nat_gateway.test.id
   public_ip_address_id = element(azurerm_public_ip.test.*.id, 3)
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 

@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -17,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
@@ -55,6 +57,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(90 * time.Minute),
 		},
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.KubernetesClusterV0ToV1{},
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -909,6 +916,39 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"http_proxy_config": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"http_proxy": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
+						},
+						"https_proxy": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
+						},
+						"no_proxy": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							ForceNew: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"trusted_ca": {
+							Type:      pluginsdk.TypeString,
+							Optional:  true,
+							Sensitive: true,
+						},
+					},
+				},
+			},
 		},
 	}
 	if features.KubeConfigsAreSensitive() {
@@ -1089,6 +1129,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	autoScalerProfileRaw := d.Get("auto_scaler_profile").([]interface{})
 	autoScalerProfile := expandKubernetesClusterAutoScalerProfile(autoScalerProfileRaw)
 
+	httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
+	httpProxyConfig := expandKubernetesClusterHttpProxyConfig(httpProxyConfigRaw)
+
 	parameters := containerservice.ManagedCluster{
 		Name:     &name,
 		Location: &location,
@@ -1110,6 +1153,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			NetworkProfile:         networkProfile,
 			NodeResourceGroup:      utils.String(nodeResourceGroup),
 			DisableLocalAccounts:   utils.Bool(d.Get("local_account_disabled").(bool)),
+			HTTPProxyConfig:        httpProxyConfig,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -1179,15 +1223,6 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("waiting for creation of Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("cannot read ID for Managed Kubernetes Cluster %q (Resource Group %q)", name, resGroup)
-	}
-
 	if maintenanceConfigRaw, ok := d.GetOk("maintenance_window"); ok {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
 		parameters := containerservice.MaintenanceConfiguration{
@@ -1198,7 +1233,8 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	d.SetId(*read.ID)
+	id := parse.NewClusterID(client.SubscriptionID, resGroup, name)
+	d.SetId(id.ID())
 
 	return resourceKubernetesClusterRead(d, meta)
 }
@@ -1501,6 +1537,13 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.AutoUpgradeProfile.UpgradeChannel = channel
 	}
 
+	if d.HasChange("http_proxy_config") {
+		updateCluster = true
+		httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
+		httpProxyConfig := expandKubernetesClusterHttpProxyConfig(httpProxyConfigRaw)
+		existing.ManagedClusterProperties.HTTPProxyConfig = httpProxyConfig
+	}
+
 	if updateCluster {
 		log.Printf("[DEBUG] Updating the Kubernetes Cluster %q (Resource Group %q)..", id.ManagedClusterName, id.ResourceGroup)
 		future, err := clusterClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, existing)
@@ -1715,6 +1758,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `windows_profile`: %+v", err)
 		}
 
+		httpProxyConfig := flattenKubernetesClusterHttpProxyConfig(props)
+		if err := d.Set("http_proxy_config", httpProxyConfig); err != nil {
+			return fmt.Errorf("setting `http_proxy_config`: %+v", err)
+		}
+
 		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
 		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
 			adminProfile, err := client.GetAccessProfile(ctx, id.ResourceGroup, id.ManagedClusterName, "clusterAdmin")
@@ -1879,7 +1927,7 @@ func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservic
 
 		userAssignedIdentityId := ""
 		if resourceid := kubeletidentity.ResourceID; resourceid != nil {
-			parsedId, err := msiparse.UserAssignedIdentityID(*resourceid)
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(*resourceid)
 			if err != nil {
 				return nil, err
 			}
@@ -2495,7 +2543,7 @@ func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.Mana
 			keys = append(keys, key)
 		}
 		if len(keys) > 0 {
-			parsedId, err := msiparse.UserAssignedIdentityID(keys[0])
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(keys[0])
 			if err != nil {
 				return nil, err
 			}
@@ -2757,4 +2805,59 @@ func flattenKubernetesClusterMaintenanceConfigurationTimeInWeeks(input *[]contai
 		})
 	}
 	return results
+}
+
+func expandKubernetesClusterHttpProxyConfig(input []interface{}) *containerservice.ManagedClusterHTTPProxyConfig {
+	httpProxyConfig := containerservice.ManagedClusterHTTPProxyConfig{}
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+
+	httpProxyConfig.HTTPProxy = utils.String(config["http_proxy"].(string))
+	httpProxyConfig.HTTPSProxy = utils.String(config["https_proxy"].(string))
+	httpProxyConfig.TrustedCa = utils.String(config["trusted_ca"].(string))
+
+	noProxyRaw := config["no_proxy"].(*pluginsdk.Set).List()
+	httpProxyConfig.NoProxy = utils.ExpandStringSlice(noProxyRaw)
+
+	return &httpProxyConfig
+}
+
+func flattenKubernetesClusterHttpProxyConfig(props *containerservice.ManagedClusterProperties) []interface{} {
+	if props == nil || props.HTTPProxyConfig == nil {
+		return []interface{}{}
+	}
+
+	httpProxyConfig := props.HTTPProxyConfig
+
+	httpProxy := ""
+	if httpProxyConfig.HTTPProxy != nil {
+		httpProxy = *httpProxyConfig.HTTPProxy
+	}
+
+	httpsProxy := ""
+	if httpProxyConfig.HTTPSProxy != nil {
+		httpsProxy = *httpProxyConfig.HTTPSProxy
+	}
+
+	noProxyList := make([]string, 0)
+	if httpProxyConfig.NoProxy != nil {
+		noProxyList = append(noProxyList, *httpProxyConfig.NoProxy...)
+	}
+
+	trustedCa := ""
+	if httpProxyConfig.TrustedCa != nil {
+		trustedCa = *httpProxyConfig.TrustedCa
+	}
+
+	results := []interface{}{}
+	return append(results, map[string]interface{}{
+		"http_proxy":  httpProxy,
+		"https_proxy": httpsProxy,
+		"no_proxy":    noProxyList,
+		"trusted_ca":  trustedCa,
+	})
+
 }

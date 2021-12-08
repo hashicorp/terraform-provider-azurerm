@@ -9,6 +9,8 @@ description: |-
 
 Manages a Azure Machine Learning Workspace
 
+~> **NOTE:** For examples on how to set up the Azure Machine Learning workspace, together with compute and integrated services, see [Terraform Quickstart](https://github.com/Azure/terraform/tree/master/quickstart)
+
 ## Example Usage
 
 ```hcl
@@ -167,8 +169,6 @@ The following arguments are supported:
 
 * `key_vault_id` - (Required) The ID of key vault associated with this Machine Learning Workspace. Changing this forces a new resource to be created.
 
--> NOTE: Azure Machine Learning Workspace will turn on purge protection on the key vault if it is not enabled.
-
 * `storage_account_id` - (Required) The ID of the Storage Account associated with this Machine Learning Workspace. Changing this forces a new resource to be created.
 
 -> **NOTE:** The `account_tier` cannot be `Premium` in order to associate the Storage Account to this Machine Learning Workspace.
@@ -185,21 +185,19 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of this Machine Learning Workspace.
 
-* `discovery_url` - (Optional) The URL for the discovery service to identify regional endpoints for machine learning experimentation services.
-
-* `friendly_name` - (Optional) Friendly name for this Machine Learning Workspace.
+* `friendly_name` - (Optional) Display name for this Machine Learning Workspace.
 
 * `high_business_impact` - (Optional) Flag to signal High Business Impact (HBI) data in the workspace and reduce diagnostic data collected by the service
 
 * `sku_name` - (Optional) SKU/edition of the Machine Learning Workspace, possible values are `Basic`. Defaults to `Basic`.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
 An `identity` block supports the following:
 
-* `type` - (Required) The Type of Identity which should be used for this Disk Encryption Set. At this time the only possible value is `SystemAssigned`.
+* `type` - (Required) The Type of Identity which should be used for this Azure Machine Learning workspace. At this time the only possible value is `SystemAssigned`.
 
 ---
 

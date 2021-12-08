@@ -67,66 +67,56 @@ func resourceSqlVirtualNetworkRule() *pluginsdk.Resource {
 
 func resourceSqlVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.VirtualNetworkRulesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	serverName := d.Get("server_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	virtualNetworkSubnetId := d.Get("subnet_id").(string)
-	ignoreMissingVnetServiceEndpoint := d.Get("ignore_missing_vnet_service_endpoint").(bool)
-
+	id := parse.NewVirtualNetworkRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serverName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_sql_virtual_network_rule", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_sql_virtual_network_rule", id.ID())
 		}
 	}
 
 	parameters := sql.VirtualNetworkRule{
 		VirtualNetworkRuleProperties: &sql.VirtualNetworkRuleProperties{
-			VirtualNetworkSubnetID:           utils.String(virtualNetworkSubnetId),
-			IgnoreMissingVnetServiceEndpoint: utils.Bool(ignoreMissingVnetServiceEndpoint),
+			VirtualNetworkSubnetID:           utils.String(d.Get("subnet_id").(string)),
+			IgnoreMissingVnetServiceEndpoint: utils.Bool(d.Get("ignore_missing_vnet_service_endpoint").(bool)),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters); err != nil {
-		return fmt.Errorf("creating SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+	// TODO: this is a Future, can we use that instead?
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	// Wait for the provisioning state to become ready
-	log.Printf("[DEBUG] Waiting for SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q) to become ready", name, serverName, resourceGroup)
+	log.Printf("[DEBUG] Waiting for %s to become ready", id)
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Initializing", "InProgress", "Unknown", "ResponseNotFound"},
 		Target:                    []string{"Ready"},
-		Refresh:                   sqlVirtualNetworkStateStatusCodeRefreshFunc(ctx, client, resourceGroup, serverName, name),
+		Refresh:                   sqlVirtualNetworkStateStatusCodeRefreshFunc(ctx, client, id),
 		MinTimeout:                1 * time.Minute,
 		ContinuousTargetOccurence: 5,
-	}
-
-	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-	} else {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
+		Timeout:                   time.Until(deadline),
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q) to be created or updated: %+v", name, serverName, resourceGroup, err)
+		return fmt.Errorf("waiting for %s to be created or updated: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serverName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceSqlVirtualNetworkRuleRead(d, meta)
 }
 
@@ -143,12 +133,12 @@ func resourceSqlVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta interface
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] SQL Virtual Network Rule %q (Server %q / Resource Group %q) was not found - removing from state", id.Name, id.ServerName, id.ResourceGroup)
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Virtual Network Rule %q (Server %q / Resource Group: %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -156,8 +146,8 @@ func resourceSqlVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.VirtualNetworkRuleProperties; props != nil {
-		d.Set("subnet_id", props.VirtualNetworkSubnetID)
 		d.Set("ignore_missing_vnet_service_endpoint", props.IgnoreMissingVnetServiceEndpoint)
+		d.Set("subnet_id", props.VirtualNetworkSubnetID)
 	}
 
 	return nil
@@ -175,46 +165,35 @@ func resourceSqlVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta interfa
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting SQL Virtual Network Rule %q (Server %q / Resource Group: %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of SQL Virtual Network Rule %q (Server %q / Resource Group: %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-/*
-	This function refreshes and checks the state of the SQL Virtual Network Rule.
-
-	Response will contain a VirtualNetworkRuleProperties struct with a State property. The state property contain one of the following states (except ResponseNotFound).
-	* Deleting
-	* Initializing
-	* InProgress
-	* Unknown
-	* Ready
-	* ResponseNotFound (Custom state in case of 404)
-*/
-func sqlVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *sql.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) pluginsdk.StateRefreshFunc {
+func sqlVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *sql.VirtualNetworkRulesClient, id parse.VirtualNetworkRuleId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, resourceGroup, serverName, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				log.Printf("[DEBUG] Retrieving Virtual Network Rule %q (Server %q / Resource Group %q) returned 404.", name, serverName, resourceGroup)
+				log.Printf("[DEBUG] Retrieving %s returned 404.", id)
 				return nil, "ResponseNotFound", nil
 			}
 
-			return nil, "", fmt.Errorf("polling for the state of the Virtual Network Rule %q (Server %q / Resource Group %q): %+v", name, serverName, resourceGroup, err)
+			return nil, "", fmt.Errorf("polling for the state of the %s: %+v", id, err)
 		}
 
 		if props := resp.VirtualNetworkRuleProperties; props != nil {
-			log.Printf("[DEBUG] Retrieving Virtual Network Rule %q (Server %q / Resource Group %q) returned Status %s", name, serverName, resourceGroup, props.State)
+			log.Printf("[DEBUG] Retrieving %s returned Status %s", id, string(props.State))
 			return resp, string(props.State), nil
 		}
 
 		// Valid response was returned but VirtualNetworkRuleProperties was nil. Basically the rule exists, but with no properties for some reason. Assume Unknown instead of returning error.
-		log.Printf("[DEBUG] Retrieving Virtual Network Rule %q (SQL Server %q / Resource Group %q) returned empty VirtualNetworkRuleProperties", name, serverName, resourceGroup)
+		log.Printf("[DEBUG] Retrieving %s returned empty Properties", id)
 		return resp, "Unknown", nil
 	}
 }

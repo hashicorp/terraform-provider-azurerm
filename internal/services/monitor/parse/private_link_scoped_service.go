@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type PrivateLinkScopedServiceId struct {
@@ -42,7 +42,7 @@ func (id PrivateLinkScopedServiceId) ID() string {
 
 // PrivateLinkScopedServiceID parses a PrivateLinkScopedService ID into an PrivateLinkScopedServiceId struct
 func PrivateLinkScopedServiceID(input string) (*PrivateLinkScopedServiceId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

@@ -107,7 +107,6 @@ resource "azurerm_stream_analytics_cluster" "test" {
   location            = azurerm_resource_group.test.location
   streaming_capacity  = 72
 }
-
 `, template, data.RandomInteger)
 }
 

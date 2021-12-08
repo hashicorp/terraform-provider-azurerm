@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type StreamingLocatorId struct {
@@ -42,7 +42,7 @@ func (id StreamingLocatorId) ID() string {
 
 // StreamingLocatorID parses a StreamingLocator ID into an StreamingLocatorId struct
 func StreamingLocatorID(input string) (*StreamingLocatorId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type EndpointEventhubId struct {
@@ -42,7 +42,7 @@ func (id EndpointEventhubId) ID() string {
 
 // EndpointEventhubID parses a EndpointEventhub ID into an EndpointEventhubId struct
 func EndpointEventhubID(input string) (*EndpointEventhubId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

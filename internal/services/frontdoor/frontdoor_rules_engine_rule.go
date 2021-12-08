@@ -94,7 +94,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 											"RequestMethod",
 											"QueryString",
 											"PostArgs",
-											"RequestURI",
+											"RequestUri",
 											"RequestPath",
 											"RequestFilename",
 											"RequestFilenameExtension",
