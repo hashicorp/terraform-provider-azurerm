@@ -73,6 +73,10 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 			"ip_configuration_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Instance0",
+					"Instance1",
+				}, false),
 			},
 
 			"mode": {

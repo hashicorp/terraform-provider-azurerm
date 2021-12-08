@@ -105,8 +105,8 @@ resource "azurerm_vpn_gateway_nat_rule" "test" {
   name                            = "acctest-vpnnatrule-%d"
   resource_group_name             = azurerm_resource_group.test.name
   vpn_gateway_id                  = azurerm_vpn_gateway.test.id
-  external_address_space_mappings = ["192.168.0.0/26"]
-  internal_address_space_mappings = ["10.0.0.1/26"]
+  external_address_space_mappings = ["192.168.21.0/26"]
+  internal_address_space_mappings = ["10.4.0.0/26"]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -115,54 +115,17 @@ func (r VPNGatewayNatRuleResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "GatewaySubnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctest-pip-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
-}
-
-resource "azurerm_virtual_network_gateway" "test" {
-  name                = "acctest-vnetgateway-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  type     = "Vpn"
-  vpn_type = "RouteBased"
-  sku      = "Basic"
-
-  ip_configuration {
-    public_ip_address_id          = azurerm_public_ip.test.id
-    private_ip_address_allocation = "Dynamic"
-    subnet_id                     = azurerm_subnet.test.id
-  }
-}
-
 resource "azurerm_vpn_gateway_nat_rule" "test" {
   name                            = "acctest-vpnnatrule-%d"
   resource_group_name             = azurerm_resource_group.test.name
   vpn_gateway_id                  = azurerm_vpn_gateway.test.id
-  external_address_space_mappings = ["192.168.0.0/26"]
-  internal_address_space_mappings = ["10.0.0.1/26"]
+  external_address_space_mappings = ["192.168.21.0/26"]
+  internal_address_space_mappings = ["10.4.0.0/26"]
   mode                            = "EgressSnat"
   type                            = "Dynamic"
-  ip_configuration_id             = "${azurerm_virtual_network_gateway.test.id}/ipConfigurations/vnetGatewayConfig"
+  ip_configuration_id             = "Instance0"
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r VPNGatewayNatRuleResource) update(data acceptance.TestData) string {
@@ -173,8 +136,11 @@ resource "azurerm_vpn_gateway_nat_rule" "test" {
   name                            = "acctest-vpnnatrule-%d"
   resource_group_name             = azurerm_resource_group.test.name
   vpn_gateway_id                  = azurerm_vpn_gateway.test.id
-  external_address_space_mappings = ["192.167.0.0/26"]
-  internal_address_space_mappings = ["10.0.0.2/26"]
+  external_address_space_mappings = ["192.168.22.0/26"]
+  internal_address_space_mappings = ["10.5.0.0/26"]
+  mode                            = "EgressSnat"
+  type                            = "Dynamic"
+  ip_configuration_id             = "Instance1"
 }
 `, r.template(data), data.RandomInteger)
 }

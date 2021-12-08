@@ -43,8 +43,8 @@ resource "azurerm_vpn_gateway_nat_rule" "example" {
   name                            = "example-vpngatewaynatrule"
   resource_group_name             = azurerm_resource_group.example.name
   vpn_gateway_id                  = azurerm_vpn_gateway.example.id
-  external_address_space_mappings = ["192.168.0.0/26"]
-  internal_address_space_mappings = ["10.0.0.1/26"]
+  external_address_space_mappings = ["192.168.21.0/26"]
+  internal_address_space_mappings = ["10.4.0.0/26"]
 }
 ```
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `internal_address_space_mappings` - (Required) A list of CIDR Ranges which are used for internal mapping of the VPN Gateway Nat Rule.
 
-* `ip_configuration_id` - (Optional) The ID of the IP Configuration this VPN Gateway Nat Rule applies to.
+* `ip_configuration_id` - (Optional) The ID of the IP Configuration this VPN Gateway Nat Rule applies to. Possible values are `Instance0` and `Instance1`.
 
 * `mode` - (Optional) The source Nat direction of the VPN Nat. Possible values are `EgressSnat` and `IngressSnat`. Defaults to `EgressSnat`. Changing this forces a new resource to be created.
 
