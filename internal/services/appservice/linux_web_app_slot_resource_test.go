@@ -435,7 +435,7 @@ func TestAccLinuxWebAppSlot_withLoggingUpdate(t *testing.T) {
 			Config: r.withDetailedLogging(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging").HasValue("true"),
+				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("true"),
 			),
 		},
@@ -444,7 +444,7 @@ func TestAccLinuxWebAppSlot_withLoggingUpdate(t *testing.T) {
 			Config: r.withLogsHttpBlob(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging").HasValue("false"),
+				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("false"),
 			),
 		},
@@ -453,7 +453,7 @@ func TestAccLinuxWebAppSlot_withLoggingUpdate(t *testing.T) {
 			Config: r.withLoggingComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging").HasValue("true"),
+				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("true"),
 			),
 		},
@@ -958,7 +958,7 @@ resource "azurerm_linux_web_app_slot" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {
-    auto_heal = true
+    auto_heal_enabled = true
 
     auto_heal_setting {
       trigger {
@@ -995,7 +995,7 @@ resource "azurerm_linux_web_app_slot" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {
-    auto_heal = true
+    auto_heal_enabled = true
 
     auto_heal_setting {
       trigger {
@@ -1136,9 +1136,9 @@ resource "azurerm_linux_web_app_slot" "test" {
     }
   }
 
-  client_affinity_enabled = true
-  client_cert_enabled     = true
-  client_cert_mode        = "Optional"
+  client_affinity_enabled    = true
+  client_certificate_enabled = true
+  client_certificate_mode    = "Optional"
 
   connection_string {
     name  = "First"
@@ -1171,7 +1171,7 @@ resource "azurerm_linux_web_app_slot" "test" {
     ]
     http2_enabled               = true
     scm_use_main_ip_restriction = true
-    local_mysql                 = true
+    local_mysql_enabled         = true
     managed_pipeline_mode       = "Integrated"
     remote_debugging_enabled    = true
     remote_debugging_version    = "VS2019"
@@ -1179,7 +1179,7 @@ resource "azurerm_linux_web_app_slot" "test" {
     websockets_enabled          = true
     ftps_state                  = "FtpsOnly"
     health_check_path           = "/health"
-    number_of_workers           = 1
+    worker_count                = 1
     minimum_tls_version         = "1.1"
     scm_minimum_tls_version     = "1.1"
     cors {
@@ -1195,7 +1195,7 @@ resource "azurerm_linux_web_app_slot" "test" {
     container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.id
 
     auto_swap_slot_name = "Production"
-    auto_heal           = true
+    auto_heal_enabled   = true
 
     auto_heal_setting {
       trigger {

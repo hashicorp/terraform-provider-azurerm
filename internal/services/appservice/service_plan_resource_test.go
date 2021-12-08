@@ -243,7 +243,7 @@ resource "azurerm_service_plan" "test" {
   sku_name                 = "S1"
   os_type                  = "Linux"
   per_site_scaling_enabled = true
-  number_of_workers        = 2
+  worker_count             = 2
 
   tags = {
     environment = "AccTest"
@@ -271,7 +271,7 @@ resource "azurerm_service_plan" "test" {
   sku_name                 = "P1v2"
   os_type                  = "Linux"
   per_site_scaling_enabled = true
-  number_of_workers        = 3
+  worker_count             = 3
 
   tags = {
     Foo = "bar"

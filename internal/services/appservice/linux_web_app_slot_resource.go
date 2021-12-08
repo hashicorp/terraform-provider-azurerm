@@ -33,8 +33,8 @@ type LinuxWebAppSlotModel struct {
 	AuthSettings                  []helpers.AuthSettings              `tfschema:"auth_settings"`
 	Backup                        []helpers.Backup                    `tfschema:"backup"`
 	ClientAffinityEnabled         bool                                `tfschema:"client_affinity_enabled"`
-	ClientCertEnabled             bool                                `tfschema:"client_cert_enabled"`
-	ClientCertMode                string                              `tfschema:"client_cert_mode"`
+	ClientCertEnabled             bool                                `tfschema:"client_certificate_enabled"`
+	ClientCertMode                string                              `tfschema:"client_certificate_mode"`
 	Enabled                       bool                                `tfschema:"enabled"`
 	HttpsOnly                     bool                                `tfschema:"https_only"`
 	Identity                      []helpers.Identity                  `tfschema:"identity"`
@@ -114,13 +114,13 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"client_cert_enabled": {
+		"client_certificate_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
 
-		"client_cert_mode": {
+		"client_certificate_mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Default:  "Required",
@@ -516,10 +516,10 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("client_affinity_enabled") {
 				existing.SiteProperties.ClientAffinityEnabled = utils.Bool(state.ClientAffinityEnabled)
 			}
-			if metadata.ResourceData.HasChange("client_cert_enabled") {
+			if metadata.ResourceData.HasChange("client_certificate_enabled") {
 				existing.SiteProperties.ClientCertEnabled = utils.Bool(state.ClientCertEnabled)
 			}
-			if metadata.ResourceData.HasChange("client_cert_mode") {
+			if metadata.ResourceData.HasChange("client_certificate_mode") {
 				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
 			}
 

@@ -47,12 +47,12 @@ type SiteConfigLinuxFunctionApp struct {
 	FtpsState                     string                             `tfschema:"ftps_state"`
 	HealthCheckPath               string                             `tfschema:"health_check_path"`
 	HealthCheckEvictionTime       int                                `tfschema:"health_check_eviction_time_in_min"`
-	NumberOfWorkers               int                                `tfschema:"number_of_workers"`
+	WorkerCount                   int                                `tfschema:"worker_count"`
 	ApplicationStack              []ApplicationStackLinuxFunctionApp `tfschema:"application_stack"`
 	MinTlsVersion                 string                             `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion              string                             `tfschema:"scm_minimum_tls_version"`
 	Cors                          []CorsSetting                      `tfschema:"cors"`
-	DetailedErrorLogging          bool                               `tfschema:"detailed_error_logging"`
+	DetailedErrorLogging          bool                               `tfschema:"detailed_error_logging_enabled"`
 	LinuxFxVersion                string                             `tfschema:"linux_fx_version"`
 	VnetRouteAllEnabled           bool                               `tfschema:"vnet_route_all_enabled"` // Not supported in Dynamic plans
 }
@@ -277,7 +277,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
 				},
 
-				"number_of_workers": {
+				"worker_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true,
@@ -318,7 +318,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
 				},
 
-				"detailed_error_logging": {
+				"detailed_error_logging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 					Description: "Is detailed error logging enabled",
@@ -361,12 +361,12 @@ type SiteConfigWindowsFunctionApp struct {
 	FtpsState                     string                               `tfschema:"ftps_state"`
 	HealthCheckPath               string                               `tfschema:"health_check_path"`
 	HealthCheckEvictionTime       int                                  `tfschema:"health_check_eviction_time_in_min"`
-	NumberOfWorkers               int                                  `tfschema:"number_of_workers"`
+	NumberOfWorkers               int                                  `tfschema:"worker_count"`
 	ApplicationStack              []ApplicationStackWindowsFunctionApp `tfschema:"application_stack"`
 	MinTlsVersion                 string                               `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion              string                               `tfschema:"scm_minimum_tls_version"`
 	Cors                          []CorsSetting                        `tfschema:"cors"`
-	DetailedErrorLogging          bool                                 `tfschema:"detailed_error_logging"`
+	DetailedErrorLogging          bool                                 `tfschema:"detailed_error_logging_enabled"`
 	WindowsFxVersion              string                               `tfschema:"windows_fx_version"`
 	VnetRouteAllEnabled           bool                                 `tfschema:"vnet_route_all_enabled"` // Not supported in Dynamic plans
 }
@@ -577,7 +577,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
 				},
 
-				"number_of_workers": {
+				"worker_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true,
@@ -618,7 +618,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
 				},
 
-				"detailed_error_logging": {
+				"detailed_error_logging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 					Description: "Is detailed error logging enabled",
@@ -1184,8 +1184,8 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.HealthCheckPath = utils.String(linuxSiteConfig.HealthCheckPath)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.number_of_workers") {
-		expanded.NumberOfWorkers = utils.Int32(int32(linuxSiteConfig.NumberOfWorkers))
+	if metadata.ResourceData.HasChange("site_config.0.worker_count") {
+		expanded.NumberOfWorkers = utils.Int32(int32(linuxSiteConfig.WorkerCount))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
@@ -1411,7 +1411,7 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 		expanded.HealthCheckPath = utils.String(windowsSiteConfig.HealthCheckPath)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.number_of_workers") {
+	if metadata.ResourceData.HasChange("site_config.0.worker_count") {
 		expanded.NumberOfWorkers = utils.Int32(int32(windowsSiteConfig.NumberOfWorkers))
 	}
 
@@ -1457,7 +1457,7 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*
 		LinuxFxVersion:          utils.NormalizeNilableString(functionAppSiteConfig.LinuxFxVersion),
 		LoadBalancing:           string(functionAppSiteConfig.LoadBalancing),
 		ManagedPipelineMode:     string(functionAppSiteConfig.ManagedPipelineMode),
-		NumberOfWorkers:         int(utils.NormaliseNilableInt32(functionAppSiteConfig.NumberOfWorkers)),
+		WorkerCount:             int(utils.NormaliseNilableInt32(functionAppSiteConfig.NumberOfWorkers)),
 		ScmType:                 string(functionAppSiteConfig.ScmType),
 		FtpsState:               string(functionAppSiteConfig.FtpsState),
 		RuntimeScaleMonitoring:  utils.NormaliseNilableBool(functionAppSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
