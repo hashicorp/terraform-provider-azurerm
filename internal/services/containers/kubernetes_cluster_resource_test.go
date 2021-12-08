@@ -22,22 +22,19 @@ var (
 	currentKubernetesVersion = "1.21.2"
 )
 
-func TestAccKubernetes_all(t *testing.T) {
-	// NOTE: this test is no longer used, but this assignment kicks around temporarily
-	// to allow us to migrate off this without causing conflicts in open PR's
-	_ = map[string]map[string]func(t *testing.T){
-		"auth":               kubernetesAuthTests,
-		"clusterAddOn":       kubernetesAddOnTests,
-		"datasource":         kubernetesDataSourceTests,
-		"network":            kubernetesNetworkAuthTests,
-		"nodePool":           kubernetesNodePoolTests,
-		"nodePoolDataSource": kubernetesNodePoolDataSourceTests,
-		"other":              kubernetesOtherTests,
-		"scaling":            kubernetesScalingTests,
-		"upgrade":            kubernetesUpgradeTests,
-	}
+func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	t.Skip("Skipping since this is being run Individually")
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.hostEncryption(data, currentKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.enable_host_encryption").HasValue("true"),
+			),
+		},
+	})
 }
 
 func (t KubernetesClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -86,26 +83,6 @@ func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) 
 
 		return nil
 	}
-}
-
-func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_hostEncryption(t)
-}
-
-func testAccKubernetesCluster_hostEncryption(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.hostEncryption(data, currentKubernetesVersion),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.enable_host_encryption").HasValue("true"),
-			),
-		},
-	})
 }
 
 func (KubernetesClusterResource) hostEncryption(data acceptance.TestData, controlPlaneVersion string) string {

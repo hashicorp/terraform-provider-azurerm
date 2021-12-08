@@ -64,6 +64,7 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 					"Arm",
 					"Dns",
 					"OpenSourceRelationalDatabases",
+					"Containers",
 				}, false),
 			},
 		},
