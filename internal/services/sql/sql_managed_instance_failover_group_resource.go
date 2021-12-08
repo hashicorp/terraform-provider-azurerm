@@ -329,7 +329,7 @@ func flattenSqlInstanceFailoverGroupPrimaryInstance(input *[]sql.ManagedInstance
 }
 
 func flattenSqlInstanceFailoverGroupManagedInstance(input *[]sql.ManagedInstancePairInfo) (string, error) {
-	if input == nil || len(*input) != 1 || (*input)[0].PartnerManagedInstanceID != nil {
+	if input == nil || len(*input) != 1 || (*input)[0].PartnerManagedInstanceID == nil {
 		return "", fmt.Errorf("invalid number of `partner_managed_instance_id` instances found")
 	}
 
