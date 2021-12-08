@@ -225,11 +225,6 @@ func dataSourceVirtualNetworkGateway() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"ip_configuration_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
 			"tags": tags.SchemaDataSource(),
 		},
 	}
