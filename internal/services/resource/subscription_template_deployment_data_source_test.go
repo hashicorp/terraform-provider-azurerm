@@ -3,9 +3,28 @@ package resource_test
 import (
 	"fmt"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"testing"
 )
 
 type SubscriptionTemplateDeploymentDataSource struct {
+}
+
+func TestAccDataSourceSubscriptionTemplateDeployment(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_subscription_template_deployment", "test")
+	r := SubscriptionTemplateDeploymentDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.withOutputsConfig(data),
+		},
+		{
+			Config: r.withDataSource(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("output_content").HasValue("{\"testOutput\":{\"type\":\"String\",\"value\":\"some-value\"}}"),
+			),
+		},
+	})
 }
 
 func (SubscriptionTemplateDeploymentDataSource) withOutputsConfig(data acceptance.TestData) string {
