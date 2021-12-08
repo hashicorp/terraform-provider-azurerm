@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = VpnNatRuleId{}
+var _ resourceid.Formatter = VpnGatewayNatRuleId{}
 
-func TestVpnNatRuleIDFormatter(t *testing.T) {
-	actual := NewVpnNatRuleID("12345678-1234-9876-4563-123456789012", "resGroup1", "vpnGateway1", "natRule1").ID()
+func TestVpnGatewayNatRuleIDFormatter(t *testing.T) {
+	actual := NewVpnGatewayNatRuleID("12345678-1234-9876-4563-123456789012", "resGroup1", "vpnGateway1", "natRule1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/vpnGateways/vpnGateway1/natRules/natRule1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestVpnNatRuleID(t *testing.T) {
+func TestVpnGatewayNatRuleID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *VpnNatRuleId
+		Expected *VpnGatewayNatRuleId
 	}{
 
 		{
@@ -82,7 +82,7 @@ func TestVpnNatRuleID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/vpnGateways/vpnGateway1/natRules/natRule1",
-			Expected: &VpnNatRuleId{
+			Expected: &VpnGatewayNatRuleId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
 				VpnGatewayName: "vpnGateway1",
@@ -100,7 +100,7 @@ func TestVpnNatRuleID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := VpnNatRuleID(v.Input)
+		actual, err := VpnGatewayNatRuleID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

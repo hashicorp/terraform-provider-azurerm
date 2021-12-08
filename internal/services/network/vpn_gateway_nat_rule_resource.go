@@ -32,15 +32,16 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.VpnNatRuleID(id)
+			_, err := parse.VpnGatewayNatRuleID(id)
 			return err
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -111,7 +112,7 @@ func resourceVPNGatewayNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	defer cancel()
 
 	vpnGatewayId, err := parse.VpnGatewayID(d.Get("vpn_gateway_id").(string))
-	id := parse.NewVpnNatRuleID(subscriptionId, d.Get("resource_group_name").(string), vpnGatewayId.Name, d.Get("name").(string))
+	id := parse.NewVpnGatewayNatRuleID(subscriptionId, d.Get("resource_group_name").(string), vpnGatewayId.Name, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.VpnGatewayName, id.NatRuleName)
@@ -157,7 +158,7 @@ func resourceVPNGatewayNatRuleRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VpnNatRuleID(d.Id())
+	id, err := parse.VpnGatewayNatRuleID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -200,7 +201,7 @@ func resourceVPNGatewayNatRuleDelete(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VpnNatRuleID(d.Id())
+	id, err := parse.VpnGatewayNatRuleID(d.Id())
 	if err != nil {
 		return err
 	}

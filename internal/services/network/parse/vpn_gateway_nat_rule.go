@@ -9,15 +9,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
-type VpnNatRuleId struct {
+type VpnGatewayNatRuleId struct {
 	SubscriptionId string
 	ResourceGroup  string
 	VpnGatewayName string
 	NatRuleName    string
 }
 
-func NewVpnNatRuleID(subscriptionId, resourceGroup, vpnGatewayName, natRuleName string) VpnNatRuleId {
-	return VpnNatRuleId{
+func NewVpnGatewayNatRuleID(subscriptionId, resourceGroup, vpnGatewayName, natRuleName string) VpnGatewayNatRuleId {
+	return VpnGatewayNatRuleId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		VpnGatewayName: vpnGatewayName,
@@ -25,29 +25,29 @@ func NewVpnNatRuleID(subscriptionId, resourceGroup, vpnGatewayName, natRuleName 
 	}
 }
 
-func (id VpnNatRuleId) String() string {
+func (id VpnGatewayNatRuleId) String() string {
 	segments := []string{
 		fmt.Sprintf("Nat Rule Name %q", id.NatRuleName),
 		fmt.Sprintf("Vpn Gateway Name %q", id.VpnGatewayName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Vpn Nat Rule", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Vpn Gateway Nat Rule", segmentsStr)
 }
 
-func (id VpnNatRuleId) ID() string {
+func (id VpnGatewayNatRuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/vpnGateways/%s/natRules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VpnGatewayName, id.NatRuleName)
 }
 
-// VpnNatRuleID parses a VpnNatRule ID into an VpnNatRuleId struct
-func VpnNatRuleID(input string) (*VpnNatRuleId, error) {
+// VpnGatewayNatRuleID parses a VpnGatewayNatRule ID into an VpnGatewayNatRuleId struct
+func VpnGatewayNatRuleID(input string) (*VpnGatewayNatRuleId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := VpnNatRuleId{
+	resourceId := VpnGatewayNatRuleId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}

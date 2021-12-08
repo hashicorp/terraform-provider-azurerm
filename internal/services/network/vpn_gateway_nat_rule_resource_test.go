@@ -84,7 +84,7 @@ func TestAccVpnGatewayNatRule_update(t *testing.T) {
 }
 
 func (r VPNGatewayNatRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VpnNatRuleID(state.ID)
+	id, err := parse.VpnGatewayNatRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
