@@ -11,8 +11,8 @@ import (
 var _ resourceid.Formatter = NotificationRecipientUserId{}
 
 func TestNotificationRecipientUserIDFormatter(t *testing.T) {
-	actual := NewNotificationRecipientUserID("12345678-1234-9876-4563-123456789012", "resGroup1", "apimservice1", "notificationName1", "userid1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/apimservice1/notifications/notificationName1/recipientUsers/userid1"
+	actual := NewNotificationRecipientUserID("12345678-1234-9876-4563-123456789012", "resGroup1", "service1", "notificationName1", "user1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/notifications/notificationName1/recipientUsers/user1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -69,43 +69,43 @@ func TestNotificationRecipientUserID(t *testing.T) {
 
 		{
 			// missing NotificationName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/apimservice1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/",
 			Error: true,
 		},
 
 		{
 			// missing value for NotificationName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/apimservice1/notifications/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/notifications/",
 			Error: true,
 		},
 
 		{
 			// missing RecipientUserName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/apimservice1/notifications/notificationName1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/notifications/notificationName1/",
 			Error: true,
 		},
 
 		{
 			// missing value for RecipientUserName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/apimservice1/notifications/notificationName1/recipientUsers/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/notifications/notificationName1/recipientUsers/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/apimservice1/notifications/notificationName1/recipientUsers/userid1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/notifications/notificationName1/recipientUsers/user1",
 			Expected: &NotificationRecipientUserId{
 				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:     "resGroup1",
-				ServiceName:       "apimservice1",
+				ServiceName:       "service1",
 				NotificationName:  "notificationName1",
-				RecipientUserName: "userid1",
+				RecipientUserName: "user1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.APIMANAGEMENT/SERVICE/APIMSERVICE1/NOTIFICATIONS/NOTIFICATIONNAME1/RECIPIENTUSERS/USERID1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.APIMANAGEMENT/SERVICE/SERVICE1/NOTIFICATIONS/NOTIFICATIONNAME1/RECIPIENTUSERS/USER1",
 			Error: true,
 		},
 	}

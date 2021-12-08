@@ -24,7 +24,7 @@ data "azurerm_database_migration_service" "example" {
 }
 
 output "azurerm_dms_id" {
-  value = "${data.azurerm_database_migration_service.example.id}"
+  value = data.azurerm_database_migration_service.example.id
 }
 ```
 

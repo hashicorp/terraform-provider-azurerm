@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ReplicationNetworkMappingId struct {
@@ -48,7 +48,7 @@ func (id ReplicationNetworkMappingId) ID() string {
 
 // ReplicationNetworkMappingID parses a ReplicationNetworkMapping ID into an ReplicationNetworkMappingId struct
 func ReplicationNetworkMappingID(input string) (*ReplicationNetworkMappingId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

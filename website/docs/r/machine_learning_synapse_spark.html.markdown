@@ -3,12 +3,12 @@ subcategory: "Machine Learning"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_machine_learning_synapse_spark"
 description: |-
-  Manages a Machine Learning Synapse Spark.
+  Manages the linked service to link an Azure Machine learning workspace to an Azure Synapse workspace.
 ---
 
 # azurerm_machine_learning_synapse_spark
 
-Manages a Machine Learning Synapse Spark.
+Manages the linked service to link an Azure Machine learning workspace to an Azure Synapse workspace.
 
 ## Example Usage
 

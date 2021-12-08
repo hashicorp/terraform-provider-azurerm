@@ -24,8 +24,11 @@ func resourceSqlAdministrator() *pluginsdk.Resource {
 		Read:   resourceSqlActiveDirectoryAdministratorRead,
 		Update: resourceSqlActiveDirectoryAdministratorCreateUpdate,
 		Delete: resourceSqlActiveDirectoryAdministratorDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.AzureActiveDirectoryAdministratorID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -71,37 +74,38 @@ func resourceSqlAdministrator() *pluginsdk.Resource {
 
 func resourceSqlActiveDirectoryAdministratorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ServerAzureADAdministratorsClient
-	aadOnlyAuthentictionsClient := meta.(*clients.Client).Sql.ServerAzureADOnlyAuthenticationsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	aadOnlyAuthClient := meta.(*clients.Client).Sql.ServerAzureADOnlyAuthenticationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	serverName := d.Get("server_name").(string)
-	resGroup := d.Get("resource_group_name").(string)
 	login := d.Get("login").(string)
 	objectId := uuid.FromStringOrNil(d.Get("object_id").(string))
 	tenantId := uuid.FromStringOrNil(d.Get("tenant_id").(string))
 
+	id := parse.NewAzureActiveDirectoryAdministratorID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), "ActiveDirectory")
+	serverId := parse.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, serverName)
+		existing, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing SQL Administrator (Server %q / Resource Group %q): %+v", serverName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_sql_active_directory_administrator", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_sql_active_directory_administrator", id.ID())
 		}
 	}
 
-	aadOnlyDeleteFuture, err := aadOnlyAuthentictionsClient.Delete(ctx, resGroup, serverName)
+	aadOnlyDeleteFuture, err := aadOnlyAuthClient.Delete(ctx, serverId.ResourceGroup, serverId.Name)
 	if err != nil {
 		if aadOnlyDeleteFuture.Response() == nil || aadOnlyDeleteFuture.Response().StatusCode != http.StatusBadRequest {
-			return fmt.Errorf("deleting AD Only Authentications AAD Administrator (Server %q / Resource Group %q): %+v", serverName, resGroup, err)
+			return fmt.Errorf("deleting AD Only Authentications AAD Administrator for %s: %+v", serverId, err)
 		}
-		log.Printf("[INFO] AD Only Authentication is not removed as AD Admin is not set for AAD Administrator (Server %q / Resource Group %q): %+v", serverName, resGroup, err)
-	} else if err = aadOnlyDeleteFuture.WaitForCompletionRef(ctx, aadOnlyAuthentictionsClient.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of AD Only Authentications for AAD Administrator (Server %q / Resource Group %q): %+v", serverName, resGroup, err)
+		log.Printf("[INFO] AD Only Authentication is not removed as AD Admin is not set for AAD Administrator %s: %+v", serverId, err)
+	} else if err = aadOnlyDeleteFuture.WaitForCompletionRef(ctx, aadOnlyAuthClient.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of AD Only Authentications for %s: %+v", serverId, err)
 	}
 
 	parameters := sql.ServerAzureADAdministrator{
@@ -113,13 +117,13 @@ func resourceSqlActiveDirectoryAdministratorCreateUpdate(d *pluginsdk.ResourceDa
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, parameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating AAD Administrator (Server %q / Resource Group %q): %+v", serverName, resGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of AAD Administrator (Server %q / Resource Group %q): %+v", serverName, resGroup, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
 	if aadOnlyAuthentictionsEnabled, ok := d.GetOk("azuread_authentication_only"); ok && aadOnlyAuthentictionsEnabled != nil && aadOnlyAuthentictionsEnabled.(bool) {
@@ -128,23 +132,18 @@ func resourceSqlActiveDirectoryAdministratorCreateUpdate(d *pluginsdk.ResourceDa
 				AzureADOnlyAuthentication: utils.Bool(aadOnlyAuthentictionsEnabled.(bool)),
 			},
 		}
-		aadOnlyEnabledFuture, err := aadOnlyAuthentictionsClient.CreateOrUpdate(ctx, resGroup, serverName, aadOnlyAuthentictionsParams)
+		aadOnlyEnabledFuture, err := aadOnlyAuthClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, aadOnlyAuthentictionsParams)
 		if err != nil {
-			return fmt.Errorf("setting AAD only authentication for SQL Administrator (Server %q / Resource Group %q): %+v", serverName, resGroup, err)
+			return fmt.Errorf("setting AAD only authentication for %s: %+v", serverId, err)
 		}
 
-		if err = aadOnlyEnabledFuture.WaitForCompletionRef(ctx, aadOnlyAuthentictionsClient.Client); err != nil {
-			return fmt.Errorf("waiting for setting of AAD only authentication for SQL Administrator (Server %q / Resource Group %q): %+v", serverName, resGroup, err)
+		if err = aadOnlyEnabledFuture.WaitForCompletionRef(ctx, aadOnlyAuthClient.Client); err != nil {
+			return fmt.Errorf("waiting for AAD only authentication to be set for %s: %+v", serverId, err)
 		}
 	}
 
-	resp, err := client.Get(ctx, resGroup, serverName)
-	if err != nil {
-		return fmt.Errorf("retrieving SQL Administrator (Resource Group %q, Server %q): %+v", resGroup, serverName, err)
-	}
-	d.SetId(*resp.ID)
-
-	return nil
+	d.SetId(id.ID())
+	return resourceSqlActiveDirectoryAdministratorRead(d, meta)
 }
 
 func resourceSqlActiveDirectoryAdministratorRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -171,17 +170,19 @@ func resourceSqlActiveDirectoryAdministratorRead(d *pluginsdk.ResourceData, meta
 	d.Set("server_name", id.ServerName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	d.Set("login", resp.Login)
-	d.Set("object_id", resp.Sid.String())
-	d.Set("tenant_id", resp.TenantID.String())
-	d.Set("azuread_authentication_only", resp.AzureADOnlyAuthentication)
+	if props := resp.AdministratorProperties; props != nil {
+		d.Set("azuread_authentication_only", props.AzureADOnlyAuthentication)
+		d.Set("login", props.Login)
+		d.Set("object_id", props.Sid.String())
+		d.Set("tenant_id", props.TenantID.String())
+	}
 
 	return nil
 }
 
 func resourceSqlActiveDirectoryAdministratorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ServerAzureADAdministratorsClient
-	aadOnlyAuthentictionsClient := meta.(*clients.Client).Sql.ServerAzureADOnlyAuthenticationsClient
+	aadOnlyAuthClient := meta.(*clients.Client).Sql.ServerAzureADOnlyAuthenticationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -190,22 +191,23 @@ func resourceSqlActiveDirectoryAdministratorDelete(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	aadOnlyDeleteFuture, err := aadOnlyAuthentictionsClient.Delete(ctx, id.ResourceGroup, id.ServerName)
+	serverId := parse.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+	aadOnlyDeleteFuture, err := aadOnlyAuthClient.Delete(ctx, serverId.ResourceGroup, serverId.Name)
 	if err != nil {
 		if aadOnlyDeleteFuture.Response() == nil || aadOnlyDeleteFuture.Response().StatusCode != http.StatusBadRequest {
-			return fmt.Errorf("deleting AD Only Authentications for %q: %+v", id, err)
+			return fmt.Errorf("deleting AD Only Authentications for %s: %+v", serverId, err)
 		}
-		log.Printf("[INFO] AD Only Authentication is not removed as AD Admin is not set for %q: %+v", id, err)
-	} else if err = aadOnlyDeleteFuture.WaitForCompletionRef(ctx, aadOnlyAuthentictionsClient.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of AD Only Authentications for %q: %+v", id, err)
+		log.Printf("[INFO] AD Only Authentication is not removed as AD Admin is not set for %s: %+v", serverId, err)
+	} else if err = aadOnlyDeleteFuture.WaitForCompletionRef(ctx, aadOnlyAuthClient.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of AD Only Authentications for %s: %+v", serverId, err)
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName)
 	if err != nil {
-		return fmt.Errorf("deleting %q: %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 
 	return nil

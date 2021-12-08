@@ -33,9 +33,7 @@ func TestAccWindowsVirtualMachine_imageFromImage(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -50,9 +48,7 @@ func TestAccWindowsVirtualMachine_imageFromPlan(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -75,9 +71,7 @@ func TestAccWindowsVirtualMachine_imageFromSharedImageGallery(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -92,9 +86,7 @@ func TestAccWindowsVirtualMachine_imageFromSourceImageReference(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 

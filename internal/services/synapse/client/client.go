@@ -24,6 +24,7 @@ type Client struct {
 	SqlPoolTransparentDataEncryptionClient            *synapse.SQLPoolTransparentDataEncryptionsClient
 	SqlPoolVulnerabilityAssessmentsClient             *synapse.SQLPoolVulnerabilityAssessmentsClient
 	SQLPoolVulnerabilityAssessmentRuleBaselinesClient *synapse.SQLPoolVulnerabilityAssessmentRuleBaselinesClient
+	SQLPoolWorkloadGroupClient                        *synapse.SQLPoolWorkloadGroupClient
 	WorkspaceAadAdminsClient                          *synapse.WorkspaceAadAdminsClient
 	WorkspaceClient                                   *synapse.WorkspacesClient
 	WorkspaceExtendedBlobAuditingPoliciesClient       *synapse.WorkspaceManagedSQLServerExtendedBlobAuditingPoliciesClient
@@ -70,6 +71,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	sqlPoolVulnerabilityAssessmentsClient := synapse.NewSQLPoolVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
 
+	sqlPoolWorkloadGroupClient := synapse.NewSQLPoolWorkloadGroupClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&sqlPoolWorkloadGroupClient.Client, o.ResourceManagerAuthorizer)
+
 	sqlPoolVulnerabilityAssessmentRuleBaselinesClient := synapse.NewSQLPoolVulnerabilityAssessmentRuleBaselinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolVulnerabilityAssessmentRuleBaselinesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -107,6 +111,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		SqlPoolTransparentDataEncryptionClient:            &sqlPoolTransparentDataEncryptionClient,
 		SqlPoolVulnerabilityAssessmentsClient:             &sqlPoolVulnerabilityAssessmentsClient,
 		SQLPoolVulnerabilityAssessmentRuleBaselinesClient: &sqlPoolVulnerabilityAssessmentRuleBaselinesClient,
+		SQLPoolWorkloadGroupClient:                        &sqlPoolWorkloadGroupClient,
 		WorkspaceAadAdminsClient:                          &workspaceAadAdminsClient,
 		WorkspaceClient:                                   &workspaceClient,
 		WorkspaceExtendedBlobAuditingPoliciesClient:       &workspaceExtendedBlobAuditingPoliciesClient,

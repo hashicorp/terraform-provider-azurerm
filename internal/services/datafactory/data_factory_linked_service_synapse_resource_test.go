@@ -92,7 +92,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_synapse" "test" {
   name                = "linksynapse"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
 
   connection_string = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
 
@@ -149,7 +149,7 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
 resource "azurerm_data_factory_linked_service_synapse" "test" {
   name                = "linksynapse"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
 
   connection_string = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;"
   key_vault_password {

@@ -7,120 +7,131 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+var _ resourceids.ResourceId = TrustedIdProviderId{}
+
+// TrustedIdProviderId is a struct representing the Resource ID for a Trusted Id Provider
 type TrustedIdProviderId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	AccountName    string
-	Name           string
+	SubscriptionId        string
+	ResourceGroupName     string
+	AccountName           string
+	TrustedIdProviderName string
 }
 
-func NewTrustedIdProviderID(subscriptionId, resourceGroup, accountName, name string) TrustedIdProviderId {
+// NewTrustedIdProviderID returns a new TrustedIdProviderId struct
+func NewTrustedIdProviderID(subscriptionId string, resourceGroupName string, accountName string, trustedIdProviderName string) TrustedIdProviderId {
 	return TrustedIdProviderId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourceGroup,
-		AccountName:    accountName,
-		Name:           name,
+		SubscriptionId:        subscriptionId,
+		ResourceGroupName:     resourceGroupName,
+		AccountName:           accountName,
+		TrustedIdProviderName: trustedIdProviderName,
 	}
 }
 
-func (id TrustedIdProviderId) String() string {
-	segments := []string{
-		fmt.Sprintf("Name %q", id.Name),
-		fmt.Sprintf("Account Name %q", id.AccountName),
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+// ParseTrustedIdProviderID parses 'input' into a TrustedIdProviderId
+func ParseTrustedIdProviderID(input string) (*TrustedIdProviderId, error) {
+	parser := resourceids.NewParserFromResourceIdType(TrustedIdProviderId{})
+	parsed, err := parser.Parse(input, false)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
-	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Trusted Id Provider", segmentsStr)
+
+	var ok bool
+	id := TrustedIdProviderId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	}
+
+	if id.TrustedIdProviderName, ok = parsed.Parsed["trustedIdProviderName"]; !ok {
+		return nil, fmt.Errorf("the segment 'trustedIdProviderName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
 }
 
+// ParseTrustedIdProviderIDInsensitively parses 'input' case-insensitively into a TrustedIdProviderId
+// note: this method should only be used for API response data and not user input
+func ParseTrustedIdProviderIDInsensitively(input string) (*TrustedIdProviderId, error) {
+	parser := resourceids.NewParserFromResourceIdType(TrustedIdProviderId{})
+	parsed, err := parser.Parse(input, true)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	var ok bool
+	id := TrustedIdProviderId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	}
+
+	if id.TrustedIdProviderName, ok = parsed.Parsed["trustedIdProviderName"]; !ok {
+		return nil, fmt.Errorf("the segment 'trustedIdProviderName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
+}
+
+// ValidateTrustedIdProviderID checks that 'input' can be parsed as a Trusted Id Provider ID
+func ValidateTrustedIdProviderID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	if _, err := ParseTrustedIdProviderID(v); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
+}
+
+// ID returns the formatted Trusted Id Provider ID
 func (id TrustedIdProviderId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataLakeStore/accounts/%s/trustedIdProviders/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AccountName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.TrustedIdProviderName)
 }
 
-// ParseTrustedIdProviderID parses a TrustedIdProvider ID into an TrustedIdProviderId struct
-func ParseTrustedIdProviderID(input string) (*TrustedIdProviderId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// Segments returns a slice of Resource ID Segments which comprise this Trusted Id Provider ID
+func (id TrustedIdProviderId) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
+		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
+		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
+		resourceids.StaticSegment("staticProviders", "providers", "providers"),
+		resourceids.ResourceProviderSegment("staticMicrosoftDataLakeStore", "Microsoft.DataLakeStore", "Microsoft.DataLakeStore"),
+		resourceids.StaticSegment("staticAccounts", "accounts", "accounts"),
+		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.StaticSegment("staticTrustedIdProviders", "trustedIdProviders", "trustedIdProviders"),
+		resourceids.UserSpecifiedSegment("trustedIdProviderName", "trustedIdProviderValue"),
 	}
-
-	resourceId := TrustedIdProviderId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	if resourceId.AccountName, err = id.PopSegment("accounts"); err != nil {
-		return nil, err
-	}
-	if resourceId.Name, err = id.PopSegment("trustedIdProviders"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
 }
 
-// ParseTrustedIdProviderIDInsensitively parses an TrustedIdProvider ID into an TrustedIdProviderId struct, insensitively
-// This should only be used to parse an ID for rewriting to a consistent casing,
-// the ParseTrustedIdProviderID method should be used instead for validation etc.
-func ParseTrustedIdProviderIDInsensitively(input string) (*TrustedIdProviderId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// String returns a human-readable description of this Trusted Id Provider ID
+func (id TrustedIdProviderId) String() string {
+	components := []string{
+		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
+		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Trusted Id Provider Name: %q", id.TrustedIdProviderName),
 	}
-
-	resourceId := TrustedIdProviderId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	// find the correct casing for the 'accounts' segment
-	accountsKey := "accounts"
-	for key := range id.Path {
-		if strings.EqualFold(key, accountsKey) {
-			accountsKey = key
-			break
-		}
-	}
-	if resourceId.AccountName, err = id.PopSegment(accountsKey); err != nil {
-		return nil, err
-	}
-
-	// find the correct casing for the 'trustedIdProviders' segment
-	trustedIdProvidersKey := "trustedIdProviders"
-	for key := range id.Path {
-		if strings.EqualFold(key, trustedIdProvidersKey) {
-			trustedIdProvidersKey = key
-			break
-		}
-	}
-	if resourceId.Name, err = id.PopSegment(trustedIdProvidersKey); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
+	return fmt.Sprintf("Trusted Id Provider (%s)", strings.Join(components, "\n"))
 }

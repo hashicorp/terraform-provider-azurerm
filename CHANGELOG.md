@@ -1,22 +1,80 @@
-## 2.88.0 (Unreleased)
+## 2.89.0 (Unreleased)
 
 FEATURES:
 
-* **New Resource:** `azurerm_mysql_flexible_database` [GH-14285]
+**New Resource:** `azurerm_bot_service_azure_bot` [GH-14462]
+**New Resource:** `azurerm_sql_managed_instance_active_directory_administrator` [GH-14104]
 
 ENHANCEMENTS:
 
-* compute: `storagecache` to use API Version `2021-09-01` [GH-14311]
-* `azurerm_linux_virtual_machine` - support the `secure_boot_enabled` and `vtpm_enabled` properties [GH-13842]
-* `azurerm_linux_virtual_machine_scale_set` - support the `secure_boot_enabled` and `vtpm_enabled` properties [GH-13842]
-* `azurerm_mssql_database` - add support for transparent data encryption, behind a 3.0 feature flag [GH-13748] 
-* `azurerm_point_to_site_vpn_gateway` - support for the `internet_security_enabled` property [GH-14345]
+* dependencies: updating the Embedded SDK for `databricks` [GH-14430]
+* dependencies: updating the Embedded SDK for `datalake` [GH-14429]
+* dependencies: updating the Embedded SDK for `frontdoor` [GH-14432]
+* `azurerm_app_service_environment_v3` - allow updating of `tags` [GH-14491]
+* `azurerm_data_factory_linked_services_*` - deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory linked service resources [GH-14492]
+* `azurerm_managed_disk` - support for the `hyper_v_generation` property [GH-13825]
+* `azurerm_key_vault_certificate` - support for the `versionless_id` and `versionless_secret_id` properties [GH-14287]
+* `azurerm_kubernetes_cluster` - support for the `http_proxy_config` block which contains the `http_proxy`, `https_proxy`, `no_proxy` and `trusted_ca` properties [GH-14177]
+* `azurerm_kubernetes_cluster` - support for the `azure_keyvault_secrets_provider` addon [GH-14308]
+* `azurerm_netapp_pool` - support for `qos_type` property [GH-14372]
+* `azurerm_netapp_volume` - support for `throughput_in_mibps` property [GH-14372]
+* `azurerm_sql_managed_instance`: Support for `storage_account_type` [GH-14123]
+* `azurerm_signalr_service` - deprecate `features` block in favour of `connectivity_logs_enabled`, `messaging_logs_enabled` and `service_mode` [GH-14360]
 
 BUG FIXES:
 
-* `azurerm_storage_account` - populating the account cache on creation, which fixes an issue when the storage account occasionally couldn't be found [GH-14361]
-* `azurerm_kubernetes_cluster` - handle incorrect casing of kubernetes cluster resource ID with a state migration [GH-14241]
-* `azurerm_kubernetes_cluster_node_pool` - handle incorrect casing of kubernetes cluster resource ID with a state migration [GH-14241]
+* `azurerm_data_fatory_trigger_schedule` - correctly set `schedule` when `frequency` is `Month/Week` [GH-14391]
+* `azurerm_iothub_endpoint_storage_container` - remove the default value `false` from the `file_name_format` property and add the correct validation function for it [GH-14458]
+
+
+## 2.88.1 (December 03, 2021)
+
+BUG FIXES
+
+* Data Source: `azurerm_automation_account` - fixing a bug where the Resource Group and Name were set in the wrong order [GH-14464]
+* Data Source: `azurerm_api_management` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* Data Source: `azurerm_kubernetes_cluster` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_api_management` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_app_service` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_app_service_slot` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_application_gateway` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_automation_account` - fixing a bug where the Resource Group and Name were set in the wrong order [GH-14464]
+* `azurerm_container_group` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_data_factory` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_function_app` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_function_app_slot` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_kubernetes_cluster` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_kusto_cluster` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+* `azurerm_mssql_server` - fixing a bug where the Managed Identity ID's weren't parsed correctly [GH-14469]
+
+## 2.88.0 (December 02, 2021)
+
+FEATURES:
+
+* **New Resource:** `azurerm_mysql_flexible_database` ([#14285](https://github.com/hashicorp/terraform-provider-azurerm/issues/14285))
+* **New Resource:** `azurerm_synapse_sql_pool_workload_group` ([#13658](https://github.com/hashicorp/terraform-provider-azurerm/issues/13658))
+
+ENHANCEMENTS:
+
+* dependencies: upgrading `storagecache` to API Version `2021-09-01` ([#14311](https://github.com/hashicorp/terraform-provider-azurerm/issues/14311))
+* `azurerm_app_service` - support for the `client_cert_mode` property ([#14395](https://github.com/hashicorp/terraform-provider-azurerm/issues/14395))
+* `azurerm_bastion_host` - support for `sku` property ([#14370](https://github.com/hashicorp/terraform-provider-azurerm/issues/14370))
+* `azurerm_batch_pool` - deprecate `max_task_retry_count` and `environment` in favour of `task_retry_maximum` and `common_environment_properties` for consistency across batch resources ([#14368](https://github.com/hashicorp/terraform-provider-azurerm/issues/14368))
+* `azurerm_data_factory_managed_private_endpoint` - support for the `fqdns` property ([#14355](https://github.com/hashicorp/terraform-provider-azurerm/issues/14355))
+* `azurerm_linux_virtual_machine` - support the `secure_boot_enabled` and `vtpm_enabled` properties ([#13842](https://github.com/hashicorp/terraform-provider-azurerm/issues/13842))
+* `azurerm_linux_virtual_machine_scale_set` - support the `secure_boot_enabled` and `vtpm_enabled` properties ([#13842](https://github.com/hashicorp/terraform-provider-azurerm/issues/13842))
+* `azurerm_mssql_database` - add support for transparent data encryption, behind a 3.0 feature flag [[#13748](https://github.com/hashicorp/terraform-provider-azurerm/issues/13748)] 
+* `azurerm_point_to_site_vpn_gateway` - support for the `internet_security_enabled` property ([#14345](https://github.com/hashicorp/terraform-provider-azurerm/issues/14345))
+* `azurerm_subscription` - the `tags` property can now be set and updated ([#14445](https://github.com/hashicorp/terraform-provider-azurerm/issues/14445))
+
+BUG FIXES:
+
+* `azurerm_container_group` - allow `search_domains` and `options` under the `dns_config` block to be optional since they are not required by the API ([#14419](https://github.com/hashicorp/terraform-provider-azurerm/issues/14419))
+* `azurerm_monitor_aad_diagnostic_setting` - fixing the id validator to use the eventhub auth rule id rather than the relay id ([#14406](https://github.com/hashicorp/terraform-provider-azurerm/issues/14406))
+* `azurerm_kubernetes_cluster` - handle incorrect casing of kubernetes cluster resource ID with a state migration ([#14241](https://github.com/hashicorp/terraform-provider-azurerm/issues/14241))
+* `azurerm_kubernetes_cluster_node_pool` - handle incorrect casing of kubernetes cluster resource ID with a state migration ([#14241](https://github.com/hashicorp/terraform-provider-azurerm/issues/14241))
+* `azurerm_kubernetes_cluster_nodepool` reverting the computed behaviour of `node_taints` and `eviction_policy` ([#14378](https://github.com/hashicorp/terraform-provider-azurerm/issues/14378))
+* `azurerm_storage_account` - populating the account cache on creation, which fixes an issue when the storage account occasionally couldn't be found ([#14361](https://github.com/hashicorp/terraform-provider-azurerm/issues/14361))
 
 ## 2.87.0 (November 26, 2021)
 

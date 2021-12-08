@@ -8,28 +8,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-var kubernetesAddOnTests = map[string]func(t *testing.T){
-	"addonProfileAciConnectorLinux":         testAccKubernetesCluster_addonProfileAciConnectorLinux,
-	"addonProfileAciConnectorLinuxDisabled": testAccKubernetesCluster_addonProfileAciConnectorLinuxDisabled,
-	"addonProfileAzurePolicy":               testAccKubernetesCluster_addonProfileAzurePolicy,
-	"addonProfileKubeDashboard":             testAccKubernetesCluster_addonProfileKubeDashboard,
-	"addonProfileOMS":                       testAccKubernetesCluster_addonProfileOMS,
-	"addonProfileOMSToggle":                 testAccKubernetesCluster_addonProfileOMSToggle,
-	"addonProfileRouting":                   testAccKubernetesCluster_addonProfileRoutingToggle,
-	"addonProfileAppGatewayAppGatewayId":    testAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId,
-	"addonProfileAppGatewaySubnetCIDR":      testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR,
-	"addonProfileAppGatewaySubnetID":        testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId,
-	"addonProfileOpenServiceMesh":           testAccKubernetesCluster_addonProfileOpenServiceMesh,
-}
-
 var addOnAppGatewaySubnetCIDR string = "10.241.0.0/16" // AKS will use 10.240.0.0/16 for the aks subnet so use 10.241.0.0/16 for the app gateway subnet
 
 func TestAccKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileAciConnectorLinux(t)
-}
-
-func testAccKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -49,11 +30,6 @@ func testAccKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t)
-}
-
-func testAccKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -74,11 +50,6 @@ func testAccKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t *testing.T
 }
 
 func TestAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileAzurePolicy(t)
-}
-
-func testAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -117,11 +88,6 @@ func testAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileKubeDashboard(t)
-}
-
-func testAccKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -139,11 +105,6 @@ func testAccKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_addonProfileOMS(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileOMS(t)
-}
-
-func testAccKubernetesCluster_addonProfileOMS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -166,11 +127,6 @@ func testAccKubernetesCluster_addonProfileOMS(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileOMSToggle(t)
-}
-
-func testAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -227,11 +183,6 @@ func testAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_addonProfileRoutingToggle(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileRoutingToggle(t)
-}
-
-func testAccKubernetesCluster_addonProfileRoutingToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -262,11 +213,6 @@ func testAccKubernetesCluster_addonProfileRoutingToggle(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId(t)
-}
-
-func testAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -289,11 +235,6 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId
 }
 
 func TestAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR(t)
-}
-
-func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -321,11 +262,6 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR(t
 }
 
 func TestAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId(t)
-}
-
-func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -343,11 +279,6 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId(t *
 }
 
 func TestAccKubernetesCluster_addonProfileOpenServiceMesh(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addonProfileOpenServiceMesh(t)
-}
-
-func testAccKubernetesCluster_addonProfileOpenServiceMesh(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -369,6 +300,36 @@ func testAccKubernetesCluster_addonProfileOpenServiceMesh(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.open_service_mesh.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.open_service_mesh.0.enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_addonProfileAzureKeyvaultSecretsProvider(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// Enable AzureKeyvaultSecretsProvider
+			Config: r.addonProfileAzureKeyvaultSecretsProviderConfig(data, true, true, "2m"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.secret_rotation_interval").HasValue("2m"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Disable AzureKeyvaultSecretsProvider
+			Config: r.addonProfileAzureKeyvaultSecretsProviderConfig(data, false, false, "2m"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_keyvault_secrets_provider.0.enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -1172,4 +1133,50 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
+}
+
+func (KubernetesClusterResource) addonProfileAzureKeyvaultSecretsProviderConfig(data acceptance.TestData, enabled bool, secretRotation bool, rotationInterval string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  addon_profile {
+    azure_keyvault_secrets_provider {
+      enabled                  = %t
+      secret_rotation_enabled  = %t
+      secret_rotation_interval = "%s"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled, secretRotation, rotationInterval)
 }

@@ -7,120 +7,131 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+var _ resourceids.ResourceId = ComputePoliciesId{}
+
+// ComputePoliciesId is a struct representing the Resource ID for a Compute Policies
 type ComputePoliciesId struct {
 	SubscriptionId    string
-	ResourceGroup     string
+	ResourceGroupName string
 	AccountName       string
 	ComputePolicyName string
 }
 
-func NewComputePoliciesID(subscriptionId, resourceGroup, accountName, computePolicyName string) ComputePoliciesId {
+// NewComputePoliciesID returns a new ComputePoliciesId struct
+func NewComputePoliciesID(subscriptionId string, resourceGroupName string, accountName string, computePolicyName string) ComputePoliciesId {
 	return ComputePoliciesId{
 		SubscriptionId:    subscriptionId,
-		ResourceGroup:     resourceGroup,
+		ResourceGroupName: resourceGroupName,
 		AccountName:       accountName,
 		ComputePolicyName: computePolicyName,
 	}
 }
 
-func (id ComputePoliciesId) String() string {
-	segments := []string{
-		fmt.Sprintf("Compute Policy Name %q", id.ComputePolicyName),
-		fmt.Sprintf("Account Name %q", id.AccountName),
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+// ParseComputePoliciesID parses 'input' into a ComputePoliciesId
+func ParseComputePoliciesID(input string) (*ComputePoliciesId, error) {
+	parser := resourceids.NewParserFromResourceIdType(ComputePoliciesId{})
+	parsed, err := parser.Parse(input, false)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
-	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Compute Policies", segmentsStr)
+
+	var ok bool
+	id := ComputePoliciesId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	}
+
+	if id.ComputePolicyName, ok = parsed.Parsed["computePolicyName"]; !ok {
+		return nil, fmt.Errorf("the segment 'computePolicyName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
 }
 
+// ParseComputePoliciesIDInsensitively parses 'input' case-insensitively into a ComputePoliciesId
+// note: this method should only be used for API response data and not user input
+func ParseComputePoliciesIDInsensitively(input string) (*ComputePoliciesId, error) {
+	parser := resourceids.NewParserFromResourceIdType(ComputePoliciesId{})
+	parsed, err := parser.Parse(input, true)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	var ok bool
+	id := ComputePoliciesId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	}
+
+	if id.ComputePolicyName, ok = parsed.Parsed["computePolicyName"]; !ok {
+		return nil, fmt.Errorf("the segment 'computePolicyName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
+}
+
+// ValidateComputePoliciesID checks that 'input' can be parsed as a Compute Policies ID
+func ValidateComputePoliciesID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	if _, err := ParseComputePoliciesID(v); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
+}
+
+// ID returns the formatted Compute Policies ID
 func (id ComputePoliciesId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataLakeAnalytics/accounts/%s/computePolicies/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AccountName, id.ComputePolicyName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.ComputePolicyName)
 }
 
-// ParseComputePoliciesID parses a ComputePolicies ID into an ComputePoliciesId struct
-func ParseComputePoliciesID(input string) (*ComputePoliciesId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// Segments returns a slice of Resource ID Segments which comprise this Compute Policies ID
+func (id ComputePoliciesId) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
+		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
+		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
+		resourceids.StaticSegment("staticProviders", "providers", "providers"),
+		resourceids.ResourceProviderSegment("staticMicrosoftDataLakeAnalytics", "Microsoft.DataLakeAnalytics", "Microsoft.DataLakeAnalytics"),
+		resourceids.StaticSegment("staticAccounts", "accounts", "accounts"),
+		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.StaticSegment("staticComputePolicies", "computePolicies", "computePolicies"),
+		resourceids.UserSpecifiedSegment("computePolicyName", "computePolicyValue"),
 	}
-
-	resourceId := ComputePoliciesId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	if resourceId.AccountName, err = id.PopSegment("accounts"); err != nil {
-		return nil, err
-	}
-	if resourceId.ComputePolicyName, err = id.PopSegment("computePolicies"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
 }
 
-// ParseComputePoliciesIDInsensitively parses an ComputePolicies ID into an ComputePoliciesId struct, insensitively
-// This should only be used to parse an ID for rewriting to a consistent casing,
-// the ParseComputePoliciesID method should be used instead for validation etc.
-func ParseComputePoliciesIDInsensitively(input string) (*ComputePoliciesId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// String returns a human-readable description of this Compute Policies ID
+func (id ComputePoliciesId) String() string {
+	components := []string{
+		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
+		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Compute Policy Name: %q", id.ComputePolicyName),
 	}
-
-	resourceId := ComputePoliciesId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	// find the correct casing for the 'accounts' segment
-	accountsKey := "accounts"
-	for key := range id.Path {
-		if strings.EqualFold(key, accountsKey) {
-			accountsKey = key
-			break
-		}
-	}
-	if resourceId.AccountName, err = id.PopSegment(accountsKey); err != nil {
-		return nil, err
-	}
-
-	// find the correct casing for the 'computePolicies' segment
-	computePoliciesKey := "computePolicies"
-	for key := range id.Path {
-		if strings.EqualFold(key, computePoliciesKey) {
-			computePoliciesKey = key
-			break
-		}
-	}
-	if resourceId.ComputePolicyName, err = id.PopSegment(computePoliciesKey); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
+	return fmt.Sprintf("Compute Policies (%s)", strings.Join(components, "\n"))
 }

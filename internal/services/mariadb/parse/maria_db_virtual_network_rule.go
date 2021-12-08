@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type MariaDBVirtualNetworkRuleId struct {
@@ -42,7 +42,7 @@ func (id MariaDBVirtualNetworkRuleId) ID() string {
 
 // MariaDBVirtualNetworkRuleID parses a MariaDBVirtualNetworkRule ID into an MariaDBVirtualNetworkRuleId struct
 func MariaDBVirtualNetworkRuleID(input string) (*MariaDBVirtualNetworkRuleId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

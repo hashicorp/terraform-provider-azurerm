@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type VpnSiteId struct {
@@ -39,7 +39,7 @@ func (id VpnSiteId) ID() string {
 
 // VpnSiteID parses a VpnSite ID into an VpnSiteId struct
 func VpnSiteID(input string) (*VpnSiteId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

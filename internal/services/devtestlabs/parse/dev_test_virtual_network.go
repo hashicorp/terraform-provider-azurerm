@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type DevTestVirtualNetworkId struct {
@@ -42,7 +42,7 @@ func (id DevTestVirtualNetworkId) ID() string {
 
 // DevTestVirtualNetworkID parses a DevTestVirtualNetwork ID into an DevTestVirtualNetworkId struct
 func DevTestVirtualNetworkID(input string) (*DevTestVirtualNetworkId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -64,6 +64,62 @@ func DevTestVirtualNetworkID(input string) (*DevTestVirtualNetworkId, error) {
 		return nil, err
 	}
 	if resourceId.VirtualNetworkName, err = id.PopSegment("virtualNetworks"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
+
+// DevTestVirtualNetworkIDInsensitively parses an DevTestVirtualNetwork ID into an DevTestVirtualNetworkId struct, insensitively
+// This should only be used to parse an ID for rewriting, the DevTestVirtualNetworkID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func DevTestVirtualNetworkIDInsensitively(input string) (*DevTestVirtualNetworkId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := DevTestVirtualNetworkId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'labs' segment
+	labsKey := "labs"
+	for key := range id.Path {
+		if strings.EqualFold(key, labsKey) {
+			labsKey = key
+			break
+		}
+	}
+	if resourceId.LabName, err = id.PopSegment(labsKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'virtualNetworks' segment
+	virtualNetworksKey := "virtualNetworks"
+	for key := range id.Path {
+		if strings.EqualFold(key, virtualNetworksKey) {
+			virtualNetworksKey = key
+			break
+		}
+	}
+	if resourceId.VirtualNetworkName, err = id.PopSegment(virtualNetworksKey); err != nil {
 		return nil, err
 	}
 

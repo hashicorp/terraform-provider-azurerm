@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ManagedDatabaseId struct {
@@ -42,7 +42,7 @@ func (id ManagedDatabaseId) ID() string {
 
 // ManagedDatabaseID parses a ManagedDatabase ID into an ManagedDatabaseId struct
 func ManagedDatabaseID(input string) (*ManagedDatabaseId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

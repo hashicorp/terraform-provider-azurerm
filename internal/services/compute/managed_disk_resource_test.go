@@ -589,6 +589,21 @@ func TestAccAzureRMManagedDisk_update_withOnDemandBurstingEnabled(t *testing.T) 
 	})
 }
 
+func TestAccAzureRMManagedDisk_create_withHyperVGeneration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.create_withHyperVGeneration(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ManagedDiskResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ManagedDiskID(state.ID)
 	if err != nil {
@@ -834,6 +849,7 @@ resource "azurerm_managed_disk" "test" {
   location             = azurerm_resource_group.test.location
   resource_group_name  = azurerm_resource_group.test.name
   os_type              = "Linux"
+  hyper_v_generation   = "V1"
   create_option        = "FromImage"
   image_reference_id   = data.azurerm_platform_image.test.id
   storage_account_type = "Standard_LRS"
@@ -1621,6 +1637,7 @@ resource "azurerm_managed_disk" "test" {
   location               = azurerm_resource_group.test.location
   resource_group_name    = azurerm_resource_group.test.name
   os_type                = "Linux"
+  hyper_v_generation     = "V2"
   create_option          = "FromImage"
   image_reference_id     = data.azurerm_platform_image.test.id
   storage_account_type   = "Standard_LRS"
@@ -1733,6 +1750,32 @@ resource "azurerm_managed_disk" "test" {
   create_option              = "Empty"
   disk_size_gb               = "1024"
   on_demand_bursting_enabled = true
+  tags = {
+    environment = "acctest"
+    cost-center = "ops"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ManagedDiskResource) create_withHyperVGeneration(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctestd-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "1024"
+  zones                = ["1"]
+  hyper_v_generation   = "V2"
   tags = {
     environment = "acctest"
     cost-center = "ops"
