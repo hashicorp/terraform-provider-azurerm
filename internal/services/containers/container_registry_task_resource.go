@@ -646,13 +646,6 @@ func (r ContainerRegistryTaskResource) CustomizeDiff() sdk.ResourceFunc {
 				if len(dockerStep)+len(fileTaskStep)+len(encodedTaskStep) == 0 {
 					return fmt.Errorf("non-system task have to specify one of `docker_step`, `file_task_step` and `encoded_task_step`")
 				}
-
-				baseImageTrigger := rd.Get("base_image_trigger").([]interface{})
-				sourceTriggers := rd.Get("source_trigger").([]interface{})
-				timerTrigger := rd.Get("timer_trigger").([]interface{})
-				if len(baseImageTrigger)+len(sourceTriggers)+len(timerTrigger) == 0 {
-					return fmt.Errorf("non-system task have to specify at least one of `base_image_trigger`, `source_trigger` and `timer_trigger`")
-				}
 			}
 
 			return nil
@@ -716,6 +709,7 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 
 			params := legacyacr.Task{
 				TaskProperties: &legacyacr.TaskProperties{
+					Platform:     expandRegistryTaskPlatform(model.Platform),
 					Step:         expandRegistryTaskStep(model),
 					Trigger:      expandRegistryTaskTrigger(model),
 					Status:       status,
@@ -730,9 +724,6 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 				Tags:     tags.Expand(model.Tags),
 			}
 
-			if len(model.Platform) != 0 {
-				params.Platform = expandRegistryTaskPlatform(model.Platform[0])
-			}
 			if len(model.AgentConfig) != 0 {
 				agentConfig := model.AgentConfig[0]
 				params.TaskProperties.AgentConfiguration = &legacyacr.AgentProperties{CPU: utils.Int32(int32(agentConfig.CPU))}
@@ -919,6 +910,7 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 
 			params := legacyacr.Task{
 				TaskProperties: &legacyacr.TaskProperties{
+					Platform:     expandRegistryTaskPlatform(state.Platform),
 					Step:         expandRegistryTaskStep(state),
 					Trigger:      expandRegistryTaskTrigger(state),
 					Status:       status,
@@ -931,9 +923,6 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 				Tags:     tags.Expand(state.Tags),
 			}
 
-			if len(state.Platform) != 0 {
-				params.Platform = expandRegistryTaskPlatform(state.Platform[0])
-			}
 			if len(state.AgentConfig) != 0 {
 				agentConfig := state.AgentConfig[0]
 				params.TaskProperties.AgentConfiguration = &legacyacr.AgentProperties{CPU: utils.Int32(int32(agentConfig.CPU))}
@@ -1515,7 +1504,11 @@ func flattenRegistryTaskIdentity(identity *legacyacr.IdentityProperties) ([]Iden
 	return []Identity{obj}, nil
 }
 
-func expandRegistryTaskPlatform(platform Platform) *legacyacr.PlatformProperties {
+func expandRegistryTaskPlatform(input []Platform) *legacyacr.PlatformProperties {
+	if len(input) == 0 {
+		return nil
+	}
+	platform := input[0]
 	out := &legacyacr.PlatformProperties{
 		Os: legacyacr.OS(platform.OS),
 	}
@@ -1567,7 +1560,7 @@ func expandRegistryTaskCredentials(input []RegistryCredential) *legacyacr.Creden
 			if _, err := keyVaultParse.ParseNestedItemID(credential.Password); err == nil {
 				passwordType = legacyacr.Vaultsecret
 			}
-			cred.UserName = &legacyacr.SecretObject{
+			cred.Password = &legacyacr.SecretObject{
 				Value: utils.String(credential.Password),
 				Type:  passwordType,
 			}
