@@ -112,6 +112,10 @@ func resourceVPNGatewayNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	defer cancel()
 
 	vpnGatewayId, err := parse.VpnGatewayID(d.Get("vpn_gateway_id").(string))
+	if err != nil {
+		return err
+	}
+
 	id := parse.NewVpnGatewayNatRuleID(subscriptionId, d.Get("resource_group_name").(string), vpnGatewayId.Name, d.Get("name").(string))
 
 	if d.IsNewResource() {
