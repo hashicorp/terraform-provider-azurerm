@@ -3,6 +3,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"strings"
 	"time"
 
@@ -33,6 +34,7 @@ type LinuxWebAppDataSourceModel struct {
 	Enabled                       bool                       `tfschema:"enabled"`
 	HttpsOnly                     bool                       `tfschema:"https_only"`
 	Identity                      []helpers.Identity         `tfschema:"identity"`
+	KeyVaultReferenceIdentityID   string                     `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                    []helpers.LogsConfig       `tfschema:"logs"`
 	MetaData                      map[string]string          `tfschema:"app_metadata"`
 	SiteConfig                    []helpers.SiteConfigLinux  `tfschema:"site_config"`
@@ -134,6 +136,12 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"identity": helpers.IdentitySchemaComputed(),
+
+		"key_vault_reference_identity_id": {
+			Type:         pluginsdk.TypeString,
+			Computed:     true,
+			ValidateFunc: msivalidate.UserAssignedIdentityID,
+		},
 
 		"kind": {
 			Type:     pluginsdk.TypeString,
