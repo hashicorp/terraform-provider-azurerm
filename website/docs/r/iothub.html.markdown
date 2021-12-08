@@ -112,6 +112,16 @@ resource "azurerm_iothub" "example" {
     endpoint_names = ["export", "export2"]
   }
 
+  cloud_to_device {
+    max_delivery_count = 30
+    default_ttl        = "PT1H"
+    feedback {
+      time_to_live       = "PT1H10M"
+      max_delivery_count = 15
+      lock_duration      = "PT30S"
+    }
+  }
+
   tags = {
     purpose = "testing"
   }
@@ -147,6 +157,8 @@ The following arguments are supported:
 * `route` - (Optional) A `route` block as defined below.
 
 * `enrichment` - (Optional) A `enrichment` block as defined below.
+
+* `cloud_to_device` - (Optional) A `cloud_to_device` block as defined below.
 
 * `public_network_access_enabled` - (Optional) Is the IotHub resource accessible from a public network?
 
@@ -249,6 +261,26 @@ A `file_upload` block supports the following:
 * `default_ttl` - (Optional) The period of time for which a file upload notification message is available to consume before it is expired by the IoT hub, specified as an [ISO 8601 timespan duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This value must be between 1 minute and 48 hours, and evaluates to 'PT1H' by default.
 
 * `max_delivery_count` - (Optional) The number of times the IoT hub attempts to deliver a file upload notification message. It evaluates to 10 by default.
+
+---
+
+A `cloud_to_device` block supports the following:
+
+* `max_delivery_count` - (Optional) The maximum delivery count for cloud-to-device per-device queues. This value must be between 1 and 100, and evaluates to 10 by default.
+
+* `default_ttl` - (Optional) The default time to live for cloud-to-device messages, specified as an [ISO 8601 timespan duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This value must be between 1 minute and 48 hours, and evaluates to 'PT1H' by default.
+
+* `feedback` - (Optional) A `feedback` block as defined below.
+
+---
+
+A `feedback` block supports the following:
+
+* `time_to_live` - (Optional) The retention time for service-bound feedback messages, specified as an [ISO 8601 timespan duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This value must be between 1 minute and 48 hours, and evaluates to 'PT1H' by default.
+
+* `max_delivery_count` - (Optional) The maximum delivery count for the feedback queue. This value must be between 1 and 100, and evaluates to 10 by default.
+
+* `lock_duration` - (Optional) The lock duration for the feedback queue, specified as an [ISO 8601 timespan duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This value must be between 5 and 300 seconds, and evaluates to 'PT60S' by default.
 
 ## Attributes Reference
 
