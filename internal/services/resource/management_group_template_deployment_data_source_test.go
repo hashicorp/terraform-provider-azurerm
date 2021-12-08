@@ -2,13 +2,13 @@ package resource_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"testing"
 )
 
-type ManagementGroupTemplateDeploymentDataSource struct {
-}
+type ManagementGroupTemplateDeploymentDataSource struct{}
 
 func TestAccDataSourceManagementGroupTemplateDeployment(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_management_group_template_deployment", "test")
