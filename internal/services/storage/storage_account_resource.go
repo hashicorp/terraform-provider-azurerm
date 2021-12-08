@@ -1535,14 +1535,13 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if err != nil {
 			return fmt.Errorf("building Queues Client: %s", err)
 		}
-		queueClient := shim.NewDataPlaneStorageQueueWrapper(queuesDataPlaneClient).(shim.DataPlaneStorageQueueWrapper)
 
 		queueProperties, err := expandQueueProperties(d.Get("queue_properties").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `queue_properties` for Azure Storage Account %q: %+v", id.Name, err)
 		}
 
-		if err = queueClient.UpdateServiceProperties(ctx, account.ResourceGroup, id.Name, queueProperties); err != nil {
+		if _, err := queuesDataPlaneClient.SetServiceProperties(ctx, id.Name, queueProperties); err != nil {
 			return fmt.Errorf("updating Queue Properties for Storage Account %q: %+v", id.Name, err)
 		}
 	}
@@ -1842,14 +1841,13 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			if err != nil {
 				return fmt.Errorf("building Queues Client: %s", err)
 			}
-			queueClient := shim.NewDataPlaneStorageQueueWrapper(queuesDataPlaneClient).(shim.DataPlaneStorageQueueWrapper)
 
-			queueProps, err := queueClient.GetServiceProperties(ctx, account.ResourceGroup, id.Name)
+			resp, err := queuesDataPlaneClient.GetServiceProperties(ctx, id.Name)
 			if err != nil {
 				return fmt.Errorf("reading queue properties for AzureRM Storage Account %q: %+v", id.Name, err)
 			}
 
-			if err := d.Set("queue_properties", flattenQueueProperties(queueProps)); err != nil {
+			if err := d.Set("queue_properties", flattenQueueProperties(&resp.StorageServiceProperties)); err != nil {
 				return fmt.Errorf("setting `queue_properties`: %+v", err)
 			}
 		}
