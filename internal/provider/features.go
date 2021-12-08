@@ -164,12 +164,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Optional: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
-				Schema: map[string]*schema.Schema{
-					"use_resource_manager": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					},
-				},
+				Schema: map[string]*schema.Schema{},
 			},
 		},
 	}
@@ -222,6 +217,14 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
+		}
+	}
+
+	if features.ThreePointOhBetaResources() {
+		f := featuresMap["storage"].Elem.(*pluginsdk.Resource)
+		f.Schema["use_resource_manager"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
 		}
 	}
 
@@ -398,8 +401,11 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		items := raw.([]interface{})
 		if len(items) > 0 {
 			storageRaw := items[0].(map[string]interface{})
-			if v, ok := storageRaw["use_resource_manager"]; ok {
-				featuresMap.Storage.UseResourceManager = v.(bool)
+
+			if features.ThreePointOhBetaResources() {
+				if v, ok := storageRaw["use_resource_manager"]; ok {
+					featuresMap.Storage.UseResourceManager = v.(bool)
+				}
 			}
 		}
 	}

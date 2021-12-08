@@ -3,6 +3,7 @@ package storage_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -203,6 +204,9 @@ func TestAccStorageShare_nfsProtocol(t *testing.T) {
 }
 
 func TestAccStorageShare_resourceManagerBasic(t *testing.T) {
+	// The storage "use_resource_manager" feature is only available in 3.0
+	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{useResourceManager: true}
 
@@ -218,6 +222,9 @@ func TestAccStorageShare_resourceManagerBasic(t *testing.T) {
 }
 
 func TestAccStorageShare_resourceManagerMetaData(t *testing.T) {
+	// The storage "use_resource_manager" feature is only available in 3.0
+	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{useResourceManager: true}
 
@@ -242,6 +249,9 @@ func TestAccStorageShare_resourceManagerMetaData(t *testing.T) {
 func TestAccStorageShare_resourceManagerAcl(t *testing.T) {
 	// TODO: Once https://github.com/Azure/azure-rest-api-specs/issues/16782 is addressed, we can enable this test case.
 	t.Skip()
+
+	// The storage "use_resource_manager" feature is only available in 3.0
+	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
 
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{useResourceManager: true}
@@ -268,6 +278,9 @@ func TestAccStorageShare_resourceManagerAclGhostedRecall(t *testing.T) {
 	// TODO: Once https://github.com/Azure/azure-rest-api-specs/issues/16782 is addressed, we can enable this test case.
 	t.Skip()
 
+	// The storage "use_resource_manager" feature is only available in 3.0
+	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{useResourceManager: true}
 
@@ -283,6 +296,9 @@ func TestAccStorageShare_resourceManagerAclGhostedRecall(t *testing.T) {
 }
 
 func TestAccStorageShare_resourceManagerUpdateQuota(t *testing.T) {
+	// The storage "use_resource_manager" feature is only available in 3.0
+	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{useResourceManager: true}
 
@@ -304,6 +320,9 @@ func TestAccStorageShare_resourceManagerUpdateQuota(t *testing.T) {
 }
 
 func TestAccStorageShare_resourceManagerLargeQuota(t *testing.T) {
+	// The storage "use_resource_manager" feature is only available in 3.0
+	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{useResourceManager: true}
 
@@ -326,6 +345,9 @@ func TestAccStorageShare_resourceManagerLargeQuota(t *testing.T) {
 }
 
 func TestAccStorageShare_resourceManagerNfsProtocol(t *testing.T) {
+	// The storage "use_resource_manager" feature is only available in 3.0
+	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{useResourceManager: true}
 
@@ -341,6 +363,9 @@ func TestAccStorageShare_resourceManagerNfsProtocol(t *testing.T) {
 }
 
 func TestAccStorageShare_dataPlaneThenResourceManagerMetaData(t *testing.T) {
+	// The storage "use_resource_manager" feature is only available in 3.0
+	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{}
 
@@ -366,6 +391,9 @@ func TestAccStorageShare_dataPlaneThenResourceManagerMetaData(t *testing.T) {
 }
 
 func TestAccStorageShare_resourceManagerThenDataPlaneMetaData(t *testing.T) {
+	// The storage "use_resource_manager" feature is only available in 3.0
+	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{useResourceManager: true}
 
@@ -394,6 +422,9 @@ func TestAccStorageShare_dataPlaneThenResourceManagerAcl(t *testing.T) {
 	// TODO: Once https://github.com/Azure/azure-rest-api-specs/issues/16782 is addressed, we can enable this test case.
 	t.Skip()
 
+	// The storage "use_resource_manager" feature is only available in 3.0
+	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{}
 
@@ -421,6 +452,9 @@ func TestAccStorageShare_dataPlaneThenResourceManagerAcl(t *testing.T) {
 func TestAccStorageShare_resourceManagerThenDataPlaneAcl(t *testing.T) {
 	// TODO: Once https://github.com/Azure/azure-rest-api-specs/issues/16782 is addressed, we can enable this test case.
 	t.Skip()
+
+	// The storage "use_resource_manager" feature is only available in 3.0
+	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
 
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{useResourceManager: true}

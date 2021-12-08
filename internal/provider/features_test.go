@@ -123,7 +123,8 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"storage": []interface{}{
 						map[string]interface{}{
-							"use_resource_manager": true,
+							// TODO 3.0: uncomment this
+							//"use_resource_manager": true,
 						},
 					},
 				},
@@ -168,7 +169,7 @@ func TestExpandFeatures(t *testing.T) {
 					ScaleToZeroOnDelete:       true,
 				},
 				Storage: features.StorageFeatures{
-					UseResourceManager: true,
+					UseResourceManager: false,
 				},
 			},
 		},
@@ -234,7 +235,8 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"storage": []interface{}{
 						map[string]interface{}{
-							"use_resource_manager": false,
+							// TODO 3.0: uncomment this
+							//"use_resource_manager": false,
 						},
 					},
 				},
@@ -1041,14 +1043,15 @@ func TestExpandFeaturesStorage(t *testing.T) {
 				map[string]interface{}{
 					"storage": []interface{}{
 						map[string]interface{}{
-							"use_resource_manager": true,
+							// TODO 3.0: uncomment this
+							//"use_resource_manager": true,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				Storage: features.StorageFeatures{
-					UseResourceManager: true,
+					UseResourceManager: false,
 				},
 			},
 		},
@@ -1058,7 +1061,8 @@ func TestExpandFeaturesStorage(t *testing.T) {
 				map[string]interface{}{
 					"storage": []interface{}{
 						map[string]interface{}{
-							"use_resource_manager": false,
+							// TODO 3.0: uncomment this
+							//"use_resource_manager": false,
 						},
 					},
 				},
