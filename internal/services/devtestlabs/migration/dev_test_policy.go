@@ -3,7 +3,6 @@ package migration
 import (
 	"context"
 	"log"
-	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
@@ -25,31 +24,15 @@ func (DevTestLabPolicyUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.devtestlab/labs/{labName}/policysets/{policySetName}/policies/{policyName}
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/policySets/{policySetName}/policies/{policyName}
-		oldId, err := azure.ParseAzureResourceID(strings.Replace(rawState["id"].(string), "/policysets/", "/policySets/", 1))
+		oldId := rawState["id"].(string)
+		id, err := parse.DevTestLabPolicyIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}
 
-		labName, err := oldId.PopSegment("labs")
-		if err != nil {
-			return rawState, err
-		}
-
-		policySet, err := oldId.PopSegment("policySets")
-		if err != nil {
-			return rawState, err
-		}
-
-		policyName, err := oldId.PopSegment("policies")
-		if err != nil {
-			return rawState, err
-		}
-
-		newId := parse.NewDevTestLabPolicyID(oldId.SubscriptionID, oldId.ResourceGroup, labName, policySet, policyName)
-
-		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId.ID())
-
-		rawState["id"] = newId.ID()
+		newId := id.ID()
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+		rawState["id"] = newId
 
 		return rawState, nil
 	}

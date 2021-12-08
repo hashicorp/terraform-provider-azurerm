@@ -10,35 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-var kubernetesNetworkAuthTests = map[string]func(t *testing.T){
-	"enableNodePublicIP":                            testAccKubernetesCluster_enableNodePublicIP,
-	"internalNetwork":                               testAccKubernetesCluster_internalNetwork,
-	"changingLoadBalancerProfile":                   testAccKubernetesCluster_changingLoadBalancerProfile,
-	"prefixedLoadBalancerProfile":                   testAccKubernetesCluster_prefixedLoadBalancerProfile,
-	"standardLoadBalancer":                          testAccKubernetesCluster_standardLoadBalancer,
-	"standardLoadBalancerComplete":                  testAccKubernetesCluster_standardLoadBalancerComplete,
-	"standardLoadBalancerProfile":                   testAccKubernetesCluster_standardLoadBalancerProfile,
-	"standardLoadBalancerProfileComplete":           testAccKubernetesCluster_standardLoadBalancerProfileComplete,
-	"natGatewayProfile":                             testAccKubernetesCluster_natGatewayProfile,
-	"userAssignedNatGateway":                        testAccKubernetesCluster_userAssignedNatGateway,
-	"advancedNetworkingKubenet":                     testAccKubernetesCluster_advancedNetworkingKubenet,
-	"advancedNetworkingKubenetComplete":             testAccKubernetesCluster_advancedNetworkingKubenetComplete,
-	"advancedNetworkingAzure":                       testAccKubernetesCluster_advancedNetworkingAzure,
-	"advancedNetworkingAzureComplete":               testAccKubernetesCluster_advancedNetworkingAzureComplete,
-	"advancedNetworkingAzureCalicoPolicy":           testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicy,
-	"advancedNetworkingAzureCalicoPolicyComplete":   testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete,
-	"advancedNetworkingAzureNPMPolicy":              testAccKubernetesCluster_advancedNetworkingAzureNPMPolicy,
-	"advancedNetworkingAzureNPMPolicyComplete":      testAccKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete,
-	"basicLoadBalancerProfile":                      testAccKubernetesCluster_basicLoadBalancerProfile,
-	"standardLoadBalancerProfileWithPortAndTimeout": testAccKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout,
-}
-
 func TestAccKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_advancedNetworkingKubenet(t)
-}
-
-func testAccKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -55,11 +27,6 @@ func testAccKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_advancedNetworkingKubenetComplete(t)
-}
-
-func testAccKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -76,11 +43,6 @@ func testAccKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_advancedNetworkingAzure(t)
-}
-
-func testAccKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -97,11 +59,6 @@ func testAccKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_advancedNetworkingAzureComplete(t)
-}
-
-func testAccKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -118,11 +75,6 @@ func testAccKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t)
-}
-
-func testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -140,11 +92,6 @@ func testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) 
 }
 
 func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t)
-}
-
-func testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -180,11 +127,6 @@ func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyNetworkModeTran
 }
 
 func TestAccKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_advancedNetworkingAzureNPMPolicy(t)
-}
-
-func testAccKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -202,11 +144,6 @@ func testAccKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t)
-}
-
-func testAccKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -224,11 +161,6 @@ func testAccKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testin
 }
 
 func TestAccKubernetesCluster_enableNodePublicIP(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_enableNodePublicIP(t)
-}
-
-func testAccKubernetesCluster_enableNodePublicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -245,11 +177,6 @@ func testAccKubernetesCluster_enableNodePublicIP(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_internalNetwork(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_internalNetwork(t)
-}
-
-func testAccKubernetesCluster_internalNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -266,11 +193,6 @@ func testAccKubernetesCluster_internalNetwork(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_nodePublicIPPrefix(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_nodePublicIPPrefix(t)
-}
-
-func testAccKubernetesCluster_nodePublicIPPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -288,11 +210,6 @@ func testAccKubernetesCluster_nodePublicIPPrefix(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_outboundTypeLoadBalancer(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_outboundTypeLoadBalancer(t)
-}
-
-func testAccKubernetesCluster_outboundTypeLoadBalancer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -308,11 +225,6 @@ func testAccKubernetesCluster_outboundTypeLoadBalancer(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_natGatewayProfile(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_natGatewayProfile(t)
-}
-
-func testAccKubernetesCluster_natGatewayProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -341,11 +253,6 @@ func testAccKubernetesCluster_natGatewayProfile(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_managedNatGateway(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_managedNatGateway(t)
-}
-
-func testAccKubernetesCluster_managedNatGateway(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -364,11 +271,6 @@ func testAccKubernetesCluster_managedNatGateway(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_userAssignedNatGateway(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_userAssignedNatGateway(t)
-}
-
-func testAccKubernetesCluster_userAssignedNatGateway(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -384,11 +286,6 @@ func testAccKubernetesCluster_userAssignedNatGateway(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_privateClusterOn(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_privateClusterOn(t)
-}
-
-func testAccKubernetesCluster_privateClusterOn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -406,11 +303,6 @@ func testAccKubernetesCluster_privateClusterOn(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_privateClusterOnWithPrivateDNSZone(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_privateClusterOnWithPrivateDNSZone(t)
-}
-
-func testAccKubernetesCluster_privateClusterOnWithPrivateDNSZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -427,11 +319,6 @@ func testAccKubernetesCluster_privateClusterOnWithPrivateDNSZone(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneAndServicePrincipal(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneAndServicePrincipal(t)
-}
-
-func testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneAndServicePrincipal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
@@ -449,11 +336,6 @@ func testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneAndServicePrinci
 }
 
 func TestAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSubDomain(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSubDomain(t)
-}
-
-func testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSubDomain(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -468,11 +350,6 @@ func testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSubDomain(t *tes
 }
 
 func TestAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSystem(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSystem(t)
-}
-
-func testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSystem(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -489,11 +366,6 @@ func testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSystem(t *testin
 }
 
 func TestAccKubernetesCluster_privateClusterOff(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_privateClusterOff(t)
-}
-
-func testAccKubernetesCluster_privateClusterOff(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -510,11 +382,6 @@ func testAccKubernetesCluster_privateClusterOff(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_standardLoadBalancer(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_standardLoadBalancer(t)
-}
-
-func testAccKubernetesCluster_standardLoadBalancer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -531,11 +398,6 @@ func testAccKubernetesCluster_standardLoadBalancer(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_standardLoadBalancerComplete(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_standardLoadBalancerComplete(t)
-}
-
-func testAccKubernetesCluster_standardLoadBalancerComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -552,11 +414,6 @@ func testAccKubernetesCluster_standardLoadBalancerComplete(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_standardLoadBalancerProfile(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_standardLoadBalancerProfile(t)
-}
-
-func testAccKubernetesCluster_standardLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -577,11 +434,6 @@ func testAccKubernetesCluster_standardLoadBalancerProfile(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_standardLoadBalancerProfileComplete(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_standardLoadBalancerProfileComplete(t)
-}
-
-func testAccKubernetesCluster_standardLoadBalancerProfileComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -600,11 +452,6 @@ func testAccKubernetesCluster_standardLoadBalancerProfileComplete(t *testing.T) 
 }
 
 func TestAccKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout(t)
-}
-
-func testAccKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -624,11 +471,6 @@ func testAccKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout(t *t
 }
 
 func TestAccKubernetesCluster_basicLoadBalancerProfile(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_basicLoadBalancerProfile(t)
-}
-
-func testAccKubernetesCluster_basicLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -641,11 +483,6 @@ func testAccKubernetesCluster_basicLoadBalancerProfile(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_prefixedLoadBalancerProfile(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_prefixedLoadBalancerProfile(t)
-}
-
-func testAccKubernetesCluster_prefixedLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -664,11 +501,6 @@ func testAccKubernetesCluster_prefixedLoadBalancerProfile(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_changingLoadBalancerProfile(t)
-}
-
-func testAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -709,6 +541,58 @@ func testAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_httpProxyConfig(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.httpProxyConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("http_proxy_config.0.http_proxy").IsSet(),
+				check.That(data.ResourceName).Key("http_proxy_config.0.https_proxy").IsSet(),
+				check.That(data.ResourceName).Key("http_proxy_config.0.no_proxy").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_httpProxyConfigWithTrustedCa(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.httpProxyConfigWithTrustedCa(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("http_proxy_config.0.http_proxy").IsSet(),
+				check.That(data.ResourceName).Key("http_proxy_config.0.https_proxy").IsSet(),
+				check.That(data.ResourceName).Key("http_proxy_config.0.trusted_ca").IsSet(),
+				check.That(data.ResourceName).Key("http_proxy_config.0.no_proxy.0").IsSet(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_httpProxyConfigWithSubnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.httpProxyConfigWithSubnet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("http_proxy_config.0.http_proxy").IsSet(),
+				check.That(data.ResourceName).Key("http_proxy_config.0.https_proxy").IsSet(),
+				check.That(data.ResourceName).Key("http_proxy_config.0.no_proxy.0").IsSet(),
 			),
 		},
 		data.ImportStep(),
@@ -2321,5 +2205,322 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) httpProxyConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.1.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.1.0.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "test-nic%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                            = "vm-test-proxy%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  size                            = "Standard_B1s"
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssW0RD1234"
+  custom_data                     = base64encode("#!/bin/bash\nsudo apt-get update\nsudo apt-get install tinyproxy -y\nsudo echo \"Allow 10.0.0.0/8\" \u003e\u003e /etc/tinyproxy/tinyproxy.conf\nsystemctl restart tinyproxy")
+  disable_password_authentication = false
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts-gen2"
+    version   = "latest"
+  }
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = "%s"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  default_node_pool {
+    name       = "default"
+    node_count = 2
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin = "azure"
+  }
+
+  http_proxy_config {
+    http_proxy  = "http://${azurerm_network_interface.test.private_ip_address}:8888/"
+    https_proxy = "http://${azurerm_network_interface.test.private_ip_address}:8888/"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      http_proxy_config.0.no_proxy
+    ]
+  }
+}
+
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) httpProxyConfigWithTrustedCa(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.1.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.1.0.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "test-nic%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                            = "vm-test-proxy%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  size                            = "Standard_B1s"
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssW0RD1234"
+  custom_data                     = base64encode("#!/bin/bash\nsudo apt-get update\nsudo apt-get install tinyproxy -y\nsudo echo \"Allow 10.0.0.0/8\" \u003e\u003e /etc/tinyproxy/tinyproxy.conf\nsystemctl restart tinyproxy")
+  disable_password_authentication = false
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts-gen2"
+    version   = "latest"
+  }
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = "%s"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  default_node_pool {
+    name       = "default"
+    node_count = 2
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin = "azure"
+  }
+
+  http_proxy_config {
+    http_proxy  = "http://${azurerm_network_interface.test.private_ip_address}:8888/"
+    https_proxy = "http://${azurerm_network_interface.test.private_ip_address}:8888/"
+    no_proxy = [
+      "localhost",
+      "127.0.0.1"
+    ]
+    trusted_ca = "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ6RENDQVMyZ0F3SUJBZ0lCQVRBS0JnZ3Foa2pPUFFRREJEQVFNUTR3REFZRFZRUUtFd1ZGVGtOUFRUQWUKRncwd09URXhNVEF5TXpBd01EQmFGdzB4TURBMU1Ea3lNekF3TURCYU1CQXhEakFNQmdOVkJBb1RCVVZPUTA5TgpNSUdiTUJBR0J5cUdTTTQ5QWdFR0JTdUJCQUFqQTRHR0FBUUJBcUN1Um94NU4zTVRVOHdUdUllSUJYRjdpTW5oCm50cW1HVktRMGhmUUZEUUd2K0x5ZHVvN0pQcUZwL1kyamxYU2ROckFkejVXeGJyWStrRHhJcGtCUXRJQWtJREQKWlZtVHVlcTNaREFmY0dkRU5uek5KVkNhUGxIWEpMdkVFSU5jb0prVU8rK2NWeXl3ZHJlVkpjNjd2aE54MVRkWApWM3BwN2YrUmJPbU5LYm5WUkJ5ak5UQXpNQTRHQTFVZER3RUIvd1FFQXdJSGdEQVRCZ05WSFNVRUREQUtCZ2dyCkJnRUZCUWNEQVRBTUJnTlZIUk1CQWY4RUFqQUFNQW9HQ0NxR1NNNDlCQU1FQTRHTUFEQ0JpQUpDQWJiYjdzdkkKNXR1aEN5QTNqUVRTZ0E4enB2azBZV05Ya1owN3h6ZFY4amRNTXVtQ2FXOXljRUlxSjVLU3F1dVBoVXc5b2VregpCNTFkYXliVjFWUVhWVmRWQWtJQStrTU1TSnp3dHpIcU5BVVRtaVpQY2c3SDh2MUFTbDR0UjZscEtUcFVQWTJYCmxYT0N0MllmNGRzRnNpanV2emJKQmR4NzVkNEVmNVRSSFBjZytQSE5aZ2c9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      http_proxy_config.0.no_proxy
+    ]
+  }
+}
+
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) httpProxyConfigWithSubnet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.1.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.1.0.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "test-nic%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                            = "vm-test-proxy%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  size                            = "Standard_B1s"
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssW0RD1234"
+  custom_data                     = base64encode("#!/bin/bash\nsudo apt-get update\nsudo apt-get install tinyproxy -y\nsudo echo \"Allow 10.0.0.0/8\" \u003e\u003e /etc/tinyproxy/tinyproxy.conf\nsystemctl restart tinyproxy")
+  disable_password_authentication = false
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts-gen2"
+    version   = "latest"
+  }
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = "%s"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  default_node_pool {
+    name           = "default"
+    node_count     = 2
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin = "azure"
+  }
+
+  http_proxy_config {
+    http_proxy  = "http://${azurerm_network_interface.test.private_ip_address}:8888/"
+    https_proxy = "http://${azurerm_network_interface.test.private_ip_address}:8888/"
+    no_proxy = [
+      "10.1.0.0/24"
+    ]
+  }
+
+  lifecycle {
+    ignore_changes = [
+      http_proxy_config.0.no_proxy
+    ]
+  }
+}
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }

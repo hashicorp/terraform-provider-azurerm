@@ -2,11 +2,8 @@ package migration
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -25,28 +22,15 @@ func (SmartDetectionRuleUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/components/component1/SmartDetectionRule/rule1
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/components/component1/smartDetectionRule/rule1
-		oldId, err := azure.ParseAzureResourceID(rawState["id"].(string))
+		oldIdRaw := rawState["id"].(string)
+		id, err := parse.SmartDetectionRuleIDInsensitively(oldIdRaw)
 		if err != nil {
 			return rawState, err
 		}
 
-		ruleName := ""
-		for key, value := range oldId.Path {
-			if strings.EqualFold(key, "SmartDetectionRule") {
-				ruleName = value
-				break
-			}
-		}
-
-		if ruleName == "" {
-			return rawState, fmt.Errorf("couldn't find the `SmartDetectionRule` segment in the old resource id %q", oldId)
-		}
-
-		newId := parse.NewSmartDetectionRuleID(oldId.SubscriptionID, oldId.ResourceGroup, oldId.Path["components"], ruleName)
-
-		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId.ID())
-
-		rawState["id"] = newId.ID()
+		newId := id.ID()
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldIdRaw, newId)
+		rawState["id"] = newId
 
 		return rawState, nil
 	}

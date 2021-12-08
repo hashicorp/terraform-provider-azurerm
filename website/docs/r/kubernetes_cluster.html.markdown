@@ -96,6 +96,10 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/en-us/azure/aks/azure-disk-customer-managed-keys).
 
+* `http_proxy_config` - (Optional) A `http_proxy_config` block as defined below.
+
+-> **NOTE:** This requires that the Preview Feature `Microsoft.ContainerService/HTTPProxyConfigPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/http-proxy) for more information.
+
 * `identity` - (Optional) An `identity` block as defined below. One of either `identity` or `service_principal` must be specified.
 
 !> **NOTE:** A migration scenario from `service_principal` to `identity` is supported. When upgrading `service_principal` to `identity`, your cluster's control plane and addon pods will switch to use managed identity, but the kubelets will keep using your configured `service_principal` until you upgrade your Node Pool.
@@ -181,7 +185,6 @@ resource "azurerm_kubernetes_cluster" "example" {
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `windows_profile` - (Optional) A `windows_profile` block as defined below.
-
 ---
 
 A `aci_connector_linux` block supports the following:
@@ -234,6 +237,10 @@ A `addon_profile` block supports the following:
 -> **NOTE.** At this time Open Service Mesh is not supported in Azure US government or Azure China.
 
 -> **NOTE.** Open Service Mesh is available on an opt-in preview basis. For more details about how to opt-in, please visit [Open Service Mesh for AKS](https://docs.microsoft.com/azure/aks/open-service-mesh-deploy-add-on#register-the-aks-openservicemesh-preview-feature)
+
+* `azure_keyvault_secrets_provider` - (Optional) An `azure_keyvault_secrets_provider` block as defined below. For more details, please visit [Azure Keyvault Secrets Provider for AKS](https://docs.microsoft.com/en-us/azure/aks/csi-secrets-store-driver).
+
+~> **NOTE.** At this time the Azure KeyVault Secrets Provider is not supported in Azure China/Azure US Government.
 
 ---
 
@@ -586,6 +593,17 @@ An `open_service_mesh` block supports the following:
 
 ---
 
+An `azure_keyvault_secrets_provider` block supports the following:
+
+* `enabled` - Is the Azure Keyvault Secrets Providerenabled?
+
+* `secret_rotation_enabled` - (Optional) Is secret rotation enabled?
+
+* `secret_rotation_interval` - (Optional) The interval to poll for secret rotation. This attribute is only set when `secret_rotation` is true and defaults to `2m`.
+
+---
+
+
 A `role_based_access_control` block supports the following:
 
 * `azure_active_directory` - (Optional) An `azure_active_directory` block.
@@ -679,6 +697,22 @@ A `windows_profile` block supports the following:
 * `admin_password` - (Required) The Admin Password for Windows VMs. Length must be between 14 and 123 characters.
 
 * `license` - (Optional) Specifies the type of on-premise license which should be used for Node Pool Windows Virtual Machine. At this time the only possible value is `Windows_Server`.
+
+---
+
+A `http_proxy_config` block supports the following:
+
+* `http_proxy` - (Optional) The proxy address to be used when communicating over HTTP.
+
+* `https_proxy` - (Optional) The proxy address to be used when communicating over HTTPS.
+
+* `no_proxy` - (Optional) The list of domains that will not use the proxy for communication.
+
+-> **Note:** If you specify the `default_node_pool.0.vnet_subnet_id`, be sure to include the Subnet CIDR in the `no_proxy` list.
+
+-> **Note:** You may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore the changes to this field.
+
+* `trusted_ca` - (Optional) The base64 encoded alternative CA certificate content in PEM format.
 
 ---
 
@@ -777,6 +811,8 @@ provider "kubernetes" {
 
 The `addon_profile` block exports the following:
 
+* `azure_keyvault_secrets_provider` - An `azure_keyvault_secrets_provider` block as defined below.
+
 * `ingress_application_gateway` - An `ingress_application_gateway` block as defined below.
 
 * `oms_agent` - An `oms_agent` block as defined below.
@@ -814,6 +850,25 @@ The `oms_agent_identity` block exports the following:
 * `object_id` - The Object ID of the user-defined Managed Identity used by the OMS Agents.
 
 * `user_assigned_identity_id` - The ID of the User Assigned Identity used by the OMS Agents.
+
+---
+
+The `azure_keyvault_secrets_provider` block exports the following:
+
+* `secret_identity` - An `secret_identity` block is exported. The exported attributes are defined below.  
+
+---
+
+The `secret_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used by the Secret Provider.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used by the Secret Provider.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the Secret Provider.
+
+---
+
 
 ## Timeouts
 

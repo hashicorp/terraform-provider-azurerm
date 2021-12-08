@@ -308,6 +308,49 @@ func TestAccSignalRService_serviceMode(t *testing.T) {
 	})
 }
 
+func TestAccSignalRService_featureFlags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withFeatureFlags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("connectivity_logs_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("messaging_logs_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mode").HasValue("Default"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withFeatureFlagsUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("connectivity_logs_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("messaging_logs_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mode").HasValue("Classic"),
+			),
+		},
+	})
+}
+
 func TestAccSignalRService_cors(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
@@ -564,4 +607,62 @@ resource "azurerm_signalr_service" "test" {
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r SignalRServiceResource) withFeatureFlags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Free_F1"
+    capacity = 1
+  }
+
+  connectivity_logs_enabled = true
+  messaging_logs_enabled    = true
+  service_mode              = "Default"
+
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r SignalRServiceResource) withFeatureFlagsUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Standard_S1"
+    capacity = 1
+  }
+
+  connectivity_logs_enabled = false
+  messaging_logs_enabled    = false
+  service_mode              = "Classic"
+
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

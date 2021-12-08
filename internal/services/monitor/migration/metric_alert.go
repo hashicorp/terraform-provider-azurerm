@@ -2,9 +2,7 @@ package migration
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
@@ -26,28 +24,15 @@ func (MetricAlertUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/metricAlerts/alert1
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/metricAlerts/alert1
-		oldId, err := azure.ParseAzureResourceID(rawState["id"].(string))
+		oldId := rawState["id"].(string)
+		id, err := parse.MetricAlertIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}
 
-		alertName := ""
-		for key, value := range oldId.Path {
-			if strings.EqualFold(key, "metricAlerts") {
-				alertName = value
-				break
-			}
-		}
-
-		if alertName == "" {
-			return rawState, fmt.Errorf("couldn't find the `metricAlerts` segment in the old resource id %q", oldId)
-		}
-
-		newId := parse.NewMetricAlertID(oldId.SubscriptionID, oldId.ResourceGroup, alertName)
-
-		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId.ID())
-
-		rawState["id"] = newId.ID()
+		newId := id.ID()
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+		rawState["id"] = newId
 
 		return rawState, nil
 	}

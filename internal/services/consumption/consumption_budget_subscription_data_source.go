@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
-	subscriptionParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -224,24 +225,22 @@ func resourceArmConsumptionBudgetSubscriptionDataSourceRead(d *pluginsdk.Resourc
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	subscriptionId, err := subscriptionParse.SubscriptionID(d.Get("subscription_id").(string))
+	subscriptionId, err := commonids.ParseSubscriptionID(d.Get("subscription_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewConsumptionBudgetSubscriptionID(subscriptionId.SubscriptionID, d.Get("name").(string))
-	d.SetId(id.ID())
-
+	id := parse.NewConsumptionBudgetSubscriptionID(subscriptionId.SubscriptionId, d.Get("name").(string))
 	resp, err := client.Get(ctx, subscriptionId.ID(), id.BudgetName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("making read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.SetId(id.ID())
+	d.Set("name", id.BudgetName)
 	if resp.Amount != nil {
 		amount, _ := resp.Amount.Float64()
 		d.Set("amount", amount)

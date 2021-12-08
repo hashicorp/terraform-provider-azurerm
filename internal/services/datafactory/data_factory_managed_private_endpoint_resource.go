@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -110,12 +112,8 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 	targetResourceId := d.Get("target_resource_id").(string)
 	subResourceName := d.Get("subresource_name").(string)
 	fqdns := d.Get("fqdns").([]interface{})
-	parsedResourceId, err := azure.ParseAzureResourceID(targetResourceId)
-	if err != nil {
-		return fmt.Errorf("can not parse %q as a resource id: %v", targetResourceId, err)
-	}
 
-	if _, ok := parsedResourceId.Path["privateLinkServices"]; ok {
+	if _, err := networkParse.PrivateLinkServiceID(targetResourceId); err == nil {
 		if len(subResourceName) > 0 {
 			return fmt.Errorf("`subresource_name` should not be specified when target resource is `Private Link Service`")
 		}
