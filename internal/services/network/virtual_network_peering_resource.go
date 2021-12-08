@@ -216,7 +216,6 @@ func getVirtualNetworkPeeringProperties(d *pluginsdk.ResourceData) *network.Virt
 	}
 }
 
-//lintignore:R006
 func retryVnetPeeringsClientCreateUpdate(d *pluginsdk.ResourceData, resGroup string, vnetName string, name string, peer network.VirtualNetworkPeering, meta interface{}) func() *pluginsdk.RetryError {
 	return func() *pluginsdk.RetryError {
 		vnetPeeringsClient := meta.(*clients.Client).Network.VnetPeeringsClient
