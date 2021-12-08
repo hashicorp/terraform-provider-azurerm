@@ -917,9 +917,9 @@ resource "azurerm_windows_function_app" "test" {
     }
   }
 
-  builtin_logging_enabled = false
-  client_cert_enabled     = true
-  client_cert_mode        = "Required"
+  builtin_logging_enabled    = false
+  client_certificate_enabled = true
+  client_certificate_mode    = "Required"
 
   connection_string {
     name  = "Second"
@@ -1083,9 +1083,9 @@ resource "azurerm_windows_function_app" "test" {
     }
   }
 
-  builtin_logging_enabled = false
-  client_cert_enabled     = true
-  client_cert_mode        = "OptionalInteractiveUser"
+  builtin_logging_enabled    = false
+  client_certificate_enabled = true
+  client_certificate_mode    = "OptionalInteractiveUser"
 
   connection_string {
     name  = "First"
@@ -1158,7 +1158,7 @@ resource "azurerm_windows_function_app" "test" {
     websockets_enabled = true
     ftps_state         = "FtpsOnly"
     health_check_path  = "/health-check"
-    number_of_workers  = 3
+    worker_count       = 3
 
     minimum_tls_version     = "1.1"
     scm_minimum_tls_version = "1.1"
@@ -1282,7 +1282,7 @@ resource "azurerm_windows_function_app" "test" {
     websockets_enabled = true
     ftps_state         = "FtpsOnly"
     health_check_path  = "/health-check"
-    number_of_workers  = 3
+    worker_count       = 3
 
     minimum_tls_version     = "1.1"
     scm_minimum_tls_version = "1.1"

@@ -178,7 +178,7 @@ func TestAccWindowsWebApp_withLogging(t *testing.T) {
 			Config: r.withLoggingComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging").HasValue("true"),
+				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("true"),
 			),
 		},
@@ -202,7 +202,7 @@ func TestAccWindowsWebApp_withLoggingUpdate(t *testing.T) {
 			Config: r.withDetailedLogging(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging").HasValue("true"),
+				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("true"),
 			),
 		},
@@ -210,7 +210,7 @@ func TestAccWindowsWebApp_withLoggingUpdate(t *testing.T) {
 			Config: r.withLogsHttpBlob(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging").HasValue("false"),
+				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("false"),
 			),
 		},
@@ -219,7 +219,7 @@ func TestAccWindowsWebApp_withLoggingUpdate(t *testing.T) {
 			Config: r.withLoggingComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging").HasValue("true"),
+				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("true"),
 			),
 		},
@@ -1537,9 +1537,9 @@ resource "azurerm_windows_web_app" "test" {
     }
   }
 
-  client_affinity_enabled = true
-  client_cert_enabled     = true
-  client_cert_mode        = "Optional"
+  client_affinity_enabled    = true
+  client_certificate_enabled = true
+  client_certificate_mode    = "Optional"
 
   connection_string {
     name  = "First"
@@ -1573,15 +1573,15 @@ resource "azurerm_windows_web_app" "test" {
     ]
     http2_enabled               = true
     scm_use_main_ip_restriction = true
-    local_mysql                 = true
+    local_mysql_enabled         = true
     managed_pipeline_mode       = "Integrated"
-    remote_debugging            = true
+    remote_debugging_enabled    = true
     remote_debugging_version    = "VS2019"
     use_32_bit_worker           = true
     websockets_enabled          = true
     ftps_state                  = "FtpsOnly"
     health_check_path           = "/health"
-    number_of_workers           = 1
+    worker_count                = 1
     minimum_tls_version         = "1.1"
     scm_minimum_tls_version     = "1.1"
     cors {
@@ -1597,7 +1597,7 @@ resource "azurerm_windows_web_app" "test" {
     container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
 
     // auto_swap_slot_name = // TODO
-    auto_heal = true
+    auto_heal_enabled = true
 
     virtual_application {
       virtual_path  = "/"
@@ -1717,9 +1717,9 @@ resource "azurerm_windows_web_app" "test" {
     }
   }
 
-  client_affinity_enabled = true
-  client_cert_enabled     = true
-  client_cert_mode        = "Optional"
+  client_affinity_enabled    = true
+  client_certificate_enabled = true
+  client_certificate_mode    = "Optional"
 
   connection_string {
     name  = "First"
@@ -1747,14 +1747,14 @@ resource "azurerm_windows_web_app" "test" {
     ]
     http2_enabled               = false
     scm_use_main_ip_restriction = false
-    local_mysql                 = false
+    local_mysql_enabled         = false
     managed_pipeline_mode       = "Integrated"
-    remote_debugging            = true
+    remote_debugging_enabled    = true
     remote_debugging_version    = "VS2017"
     websockets_enabled          = true
     ftps_state                  = "FtpsOnly"
     health_check_path           = "/health2"
-    number_of_workers           = 2
+    worker_count                = 2
     minimum_tls_version         = "1.2"
     scm_minimum_tls_version     = "1.2"
     cors {
@@ -1769,7 +1769,7 @@ resource "azurerm_windows_web_app" "test" {
 
     container_registry_use_managed_identity = true
 
-    auto_heal = true
+    auto_heal_enabled = true
 
     auto_heal_setting {
       trigger {
@@ -2073,7 +2073,7 @@ resource "azurerm_windows_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {
-    auto_heal = true
+    auto_heal_enabled = true
 
     auto_heal_setting {
       trigger {
@@ -2109,7 +2109,7 @@ resource "azurerm_windows_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {
-    auto_heal = true
+    auto_heal_enabled = true
 
     auto_heal_setting {
       trigger {
@@ -2150,7 +2150,7 @@ resource "azurerm_windows_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {
-    auto_heal = true
+    auto_heal_enabled = true
 
     auto_heal_setting {
       trigger {

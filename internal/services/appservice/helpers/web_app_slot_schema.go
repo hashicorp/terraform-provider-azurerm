@@ -18,7 +18,7 @@ type SiteConfigLinuxWebAppSlot struct {
 	ApiManagementConfigId   string                  `tfschema:"api_management_api_id"`
 	ApiDefinition           string                  `tfschema:"api_definition_url"`
 	AppCommandLine          string                  `tfschema:"app_command_line"`
-	AutoHeal                bool                    `tfschema:"auto_heal"`
+	AutoHeal                bool                    `tfschema:"auto_heal_enabled"`
 	AutoHealSettings        []AutoHealSettingLinux  `tfschema:"auto_heal_setting"`
 	AutoSwapSlotName        string                  `tfschema:"auto_swap_slot_name"`
 	UseManagedIdentityACR   bool                    `tfschema:"container_registry_use_managed_identity"`
@@ -29,7 +29,7 @@ type SiteConfigLinuxWebAppSlot struct {
 	ScmUseMainIpRestriction bool                    `tfschema:"scm_use_main_ip_restriction"`
 	ScmIpRestriction        []IpRestriction         `tfschema:"scm_ip_restriction"`
 	LoadBalancing           string                  `tfschema:"load_balancing_mode"`
-	LocalMysql              bool                    `tfschema:"local_mysql"`
+	LocalMysql              bool                    `tfschema:"local_mysql_enabled"`
 	ManagedPipelineMode     string                  `tfschema:"managed_pipeline_mode"`
 	RemoteDebugging         bool                    `tfschema:"remote_debugging_enabled"`
 	RemoteDebuggingVersion  string                  `tfschema:"remote_debugging_version"`
@@ -39,12 +39,12 @@ type SiteConfigLinuxWebAppSlot struct {
 	FtpsState               string                  `tfschema:"ftps_state"`
 	HealthCheckPath         string                  `tfschema:"health_check_path"`
 	HealthCheckEvictionTime int                     `tfschema:"health_check_eviction_time_in_min"`
-	NumberOfWorkers         int                     `tfschema:"number_of_workers"`
+	WorkerCount             int                     `tfschema:"worker_count"`
 	ApplicationStack        []ApplicationStackLinux `tfschema:"application_stack"`
 	MinTlsVersion           string                  `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion        string                  `tfschema:"scm_minimum_tls_version"`
 	Cors                    []CorsSetting           `tfschema:"cors"`
-	DetailedErrorLogging    bool                    `tfschema:"detailed_error_logging"`
+	DetailedErrorLogging    bool                    `tfschema:"detailed_error_logging_enabled"`
 	LinuxFxVersion          string                  `tfschema:"linux_fx_version"`
 	VnetRouteAllEnabled     bool                    `tfschema:"vnet_route_all_enabled"`
 	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - New block to (possibly) support? No way to configure this in the portal?
@@ -82,7 +82,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 
 				"application_stack": linuxApplicationStackSchema(),
 
-				"auto_heal": {
+				"auto_heal_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					RequiredWith: []string{
@@ -130,7 +130,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 
 				"scm_ip_restriction": IpRestrictionSchema(),
 
-				"local_mysql": {
+				"local_mysql_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -217,7 +217,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
 				},
 
-				"number_of_workers": {
+				"worker_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true,
@@ -261,7 +261,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
 				},
 
-				"detailed_error_logging": {
+				"detailed_error_logging_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -371,7 +371,7 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.local_mysql") {
+	if metadata.ResourceData.HasChange("site_config.0.local_mysql_enabled") {
 		expanded.LocalMySQLEnabled = utils.Bool(linuxSlotSiteConfig.LocalMysql)
 	}
 
@@ -407,8 +407,8 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 		expanded.HealthCheckPath = utils.String(linuxSlotSiteConfig.HealthCheckPath)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.number_of_workers") {
-		expanded.NumberOfWorkers = utils.Int32(int32(linuxSlotSiteConfig.NumberOfWorkers))
+	if metadata.ResourceData.HasChange("site_config.0.worker_count") {
+		expanded.NumberOfWorkers = utils.Int32(int32(linuxSlotSiteConfig.WorkerCount))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
@@ -433,7 +433,7 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 		expanded.Cors = cors
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.auto_heal") {
+	if metadata.ResourceData.HasChange("site_config.0.auto_heal_enabled") {
 		expanded.AutoHealEnabled = utils.Bool(linuxSlotSiteConfig.AutoHeal)
 	}
 
@@ -471,7 +471,7 @@ func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthC
 		LoadBalancing:           string(appSiteSlotConfig.LoadBalancing),
 		LocalMysql:              utils.NormaliseNilableBool(appSiteSlotConfig.LocalMySQLEnabled),
 		MinTlsVersion:           string(appSiteSlotConfig.MinTLSVersion),
-		NumberOfWorkers:         int(utils.NormaliseNilableInt32(appSiteSlotConfig.NumberOfWorkers)),
+		WorkerCount:             int(utils.NormaliseNilableInt32(appSiteSlotConfig.NumberOfWorkers)),
 		RemoteDebugging:         utils.NormaliseNilableBool(appSiteSlotConfig.RemoteDebuggingEnabled),
 		RemoteDebuggingVersion:  strings.ToUpper(utils.NormalizeNilableString(appSiteSlotConfig.RemoteDebuggingVersion)),
 		ScmIpRestriction:        FlattenIpRestrictions(appSiteSlotConfig.ScmIPSecurityRestrictions),
