@@ -2,9 +2,10 @@
 
 FEATURES:
 
-**New Resource:** `azurerm_bot_service_azure_bot` [GH-14462]
-**New Resource:** `azurerm_sql_managed_instance_active_directory_administrator` [GH-14104]
-**New Beta resource:** `azurerm_windows_function_app` [GH-14247]
+* **New Resource:** `azurerm_bot_service_azure_bot` [GH-14462] 
+* **New Resource:** `azurerm_sql_managed_instance_active_directory_administrator` [GH-14104]
+* **New Beta resource:** `azurerm_windows_function_app` [GH-14247]
+* **New Beta Resource:** `azurerm_linux_web_app_slot` [GH-14305]
 
 ENHANCEMENTS:
 
