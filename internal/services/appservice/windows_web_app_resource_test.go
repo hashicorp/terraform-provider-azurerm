@@ -1594,7 +1594,7 @@ resource "azurerm_windows_web_app" "test" {
     }
 
     container_registry_use_managed_identity       = true
-    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.id
+    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
 
     // auto_swap_slot_name = // TODO
     auto_heal = true
@@ -2232,7 +2232,7 @@ resource "azurerm_windows_web_app" "test" {
 
   site_config {
     container_registry_use_managed_identity       = true
-    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.id
+    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
   }
 }
 `, r.baseTemplate(data), data.RandomInteger)

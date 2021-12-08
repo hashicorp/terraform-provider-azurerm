@@ -10,7 +10,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -145,7 +144,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"container_registry_managed_identity_client_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: msiValidate.UserAssignedIdentityID,
+					ValidateFunc: validation.IsUUID,
 				},
 
 				"default_documents": {
@@ -540,7 +539,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"container_registry_managed_identity_client_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: msiValidate.UserAssignedIdentityID,
+					ValidateFunc: validation.IsUUID,
 				},
 
 				"default_documents": {
@@ -3487,6 +3486,7 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		UseManagedIdentityACR:    utils.NormaliseNilableBool(appSiteConfig.AcrUseManagedIdentityCreds),
 		VirtualApplications:      flattenVirtualApplications(appSiteConfig.VirtualApplications),
 		WebSockets:               utils.NormaliseNilableBool(appSiteConfig.WebSocketsEnabled),
+		VnetRouteAllEnabled:      utils.NormaliseNilableBool(appSiteConfig.VnetRouteAllEnabled),
 	}
 
 	if appSiteConfig.APIManagementConfig != nil && appSiteConfig.APIManagementConfig.ID != nil {
@@ -3682,6 +3682,7 @@ func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {
 		"DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS",
 		"WEBSITE_HTTPLOGGING_CONTAINER_URL",
 		"WEBSITE_HTTPLOGGING_RETENTION_DAYS",
+		"WEBSITE_VNET_ROUTE_ALL",
 		maxPingFailures,
 	}
 
@@ -3692,7 +3693,7 @@ func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {
 		healthCheckCount = &h
 	}
 
-	// Remove the settings the service adds for legacy reasons when logging settings are specified.
+	// Remove the settings the service adds for legacy reasons.
 	for _, v := range unmanagedSettings { //nolint:typecheck
 		delete(appSettings, v)
 	}
