@@ -60,14 +60,11 @@ resource "azurerm_sql_managed_instance" "secondary" {
 }
 
 resource "azurerm_sql_managed_instance_failover_group" "example" {
-  name                  = "example-failover-group"
-  resource_group_name   = azurerm_resource_group.primary.name
-  location              = azurerm_sql_managed_instance.primary.location
-  managed_instance_name = azurerm_sql_managed_instance.primary.name
-
-  partner_managed_instances {
-    id = azurerm_sql_managed_instance.secondary.id
-  }
+  name                        = "example-failover-group"
+  resource_group_name         = azurerm_resource_group.primary.name
+  location                    = azurerm_sql_managed_instance.primary.location
+  managed_instance_name       = azurerm_sql_managed_instance.primary.name
+  partner_managed_instance_id = azurerm_sql_managed_instance.secondary.id
 
   read_write_endpoint_failover_policy {
     mode          = "Automatic"
@@ -86,21 +83,13 @@ The following arguments are supported:
 
 * `location` - The Azure Region where the SQL Instance Failover Group exists.
 
-* `partner_managed_instances` - (Required) One or more `partner_managed_instances` blocks as defined below.
+* `partner_managed_instance_id` - (Required) ID of the SQL Managed Instance which will be replicated to.
 
 * `read_write_endpoint_failover_policy` - (Required) A `read_write_endpoint_failover_policy` block as defined below.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the SQL Instance Failover Group should exist. Changing this forces a new SQL Instance Failover Group to be created.
 
----
-
-* `readonly_endpoint_failover_policy` - (Optional) A `readonly_endpoint_failover_policy` block as defined below.
-
----
-
-A `partner_managed_instances` block supports the following:
-
-* `id` - (Required) ID of the SQL Managed Instance which will be replicated to.
+* `readonly_endpoint_failover_policy_enabled` - (Optional) Failover policy for the read-only endpoint. Defaults to `false`.
 
 ---
 
@@ -110,25 +99,19 @@ A `read_write_endpoint_failover_policy` block supports the following:
 
 * `grace_minutes` - (Optional) Applies only if `mode` is `Automatic`. The grace period in minutes before failover with data loss is attempted.
 
----
-
-A `readonly_endpoint_failover_policy` block supports the following:
-
-* `mode` - (Required) Failover policy for the read-only endpoint. Possible values are `Enabled`, and `Disabled`
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the SQL Instance Failover Group.
 
-* `partner_regions` - A `partner_regions` block as defined below.
+* `partner_region` - A `partner_region` block as defined below.
 
 * `role` - The local replication role of the SQL Instance Failover Group.
 
 ---
 
-A `partner_regions` block exports the following:
+A `partner_region` block exports the following:
 
 * `location` - The Azure Region where the SQL Instance Failover Group partner exists.
 

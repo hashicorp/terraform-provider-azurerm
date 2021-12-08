@@ -72,13 +72,11 @@ func (r SqlInstanceFailoverGroupResource) basic(data acceptance.TestData) string
 %s
 
 resource "azurerm_sql_managed_instance_failover_group" "test" {
-  name                  = "acctest-fog-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_sql_managed_instance.test.location
-  managed_instance_name = azurerm_sql_managed_instance.test.name
-
+  name                        = "acctest-fog-%d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_sql_managed_instance.test.location
+  managed_instance_name       = azurerm_sql_managed_instance.test.name
   partner_managed_instance_id = azurerm_sql_managed_instance.secondary.id
-
 
   read_write_endpoint_failover_policy {
     mode = "Manual"
@@ -99,11 +97,10 @@ func (r SqlInstanceFailoverGroupResource) update(data acceptance.TestData) strin
 %s
 
 resource "azurerm_sql_managed_instance_failover_group" "test" {
-  name                  = "acctest-fog-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_sql_managed_instance.test.location
-  managed_instance_name = azurerm_sql_managed_instance.test.name
-
+  name                        = "acctest-fog-%d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_sql_managed_instance.test.location
+  managed_instance_name       = azurerm_sql_managed_instance.test.name
   partner_managed_instance_id = azurerm_sql_managed_instance.secondary.id
 
   readonly_endpoint_failover_policy_enabled = true

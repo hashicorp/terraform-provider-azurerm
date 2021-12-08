@@ -62,14 +62,11 @@ module "vnet_gateway" {
 }
 
 resource "azurerm_sql_managed_instance_failover_group" "example" {
-  name                  = "${var.prefix}-fog"
-  resource_group_name   = azurerm_resource_group.primary.name
-  location              = azurerm_resource_group.primary.location
-  managed_instance_name = module.primary.managed_instance_name
-
-  partner_managed_instances {
-    id = module.secondary.managed_instance_id
-  }
+  name                        = "${var.prefix}-fog"
+  resource_group_name         = azurerm_resource_group.primary.name
+  location                    = azurerm_resource_group.primary.location
+  managed_instance_name       = module.primary.managed_instance_name
+  partner_managed_instance_id = module.secondary.managed_instance_id
 
   read_write_endpoint_failover_policy {
     mode = "Manual"

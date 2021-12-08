@@ -155,7 +155,7 @@ func resourceSqlInstanceFailoverGroupCreateUpdate(d *pluginsdk.ResourceData, met
 		InstanceFailoverGroupProperties: &sql.InstanceFailoverGroupProperties{
 			ReadOnlyEndpoint:     expandSqlInstanceFailoverGroupReadOnlyPolicy(d),
 			ReadWriteEndpoint:    expandSqlInstanceFailoverGroupReadWritePolicy(d),
-			ManagedInstancePairs: expandSqlInstanceFailoverGroupManagedInstancePairs(d, primaryInstanceId),
+			ManagedInstancePairs: expandSqlInstanceFailoverGroupManagedInstanceId(d, primaryInstanceId),
 			PartnerRegions:       &partnerRegions,
 		},
 	}
@@ -297,19 +297,14 @@ func expandSqlInstanceFailoverGroupReadOnlyPolicy(d *pluginsdk.ResourceData) *sq
 		FailoverPolicy: mode,
 	}
 }
-func expandSqlInstanceFailoverGroupManagedInstancePairs(d *pluginsdk.ResourceData, primaryID parse.ManagedInstanceId) *[]sql.ManagedInstancePairInfo {
-	instances := d.Get("partner_managed_instances").([]interface{})
+func expandSqlInstanceFailoverGroupManagedInstanceId(d *pluginsdk.ResourceData, primaryID parse.ManagedInstanceId) *[]sql.ManagedInstancePairInfo {
+	instanceId := d.Get("partner_managed_instance_id").(string)
 	partners := make([]sql.ManagedInstancePairInfo, 0)
 
-	for _, instance := range instances {
-		info := instance.(map[string]interface{})
-
-		id := info["id"].(string)
-		partners = append(partners, sql.ManagedInstancePairInfo{
-			PrimaryManagedInstanceID: utils.String(primaryID.ID()),
-			PartnerManagedInstanceID: &id,
-		})
-	}
+	partners = append(partners, sql.ManagedInstancePairInfo{
+		PrimaryManagedInstanceID: utils.String(primaryID.ID()),
+		PartnerManagedInstanceID: &instanceId,
+	})
 
 	return &partners
 }
