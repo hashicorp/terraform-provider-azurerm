@@ -379,16 +379,23 @@ func ExpandApiManagementOperationParameterExampleContract(input []interface{}) m
 		vs := v.(map[string]interface{})
 
 		name := vs["name"].(string)
-		summary := vs["summary"].(string)
-		description := vs["description"].(string)
-		value := vs["value"].(string)
-		externalValue := vs["external_value"].(string)
 
-		outputs[name] = &apimanagement.ParameterExampleContract{
-			Summary:       utils.String(summary),
-			Description:   utils.String(description),
-			Value:         utils.String(value),
-			ExternalValue: utils.String(externalValue),
+		outputs[name] = &apimanagement.ParameterExampleContract{}
+
+		if vs["summary"] != nil {
+			outputs[name].Summary = utils.String(vs["summary"].(string))
+		}
+
+		if vs["description"] != nil {
+			outputs[name].Description = utils.String(vs["description"].(string))
+		}
+
+		if vs["value"] != nil {
+			outputs[name].Value = utils.String(vs["value"].(string))
+		}
+
+		if vs["external_value"] != nil {
+			outputs[name].ExternalValue = utils.String(vs["external_value"].(string))
 		}
 	}
 
