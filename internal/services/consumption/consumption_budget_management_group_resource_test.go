@@ -135,8 +135,8 @@ data "azurerm_management_group" "tenant_root" {
 }
 
 resource "azurerm_consumption_budget_management_group" "test" {
-  name                  = "acctestconsumptionbudgetManagementGroup-%d"
-  management_group_name = data.azurerm_management_group.tenant_root.name
+  name                = "acctestconsumptionbudgetManagementGroup-%d"
+  management_group_id = data.azurerm_management_group.tenant_root.id
 
   amount     = 1000
   time_grain = "Monthly"
@@ -181,8 +181,8 @@ data "azurerm_management_group" "tenant_root" {
 }
 
 resource "azurerm_consumption_budget_management_group" "test" {
-  name                  = "acctestconsumptionbudgetManagementGroup-%d"
-  management_group_name = data.azurerm_management_group.tenant_root.name
+  name                = "acctestconsumptionbudgetManagementGroup-%d"
+  management_group_id = data.azurerm_management_group.tenant_root.id
 
   // Changed the amount from 1000 to 3000
   amount     = 3000
@@ -218,8 +218,8 @@ func (ConsumptionBudgetManagementGroupResource) requiresImport(data acceptance.T
 %s
 
 resource "azurerm_consumption_budget_management_group" "import" {
-  name                  = azurerm_consumption_budget_management_group.test.name
-  management_group_name = azurerm_consumption_budget_management_group.test.management_group_name
+  name                = azurerm_consumption_budget_management_group.test.name
+  management_group_id = azurerm_consumption_budget_management_group.test.management_group_id
 
   amount     = azurerm_consumption_budget_management_group.test.amount
   time_grain = azurerm_consumption_budget_management_group.test.time_grain
@@ -266,8 +266,8 @@ resource "azurerm_monitor_action_group" "test" {
 }
 
 resource "azurerm_consumption_budget_management_group" "test" {
-  name                  = "acctestconsumptionbudgetManagementGroup-%d"
-  management_group_name = data.azurerm_management_group.tenant_root.name
+  name                = "acctestconsumptionbudgetManagementGroup-%d"
+  management_group_id = data.azurerm_management_group.tenant_root.id
 
   amount     = 1000
   time_grain = "Monthly"
@@ -361,8 +361,8 @@ resource "azurerm_monitor_action_group" "test" {
 }
 
 resource "azurerm_consumption_budget_management_group" "test" {
-  name                  = "acctestconsumptionbudgetManagementGroup-%d"
-  management_group_name = data.azurerm_management_group.tenant_root.name
+  name                = "acctestconsumptionbudgetManagementGroup-%d"
+  management_group_id = data.azurerm_management_group.tenant_root.id
 
   // Changed the amount from 1000 to 2000
   amount     = 2000

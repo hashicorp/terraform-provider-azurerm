@@ -3,12 +3,12 @@ subcategory: "Consumption"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_consumption_budget_management_group"
 description: |-
-  Manages a Management Group Consumption Budget.
+  Manages a Consumption Budget for a Management Group.
 ---
 
 # azurerm_consumption_budget_management_group
 
-Manages a Management Group Consumption Budget.
+Manages a Consumption Budget for a Management Group.
 
 ## Example Usage
 
@@ -23,8 +23,8 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_consumption_budget_management_group" "example" {
-  name                  = "example"
-  management_group_name = azurerm_management_group.example.name
+  name                = "example"
+  management_group_id = azurerm_management_group.example.id
 
   amount     = 1000
   time_grain = "Monthly"
@@ -80,9 +80,9 @@ resource "azurerm_consumption_budget_management_group" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Subscription Consumption Budget. Changing this forces a new Subscription Consumption Budget to be created.
+* `name` - (Required) The name which should be used for this Management Group Consumption Budget. Changing this forces a new resource to be created.
 
-* `subscription_id` - (Required) The ID of the Consumption Budget. Changing this forces a new Subscription Consumption Budget to be created.
+* `management_group_id` - (Required) The ID of the Management Group. Changing this forces a new resource to be created.
 
 * `amount` - (Required) The total amount of cost to track with the budget.
 
@@ -150,7 +150,7 @@ A `tag` block supports the following:
 
 A `time_period` block supports the following:
 
-* `start_date` - (Required) The start date for the budget. The start date must be first of the month and should be less than the end date. Budget start date must be on or after June 1, 2017. Future start date should not be more than twelve months. Past start date should be selected within the timegrain period. Changing this forces a new Subscription Consumption Budget to be created.
+* `start_date` - (Required) The start date for the budget. The start date must be first of the month and should be less than the end date. Budget start date must be on or after June 1, 2017. Future start date should not be more than twelve months. Past start date should be selected within the timegrain period. Changing this forces a new resource to be created.
 
 * `end_date` - (Optional) The end date for the budget. If not set this will be 10 years after the start date.
 
@@ -158,22 +158,22 @@ A `time_period` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Subscription Consumption Budget.
+* `id` - The ID of the Management Group Consumption Budget.
 
-* `etag` - The ETag of the Subscription Consumption Budget.
+* `etag` - The ETag of the Management Group Consumption Budget.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Subscription Consumption Budget.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Subscription Consumption Budget.
-* `update` - (Defaults to 30 minutes) Used when updating the Subscription Consumption Budget.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Subscription Consumption Budget.
+* `create` - (Defaults to 30 minutes) Used when creating the Management Group Consumption Budget.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Management Group Consumption Budget.
+* `update` - (Defaults to 30 minutes) Used when updating the Management Group Consumption Budget.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Management Group Consumption Budget.
 
 ## Import
 
-Subscription Consumption Budgets can be imported using the `resource id`, e.g.
+Management Group Consumption Budgets can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_consumption_budget_management_group.example /providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.Consumption/budgets/budget1

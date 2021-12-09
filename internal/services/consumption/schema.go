@@ -308,11 +308,11 @@ func SchemaConsumptionBudgetManagementGroupResource() map[string]*pluginsdk.Sche
 			ValidateFunc: validate.ConsumptionBudgetName(),
 		},
 
-		"management_group_name": {
+		"management_group_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validateManagementGroup.ManagementGroupName,
+			ValidateFunc: validateManagementGroup.ManagementGroupID,
 		},
 
 		"etag": {

@@ -33,10 +33,13 @@ func resourceArmConsumptionBudgetManagementGroup() *pluginsdk.Resource {
 }
 
 func resourceArmConsumptionBudgetManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	managementGroupId := managementGroupParse.NewManagementGroupId(d.Get("management_group_name").(string))
+	managementGroupId, err := managementGroupParse.ManagementGroupID(d.Get("management_group_id").(string))
+	if err != nil {
+		return err
+	}
 	id := parse.NewConsumptionBudgetManagementGroupID(managementGroupId.Name, d.Get("name").(string))
 
-	err := resourceArmConsumptionBudgetCreateUpdate(d, meta, consumptionBudgetManagementGroupName, managementGroupId.ID())
+	err = resourceArmConsumptionBudgetCreateUpdate(d, meta, consumptionBudgetManagementGroupName, managementGroupId.ID())
 	if err != nil {
 		return err
 	}
@@ -59,7 +62,7 @@ func resourceArmConsumptionBudgetManagementGroupRead(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	d.Set("management_group_name", consumptionBudgetId.ManagementGroupName)
+	d.Set("management_group_id", managementGroupId.ID())
 
 	return nil
 }
