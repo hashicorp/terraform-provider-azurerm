@@ -3,6 +3,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"strings"
 	"time"
 
@@ -35,6 +36,7 @@ type WindowsWebAppModel struct {
 	Enabled                       bool                        `tfschema:"enabled"`
 	HttpsOnly                     bool                        `tfschema:"https_only"`
 	Identity                      []helpers.Identity          `tfschema:"identity"`
+	KeyVaultReferenceIdentityID   string                      `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                    []helpers.LogsConfig        `tfschema:"logs"`
 	SiteConfig                    []helpers.SiteConfigWindows `tfschema:"site_config"`
 	StorageAccounts               []helpers.StorageAccount    `tfschema:"storage_account"`
@@ -122,6 +124,13 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"identity": helpers.IdentitySchema(),
+
+		"key_vault_reference_identity_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: msivalidate.UserAssignedIdentityID,
+		},
 
 		"logs": helpers.LogsConfigSchema(),
 
@@ -281,6 +290,10 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			if webApp.KeyVaultReferenceIdentityID != "" {
+				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(webApp.KeyVaultReferenceIdentityID)
+			}
+
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
 			if err != nil {
 				return fmt.Errorf("creating Windows %s: %+v", id, err)
@@ -430,70 +443,44 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Metadata for Windows %s: %+v", id, err)
 			}
 
+			props := webApp.SiteProperties
+
 			state := WindowsWebAppModel{
-				Name:          id.SiteName,
-				ResourceGroup: id.ResourceGroup,
-				Location:      location.NormalizeNilable(webApp.Location),
-				Tags:          tags.ToTypedObject(webApp.Tags),
+				Name:                        id.SiteName,
+				ResourceGroup:               id.ResourceGroup,
+				ServicePlanId:               utils.NormalizeNilableString(props.ServerFarmID),
+				Location:                    location.NormalizeNilable(webApp.Location),
+				AuthSettings:                helpers.FlattenAuthSettings(auth),
+				Backup:                      helpers.FlattenBackupConfig(backup),
+				ClientAffinityEnabled:       utils.NormaliseNilableBool(props.ClientAffinityEnabled),
+				ClientCertEnabled:           utils.NormaliseNilableBool(props.ClientCertEnabled),
+				ClientCertMode:              string(props.ClientCertMode),
+				ConnectionStrings:           helpers.FlattenConnectionStrings(connectionStrings),
+				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
+				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
+				Enabled:                     utils.NormaliseNilableBool(props.Enabled),
+				HttpsOnly:                   utils.NormaliseNilableBool(props.HTTPSOnly),
+				Identity:                    helpers.FlattenIdentity(webApp.Identity),
+				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
+				Kind:                        utils.NormalizeNilableString(webApp.Kind),
+				LogsConfig:                  helpers.FlattenLogsConfig(logsConfig),
+				SiteCredentials:             helpers.FlattenSiteCredentials(siteCredentials),
+				StorageAccounts:             helpers.FlattenStorageAccounts(storageAccounts),
+				Tags:                        tags.ToTypedObject(webApp.Tags),
 			}
 
 			var healthCheckCount *int
 			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
 
-			webAppProps := webApp.SiteProperties
-			if v := webAppProps.ServerFarmID; v != nil {
-				state.ServicePlanId = *v
-			}
-
-			if v := webAppProps.ClientAffinityEnabled; v != nil {
-				state.ClientAffinityEnabled = *v
-			}
-
-			if v := webAppProps.ClientCertEnabled; v != nil {
-				state.ClientCertEnabled = *v
-			}
-
-			if webAppProps.ClientCertMode != "" {
-				state.ClientCertMode = string(webAppProps.ClientCertMode)
-			}
-
-			if v := webAppProps.Enabled; v != nil {
-				state.Enabled = *v
-			}
-
-			if v := webAppProps.HTTPSOnly; v != nil {
-				state.HttpsOnly = *v
-			}
-
-			if v := webAppProps.CustomDomainVerificationID; v != nil {
-				state.CustomDomainVerificationId = *v
-			}
-
-			if v := webAppProps.DefaultHostName; v != nil {
-				state.DefaultHostname = *v
-			}
-
-			if v := webApp.Kind; v != nil {
-				state.Kind = *v
-			}
-
-			if v := webAppProps.OutboundIPAddresses; v != nil {
+			if v := props.OutboundIPAddresses; v != nil {
 				state.OutboundIPAddresses = *v
 				state.OutboundIPAddressList = strings.Split(*v, ",")
 			}
 
-			if v := webAppProps.PossibleOutboundIPAddresses; v != nil {
+			if v := props.PossibleOutboundIPAddresses; v != nil {
 				state.PossibleOutboundIPAddresses = *v
 				state.PossibleOutboundIPAddressList = strings.Split(*v, ",")
 			}
-
-			state.AuthSettings = helpers.FlattenAuthSettings(auth)
-
-			state.Backup = helpers.FlattenBackupConfig(backup)
-
-			state.Identity = helpers.FlattenIdentity(webApp.Identity)
-
-			state.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
 			currentStack := ""
 			currentStackPtr, ok := siteMetadata.Properties["CURRENT_STACK"]
@@ -502,12 +489,6 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			state.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
-
-			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
-
-			state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
-
-			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 
 			return metadata.Encode(&state)
 		},

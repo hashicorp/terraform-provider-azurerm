@@ -45,7 +45,6 @@ type SiteConfigWindows struct {
 	VirtualApplications      []VirtualApplication      `tfschema:"virtual_application"`
 	MinTlsVersion            string                    `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion         string                    `tfschema:"scm_minimum_tls_version"`
-	AutoSwapSlotName         string                    `tfschema:"auto_swap_slot_name"`
 	Cors                     []CorsSetting             `tfschema:"cors"`
 	DetailedErrorLogging     bool                      `tfschema:"detailed_error_logging_enabled"`
 	WindowsFxVersion         string                    `tfschema:"windows_fx_version"`
@@ -297,12 +296,6 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
 				},
 
-				"auto_swap_slot_name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					// TODO - Add slot name validation here?
-				},
-
 				"detailed_error_logging_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
@@ -462,11 +455,6 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 				"cors": CorsSettingsSchemaComputed(),
 
 				"virtual_application": virtualApplicationsSchemaComputed(),
-
-				"auto_swap_slot_name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
 
 				"detailed_error_logging_enabled": {
 					Type:     pluginsdk.TypeBool,
@@ -684,12 +672,6 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 
 				"cors": CorsSettingsSchema(),
 
-				"auto_swap_slot_name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					// TODO - Add slot name validation here?
-				},
-
 				"vnet_route_all_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
@@ -849,11 +831,6 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 				},
 
 				"cors": CorsSettingsSchemaComputed(),
-
-				"auto_swap_slot_name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
 
 				"detailed_error_logging_enabled": {
 					Type:     pluginsdk.TypeBool,
@@ -2898,10 +2875,6 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
 		expanded.ScmMinTLSVersion = web.SupportedTLSVersions(winSiteConfig.ScmMinTlsVersion)
-	}
-
-	if metadata.ResourceData.HasChange("site_config.0.auto_swap_slot_name") {
-		expanded.AutoSwapSlotName = utils.String(winSiteConfig.AutoSwapSlotName)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
