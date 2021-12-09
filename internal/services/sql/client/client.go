@@ -14,6 +14,7 @@ type Client struct {
 	DatabaseExtendedBlobAuditingPoliciesClient      *sql.ExtendedDatabaseBlobAuditingPoliciesClient
 	FirewallRulesClient                             *sql.FirewallRulesClient
 	FailoverGroupsClient                            *sql.FailoverGroupsClient
+	InstanceFailoverGroupsClient                    *sqlv5.InstanceFailoverGroupsClient
 	ManagedInstancesClient                          *sqlv5.ManagedInstancesClient
 	ManagedInstanceAdministratorsClient             *sqlv5.ManagedInstanceAdministratorsClient
 	ManagedInstanceAzureADOnlyAuthenticationsClient *sqlv5.ManagedInstanceAzureADOnlyAuthenticationsClient
@@ -46,6 +47,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	firewallRulesClient := sql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&firewallRulesClient.Client, o.ResourceManagerAuthorizer)
+
+	instanceFailoverGroupsClient := sqlv5.NewInstanceFailoverGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&instanceFailoverGroupsClient.Client, o.ResourceManagerAuthorizer)
 
 	managedInstancesClient := sqlv5.NewManagedInstancesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&managedInstancesClient.Client, o.ResourceManagerAuthorizer)
@@ -87,6 +91,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ElasticPoolsClient:                              &elasticPoolsClient,
 		FailoverGroupsClient:                            &failoverGroupsClient,
 		FirewallRulesClient:                             &firewallRulesClient,
+		InstanceFailoverGroupsClient:                    &instanceFailoverGroupsClient,
 		ManagedInstancesClient:                          &managedInstancesClient,
 		ManagedInstanceAdministratorsClient:             &managedInstanceAdministratorsClient,
 		ManagedInstanceAzureADOnlyAuthenticationsClient: &managedInstanceAzureADOnlyAuthenticationsClient,
