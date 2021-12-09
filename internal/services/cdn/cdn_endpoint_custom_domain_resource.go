@@ -273,7 +273,7 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta in
 		if props.CustomHTTPSParameters == nil {
 			// disabled -> enabled
 			if err := enableArmCdnEndpointCustomDomainHttps(ctx, client, *id, param); err != nil {
-				return fmt.Errorf("enable HTTPS on %q: %+v", id, err)
+				return fmt.Errorf("enable HTTPS on %q: %+v", *id, err)
 			}
 		} else {
 			if param == nil {
