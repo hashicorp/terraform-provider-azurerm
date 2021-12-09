@@ -109,6 +109,24 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 							ValidateFunc: validate.VpnSiteLinkID,
 						},
 
+						"egress_nat_rule_ids": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validate.VpnGatewayNatRuleID,
+							},
+						},
+
+						"ingress_nat_rule_ids": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validate.VpnGatewayNatRuleID,
+							},
+						},
+
 						"route_weight": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
@@ -447,6 +465,14 @@ func expandVpnGatewayConnectionVpnSiteLinkConnections(input []interface{}) *[]ne
 			},
 		}
 
+		if egressNatRuleIds := e["egress_nat_rule_ids"].(*pluginsdk.Set).List(); len(egressNatRuleIds) != 0 {
+			v.VpnSiteLinkConnectionProperties.EgressNatRules = expandVpnGatewayConnectionNatRuleIds(egressNatRuleIds)
+		}
+
+		if ingressNatRuleIds := e["ingress_nat_rule_ids"].(*pluginsdk.Set).List(); len(ingressNatRuleIds) != 0 {
+			v.VpnSiteLinkConnectionProperties.IngressNatRules = expandVpnGatewayConnectionNatRuleIds(ingressNatRuleIds)
+		}
+
 		if sharedKey := e["shared_key"]; sharedKey != "" {
 			sharedKey := sharedKey.(string)
 			v.VpnSiteLinkConnectionProperties.SharedKey = &sharedKey
@@ -512,6 +538,8 @@ func flattenVpnGatewayConnectionVpnSiteLinkConnections(input *[]network.VpnSiteL
 
 		v := map[string]interface{}{
 			"name":                                  name,
+			"egress_nat_rule_ids":                   flattenVpnGatewayConnectionNatRuleIds(e.VpnSiteLinkConnectionProperties.EgressNatRules),
+			"ingress_nat_rule_ids":                  flattenVpnGatewayConnectionNatRuleIds(e.VpnSiteLinkConnectionProperties.IngressNatRules),
 			"vpn_site_link_id":                      vpnSiteLinkId,
 			"route_weight":                          routeWeight,
 			"protocol":                              string(e.VpnConnectionProtocolType),
@@ -630,4 +658,34 @@ func flattenVpnGatewayConnectionRoutingConfiguration(input *network.RoutingConfi
 			"propagated_route_tables": propagatedRouteTables,
 		},
 	}
+}
+
+func expandVpnGatewayConnectionNatRuleIds(input []interface{}) *[]network.SubResource {
+	results := make([]network.SubResource, 0)
+
+	for _, item := range input {
+		results = append(results, network.SubResource{
+			ID: utils.String(item.(string)),
+		})
+	}
+
+	return &results
+}
+
+func flattenVpnGatewayConnectionNatRuleIds(input *[]network.SubResource) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		var id string
+		if item.ID != nil {
+			id = *item.ID
+		}
+
+		results = append(results, id)
+	}
+
+	return results
 }
