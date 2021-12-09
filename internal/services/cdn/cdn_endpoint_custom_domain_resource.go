@@ -255,7 +255,7 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta in
 			if params == nil {
 				// enabled -> disabled
 				if err := disableArmCdnEndpointCustomDomainHttps(ctx, client, *id); err != nil {
-					return fmt.Errorf("disable HTTPS on %q: %+v", id, err)
+					return fmt.Errorf("disable HTTPS on %q: %+v", *id, err)
 				}
 			} else {
 				return fmt.Errorf("in-place update on enabled HTTPS settings is not supported on %q", id)
