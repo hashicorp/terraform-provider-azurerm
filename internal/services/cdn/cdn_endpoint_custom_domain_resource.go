@@ -248,7 +248,7 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta in
 			// disabled -> enabled
 			if err := enableArmCdnEndpointCustomDomainHttps(ctx, client, *id,
 				expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(d.Get("cdn_managed_https").([]interface{}))); err != nil {
-				return fmt.Errorf("enable HTTPS on %q: %+v", id, err)
+				return fmt.Errorf("enable HTTPS on %q: %+v", *id, err)
 			}
 		} else {
 			params := expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(d.Get("cdn_managed_https").([]interface{}))
