@@ -1250,8 +1250,6 @@ func expandRegistryTaskFileTaskStep(step FileTaskStep) legacyacr.FileTaskStep {
 	if step.ContextAccessToken != "" {
 		out.ContextAccessToken = &step.ContextAccessToken
 	}
-	if len(step.Values) != 0 {
-	}
 	return out
 }
 
