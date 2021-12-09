@@ -282,7 +282,7 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta in
 					return fmt.Errorf("disable HTTPS on %q: %+v", *id, err)
 				}
 			} else {
-				return fmt.Errorf("in-place update on enabled HTTPS settings is not supported on %q", id)
+				return fmt.Errorf("in-place update on enabled HTTPS settings is not supported on %q", *id)
 			}
 		}
 	}
