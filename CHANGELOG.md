@@ -24,6 +24,8 @@ ENHANCEMENTS:
 * `azurerm_netapp_volume` - support for `throughput_in_mibps` property [GH-14372]
 * `azurerm_sql_managed_instance`: Support for `storage_account_type` [GH-14123]
 * `azurerm_signalr_service` - deprecate `features` block in favour of `connectivity_logs_enabled`, `messaging_logs_enabled` and `service_mode` [GH-14360]
+* `azurerm_vpn_gateway_connection` - support for the `propagated_route_table.labels`, `vpn_link.connection_mode` and `traffic_selector_policy` properties [GH-14371]
+
 
 BUG FIXES:
 
