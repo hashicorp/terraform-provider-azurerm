@@ -72,6 +72,9 @@ func EncodeFunctionAppLinuxFxVersion(input []ApplicationStackLinuxFunctionApp) *
 	case appStack.JavaVersion != "":
 		appType = "Java"
 		appString = appStack.JavaVersion
+	case appStack.PowerShellCoreVersion != "":
+		appType = "PowerShell"
+		appString = appStack.PowerShellCoreVersion
 	case len(appStack.Docker) > 0 && appStack.Docker[0].ImageName != "":
 		appType = "Docker"
 		dockerCfg := appStack.Docker[0]
@@ -115,6 +118,10 @@ func DecodeFunctionAppLinuxFxVersion(input string) ([]ApplicationStackLinuxFunct
 		appStack := ApplicationStackLinuxFunctionApp{JavaVersion: parts[1]}
 		result = append(result, appStack)
 
+	case "powershell":
+		appStack := ApplicationStackLinuxFunctionApp{PowerShellCoreVersion: parts[1]}
+		result = append(result, appStack)
+
 	case "docker":
 		// This is handled as part of unpacking the app_settings using DecodeFunctionAppDockerFxString but included here for signposting as this is not intuitive.
 	}
@@ -146,4 +153,63 @@ func DecodeFunctionAppDockerFxString(input string, partial ApplicationStackDocke
 	partial.ImageTag = dockerParts[1]
 
 	return []ApplicationStackDocker{partial}, nil
+}
+
+func EncodeFunctionAppWindowsFxVersion(input []ApplicationStackWindowsFunctionApp) *string {
+	if len(input) == 0 {
+		return utils.String("")
+	}
+
+	appStack := input[0]
+	var appType, appString string
+	switch {
+	case appStack.NodeVersion != "":
+		appType = "Node"
+		appString = appStack.NodeVersion
+	case appStack.DotNetVersion != "":
+		appType = "DotNet"
+		appString = appStack.DotNetVersion
+	case appStack.JavaVersion != "":
+		appType = "Java"
+		appString = appStack.JavaVersion
+	case appStack.PowerShellCoreVersion != "":
+		appType = "PowerShell"
+		appString = appStack.PowerShellCoreVersion
+	}
+
+	return utils.String(fmt.Sprintf("%s|%s", appType, appString))
+}
+
+func DecodeFunctionAppWindowsFxVersion(input string) ([]ApplicationStackWindowsFunctionApp, error) {
+	if input == "" {
+		// This is a valid string for "Custom" stack which we picked up earlier, so we can skip here
+		return nil, nil
+	}
+
+	parts := strings.Split(input, "|")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("unrecognised WindowsFxVersion format received, got %s", input)
+	}
+
+	result := make([]ApplicationStackWindowsFunctionApp, 0)
+
+	switch strings.ToLower(parts[0]) {
+	case "dotnet":
+		appStack := ApplicationStackWindowsFunctionApp{DotNetVersion: parts[1]}
+		result = append(result, appStack)
+
+	case "node":
+		appStack := ApplicationStackWindowsFunctionApp{NodeVersion: parts[1]}
+		result = append(result, appStack)
+
+	case "java":
+		appStack := ApplicationStackWindowsFunctionApp{JavaVersion: parts[1]}
+		result = append(result, appStack)
+
+	case "powershell":
+		appStack := ApplicationStackWindowsFunctionApp{PowerShellCoreVersion: parts[1]}
+		result = append(result, appStack)
+	}
+
+	return result, nil
 }

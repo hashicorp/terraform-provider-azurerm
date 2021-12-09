@@ -2,8 +2,12 @@
 
 FEATURES:
 
-**New Resource:** `azurerm_bot_service_azure_bot` [GH-14462]
-**New Resource:** `azurerm_sql_managed_instance_active_directory_administrator` [GH-14104]
+* **New Resource:** `azurerm_bot_service_azure_bot` [GH-14462] 
+* **New Resource:** `azurerm_consumption_budget_management_group` [GH-14411] 
+* **New Resource:** `azurerm_sql_managed_instance_active_directory_administrator` [GH-14104]
+* **New Resource:** `azurerm_sql_managed_instance_failover_group` [GH-13974]
+* **New Beta resource:** `azurerm_windows_function_app` [GH-14247]
+* **New Beta Resource:** `azurerm_linux_web_app_slot` [GH-14305]
 
 ENHANCEMENTS:
 
@@ -12,20 +16,35 @@ ENHANCEMENTS:
 * dependencies: updating the Embedded SDK for `frontdoor` [GH-14432]
 * `azurerm_app_service_environment_v3` - allow updating of `tags` [GH-14491]
 * `azurerm_data_factory_linked_services_*` - deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory linked service resources [GH-14492]
-* `azurerm_managed_disk` - support for the `hyper_v_generation` property [GH-13825]
+* `azurerm_shared_image` - support for the `trusted_launch_enabled` property [GH-14528]
 * `azurerm_key_vault_certificate` - support for the `versionless_id` and `versionless_secret_id` properties [GH-14287]
 * `azurerm_kubernetes_cluster` - support for the `http_proxy_config` block which contains the `http_proxy`, `https_proxy`, `no_proxy` and `trusted_ca` properties [GH-14177]
 * `azurerm_kubernetes_cluster` - support for the `azure_keyvault_secrets_provider` addon [GH-14308]
+* `azurerm_managed_disk` - support for the `hyper_v_generation` property [GH-13825]
 * `azurerm_netapp_pool` - support for `qos_type` property [GH-14372]
 * `azurerm_netapp_volume` - support for `throughput_in_mibps` property [GH-14372]
 * `azurerm_sql_managed_instance`: Support for `storage_account_type` [GH-14123]
 * `azurerm_signalr_service` - deprecate `features` block in favour of `connectivity_logs_enabled`, `messaging_logs_enabled` and `service_mode` [GH-14360]
+* `azurerm_vpn_gateway_connection` - support for the `propagated_route_table.labels`, `vpn_link.connection_mode` and `traffic_selector_policy` properties [GH-14371]
+
 
 BUG FIXES:
 
 * `azurerm_data_fatory_trigger_schedule` - correctly set `schedule` when `frequency` is `Month/Week` [GH-14391]
 * `azurerm_iothub_endpoint_storage_container` - remove the default value `false` from the `file_name_format` property and add the correct validation function for it [GH-14458]
+* `azurerm_postgresql_server` - will now change the password after being promoted from `Replica` to `Default` mode [GH-14376]
 
+BETA NOTES:
+
+A number of properties in the App Service Beta resources have been renamed for consistency with the rest of the provider. As these are beta resources, this breaking change is not compensated for with deprecations or state migrations. Please update any configurations using these resources with the following details:
+
+* `remote_debugging` renamed to `remote_debugging_enabled`
+* `number_of_workers` renamed to `worker_count`
+* `detailed_error_logging` renamed to `detailed_error_logging_enabled`
+* `auto_heal` renamed to `auto_heal_enabled`
+* `local_mysql` renamed to `local_mysql_enabled`
+* `client_cert_enabled` renamed to `client_certificate_enabled`
+* `client_cert_mode` renamed to `client_certificate_mode`
 
 ## 2.88.1 (December 03, 2021)
 
