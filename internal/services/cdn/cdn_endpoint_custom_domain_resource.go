@@ -238,7 +238,7 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta in
 	switch {
 	case d.HasChange("cdn_managed_https") && d.HasChange("user_managed_https"):
 		// One is turned on, and the other is turned off
-		return fmt.Errorf("in-place update on enabled HTTPS settings is not supported on %q", id)
+		return fmt.Errorf("in-place update on enabled HTTPS settings is not supported on %q", *id)
 	case d.HasChange("cdn_managed_https"):
 		props := resp.CustomDomainProperties
 		if props == nil {
