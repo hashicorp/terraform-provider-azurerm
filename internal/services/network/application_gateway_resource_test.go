@@ -1102,7 +1102,7 @@ func (r ApplicationGatewayResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -1136,6 +1136,23 @@ resource "azurerm_application_gateway" "test" {
   frontend_ip_configuration {
     name                 = local.frontend_ip_configuration_name
     public_ip_address_id = azurerm_public_ip.test.id
+  }
+
+  frontend_ip_configuration {
+    name                            = "testy"
+    subnet_id                       = azurerm_subnet.test.id
+    private_ip_address_allocation   = "Dynamic"
+    private_link_configuration_name = "testy
+  }
+
+  private_link_configuration {
+    name = "testy"
+    ip_configuration {
+      name                          = "primary"
+      subnet_id                     = azurerm_subnet.test.id
+      private_ip_address_allocation = "Dynamic"
+      primary                       = true
+    }
   }
 
   backend_address_pool {
@@ -1172,7 +1189,7 @@ func (r ApplicationGatewayResource) UserDefinedIdentity(data acceptance.TestData
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -1261,7 +1278,7 @@ func (r ApplicationGatewayResource) zones(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -1340,7 +1357,7 @@ func (r ApplicationGatewayResource) autoscaleConfiguration(data acceptance.TestD
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -1422,7 +1439,7 @@ func (r ApplicationGatewayResource) autoscaleConfigurationNoMaxCapacity(data acc
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -1503,7 +1520,7 @@ func (r ApplicationGatewayResource) overridePath(data acceptance.TestData) strin
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -1574,7 +1591,7 @@ func (r ApplicationGatewayResource) http2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -1705,7 +1722,7 @@ func (r ApplicationGatewayResource) authCertificate(data acceptance.TestData) st
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   auth_cert_name                 = "${azurerm_virtual_network.test.name}-auth"
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
@@ -1786,7 +1803,7 @@ func (r ApplicationGatewayResource) trustedRootCertificate_keyvault(data accepta
 	return fmt.Sprintf(`
 %[1]s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   auth_cert_name                 = "${azurerm_virtual_network.test.name}-auth"
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
@@ -1934,7 +1951,7 @@ func (r ApplicationGatewayResource) trustedRootCertificate(data acceptance.TestD
 	return fmt.Sprintf(`
 %[1]s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   auth_cert_name                 = "${azurerm_virtual_network.test.name}-auth"
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
@@ -2021,7 +2038,7 @@ func (r ApplicationGatewayResource) customFirewallPolicy(data acceptance.TestDat
 	return fmt.Sprintf(`
 %[1]s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -2124,7 +2141,7 @@ func (r ApplicationGatewayResource) customHttpListenerFirewallPolicy(data accept
 	return fmt.Sprintf(`
 %[1]s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -2243,7 +2260,7 @@ func (r ApplicationGatewayResource) customPathRuleFirewallPolicy(data acceptance
 	return fmt.Sprintf(`
 %[1]s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -2378,7 +2395,7 @@ func (r ApplicationGatewayResource) authCertificateUpdated(data acceptance.TestD
 	return fmt.Sprintf(`
 %[1]s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   auth_cert_name                 = "${azurerm_virtual_network.test.name}-auth2"
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
@@ -2458,7 +2475,7 @@ func (r ApplicationGatewayResource) trustedRootCertificateUpdated(data acceptanc
 	return fmt.Sprintf(`
 %[1]s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   auth_cert_name                 = "${azurerm_virtual_network.test.name}-auth2"
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
@@ -2545,7 +2562,7 @@ func (r ApplicationGatewayResource) pathBasedRouting(data acceptance.TestData) s
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -2632,7 +2649,7 @@ func (r ApplicationGatewayResource) routingRedirect_httpListener(data acceptance
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -2726,7 +2743,7 @@ func (r ApplicationGatewayResource) routingRedirect_httpListenerError(data accep
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -2821,7 +2838,7 @@ func (r ApplicationGatewayResource) routingRedirect_pathBased(data acceptance.Te
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -2949,7 +2966,7 @@ func (r ApplicationGatewayResource) probes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -3051,7 +3068,7 @@ func (r ApplicationGatewayResource) probesEmptyMatch(data acceptance.TestData) s
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -3156,7 +3173,7 @@ func (r ApplicationGatewayResource) probesPickHostNameFromBackendHTTPSettings(da
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -3239,7 +3256,7 @@ func (r ApplicationGatewayResource) probesWithPort(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -3330,7 +3347,7 @@ func (r ApplicationGatewayResource) backendHttpSettingsHostName(data acceptance.
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -3411,7 +3428,7 @@ resource "azurerm_public_ip" "test2" {
   domain_name_label   = "testdns-123"
 }
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -3482,7 +3499,7 @@ func (r ApplicationGatewayResource) settingsPickHostNameFromBackendAddress(data 
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -3553,7 +3570,7 @@ func (r ApplicationGatewayResource) sslCertificate_keyvault_versionless(data acc
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   auth_cert_name                 = "${azurerm_virtual_network.test.name}-auth"
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
@@ -3703,7 +3720,7 @@ func (r ApplicationGatewayResource) sslCertificate_keyvault_versioned(data accep
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   auth_cert_name                 = "${azurerm_virtual_network.test.name}-auth"
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
@@ -3853,7 +3870,7 @@ func (r ApplicationGatewayResource) sslCertificate(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -3931,7 +3948,7 @@ func (r ApplicationGatewayResource) sslCertificateUpdated(data acceptance.TestDa
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -4009,7 +4026,7 @@ func (r ApplicationGatewayResource) sslCertificateEmptyPassword(data acceptance.
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -4129,7 +4146,7 @@ func (r ApplicationGatewayResource) manualSslCertificateChangeIgnoreChangesConfi
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -4212,7 +4229,7 @@ func (r ApplicationGatewayResource) manualSslCertificateChangeIgnoreChangesUpdat
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -4295,7 +4312,7 @@ func (r ApplicationGatewayResource) webApplicationFirewall(data acceptance.TestD
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -4375,7 +4392,7 @@ func (r ApplicationGatewayResource) connectionDraining(data acceptance.TestData)
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -4451,7 +4468,7 @@ func (r ApplicationGatewayResource) webApplicationFirewall_disabledRuleGroups(da
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -4553,7 +4570,7 @@ func (r ApplicationGatewayResource) webApplicationFirewall_disabledRuleGroups_en
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -4650,7 +4667,7 @@ func (r ApplicationGatewayResource) webApplicationFirewall_exclusions_many(data 
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -4766,7 +4783,7 @@ func (r ApplicationGatewayResource) webApplicationFirewall_exclusions_one(data a
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -5121,10 +5138,11 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "subnet-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.0.0/24"
+  name                                          = "subnet-%d"
+  resource_group_name                           = azurerm_resource_group.test.name
+  virtual_network_name                          = azurerm_virtual_network.test.name
+  address_prefix                                = "10.0.0.0/24"
+  enforce_private_link_service_network_policies = true
 }
 
 resource "azurerm_public_ip" "test" {
@@ -5140,7 +5158,7 @@ func (r ApplicationGatewayResource) customErrorConfigurations(data acceptance.Te
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -5232,7 +5250,7 @@ func (r ApplicationGatewayResource) rewriteRuleSets_backend(data acceptance.Test
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -5332,7 +5350,7 @@ func (r ApplicationGatewayResource) rewriteRuleSets_redirect(data acceptance.Tes
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -5454,7 +5472,7 @@ func (r ApplicationGatewayResource) rewriteRuleSets_rewriteUrl(data acceptance.T
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -5576,7 +5594,7 @@ func (r ApplicationGatewayResource) cookieAffinity(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -5647,7 +5665,7 @@ func (r ApplicationGatewayResource) cookieAffinityUpdated(data acceptance.TestDa
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -5724,7 +5742,7 @@ resource "azurerm_subnet" "test1" {
   address_prefix       = "10.0.1.0/24"
 }
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -5794,7 +5812,7 @@ func (r ApplicationGatewayResource) v2SKUCapacity(data acceptance.TestData) stri
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -5872,7 +5890,7 @@ func (r ApplicationGatewayResource) includePathWithTargetURL(data acceptance.Tes
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -6001,7 +6019,7 @@ func (r ApplicationGatewayResource) backendAddressPoolEmptyIpList(data acceptanc
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -6072,7 +6090,7 @@ func (r ApplicationGatewayResource) sslProfile(data acceptance.TestData) string 
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -6168,7 +6186,7 @@ func (r ApplicationGatewayResource) sslProfileUpdateOne(data acceptance.TestData
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -6265,7 +6283,7 @@ func (r ApplicationGatewayResource) sslProfileWithClientCertificateVerification(
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -6369,7 +6387,7 @@ func (r ApplicationGatewayResource) sslProfileWithClientCertificateVerificationU
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -6472,7 +6490,7 @@ func (r ApplicationGatewayResource) sslProfileWithClientCertificateVerificationU
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
