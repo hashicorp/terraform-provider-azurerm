@@ -280,8 +280,8 @@ resource "azurerm_api_management_api_operation" "test" {
       content_type = "application/xml"
 
       example {
-      	name  = "sample"
-      	value = <<SAMPLE
+        name  = "sample"
+        value = <<SAMPLE
 <response>
   <user name="bravo24">
     <groups>
@@ -292,7 +292,7 @@ resource "azurerm_api_management_api_operation" "test" {
 </response>
 SAMPLE
 
-			}
+      }
     }
   }
 }
@@ -330,8 +330,8 @@ resource "azurerm_api_management_api_operation" "test" {
       content_type = "application/xml"
 
       example {
-      	name  = "sample"
-      	value = <<SAMPLE
+        name  = "sample"
+        value = <<SAMPLE
 <response>
   <user name="bravo24">
     <groups>
@@ -342,7 +342,7 @@ resource "azurerm_api_management_api_operation" "test" {
 </response>
 SAMPLE
 
-			}
+      }
     }
   }
 }
@@ -380,8 +380,8 @@ resource "azurerm_api_management_api_operation" "test" {
       content_type = "application/xml"
 
       example {
-      	name  = "sample"
-      	value = <<SAMPLE
+        name  = "sample"
+        value = <<SAMPLE
 <response>
   <user name="bravo24">
     <groups>
@@ -392,15 +392,15 @@ resource "azurerm_api_management_api_operation" "test" {
 </response>
 SAMPLE
 
-			}
+      }
     }
 
     representation {
       content_type = "application/json"
 
       example {
-  	    name  = "sample"
-	      value = <<SAMPLE
+        name  = "sample"
+        value = <<SAMPLE
 {
   "user": {
     "groups": [
@@ -417,7 +417,7 @@ SAMPLE
 }
 SAMPLE
 
-			}
+      }
     }
   }
 }
