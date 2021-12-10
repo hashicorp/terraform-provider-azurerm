@@ -86,7 +86,11 @@ The following arguments are supported:
 
 * `fabric_settings` - (Optional) One or more `fabric_settings` blocks as defined below.
 
-* `upgrade_description` - (optional) A `upgrade_description` block as defined below.
+* `upgrade_policy` - (optional) A `upgrade_policy` block as defined below.
+
+* `service_fabric_zonal_upgrade_mode` - (Optional) Specifies the logical grouping of VMs in upgrade domains. Possible values are `Hierarchical` or `Parallel`.
+
+* `vmss_zonal_upgrade_mode` - (Optional) Specifies the upgrade mode for the virtual machine scale set updates that happen in all availability zones at once. Possible values are `Hierarchical` or `Parallel`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -202,6 +206,10 @@ A `node_type` block supports the following:
 
 * `is_primary` - (Required) Is this the Primary Node Type? Changing this forces a new resource to be created.
 
+* `is_stateless` - (Optional) Should this node type run only stateless services?
+
+* `multiple_availability_zones` - (Optional) Does this node type span availability zones?
+
 * `client_endpoint_port` - (Required) The Port used for the Client Endpoint for this Node Type. Changing this forces a new resource to be created.
 
 * `http_endpoint_port` - (Required) The Port used for the HTTP Endpoint for this Node Type. Changing this forces a new resource to be created.
@@ -232,7 +240,7 @@ A `ephemeral_ports` block supports the following:
 
 ---
 
-A `upgrade description` block supports the following:
+A `upgrade_policy` block supports the following:
 
 * `force_restart` - (Optional) Indicates whether to restart the Service Fabric node even if only dynamic configurations have changed.
 

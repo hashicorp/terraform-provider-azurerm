@@ -259,7 +259,7 @@ func (client DeletedServicesClient) Purge(ctx context.Context, serviceName strin
 
 	result, err = client.PurgeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "apimanagement.DeletedServicesClient", "Purge", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "apimanagement.DeletedServicesClient", "Purge", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -291,6 +291,7 @@ func (client DeletedServicesClient) PurgePreparer(ctx context.Context, serviceNa
 // http.Response Body if it receives an error.
 func (client DeletedServicesClient) PurgeSender(req *http.Request) (future DeletedServicesPurgeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

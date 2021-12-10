@@ -68,6 +68,8 @@ The following attributes are exported:
 
 * `id` - The ID of the HTTP Request Trigger within the Logic App Workflow.
 
+* `callback_url` - The URL for the workflow trigger
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

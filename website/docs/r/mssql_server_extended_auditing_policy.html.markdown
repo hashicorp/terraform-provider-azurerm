@@ -10,7 +10,6 @@ description: |-
 
 Manages a Ms Sql Server Extended Auditing Policy.
 
-~> **NOTE:** The Server Extended Auditing Policy Can be set inline here as well as with the [mssql_server_extended_auditing_policy resource](mssql_server_extended_auditing_policy.html) resource. You can only use one or the other and using both will cause a conflict.
 
 ## Example Usage
 
@@ -64,7 +63,7 @@ The following arguments are supported:
 
 * `storage_account_access_key_is_secondary` - (Optional) Is `storage_account_access_key` value the storage's secondary key?
 
-* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its master database audit events to Azure Monitor.
+* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its main database audit events to Azure Monitor.
 
 ## Attributes Reference
 

@@ -51,6 +51,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `secondary_connection_string` - The Secondary Connection String for the ServiceBus Queue authorization Rule.
 
+* `primary_connection_string_alias` - The alias Primary Connection String for the ServiceBus Namespace, if the namespace is Geo DR paired. 
+
+* `secondary_connection_string_alias` - The alias Secondary Connection String for the ServiceBus Namespace 
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

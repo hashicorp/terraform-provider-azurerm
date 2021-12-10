@@ -69,7 +69,7 @@ func (client IntegrationRuntimesClient) Create(ctx context.Context, resourceGrou
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -108,6 +108,7 @@ func (client IntegrationRuntimesClient) CreatePreparer(ctx context.Context, reso
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) CreateSender(req *http.Request) (future IntegrationRuntimesCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -165,7 +166,7 @@ func (client IntegrationRuntimesClient) Delete(ctx context.Context, resourceGrou
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -198,6 +199,7 @@ func (client IntegrationRuntimesClient) DeletePreparer(ctx context.Context, reso
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) DeleteSender(req *http.Request) (future IntegrationRuntimesDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -254,7 +256,7 @@ func (client IntegrationRuntimesClient) DisableInteractiveQuery(ctx context.Cont
 
 	result, err = client.DisableInteractiveQuerySender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "DisableInteractiveQuery", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "DisableInteractiveQuery", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -287,6 +289,7 @@ func (client IntegrationRuntimesClient) DisableInteractiveQueryPreparer(ctx cont
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) DisableInteractiveQuerySender(req *http.Request) (future IntegrationRuntimesDisableInteractiveQueryFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -343,7 +346,7 @@ func (client IntegrationRuntimesClient) EnableInteractiveQuery(ctx context.Conte
 
 	result, err = client.EnableInteractiveQuerySender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "EnableInteractiveQuery", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "EnableInteractiveQuery", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -376,6 +379,7 @@ func (client IntegrationRuntimesClient) EnableInteractiveQueryPreparer(ctx conte
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) EnableInteractiveQuerySender(req *http.Request) (future IntegrationRuntimesEnableInteractiveQueryFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -654,7 +658,7 @@ func (client IntegrationRuntimesClient) Start(ctx context.Context, resourceGroup
 
 	result, err = client.StartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Start", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Start", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -687,6 +691,7 @@ func (client IntegrationRuntimesClient) StartPreparer(ctx context.Context, resou
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) StartSender(req *http.Request) (future IntegrationRuntimesStartFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -744,7 +749,7 @@ func (client IntegrationRuntimesClient) Stop(ctx context.Context, resourceGroupN
 
 	result, err = client.StopSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Stop", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Stop", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -777,6 +782,7 @@ func (client IntegrationRuntimesClient) StopPreparer(ctx context.Context, resour
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) StopSender(req *http.Request) (future IntegrationRuntimesStopFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-files=$(find ./azurerm -type f -name "*.go")
+files=$(find ./internal -type f -name "*.go")
 error=false
 
 echo "==> Checking that Custom Timeouts are used..."

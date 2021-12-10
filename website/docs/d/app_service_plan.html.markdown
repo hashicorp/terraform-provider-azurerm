@@ -54,6 +54,8 @@ output "app_service_plan_id" {
 
 * `maximum_number_of_workers` - The maximum number of workers supported with the App Service Plan's sku.
 
+* `zone_redundant` - App Service Plan perform availability zone balancing.
+
 ---
 
 A `sku` block supports the following:

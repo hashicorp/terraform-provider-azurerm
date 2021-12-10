@@ -58,7 +58,7 @@ func (client ServerSecurityAlertPoliciesClient) CreateOrUpdate(ctx context.Conte
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerSecurityAlertPoliciesClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServerSecurityAlertPoliciesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -93,6 +93,7 @@ func (client ServerSecurityAlertPoliciesClient) CreateOrUpdatePreparer(ctx conte
 // http.Response Body if it receives an error.
 func (client ServerSecurityAlertPoliciesClient) CreateOrUpdateSender(req *http.Request) (future ServerSecurityAlertPoliciesCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

@@ -14,7 +14,7 @@ Manage a Dedicated Host within a Dedicated Host Group.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example-resourcs"
+  name     = "example-resources"
   location = "West Europe"
 }
 

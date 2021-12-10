@@ -66,7 +66,7 @@ func (client SolutionsClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "operationsmanagement.SolutionsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "operationsmanagement.SolutionsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -103,6 +103,7 @@ func (client SolutionsClient) CreateOrUpdatePreparer(ctx context.Context, resour
 // http.Response Body if it receives an error.
 func (client SolutionsClient) CreateOrUpdateSender(req *http.Request) (future SolutionsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -157,7 +158,7 @@ func (client SolutionsClient) Delete(ctx context.Context, resourceGroupName stri
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "operationsmanagement.SolutionsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "operationsmanagement.SolutionsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -189,6 +190,7 @@ func (client SolutionsClient) DeletePreparer(ctx context.Context, resourceGroupN
 // http.Response Body if it receives an error.
 func (client SolutionsClient) DeleteSender(req *http.Request) (future SolutionsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -480,7 +482,7 @@ func (client SolutionsClient) Update(ctx context.Context, resourceGroupName stri
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "operationsmanagement.SolutionsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "operationsmanagement.SolutionsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -514,6 +516,7 @@ func (client SolutionsClient) UpdatePreparer(ctx context.Context, resourceGroupN
 // http.Response Body if it receives an error.
 func (client SolutionsClient) UpdateSender(req *http.Request) (future SolutionsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

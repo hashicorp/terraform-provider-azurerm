@@ -1,4 +1,5 @@
 API Management
+Active Directory Domain Services
 Advisor
 Analysis Services
 App Configuration
@@ -46,6 +47,7 @@ Lighthouse
 Load Balancer
 Log Analytics
 Logic App
+Logz
 Machine Learning
 Maintenance
 Managed Applications
@@ -69,6 +71,7 @@ Search
 Security Center
 Sentinel
 Service Fabric
+Service Fabric Managed Clusters
 Service Fabric Mesh
 Spring Cloud
 Storage
@@ -77,3 +80,4 @@ Synapse
 Template
 Time Series Insights
 VMware (AVS)
+Video Analyzer

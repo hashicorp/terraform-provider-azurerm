@@ -99,12 +99,12 @@ resource "azurerm_netapp_volume" "example_primary" {
   subnet_id           = azurerm_subnet.example_primary.id
   storage_quota_in_gb = 100
 
-  export_policy_rule  {
-   rule_index        = 1
-   allowed_clients   = ["0.0.0.0/0"]
-   protocols_enabled = ["NFSv3"]
-   unix_read_only    = false
-   unix_read_write   = true
+  export_policy_rule {
+    rule_index        = 1
+    allowed_clients   = ["0.0.0.0/0"]
+    protocols_enabled = ["NFSv3"]
+    unix_read_only    = false
+    unix_read_write   = true
   }
 }
 
@@ -113,7 +113,7 @@ resource "azurerm_netapp_volume" "example_secondary" {
     prevent_destroy = true
   }
 
-  depends_on = [ azurerm_netapp_volume.example_primary ]
+  depends_on = [azurerm_netapp_volume.example_primary]
 
   name                = "${var.prefix}-netappvolume-secondary"
   location            = var.alt_location
@@ -126,18 +126,18 @@ resource "azurerm_netapp_volume" "example_secondary" {
   subnet_id           = azurerm_subnet.example_secondary.id
   storage_quota_in_gb = 100
 
-  export_policy_rule  {
-   rule_index        = 1
-   allowed_clients   = ["0.0.0.0/0"]
-   protocols_enabled = ["NFSv3"]
-   unix_read_only    = false
-   unix_read_write   = true
+  export_policy_rule {
+    rule_index        = 1
+    allowed_clients   = ["0.0.0.0/0"]
+    protocols_enabled = ["NFSv3"]
+    unix_read_only    = false
+    unix_read_write   = true
   }
 
   data_protection_replication {
-      endpoint_type             = "dst"
-      remote_volume_location    = azurerm_resource_group.example.location
-      remote_volume_resource_id = azurerm_netapp_volume.example_primary.id
-      replication_frequency      = "10minutes"
+    endpoint_type             = "dst"
+    remote_volume_location    = azurerm_resource_group.example.location
+    remote_volume_resource_id = azurerm_netapp_volume.example_primary.id
+    replication_frequency     = "10minutes"
   }
 }

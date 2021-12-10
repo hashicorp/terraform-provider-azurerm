@@ -39,7 +39,7 @@ resource "azurerm_servicebus_namespace" "secondary" {
 resource "azurerm_servicebus_namespace_disaster_recovery_config" "example" {
   name                 = "servicebus-alias-name"
   primary_namespace_id = azurerm_servicebus_namespace.primary.id
-  partner_namespace_id = azurerm_resource_group.secondary.id
+  partner_namespace_id = azurerm_servicebus_namespace.secondary.id
 }
 
 ```
@@ -60,9 +60,9 @@ The following attributes are exported:
 
 * `id` - The Service Bus Namespace Disaster Recovery Config ID.
 
-* `alias_primary_connection_string` - The alias Primary Connection String for the ServiceBus Namespace.
+* `primary_connection_string_alias` - The alias Primary Connection String for the ServiceBus Namespace.
 
-* `alias_secondary_connection_string` - The alias Secondary Connection String for the ServiceBus Namespace 
+* `secondary_connection_string_alias` - The alias Secondary Connection String for the ServiceBus Namespace 
 
 * `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
 

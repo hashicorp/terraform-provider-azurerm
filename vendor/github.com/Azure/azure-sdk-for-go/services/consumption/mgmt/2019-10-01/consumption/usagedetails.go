@@ -33,7 +33,8 @@ func NewUsageDetailsClientWithBaseURI(baseURI string, subscriptionID string) Usa
 }
 
 // List lists the usage details for the defined scope. Usage details are available via this API only for May 1, 2014 or
-// later.
+// later. For more information on using this API, including how to specify a date range, please see:
+// https://docs.microsoft.com/en-us/azure/cost-management-billing/costs/manage-automation
 // Parameters:
 // scope - the scope associated with usage details operations. This includes '/subscriptions/{subscriptionId}/'
 // for subscription scope, '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}' for Billing
@@ -54,7 +55,7 @@ func NewUsageDetailsClientWithBaseURI(baseURI string, subscriptionID string) Usa
 // partners.
 // expand - may be used to expand the properties/additionalInfo or properties/meterDetails within a list of
 // usage details. By default, these fields are not included when listing usage details.
-// filter - may be used to filter usageDetails by properties/resourceGroup, properties/resourceName,
+// filter - may be used to filter usageDetails by properties/resourceGroup, properties/instanceName,
 // properties/resourceId, properties/chargeType, properties/reservationId, properties/publisherType or tags.
 // The filter supports 'eq', 'lt', 'gt', 'le', 'ge', and 'and'. It does not currently support 'ne', 'or', or
 // 'not'. Tag filter is a key value pair string where key and value is separated by a colon (:). PublisherType

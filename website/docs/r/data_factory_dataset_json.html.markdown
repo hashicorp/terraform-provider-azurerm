@@ -103,6 +103,10 @@ A `http_server_location` block supports the following:
 
 * `filename` - (Required) The filename of the file on the web server.
 
+* `dynamic_path_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
+
+* `dynamic_filename_enabled` - (Optional) Is the `filename` using dynamic expression, function or system variables? Defaults to `false`.
+
 ---
 
 A `azure_blob_storage_location` block supports the following:
@@ -112,6 +116,10 @@ A `azure_blob_storage_location` block supports the following:
 * `path` - (Required) The folder path to the file on the web server.
 
 * `filename` - (Required) The filename of the file on the web server.
+
+* `dynamic_path_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
+
+* `dynamic_filename_enabled` - (Optional) Is the `filename` using dynamic expression, function or system variables? Defaults to `false`.
 
 ## Attributes Reference
 
@@ -133,5 +141,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Data Factory Datasets can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_factory_dataset_http.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/datasets/example
+terraform import azurerm_data_factory_dataset_json.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/datasets/example
 ```

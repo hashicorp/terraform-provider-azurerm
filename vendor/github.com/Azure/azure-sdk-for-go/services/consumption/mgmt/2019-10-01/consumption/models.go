@@ -35,6 +35,24 @@ func (a Amount) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// AmountWithExchangeRate reseller details
+type AmountWithExchangeRate struct {
+	// ExchangeRate - READ-ONLY; Exchange Rate.
+	ExchangeRate *decimal.Decimal `json:"exchangeRate,omitempty"`
+	// ExchangeRateMonth - READ-ONLY; Exchange rate month.
+	ExchangeRateMonth *float64 `json:"exchangeRateMonth,omitempty"`
+	// Currency - READ-ONLY; Amount currency.
+	Currency *string `json:"currency,omitempty"`
+	// Value - READ-ONLY; Amount.
+	Value *decimal.Decimal `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AmountWithExchangeRate.
+func (awer AmountWithExchangeRate) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // Balance a balance resource.
 type Balance struct {
 	autorest.Response  `json:"-"`
@@ -45,6 +63,8 @@ type Balance struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 }
@@ -103,6 +123,15 @@ func (b *Balance) UnmarshalJSON(body []byte) error {
 				}
 				b.Type = &typeVar
 			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				b.Etag = &etag
+			}
 		case "tags":
 			if v != nil {
 				var tags map[string]*string
@@ -142,7 +171,7 @@ type BalanceProperties struct {
 	TotalUsage *decimal.Decimal `json:"totalUsage,omitempty"`
 	// AzureMarketplaceServiceCharges - READ-ONLY; Total charges for Azure Marketplace.
 	AzureMarketplaceServiceCharges *decimal.Decimal `json:"azureMarketplaceServiceCharges,omitempty"`
-	// BillingFrequency - The billing frequency. Possible values include: 'Month', 'Quarter', 'Year'
+	// BillingFrequency - The billing frequency. Possible values include: 'BillingFrequencyMonth', 'BillingFrequencyQuarter', 'BillingFrequencyYear'
 	BillingFrequency BillingFrequency `json:"billingFrequency,omitempty"`
 	// PriceHidden - READ-ONLY; Price is hidden or not.
 	PriceHidden *bool `json:"priceHidden,omitempty"`
@@ -315,12 +344,14 @@ type BudgetProperties struct {
 	TimeGrain TimeGrainType `json:"timeGrain,omitempty"`
 	// TimePeriod - Has start and end date of the budget. The start date must be first of the month and should be less than the end date. Budget start date must be on or after June 1, 2017. Future start date should not be more than twelve months. Past start date should  be selected within the timegrain period. There are no restrictions on the end date.
 	TimePeriod *BudgetTimePeriod `json:"timePeriod,omitempty"`
-	// Filter - May be used to filter budgets by resource group, resource, or meter.
+	// Filter - May be used to filter budgets by user-specified dimensions and/or tags.
 	Filter *BudgetFilter `json:"filter,omitempty"`
 	// CurrentSpend - READ-ONLY; The current amount of cost which is being tracked for a budget.
 	CurrentSpend *CurrentSpend `json:"currentSpend,omitempty"`
 	// Notifications - Dictionary of notifications associated with the budget. Budget can have up to five notifications.
 	Notifications map[string]*Notification `json:"notifications"`
+	// ForecastSpend - READ-ONLY; The forecasted cost which is being tracked for a budget.
+	ForecastSpend *ForecastSpend `json:"forecastSpend,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for BudgetProperties.
@@ -574,6 +605,8 @@ type ChargeSummary struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 }
@@ -655,6 +688,10 @@ type CreditBalanceSummary struct {
 	EstimatedBalance *Amount `json:"estimatedBalance,omitempty"`
 	// CurrentBalance - READ-ONLY; Current balance.
 	CurrentBalance *Amount `json:"currentBalance,omitempty"`
+	// EstimatedBalanceInBillingCurrency - READ-ONLY; Current balance.
+	EstimatedBalanceInBillingCurrency *AmountWithExchangeRate `json:"estimatedBalanceInBillingCurrency,omitempty"`
+	// CurrentBalanceInBillingCurrency - READ-ONLY; Current balance.
+	CurrentBalanceInBillingCurrency *AmountWithExchangeRate `json:"currentBalanceInBillingCurrency,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for CreditBalanceSummary.
@@ -673,6 +710,8 @@ type CreditSummary struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 }
@@ -731,6 +770,15 @@ func (cs *CreditSummary) UnmarshalJSON(body []byte) error {
 				}
 				cs.Type = &typeVar
 			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				cs.Etag = &etag
+			}
 		case "tags":
 			if v != nil {
 				var tags map[string]*string
@@ -748,6 +796,10 @@ func (cs *CreditSummary) UnmarshalJSON(body []byte) error {
 
 // CreditSummaryProperties the properties of the credit summary.
 type CreditSummaryProperties struct {
+	// CreditCurrency - READ-ONLY; Credit Currency
+	CreditCurrency *string `json:"creditCurrency,omitempty"`
+	// BillingCurrency - READ-ONLY; Billing Currency.
+	BillingCurrency *string `json:"billingCurrency,omitempty"`
 	// BalanceSummary - READ-ONLY; Summary of balances associated with this credit summary.
 	BalanceSummary *CreditBalanceSummary `json:"balanceSummary,omitempty"`
 	// PendingCreditAdjustments - READ-ONLY; Pending credit adjustments.
@@ -756,6 +808,8 @@ type CreditSummaryProperties struct {
 	ExpiredCredit *Amount `json:"expiredCredit,omitempty"`
 	// PendingEligibleCharges - READ-ONLY; Pending eligible charges.
 	PendingEligibleCharges *Amount `json:"pendingEligibleCharges,omitempty"`
+	// Reseller - READ-ONLY; Reseller details.
+	Reseller *Reseller `json:"reseller,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for CreditSummaryProperties.
@@ -774,6 +828,20 @@ type CurrentSpend struct {
 
 // MarshalJSON is the custom marshaler for CurrentSpend.
 func (cs CurrentSpend) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// DownloadProperties the properties of the price sheet download.
+type DownloadProperties struct {
+	// DownloadURL - READ-ONLY; The link (url) to download the pricesheet.
+	DownloadURL *string `json:"downloadUrl,omitempty"`
+	// ValidTill - READ-ONLY; Download link validity.
+	ValidTill *string `json:"validTill,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DownloadProperties.
+func (dp DownloadProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
 }
@@ -809,24 +877,40 @@ type ErrorResponse struct {
 
 // EventProperties the event properties.
 type EventProperties struct {
+	// CreditCurrency - READ-ONLY; Credit Currency
+	CreditCurrency *string `json:"creditCurrency,omitempty"`
+	// BillingCurrency - READ-ONLY; Billing Currency.
+	BillingCurrency *string `json:"billingCurrency,omitempty"`
 	// TransactionDate - READ-ONLY; Transaction date.
 	TransactionDate *date.Time `json:"transactionDate,omitempty"`
 	// Description - READ-ONLY; Transaction description.
 	Description *string `json:"description,omitempty"`
 	// NewCredit - READ-ONLY; New Credit.
 	NewCredit *Amount `json:"newCredit,omitempty"`
+	// NewCreditInBillingCurrency - READ-ONLY; Current balance.
+	NewCreditInBillingCurrency *AmountWithExchangeRate `json:"newCreditInBillingCurrency,omitempty"`
 	// Adjustments - READ-ONLY; Adjustments amount.
 	Adjustments *Amount `json:"adjustments,omitempty"`
+	// AdjustmentsInBillingCurrency - READ-ONLY; Current balance.
+	AdjustmentsInBillingCurrency *AmountWithExchangeRate `json:"adjustmentsInBillingCurrency,omitempty"`
 	// CreditExpired - READ-ONLY; Credit expired.
 	CreditExpired *Amount `json:"creditExpired,omitempty"`
+	// CreditExpiredInBillingCurrency - READ-ONLY; Current balance.
+	CreditExpiredInBillingCurrency *AmountWithExchangeRate `json:"creditExpiredInBillingCurrency,omitempty"`
 	// Charges - READ-ONLY; Charges amount.
 	Charges *Amount `json:"charges,omitempty"`
+	// ChargesInBillingCurrency - READ-ONLY; Current balance.
+	ChargesInBillingCurrency *AmountWithExchangeRate `json:"chargesInBillingCurrency,omitempty"`
 	// ClosedBalance - READ-ONLY; Closed balance.
 	ClosedBalance *Amount `json:"closedBalance,omitempty"`
-	// EventType - The type of event. Possible values include: 'SettledCharges', 'PendingCharges', 'PendingAdjustments', 'PendingNewCredit', 'PendingExpiredCredit', 'UnKnown', 'NewCredit'
+	// ClosedBalanceInBillingCurrency - READ-ONLY; Current balance.
+	ClosedBalanceInBillingCurrency *AmountWithExchangeRate `json:"closedBalanceInBillingCurrency,omitempty"`
+	// EventType - The type of event. Possible values include: 'EventTypeSettledCharges', 'EventTypePendingCharges', 'EventTypePendingAdjustments', 'EventTypePendingNewCredit', 'EventTypePendingExpiredCredit', 'EventTypeUnKnown', 'EventTypeNewCredit'
 	EventType EventType `json:"eventType,omitempty"`
 	// InvoiceNumber - READ-ONLY; Invoice number.
 	InvoiceNumber *string `json:"invoiceNumber,omitempty"`
+	// Reseller - READ-ONLY; Reseller details.
+	Reseller *Reseller `json:"reseller,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for EventProperties.
@@ -1012,6 +1096,8 @@ type EventSummary struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 }
@@ -1070,6 +1156,15 @@ func (es *EventSummary) UnmarshalJSON(body []byte) error {
 				}
 				es.Type = &typeVar
 			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				es.Etag = &etag
+			}
 		case "tags":
 			if v != nil {
 				var tags map[string]*string
@@ -1094,6 +1189,8 @@ type Forecast struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 }
@@ -1152,6 +1249,15 @@ func (f *Forecast) UnmarshalJSON(body []byte) error {
 				}
 				f.Type = &typeVar
 			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				f.Etag = &etag
+			}
 		case "tags":
 			if v != nil {
 				var tags map[string]*string
@@ -1171,7 +1277,7 @@ func (f *Forecast) UnmarshalJSON(body []byte) error {
 type ForecastProperties struct {
 	// UsageDate - READ-ONLY; The usage date of the forecast.
 	UsageDate *string `json:"usageDate,omitempty"`
-	// Grain - The granularity of forecast. Possible values include: 'Daily', 'Monthly', 'Yearly'
+	// Grain - The granularity of forecast. Please note that Yearly is not currently supported in this API. The API will provide responses in the Monthly grain if Yearly is selected. To get yearly grain data, please use our newer Forecast API. Possible values include: 'GrainDaily', 'GrainMonthly', 'GrainYearly'
 	Grain Grain `json:"grain,omitempty"`
 	// Charge - READ-ONLY; The amount of charge
 	Charge *decimal.Decimal `json:"charge,omitempty"`
@@ -1199,7 +1305,7 @@ func (fp ForecastProperties) MarshalJSON() ([]byte, error) {
 type ForecastPropertiesConfidenceLevelsItem struct {
 	// Percentage - READ-ONLY; The percentage level of the confidence
 	Percentage *decimal.Decimal `json:"percentage,omitempty"`
-	// Bound - The boundary of the percentage, values could be 'Upper' or 'Lower'. Possible values include: 'Upper', 'Lower'
+	// Bound - The boundary of the percentage, values could be 'Upper' or 'Lower'. Possible values include: 'BoundUpper', 'BoundLower'
 	Bound Bound `json:"bound,omitempty"`
 	// Value - READ-ONLY; The amount of forecast within the percentage level
 	Value *decimal.Decimal `json:"value,omitempty"`
@@ -1227,6 +1333,49 @@ func (flr ForecastsListResult) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// ForecastSpend the forecasted cost which is being tracked for a budget.
+type ForecastSpend struct {
+	// Amount - READ-ONLY; The forecasted cost for the total time period which is being tracked by the budget. This value is only provided if the budget contains a forecast alert type.
+	Amount *decimal.Decimal `json:"amount,omitempty"`
+	// Unit - READ-ONLY; The unit of measure for the budget amount.
+	Unit *string `json:"unit,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ForecastSpend.
+func (fs ForecastSpend) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// HighCasedErrorDetails the details of the error.
+type HighCasedErrorDetails struct {
+	// Code - READ-ONLY; Error code.
+	Code *string `json:"code,omitempty"`
+	// Message - READ-ONLY; Error message indicating why the operation failed.
+	Message *string `json:"message,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for HighCasedErrorDetails.
+func (hced HighCasedErrorDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// HighCasedErrorResponse error response indicates that the service is not able to process the incoming
+// request. The reason is provided in the error message.
+//
+// Some Error responses:
+//
+// * 429 TooManyRequests - Request is throttled. Retry after waiting for the time specified in the
+// "x-ms-ratelimit-microsoft.consumption-retry-after" header.
+//
+// * 503 ServiceUnavailable - Service is temporarily unavailable. Retry after waiting for the time
+// specified in the "Retry-After" header.
+type HighCasedErrorResponse struct {
+	// Error - The details of the error.
+	Error *HighCasedErrorDetails `json:"error,omitempty"`
+}
+
 // LegacyChargeSummary legacy charge summary.
 type LegacyChargeSummary struct {
 	// LegacyChargeSummaryProperties - Properties for legacy charge summary
@@ -1239,6 +1388,8 @@ type LegacyChargeSummary struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 }
@@ -1330,6 +1481,15 @@ func (lcs *LegacyChargeSummary) UnmarshalJSON(body []byte) error {
 				}
 				lcs.Type = &typeVar
 			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				lcs.Etag = &etag
+			}
 		case "tags":
 			if v != nil {
 				var tags map[string]*string
@@ -1379,6 +1539,8 @@ type LegacyReservationRecommendation struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 	// Location - READ-ONLY; Resource location
@@ -1467,6 +1629,15 @@ func (lrr *LegacyReservationRecommendation) UnmarshalJSON(body []byte) error {
 				}
 				lrr.Type = &typeVar
 			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				lrr.Etag = &etag
+			}
 		case "tags":
 			if v != nil {
 				var tags map[string]*string
@@ -1514,7 +1685,7 @@ type LegacyReservationRecommendationProperties struct {
 	// LookBackPeriod - READ-ONLY; The number of days of usage to look back for recommendation.
 	LookBackPeriod *string `json:"lookBackPeriod,omitempty"`
 	// InstanceFlexibilityRatio - READ-ONLY; The instance Flexibility Ratio.
-	InstanceFlexibilityRatio *int32 `json:"instanceFlexibilityRatio,omitempty"`
+	InstanceFlexibilityRatio *float64 `json:"instanceFlexibilityRatio,omitempty"`
 	// InstanceFlexibilityGroup - READ-ONLY; The instance Flexibility Group.
 	InstanceFlexibilityGroup *string `json:"instanceFlexibilityGroup,omitempty"`
 	// NormalizedSize - READ-ONLY; The normalized Size.
@@ -1523,6 +1694,8 @@ type LegacyReservationRecommendationProperties struct {
 	RecommendedQuantityNormalized *float64 `json:"recommendedQuantityNormalized,omitempty"`
 	// MeterID - READ-ONLY; The meter id (GUID)
 	MeterID *uuid.UUID `json:"meterId,omitempty"`
+	// ResourceType - READ-ONLY; The azure resource type.
+	ResourceType *string `json:"resourceType,omitempty"`
 	// Term - READ-ONLY; RI recommendations in one or three year terms.
 	Term *string `json:"term,omitempty"`
 	// CostWithNoReservedInstances - READ-ONLY; The total amount of cost without reserved instances.
@@ -1689,6 +1862,8 @@ type LegacyUsageDetail struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 	// Kind - Possible values include: 'KindUsageDetail', 'KindLegacy', 'KindModern'
@@ -1781,6 +1956,15 @@ func (lud *LegacyUsageDetail) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				lud.Type = &typeVar
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				lud.Etag = &etag
 			}
 		case "tags":
 			if v != nil {
@@ -1893,11 +2077,19 @@ func (ludp LegacyUsageDetailProperties) MarshalJSON() ([]byte, error) {
 
 // LotProperties the lot properties.
 type LotProperties struct {
+	// CreditCurrency - READ-ONLY; Credit Currency
+	CreditCurrency *string `json:"creditCurrency,omitempty"`
+	// BillingCurrency - READ-ONLY; Billing Currency.
+	BillingCurrency *string `json:"billingCurrency,omitempty"`
 	// OriginalAmount - READ-ONLY; Original amount.
 	OriginalAmount *Amount `json:"originalAmount,omitempty"`
+	// OriginalAmountInBillingCurrency - READ-ONLY; Current balance.
+	OriginalAmountInBillingCurrency *AmountWithExchangeRate `json:"originalAmountInBillingCurrency,omitempty"`
 	// ClosedBalance - READ-ONLY; Closed balance.
 	ClosedBalance *Amount `json:"closedBalance,omitempty"`
-	// Source - READ-ONLY; Lot source. Possible values include: 'PurchasedCredit', 'PromotionalCredit'
+	// ClosedBalanceInBillingCurrency - READ-ONLY; Current balance.
+	ClosedBalanceInBillingCurrency *AmountWithExchangeRate `json:"closedBalanceInBillingCurrency,omitempty"`
+	// Source - READ-ONLY; Lot source. Possible values include: 'LotSourcePurchasedCredit', 'LotSourcePromotionalCredit'
 	Source LotSource `json:"source,omitempty"`
 	// StartDate - READ-ONLY; Start date.
 	StartDate *date.Time `json:"startDate,omitempty"`
@@ -1905,6 +2097,8 @@ type LotProperties struct {
 	ExpirationDate *date.Time `json:"expirationDate,omitempty"`
 	// PoNumber - READ-ONLY; PO number.
 	PoNumber *string `json:"poNumber,omitempty"`
+	// Reseller - READ-ONLY; Reseller details.
+	Reseller *Reseller `json:"reseller,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for LotProperties.
@@ -2087,6 +2281,8 @@ type LotSummary struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 }
@@ -2144,6 +2340,15 @@ func (ls *LotSummary) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				ls.Type = &typeVar
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				ls.Etag = &etag
 			}
 		case "tags":
 			if v != nil {
@@ -2209,6 +2414,8 @@ type ManagementGroupAggregatedCostResult struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 }
@@ -2267,6 +2474,15 @@ func (mgacr *ManagementGroupAggregatedCostResult) UnmarshalJSON(body []byte) err
 				}
 				mgacr.Type = &typeVar
 			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				mgacr.Etag = &etag
+			}
 		case "tags":
 			if v != nil {
 				var tags map[string]*string
@@ -2291,6 +2507,8 @@ type Marketplace struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 }
@@ -2349,6 +2567,15 @@ func (mVar *Marketplace) UnmarshalJSON(body []byte) error {
 				}
 				mVar.Type = &typeVar
 			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				mVar.Etag = &etag
+			}
 		case "tags":
 			if v != nil {
 				var tags map[string]*string
@@ -2378,6 +2605,8 @@ type MarketplaceProperties struct {
 	OfferName *string `json:"offerName,omitempty"`
 	// ResourceGroup - READ-ONLY; The name of resource group.
 	ResourceGroup *string `json:"resourceGroup,omitempty"`
+	// AdditionalInfo - READ-ONLY; Additional information.
+	AdditionalInfo *string `json:"additionalInfo,omitempty"`
 	// OrderNumber - READ-ONLY; The order number.
 	OrderNumber *string `json:"orderNumber,omitempty"`
 	// InstanceName - READ-ONLY; The name of the resource instance that the usage is about.
@@ -2650,6 +2879,8 @@ type ModernChargeSummary struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 }
@@ -2741,6 +2972,15 @@ func (mcs *ModernChargeSummary) UnmarshalJSON(body []byte) error {
 				}
 				mcs.Type = &typeVar
 			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				mcs.Etag = &etag
+			}
 		case "tags":
 			if v != nil {
 				var tags map[string]*string
@@ -2792,12 +3032,16 @@ func (mcsp ModernChargeSummaryProperties) MarshalJSON() ([]byte, error) {
 type ModernReservationRecommendation struct {
 	// ModernReservationRecommendationProperties - Properties for modern reservation recommendation
 	*ModernReservationRecommendationProperties `json:"properties,omitempty"`
+	// ETag - READ-ONLY; Resource eTag.
+	ETag *string `json:"eTag,omitempty"`
 	// ID - READ-ONLY; Resource Id.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 	// Location - READ-ONLY; Resource location
@@ -2859,6 +3103,15 @@ func (mrr *ModernReservationRecommendation) UnmarshalJSON(body []byte) error {
 				}
 				mrr.ModernReservationRecommendationProperties = &modernReservationRecommendationProperties
 			}
+		case "eTag":
+			if v != nil {
+				var eTag string
+				err = json.Unmarshal(*v, &eTag)
+				if err != nil {
+					return err
+				}
+				mrr.ETag = &eTag
+			}
 		case "id":
 			if v != nil {
 				var ID string
@@ -2885,6 +3138,15 @@ func (mrr *ModernReservationRecommendation) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				mrr.Type = &typeVar
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				mrr.Etag = &etag
 			}
 		case "tags":
 			if v != nil {
@@ -2930,10 +3192,12 @@ func (mrr *ModernReservationRecommendation) UnmarshalJSON(body []byte) error {
 
 // ModernReservationRecommendationProperties the properties of the reservation recommendation.
 type ModernReservationRecommendationProperties struct {
+	// Location - READ-ONLY; Resource Location.
+	Location *string `json:"location,omitempty"`
 	// LookBackPeriod - READ-ONLY; The number of days of usage to look back for recommendation.
-	LookBackPeriod *string `json:"lookBackPeriod,omitempty"`
+	LookBackPeriod *int32 `json:"lookBackPeriod,omitempty"`
 	// InstanceFlexibilityRatio - READ-ONLY; The instance Flexibility Ratio.
-	InstanceFlexibilityRatio *int32 `json:"instanceFlexibilityRatio,omitempty"`
+	InstanceFlexibilityRatio *float64 `json:"instanceFlexibilityRatio,omitempty"`
 	// InstanceFlexibilityGroup - READ-ONLY; The instance Flexibility Group.
 	InstanceFlexibilityGroup *string `json:"instanceFlexibilityGroup,omitempty"`
 	// NormalizedSize - READ-ONLY; The normalized Size.
@@ -2958,6 +3222,12 @@ type ModernReservationRecommendationProperties struct {
 	Scope *string `json:"scope,omitempty"`
 	// SkuProperties - READ-ONLY; List of sku properties
 	SkuProperties *[]SkuProperty `json:"skuProperties,omitempty"`
+	// SkuName - READ-ONLY; This is the ARM Sku name.
+	SkuName *string `json:"skuName,omitempty"`
+	// ResourceType - READ-ONLY; The Azure resource type.
+	ResourceType *string `json:"resourceType,omitempty"`
+	// SubscriptionID - READ-ONLY; The Azure subscription ID.
+	SubscriptionID *string `json:"subscriptionId,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ModernReservationRecommendationProperties.
@@ -3276,6 +3546,8 @@ type ModernUsageDetail struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 }
@@ -3367,6 +3639,15 @@ func (mud *ModernUsageDetail) UnmarshalJSON(body []byte) error {
 				}
 				mud.Type = &typeVar
 			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				mud.Etag = &etag
+			}
 		case "tags":
 			if v != nil {
 				var tags map[string]*string
@@ -3405,7 +3686,7 @@ type ModernUsageDetailProperties struct {
 	// Product - READ-ONLY; Name of the product that has accrued charges by consumption or purchase as listed in the invoice. Not available for Marketplace.
 	Product *string `json:"product,omitempty"`
 	// MeterID - READ-ONLY; The meter id (GUID). Not available for marketplace. For reserved instance this represents the primary meter for which the reservation was purchased. For the actual VM Size for which the reservation is purchased see productOrderName.
-	MeterID *uuid.UUID `json:"meterId,omitempty"`
+	MeterID *string `json:"meterId,omitempty"`
 	// MeterName - READ-ONLY; Identifies the name of the meter against which consumption is measured.
 	MeterName *string `json:"meterName,omitempty"`
 	// MeterRegion - READ-ONLY; Identifies the location of the datacenter for certain services that are priced based on datacenter location.
@@ -3480,7 +3761,7 @@ type ModernUsageDetailProperties struct {
 	PreviousInvoiceID *string `json:"previousInvoiceId,omitempty"`
 	// PricingCurrencyCode - READ-ONLY; Pricing Billing Currency.
 	PricingCurrencyCode *string `json:"pricingCurrencyCode,omitempty"`
-	// ProductIdentifier - READ-ONLY; Identifer for the product that has accrued charges by consumption or purchase . This is the concatenated key of productId and SKuId in partner center.
+	// ProductIdentifier - READ-ONLY; Identifier for the product that has accrued charges by consumption or purchase . This is the concatenated key of productId and SkuId in partner center.
 	ProductIdentifier *string `json:"productIdentifier,omitempty"`
 	// ResourceLocationNormalized - READ-ONLY; Resource Location Normalized.
 	ResourceLocationNormalized *string `json:"resourceLocationNormalized,omitempty"`
@@ -3514,6 +3795,8 @@ type ModernUsageDetailProperties struct {
 	PartnerEarnedCreditRate *decimal.Decimal `json:"partnerEarnedCreditRate,omitempty"`
 	// PartnerEarnedCreditApplied - READ-ONLY; Flag to indicate if partner earned credit has been applied or not.
 	PartnerEarnedCreditApplied *string `json:"partnerEarnedCreditApplied,omitempty"`
+	// PayGPrice - READ-ONLY; Retail price for the resource.
+	PayGPrice *decimal.Decimal `json:"payGPrice,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ModernUsageDetailProperties.
@@ -3526,22 +3809,26 @@ func (mudp ModernUsageDetailProperties) MarshalJSON() ([]byte, error) {
 type Notification struct {
 	// Enabled - The notification is enabled or not.
 	Enabled *bool `json:"enabled,omitempty"`
-	// Operator - The comparison operator. Possible values include: 'EqualTo', 'GreaterThan', 'GreaterThanOrEqualTo'
+	// Operator - The comparison operator. Possible values include: 'OperatorTypeEqualTo', 'OperatorTypeGreaterThan', 'OperatorTypeGreaterThanOrEqualTo'
 	Operator OperatorType `json:"operator,omitempty"`
 	// Threshold - Threshold value associated with a notification. Notification is sent when the cost exceeded the threshold. It is always percent and has to be between 0 and 1000.
 	Threshold *decimal.Decimal `json:"threshold,omitempty"`
-	// ContactEmails - Email addresses to send the budget notification to when the threshold is exceeded.
+	// ContactEmails - Email addresses to send the budget notification to when the threshold is exceeded. Must have at least one contact email or contact group specified at the Subscription or Resource Group scopes. All other scopes must have at least one contact email specified.
 	ContactEmails *[]string `json:"contactEmails,omitempty"`
 	// ContactRoles - Contact roles to send the budget notification to when the threshold is exceeded.
 	ContactRoles *[]string `json:"contactRoles,omitempty"`
-	// ContactGroups - Action groups to send the budget notification to when the threshold is exceeded.
+	// ContactGroups - Action groups to send the budget notification to when the threshold is exceeded. Must be provided as a fully qualified Azure resource id. Only supported at Subscription or Resource Group scopes.
 	ContactGroups *[]string `json:"contactGroups,omitempty"`
-	// ThresholdType - The type of threshold. Possible values include: 'Actual'
+	// ThresholdType - The type of threshold. Possible values include: 'ThresholdTypeActual'
 	ThresholdType ThresholdType `json:"thresholdType,omitempty"`
+	// Locale - Language in which the recipient will receive the notification. Possible values include: 'CultureCodeEnUs', 'CultureCodeJaJp', 'CultureCodeZhCn', 'CultureCodeDeDe', 'CultureCodeEsEs', 'CultureCodeFrFr', 'CultureCodeItIt', 'CultureCodeKoKr', 'CultureCodePtBr', 'CultureCodeRuRu', 'CultureCodeZhTw', 'CultureCodeCsCz', 'CultureCodePlPl', 'CultureCodeTrTr', 'CultureCodeDaDk', 'CultureCodeEnGb', 'CultureCodeHuHu', 'CultureCodeNbNo', 'CultureCodeNlNl', 'CultureCodePtPt', 'CultureCodeSvSe'
+	Locale CultureCode `json:"locale,omitempty"`
 }
 
 // Operation a Consumption REST API operation.
 type Operation struct {
+	// ID - READ-ONLY; Operation Id.
+	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Operation name: {provider}/{resource}/{operation}.
 	Name *string `json:"name,omitempty"`
 	// Display - The object that represents the operation.
@@ -3565,6 +3852,8 @@ type OperationDisplay struct {
 	Resource *string `json:"resource,omitempty"`
 	// Operation - READ-ONLY; Operation type: Read, write, delete, etc.
 	Operation *string `json:"operation,omitempty"`
+	// Description - READ-ONLY; Description of the operation.
+	Description *string `json:"description,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for OperationDisplay.
@@ -3745,6 +4034,8 @@ type PriceSheetModel struct {
 	Pricesheets *[]PriceSheetProperties `json:"pricesheets,omitempty"`
 	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+	// Download - READ-ONLY; Pricesheet download details.
+	Download *MeterDetails `json:"download,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for PriceSheetModel.
@@ -3791,6 +4082,8 @@ type PriceSheetResult struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 }
@@ -3849,6 +4142,15 @@ func (psr *PriceSheetResult) UnmarshalJSON(body []byte) error {
 				}
 				psr.Type = &typeVar
 			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				psr.Etag = &etag
+			}
 		case "tags":
 			if v != nil {
 				var tags map[string]*string
@@ -3885,6 +4187,20 @@ func (pr ProxyResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// Reseller reseller details
+type Reseller struct {
+	// ResellerID - READ-ONLY; Reseller id.
+	ResellerID *string `json:"resellerId,omitempty"`
+	// ResellerDescription - READ-ONLY; Reseller Description.
+	ResellerDescription *string `json:"resellerDescription,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Reseller.
+func (r Reseller) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ReservationDetail reservation detail resource.
 type ReservationDetail struct {
 	*ReservationDetailProperties `json:"properties,omitempty"`
@@ -3894,6 +4210,8 @@ type ReservationDetail struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 }
@@ -3951,6 +4269,15 @@ func (rd *ReservationDetail) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				rd.Type = &typeVar
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				rd.Etag = &etag
 			}
 		case "tags":
 			if v != nil {
@@ -4179,6 +4506,8 @@ type ReservationRecommendation struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 	// Location - READ-ONLY; Resource location
@@ -4293,7 +4622,9 @@ type ReservationRecommendationDetailsModel struct {
 	// Location - Resource Location.
 	Location *string `json:"location,omitempty"`
 	// Sku - Resource sku
-	Sku                                         *string `json:"sku,omitempty"`
+	Sku *string `json:"sku,omitempty"`
+	// ETag - Resource eTag.
+	ETag                                        *string `json:"eTag,omitempty"`
 	*ReservationRecommendationDetailsProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Resource Id.
 	ID *string `json:"id,omitempty"`
@@ -4301,6 +4632,8 @@ type ReservationRecommendationDetailsModel struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 }
@@ -4313,6 +4646,9 @@ func (rrdm ReservationRecommendationDetailsModel) MarshalJSON() ([]byte, error) 
 	}
 	if rrdm.Sku != nil {
 		objectMap["sku"] = rrdm.Sku
+	}
+	if rrdm.ETag != nil {
+		objectMap["eTag"] = rrdm.ETag
 	}
 	if rrdm.ReservationRecommendationDetailsProperties != nil {
 		objectMap["properties"] = rrdm.ReservationRecommendationDetailsProperties
@@ -4346,6 +4682,15 @@ func (rrdm *ReservationRecommendationDetailsModel) UnmarshalJSON(body []byte) er
 					return err
 				}
 				rrdm.Sku = &sku
+			}
+		case "eTag":
+			if v != nil {
+				var eTag string
+				err = json.Unmarshal(*v, &eTag)
+				if err != nil {
+					return err
+				}
+				rrdm.ETag = &eTag
 			}
 		case "properties":
 			if v != nil {
@@ -4382,6 +4727,15 @@ func (rrdm *ReservationRecommendationDetailsModel) UnmarshalJSON(body []byte) er
 					return err
 				}
 				rrdm.Type = &typeVar
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				rrdm.Etag = &etag
 			}
 		case "tags":
 			if v != nil {
@@ -4495,6 +4849,10 @@ type ReservationRecommendationsListResult struct {
 	Value *[]BasicReservationRecommendation `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+	// PreviousLink - READ-ONLY; The link (url) to the previous page of results.
+	PreviousLink *string `json:"previousLink,omitempty"`
+	// TotalCost - READ-ONLY; The total amount of cost.
+	TotalCost *string `json:"totalCost,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ReservationRecommendationsListResult.
@@ -4528,6 +4886,24 @@ func (rrlr *ReservationRecommendationsListResult) UnmarshalJSON(body []byte) err
 					return err
 				}
 				rrlr.NextLink = &nextLink
+			}
+		case "previousLink":
+			if v != nil {
+				var previousLink string
+				err = json.Unmarshal(*v, &previousLink)
+				if err != nil {
+					return err
+				}
+				rrlr.PreviousLink = &previousLink
+			}
+		case "totalCost":
+			if v != nil {
+				var totalCost string
+				err = json.Unmarshal(*v, &totalCost)
+				if err != nil {
+					return err
+				}
+				rrlr.TotalCost = &totalCost
 			}
 		}
 	}
@@ -4861,6 +5237,8 @@ type ReservationSummary struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 }
@@ -4918,6 +5296,15 @@ func (rs *ReservationSummary) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				rs.Type = &typeVar
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				rs.Etag = &etag
 			}
 		case "tags":
 			if v != nil {
@@ -5248,6 +5635,8 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 }
@@ -5290,12 +5679,27 @@ func (sp SkuProperty) MarshalJSON() ([]byte, error) {
 type Tag struct {
 	// Key - Tag key.
 	Key *string `json:"key,omitempty"`
+	// Value - Tag values.
+	Value *[]string `json:"value,omitempty"`
 }
 
 // TagProperties the properties of the tag.
 type TagProperties struct {
 	// Tags - A list of Tag.
 	Tags *[]Tag `json:"tags,omitempty"`
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+	// PreviousLink - READ-ONLY; The link (url) to the previous page of results.
+	PreviousLink *string `json:"previousLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TagProperties.
+func (tp TagProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tp.Tags != nil {
+		objectMap["tags"] = tp.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // TagsResult a resource listing all tags.
@@ -5401,6 +5805,8 @@ type UsageDetail struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; Resource etag.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - READ-ONLY; Resource tags.
 	Tags map[string]*string `json:"tags"`
 }

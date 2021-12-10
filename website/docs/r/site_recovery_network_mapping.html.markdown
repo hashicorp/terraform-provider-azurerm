@@ -42,7 +42,7 @@ resource "azurerm_site_recovery_fabric" "secondary" {
   resource_group_name = azurerm_resource_group.secondary.name
   recovery_vault_name = azurerm_recovery_services_vault.vault.name
   location            = azurerm_resource_group.secondary.location
-  depends_on          = [azurerm_site_recovery_fabric.primary] # Avoids issues with crearing fabrics simultainusly
+  depends_on          = [azurerm_site_recovery_fabric.primary] # Avoids issues with creating fabrics simultaneously
 }
 
 resource "azurerm_virtual_network" "primary" {

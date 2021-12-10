@@ -34,6 +34,40 @@ output "app_id" {
 }
 ```
 
+## Example Usage - Workspace Mode
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "tf-test"
+  location = "West Europe"
+}
+
+resource "azurerm_log_analytics_workspace" "example" {
+  name                = "workspace-test"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_application_insights" "example" {
+  name                = "tf-test-appinsights"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  workspace_id        = azurerm_log_analytics_workspace.example.id
+  application_type    = "web"
+}
+
+output "instrumentation_key" {
+  value = azurerm_application_insights.example.instrumentation_key
+}
+
+output "app_id" {
+  value = azurerm_application_insights.example.app_id
+}
+```
+
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -59,6 +93,14 @@ The following arguments are supported:
 * `disable_ip_masking` - (Optional) By default the real client ip is masked as `0.0.0.0` in the logs. Use this argument to disable masking and log the real client ip. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `workspace_id` - (Optional) Specifies the id of a log analytics workspace resource
+
+* `local_authentication_disabled` - (Optional) Disable Non-Azure AD based Auth. Defaults to `false`.
+
+* `internet_ingestion_enabled ` - (Optional) Should the Application Insights component support ingestion over the Public Internet? Defaults to `true`.
+
+* `internet_query_enabled` - (Optional) Should the Application Insights component support querying over the Public Internet? Defaults to `true`.
 
 ## Attributes Reference
 
@@ -86,5 +128,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Application Insights instances can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_application_insights.instance1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.insights/components/instance1
+terraform import azurerm_application_insights.instance1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Insights/components/instance1
 ```

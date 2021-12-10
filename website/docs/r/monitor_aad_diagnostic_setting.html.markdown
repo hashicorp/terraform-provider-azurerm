@@ -10,6 +10,8 @@ description: |-
 
 Manages an Azure Active Directory Diagnostic Setting for Azure Monitor.
 
+!> **Authentication** The API for this resource does not support service principal authentication. This resource can only be used with Azure CLI authentication.
+
 ## Example Usage
 
 ```hcl
@@ -112,7 +114,7 @@ The following arguments are supported:
 
 A `log` block supports the following:
 
-* `category` - (Required) The log category for the Azure Active Directory Diagnostic. Possible values are `AuditLogs`, `SignInLogs`, `ADFSSignInLogs`, `ManagedIdentitySignInLogs`, `NonInteractiveUserSignInLogs`, `ProvisioningLogs`, `ServicePrincipalSignInLogs`.
+* `category` - (Required) The log category for the Azure Active Directory Diagnostic. Possible values are `AuditLogs`, `SignInLogs`, `ADFSSignInLogs`, `ManagedIdentitySignInLogs`, `NonInteractiveUserSignInLogs`, `ProvisioningLogs`, `RiskyUsers`, `ServicePrincipalSignInLogs`, `UserRiskEvents`.
 
 * `retention_policy` - (Required) A `retention_policy` block as defined below.
 

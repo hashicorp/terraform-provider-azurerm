@@ -23,12 +23,21 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                     = "containerRegistry1"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = azurerm_resource_group.rg.location
-  sku                      = "Premium"
-  admin_enabled            = false
-  georeplication_locations = ["East US", "West Europe"]
+  name                = "containerRegistry1"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  sku                 = "Premium"
+  admin_enabled       = false
+  georeplications {
+    location                = "East US"
+    zone_redundancy_enabled = true
+    tags                    = {}
+  }
+  georeplications {
+    location                = "westeurope"
+    zone_redundancy_enabled = true
+    tags                    = {}
+  }
 }
 ```
 
@@ -89,8 +98,6 @@ The following arguments are supported:
 
 * `admin_enabled` - (Optional) Specifies whether the admin user is enabled. Defaults to `false`.
 
-* `storage_account_id` - (Required for `Classic` Sku - Forbidden otherwise) The ID of a Storage Account which must be located in the same Azure Region as the Container Registry.  Changing this forces a new resource to be created.
-
 * `sku` - (Optional) The SKU name of the container registry. Possible values are  `Basic`, `Standard` and `Premium`. `Classic` (which was previously `Basic`) is supported only for existing resources.
 
 ~> **NOTE:** The `Classic` SKU is Deprecated and will no longer be available for new resources from the end of March 2019.
@@ -117,21 +124,37 @@ The following arguments are supported:
 
 * `quarantine_policy_enabled` - (Optional) Boolean value that indicates whether quarantine policy is enabled. Defaults to `false`.
 
+* `regional_endpoint_enabled` - (Optional) Whether regional endpoint is enabled for this Container Registry? Defaults to `false`.
+
 * `retention_policy` - (Optional) A `retention_policy` block as documented below.
 
 * `trust_policy` - (Optional) A `trust_policy` block as documented below.
 
-* `identity` - (Optional) An `identity` block as documented below.
+* `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this Container Registry? Changing this forces a new resource to be created. Defaults to `false`.
+
+  ~> **NOTE:** `quarantine_policy_enabled`, `retention_policy`, `trust_policy` and `zone_redundancy_enabled` are only supported on resources with the `Premium` SKU.
+
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `encryption` - (Optional) An `encryption` block as documented below.
 
-~> **NOTE:** `quarantine_policy_enabled`, `retention_policy` and `trust_policy` are only supported on resources with the `Premium` SKU.
+* `anonymous_pull_enabled` - (Optional) Whether allows anonymous (unauthenticated) pull access to this Container Registry? Defaults to `false`. This is only supported on resources with the `Standard` or `Premium` SKU.
+
+* `data_endpoint_enabled` - (Optional) Whether to enable dedicated data endpoints for this Container Registry? Defaults to `false`. This is only supported on resources with the `Premium` SKU.
+
+* `network_rule_bypass_option` - (Optional) Whether to allow trusted Azure services to access a network restricted Container Registry? Possible values are `None` and `AzureServices`. Defaults to `AzureServices`.
+
+---
 
 `georeplications` supports the following:
 
 * `location` - (Required) A location where the container registry should be geo-replicated.
 
+* `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags to assign to this replication location.
+
+---
 
 `network_rule_set` supports the following:
 
@@ -145,11 +168,15 @@ The following arguments are supported:
 
 ~> **NOTE:** Azure automatically configures Network Rules - to remove these you'll need to specify an `network_rule_set` block with `default_action` set to `Deny`.
 
+---
+
 `ip_rule` supports the following:
 
 * `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
 
 * `ip_range` - (Required) The CIDR block from which requests will match the rule.
+
+---
 
 `virtual_network` supports the following:
 
@@ -157,9 +184,13 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The subnet id from which requests will match the rule.
 
+---
+
 `trust_policy` supports the following:
 
 * `enabled` - (Optional) Boolean value that indicates whether the policy is enabled.
+
+---
 
 `retention_policy` supports the following:
 
@@ -167,11 +198,15 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Boolean value that indicates whether the policy is enabled.
 
+---
+
 `identity` supports the following:
 
 * `type` - (Required) The type of Managed Identity which should be assigned to the Container Registry. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
 
 * `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Container Registry.
+
+---
 
 `encryption` supports the following:
 
@@ -179,7 +214,7 @@ The following arguments are supported:
 
 * `key_vault_key_id` - (Required) The ID of the Key Vault Key.
 
-* `identity_client_id`  - (Required) The client ID of the managed identity associated with the encryption key. 
+* `identity_client_id`  - (Required) The client ID of the managed identity associated with the encryption key.
 
 ~> **NOTE** The managed identity used in `encryption` also needs to be part of the `identity` block under `identity_ids`
 
@@ -195,6 +230,20 @@ The following attributes are exported:
 * `admin_username` - The Username associated with the Container Registry Admin account - if the admin account is enabled.
 
 * `admin_password` - The Password associated with the Container Registry Admin account - if the admin account is enabled.
+
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Container Registry.
+
+---
+
+A `identity` block exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Container Registry.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Container Registry.
+
+-> You can access the Principal ID via `azurerm_container_registry.example.identity.0.principal_id` and the Tenant ID via `azurerm_container_registry.example.identity.0.tenant_id`
+
+---
 
 ## Timeouts
 

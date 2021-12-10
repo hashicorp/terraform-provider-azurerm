@@ -6,7 +6,7 @@ description: |-
   Manages a log analytics Data Export Rule.
 ---
 
-# azurerm_log_analytics_data_export
+# azurerm_log_analytics_data_export_rule
 
 Manages a Log Analytics Data Export Rule.
 
@@ -40,6 +40,7 @@ resource "azurerm_log_analytics_data_export_rule" "example" {
   workspace_resource_id   = azurerm_log_analytics_workspace.example.id
   destination_resource_id = azurerm_storage_account.example.id
   table_names             = ["Heartbeat"]
+  enabled                 = true
 }
 ```
 

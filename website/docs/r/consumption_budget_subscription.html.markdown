@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "example" {
   location = "eastus"
 }
 
-resource "azurerm_monitor_action_group" "test" {
+resource "azurerm_monitor_action_group" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   short_name          = "example"
@@ -75,9 +75,10 @@ resource "azurerm_consumption_budget_subscription" "example" {
   }
 
   notification {
-    enabled   = false
-    threshold = 100.0
-    operator  = "GreaterThan"
+    enabled        = false
+    threshold      = 100.0
+    operator       = "GreaterThan"
+    threshold_type = "Forecasted"
 
     contact_emails = [
       "foo@example.com",
@@ -131,6 +132,8 @@ A `notification` block supports the following:
 
 * `threshold` - (Required) Threshold value associated with a notification. Notification is sent when the cost exceeded the threshold. It is always percent and has to be between 0 and 1000.
 
+* `threshold_type` - (Optional) The type of threshold for the notification. This determines whether the notification is triggered by forecasted costs or actual costs. The allowed values are `Actual` and `Forecasted`. Default is `Actual`. Changing this forces a new resource to be created.
+
 * `contact_emails` - (Optional) Specifies a list of email addresses to send the budget notification to when the threshold is exceeded.
 
 * `contact_groups` - (Optional) Specifies a list of Action Group IDs to send the budget notification to when the threshold is exceeded.
@@ -138,6 +141,8 @@ A `notification` block supports the following:
 * `contact_roles` - (Optional) Specifies a list of contact roles to send the budget notification to when the threshold is exceeded.
 
 * `enabled` - (Optional) Should the notification be enabled?
+
+~> **NOTE:** A `notification` block cannot have all of `contact_emails`, `contact_roles`, and `contact_groups` empty. This means that at least one of the three must be specified.
 
 ---
 
@@ -172,6 +177,8 @@ A `time_period` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Subscription Consumption Budget.
+
+* `etag` - The ETag of the Subscription Consumption Budget.
 
 ## Timeouts
 

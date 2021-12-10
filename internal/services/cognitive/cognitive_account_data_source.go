@@ -1,0 +1,117 @@
+package cognitive
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/sdk/2021-04-30/cognitiveservicesaccounts"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+)
+
+func dataSourceCognitiveAccount() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Read: dataSourceCognitiveAccountRead,
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		},
+
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+			},
+
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+
+			"location": azure.SchemaLocationForDataSource(),
+
+			"kind": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"sku_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"qna_runtime_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_access_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_access_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"tags": tags.SchemaDataSource(),
+		},
+	}
+}
+
+func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Cognitive.AccountsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := cognitiveservicesaccounts.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.AccountsGet(ctx, id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
+		}
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	keys, err := client.AccountsListKeys(ctx, id)
+	if err != nil {
+		// TODO: gracefully fail here
+		return fmt.Errorf("retrieving Keys for %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	if model := keys.Model; model != nil {
+		d.Set("primary_access_key", model.Key1)
+		d.Set("secondary_access_key", model.Key2)
+	}
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("kind", model.Kind)
+		if sku := model.Sku; sku != nil {
+			d.Set("sku_name", sku.Name)
+		}
+
+		if props := model.Properties; props != nil {
+			if apiProps := props.ApiProperties; apiProps != nil {
+				d.Set("qna_runtime_endpoint", apiProps.QnaRuntimeEndpoint)
+			}
+			d.Set("endpoint", props.Endpoint)
+		}
+
+		return tags.FlattenAndSet(d, flattenTags(model.Tags))
+	}
+	return nil
+}

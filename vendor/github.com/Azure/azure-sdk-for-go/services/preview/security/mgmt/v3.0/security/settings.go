@@ -33,7 +33,7 @@ func NewSettingsClientWithBaseURI(baseURI string, subscriptionID string, ascLoca
 
 // Get settings of different configurations in security center
 // Parameters:
-// settingName - name of setting: (MCAS/WDATP)
+// settingName - the name of the setting
 func (client SettingsClient) Get(ctx context.Context, settingName string) (result SettingModel, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SettingsClient.Get")
@@ -80,7 +80,7 @@ func (client SettingsClient) GetPreparer(ctx context.Context, settingName string
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -162,7 +162,7 @@ func (client SettingsClient) ListPreparer(ctx context.Context) (*http.Request, e
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -232,7 +232,7 @@ func (client SettingsClient) ListComplete(ctx context.Context) (result SettingsL
 
 // Update updating settings about different configurations in security center
 // Parameters:
-// settingName - name of setting: (MCAS/WDATP)
+// settingName - the name of the setting
 // setting - setting object
 func (client SettingsClient) Update(ctx context.Context, settingName string, setting BasicSetting) (result SettingModel, err error) {
 	if tracing.IsEnabled() {
@@ -280,7 +280,7 @@ func (client SettingsClient) UpdatePreparer(ctx context.Context, settingName str
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -65,7 +65,7 @@ func (client ReplicationRecoveryPlansClient) Create(ctx context.Context, recover
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -100,6 +100,7 @@ func (client ReplicationRecoveryPlansClient) CreatePreparer(ctx context.Context,
 // http.Response Body if it receives an error.
 func (client ReplicationRecoveryPlansClient) CreateSender(req *http.Request) (future ReplicationRecoveryPlansCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -145,7 +146,7 @@ func (client ReplicationRecoveryPlansClient) Delete(ctx context.Context, recover
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -178,6 +179,7 @@ func (client ReplicationRecoveryPlansClient) DeletePreparer(ctx context.Context,
 // http.Response Body if it receives an error.
 func (client ReplicationRecoveryPlansClient) DeleteSender(req *http.Request) (future ReplicationRecoveryPlansDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -222,7 +224,7 @@ func (client ReplicationRecoveryPlansClient) FailoverCommit(ctx context.Context,
 
 	result, err = client.FailoverCommitSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "FailoverCommit", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "FailoverCommit", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -255,6 +257,7 @@ func (client ReplicationRecoveryPlansClient) FailoverCommitPreparer(ctx context.
 // http.Response Body if it receives an error.
 func (client ReplicationRecoveryPlansClient) FailoverCommitSender(req *http.Request) (future ReplicationRecoveryPlansFailoverCommitFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -498,7 +501,7 @@ func (client ReplicationRecoveryPlansClient) PlannedFailover(ctx context.Context
 
 	result, err = client.PlannedFailoverSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "PlannedFailover", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "PlannedFailover", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -533,6 +536,7 @@ func (client ReplicationRecoveryPlansClient) PlannedFailoverPreparer(ctx context
 // http.Response Body if it receives an error.
 func (client ReplicationRecoveryPlansClient) PlannedFailoverSender(req *http.Request) (future ReplicationRecoveryPlansPlannedFailoverFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -578,7 +582,7 @@ func (client ReplicationRecoveryPlansClient) Reprotect(ctx context.Context, reco
 
 	result, err = client.ReprotectSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "Reprotect", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "Reprotect", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -611,6 +615,7 @@ func (client ReplicationRecoveryPlansClient) ReprotectPreparer(ctx context.Conte
 // http.Response Body if it receives an error.
 func (client ReplicationRecoveryPlansClient) ReprotectSender(req *http.Request) (future ReplicationRecoveryPlansReprotectFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -664,7 +669,7 @@ func (client ReplicationRecoveryPlansClient) TestFailover(ctx context.Context, r
 
 	result, err = client.TestFailoverSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "TestFailover", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "TestFailover", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -699,6 +704,7 @@ func (client ReplicationRecoveryPlansClient) TestFailoverPreparer(ctx context.Co
 // http.Response Body if it receives an error.
 func (client ReplicationRecoveryPlansClient) TestFailoverSender(req *http.Request) (future ReplicationRecoveryPlansTestFailoverFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -751,7 +757,7 @@ func (client ReplicationRecoveryPlansClient) TestFailoverCleanup(ctx context.Con
 
 	result, err = client.TestFailoverCleanupSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "TestFailoverCleanup", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "TestFailoverCleanup", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -786,6 +792,7 @@ func (client ReplicationRecoveryPlansClient) TestFailoverCleanupPreparer(ctx con
 // http.Response Body if it receives an error.
 func (client ReplicationRecoveryPlansClient) TestFailoverCleanupSender(req *http.Request) (future ReplicationRecoveryPlansTestFailoverCleanupFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -838,7 +845,7 @@ func (client ReplicationRecoveryPlansClient) UnplannedFailover(ctx context.Conte
 
 	result, err = client.UnplannedFailoverSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "UnplannedFailover", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "UnplannedFailover", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -873,6 +880,7 @@ func (client ReplicationRecoveryPlansClient) UnplannedFailoverPreparer(ctx conte
 // http.Response Body if it receives an error.
 func (client ReplicationRecoveryPlansClient) UnplannedFailoverSender(req *http.Request) (future ReplicationRecoveryPlansUnplannedFailoverFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -919,7 +927,7 @@ func (client ReplicationRecoveryPlansClient) Update(ctx context.Context, recover
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -954,6 +962,7 @@ func (client ReplicationRecoveryPlansClient) UpdatePreparer(ctx context.Context,
 // http.Response Body if it receives an error.
 func (client ReplicationRecoveryPlansClient) UpdateSender(req *http.Request) (future ReplicationRecoveryPlansUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

@@ -33,6 +33,7 @@ resource "azurerm_automation_certificate" "example" {
 
   description = "This is an example certificate"
   base64      = filebase64("certificate.pfx")
+  exportable  = true
 }
 ```
 
@@ -50,13 +51,13 @@ The following arguments are supported:
 
 * `description` -  (Optional) The description of this Automation Certificate.
 
+* `exportable` - (Optional) The is exportable flag of the certificate.
+
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The Automation Certificate ID.
-
-* `is_exportable` - The is exportable flag of the certificate.
 
 * `thumbprint` - The thumbprint for the certificate.
 

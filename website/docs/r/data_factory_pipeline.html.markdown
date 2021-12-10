@@ -72,7 +72,11 @@ The following arguments are supported:
 
 * `annotations` - (Optional) List of tags that can be used for describing the Data Factory Pipeline.
 
+* `concurrency` - (Optional) The max number of concurrent runs for the Data Factory Pipeline. Must be between `1` and `50`.
+
 * `folder` - (Optional) The folder that this Pipeline is in. If not specified, the Pipeline will appear at the root level.
+
+* `moniter_metrics_after_duration` - (Optional) The TimeSpan value after which an Azure Monitoring Metric is fired.
 
 * `parameters` - (Optional) A map of parameters to associate with the Data Factory Pipeline.
 

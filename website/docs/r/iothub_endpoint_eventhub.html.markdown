@@ -53,7 +53,6 @@ resource "azurerm_iothub" "example" {
 
   sku {
     name     = "B1"
-    tier     = "Basic"
     capacity = "1"
   }
 

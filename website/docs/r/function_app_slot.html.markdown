@@ -138,7 +138,15 @@ The following arguments are supported:
 
 * `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`.
 
+* `app_scale_limit` - (Optional) The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.
+
+* `runtime_scale_monitoring_enabled` - (Optional) Should Runtime Scale Monitoring be enabled?. Only applicable to apps on the Premium plan. Defaults to `false`.
+
+* `elastic_instance_minimum` - (Optional) The number of minimum instances for this function app. Only applicable to apps on the Premium plan.
+
 * `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this function app. Only affects apps on the Premium plan.
+
+* `dotnet_framework_version` - (Optional) The version of the .net framework's CLR used in this function app. Possible values are `v4.0` (including .NET Core 2.1 and 3.1), `v5.0` and `v6.0`. [For more information on which .net Framework version to use based on the runtime version you're targeting - please see this table](https://docs.microsoft.com/en-us/azure/azure-functions/functions-dotnet-class-library#supported-versions). Defaults to `v4.0`.
 
 * `cors` - (Optional) A `cors` block as defined below.
 
@@ -240,6 +248,14 @@ A `microsoft` block supports the following:
 
 ---
 
+A `twitter` block supports the following:
+
+* `consumer_key` - (Required) The OAuth 1.0a consumer key of the Twitter application used for sign-in.
+
+* `consumer_secret` - (Optional) The OAuth 1.0a consumer secret of the Twitter application used for sign-in.
+
+---
+
 A `ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
@@ -316,5 +332,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Function Apps Deployment Slots can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_function_app.functionapp1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/functionapp1/slots/staging
+terraform import azurerm_function_app_slot.functionapp1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/functionapp1/slots/staging
 ```

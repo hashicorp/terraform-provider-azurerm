@@ -10,94 +10,113 @@ package guestconfiguration
 type ActionAfterReboot string
 
 const (
-	// ContinueConfiguration ...
-	ContinueConfiguration ActionAfterReboot = "ContinueConfiguration"
-	// StopConfiguration ...
-	StopConfiguration ActionAfterReboot = "StopConfiguration"
+	// ActionAfterRebootContinueConfiguration ...
+	ActionAfterRebootContinueConfiguration ActionAfterReboot = "ContinueConfiguration"
+	// ActionAfterRebootStopConfiguration ...
+	ActionAfterRebootStopConfiguration ActionAfterReboot = "StopConfiguration"
 )
 
 // PossibleActionAfterRebootValues returns an array of possible values for the ActionAfterReboot const type.
 func PossibleActionAfterRebootValues() []ActionAfterReboot {
-	return []ActionAfterReboot{ContinueConfiguration, StopConfiguration}
+	return []ActionAfterReboot{ActionAfterRebootContinueConfiguration, ActionAfterRebootStopConfiguration}
+}
+
+// AssignmentType enumerates the values for assignment type.
+type AssignmentType string
+
+const (
+	// AssignmentTypeApplyAndAutoCorrect ...
+	AssignmentTypeApplyAndAutoCorrect AssignmentType = "ApplyAndAutoCorrect"
+	// AssignmentTypeApplyAndMonitor ...
+	AssignmentTypeApplyAndMonitor AssignmentType = "ApplyAndMonitor"
+	// AssignmentTypeAudit ...
+	AssignmentTypeAudit AssignmentType = "Audit"
+	// AssignmentTypeDeployAndAutoCorrect ...
+	AssignmentTypeDeployAndAutoCorrect AssignmentType = "DeployAndAutoCorrect"
+)
+
+// PossibleAssignmentTypeValues returns an array of possible values for the AssignmentType const type.
+func PossibleAssignmentTypeValues() []AssignmentType {
+	return []AssignmentType{AssignmentTypeApplyAndAutoCorrect, AssignmentTypeApplyAndMonitor, AssignmentTypeAudit, AssignmentTypeDeployAndAutoCorrect}
 }
 
 // ComplianceStatus enumerates the values for compliance status.
 type ComplianceStatus string
 
 const (
-	// Compliant ...
-	Compliant ComplianceStatus = "Compliant"
-	// NonCompliant ...
-	NonCompliant ComplianceStatus = "NonCompliant"
-	// Pending ...
-	Pending ComplianceStatus = "Pending"
+	// ComplianceStatusCompliant ...
+	ComplianceStatusCompliant ComplianceStatus = "Compliant"
+	// ComplianceStatusNonCompliant ...
+	ComplianceStatusNonCompliant ComplianceStatus = "NonCompliant"
+	// ComplianceStatusPending ...
+	ComplianceStatusPending ComplianceStatus = "Pending"
 )
 
 // PossibleComplianceStatusValues returns an array of possible values for the ComplianceStatus const type.
 func PossibleComplianceStatusValues() []ComplianceStatus {
-	return []ComplianceStatus{Compliant, NonCompliant, Pending}
+	return []ComplianceStatus{ComplianceStatusCompliant, ComplianceStatusNonCompliant, ComplianceStatusPending}
 }
 
 // ConfigurationMode enumerates the values for configuration mode.
 type ConfigurationMode string
 
 const (
-	// ApplyAndAutoCorrect ...
-	ApplyAndAutoCorrect ConfigurationMode = "ApplyAndAutoCorrect"
-	// ApplyAndMonitor ...
-	ApplyAndMonitor ConfigurationMode = "ApplyAndMonitor"
-	// ApplyOnly ...
-	ApplyOnly ConfigurationMode = "ApplyOnly"
+	// ConfigurationModeApplyAndAutoCorrect ...
+	ConfigurationModeApplyAndAutoCorrect ConfigurationMode = "ApplyAndAutoCorrect"
+	// ConfigurationModeApplyAndMonitor ...
+	ConfigurationModeApplyAndMonitor ConfigurationMode = "ApplyAndMonitor"
+	// ConfigurationModeApplyOnly ...
+	ConfigurationModeApplyOnly ConfigurationMode = "ApplyOnly"
 )
 
 // PossibleConfigurationModeValues returns an array of possible values for the ConfigurationMode const type.
 func PossibleConfigurationModeValues() []ConfigurationMode {
-	return []ConfigurationMode{ApplyAndAutoCorrect, ApplyAndMonitor, ApplyOnly}
+	return []ConfigurationMode{ConfigurationModeApplyAndAutoCorrect, ConfigurationModeApplyAndMonitor, ConfigurationModeApplyOnly}
 }
 
 // Kind enumerates the values for kind.
 type Kind string
 
 const (
-	// DSC ...
-	DSC Kind = "DSC"
+	// KindDSC ...
+	KindDSC Kind = "DSC"
 )
 
 // PossibleKindValues returns an array of possible values for the Kind const type.
 func PossibleKindValues() []Kind {
-	return []Kind{DSC}
+	return []Kind{KindDSC}
 }
 
 // ProvisioningState enumerates the values for provisioning state.
 type ProvisioningState string
 
 const (
-	// Canceled ...
-	Canceled ProvisioningState = "Canceled"
-	// Created ...
-	Created ProvisioningState = "Created"
-	// Failed ...
-	Failed ProvisioningState = "Failed"
-	// Succeeded ...
-	Succeeded ProvisioningState = "Succeeded"
+	// ProvisioningStateCanceled ...
+	ProvisioningStateCanceled ProvisioningState = "Canceled"
+	// ProvisioningStateCreated ...
+	ProvisioningStateCreated ProvisioningState = "Created"
+	// ProvisioningStateFailed ...
+	ProvisioningStateFailed ProvisioningState = "Failed"
+	// ProvisioningStateSucceeded ...
+	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
 )
 
 // PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
 func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Canceled, Created, Failed, Succeeded}
+	return []ProvisioningState{ProvisioningStateCanceled, ProvisioningStateCreated, ProvisioningStateFailed, ProvisioningStateSucceeded}
 }
 
 // Type enumerates the values for type.
 type Type string
 
 const (
-	// Consistency ...
-	Consistency Type = "Consistency"
-	// Initial ...
-	Initial Type = "Initial"
+	// TypeConsistency ...
+	TypeConsistency Type = "Consistency"
+	// TypeInitial ...
+	TypeInitial Type = "Initial"
 )
 
 // PossibleTypeValues returns an array of possible values for the Type const type.
 func PossibleTypeValues() []Type {
-	return []Type{Consistency, Initial}
+	return []Type{TypeConsistency, TypeInitial}
 }

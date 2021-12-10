@@ -46,6 +46,8 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service exists. Changing this forces a new resource to be created.
 
+* `operation_id` - (Required) The operation identifier within an API. Must be unique in the current API Management service instance.
+
 * `xml_content` - (Optional) The XML Content for this Policy.
 
 * `xml_link` - (Optional) A link to a Policy XML Document, which must be publicly available.

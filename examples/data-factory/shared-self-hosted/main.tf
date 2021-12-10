@@ -1,3 +1,11 @@
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "${var.prefix}-resources"
+  location = var.location
+}
 
 resource "azurerm_virtual_network" "example" {
   name                = "${var.prefix}-VN"
@@ -115,41 +123,32 @@ resource "azurerm_mssql_virtual_machine" "example" {
   virtual_machine_id = azurerm_virtual_machine.example.id
   sql_license_type   = "PAYG"
 }
----
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "example" {
-  name     = "${var.prefix}-resources"
-  location = var.location
-}
 
 resource "azurerm_virtual_network" "test" {
   name                = "${var.prefix}-VN"
   address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
+  resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
   name                = "${var.prefix}-PIP"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   allocation_method   = "Dynamic"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "${var.prefix}-INT"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   ip_configuration {
     name                          = "internal"
@@ -160,11 +159,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name                         = "${var.prefix}-VM"
-  location                     = azurerm_resource_group.test.location
-  resource_group_name          = azurerm_resource_group.test.name
-  network_interface_ids        = [ azurerm_network_interface.test.id ]
-  vm_size                      = "Standard_F4"
+  name                  = "${var.prefix}-VM"
+  location              = azurerm_resource_group.example.location
+  resource_group_name   = azurerm_resource_group.example.name
+  network_interface_ids = [azurerm_network_interface.test.id]
+  vm_size               = "Standard_F4"
 
   storage_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -193,13 +192,13 @@ resource "azurerm_virtual_machine" "test" {
 }
 
 resource "azurerm_virtual_machine_extension" "test" {
-  name                         = "${var.prefix}-EXT"
-  virtual_machine_id           = azurerm_virtual_machine.test.id
-  publisher                    = "Microsoft.Compute"
-  type                         = "CustomScriptExtension"
-  type_handler_version         = "1.10"
+  name                 = "${var.prefix}-EXT"
+  virtual_machine_id   = azurerm_virtual_machine.test.id
+  publisher            = "Microsoft.Compute"
+  type                 = "CustomScriptExtension"
+  type_handler_version = "1.10"
   settings = jsonencode({
-    "fileUris" = ["https://raw.githubusercontent.com/Azure/azure-quickstart-templates/00b79d2102c88b56502a63041936ef4dd62cf725/101-vms-with-selfhost-integration-runtime/gatewayInstall.ps1"],
+    "fileUris"         = ["https://raw.githubusercontent.com/Azure/azure-quickstart-templates/00b79d2102c88b56502a63041936ef4dd62cf725/101-vms-with-selfhost-integration-runtime/gatewayInstall.ps1"],
     "commandToExecute" = "powershell -ExecutionPolicy Unrestricted -File gatewayInstall.ps1 ${azurerm_data_factory_integration_runtime_self_hosted.host.auth_key_1} && timeout /t 120"
   })
 }
@@ -238,7 +237,7 @@ resource "azurerm_data_factory" "target" {
   resource_group_name = azurerm_resource_group.target.name
 
   identity {
-	  type = "SystemAssigned"
+    type = "SystemAssigned"
   }
 }
 
@@ -251,5 +250,5 @@ resource "azurerm_data_factory_integration_runtime_self_hosted" "target" {
     resource_id = azurerm_data_factory_integration_runtime_self_hosted.host.id
   }
 
-  depends_on = [ azurerm_role_assignment.target, azurerm_virtual_machine_extension.test ]
+  depends_on = [azurerm_role_assignment.target, azurerm_virtual_machine_extension.test]
 }

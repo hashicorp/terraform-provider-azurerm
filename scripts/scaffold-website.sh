@@ -26,7 +26,7 @@ function verifyVars {
 
 function scaffoldDocumentation {
   echo "==> Scaffolding Documentation..."
-  go run azurerm/internal/tools/website-scaffold/main.go -name "${RESOURCE_NAME}" -brand-name "${BRAND_NAME}" -type "${RESOURCE_TYPE}" -resource-id "${RESOURCE_ID}" -website-path ./website/
+  go run ./internal/tools/website-scaffold/main.go -name "${RESOURCE_NAME}" -brand-name "${BRAND_NAME}" -type "${RESOURCE_TYPE}" -resource-id "${RESOURCE_ID}" -website-path ./website/
   echo "==> Done."
 }
 

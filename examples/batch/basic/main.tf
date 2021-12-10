@@ -4,28 +4,28 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
-  location = "${var.location}"
+  location = var.location
 }
 
 resource "azurerm_storage_account" "example" {
   name                     = "${var.prefix}stor"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_batch_account" "example" {
   name                = "${var.prefix}batch"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
-  storage_account_id  = "${azurerm_storage_account.example.id}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  storage_account_id  = azurerm_storage_account.example.id
 }
 
 resource "azurerm_batch_pool" "fixed" {
   name                = "${var.prefix}-fixed-pool"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  account_name        = "${azurerm_batch_account.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  account_name        = azurerm_batch_account.example.name
   display_name        = "Fixed Scale Pool"
   vm_size             = "Standard_A1"
   node_agent_sku_id   = "batch.node.ubuntu 16.04"
@@ -59,15 +59,15 @@ resource "azurerm_batch_pool" "fixed" {
     }
   }
 
-  metadata ={
-    "tagName"= "Example tag"
+  metadata = {
+    "tagName" = "Example tag"
   }
 }
 
 resource "azurerm_batch_pool" "autopool" {
   name                = "${var.prefix}-autoscale-pool"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  account_name        = "${azurerm_batch_account.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  account_name        = azurerm_batch_account.example.name
   display_name        = "Auto Scale Pool"
   vm_size             = "Standard_A1"
   node_agent_sku_id   = "batch.node.ubuntu 16.04"

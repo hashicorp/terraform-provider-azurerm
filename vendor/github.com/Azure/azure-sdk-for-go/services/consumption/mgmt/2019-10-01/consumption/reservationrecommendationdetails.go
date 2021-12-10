@@ -46,7 +46,7 @@ func NewReservationRecommendationDetailsClientWithBaseURI(baseURI string, subscr
 // lookBackPeriod - filter the time period on which reservation recommendation results are based.
 // product - filter the products for which reservation recommendation results are generated. Examples:
 // Standard_DS1_v2 (for VM), Premium_SSD_Managed_Disks_P30 (for Managed Disks)
-func (client ReservationRecommendationDetailsClient) Get(ctx context.Context, billingScope string, scope Scope11, region string, term Term, lookBackPeriod LookBackPeriod, product string) (result ReservationRecommendationDetailsModel, err error) {
+func (client ReservationRecommendationDetailsClient) Get(ctx context.Context, billingScope string, scope Scope14, region string, term Term, lookBackPeriod LookBackPeriod, product string) (result ReservationRecommendationDetailsModel, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReservationRecommendationDetailsClient.Get")
 		defer func() {
@@ -80,7 +80,7 @@ func (client ReservationRecommendationDetailsClient) Get(ctx context.Context, bi
 }
 
 // GetPreparer prepares the Get request.
-func (client ReservationRecommendationDetailsClient) GetPreparer(ctx context.Context, billingScope string, scope Scope11, region string, term Term, lookBackPeriod LookBackPeriod, product string) (*http.Request, error) {
+func (client ReservationRecommendationDetailsClient) GetPreparer(ctx context.Context, billingScope string, scope Scope14, region string, term Term, lookBackPeriod LookBackPeriod, product string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"billingScope": billingScope,
 	}

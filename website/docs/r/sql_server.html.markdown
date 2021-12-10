@@ -11,7 +11,7 @@ description: |-
 
 Manages a Microsoft SQL Azure Database Server.
 
-~> **Note:** This resource provides usage of Microsoft SQL Azure Database server using an older `sku` based model. [It is recommended going forward](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10217#issuecomment-762036693) to use [`azurerm_mssql_server`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_server) resource which provides support for `vcores`.
+~> **Note:** This resource provides usage of Microsoft SQL Azure Database server using an older `sku` based model. [It is recommended going forward](https://github.com/hashicorp/terraform-provider-azurerm/issues/10217#issuecomment-762036693) to use [`azurerm_mssql_server`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_server) resource which provides support for `vcores`.
 
 ~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
@@ -40,13 +40,6 @@ resource "azurerm_sql_server" "example" {
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 
-  extended_auditing_policy {
-    storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
-    storage_account_access_key              = azurerm_storage_account.example.primary_access_key
-    storage_account_access_key_is_secondary = true
-    retention_in_days                       = 6
-  }
-
   tags = {
     environment = "production"
   }
@@ -73,7 +66,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
+* `threat_detection_policy` - (Optional) Threat detection policy configuration. The `threat_detection_policy` block supports fields documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -84,6 +77,16 @@ An `identity` block supports the following:
 * `type` - (Required) Specifies the identity type of the Microsoft SQL Server. At this time the only allowed value is `SystemAssigned`.
 
 ~> **NOTE:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the Microsoft SQL Server has been created. More details are available below.
+
+`threat_detection_policy` supports the following:
+
+* `state` - (Required) The State of the Policy. Possible values are `Enabled` or `Disabled`.
+* `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Data_Exfiltration`, `Sql_Injection`, `Sql_Injection_Vulnerability` and `Unsafe_Action"`,.
+* `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered?
+* `email_addresses` - (Optional) A list of email addresses which alerts should be sent to.
+* `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs.
+* `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account. Required if `state` is `Enabled`.
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. `https://MyAccount.blob.core.windows.net`). This blob storage will hold all Threat Detection audit logs. Required if `state` is `Enabled`.
 
 ## Attributes Reference
 
@@ -101,20 +104,6 @@ The following attributes are exported:
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Server.
 
 -> You can access the Principal ID via `${azurerm_mssql_server.example.identity.0.principal_id}` and the Tenant ID via `${azurerm_mssql_server.example.identity.0.tenant_id}`
-
----
-
-A `extended_auditing_policy` block supports the following:
-
-* `storage_account_access_key` - (Optional)  Specifies the access key to use for the auditing storage account.
-
-* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
-
-* `storage_account_access_key_is_secondary` - (Optional) Specifies whether `storage_account_access_key` value is the storage's secondary key.
-
-* `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
-
-* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its master database audit events to Azure Monitor.
 
 ### Timeouts
 

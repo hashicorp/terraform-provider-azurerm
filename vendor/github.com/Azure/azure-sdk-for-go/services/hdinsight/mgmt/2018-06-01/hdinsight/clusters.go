@@ -55,7 +55,7 @@ func (client ClustersClient) Create(ctx context.Context, resourceGroupName strin
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -89,6 +89,7 @@ func (client ClustersClient) CreatePreparer(ctx context.Context, resourceGroupNa
 // http.Response Body if it receives an error.
 func (client ClustersClient) CreateSender(req *http.Request) (future ClustersCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -135,7 +136,7 @@ func (client ClustersClient) Delete(ctx context.Context, resourceGroupName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -167,6 +168,7 @@ func (client ClustersClient) DeletePreparer(ctx context.Context, resourceGroupNa
 // http.Response Body if it receives an error.
 func (client ClustersClient) DeleteSender(req *http.Request) (future ClustersDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -219,7 +221,7 @@ func (client ClustersClient) ExecuteScriptActions(ctx context.Context, resourceG
 
 	result, err = client.ExecuteScriptActionsSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "ExecuteScriptActions", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "ExecuteScriptActions", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -253,6 +255,7 @@ func (client ClustersClient) ExecuteScriptActionsPreparer(ctx context.Context, r
 // http.Response Body if it receives an error.
 func (client ClustersClient) ExecuteScriptActionsSender(req *http.Request) (future ClustersExecuteScriptActionsFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -758,7 +761,7 @@ func (client ClustersClient) Resize(ctx context.Context, resourceGroupName strin
 
 	result, err = client.ResizeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "Resize", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "Resize", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -793,6 +796,7 @@ func (client ClustersClient) ResizePreparer(ctx context.Context, resourceGroupNa
 // http.Response Body if it receives an error.
 func (client ClustersClient) ResizeSender(req *http.Request) (future ClustersResizeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -839,7 +843,7 @@ func (client ClustersClient) RotateDiskEncryptionKey(ctx context.Context, resour
 
 	result, err = client.RotateDiskEncryptionKeySender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "RotateDiskEncryptionKey", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "RotateDiskEncryptionKey", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -873,6 +877,7 @@ func (client ClustersClient) RotateDiskEncryptionKeyPreparer(ctx context.Context
 // http.Response Body if it receives an error.
 func (client ClustersClient) RotateDiskEncryptionKeySender(req *http.Request) (future ClustersRotateDiskEncryptionKeyFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -998,7 +1003,7 @@ func (client ClustersClient) UpdateAutoScaleConfiguration(ctx context.Context, r
 
 	result, err = client.UpdateAutoScaleConfigurationSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "UpdateAutoScaleConfiguration", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "UpdateAutoScaleConfiguration", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1033,6 +1038,7 @@ func (client ClustersClient) UpdateAutoScaleConfigurationPreparer(ctx context.Co
 // http.Response Body if it receives an error.
 func (client ClustersClient) UpdateAutoScaleConfigurationSender(req *http.Request) (future ClustersUpdateAutoScaleConfigurationFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1079,7 +1085,7 @@ func (client ClustersClient) UpdateGatewaySettings(ctx context.Context, resource
 
 	result, err = client.UpdateGatewaySettingsSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "UpdateGatewaySettings", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "UpdateGatewaySettings", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1113,6 +1119,7 @@ func (client ClustersClient) UpdateGatewaySettingsPreparer(ctx context.Context, 
 // http.Response Body if it receives an error.
 func (client ClustersClient) UpdateGatewaySettingsSender(req *http.Request) (future ClustersUpdateGatewaySettingsFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -1159,7 +1166,7 @@ func (client ClustersClient) UpdateIdentityCertificate(ctx context.Context, reso
 
 	result, err = client.UpdateIdentityCertificateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "UpdateIdentityCertificate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "UpdateIdentityCertificate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1193,6 +1200,7 @@ func (client ClustersClient) UpdateIdentityCertificatePreparer(ctx context.Conte
 // http.Response Body if it receives an error.
 func (client ClustersClient) UpdateIdentityCertificateSender(req *http.Request) (future ClustersUpdateIdentityCertificateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

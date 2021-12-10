@@ -54,7 +54,7 @@ func (client DomainTopicsClient) CreateOrUpdate(ctx context.Context, resourceGro
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.DomainTopicsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainTopicsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -87,6 +87,7 @@ func (client DomainTopicsClient) CreateOrUpdatePreparer(ctx context.Context, res
 // http.Response Body if it receives an error.
 func (client DomainTopicsClient) CreateOrUpdateSender(req *http.Request) (future DomainTopicsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -134,7 +135,7 @@ func (client DomainTopicsClient) Delete(ctx context.Context, resourceGroupName s
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.DomainTopicsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainTopicsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -167,6 +168,7 @@ func (client DomainTopicsClient) DeletePreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client DomainTopicsClient) DeleteSender(req *http.Request) (future DomainTopicsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

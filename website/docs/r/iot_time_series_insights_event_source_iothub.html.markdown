@@ -15,7 +15,7 @@ Manages an Azure IoT Time Series Insights IoTHub Event Source.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example"
-  location = "West Eurpoe"
+  location = "West Europe"
 }
 
 resource "azurerm_iothub" "example" {

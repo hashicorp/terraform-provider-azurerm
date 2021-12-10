@@ -36,12 +36,12 @@ fun BuildSteps.DownloadTerraformBinary() {
     })
 }
 
-fun servicePath(providerName: String, packageName: String) : String {
-    return "./%s/internal/services/%s".format(providerName, packageName)
+fun servicePath(packageName: String) : String {
+    return "./internal/services/%s".format(packageName)
 }
 
-fun BuildSteps.RunAcceptanceTests(providerName : String, packageName: String) {
-    var packagePath = servicePath(providerName, packageName)
+fun BuildSteps.RunAcceptanceTests(packageName: String) {
+    var packagePath = servicePath(packageName)
     var withTestsDirectoryPath = "##teamcity[setParameter name='SERVICE_PATH' value='%s/tests']".format(packagePath)
 
     // some packages use a ./tests folder, others don't - conditionally append that if needed
@@ -71,8 +71,8 @@ fun BuildSteps.RunAcceptanceTests(providerName : String, packageName: String) {
     }
 }
 
-fun BuildSteps.RunAcceptanceTestsForPullRequest(providerName : String, packageName: String) {
-    var servicePath = "./%s/internal/services/%s/...".format(providerName, packageName)
+fun BuildSteps.RunAcceptanceTestsForPullRequest(packageName: String) {
+    var servicePath = "./internal/services/%s/...".format(packageName)
     if (useTeamCityGoTest) {
         step(ScriptBuildStep {
             name = "Run Tests"
@@ -115,8 +115,8 @@ fun ParametrizedWithType.TerraformShouldPanicForSchemaErrors() {
     hiddenVariable("env.TF_SCHEMA_PANIC_ON_ERROR", "1", "Panic if unknown/unmatched fields are set into the state")
 }
 
-fun ParametrizedWithType.WorkingDirectory(providerName: String, packageName: String) {
-    text("SERVICE_PATH", servicePath(providerName, packageName), "", "The path at which to run - automatically updated", ParameterDisplay.HIDDEN)
+fun ParametrizedWithType.WorkingDirectory(packageName: String) {
+    text("SERVICE_PATH", servicePath(packageName), "", "The path at which to run - automatically updated", ParameterDisplay.HIDDEN)
 }
 
 fun ParametrizedWithType.hiddenVariable(name: String, value: String, description: String) {
@@ -127,14 +127,17 @@ fun ParametrizedWithType.hiddenPasswordVariable(name: String, value: String, des
     password(name, value, "", description, ParameterDisplay.HIDDEN)
 }
 
-fun Triggers.RunNightly(nightlyTestsEnabled: Boolean, startHour: Int) {
+fun Triggers.RunNightly(nightlyTestsEnabled: Boolean, startHour: Int, daysOfWeek: String, daysOfMonth: String) {
     schedule{
         enabled = nightlyTestsEnabled
-        branchFilter = "+:refs/heads/master"
+        branchFilter = "+:refs/heads/main"
 
-        schedulingPolicy = daily {
-            hour = startHour
+        schedulingPolicy = cron {
+            hours = startHour.toString()
             timezone = "SERVER"
+
+            dayOfWeek = daysOfWeek
+            dayOfMonth = daysOfMonth
         }
     }
 }

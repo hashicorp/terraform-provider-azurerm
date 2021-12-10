@@ -44,6 +44,10 @@ output "rule_id" {
 
 * `secondary_key` - The secondary access key for the authorization rule.
 
+* `primary_connection_string_alias` - The alias Primary Connection String for the ServiceBus Namespace, if the namespace is Geo DR paired. 
+
+* `secondary_connection_string_alias` - The alias Secondary Connection String for the ServiceBus Namespace 
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

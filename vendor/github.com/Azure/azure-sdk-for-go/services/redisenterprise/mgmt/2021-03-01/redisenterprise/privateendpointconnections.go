@@ -334,7 +334,7 @@ func (client PrivateEndpointConnectionsClient) Put(ctx context.Context, resource
 
 	result, err = client.PutSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "redisenterprise.PrivateEndpointConnectionsClient", "Put", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "redisenterprise.PrivateEndpointConnectionsClient", "Put", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -369,6 +369,7 @@ func (client PrivateEndpointConnectionsClient) PutPreparer(ctx context.Context, 
 // http.Response Body if it receives an error.
 func (client PrivateEndpointConnectionsClient) PutSender(req *http.Request) (future PrivateEndpointConnectionsPutFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

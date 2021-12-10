@@ -76,6 +76,8 @@ A `patch_schedule` block supports the following:
 
 * `day_of_week` - the Weekday name for the patch item
 
+* `maintenance_window` - The ISO 8601 timespan which specifies the amount of time the Redis Cache can be updated.
+
 * `start_hour_utc` - The Start Hour for maintenance in UTC
 
 ~> **Note:** The Patch Window lasts for `5` hours from the `start_hour_utc`.

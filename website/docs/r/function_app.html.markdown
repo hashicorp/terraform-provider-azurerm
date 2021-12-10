@@ -124,8 +124,11 @@ resource "azurerm_function_app" "example" {
   storage_account_name       = azurerm_storage_account.example.name
   storage_account_access_key = azurerm_storage_account.example.primary_access_key
   os_type                    = "linux"
+  version                    = "~3"
 }
 ```
+~> **Note:** Version `~3` is required for Linux Function Apps.
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -159,6 +162,8 @@ The following arguments are supported:
 * `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`.
 
 * `identity` - (Optional) An `identity` block as defined below.
+
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity Id used for looking up KeyVault secrets. The identity must be assigned to the application. See [Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity) for more information.
 
 * `os_type` - (Optional) A string indicating the Operating System type for this function app. 
 
@@ -196,7 +201,13 @@ The following arguments are supported:
 
 * `always_on` - (Optional) Should the Function App be loaded at all times? Defaults to `false`.
 
+* `app_scale_limit` - (Optional) The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.
+
 * `cors` - (Optional) A `cors` block as defined below.
+
+* `dotnet_framework_version` - (Optional) The version of the .net framework's CLR used in this function app. Possible values are `v4.0` (including .NET Core 2.1 and 3.1), `v5.0` and `v6.0`. [For more information on which .net Framework version to use based on the runtime version you're targeting - please see this table](https://docs.microsoft.com/en-us/azure/azure-functions/functions-dotnet-class-library#supported-versions). Defaults to `v4.0`.
+
+* `elastic_instance_minimum` - (Optional) The number of minimum instances for this function app. Only affects apps on the Premium plan.
 
 * `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `AllAllowed`.
 
@@ -216,6 +227,8 @@ The following arguments are supported:
 
 * `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this function app. Only affects apps on the Premium plan.
 
+* `runtime_scale_monitoring_enabled` - (Optional) Should Runtime Scale Monitoring be enabled?. Only applicable to apps on the Premium plan. Defaults to `false`.
+
 * `scm_ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
 
 -> **NOTE** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
@@ -231,6 +244,10 @@ The following arguments are supported:
 * `use_32_bit_worker_process` - (Optional) Should the Function App run in 32 bit mode, rather than 64 bit mode? Defaults to `true`.
 
 ~> **Note:** when using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
+
+* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.
+
+~> **NOTE:** This setting supersedes the previous mechanism of setting the `app_settings` value of `WEBSITE_VNET_ROUTE_ALL`. However, to prevent older configurations breaking Terraform will update this value if it not explicitly set to the value in `app_settings.WEBSITE_VNET_ROUTE_ALL`.
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
@@ -328,6 +345,14 @@ A `microsoft` block supports the following:
 
 ---
 
+A `twitter` block supports the following:
+
+* `consumer_key` - The OAuth 1.0a consumer key of the Twitter application used for sign-in.
+
+* `consumer_secret` - The OAuth 1.0a consumer secret of the Twitter application used for sign-in.
+
+---
+
 A `ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
@@ -420,6 +445,8 @@ The `identity` block exports the following:
 * `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this App Service.
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service.
+
+-> You can access the Principal ID via `azurerm_app_service.example.identity.0.principal_id` and the Tenant ID via `azurerm_app_service.example.identity.0.tenant_id`
 
 ---
 

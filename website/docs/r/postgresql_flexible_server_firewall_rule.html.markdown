@@ -27,7 +27,7 @@ resource "azurerm_postgresql_flexible_server" "example" {
   resource_group_name    = azurerm_resource_group.example.name
   location               = azurerm_resource_group.example.location
   version                = "12"
-  administrator_login    = "psqladminun"
+  administrator_login    = "psqladmin"
   administrator_password = "H@Sh1CoR3!"
 
   storage_mb = 32768

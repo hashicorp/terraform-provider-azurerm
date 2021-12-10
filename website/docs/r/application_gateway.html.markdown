@@ -135,13 +135,17 @@ The following arguments are supported:
 
 * `http_listener` - (Required) One or more `http_listener` blocks as defined below.
 
-* `identity` - (Optional) A `identity` block.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `request_routing_rule` - (Required) One or more `request_routing_rule` blocks as defined below.
 
 * `sku` - (Required) A `sku` block as defined below.
 
 * `zones` - (Optional) A collection of availability zones to spread the Application Gateway over.
+
+* `trusted_client_certificate` - (Optional) One or more `trusted_client_certificate` blocks as defined below.
+
+* `ssl_profile` - (Optional) One or more `ssl_profile` blocks as defined below.
 
 -> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).  They are also only supported for [v2 SKUs](https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
 
@@ -151,7 +155,7 @@ The following arguments are supported:
 
 * `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
 
-* `ssl_policy` (Optional) a `ssl policy` block as defined below.
+* `ssl_policy` - (Optional) a `ssl policy` block as defined below.
 
 * `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
 
@@ -169,7 +173,7 @@ The following arguments are supported:
 
 * `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy.
 
-* `redirect_configuration` - (Optional) A `redirect_configuration` block as defined below.
+* `redirect_configuration` - (Optional) One or more `redirect_configuration` blocks as defined below.
 
 * `autoscale_configuration` - (Optional) A `autoscale_configuration` block as defined below.
 
@@ -300,7 +304,9 @@ A `http_listener` block supports the following:
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
 
-* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used as a HTTP Listener.
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used for this HTTP Listener.
+
+* `ssl_profile_name` - (Optional) The name of the associated SSL Profile which should be used for this HTTP Listener.
 
 ---
 
@@ -384,6 +390,10 @@ A `request_routing_rule` block supports the following:
 
 * `url_path_map_name` - (Optional) The Name of the URL Path Map which should be associated with this Routing Rule.
 
+* `priority` - (Optional) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority.
+
+~> **NOTE:** If you wish to use rule `priority`, you will have to specify rule-priority field values for all the existing request routing rules. Once the rule priority field is in use, any new routing rule that is created would also need to have a rule priority field value as part of its config.
+
 ---
 
 A `sku` block supports the following:
@@ -425,6 +435,25 @@ A `url_path_map` block supports the following:
 * `default_rewrite_rule_set_name` - (Optional) The Name of the Default Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
 
 * `path_rule` - (Required) One or more `path_rule` blocks as defined above.
+
+---
+A `trusted_client_certificate` block supports the following:
+
+* `name` - (Required) The name of the Trusted Client Certificate that is unique within this Application Gateway.
+
+* `data` - (Required) The base-64 encoded certificate.
+
+---
+
+A `ssl_profile` block supports the following:
+
+* `name` - (Required) The name of the SSL Profile that is unique within this Application Gateway.
+
+* `trusted_client_certificate_names` - (Optional) The name of the Trusted Client Certificate that will be used to authenticate requests from clients.
+
+* `verify_client_cert_issuer_dn` - (Optional) Should client certificate issuer DN be verified?  Defaults to `false`.
+
+* `ssl_policy` - (Optional) a `ssl policy` block as defined below.
 
 ---
 
@@ -676,6 +705,8 @@ A `http_listener` block exports the following:
 * `frontend_port_id` - The ID of the associated Frontend Port.
 
 * `ssl_certificate_id` - The ID of the associated SSL Certificate.
+
+* `ssl_profile_id` - The ID of the associated SSL Certificate.
 
 ---
 

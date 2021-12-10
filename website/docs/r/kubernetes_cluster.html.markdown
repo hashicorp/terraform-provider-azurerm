@@ -16,7 +16,7 @@ Manages a Managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Servi
 
 ## Example Usage
 
-This example provisions a basic Managed Kubernetes Cluster. Other examples of the `azurerm_kubernetes_cluster` resource can be found in [the `./examples/kubernetes` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/kubernetes)
+This example provisions a basic Managed Kubernetes Cluster. Other examples of the `azurerm_kubernetes_cluster` resource can be found in [the `./examples/kubernetes` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/kubernetes)
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -51,6 +51,8 @@ output "client_certificate" {
 
 output "kube_config" {
   value = azurerm_kubernetes_cluster.example.kube_config_raw
+
+  sensitive = true
 }
 ```
 
@@ -70,13 +72,15 @@ The following arguments are supported:
 
 * `dns_prefix_private_cluster` - (Optional) Specifies the DNS prefix to use with private clusters. Changing this forces a new resource to be created.
 
+-> **Note:** One of `dns_prefix` or `dns_prefix_private_cluster` must be specified.
+
 -> **NOTE:** The `dns_prefix` must contain between 3 and 45 characters, and can contain only letters, numbers, and hyphens. It must start with a letter and must end with a letter or a number.
 
 In addition, one of either `identity` or `service_principal` blocks must be specified.
 
 ---
 
-* `automatic_channel_upgrade` - (Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `patch`, `rapid`, and `stable`.
+* `automatic_channel_upgrade` - (Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `patch`, `rapid`, `node-image` and `stable`. Omitting this field sets this value to `none`.
 
 !> **Note:** Cluster Auto-Upgrade will update the Kubernetes Cluster (and it's Node Pools) to the latest GA version of Kubernetes automatically - please [see the Azure documentation for more information](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#set-auto-upgrade-channel-preview).
 
@@ -86,11 +90,15 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `addon_profile` - (Optional) A `addon_profile` block as defined below.
 
-* `api_server_authorized_ip_ranges` - (Optional) The IP ranges to whitelist for incoming traffic to the masters.
+* `api_server_authorized_ip_ranges` - (Optional) The IP ranges to allow for incoming traffic to the server nodes.
 
 * `auto_scaler_profile` - (Optional) A `auto_scaler_profile` block as defined below.
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/en-us/azure/aks/azure-disk-customer-managed-keys).
+
+* `http_proxy_config` - (Optional) A `http_proxy_config` block as defined below.
+
+-> **NOTE:** This requires that the Preview Feature `Microsoft.ContainerService/HTTPProxyConfigPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/http-proxy) for more information.
 
 * `identity` - (Optional) An `identity` block as defined below. One of either `identity` or `service_principal` must be specified.
 
@@ -104,6 +112,10 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `linux_profile` - (Optional) A `linux_profile` block as defined below.
 
+* `local_account_disabled` - (Optional) - If `true` local accounts will be disabled. Defaults to `false`. See [the documentation](https://docs.microsoft.com/en-us/azure/aks/managed-aad#disable-local-accounts) for more information.
+
+* `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
+
 * `network_profile` - (Optional) A `network_profile` block as defined below.
 
 -> **NOTE:** If `network_profile` is not defined, `kubenet` profile will be used by default.
@@ -115,6 +127,10 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 * `private_cluster_enabled` - Should this Kubernetes Cluster have its API server only exposed on internal IP addresses? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `private_dns_zone_id` - (Optional) Either the ID of Private DNS Zone which should be delegated to this Cluster, `System` to have AKS manage this or `None`. In case of `None` you will need to bring your own DNS server and set up resolving, otherwise cluster will have issues after provisioning.
+
+* `private_cluster_public_fqdn_enabled` - (Optional) Specifies whether a Public FQDN for this Private Cluster should be added. Defaults to `false`.
+
+-> **NOTE:** This requires that the Preview Feature `Microsoft.ContainerService/EnablePrivateClusterPublicFQDN` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/private-clusters#create-a-private-aks-cluster-with-a-public-dns-address) for more information.
 
 -> **NOTE:** If you use BYO DNS Zone, AKS cluster should either use a User Assigned Identity or a service principal (which is deprecated) with the `Private DNS Zone Contributor` role and access to this Private DNS Zone. If `UserAssigned` identity is used - to prevent improper resource order destruction - cluster should depend on the role assignment, like in this example:
 
@@ -166,12 +182,9 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 * `sku_tier` - (Optional) The SKU Tier that should be used for this Kubernetes Cluster. Possible values are `Free` and `Paid` (which includes the Uptime SLA). Defaults to `Free`.
 
-~> **Note:**  It is currently possible to upgrade in place from `Free` to `Paid`. However, changing this value from `Paid` to `Free` will force a new resource to be created.
-
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `windows_profile` - (Optional) A `windows_profile` block as defined below.
-
 ---
 
 A `aci_connector_linux` block supports the following:
@@ -207,10 +220,6 @@ A `addon_profile` block supports the following:
 
 * `azure_policy` - (Optional) A `azure_policy` block as defined below. For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
 
--> **NOTE:** At this time Azure Policy is not supported in Azure US Government.
-
-~> **Note:** Azure Policy is in Public Preview - more information and details on how to opt into the Preview [can be found in this article](https://docs.microsoft.com/en-gb/azure/governance/policy/concepts/policy-for-kubernetes).
-
 * `http_application_routing` - (Optional) A `http_application_routing` block as defined below.
 
 -> **NOTE:** At this time HTTP Application Routing is not supported in Azure China or Azure US Government.
@@ -220,6 +229,16 @@ A `addon_profile` block supports the following:
 * `oms_agent` - (Optional) A `oms_agent` block as defined below. For more details, please visit [How to onboard Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/monitoring/monitoring-container-insights-onboard).
 
 * `ingress_application_gateway` - (Optional) An `ingress_application_gateway` block as defined below.
+
+* `open_service_mesh` - (Optional) An `open_service_mesh` block as defined below. For more details, please visit [Open Service Mesh for AKS](https://docs.microsoft.com/azure/aks/open-service-mesh-about).
+
+-> **NOTE.** At this time Open Service Mesh is not supported in Azure US government or Azure China.
+
+-> **NOTE.** Open Service Mesh is available on an opt-in preview basis. For more details about how to opt-in, please visit [Open Service Mesh for AKS](https://docs.microsoft.com/azure/aks/open-service-mesh-deploy-add-on#register-the-aks-openservicemesh-preview-feature)
+
+* `azure_keyvault_secrets_provider` - (Optional) An `azure_keyvault_secrets_provider` block as defined below. For more details, please visit [Azure Keyvault Secrets Provider for AKS](https://docs.microsoft.com/en-us/azure/aks/csi-secrets-store-driver).
+
+~> **NOTE.** At this time the Azure KeyVault Secrets Provider is not supported in Azure China/Azure US Government.
 
 ---
 
@@ -263,7 +282,7 @@ An `auto_scaler_profile` block supports the following:
 
 A `azure_active_directory` block supports the following:
 
-* `managed` - Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration.
+* `managed` - (Optional) Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration.
 
 * `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used.
 
@@ -303,7 +322,7 @@ A `default_node_pool` block supports the following:
 
 -> **NOTE:** This requires that the `type` is set to `VirtualMachineScaleSets`.
 
--> **NOTE:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to the `node_count` field.
+-> **NOTE:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore changes to the `node_count` field.
 
 * `enable_host_encryption` - (Optional) Should the nodes in the Default Node Pool have host encryption enabled? Defaults to `false`.
 
@@ -312,6 +331,12 @@ A `default_node_pool` block supports the following:
 * `kubelet_config` - (Optional) A `kubelet_config` block as defined below.
 
 * `linux_os_config` - (Optional) A `linux_os_config` block as defined below.
+
+* `fips_enabled` - (Optional) Should the nodes in this Node Pool have Federal Information Processing Standard enabled? Changing this forces a new resource to be created.
+
+~> NOTE: FIPS support is in Public Preview - more information and details on how to opt into the Preview can be found in [this article](https://docs.microsoft.com/en-us/azure/aks/use-multiple-node-pools#add-a-fips-enabled-node-pool-preview).
+
+* `kubelet_disk_type` - (Optional) The type of disk used by kubelet. At this time the only possible value is `OS`.
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
 
@@ -329,11 +354,19 @@ A `default_node_pool` block supports the following:
 
 * `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. Changing this forces a new resource to be created.
 
+* `os_sku` - (Optional) OsSKU to be used to specify Linux OSType. Not applicable to Windows OSType. Possible values include: `Ubuntu`, `CBLMariner`. Defaults to `Ubuntu`. Changing this forces a new resource to be created.
+
+* `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist. Changing this forces a new resource to be created.
+
+  -> **NOTE:** This requires that the Preview Feature `Microsoft.ContainerService/PodSubnetPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni#register-the-podsubnetpreview-preview-feature) for more information.
+
 * `type` - (Optional) The type of Node Pool which should be created. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Defaults to `VirtualMachineScaleSets`.
 
 * `tags` - (Optional) A mapping of tags to assign to the Node Pool.
 
 ~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) until this is fixed in the AKS API.
+
+* `ultra_ssd_enabled` - (Optional) Used to specify whether the UltraSSD is enabled in the Default Node Pool. Defaults to `false`. See [the documentation](https://docs.microsoft.com/en-us/azure/aks/use-ultra-disks) for more information.
 
 * `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
 
@@ -434,6 +467,30 @@ A `linux_profile` block supports the following:
 
 ---
 
+A `maintenance_window` block supports the following:
+
+* `allowed` - (Optional) One or more `allowed` block as defined below.
+
+* `not_allowed` - (Optional) One or more `not_allowed` block as defined below.
+
+---
+
+An `allowed` block exports the following:
+
+* `day` - (Required) A day in a week. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
+
+* `hours` - (Required) An array of hour slots in a day. Possible values are between `0` and `23`.
+
+---
+
+An `not_allowed` block exports the following:
+
+* `end` - (Required) The end of a time span, formatted as an RFC3339 string.
+
+* `start` - (Required) The start of a time span, formatted as an RFC3339 string.
+
+---
+
 A `network_profile` block supports the following:
 
 * `network_plugin` - (Required) Network plugin to use for networking. Currently supported values are `azure` and `kubenet`. Changing this forces a new resource to be created.
@@ -454,7 +511,9 @@ A `network_profile` block supports the following:
 
 * `docker_bridge_cidr` - (Optional) IP address (in CIDR notation) used as the Docker bridge IP address on nodes. Changing this forces a new resource to be created.
 
-* `outbound_type` - (Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are `loadBalancer` and `userDefinedRouting`. Defaults to `loadBalancer`.
+* `outbound_type` - (Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are `loadBalancer`, `userDefinedRouting`, `managedNATGateway` and `userAssignedNATGateway`. Defaults to `loadBalancer`.
+
+~> **NOTE:** Outbound NAT Gateway is in Public Preview - more information and details on how to opt into the Preview [can be found in this article](https://docs.microsoft.com/azure/aks/nat-gateway#register-the-aks-natgatewaypreview-feature-flag).
 
 * `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. This field can only be set when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
 
@@ -462,11 +521,13 @@ A `network_profile` block supports the following:
 
 ~> **NOTE:** This range should not be used by any network element on or connected to this VNet. Service address CIDR must be smaller than /12. `docker_bridge_cidr`, `dns_service_ip` and `service_cidr` should all be empty or all should be set.
 
-Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com/en-us/azure/aks/networking-overview#advanced-networking) can be [found in the `./examples/kubernetes/` directory in the Github repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/kubernetes).
+Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com/en-us/azure/aks/networking-overview#advanced-networking) can be [found in the `./examples/kubernetes/` directory in the Github repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/kubernetes).
 
 * `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `Basic` and `Standard`. Defaults to `Standard`.
 
 * `load_balancer_profile` - (Optional) A `load_balancer_profile` block. This can only be specified when `load_balancer_sku` is set to `Standard`.
+
+* `nat_gateway_profile` - (Optional) A `nat_gateway_profile` block. This can only be specified when `load_balancer_sku` is set to `Standard` and `outbound_type` is set to `managedNATGateway` or `userAssignedNATGateway`.
 
 ---
 
@@ -489,6 +550,14 @@ A `load_balancer_profile` block supports the following:
 * `outbound_ip_address_ids` - (Optional) The ID of the Public IP Addresses which should be used for outbound communication for the cluster load balancer.
 
 -> **NOTE** User has to explicitly set `outbound_ip_address_ids` to empty slice (`[]`) to remove it.
+
+---
+
+A `nat_gateway_profile` block supports the following:
+
+* `idle_timeout_in_minutes` - (Optional) Desired outbound flow idle timeout in minutes for the cluster load balancer. Must be between `4` and `120` inclusive. Defaults to `4`.
+
+* `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the cluster load balancer. Must be between `1` and `100` inclusive.
 
 ---
 
@@ -515,6 +584,23 @@ An `ingress_application_gateway` block supports the following:
 -> **NOTE** If using `enabled` in conjunction with `only_critical_addons_enabled`, the AGIC pod will fail to start. A separate `azurerm_kubernetes_cluster_node_pool` is required to run the AGIC pod successfully. This is because AGIC is classed as a "non-critical addon".
 
 ---
+
+An `open_service_mesh` block supports the following:
+
+* `enabled` - Is Open Service Mesh enabled?
+
+---
+
+An `azure_keyvault_secrets_provider` block supports the following:
+
+* `enabled` - Is the Azure Keyvault Secrets Providerenabled?
+
+* `secret_rotation_enabled` - (Optional) Is secret rotation enabled?
+
+* `secret_rotation_interval` - (Optional) The interval to poll for secret rotation. This attribute is only set when `secret_rotation` is true and defaults to `2m`.
+
+---
+
 
 A `role_based_access_control` block supports the following:
 
@@ -608,6 +694,24 @@ A `windows_profile` block supports the following:
 
 * `admin_password` - (Required) The Admin Password for Windows VMs. Length must be between 14 and 123 characters.
 
+* `license` - (Optional) Specifies the type of on-premise license which should be used for Node Pool Windows Virtual Machine. At this time the only possible value is `Windows_Server`.
+
+---
+
+A `http_proxy_config` block supports the following:
+
+* `http_proxy` - (Optional) The proxy address to be used when communicating over HTTP.
+
+* `https_proxy` - (Optional) The proxy address to be used when communicating over HTTPS.
+
+* `no_proxy` - (Optional) The list of domains that will not use the proxy for communication.
+
+-> **Note:** If you specify the `default_node_pool.0.vnet_subnet_id`, be sure to include the Subnet CIDR in the `no_proxy` list.
+
+-> **Note:** You may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore the changes to this field.
+
+* `trusted_ca` - (Optional) The base64 encoded alternative CA certificate content in PEM format.
+
 ---
 
 A `upgrade_settings` block supports the following:
@@ -626,13 +730,19 @@ The following attributes are exported:
 
 * `private_fqdn` - The FQDN for the Kubernetes Cluster when private link has been enabled, which is only resolvable inside the Virtual Network used by the Kubernetes Cluster.
 
+* `portal_fqdn` - The FQDN for the Azure Portal resources when private link has been enabled, which is only resolvable inside the Virtual Network used by the Kubernetes Cluster.
+
 * `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled.
+
+~> **NOTE:** To mark the whole of `kube_admin_config` as Sensitive in State, set the environment variable `ARM_AKS_KUBE_CONFIGS_SENSITIVE` to `true`. Any values from this block used in `outputs` will then also need to be marked as sensitive.
 
 * `kube_admin_config_raw` - Raw Kubernetes config for the admin account to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools. This is only available when Role Based Access Control with Azure Active Directory is enabled.
 
 * `kube_config` - A `kube_config` block as defined below.
 
-* `kube_config_raw` - Raw Kubernetes config to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools
+~> **NOTE:** To mark the whole of `kube_config` as Sensitive in State, set the environment variable `ARM_AKS_KUBE_CONFIGS_SENSITIVE` to `true`. Any values from this block used in `outputs` will then also need to be marked as sensitive. 
+
+* `kube_config_raw` - Raw Kubernetes config to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools.
 
 * `http_application_routing` - A `http_application_routing` block as defined below.
 
@@ -654,11 +764,17 @@ A `load_balancer_profile` block exports the following:
 
 ---
 
+A `nat_gateway_profile` block exports the following:
+
+* `effective_outbound_ips` - The outcome (resource IDs) of the specified arguments.
+
+---
+
 The `identity` block exports the following:
 
-* `principal_id` - The principal id of the system assigned identity which is used by master components.
+* `principal_id` - The principal id of the system assigned identity which is used by main components.
 
-* `tenant_id` - The tenant id of the system assigned identity which is used by master components.
+* `tenant_id` - The tenant id of the system assigned identity which is used by main components.
 
 ---
 
@@ -676,7 +792,7 @@ The `kube_admin_config` and `kube_config` blocks export the following:
 
 * `password` - A password or token used to authenticate to the Kubernetes cluster.
 
--> **NOTE:** It's possible to use these credentials with [the Kubernetes Provider](/docs/providers/kubernetes/index.html) like so:
+-> **NOTE:** It's possible to use these credentials with [the Kubernetes Provider](/providers/hashicorp/kubernetes/latest/docs) like so:
 
 ```
 provider "kubernetes" {
@@ -692,6 +808,8 @@ provider "kubernetes" {
 ---
 
 The `addon_profile` block exports the following:
+
+* `azure_keyvault_secrets_provider` - An `azure_keyvault_secrets_provider` block as defined below.
 
 * `ingress_application_gateway` - An `ingress_application_gateway` block as defined below.
 
@@ -730,6 +848,25 @@ The `oms_agent_identity` block exports the following:
 * `object_id` - The Object ID of the user-defined Managed Identity used by the OMS Agents.
 
 * `user_assigned_identity_id` - The ID of the User Assigned Identity used by the OMS Agents.
+
+---
+
+The `azure_keyvault_secrets_provider` block exports the following:
+
+* `secret_identity` - An `secret_identity` block is exported. The exported attributes are defined below.  
+
+---
+
+The `secret_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used by the Secret Provider.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used by the Secret Provider.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the Secret Provider.
+
+---
+
 
 ## Timeouts
 

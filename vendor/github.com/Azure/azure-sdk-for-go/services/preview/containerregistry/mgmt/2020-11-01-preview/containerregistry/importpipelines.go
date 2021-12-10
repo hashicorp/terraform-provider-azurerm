@@ -75,7 +75,7 @@ func (client ImportPipelinesClient) Create(ctx context.Context, resourceGroupNam
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ImportPipelinesClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ImportPipelinesClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -110,6 +110,7 @@ func (client ImportPipelinesClient) CreatePreparer(ctx context.Context, resource
 // http.Response Body if it receives an error.
 func (client ImportPipelinesClient) CreateSender(req *http.Request) (future ImportPipelinesCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -171,7 +172,7 @@ func (client ImportPipelinesClient) Delete(ctx context.Context, resourceGroupNam
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ImportPipelinesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ImportPipelinesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -204,6 +205,7 @@ func (client ImportPipelinesClient) DeletePreparer(ctx context.Context, resource
 // http.Response Body if it receives an error.
 func (client ImportPipelinesClient) DeleteSender(req *http.Request) (future ImportPipelinesDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

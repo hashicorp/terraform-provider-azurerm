@@ -58,7 +58,7 @@ func (client SystemTopicEventSubscriptionsClient) CreateOrUpdate(ctx context.Con
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "CreateOrUpdate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -94,6 +94,7 @@ func (client SystemTopicEventSubscriptionsClient) CreateOrUpdatePreparer(ctx con
 // http.Response Body if it receives an error.
 func (client SystemTopicEventSubscriptionsClient) CreateOrUpdateSender(req *http.Request) (future SystemTopicEventSubscriptionsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -142,7 +143,7 @@ func (client SystemTopicEventSubscriptionsClient) Delete(ctx context.Context, re
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -175,6 +176,7 @@ func (client SystemTopicEventSubscriptionsClient) DeletePreparer(ctx context.Con
 // http.Response Body if it receives an error.
 func (client SystemTopicEventSubscriptionsClient) DeleteSender(req *http.Request) (future SystemTopicEventSubscriptionsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -592,7 +594,7 @@ func (client SystemTopicEventSubscriptionsClient) Update(ctx context.Context, re
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -627,6 +629,7 @@ func (client SystemTopicEventSubscriptionsClient) UpdatePreparer(ctx context.Con
 // http.Response Body if it receives an error.
 func (client SystemTopicEventSubscriptionsClient) UpdateSender(req *http.Request) (future SystemTopicEventSubscriptionsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

@@ -35,7 +35,29 @@ output "id" {
 
 * `scope` - The scope of the Maintenance Configuration.
 
+* `visibility` - The visibility of the Maintenance Configuration.
+
+* `window` - A `window` block as defined below.
+
+* `properties` - The properties assigned to the resource.
+
 * `tags` - A mapping of tags assigned to the resource.
+
+---
+
+A `window` block exports the following:
+
+* `start_date_time` - Effective start date of the maintenance window.
+
+* `expiration_date_time` - Effective expiration date of the maintenance window.
+
+* `duration` - The duration of the maintenance window.
+
+* `time_zone` - The time zone for the maintenance window.
+
+* `recur_every` The rate at which a maintenance window is expected to recur.
+
+---
 
 ## Timeouts
 

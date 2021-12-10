@@ -112,6 +112,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 IoTHub Fallback Route can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_iothub_route.route1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/IotHubs/hub1/FallbackRoute/default
+terraform import azurerm_iothub_fallback_route.route1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/IotHubs/hub1/FallbackRoute/default
 ```
 ~> **NOTE:** As there may only be a single fallback route per IoTHub, the id always ends with `/FallbackRoute/default`.

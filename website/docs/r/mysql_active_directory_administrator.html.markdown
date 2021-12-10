@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `login` - (Required) The login name of the principal to set as the server administrator
 
-* `object_id` - (Required) The ID of the principal to set as the server administrator
+* `object_id` - (Required) The ID of the principal to set as the server administrator. For a managed identity this should be the Client ID of the identity.
 
 * `tenant_id` - (Required) The Azure Tenant ID
 

@@ -21,7 +21,7 @@ data "azurerm_servicebus_topic_authorization_rule" "example" {
 }
 
 output "servicebus_authorization_rule_id" {
-  value = "${data.azurem_servicebus_topic_authorization_rule.example.id}"
+  value = data.azurem_servicebus_topic_authorization_rule.example.id
 
 }
 ```
@@ -51,6 +51,10 @@ The following attributes are exported:
 * `secondary_key` - The Secondary Key for the ServiceBus Topic authorization Rule.
 
 * `secondary_connection_string` - The Secondary Connection String for the ServiceBus Topic authorization Rule.
+
+* `primary_connection_string_alias` - The alias Primary Connection String for the ServiceBus Namespace, if the namespace is Geo DR paired. 
+
+* `secondary_connection_string_alias` - The alias Secondary Connection String for the ServiceBus Namespace 
 
 ## Timeouts
 

@@ -18,7 +18,7 @@ This guide covers how to migrate from using the following Data Sources and Resou
 * Resource: `azurerm_azuread_service_principal`
 * Resource: `azurerm_azuread_service_principal_password`
 
-## Updating the Provider block
+## Updating the Provider block
 
 As the AzureAD and AzureRM Provider support the same authentication methods, it's possible to simply add the AzureAD Provider to the `required_providers` block and declare the configuration in a Provider block as per the following example:
 
@@ -229,4 +229,4 @@ configuration and real physical resources that exist. As a result, no
 actions need to be performed.
 ```
 
-At this point, you've switched over to using [the new Azure Active Directory provider](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs)! You can stay up to date with Releases (and file Feature Requests/Bugs) [on the Github repository](https://github.com/terraform-providers/terraform-provider-azuread).
+At this point, you've switched over to using [the new Azure Active Directory provider](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs)! You can stay up to date with Releases (and file Feature Requests/Bugs) [on the Github repository](https://github.com/hashicorp/terraform-provider-azuread).

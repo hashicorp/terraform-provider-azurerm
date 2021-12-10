@@ -164,7 +164,7 @@ A `private_service_connection` supports the following:
 
 -> **NOTE:** If you are trying to connect the Private Endpoint to a remote resource without having the correct RBAC permissions on the remote resource set this value to `true`.
 
-* `private_connection_resource_id` - (Optional) The ID of the Private Link Enabled Remote Resource which this Private Endpoint should be connected to. One of `private_connection_resource_id` or `private_connection_resource_alias` must be specified. Changing this forces a new resource to be created.
+* `private_connection_resource_id` - (Optional) The ID of the Private Link Enabled Remote Resource which this Private Endpoint should be connected to. One of `private_connection_resource_id` or `private_connection_resource_alias` must be specified. Changing this forces a new resource to be created. For a web app or function app slot, the parent web app should be used in this field instead of a reference to the slot itself.
 
 * `private_connection_resource_alias` - (Optional) The Service Alias of the Private Link Enabled Remote Resource which this Private Endpoint should be connected to. One of `private_connection_resource_id` or `private_connection_resource_alias` must be specified. Changing this forces a new resource to be created.
 
@@ -181,6 +181,8 @@ A `private_service_connection` supports the following:
 | Storage Account               | queue            | queue_secondary            |
 | Storage Account               | table            | table_secondary            |
 | Storage Account               | web              | web_secondary              |
+| Web App / Function App        | sites            |                            |
+| Web App / Function App Slots  | sites-<slotName> |                            |
 
 See the product [documentation](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview#dns-configuration) for more information.
 
@@ -191,6 +193,14 @@ See the product [documentation](https://docs.microsoft.com/en-us/azure/private-l
 The following attributes are exported:
 
 * `id` - The ID of the Private Endpoint.
+
+---
+
+A `network_interface` block exports:
+
+* `id` - The ID of the network interface associated with the `private_endpoint`.
+
+* `name` - The name of the network interface associated with the `private_endpoint`.
 
 ---
 
@@ -246,10 +256,11 @@ A `record_sets` block exports:
 
 ## Example HCL Configurations
 
-* How to connect a `Private Endpoint` to a [Cosmos MongoDB](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/cosmos-db)
-* How to connect a `Private Endpoint` to a [PostgreSQL Server](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/postgresql)
-* How to connect a `Private Endpoint` to a [Private Link Service](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/private-link-service)
-* How to connect a `Private Endpoint` to a [Private DNS Group](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/private-dns-group)
+* How to connect a `Private Endpoint` to a [Cosmos MongoDB](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/cosmos-db)
+* How to connect a `Private Endpoint` to a [PostgreSQL Server](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/postgresql)
+* How to connect a `Private Endpoint` to a [Private Link Service](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/private-link-service)
+* How to connect a `Private Endpoint` to a [Private DNS Group](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/private-dns-group)
+* How to connect a `Private Endpoint` to a [Databricks Workspace](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/databricks)
 
 ## Timeouts
 

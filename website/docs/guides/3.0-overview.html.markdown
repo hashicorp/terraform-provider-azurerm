@@ -1,0 +1,69 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: Upcoming Version 3.0 of the Azure Provider"
+description: |-
+Azure Resource Manager: Upcoming Version 3.0 of the Azure Provider
+---
+
+# Upcoming Version 3.0 of the Azure Provider
+
+-> **Note:** Since this documentation is versioned, we recommend checking [the latest version of this document](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
+
+Version 3.0 of the Azure Provider will be a major release, which means that this will include larger "breaking" changes as required, in addition to new functionality and bug fixes.
+
+During the development of version 2.0 of the Azure Provider we made use of Feature Toggling to gradually add support for the new functionality. This worked really well, allowing users to try out and provide invaluable feedback on this new functionality - and also allowing us to gradually implement and refine it over time - whilst continuing to ship regular releases of the Azure Provider.
+
+As such, we'll be using the same approach for version 3.0 of the Azure Provider too, in the future providing an opt-in Beta for the changes coming in version 3.0 whilst using 2.x versions of the Azure Provider.
+
+Since we'll be iteratively adding this functionality over time, we encourage you to use the latest version of the Azure Provider when using this functionality - however note that this is subject to change (including breaking changes) prior to the release of version 3.0 of the Azure Provider. In addition, an upgrade guide containing the detailed changes coming in version 3.0 of the Azure Provider will be available in the future.
+
+## Pinning to a 2.x version of the Azure Provider
+
+We recommend pinning the version of each Provider you use in Terraform, for example:
+
+```hcl
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.79.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
+provider "azurerm" {
+  features {}
+}
+```
+
+## What's available in Version 3.0 of the AzureRM Provider?
+
+-> **Note:** Since new functionality is being added iteratively, this page will be updated as new functionality is added to the 3.0 Beta
+
+Version 3.0 of the Azure Provider is a work-in-progress, as such only functionality which is currently available is documented here. We'll publish a tracking issue on GitHub with more details for 3.0, as well as a future upgrade guide detailing the specific changes coming in 3.0.
+
+
+### New Data Sources and Resources for App Service
+
+App Service, aka `web`, was one of the earliest supported services in the provider and has evolved significantly over time, both as a Service and the resources within the provider. Over that time feature additions, behavioural changes, and a host of other changes have made the current resources increasingly difficult to maintain and update. We're taking the opportunity in 3.0 to rewrite this service from the ground up.
+
+In summary this includes changes to better support the various aspects of the service. This includes the separation of the Web App into O/S specific variants. Whilst these resources are very similar, they are sufficiently different in Terraform schema that one resource for both reduced the experience of using it to one of the lowest common denominator.
+
+At present this includes the following new Data Sources and Resources:
+
+* **New Data Source:** `azurerm_linux_web_app`
+* **New Data Source:** `azurerm_service_plan`
+* **New Data Source:** `azurerm_source_control_token`
+* **New Data Source:** `azurerm_windows_web_app`
+* **New Resource:** `azurerm_app_service_source_control`
+* **New Resource:** `azurerm_linux_web_app`
+* **New Resource:** `azurerm_service_plan`
+* **New Resource:** `azurerm_source_control_token`
+* **New Resource:** `azurerm_windows_web_app`
+
+More information about the new Data Sources and Resources for App Service coming in version 3.0 of the Azure Provider - including how to opt-into the Beta for these resources - can be found [in the App Service Beta Resources page](3.0-app-service-beta.html)
+
+---
+
+Since version 3.0 of the Azure Provider is being iteratively developed, more information will be added to this page over time - since this documentation is versioned, we recommend checking [the latest version of this document](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).

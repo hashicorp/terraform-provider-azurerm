@@ -12,7 +12,7 @@ Manages as an Azure Container Group instance.
 
 ## Example Usage
 
-This example provisions a Basic Container. Other examples of the `azurerm_container_group` resource can be found in [the `./examples/container-instance` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/container-instance).
+This example provisions a Basic Container. Other examples of the `azurerm_container_group` resource can be found in [the `./examples/container-instance` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/container-instance).
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -30,7 +30,7 @@ resource "azurerm_container_group" "example" {
 
   container {
     name   = "hello-world"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "1.5"
 
@@ -42,7 +42,7 @@ resource "azurerm_container_group" "example" {
 
   container {
     name   = "sidecar"
-    image  = "microsoft/aci-tutorial-sidecar"
+    image  = "mcr.microsoft.com/azuredocs/aci-tutorial-sidecar"
     cpu    = "0.5"
     memory = "1.5"
   }
@@ -280,9 +280,9 @@ The `dns_config` block supports:
 
 * `nameservers` - (Required) A list of nameservers the containers will search out to resolve requests.
 
-* `search_domains` - (Required) A list of search domains that DNS requests will search along.
+* `search_domains` - (Optional) A list of search domains that DNS requests will search along.
 
-* `options` - (Required) A list of [resolver configuration options](https://man7.org/linux/man-pages/man5/resolv.conf.5.html).
+* `options` - (Optional) A list of [resolver configuration options](https://man7.org/linux/man-pages/man5/resolv.conf.5.html).
 
 ## Attributes Reference
 

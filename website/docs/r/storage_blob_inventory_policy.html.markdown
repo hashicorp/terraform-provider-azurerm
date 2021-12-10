@@ -88,7 +88,7 @@ A `rules` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Storage Blob Inventory Policy.
 
@@ -103,7 +103,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Storage Blob Inventory Policys can be imported using the `resource id`, e.g.
+Storage Blob Inventory Policies can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_storage_blob_inventory_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Storage/storageAccounts/storageAccount1/inventoryPolicies/inventoryPolicy1

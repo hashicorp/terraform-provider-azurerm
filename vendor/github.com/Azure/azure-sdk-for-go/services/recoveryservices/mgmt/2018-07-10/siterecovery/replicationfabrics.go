@@ -53,7 +53,7 @@ func (client ReplicationFabricsClient) CheckConsistency(ctx context.Context, fab
 
 	result, err = client.CheckConsistencySender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsClient", "CheckConsistency", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsClient", "CheckConsistency", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -86,6 +86,7 @@ func (client ReplicationFabricsClient) CheckConsistencyPreparer(ctx context.Cont
 // http.Response Body if it receives an error.
 func (client ReplicationFabricsClient) CheckConsistencySender(req *http.Request) (future ReplicationFabricsCheckConsistencyFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -132,7 +133,7 @@ func (client ReplicationFabricsClient) Create(ctx context.Context, fabricName st
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -167,6 +168,7 @@ func (client ReplicationFabricsClient) CreatePreparer(ctx context.Context, fabri
 // http.Response Body if it receives an error.
 func (client ReplicationFabricsClient) CreateSender(req *http.Request) (future ReplicationFabricsCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -212,7 +214,7 @@ func (client ReplicationFabricsClient) Delete(ctx context.Context, fabricName st
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -245,6 +247,7 @@ func (client ReplicationFabricsClient) DeletePreparer(ctx context.Context, fabri
 // http.Response Body if it receives an error.
 func (client ReplicationFabricsClient) DeleteSender(req *http.Request) (future ReplicationFabricsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -480,7 +483,7 @@ func (client ReplicationFabricsClient) MigrateToAad(ctx context.Context, fabricN
 
 	result, err = client.MigrateToAadSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsClient", "MigrateToAad", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsClient", "MigrateToAad", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -513,6 +516,7 @@ func (client ReplicationFabricsClient) MigrateToAadPreparer(ctx context.Context,
 // http.Response Body if it receives an error.
 func (client ReplicationFabricsClient) MigrateToAadSender(req *http.Request) (future ReplicationFabricsMigrateToAadFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -557,7 +561,7 @@ func (client ReplicationFabricsClient) Purge(ctx context.Context, fabricName str
 
 	result, err = client.PurgeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsClient", "Purge", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsClient", "Purge", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -590,6 +594,7 @@ func (client ReplicationFabricsClient) PurgePreparer(ctx context.Context, fabric
 // http.Response Body if it receives an error.
 func (client ReplicationFabricsClient) PurgeSender(req *http.Request) (future ReplicationFabricsPurgeFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -635,7 +640,7 @@ func (client ReplicationFabricsClient) ReassociateGateway(ctx context.Context, f
 
 	result, err = client.ReassociateGatewaySender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsClient", "ReassociateGateway", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsClient", "ReassociateGateway", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -670,6 +675,7 @@ func (client ReplicationFabricsClient) ReassociateGatewayPreparer(ctx context.Co
 // http.Response Body if it receives an error.
 func (client ReplicationFabricsClient) ReassociateGatewaySender(req *http.Request) (future ReplicationFabricsReassociateGatewayFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -716,7 +722,7 @@ func (client ReplicationFabricsClient) RenewCertificate(ctx context.Context, fab
 
 	result, err = client.RenewCertificateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsClient", "RenewCertificate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsClient", "RenewCertificate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -751,6 +757,7 @@ func (client ReplicationFabricsClient) RenewCertificatePreparer(ctx context.Cont
 // http.Response Body if it receives an error.
 func (client ReplicationFabricsClient) RenewCertificateSender(req *http.Request) (future ReplicationFabricsRenewCertificateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

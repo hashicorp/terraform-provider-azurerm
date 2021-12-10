@@ -32,9 +32,9 @@ func NewBudgetsClientWithBaseURI(baseURI string, subscriptionID string) BudgetsC
 	return BudgetsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate the operation to create or update a budget. Update operation requires latest eTag to be set in the
-// request mandatorily. You may obtain the latest eTag by performing a get operation. Create operation does not require
-// eTag.
+// CreateOrUpdate the operation to create or update a budget. You can optionally provide an eTag if desired as a form
+// of concurrency control. To obtain the latest eTag for a given budget, perform a get operation prior to your put
+// operation.
 // Parameters:
 // scope - the scope associated with budget operations. This includes '/subscriptions/{subscriptionId}/' for
 // subscription scope, '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}' for resourceGroup
@@ -70,32 +70,32 @@ func (client BudgetsClient) CreateOrUpdate(ctx context.Context, scope string, bu
 						Chain: []validation.Constraint{{Target: "parameters.BudgetProperties.TimePeriod.StartDate", Name: validation.Null, Rule: true, Chain: nil}}},
 					{Target: "parameters.BudgetProperties.Filter", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "parameters.BudgetProperties.Filter.And", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.BudgetProperties.Filter.And", Name: validation.MinItems, Rule: 2, Chain: nil}}},
+							Chain: []validation.Constraint{{Target: "parameters.BudgetProperties.Filter.And", Name: validation.MinItems, Rule: 0, Chain: nil}}},
 							{Target: "parameters.BudgetProperties.Filter.Not", Name: validation.Null, Rule: false,
 								Chain: []validation.Constraint{{Target: "parameters.BudgetProperties.Filter.Not.Dimensions", Name: validation.Null, Rule: false,
 									Chain: []validation.Constraint{{Target: "parameters.BudgetProperties.Filter.Not.Dimensions.Name", Name: validation.Null, Rule: true, Chain: nil},
 										{Target: "parameters.BudgetProperties.Filter.Not.Dimensions.Operator", Name: validation.Null, Rule: true, Chain: nil},
 										{Target: "parameters.BudgetProperties.Filter.Not.Dimensions.Values", Name: validation.Null, Rule: true,
-											Chain: []validation.Constraint{{Target: "parameters.BudgetProperties.Filter.Not.Dimensions.Values", Name: validation.MinItems, Rule: 1, Chain: nil}}},
+											Chain: []validation.Constraint{{Target: "parameters.BudgetProperties.Filter.Not.Dimensions.Values", Name: validation.MinItems, Rule: 0, Chain: nil}}},
 									}},
 									{Target: "parameters.BudgetProperties.Filter.Not.Tags", Name: validation.Null, Rule: false,
 										Chain: []validation.Constraint{{Target: "parameters.BudgetProperties.Filter.Not.Tags.Name", Name: validation.Null, Rule: true, Chain: nil},
 											{Target: "parameters.BudgetProperties.Filter.Not.Tags.Operator", Name: validation.Null, Rule: true, Chain: nil},
 											{Target: "parameters.BudgetProperties.Filter.Not.Tags.Values", Name: validation.Null, Rule: true,
-												Chain: []validation.Constraint{{Target: "parameters.BudgetProperties.Filter.Not.Tags.Values", Name: validation.MinItems, Rule: 1, Chain: nil}}},
+												Chain: []validation.Constraint{{Target: "parameters.BudgetProperties.Filter.Not.Tags.Values", Name: validation.MinItems, Rule: 0, Chain: nil}}},
 										}},
 								}},
 							{Target: "parameters.BudgetProperties.Filter.Dimensions", Name: validation.Null, Rule: false,
 								Chain: []validation.Constraint{{Target: "parameters.BudgetProperties.Filter.Dimensions.Name", Name: validation.Null, Rule: true, Chain: nil},
 									{Target: "parameters.BudgetProperties.Filter.Dimensions.Operator", Name: validation.Null, Rule: true, Chain: nil},
 									{Target: "parameters.BudgetProperties.Filter.Dimensions.Values", Name: validation.Null, Rule: true,
-										Chain: []validation.Constraint{{Target: "parameters.BudgetProperties.Filter.Dimensions.Values", Name: validation.MinItems, Rule: 1, Chain: nil}}},
+										Chain: []validation.Constraint{{Target: "parameters.BudgetProperties.Filter.Dimensions.Values", Name: validation.MinItems, Rule: 0, Chain: nil}}},
 								}},
 							{Target: "parameters.BudgetProperties.Filter.Tags", Name: validation.Null, Rule: false,
 								Chain: []validation.Constraint{{Target: "parameters.BudgetProperties.Filter.Tags.Name", Name: validation.Null, Rule: true, Chain: nil},
 									{Target: "parameters.BudgetProperties.Filter.Tags.Operator", Name: validation.Null, Rule: true, Chain: nil},
 									{Target: "parameters.BudgetProperties.Filter.Tags.Values", Name: validation.Null, Rule: true,
-										Chain: []validation.Constraint{{Target: "parameters.BudgetProperties.Filter.Tags.Values", Name: validation.MinItems, Rule: 1, Chain: nil}}},
+										Chain: []validation.Constraint{{Target: "parameters.BudgetProperties.Filter.Tags.Values", Name: validation.MinItems, Rule: 0, Chain: nil}}},
 								}},
 						}},
 				}}}}}); err != nil {

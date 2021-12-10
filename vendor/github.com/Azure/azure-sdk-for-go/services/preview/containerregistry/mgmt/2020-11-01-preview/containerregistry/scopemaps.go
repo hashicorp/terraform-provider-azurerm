@@ -73,7 +73,7 @@ func (client ScopeMapsClient) Create(ctx context.Context, resourceGroupName stri
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -108,6 +108,7 @@ func (client ScopeMapsClient) CreatePreparer(ctx context.Context, resourceGroupN
 // http.Response Body if it receives an error.
 func (client ScopeMapsClient) CreateSender(req *http.Request) (future ScopeMapsCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -169,7 +170,7 @@ func (client ScopeMapsClient) Delete(ctx context.Context, resourceGroupName stri
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -202,6 +203,7 @@ func (client ScopeMapsClient) DeletePreparer(ctx context.Context, resourceGroupN
 // http.Response Body if it receives an error.
 func (client ScopeMapsClient) DeleteSender(req *http.Request) (future ScopeMapsDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -483,7 +485,7 @@ func (client ScopeMapsClient) Update(ctx context.Context, resourceGroupName stri
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ScopeMapsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -518,6 +520,7 @@ func (client ScopeMapsClient) UpdatePreparer(ctx context.Context, resourceGroupN
 // http.Response Body if it receives an error.
 func (client ScopeMapsClient) UpdateSender(req *http.Request) (future ScopeMapsUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

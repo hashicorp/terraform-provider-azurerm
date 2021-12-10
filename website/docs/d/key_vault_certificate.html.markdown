@@ -56,6 +56,10 @@ The following attributes are exported:
 
 * `version` - The current version of the Key Vault Certificate.
 
+* `versionless_id` - The Base ID of the Key Vault Certificate.
+
+* `versionless_secret_id` - The Base ID of the Key Vault Secret.
+
 * `certificate_data` - The raw Key Vault Certificate data represented as a hexadecimal string.
 
 * `certificate_data_base64` - The raw Key Vault Certificate data represented as a base64 string.
@@ -63,6 +67,10 @@ The following attributes are exported:
 * `thumbprint` - The X509 Thumbprint of the Key Vault Certificate represented as a hexadecimal string.
 
 * `certificate_policy` - A `certificate_policy` block as defined below.
+
+* `expires` - Expiry date of certificate in RFC3339 format.
+
+* `not_before` - Not Before date of certificate in RFC3339 format.
 
 * `tags` - A mapping of tags to assign to the resource.
 

@@ -27,7 +27,7 @@ resource "azurerm_redis_enterprise_cluster" "example" {
 }
 
 resource "azurerm_redis_enterprise_database" "example" {
-  name                = "example-database"
+  name                = "default"
   resource_group_name = azurerm_resource_group.example.name
 
   cluster_id = azurerm_redis_enterprise_cluster.example.id

@@ -80,7 +80,7 @@ func (client ConnectedRegistriesClient) Create(ctx context.Context, resourceGrou
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ConnectedRegistriesClient", "Create", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ConnectedRegistriesClient", "Create", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -115,6 +115,7 @@ func (client ConnectedRegistriesClient) CreatePreparer(ctx context.Context, reso
 // http.Response Body if it receives an error.
 func (client ConnectedRegistriesClient) CreateSender(req *http.Request) (future ConnectedRegistriesCreateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -176,7 +177,7 @@ func (client ConnectedRegistriesClient) Deactivate(ctx context.Context, resource
 
 	result, err = client.DeactivateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ConnectedRegistriesClient", "Deactivate", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ConnectedRegistriesClient", "Deactivate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -209,6 +210,7 @@ func (client ConnectedRegistriesClient) DeactivatePreparer(ctx context.Context, 
 // http.Response Body if it receives an error.
 func (client ConnectedRegistriesClient) DeactivateSender(req *http.Request) (future ConnectedRegistriesDeactivateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -269,7 +271,7 @@ func (client ConnectedRegistriesClient) Delete(ctx context.Context, resourceGrou
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ConnectedRegistriesClient", "Delete", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ConnectedRegistriesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -302,6 +304,7 @@ func (client ConnectedRegistriesClient) DeletePreparer(ctx context.Context, reso
 // http.Response Body if it receives an error.
 func (client ConnectedRegistriesClient) DeleteSender(req *http.Request) (future ConnectedRegistriesDeleteFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
@@ -589,7 +592,7 @@ func (client ConnectedRegistriesClient) Update(ctx context.Context, resourceGrou
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.ConnectedRegistriesClient", "Update", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerregistry.ConnectedRegistriesClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -624,6 +627,7 @@ func (client ConnectedRegistriesClient) UpdatePreparer(ctx context.Context, reso
 // http.Response Body if it receives an error.
 func (client ConnectedRegistriesClient) UpdateSender(req *http.Request) (future ConnectedRegistriesUpdateFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return

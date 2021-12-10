@@ -33,9 +33,12 @@ func NewLotsClientWithBaseURI(baseURI string, subscriptionID string) LotsClient 
 
 // List lists the lots by billingAccountId and billingProfileId.
 // Parameters:
-// billingAccountID - billingAccount ID
-// billingProfileID - azure Billing Profile ID.
-func (client LotsClient) List(ctx context.Context, billingAccountID string, billingProfileID string) (result LotsPage, err error) {
+// scope - the scope associated with Lots operations. This includes
+// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfile/{billingProfileId}' for
+// Billing Profile scope, and
+// 'providers/Microsoft.Billing/billingAccounts/{billingAccountId}/customers/{customerId}' specific for
+// partners.
+func (client LotsClient) List(ctx context.Context, scope string) (result LotsPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LotsClient.List")
 		defer func() {
@@ -47,7 +50,7 @@ func (client LotsClient) List(ctx context.Context, billingAccountID string, bill
 		}()
 	}
 	result.fn = client.listNextResults
-	req, err := client.ListPreparer(ctx, billingAccountID, billingProfileID)
+	req, err := client.ListPreparer(ctx, scope)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "consumption.LotsClient", "List", nil, "Failure preparing request")
 		return
@@ -74,10 +77,9 @@ func (client LotsClient) List(ctx context.Context, billingAccountID string, bill
 }
 
 // ListPreparer prepares the List request.
-func (client LotsClient) ListPreparer(ctx context.Context, billingAccountID string, billingProfileID string) (*http.Request, error) {
+func (client LotsClient) ListPreparer(ctx context.Context, scope string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"billingAccountId": autorest.Encode("path", billingAccountID),
-		"billingProfileId": autorest.Encode("path", billingProfileID),
+		"scope": scope,
 	}
 
 	const APIVersion = "2019-10-01"
@@ -88,7 +90,7 @@ func (client LotsClient) ListPreparer(ctx context.Context, billingAccountID stri
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/providers/Microsoft.Consumption/lots", pathParameters),
+		autorest.WithPathParameters("/{scope}/providers/Microsoft.Consumption/lots", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -133,7 +135,7 @@ func (client LotsClient) listNextResults(ctx context.Context, lastResults Lots) 
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client LotsClient) ListComplete(ctx context.Context, billingAccountID string, billingProfileID string) (result LotsIterator, err error) {
+func (client LotsClient) ListComplete(ctx context.Context, scope string) (result LotsIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LotsClient.List")
 		defer func() {
@@ -144,6 +146,6 @@ func (client LotsClient) ListComplete(ctx context.Context, billingAccountID stri
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.List(ctx, billingAccountID, billingProfileID)
+	result.page, err = client.List(ctx, scope)
 	return
 }

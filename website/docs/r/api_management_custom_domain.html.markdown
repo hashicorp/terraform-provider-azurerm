@@ -123,7 +123,7 @@ A `developer_portal`, `management`, `portal` or `scm` block supports the followi
 
 * `host_name` - (Required) The Hostname to use for the corresponding endpoint.
 
-* `certificate` - (Optional) The Base64 Encoded Certificate. (Mutually exlusive with `key_vault_id`.)
+* `certificate` - (Optional) The Base64 Encoded Certificate. (Mutually exclusive with `key_vault_id`.)
 
 * `certificate_password` - (Optional) The password associated with the certificate provided above.
 
@@ -139,7 +139,7 @@ A `proxy` block supports the following:
 
 * `host_name` - (Required) The Hostname to use for the API Proxy Endpoint.
 
-* `certificate` - (Optional) The Base64 Encoded Certificate. (Mutually exlusive with `key_vault_id`.)
+* `certificate` - (Optional) The Base64 Encoded Certificate. (Mutually exclusive with `key_vault_id`.)
 
 * `certificate_password` - (Optional) The password associated with the certificate provided above.
 
@@ -151,7 +151,7 @@ A `proxy` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the API Management Custom Domain.
 

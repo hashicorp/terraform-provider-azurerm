@@ -10,7 +10,7 @@ description: |-
 
 Manages a Resource Group Template Deployment.
 
-~> **Note:** This resource will automatically attempt to delete resources deployed by the ARM Template when it is deleted. You can opt-out of this by setting the `delete_nested_items_during_deletion` field within the `template_deployment` block of the `features` block to `false`.
+~> **Note:** This resource will automatically attempt to delete resources deployed by the ARM Template when it is deleted. This behavior can be disabled in the provider `features` block by setting the `delete_nested_items_during_deletion` field to `false` within the `template_deployment` block.
 
 ## Example Usage
 
@@ -84,7 +84,7 @@ data "azurerm_template_spec_version" "example" {
 resource "azurerm_resource_group_template_deployment" "example" {
   name                     = "example-deploy"
   resource_group_name      = "example-group"
-  deployment_mode          = "Complete"
+  deployment_mode          = "Incremental"
   template_spec_version_id = data.azurerm_template_spec_version.example.id
 }
 ```
@@ -94,12 +94,12 @@ resource "azurerm_resource_group_template_deployment" "example" {
 The following arguments are supported:
 
 * `deployment_mode` - (Required) The Deployment Mode for this Resource Group Template Deployment. Possible values are `Complete` (where resources in the Resource Group not specified in the ARM Template will be destroyed) and `Incremental` (where resources are additive only).
+  
+~> **Note:** If `deployment_mode` is set to `Complete` then resources within this Resource Group which are not defined in the ARM Template will be deleted.
 
 * `name` - (Required) The name which should be used for this Resource Group Template Deployment. Changing this forces a new Resource Group Template Deployment to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Resource Group Template Deployment should exist. Changing this forces a new Resource Group Template Deployment to be created.
-
-~> **Note:** If `deployment_mode` is set to `Complete` then resources within this Resource Group which are not defined in the ARM Template will be deleted.
 
 ---
 

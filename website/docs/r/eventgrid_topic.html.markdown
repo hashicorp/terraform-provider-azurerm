@@ -42,6 +42,8 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `input_schema` - (Optional) Specifies the schema in which incoming events will be published to this domain. Allowed values are `CloudEventSchemaV1_0`, `CustomEventSchema`, or `EventGridSchema`. Defaults to `EventGridSchema`. Changing this forces a new resource to be created.
 
 * `input_mapping_fields` - (Optional) A `input_mapping_fields` block as defined below.
@@ -53,6 +55,16 @@ The following arguments are supported:
 * `inbound_ip_rule` - (Optional) One or more `inbound_ip_rule` blocks as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `identity` block supports the following:
+
+* `type` - Specifies the identity type of Event Grid Topic. Possible values are `SystemAssigned` (where Azure will generate a Principal for you) or `UserAssigned` where you can specify the User Assigned Managed Identity IDs in the `identity_ids` field.
+
+~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Event Grid Topic has been created. More details are available below.
+
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
 
 ---
 
@@ -100,9 +112,23 @@ The following attributes are exported:
 
 * `secondary_access_key` - The Secondary Shared Access Key associated with the EventGrid Topic.
 
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Event Grid Topic.
+
+---
+
+A `identity` block supports the following:
+
+* `type` - Specifies the type of Managed Service Identity that is configured on this Event Grid Topic.
+
+* `principal_id` - Specifies the Principal ID of the System Assigned Managed Service Identity that is configured on this Event Grid Topic.
+
+* `tenant_id` - Specifies the Tenant ID of the System Assigned Managed Service Identity that is configured on this Event Grid Topic.
+
+* `identity_ids` - A list of IDs for User Assigned Managed Identity resources to be assigned.
+
+---
+
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

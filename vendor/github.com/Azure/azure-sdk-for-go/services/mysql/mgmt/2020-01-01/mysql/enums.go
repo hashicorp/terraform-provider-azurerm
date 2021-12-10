@@ -176,6 +176,22 @@ func PossiblePublicNetworkAccessEnumValues() []PublicNetworkAccessEnum {
 	return []PublicNetworkAccessEnum{PublicNetworkAccessEnumDisabled, PublicNetworkAccessEnumEnabled}
 }
 
+// QueryPerformanceInsightResetDataResultState enumerates the values for query performance insight reset data
+// result state.
+type QueryPerformanceInsightResetDataResultState string
+
+const (
+	// QueryPerformanceInsightResetDataResultStateFailed ...
+	QueryPerformanceInsightResetDataResultStateFailed QueryPerformanceInsightResetDataResultState = "Failed"
+	// QueryPerformanceInsightResetDataResultStateSucceeded ...
+	QueryPerformanceInsightResetDataResultStateSucceeded QueryPerformanceInsightResetDataResultState = "Succeeded"
+)
+
+// PossibleQueryPerformanceInsightResetDataResultStateValues returns an array of possible values for the QueryPerformanceInsightResetDataResultState const type.
+func PossibleQueryPerformanceInsightResetDataResultStateValues() []QueryPerformanceInsightResetDataResultState {
+	return []QueryPerformanceInsightResetDataResultState{QueryPerformanceInsightResetDataResultStateFailed, QueryPerformanceInsightResetDataResultStateSucceeded}
+}
+
 // ServerSecurityAlertPolicyState enumerates the values for server security alert policy state.
 type ServerSecurityAlertPolicyState string
 

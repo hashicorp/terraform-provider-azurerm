@@ -552,7 +552,7 @@ func (client RunbookClient) Publish(ctx context.Context, resourceGroupName strin
 
 	result, err = client.PublishSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "automation.RunbookClient", "Publish", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "automation.RunbookClient", "Publish", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -585,6 +585,7 @@ func (client RunbookClient) PublishPreparer(ctx context.Context, resourceGroupNa
 // http.Response Body if it receives an error.
 func (client RunbookClient) PublishSender(req *http.Request) (future RunbookPublishFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
