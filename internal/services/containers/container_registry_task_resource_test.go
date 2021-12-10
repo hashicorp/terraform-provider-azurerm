@@ -210,12 +210,12 @@ func TestAccContainerRegistryTask_dockerStepSourceTrigger(t *testing.T) {
 		},
 		data.ImportStep(
 			"docker_step.0.context_access_token",
-			"source_trigger.0.source_setting.0.auth.#",
-			"source_trigger.0.source_setting.0.auth.0.%",
-			"source_trigger.0.source_setting.0.auth.0.expire_in_seconds",
-			"source_trigger.0.source_setting.0.auth.0.refresh_token",
-			"source_trigger.0.source_setting.0.auth.0.scope",
-			"source_trigger.0.source_setting.0.auth.0.token",
+			"source_trigger.0.authentication.#",
+			"source_trigger.0.authentication.0.%",
+			"source_trigger.0.authentication.0.expire_in_seconds",
+			"source_trigger.0.authentication.0.refresh_token",
+			"source_trigger.0.authentication.0.scope",
+			"source_trigger.0.authentication.0.token",
 		),
 		{
 			Config: r.dockerStepSourceTriggerUpdate(data),
@@ -225,12 +225,12 @@ func TestAccContainerRegistryTask_dockerStepSourceTrigger(t *testing.T) {
 		},
 		data.ImportStep(
 			"docker_step.0.context_access_token",
-			"source_trigger.0.source_setting.0.auth.#",
-			"source_trigger.0.source_setting.0.auth.0.%",
-			"source_trigger.0.source_setting.0.auth.0.expire_in_seconds",
-			"source_trigger.0.source_setting.0.auth.0.refresh_token",
-			"source_trigger.0.source_setting.0.auth.0.scope",
-			"source_trigger.0.source_setting.0.auth.0.token",
+			"source_trigger.0.authentication.#",
+			"source_trigger.0.authentication.0.%",
+			"source_trigger.0.authentication.0.expire_in_seconds",
+			"source_trigger.0.authentication.0.refresh_token",
+			"source_trigger.0.authentication.0.scope",
+			"source_trigger.0.authentication.0.token",
 		),
 		{
 			Config: r.dockerStepSourceTrigger(data),
@@ -240,12 +240,12 @@ func TestAccContainerRegistryTask_dockerStepSourceTrigger(t *testing.T) {
 		},
 		data.ImportStep(
 			"docker_step.0.context_access_token",
-			"source_trigger.0.source_setting.0.auth.#",
-			"source_trigger.0.source_setting.0.auth.0.%",
-			"source_trigger.0.source_setting.0.auth.0.expire_in_seconds",
-			"source_trigger.0.source_setting.0.auth.0.refresh_token",
-			"source_trigger.0.source_setting.0.auth.0.scope",
-			"source_trigger.0.source_setting.0.auth.0.token",
+			"source_trigger.0.authentication.#",
+			"source_trigger.0.authentication.0.%",
+			"source_trigger.0.authentication.0.expire_in_seconds",
+			"source_trigger.0.authentication.0.refresh_token",
+			"source_trigger.0.authentication.0.scope",
+			"source_trigger.0.authentication.0.token",
 		),
 	})
 }
@@ -449,7 +449,7 @@ func (r ContainerRegistryTaskResource) dockerStepBasic(data acceptance.TestData)
 resource "azurerm_container_registry_task" "test" {
   name                  = "testacccrTask%d"
   container_registry_id = azurerm_container_registry.test.id
-  platform_setting {
+  platform {
     os = "Linux"
   }
   docker_step {
@@ -470,7 +470,7 @@ func (r ContainerRegistryTaskResource) dockerStepUpdate(data acceptance.TestData
 resource "azurerm_container_registry_task" "test" {
   name                  = "testacccrTask%d"
   container_registry_id = azurerm_container_registry.test.id
-  platform_setting {
+  platform {
     os = "Linux"
   }
   docker_step {
@@ -484,9 +484,9 @@ resource "azurerm_container_registry_task" "test" {
     secret_arguments = {
       secret = "secret"
     }
-    is_push_enabled  = false
-    is_cache_enabled = false
-    target           = "some_target"
+    push_enabled  = false
+    cache_enabled = false
+    target        = "some_target"
   }
   agent_setting {
     cpu = 2
@@ -508,7 +508,7 @@ func (r ContainerRegistryTaskResource) fileTaskStepBasic(data acceptance.TestDat
 resource "azurerm_container_registry_task" "test" {
   name                  = "testacccrTask%d"
   container_registry_id = azurerm_container_registry.test.id
-  platform_setting {
+  platform {
     os = "Linux"
   }
   file_task_step {
@@ -528,7 +528,7 @@ func (r ContainerRegistryTaskResource) fileTaskStepUpdate(data acceptance.TestDa
 resource "azurerm_container_registry_task" "test" {
   name                  = "testacccrTask%d"
   container_registry_id = azurerm_container_registry.test.id
-  platform_setting {
+  platform {
     os = "Linux"
   }
   file_task_step {
@@ -554,7 +554,7 @@ func (r ContainerRegistryTaskResource) encodedTaskStepBasic(data acceptance.Test
 resource "azurerm_container_registry_task" "test" {
   name                  = "testacccrTask%d"
   container_registry_id = azurerm_container_registry.test.id
-  platform_setting {
+  platform {
     os = "Linux"
   }
   encoded_task_step {
@@ -581,7 +581,7 @@ func (r ContainerRegistryTaskResource) encodedTaskStepUpdate(data acceptance.Tes
 resource "azurerm_container_registry_task" "test" {
   name                  = "testacccrTask%d"
   container_registry_id = azurerm_container_registry.test.id
-  platform_setting {
+  platform {
     os = "Linux"
   }
   encoded_task_step {
@@ -615,7 +615,7 @@ func (r ContainerRegistryTaskResource) dockerStepBaseImageTrigger(data acceptanc
 resource "azurerm_container_registry_task" "test" {
   name                  = "testacccrTask%d"
   container_registry_id = azurerm_container_registry.test.id
-  platform_setting {
+  platform {
     os = "Linux"
   }
   docker_step {
@@ -640,7 +640,7 @@ func (r ContainerRegistryTaskResource) dockerStepBaseImageTriggerUpdate(data acc
 resource "azurerm_container_registry_task" "test" {
   name                  = "testacccrTask%d"
   container_registry_id = azurerm_container_registry.test.id
-  platform_setting {
+  platform {
     os = "Linux"
   }
   docker_step {
@@ -668,7 +668,7 @@ func (r ContainerRegistryTaskResource) dockerStepSourceTrigger(data acceptance.T
 resource "azurerm_container_registry_task" "test" {
   name                  = "testacccrTask%d"
   container_registry_id = azurerm_container_registry.test.id
-  platform_setting {
+  platform {
     os = "Linux"
   }
   docker_step {
@@ -678,16 +678,14 @@ resource "azurerm_container_registry_task" "test" {
     image_names          = ["helloworld:{{.Run.ID}}"]
   }
   source_trigger {
-    name   = "default"
-    events = ["commit"]
-    source_setting {
-      source_type    = "Github"
-      repository_url = "%s"
-      branch         = "main"
-      auth {
-        token_type = "PAT"
-        token      = "%s"
-      }
+    name           = "default"
+    events         = ["commit"]
+    source_type    = "Github"
+    repository_url = "%s"
+    branch         = "main"
+    authentication {
+      token_type = "PAT"
+      token      = "%s"
     }
   }
 }
@@ -702,7 +700,7 @@ func (r ContainerRegistryTaskResource) dockerStepSourceTriggerUpdate(data accept
 resource "azurerm_container_registry_task" "test" {
   name                  = "testacccrTask%d"
   container_registry_id = azurerm_container_registry.test.id
-  platform_setting {
+  platform {
     os = "Linux"
   }
   docker_step {
@@ -712,16 +710,14 @@ resource "azurerm_container_registry_task" "test" {
     image_names          = ["helloworld:{{.Run.ID}}"]
   }
   source_trigger {
-    name   = "default-update"
-    events = ["pullrequest"]
-    source_setting {
-      source_type    = "Github"
-      repository_url = "%s"
-      branch         = "master"
-      auth {
-        token_type = "PAT"
-        token      = "%s"
-      }
+    name           = "default-update"
+    events         = ["pullrequest"]
+    source_type    = "Github"
+    repository_url = "%s"
+    branch         = "master"
+    authentication {
+      token_type = "PAT"
+      token      = "%s"
     }
     enabled = false
   }
@@ -737,7 +733,7 @@ func (r ContainerRegistryTaskResource) dockerStepTimerTrigger(data acceptance.Te
 resource "azurerm_container_registry_task" "test" {
   name                  = "testacccrTask%d"
   container_registry_id = azurerm_container_registry.test.id
-  platform_setting {
+  platform {
     os = "Linux"
   }
   docker_step {
@@ -762,7 +758,7 @@ func (r ContainerRegistryTaskResource) dockerStepTimerTriggerUpdate(data accepta
 resource "azurerm_container_registry_task" "test" {
   name                  = "testacccrTask%d"
   container_registry_id = azurerm_container_registry.test.id
-  platform_setting {
+  platform {
     os = "Linux"
   }
   docker_step {
@@ -791,7 +787,7 @@ resource "azurerm_container_registry_task" "test" {
   identity {
     type = "SystemAssigned"
   }
-  platform_setting {
+  platform {
     os = "Linux"
   }
   docker_step {
@@ -824,7 +820,7 @@ resource "azurerm_container_registry_task" "test" {
       azurerm_user_assigned_identity.test.id,
     ]
   }
-  platform_setting {
+  platform {
     os = "Linux"
   }
   docker_step {
@@ -857,7 +853,7 @@ resource "azurerm_container_registry_task" "test" {
       azurerm_user_assigned_identity.test.id,
     ]
   }
-  platform_setting {
+  platform {
     os = "Linux"
   }
   docker_step {
@@ -885,7 +881,7 @@ resource "azurerm_container_registry" "test2" {
 resource "azurerm_container_registry_task" "test" {
   name                  = "testacccrTask%d"
   container_registry_id = azurerm_container_registry.test.id
-  platform_setting {
+  platform {
     os = "Linux"
   }
   file_task_step {
@@ -926,7 +922,7 @@ func (r ContainerRegistryTaskResource) requiresImport(data acceptance.TestData) 
 resource "azurerm_container_registry_task" "import" {
   name                  = azurerm_container_registry_task.test.name
   container_registry_id = azurerm_container_registry_task.test.container_registry_id
-  platform_setting {
+  platform {
     os = "Linux"
   }
   docker_step {

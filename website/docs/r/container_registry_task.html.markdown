@@ -29,7 +29,7 @@ resource "azurerm_container_registry" "example" {
 resource "azurerm_container_registry_task" "example" {
   name                  = "example-task"
   container_registry_id = azurerm_container_registry.example.id
-  platform_setting {
+  platform {
     os = "Linux"
   }
   docker_step {
@@ -59,9 +59,9 @@ The following arguments are supported:
 
 * `identity` - (Optional) A `identity` block as defined below.
 
-* `platform_setting` - (Optional) A `platform_setting` block as defined below.
+* `platform` - (Optional) A `platform` block as defined below.
 
-~> **NOTE**: The `platform_setting` is required for non-system task (when `is_system_task` is set to `false`).
+~> **NOTE**: The `platform` is required for non-system task (when `is_system_task` is set to `false`).
 
 * `docker_step` - (Optional) A `docker_step` block as defined below.
 
@@ -79,7 +79,7 @@ The following arguments are supported:
 
 * `is_system_task` - (Optional) Whether this Container Registry Task is a system task. Changing this forces a new Container Registry Task to be created. Defaults to `false`.
 
-~> **NOTE**: For system task, the `name` has to be set as `quicktask`. And the following properties can't be specified: `docker_step`, `encoded_task_step`, `file_task_step`, `platform_setting`, `base_image_trigger`, `source_trigger`, `timer_trigger`.
+~> **NOTE**: For system task, the `name` has to be set as `quicktask`. And the following properties can't be specified: `docker_step`, `encoded_task_step`, `file_task_step`, `platform`, `base_image_trigger`, `source_trigger`, `timer_trigger`.
 
 * `log_template` - (Optional) The template that describes the run log artifact.
 
@@ -97,7 +97,7 @@ A `agent_setting` block supports the following:
 
 ---
 
-A `auth` block supports the following:
+A `authentication` block supports the following:
 
 * `token` - (Required) The access token used to access the source control provider.
 
@@ -137,9 +137,9 @@ A `docker_step` block supports the following:
 
 * `image_names` - (Optional) Specifies a list of fully qualified image names including the repository and tag.
 
-* `is_cache_enabled` - (Optional) Should the image cache be enabled? Defaults to `true`.
+* `cache_enabled` - (Optional) Should the image cache be enabled? Defaults to `true`.
 
-* `is_push_enabled` - (Optional) Should the image built be pushed to the registry or not? Defaults to `true`.
+* `push_enabled` - (Optional) Should the image built be pushed to the registry or not? Defaults to `true`.
 
 * `secret_arguments` - (Optional) Specifies a map of *secret* arguments to be used when executing this step.
 
@@ -187,7 +187,7 @@ A `identity` block supports the following:
 
 ---
 
-A `platform_setting` block supports the following:
+A `platform` block supports the following:
 
 * `os` - (Required) The operating system type required for the task. Possible values are `Windows` and `Linux`.
 
@@ -209,25 +209,19 @@ A `registry_credential` block supports the following:
 
 ---
 
-A `source_setting` block supports the following:
-
-* `repository_url` - (Required) The full URL to the source code repository.
-
-* `source_type` - (Required) The type of the source control service. Possible values are `Github` and `VisualStudioTeamService`.
-
-* `auth` - (Optional) A `auth` block as defined above.
-
-* `branch` - (Optional) The branch name of the source code.
-
----
-
 A `source_trigger` block supports the following:
 
 * `name` - (Required) The name which should be used for this trigger.
 
 * `events` - (Required) Specifies a list of source events corresponding to the trigger. Possible values are `commit` and `pullrequest`.
 
-* `source_setting` - (Required) A `source_setting` block as defined above.
+* `repository_url` - (Required) The full URL to the source code repository.
+
+* `source_type` - (Required) The type of the source control service. Possible values are `Github` and `VisualStudioTeamService`.
+
+* `authentication` - (Optional) A `authentication` block as defined above.
+
+* `branch` - (Optional) The branch name of the source code.
 
 * `enabled` - (Optional) Should the trigger be enabled? Defaults to `true`.
 

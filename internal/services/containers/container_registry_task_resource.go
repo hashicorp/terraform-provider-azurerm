@@ -45,8 +45,8 @@ type DockerStep struct {
 	ContextAccessToken string            `tfschema:"context_access_token"`
 	DockerfilePath     string            `tfschema:"dockerfile_path"`
 	ImageNames         []string          `tfschema:"image_names"`
-	IsPushEnabled      bool              `tfschema:"is_push_enabled"`
-	IsCacheEnabled     bool              `tfschema:"is_cache_enabled"`
+	IsPushEnabled      bool              `tfschema:"push_enabled"`
+	IsCacheEnabled     bool              `tfschema:"cache_enabled"`
 	Target             string            `tfschema:"target"`
 	Arguments          map[string]string `tfschema:"arguments"`
 	SecretArguments    map[string]string `tfschema:"secret_arguments"`
@@ -87,17 +87,16 @@ type Auth struct {
 }
 
 type SourceSetting struct {
-	SourceType    string `tfschema:"source_type"`
-	RepositoryURL string `tfschema:"repository_url"`
-	Branch        string `tfschema:"branch"`
-	Auth          []Auth `tfschema:"auth"`
 }
 
 type SourceTrigger struct {
-	Name          string          `tfschema:"name"`
-	Enabled       bool            `tfschema:"enabled"`
-	Events        []string        `tfschema:"events"`
-	SourceSetting []SourceSetting `tfschema:"source_setting"`
+	Name          string   `tfschema:"name"`
+	Enabled       bool     `tfschema:"enabled"`
+	Events        []string `tfschema:"events"`
+	SourceType    string   `tfschema:"source_type"`
+	RepositoryURL string   `tfschema:"repository_url"`
+	Branch        string   `tfschema:"branch"`
+	Auth          []Auth   `tfschema:"authentication"`
 }
 
 type TimerTrigger struct {
@@ -128,7 +127,7 @@ type ContainerRegistryTaskModel struct {
 	AgentPoolName       string                 `tfschema:"agent_pool_name"`
 	IsSystemTask        bool                   `tfschema:"is_system_task"`
 	LogTemplate         string                 `tfschema:"log_template"`
-	Platform            []Platform             `tfschema:"platform_setting"`
+	Platform            []Platform             `tfschema:"platform"`
 	Enabled             bool                   `tfschema:"enabled"`
 	TimeoutInSec        int                    `tfschema:"timeout_in_seconds"`
 	DockerStep          []DockerStep           `tfschema:"docker_step"`
@@ -164,7 +163,7 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 			ForceNew:     true,
 			ValidateFunc: validate.RegistryID,
 		},
-		"platform_setting": {
+		"platform": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -230,12 +229,12 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 							Type: pluginsdk.TypeString,
 						},
 					},
-					"is_push_enabled": {
+					"push_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  true,
 					},
-					"is_cache_enabled": {
+					"cache_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  true,
@@ -420,66 +419,57 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 							}, false),
 						},
 					},
-					"source_setting": {
-						Type:     pluginsdk.TypeList,
+					"source_type": {
+						Type:     pluginsdk.TypeString,
 						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(legacyacr.Github),
+							string(legacyacr.VisualStudioTeamService),
+						}, false),
+					},
+					"repository_url": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"branch": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+					"authentication": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
-								"source_type": {
+								"token_type": {
 									Type:     pluginsdk.TypeString,
 									Required: true,
 									ValidateFunc: validation.StringInSlice([]string{
-										string(legacyacr.Github),
-										string(legacyacr.VisualStudioTeamService),
+										string(legacyacr.PAT),
+										string(legacyacr.OAuth),
 									}, false),
 								},
-								"repository_url": {
+								"token": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
+									Sensitive:    true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
-								"branch": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
+								"refresh_token": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Sensitive:    true,
+									ValidateFunc: validation.StringIsNotEmpty,
 								},
-								"auth": {
-									Type:     pluginsdk.TypeList,
+								"scope": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"expire_in_seconds": {
+									Type:     pluginsdk.TypeInt,
 									Optional: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*schema.Schema{
-											"token_type": {
-												Type:     pluginsdk.TypeString,
-												Required: true,
-												ValidateFunc: validation.StringInSlice([]string{
-													string(legacyacr.PAT),
-													string(legacyacr.OAuth),
-												}, false),
-											},
-											"token": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												Sensitive:    true,
-												ValidateFunc: validation.StringIsNotEmpty,
-											},
-											"refresh_token": {
-												Type:         pluginsdk.TypeString,
-												Optional:     true,
-												Sensitive:    true,
-												ValidateFunc: validation.StringIsNotEmpty,
-											},
-											"scope": {
-												Type:         pluginsdk.TypeString,
-												Optional:     true,
-												ValidateFunc: validation.StringIsNotEmpty,
-											},
-											"expire_in_seconds": {
-												Type:     pluginsdk.TypeInt,
-												Optional: true,
-											},
-										},
-									},
 								},
 							},
 						},
@@ -629,15 +619,15 @@ func (r ContainerRegistryTaskResource) CustomizeDiff() sdk.ResourceFunc {
 			isSystemTask := rd.Get("is_system_task").(bool)
 
 			if isSystemTask {
-				invalidProps := []string{"platform_setting", "docker_step", "file_task_step", "encoded_task_step", "base_image_trigger", "source_trigger", "timer_trigger"}
+				invalidProps := []string{"platform", "docker_step", "file_task_step", "encoded_task_step", "base_image_trigger", "source_trigger", "timer_trigger"}
 				for _, prop := range invalidProps {
 					if v := rd.Get(prop).([]interface{}); len(v) != 0 {
 						return fmt.Errorf("system task can't specify `%s`", prop)
 					}
 				}
 			} else {
-				if v := rd.Get("platform_setting").([]interface{}); len(v) == 0 {
-					return fmt.Errorf("non-system task have to specify `platform_setting`")
+				if v := rd.Get("platform").([]interface{}); len(v) == 0 {
+					return fmt.Errorf("non-system task have to specify `platform`")
 				}
 
 				dockerStep := rd.Get("docker_step").([]interface{})
@@ -1021,9 +1011,12 @@ func expandRegistryTaskSourceTriggers(triggers []SourceTrigger) *[]legacyacr.Sou
 			status = legacyacr.TriggerStatusEnabled
 		}
 		sourceTrigger := legacyacr.SourceTrigger{
-			Name:             &trigger.Name,
-			Status:           status,
-			SourceRepository: expandRegistryTaskSourceRepository(trigger.SourceSetting[0]),
+			Name:   &trigger.Name,
+			Status: status,
+			SourceRepository: &legacyacr.SourceProperties{
+				SourceControlType: legacyacr.SourceControlType(trigger.SourceType),
+				RepositoryURL:     &trigger.RepositoryURL,
+			},
 		}
 		if len(trigger.Events) != 0 {
 			events := make([]legacyacr.SourceTriggerEvent, 0, len(trigger.Events))
@@ -1031,6 +1024,13 @@ func expandRegistryTaskSourceTriggers(triggers []SourceTrigger) *[]legacyacr.Sou
 				events = append(events, legacyacr.SourceTriggerEvent(event))
 			}
 			sourceTrigger.SourceTriggerEvents = &events
+		}
+
+		if trigger.Branch != "" {
+			sourceTrigger.SourceRepository.Branch = &trigger.Branch
+		}
+		if len(trigger.Auth) != 0 {
+			sourceTrigger.SourceRepository.SourceControlAuthProperties = expandRegistryTaskAuthInfo(trigger.Auth[0])
 		}
 		out = append(out, sourceTrigger)
 	}
@@ -1044,8 +1044,7 @@ func flattenRegistryTaskSourceTriggers(triggers *[]legacyacr.SourceTrigger, mode
 	out := make([]SourceTrigger, 0, len(*triggers))
 	for i, trigger := range *triggers {
 		obj := SourceTrigger{
-			Enabled:       trigger.Status == legacyacr.TriggerStatusEnabled,
-			SourceSetting: flattenRegistryTaskSourceRepository(trigger.SourceRepository, i, model),
+			Enabled: trigger.Status == legacyacr.TriggerStatusEnabled,
 		}
 		if trigger.Name != nil {
 			obj.Name = *trigger.Name
@@ -1057,45 +1056,24 @@ func flattenRegistryTaskSourceTriggers(triggers *[]legacyacr.SourceTrigger, mode
 			}
 			obj.Events = events
 		}
+		if sourceProp := trigger.SourceRepository; sourceProp != nil {
+			obj.SourceType = string(sourceProp.SourceControlType)
+			if sourceProp.RepositoryURL != nil {
+				obj.RepositoryURL = *sourceProp.RepositoryURL
+			}
+			if sourceProp.Branch != nil {
+				obj.Branch = *sourceProp.Branch
+			}
+		}
+
+		// Auth is not returned from API, setting it from config.
+		if len(model.SourceTrigger) > i {
+			obj.Auth = model.SourceTrigger[i].Auth
+		}
+
 		out = append(out, obj)
 	}
 	return out
-}
-
-func expandRegistryTaskSourceRepository(setting SourceSetting) *legacyacr.SourceProperties {
-	out := legacyacr.SourceProperties{
-		SourceControlType: legacyacr.SourceControlType(setting.SourceType),
-		RepositoryURL:     &setting.RepositoryURL,
-	}
-	if setting.Branch != "" {
-		out.Branch = &setting.Branch
-	}
-	if len(setting.Auth) != 0 {
-		out.SourceControlAuthProperties = expandRegistryTaskAuthInfo(setting.Auth[0])
-	}
-	return &out
-}
-
-func flattenRegistryTaskSourceRepository(repository *legacyacr.SourceProperties, i int, model ContainerRegistryTaskModel) []SourceSetting {
-	if repository == nil {
-		return nil
-	}
-	obj := SourceSetting{
-		SourceType: string(repository.SourceControlType),
-	}
-	if repository.RepositoryURL != nil {
-		obj.RepositoryURL = *repository.RepositoryURL
-	}
-	if repository.Branch != nil {
-		obj.Branch = *repository.Branch
-	}
-
-	// Auth is not returned from API, setting it from config.
-	if len(model.SourceTrigger) > i && len(model.SourceTrigger[i].SourceSetting) == 1 {
-		obj.Auth = model.SourceTrigger[i].SourceSetting[0].Auth
-	}
-
-	return []SourceSetting{obj}
 }
 
 func expandRegistryTaskAuthInfo(auth Auth) *legacyacr.AuthInfo {
@@ -1491,7 +1469,7 @@ func flattenRegistryTaskIdentity(identity *legacyacr.IdentityProperties) ([]Iden
 
 	var identityIds []string
 	for id := range identity.UserAssignedIdentities {
-		identityId, err := msiparse.UserAssignedIdentityID(id)
+		identityId, err := msiparse.UserAssignedIdentityIDInsensitively(id)
 		if err != nil {
 			return nil, fmt.Errorf("parsing identity id %s: %w", id, err)
 		}
