@@ -7,7 +7,7 @@ description: |-
 
 ---
 
-# azurerm_app_service_environment
+# azurerm_app_service_environment_v3
 
 Manages a 3rd Generation (v3) App Service Environment.
 
