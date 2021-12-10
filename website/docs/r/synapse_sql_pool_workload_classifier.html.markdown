@@ -84,19 +84,19 @@ The following arguments are supported:
 
 * `workload_group_id` - (Required) The ID of the Synapse Sql Pool Workload Group. Changing this forces a new Synapse SQL Pool Workload Classifier to be created.
 
-* `member_name` - (Required) The workload classifier member name.
+* `member_name` - (Required) The workload classifier member name used to classified against.
 
 ---
 
-* `context` - (Optional) The workload classifier context.
+* `context` - (Optional) Specifies the session context value that a request can be classified against.
 
-* `end_time` - (Optional) The workload classifier end time for classification.
+* `end_time` - (Optional) The workload classifier end time for classification. It's of the `HH:MM` format in UTC time zone.
 
-* `importance` - (Optional) The workload classifier importance.
+* `importance` - (Optional) The workload classifier importance. The allowed values are `low`, `below_normal`, `normal`, `above_normal` and `high`.
 
-* `label` - (Optional) The workload classifier label.
+* `label` - (Optional) Specifies the label value that a request can be classified against.
 
-* `start_time` - (Optional) The workload classifier start time for classification.
+* `start_time` - (Optional) The workload classifier start time for classification. It's of the `HH:MM` format in UTC time zone.
 
 ## Attributes Reference
 

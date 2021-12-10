@@ -3,6 +3,7 @@ package synapse
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
@@ -62,15 +63,24 @@ func resourceSynapseSQLPoolWorkloadClassifier() *pluginsdk.Resource {
 			},
 
 			"end_time": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile(`^\d{2}:\d{2}$`),
+					"The `end_time` is of the `HH:MM` format in UTC time zone",
+				),
 			},
 
 			"importance": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"low",
+					"below_normal",
+					"normal",
+					"above_normal",
+					"high",
+				}, false),
 			},
 
 			"label": {
@@ -80,9 +90,12 @@ func resourceSynapseSQLPoolWorkloadClassifier() *pluginsdk.Resource {
 			},
 
 			"start_time": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile(`^\d{2}:\d{2}$`),
+					"The `start_time` is of the `HH:MM` format in UTC time zone",
+				),
 			},
 		},
 	}
