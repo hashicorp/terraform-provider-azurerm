@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type SqlPoolWorkloadClassifierId struct {
@@ -48,7 +48,7 @@ func (id SqlPoolWorkloadClassifierId) ID() string {
 
 // SqlPoolWorkloadClassifierID parses a SqlPoolWorkloadClassifier ID into an SqlPoolWorkloadClassifierId struct
 func SqlPoolWorkloadClassifierID(input string) (*SqlPoolWorkloadClassifierId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
