@@ -8,25 +8,25 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type CosmosDbRestorableDatabaseAccountDataSourceResource struct {
+type CosmosDbRestorableDatabaseAccountsDataSourceResource struct {
 }
 
-func TestAccDataSourceCosmosDbRestorableDatabaseAccount_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_cosmosdb_restorable_database_account", "test")
-	r := CosmosDbRestorableDatabaseAccountDataSourceResource{}
+func TestAccDataSourceCosmosDbRestorableDatabaseAccounts_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_cosmosdb_restorable_database_accounts", "test")
+	r := CosmosDbRestorableDatabaseAccountsDataSourceResource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
-				check.That(data.ResourceName).Key("restorable_db_account_ids.#").Exists(),
+				check.That(data.ResourceName).Key("accounts.#").Exists(),
 			),
 		},
 	})
 }
 
-func (CosmosDbRestorableDatabaseAccountDataSourceResource) basic(data acceptance.TestData) string {
+func (CosmosDbRestorableDatabaseAccountsDataSourceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -80,7 +80,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   }
 }
 
-data "azurerm_cosmosdb_restorable_database_account" "test" {
+data "azurerm_cosmosdb_restorable_database_accounts" "test" {
   name     = azurerm_cosmosdb_account.test.name
   location = azurerm_resource_group.test.location
 }

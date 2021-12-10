@@ -54,13 +54,13 @@ func TestRestorableDatabaseAccountID(t *testing.T) {
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.DocumentDB/locations/location1/restorableDatabaseAccounts/restorableDbAccount1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.DocumentDB/locations/location1/restorableDatabaseAccounts/account1",
 			Valid: true,
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/PROVIDERS/MICROSOFT.DOCUMENTDB/LOCATIONS/LOCATION1/RESTORABLEDATABASEACCOUNTS/RESTORABLEDBACCOUNT1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/PROVIDERS/MICROSOFT.DOCUMENTDB/LOCATIONS/LOCATION1/RESTORABLEDATABASEACCOUNTS/ACCOUNT1",
 			Valid: false,
 		},
 	}

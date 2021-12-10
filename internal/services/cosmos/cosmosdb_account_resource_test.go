@@ -2664,7 +2664,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   }
 }
 
-data "azurerm_cosmosdb_restorable_database_account" "test" {
+data "azurerm_cosmosdb_restorable_database_accounts" "test" {
   name     = azurerm_cosmosdb_account.test1.name
   location = azurerm_resource_group.test.location
 }
@@ -2696,7 +2696,7 @@ resource "azurerm_cosmosdb_account" "test" {
   create_mode = "Restore"
 
   restore {
-    source_cosmosdb_account_id = data.azurerm_cosmosdb_restorable_database_account.test.restorable_db_account_ids[0]
+    source_cosmosdb_account_id = data.azurerm_cosmosdb_restorable_database_accounts.test.accounts[0].id
     restore_timestamp_in_utc   = timeadd(timestamp(), "-1s")
 
     database {

@@ -11,8 +11,8 @@ import (
 var _ resourceid.Formatter = RestorableDatabaseAccountId{}
 
 func TestRestorableDatabaseAccountIDFormatter(t *testing.T) {
-	actual := NewRestorableDatabaseAccountID("12345678-1234-9876-4563-123456789012", "location1", "restorableDbAccount1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.DocumentDB/locations/location1/restorableDatabaseAccounts/restorableDbAccount1"
+	actual := NewRestorableDatabaseAccountID("12345678-1234-9876-4563-123456789012", "location1", "account1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.DocumentDB/locations/location1/restorableDatabaseAccounts/account1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -69,17 +69,17 @@ func TestRestorableDatabaseAccountID(t *testing.T) {
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.DocumentDB/locations/location1/restorableDatabaseAccounts/restorableDbAccount1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.DocumentDB/locations/location1/restorableDatabaseAccounts/account1",
 			Expected: &RestorableDatabaseAccountId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				LocationName:   "location1",
-				Name:           "restorableDbAccount1",
+				Name:           "account1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/PROVIDERS/MICROSOFT.DOCUMENTDB/LOCATIONS/LOCATION1/RESTORABLEDATABASEACCOUNTS/RESTORABLEDBACCOUNT1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/PROVIDERS/MICROSOFT.DOCUMENTDB/LOCATIONS/LOCATION1/RESTORABLEDATABASEACCOUNTS/ACCOUNT1",
 			Error: true,
 		},
 	}
