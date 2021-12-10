@@ -39,7 +39,6 @@ type LinuxWebAppModel struct {
 	Identity                      []helpers.Identity         `tfschema:"identity"`
 	KeyVaultReferenceIdentityID   string                     `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                    []helpers.LogsConfig       `tfschema:"logs"`
-	MetaData                      map[string]string          `tfschema:"app_metadata"`
 	SiteConfig                    []helpers.SiteConfigLinux  `tfschema:"site_config"`
 	StorageAccounts               []helpers.StorageAccount   `tfschema:"storage_account"`
 	ConnectionStrings             []helpers.ConnectionString `tfschema:"connection_string"`
@@ -164,14 +163,6 @@ func (r LinuxWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 		"kind": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
-		},
-
-		"app_metadata": {
-			Type:     pluginsdk.TypeMap,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
 		},
 
 		"outbound_ip_addresses": {

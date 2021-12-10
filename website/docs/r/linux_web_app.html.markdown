@@ -525,8 +525,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Linux Web App.
 
-* `app_metadata` - A `app_metadata` block as defined below.
-
 * `custom_domain_verification_id` - The identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
 * `default_hostname` - The default hostname of the Linux Web App.
