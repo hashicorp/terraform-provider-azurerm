@@ -133,11 +133,9 @@ func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schem
 		typeName := vs["type_name"].(string)
 
 		examples := make(map[string]*apimanagement.ParameterExampleContract)
-		if vs["examples"] != nil {
-			if vs["sample"] != nil {
-				return nil, fmt.Errorf("Only one of `examples` and `sample` can be provided at the same time.")
-			}
-			examples = ExpandApiManagementOperationParameterExampleContract(vs["examples"].([]interface{}))
+		if vs["example"] != nil {
+			examplesRaw := vs["example"].([]interface{})
+			examples = ExpandApiManagementOperationParameterExampleContract(examplesRaw)
 		} else if vs["sample"] != nil {
 			defaultExample := map[string]interface{}{
 				"name":  "default",
@@ -333,7 +331,7 @@ func FlattenApiManagementOperationParameterContract(input *[]apimanagement.Param
 
 func SchemaApiManagementOperationParameterExampleContract() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Computed: true, // TODO 3.0 - Remove when sample property is removed.
 		Elem: &pluginsdk.Resource{
