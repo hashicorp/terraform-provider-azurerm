@@ -370,6 +370,16 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							}, true),
 						},
 
+						"private_link_configuration_name": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"private_link_configuration_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
 						"id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -541,6 +551,73 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"ssl_profile_name": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+						},
+					},
+				},
+			},
+
+			"private_link_configuration": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"ip_configuration": {
+							Type:     pluginsdk.TypeList,
+							Required: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"subnet_id": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: azure.ValidateResourceID,
+									},
+
+									"private_ip_address": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Computed: true,
+									},
+
+									"private_ip_address_version": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  string(network.IPVersionIPv4),
+										ValidateFunc: validation.StringInSlice([]string{
+											string(network.IPVersionIPv4),
+											string(network.IPVersionIPv6),
+										}, false),
+									},
+
+									"private_ip_address_allocation": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(network.IPAllocationMethodDynamic),
+											string(network.IPAllocationMethodStatic),
+										}, true),
+									},
+
+									"primary": {
+										Type:     pluginsdk.TypeBool,
+										Required: true,
+									},
+								},
+							},
+						},
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -1515,7 +1592,7 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			BackendAddressPools:           expandApplicationGatewayBackendAddressPools(d),
 			BackendHTTPSettingsCollection: expandApplicationGatewayBackendHTTPSettings(d, id.ID()),
 			EnableHTTP2:                   utils.Bool(enablehttp2),
-			FrontendIPConfigurations:      expandApplicationGatewayFrontendIPConfigurations(d),
+			FrontendIPConfigurations:      expandApplicationGatewayFrontendIPConfigurations(d, id.ID()),
 			FrontendPorts:                 expandApplicationGatewayFrontendPorts(d),
 			GatewayIPConfigurations:       gatewayIPConfigurations,
 			HTTPListeners:                 httpListeners,
@@ -1694,7 +1771,11 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("setting `frontend_port`: %+v", setErr)
 		}
 
-		if setErr := d.Set("frontend_ip_configuration", flattenApplicationGatewayFrontendIPConfigurations(props.FrontendIPConfigurations)); setErr != nil {
+		frontendIPConfigurations, err := flattenApplicationGatewayFrontendIPConfigurations(props.FrontendIPConfigurations)
+		if err != nil {
+			return fmt.Errorf("flattening `frontend IP configuration`: %+v", err)
+		}
+		if setErr := d.Set("frontend_ip_configuration", frontendIPConfigurations); setErr != nil {
 			return fmt.Errorf("setting `frontend_ip_configuration`: %+v", setErr)
 		}
 
@@ -2649,7 +2730,7 @@ func flattenApplicationGatewayFrontendPorts(input *[]network.ApplicationGatewayF
 	return results
 }
 
-func expandApplicationGatewayFrontendIPConfigurations(d *pluginsdk.ResourceData) *[]network.ApplicationGatewayFrontendIPConfiguration {
+func expandApplicationGatewayFrontendIPConfigurations(d *pluginsdk.ResourceData, gatewayID string) *[]network.ApplicationGatewayFrontendIPConfiguration {
 	vs := d.Get("frontend_ip_configuration").([]interface{})
 	results := make([]network.ApplicationGatewayFrontendIPConfiguration, 0)
 
@@ -2678,6 +2759,13 @@ func expandApplicationGatewayFrontendIPConfigurations(d *pluginsdk.ResourceData)
 			}
 		}
 
+		if val := v["private_link_configuration_name"].(string); val != "" {
+			privateLinkConfigurationID := fmt.Sprintf("%s/privateLinkConfigurations/%s", gatewayID, val)
+			properties.PrivateLinkConfiguration = &network.SubResource{
+				ID: utils.String(privateLinkConfigurationID),
+			}
+		}
+
 		name := v["name"].(string)
 		output := network.ApplicationGatewayFrontendIPConfiguration{
 			Name: utils.String(name),
@@ -2690,10 +2778,10 @@ func expandApplicationGatewayFrontendIPConfigurations(d *pluginsdk.ResourceData)
 	return &results
 }
 
-func flattenApplicationGatewayFrontendIPConfigurations(input *[]network.ApplicationGatewayFrontendIPConfiguration) []interface{} {
+func flattenApplicationGatewayFrontendIPConfigurations(input *[]network.ApplicationGatewayFrontendIPConfiguration) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 	if input == nil {
-		return results
+		return results, nil
 	}
 
 	for _, config := range *input {
@@ -2720,12 +2808,21 @@ func flattenApplicationGatewayFrontendIPConfigurations(input *[]network.Applicat
 			if props.PublicIPAddress != nil && props.PublicIPAddress.ID != nil {
 				output["public_ip_address_id"] = *props.PublicIPAddress.ID
 			}
+
+			if props.PrivateLinkConfiguration != nil && props.PrivateLinkConfiguration.ID != nil {
+				configurationID, err := parse.ApplicationGatewayPrivateLinkConfigurationID(*props.PrivateLinkConfiguration.ID)
+				if err != nil {
+					return nil, err
+				}
+				output["private_link_configuration_name"] = configurationID.PrivateLinkConfigurationName
+				output["private_link_configuration_id"] = *props.PrivateLinkConfiguration.ID
+			}
 		}
 
 		results = append(results, output)
 	}
 
-	return results
+	return results, nil
 }
 
 func expandApplicationGatewayProbes(d *pluginsdk.ResourceData) *[]network.ApplicationGatewayProbe {
