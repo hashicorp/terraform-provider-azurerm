@@ -1093,7 +1093,11 @@ func TestAccApplicationGateway_privateLink(t *testing.T) {
 			Config: r.privateLink(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("waf_configuration.#").HasValue("0"),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.1.private_link_configuration_name").HasValue("private_link"),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.1.private_link_configuration_id").IsSet(),
+				check.That(data.ResourceName).Key("private_link_configuration.0.name").HasValue("private_link"),
+				check.That(data.ResourceName).Key("private_link_configuration.0.id").IsSet(),
+				check.That(data.ResourceName).Key("private_link_configuration.0.ip_configuration.0.name").HasValue("primary"),
 			),
 		},
 		data.ImportStep(),
@@ -1152,23 +1156,6 @@ resource "azurerm_application_gateway" "test" {
   frontend_ip_configuration {
     name                 = local.frontend_ip_configuration_name
     public_ip_address_id = azurerm_public_ip.test.id
-  }
-
-  frontend_ip_configuration {
-    name                            = "testy"
-    subnet_id                       = azurerm_subnet.test.id
-    private_ip_address_allocation   = "Dynamic"
-    private_link_configuration_name = "testy"
-  }
-
-  private_link_configuration {
-    name = "testy"
-    ip_configuration {
-      name                          = "primary"
-      subnet_id                     = azurerm_subnet.test.id
-      private_ip_address_allocation = "Dynamic"
-      primary                       = true
-    }
   }
 
   backend_address_pool {
@@ -5165,10 +5152,17 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-pubip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+}
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-standard-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r ApplicationGatewayResource) customErrorConfigurations(data acceptance.TestData) string {
@@ -6916,7 +6910,7 @@ locals {
   http_setting_name                       = "${azurerm_virtual_network.test.name}-be-htst"
   listener_name                           = "${azurerm_virtual_network.test.name}-httplstn"
   request_routing_rule_name               = "${azurerm_virtual_network.test.name}-rqrt"
-  private_link_configuration_name         = "${azurerm_virtual_network.test.name}-pl"
+  private_link_configuration_name         = "private_link"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -6942,7 +6936,7 @@ resource "azurerm_application_gateway" "test" {
 
   frontend_ip_configuration {
     name                 = local.frontend_ip_configuration_name
-    public_ip_address_id = azurerm_public_ip.test.id
+    public_ip_address_id = azurerm_public_ip.test_standard.id
   }
 
   frontend_ip_configuration {
@@ -6990,28 +6984,5 @@ resource "azurerm_application_gateway" "test" {
     backend_http_settings_name = local.http_setting_name
   }
 }
-
-resource "azurerm_subnet" "endpoint" {
-  name                                           = "subnete-%d"
-  resource_group_name                            = azurerm_resource_group.test.name
-  virtual_network_name                           = azurerm_virtual_network.test.name
-  address_prefix                                 = "10.0.1.0/24"
-  enforce_private_link_endpoint_network_policies = true
-}
-
-resource "azurerm_private_endpoint" "test" {
-  name                = "acctest-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  subnet_id           = azurerm_subnet.endpoint.id
-  private_service_connection {
-    name                           = "acctest-%d"
-    private_connection_resource_id = azurerm_application_gateway.test.id
-    is_manual_connection           = false
-    subresource_names              = [
-      local.frontend_ip_configuration_internal_name,
-    ]
-  }
-}
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }

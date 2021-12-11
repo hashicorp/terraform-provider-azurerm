@@ -586,6 +586,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"ip_configuration": {
 							Type:     pluginsdk.TypeList,
 							Required: true,
+							MinItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
