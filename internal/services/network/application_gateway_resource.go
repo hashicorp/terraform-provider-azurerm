@@ -556,6 +556,23 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				},
 			},
 
+			"private_endpoint_connection": {
+				Type:     pluginsdk.TypeSet,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"private_link_configuration": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -1777,6 +1794,10 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 
 		if setErr := d.Set("gateway_ip_configuration", flattenApplicationGatewayIPConfigurations(props.GatewayIPConfigurations)); setErr != nil {
 			return fmt.Errorf("setting `gateway_ip_configuration`: %+v", setErr)
+		}
+
+		if setErr := d.Set("private_endpoint_connection", flattenApplicationGatewayPrivateEndpoints(props.PrivateEndpointConnections)); setErr != nil {
+			return fmt.Errorf("setting `private_endpoint_connection`: %+v", setErr)
 		}
 
 		if setErr := d.Set("private_link_configuration", flattenApplicationGatewayPrivateLinkConfigurations(props.PrivateLinkConfigurations)); setErr != nil {
@@ -3008,42 +3029,64 @@ func expandApplicationGatewayPrivateLinkConfigurations(d *pluginsdk.ResourceData
 	return &results, nil
 }
 
-func flattenApplicationGatewayPrivateLinkConfigurations(input *[]network.ApplicationGatewayPrivateLinkConfiguration) []interface{} {
+func flattenApplicationGatewayPrivateEndpoints(input *[]network.ApplicationGatewayPrivateEndpointConnection) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
-	for _, config := range *input {
-		output := map[string]interface{}{
-			"name": string(*config.Name),
+	for _, endpoint := range *input {
+		result := map[string]interface{}{}
+		if endpoint.Name != nil {
+			result["name"] = string(*endpoint.Name)
 		}
-		ipConfigurations := make([]interface{}, 0)
-		if props := config.ApplicationGatewayPrivateLinkConfigurationProperties; props != nil {
-			for _, thing := range *props.IPConfigurations {
-				thing2 := map[string]interface{}{}
-				if thing.Name != nil {
-					thing2["name"] = *thing.Name
-				}
-				if subnet := thing.Subnet; subnet != nil {
-					if subnet.ID != nil {
-						thing2["subnet_id"] = *subnet.ID
-					}
-				}
-				if thing.PrivateIPAddress != nil {
-					thing2["private_ip_address"] = *thing.PrivateIPAddress
-				}
-				thing2["private_ip_address_allocation"] = string(thing.PrivateIPAllocationMethod)
-				if thing.Primary != nil {
-					thing2["primary"] = *thing.Primary
-				}
-				ipConfigurations = append(ipConfigurations, thing2)
-			}
+		if endpoint.ID != nil {
+			result["id"] = string(*endpoint.ID)
 		}
-		output["ip_configurations"] = ipConfigurations
-		results = append(results, output)
 	}
 	return results
+}
+
+func flattenApplicationGatewayPrivateLinkConfigurations(input *[]network.ApplicationGatewayPrivateLinkConfiguration) []interface{} {
+	plConfigResults := make([]interface{}, 0)
+	if input == nil {
+		return plConfigResults
+	}
+
+	for _, plConfig := range *input {
+		plConfigResult := map[string]interface{}{}
+		if plConfig.Name != nil {
+			plConfigResult["name"] = string(*plConfig.Name)
+		}
+		if plConfig.ID != nil {
+			plConfigResult["id"] = string(*plConfig.ID)
+		}
+		ipConfigResults := make([]interface{}, 0)
+		if props := plConfig.ApplicationGatewayPrivateLinkConfigurationProperties; props != nil {
+			for _, ipConfig := range *props.IPConfigurations {
+				ipConfigResult := map[string]interface{}{}
+				if ipConfig.Name != nil {
+					ipConfigResult["name"] = *ipConfig.Name
+				}
+				if subnet := ipConfig.Subnet; subnet != nil {
+					if subnet.ID != nil {
+						ipConfigResult["subnet_id"] = *subnet.ID
+					}
+				}
+				if ipConfig.PrivateIPAddress != nil {
+					ipConfigResult["private_ip_address"] = *ipConfig.PrivateIPAddress
+				}
+				ipConfigResult["private_ip_address_allocation"] = string(ipConfig.PrivateIPAllocationMethod)
+				if ipConfig.Primary != nil {
+					ipConfigResult["primary"] = *ipConfig.Primary
+				}
+				ipConfigResults = append(ipConfigResults, ipConfigResult)
+			}
+		}
+		plConfigResult["ip_configuration"] = ipConfigResults
+		plConfigResults = append(plConfigResults, plConfigResult)
+	}
+	return plConfigResults
 }
 
 func expandApplicationGatewayRequestRoutingRules(d *pluginsdk.ResourceData, gatewayID string) (*[]network.ApplicationGatewayRequestRoutingRule, error) {
