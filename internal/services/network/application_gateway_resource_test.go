@@ -5152,7 +5152,7 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-pubip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  allocation_method   = "Dynamic"
 }
 
 resource "azurerm_public_ip" "test_standard" {
