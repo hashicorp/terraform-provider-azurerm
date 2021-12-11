@@ -3036,10 +3036,10 @@ func flattenApplicationGatewayPrivateEndpoints(input *[]network.ApplicationGatew
 	for _, endpoint := range *input {
 		result := map[string]interface{}{}
 		if endpoint.Name != nil {
-			result["name"] = string(*endpoint.Name)
+			result["name"] = *endpoint.Name
 		}
 		if endpoint.ID != nil {
-			result["id"] = string(*endpoint.ID)
+			result["id"] = *endpoint.ID
 		}
 	}
 	return results
@@ -3054,10 +3054,10 @@ func flattenApplicationGatewayPrivateLinkConfigurations(input *[]network.Applica
 	for _, plConfig := range *input {
 		plConfigResult := map[string]interface{}{}
 		if plConfig.Name != nil {
-			plConfigResult["name"] = string(*plConfig.Name)
+			plConfigResult["name"] = *plConfig.Name
 		}
 		if plConfig.ID != nil {
-			plConfigResult["id"] = string(*plConfig.ID)
+			plConfigResult["id"] = *plConfig.ID
 		}
 		ipConfigResults := make([]interface{}, 0)
 		if props := plConfig.ApplicationGatewayPrivateLinkConfigurationProperties; props != nil {
