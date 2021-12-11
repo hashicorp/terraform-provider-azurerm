@@ -1563,10 +1563,7 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("expanding `redirect_configuration`: %+v", err)
 	}
 
-	privateLinkConfigurations, err := expandApplicationGatewayPrivateLinkConfigurations(d)
-	if err != nil {
-		return fmt.Errorf("expanding `private_link_configuration`: %+v", err)
-	}
+	privateLinkConfigurations := expandApplicationGatewayPrivateLinkConfigurations(d)
 
 	sslCertificates, err := expandApplicationGatewaySslCertificates(d)
 	if err != nil {
@@ -2986,17 +2983,17 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 	return results
 }
 
-func expandApplicationGatewayPrivateLinkConfigurations(d *pluginsdk.ResourceData) (*[]network.ApplicationGatewayPrivateLinkConfiguration, error) {
+func expandApplicationGatewayPrivateLinkConfigurations(d *pluginsdk.ResourceData) *[]network.ApplicationGatewayPrivateLinkConfiguration {
 	vs := d.Get("private_link_configuration").(*pluginsdk.Set).List()
-	results := make([]network.ApplicationGatewayPrivateLinkConfiguration, 0)
+	plConfigResults := make([]network.ApplicationGatewayPrivateLinkConfiguration, 0)
 
-	for _, raw := range vs {
-		v := raw.(map[string]interface{})
+	for _, rawPl := range vs {
+		v := rawPl.(map[string]interface{})
 		name := v["name"].(string)
 		ipConfigurations := v["ip_configuration"].([]interface{})
 		ipConfigurationResults := make([]network.ApplicationGatewayPrivateLinkIPConfiguration, 0)
-		for _, raw2 := range ipConfigurations {
-			v := raw2.(map[string]interface{})
+		for _, rawIp := range ipConfigurations {
+			v := rawIp.(map[string]interface{})
 			name := v["name"].(string)
 			subnetId := v["subnet_id"].(string)
 			primary := v["primary"].(bool)
@@ -3024,10 +3021,10 @@ func expandApplicationGatewayPrivateLinkConfigurations(d *pluginsdk.ResourceData
 				IPConfigurations: &ipConfigurationResults,
 			},
 		}
-		results = append(results, configuration)
+		plConfigResults = append(plConfigResults, configuration)
 	}
 
-	return &results, nil
+	return &plConfigResults
 }
 
 func flattenApplicationGatewayPrivateEndpoints(input *[]network.ApplicationGatewayPrivateEndpointConnection) []interface{} {
