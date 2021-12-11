@@ -1563,7 +1563,7 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("expanding `redirect_configuration`: %+v", err)
 	}
 
-	privateLinkConfigurations, err := expandApplicationGatewayPrivateLinkConfigurations(d, id.ID())
+	privateLinkConfigurations, err := expandApplicationGatewayPrivateLinkConfigurations(d)
 	if err != nil {
 		return fmt.Errorf("expanding `private_link_configuration`: %+v", err)
 	}
@@ -2986,7 +2986,7 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 	return results
 }
 
-func expandApplicationGatewayPrivateLinkConfigurations(d *pluginsdk.ResourceData, gatewayID string) (*[]network.ApplicationGatewayPrivateLinkConfiguration, error) {
+func expandApplicationGatewayPrivateLinkConfigurations(d *pluginsdk.ResourceData) (*[]network.ApplicationGatewayPrivateLinkConfiguration, error) {
 	vs := d.Get("private_link_configuration").(*pluginsdk.Set).List()
 	results := make([]network.ApplicationGatewayPrivateLinkConfiguration, 0)
 
