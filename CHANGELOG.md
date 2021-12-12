@@ -1,3 +1,11 @@
+## 2.90.0 (Unrelease)
+
+FEATURES:
+
+ENHANCEMENTS:
+
+BUG FIXES:
+
 ## 2.89.0 (December 10, 2021)
 
 FEATURES:
@@ -26,7 +34,6 @@ ENHANCEMENTS:
 * `azurerm_sql_managed_instance`: Support for `storage_account_type` ([#14123](https://github.com/hashicorp/terraform-provider-azurerm/issues/14123))
 * `azurerm_signalr_service` - deprecate `features` block in favour of `connectivity_logs_enabled`, `messaging_logs_enabled` and `service_mode` ([#14360](https://github.com/hashicorp/terraform-provider-azurerm/issues/14360))
 * `azurerm_vpn_gateway_connection` - support for the `propagated_route_table.labels`, `vpn_link.connection_mode` and `traffic_selector_policy` properties ([#14371](https://github.com/hashicorp/terraform-provider-azurerm/issues/14371))
-
 
 BUG FIXES:
 
