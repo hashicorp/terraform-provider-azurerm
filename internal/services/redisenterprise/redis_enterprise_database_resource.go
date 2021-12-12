@@ -197,9 +197,12 @@ func resourceRedisEnterpriseDatabaseCreate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	clusterID, err := redisenterprise.ParseRedisEnterpriseID(d.Get("cluster_id").(string))
-	id := databases.NewDatabaseID(subscriptionId, clusterID.ResourceGroupName, clusterID.ClusterName, d.Get("name").(string))
+	clusterId, err := redisenterprise.ParseRedisEnterpriseID(d.Get("cluster_id").(string))
+	if err != nil {
+		return fmt.Errorf("parsing `cluster_id`: %+v", err)
+	}
 
+	id := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.ClusterName, d.Get("name").(string))
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -232,9 +235,9 @@ func resourceRedisEnterpriseDatabaseCreate(d *pluginsdk.ResourceData, meta inter
 		// Need to check if this was due to the cluster having the wrong sku
 		if strings.Contains(err.Error(), "The value of the parameter 'properties.modules' is invalid") {
 			clusterClient := meta.(*clients.Client).RedisEnterprise.Client
-			resp, err := clusterClient.Get(ctx, *clusterID)
+			resp, err := clusterClient.Get(ctx, *clusterId)
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *clusterID, err)
+				return fmt.Errorf("retrieving %s: %+v", *clusterId, err)
 			}
 
 			if strings.Contains(strings.ToLower(string(resp.Model.Sku.Name)), "flash") {
@@ -285,9 +288,23 @@ func resourceRedisEnterpriseDatabaseRead(d *pluginsdk.ResourceData, meta interfa
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("client_protocol", props.ClientProtocol)
-			d.Set("clustering_policy", props.ClusteringPolicy)
-			d.Set("eviction_policy", props.EvictionPolicy)
+			clientProtocol := ""
+			if props.ClientProtocol != nil {
+				clientProtocol = string(*props.ClientProtocol)
+			}
+			d.Set("client_protocol", clientProtocol)
+
+			clusteringPolicy := ""
+			if props.ClusteringPolicy != nil {
+				clusteringPolicy = string(*props.ClusteringPolicy)
+			}
+			d.Set("clustering_policy", clusteringPolicy)
+
+			evictionPolicy := ""
+			if props.EvictionPolicy != nil {
+				evictionPolicy = string(*props.EvictionPolicy)
+			}
+			d.Set("eviction_policy", evictionPolicy)
 			if err := d.Set("module", flattenArmDatabaseModuleArray(props.Modules)); err != nil {
 				return fmt.Errorf("setting `module`: %+v", err)
 			}
