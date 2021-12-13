@@ -145,8 +145,6 @@ The following arguments are supported:
 
 * `patch_mode` - (Optional) Specifies the mode of in-guest patching to this Windows Virtual Machine. Possible values are `Manual`, `AutomaticByOS` and `AutomaticByPlatform`. Defaults to `AutomaticByOS`.
 
--> **NOTE:** This feature is now officially released
-
 * `plan` - (Optional) A `plan` block as defined below. Changing this forces a new resource to be created.
 
 * `platform_fault_domain` - (Optional) Specifies the Platform Fault Domain in which this Windows Virtual Machine should be created. Defaults to `-1`, which means this will be automatically assigned to a fault domain that best maintains balance across the available fault domains. Changing this forces a new Windows Virtual Machine to be created.
