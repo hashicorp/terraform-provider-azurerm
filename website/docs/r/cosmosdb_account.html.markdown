@@ -226,7 +226,7 @@ A `restore` block supports the following:
 
 * `source_cosmosdb_account_id` - (Required) The resource ID of the restorable database account from which the restore has to be initiated. The example is `/subscriptions/{subscriptionId}/providers/Microsoft.DocumentDB/locations/{location}/restorableDatabaseAccounts/{restorableDatabaseAccountName}`. Changing this forces a new resource to be created.
 
-**NOTE:** The restorable database account is not a tracked resource because any database account with `continuousModeBackupPolicy` (live account or accounts deleted in last 30 days) are the restorable database accounts. So there cannot be Create/Update/Delete operations on the restorable database accounts. They can only be read.
+**NOTE:** Any database account with `Continuous` type (live account or accounts deleted in last 30 days) are the restorable database accounts and there cannot be Create/Update/Delete operations on the restorable database accounts. They can only be read and be retrieved by `azurerm_cosmosdb_restorable_database_accounts`.
 
 * `restore_timestamp_in_utc` - (Required) The creation time of the database or the collection (Datetime Format `RFC 3339`). Changing this forces a new resource to be created.
 
