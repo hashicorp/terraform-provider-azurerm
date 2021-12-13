@@ -14,6 +14,7 @@ type SubscriptionConsumptionBudget struct {
 }
 
 var _ sdk.Resource = SubscriptionConsumptionBudget{}
+var _ sdk.ResourceWithCustomImporter = SubscriptionConsumptionBudget{}
 
 func (r SubscriptionConsumptionBudget) Arguments() map[string]*pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{
@@ -72,4 +73,8 @@ func (r SubscriptionConsumptionBudget) Delete() sdk.ResourceFunc {
 
 func (r SubscriptionConsumptionBudget) Update() sdk.ResourceFunc {
 	return r.base.updateFunc()
+}
+
+func (r SubscriptionConsumptionBudget) CustomImporter() sdk.ResourceRunFunc {
+	return r.base.importerFunc("subscription")
 }

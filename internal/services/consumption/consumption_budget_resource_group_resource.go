@@ -13,6 +13,7 @@ type ResourceGroupConsumptionBudget struct {
 }
 
 var _ sdk.Resource = ResourceGroupConsumptionBudget{}
+var _ sdk.ResourceWithCustomImporter = ResourceGroupConsumptionBudget{}
 
 func (r ResourceGroupConsumptionBudget) Arguments() map[string]*pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{
@@ -62,4 +63,8 @@ func (r ResourceGroupConsumptionBudget) Delete() sdk.ResourceFunc {
 
 func (r ResourceGroupConsumptionBudget) Update() sdk.ResourceFunc {
 	return r.base.updateFunc()
+}
+
+func (r ResourceGroupConsumptionBudget) CustomImporter() sdk.ResourceRunFunc {
+	return r.base.importerFunc("resource_group")
 }

@@ -458,6 +458,31 @@ func (br consumptionBudgetBaseResource) updateFunc() sdk.ResourceFunc {
 	}
 }
 
+func (br consumptionBudgetBaseResource) importerFunc(expectScope string) sdk.ResourceRunFunc {
+	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+		var err error
+		id, err := parse.ConsumptionBudgetID(metadata.ResourceData.Id())
+		if err != nil {
+			return err
+		}
+
+		switch expectScope {
+		case "subscription":
+			_, err = parse.ConsumptionBudgetSubscriptionID(metadata.ResourceData.Id())
+		case "resource_group":
+			_, err = parse.ConsumptionBudgetResourceGroupID(metadata.ResourceData.Id())
+		case "management_group":
+			_, err = parse.ConsumptionBudgetManagementGroupID(metadata.ResourceData.Id())
+		}
+
+		if err != nil {
+			return fmt.Errorf("budget has mismatched scope, expected a budget with %s scope, got %s", expectScope, id.Scope)
+		}
+
+		return nil
+	}
+}
+
 func createOrUpdateConsumptionBudget(ctx context.Context, client *consumption.BudgetsClient, metadata sdk.ResourceMetaData, id parse.ConsumptionBudgetId) error {
 	amount := decimal.NewFromFloat(metadata.ResourceData.Get("amount").(float64))
 	timePeriod, err := expandConsumptionBudgetTimePeriod(metadata.ResourceData.Get("time_period").([]interface{}))
