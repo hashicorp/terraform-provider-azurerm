@@ -4,6 +4,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating `redisenterprise` to use an Embedded SDK [GH-14502]
+
 BUG FIXES:
 
 ## 2.89.0 (December 10, 2021)
