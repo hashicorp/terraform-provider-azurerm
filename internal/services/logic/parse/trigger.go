@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type TriggerId struct {
@@ -42,7 +42,7 @@ func (id TriggerId) ID() string {
 
 // TriggerID parses a Trigger ID into an TriggerId struct
 func TriggerID(input string) (*TriggerId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

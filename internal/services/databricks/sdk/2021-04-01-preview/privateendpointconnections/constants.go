@@ -14,30 +14,28 @@ const (
 
 func PossibleValuesForPrivateEndpointConnectionProvisioningState() []string {
 	return []string{
-		"Creating",
-		"Deleting",
-		"Failed",
-		"Succeeded",
-		"Updating",
+		string(PrivateEndpointConnectionProvisioningStateCreating),
+		string(PrivateEndpointConnectionProvisioningStateDeleting),
+		string(PrivateEndpointConnectionProvisioningStateFailed),
+		string(PrivateEndpointConnectionProvisioningStateSucceeded),
+		string(PrivateEndpointConnectionProvisioningStateUpdating),
 	}
 }
 
 func parsePrivateEndpointConnectionProvisioningState(input string) (*PrivateEndpointConnectionProvisioningState, error) {
 	vals := map[string]PrivateEndpointConnectionProvisioningState{
-		"creating":  "Creating",
-		"deleting":  "Deleting",
-		"failed":    "Failed",
-		"succeeded": "Succeeded",
-		"updating":  "Updating",
+		"creating":  PrivateEndpointConnectionProvisioningStateCreating,
+		"deleting":  PrivateEndpointConnectionProvisioningStateDeleting,
+		"failed":    PrivateEndpointConnectionProvisioningStateFailed,
+		"succeeded": PrivateEndpointConnectionProvisioningStateSucceeded,
+		"updating":  PrivateEndpointConnectionProvisioningStateUpdating,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := PrivateEndpointConnectionProvisioningState(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := PrivateEndpointConnectionProvisioningState(input)
 	return &out, nil
 }
 
@@ -52,27 +50,25 @@ const (
 
 func PossibleValuesForPrivateLinkServiceConnectionStatus() []string {
 	return []string{
-		"Approved",
-		"Disconnected",
-		"Pending",
-		"Rejected",
+		string(PrivateLinkServiceConnectionStatusApproved),
+		string(PrivateLinkServiceConnectionStatusDisconnected),
+		string(PrivateLinkServiceConnectionStatusPending),
+		string(PrivateLinkServiceConnectionStatusRejected),
 	}
 }
 
 func parsePrivateLinkServiceConnectionStatus(input string) (*PrivateLinkServiceConnectionStatus, error) {
 	vals := map[string]PrivateLinkServiceConnectionStatus{
-		"approved":     "Approved",
-		"disconnected": "Disconnected",
-		"pending":      "Pending",
-		"rejected":     "Rejected",
+		"approved":     PrivateLinkServiceConnectionStatusApproved,
+		"disconnected": PrivateLinkServiceConnectionStatusDisconnected,
+		"pending":      PrivateLinkServiceConnectionStatusPending,
+		"rejected":     PrivateLinkServiceConnectionStatusRejected,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
-	// it could be a new value - best effort convert this
-	v := input
-
-	out := PrivateLinkServiceConnectionStatus(v)
+	// otherwise presume it's an undefined value and best-effort it
+	out := PrivateLinkServiceConnectionStatus(input)
 	return &out, nil
 }

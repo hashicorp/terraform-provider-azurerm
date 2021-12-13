@@ -5,11 +5,15 @@ import (
 	"fmt"
 )
 
+var _ RouteConfiguration = ForwardingConfiguration{}
+
 type ForwardingConfiguration struct {
 	BackendPool          *SubResource                 `json:"backendPool,omitempty"`
 	CacheConfiguration   *CacheConfiguration          `json:"cacheConfiguration,omitempty"`
 	CustomForwardingPath *string                      `json:"customForwardingPath,omitempty"`
 	ForwardingProtocol   *FrontDoorForwardingProtocol `json:"forwardingProtocol,omitempty"`
+
+	// Fields inherited from RouteConfiguration
 }
 
 var _ json.Marshaler = ForwardingConfiguration{}

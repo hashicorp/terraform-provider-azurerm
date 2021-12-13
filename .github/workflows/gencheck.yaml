@@ -4,6 +4,7 @@ on:
   pull_request:
     types: ['opened', 'synchronize']
     paths:
+      - '.github/**'
       - '**.go'
       - 'azurerm/**'
       - '.github/workflows/**'

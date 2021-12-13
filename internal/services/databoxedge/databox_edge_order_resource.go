@@ -16,12 +16,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceDataboxEdgeOrder() *pluginsdk.Resource {
+func resourceOrder() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataboxEdgeOrderCreateUpdate,
-		Read:   resourceDataboxEdgeOrderRead,
-		Update: resourceDataboxEdgeOrderCreateUpdate,
-		Delete: resourceDataboxEdgeOrderDelete,
+		Create: resourceOrderCreateUpdate,
+		Read:   resourceOrderRead,
+		Update: resourceOrderCreateUpdate,
+		Delete: resourceOrderDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -31,7 +31,7 @@ func resourceDataboxEdgeOrder() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DataboxEdgeOrderID(id)
+			_, err := parse.OrderID(id)
 			return err
 		}),
 
@@ -257,24 +257,23 @@ func resourceDataboxEdgeOrder() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(databoxEdgeCustomizeDiff),
 	}
 }
-func resourceDataboxEdgeOrderCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceOrderCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DataboxEdge.OrderClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	deviceName := d.Get("device_name").(string)
-
+	id := parse.NewDeviceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("device_name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, deviceName, resourceGroup)
+		// SDK method: Get(ctx context.Context, deviceName string, resourceGroupName string)
+		existing, err := client.Get(ctx, id.DataBoxEdgeDeviceName, id.ResourceGroup)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Databox Edge Order (Resource Group %q / Device Name %q): %+v", resourceGroup, deviceName, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_databox_edge_order", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_databox_edge_order", id.ID())
 		}
 	}
 
@@ -285,53 +284,43 @@ func resourceDataboxEdgeOrderCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, deviceName, order, resourceGroup)
+	future, err := client.CreateOrUpdate(ctx, id.DataBoxEdgeDeviceName, order, id.ResourceGroup)
 	if err != nil {
-		return fmt.Errorf("creating/updating Databox Edge Order (Resource Group %q / Device Name %q): %+v", resourceGroup, deviceName, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating/updating future for Databox Edge Order (Resource Group %q / Device Name %q): %+v", resourceGroup, deviceName, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, deviceName, resourceGroup)
-	if err != nil {
-		return fmt.Errorf("retrieving Databox Edge Order (Resource Group %q / Device Name %q): %+v", resourceGroup, deviceName, err)
-	}
-
-	id, err := parse.DataboxEdgeOrderID(*resp.ID)
-	if err != nil {
-		return err
-	}
-
-	d.SetId(id.ID(subscriptionId))
-
-	return resourceDataboxEdgeOrderRead(d, meta)
+	d.SetId(id.ID())
+	return resourceOrderRead(d, meta)
 }
 
-func resourceDataboxEdgeOrderRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceOrderRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataboxEdge.OrderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataboxEdgeOrderID(d.Id())
+	id, err := parse.OrderID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.DeviceName, id.ResourceGroup)
+	resp, err := client.Get(ctx, id.DataBoxEdgeDeviceName, id.ResourceGroup)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Databox Edge %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] %s does not exist - removing from state", id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Databox Edge Order (Resource Group %q / Device Name %q): %+v", id.ResourceGroup, id.DeviceName, err)
+
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", "default")
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("device_name", id.DeviceName)
+	d.Set("device_name", id.DataBoxEdgeDeviceName)
 
 	if props := resp.OrderProperties; props != nil {
 		if err := d.Set("contact", flattenOrderContactDetails(props.ContactInformation)); err != nil {
@@ -358,24 +347,24 @@ func resourceDataboxEdgeOrderRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceDataboxEdgeOrderDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceOrderDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataboxEdge.OrderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataboxEdgeOrderID(d.Id())
+	id, err := parse.OrderID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.DeviceName, id.ResourceGroup)
+	future, err := client.Delete(ctx, id.DataBoxEdgeDeviceName, id.ResourceGroup)
 	if err != nil {
-		return fmt.Errorf("deleting Databox Edge Order (Resource Group %q / Device Name %q): %+v", id.ResourceGroup, id.DeviceName, err)
+		return fmt.Errorf("deleting %s: %v", *id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of %s: %v", *id, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on deleting future for Databox Edge Order (Resource Group %q / Device Name %q): %+v", id.ResourceGroup, id.DeviceName, err)
-	}
 	return nil
 }
 

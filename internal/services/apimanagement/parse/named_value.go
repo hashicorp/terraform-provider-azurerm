@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type NamedValueId struct {
@@ -42,7 +42,7 @@ func (id NamedValueId) ID() string {
 
 // NamedValueID parses a NamedValue ID into an NamedValueId struct
 func NamedValueID(input string) (*NamedValueId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

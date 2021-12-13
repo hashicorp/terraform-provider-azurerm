@@ -154,6 +154,12 @@ func resourceSharedImage() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"trusted_launch_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -183,6 +189,14 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	var features []compute.GalleryImageFeature
+	if d.Get("trusted_launch_enabled").(bool) {
+		features = append(features, compute.GalleryImageFeature{
+			Name:  utils.String("SecurityType"),
+			Value: utils.String("TrustedLaunch"),
+		})
+	}
+
 	image := compute.GalleryImage{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		GalleryImageProperties: &compute.GalleryImageProperties{
@@ -194,6 +208,7 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			OsType:              compute.OperatingSystemTypes(d.Get("os_type").(string)),
 			HyperVGeneration:    compute.HyperVGeneration(d.Get("hyper_v_generation").(string)),
 			PurchasePlan:        expandGalleryImagePurchasePlan(d.Get("purchase_plan").([]interface{})),
+			Features:            &features,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -271,6 +286,16 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if err := d.Set("purchase_plan", flattenGalleryImagePurchasePlan(props.PurchasePlan)); err != nil {
 			return fmt.Errorf("setting `purchase_plan`: %+v", err)
 		}
+
+		trusted_launch_enabled := false
+		if props.Features != nil {
+			for _, feature := range *props.Features {
+				if feature.Name != nil && feature.Value != nil && *feature.Name == "SecurityType" && *feature.Value == "TrustedLaunch" {
+					trusted_launch_enabled = true
+				}
+			}
+		}
+		d.Set("trusted_launch_enabled", trusted_launch_enabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

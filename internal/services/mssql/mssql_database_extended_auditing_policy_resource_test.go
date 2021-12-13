@@ -452,7 +452,6 @@ resource "azurerm_mssql_server_extended_auditing_policy" "test" {
   server_id              = azurerm_mssql_server.test.id
   log_monitoring_enabled = true
 }
-
 `, r.template(data), data.RandomInteger)
 }
 

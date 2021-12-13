@@ -97,7 +97,6 @@ resource "azurerm_app_service_public_certificate" "test" {
   certificate_location = "Unknown"
   blob                 = filebase64("testdata/app_service_public_certificate.cer")
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ServerExtendedAuditingPolicyId struct {
@@ -42,7 +42,7 @@ func (id ServerExtendedAuditingPolicyId) ID() string {
 
 // ServerExtendedAuditingPolicyID parses a ServerExtendedAuditingPolicy ID into an ServerExtendedAuditingPolicyId struct
 func ServerExtendedAuditingPolicyID(input string) (*ServerExtendedAuditingPolicyId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

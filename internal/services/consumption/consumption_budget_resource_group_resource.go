@@ -55,7 +55,7 @@ func resourceArmConsumptionBudgetResourceGroupRead(d *pluginsdk.ResourceData, me
 
 	resourceGroupId := resourceParse.NewResourceGroupID(consumptionBudgetId.SubscriptionId, consumptionBudgetId.ResourceGroup)
 
-	err = resourceArmConsumptionBudgetRead(d, meta, resourceGroupId.ID(), consumptionBudgetId.BudgetName)
+	err = resourceArmConsumptionBudgetRead(d, meta, resourceGroupId.ID(), consumptionBudgetId.BudgetName, SchemaConsumptionBudgetNotificationElement, FlattenConsumptionBudgetNotifications)
 	if err != nil {
 		return err
 	}

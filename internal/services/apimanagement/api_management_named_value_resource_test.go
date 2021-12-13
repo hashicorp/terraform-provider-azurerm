@@ -282,7 +282,6 @@ resource "azurerm_key_vault_secret" "test2" {
 
   depends_on = [azurerm_key_vault_access_policy.test]
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 

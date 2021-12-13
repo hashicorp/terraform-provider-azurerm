@@ -19,9 +19,7 @@ func TestAccWindowsVirtualMachineScaleSet_scalingAutoScale(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -36,27 +34,21 @@ func TestAccWindowsVirtualMachineScaleSet_scalingInstanceCount(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.scalingInstanceCount(data, 3),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.scalingInstanceCount(data, 5),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// update the count but the `sku` should be ignored
 			Config: r.scalingInstanceCountIgnoreUpdatedSku(data, 3),
@@ -64,9 +56,7 @@ func TestAccWindowsVirtualMachineScaleSet_scalingInstanceCount(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// confirm that the `sku` hasn't been changed
 			Config:   r.scalingInstanceCount(data, 3),
@@ -86,9 +76,7 @@ func TestAccWindowsVirtualMachineScaleSet_scalingOverProvisionDisabled(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -103,9 +91,7 @@ func TestAccWindowsVirtualMachineScaleSet_scalingProximityPlacementGroup(t *test
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -120,9 +106,7 @@ func TestAccWindowsVirtualMachineScaleSet_scalingSinglePlacementGroupDisabled(t 
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -137,18 +121,14 @@ func TestAccWindowsVirtualMachineScaleSet_scalingSinglePlacementGroupDisabledUpd
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.scalingSinglePlacementGroupDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -163,27 +143,21 @@ func TestAccWindowsVirtualMachineScaleSet_scalingUpdateSku(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.scalingUpdateSku(data, "Standard_F4"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.scalingUpdateSku(data, "Standard_F2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// confirms that the `instances` count comes from the API
 			Config: r.scalingUpdateSkuIgnoredUpdatedCount(data, "Standard_F2"),
@@ -209,9 +183,7 @@ func TestAccWindowsVirtualMachineScaleSet_scalingZonesSingle(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -226,9 +198,7 @@ func TestAccWindowsVirtualMachineScaleSet_scalingZonesMultiple(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -243,9 +213,7 @@ func TestAccWindowsVirtualMachineScaleSet_scalingZonesBalance(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 

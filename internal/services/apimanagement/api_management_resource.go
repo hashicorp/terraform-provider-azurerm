@@ -1361,7 +1361,7 @@ func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceI
 	identityIds := make([]interface{}, 0)
 	if identity.UserAssignedIdentities != nil {
 		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
 			if err != nil {
 				return nil, err
 			}

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -70,24 +72,25 @@ func dataSourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) err
 		subscriptionId = client.Account.SubscriptionId
 	}
 
+	id := commonids.NewSubscriptionID(subscriptionId)
 	resp, err := groupClient.Get(ctx, subscriptionId)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: default tags for Subscription %q was not found", subscriptionId)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("reading default tags for Subscription: %+v", err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 	d.Set("subscription_id", resp.SubscriptionID)
 	d.Set("display_name", resp.DisplayName)
 	d.Set("tenant_id", resp.TenantID)
 	d.Set("state", resp.State)
-	if resp.SubscriptionPolicies != nil {
-		d.Set("location_placement_id", resp.SubscriptionPolicies.LocationPlacementID)
-		d.Set("quota_id", resp.SubscriptionPolicies.QuotaID)
-		d.Set("spending_limit", resp.SubscriptionPolicies.SpendingLimit)
+	if props := resp.SubscriptionPolicies; props != nil {
+		d.Set("location_placement_id", props.LocationPlacementID)
+		d.Set("quota_id", props.QuotaID)
+		d.Set("spending_limit", props.SpendingLimit)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

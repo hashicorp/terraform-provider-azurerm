@@ -210,6 +210,16 @@ func dataSourceKeyVaultCertificate() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"versionless_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"versionless_secret_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"certificate_data": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -289,6 +299,15 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface
 
 	d.Set("version", id.Version)
 	d.Set("secret_id", cert.Sid)
+	d.Set("versionless_id", id.VersionlessID())
+
+	if cert.Sid != nil {
+		secretId, err := parse.ParseNestedItemID(*cert.Sid)
+		if err != nil {
+			return err
+		}
+		d.Set("versionless_secret_id", secretId.VersionlessID())
+	}
 
 	certificateData := ""
 	if contents := cert.Cer; contents != nil {

@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/parse"
+
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -105,31 +107,30 @@ func dataSourceHDInsightSparkCluster() *pluginsdk.Resource {
 
 func dataSourceHDInsightClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-
-	resp, err := clustersClient.Get(ctx, resourceGroup, name)
+	id := parse.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := clustersClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("HDInsight Cluster %q was not found in Resource Group %q", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("retrieving HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	configuration, err := configurationsClient.Get(ctx, resourceGroup, name, "gateway")
+	configuration, err := configurationsClient.Get(ctx, id.ResourceGroup, id.Name, "gateway")
 	if err != nil {
-		return fmt.Errorf("retrieving Configuration for HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Configuration for %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}

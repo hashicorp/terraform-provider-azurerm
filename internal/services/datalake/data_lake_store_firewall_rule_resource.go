@@ -130,9 +130,9 @@ func resourceArmDateLakeStoreAccountFirewallRuleRead(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.FirewallRuleName)
 	d.Set("account_name", id.AccountName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

@@ -250,7 +250,6 @@ resource "azurerm_storage_object_replication" "test" {
     filter_out_blobs_with_prefix = ["blobA", "blobB"]
   }
 }
-
 `, r.template(data))
 }
 
@@ -268,7 +267,6 @@ resource "azurerm_storage_object_replication" "test" {
     filter_out_blobs_with_prefix = ["blobA", "blobB", "blobC"]
   }
 }
-
 `, r.template(data), copyTime)
 }
 
@@ -291,6 +289,5 @@ resource "azurerm_storage_object_replication" "test" {
     copy_blobs_created_after   = "Everything"
   }
 }
-
 `, r.template(data), copyTime)
 }

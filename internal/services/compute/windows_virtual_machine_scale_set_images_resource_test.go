@@ -88,9 +88,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesFromCapturedVirtualMachineImage(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// then update the image on this Virtual Machine Scale Set
 			Config: r.imagesFromVirtualMachine(data, "second"),
@@ -101,9 +99,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesFromCapturedVirtualMachineImage(
 				check.That(data.ResourceName).Key("os_disk.0.disk_size_gb").HasValue("200"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -118,18 +114,14 @@ func TestAccWindowsVirtualMachineScaleSet_imagesManualUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.imagesManualUpdate(data, "2019-Datacenter"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -144,18 +136,14 @@ func TestAccWindowsVirtualMachineScaleSet_imagesManualUpdateExternalRoll(t *test
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.imagesManualUpdateExternalRoll(data, "2019-Datacenter"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -170,18 +158,14 @@ func TestAccWindowsVirtualMachineScaleSet_imagesRollingUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.imagesRollingUpdate(data, "2019-Datacenter"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -196,9 +180,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesPlan(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
