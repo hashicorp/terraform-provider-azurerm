@@ -9,7 +9,7 @@ func TestCostManagementExportID(t *testing.T) {
 		Name     string
 		Input    string
 		Error    bool
-		Expected *CostManagementExportId
+		Expected *ConsumptionBudgetId
 	}{
 		{
 			Name:  "empty",
@@ -17,42 +17,42 @@ func TestCostManagementExportID(t *testing.T) {
 			Error: true,
 		},
 		{
-			Name:  "resource group cost management export",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.CostManagement/exports/export1",
-			Expected: &CostManagementExportId{
-				Name:  "export1",
+			Name:  "resource group consumption budget",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Consumption/budgets/budget1",
+			Expected: &ConsumptionBudgetId{
+				Name:  "budget1",
 				Scope: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo",
 			},
 		},
 		{
-			Name:  "resource group cost management export but no name",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.CostManagement/exports/",
+			Name:  "resource group consumption budget but no name",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Consumption/budgets/",
 			Error: true,
 		},
 		{
-			Name:  "subscription cost management export",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.CostManagement/exports/export1",
-			Expected: &CostManagementExportId{
-				Name:  "export1",
+			Name:  "subscription consumption budget",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Consumption/budgets/budget1",
+			Expected: &ConsumptionBudgetId{
+				Name:  "budget1",
 				Scope: "/subscriptions/00000000-0000-0000-0000-000000000000",
 			},
 		},
 		{
-			Name:  "subscription cost management export but no name",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.CostManagement/exports/",
+			Name:  "subscription consumption budget but no name",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Consumption/budgets/",
 			Error: true,
 		},
 		{
-			Name:  "management group cost management export",
-			Input: "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.CostManagement/exports/export1",
-			Expected: &CostManagementExportId{
-				Name:  "export1",
+			Name:  "management group consumption budget",
+			Input: "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.Consumption/budgets/budget1",
+			Expected: &ConsumptionBudgetId{
+				Name:  "budget1",
 				Scope: "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
 			},
 		},
 		{
-			Name:  "management group cost management export but no name",
-			Input: "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.CostManagement/exports/",
+			Name:  "management group consumption budget but no name",
+			Input: "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.Consumption/budgets/",
 			Error: true,
 		},
 	}
@@ -60,7 +60,7 @@ func TestCostManagementExportID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := CostManagementExportID(v.Input)
+		actual, err := ConsumptionBudgetID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
