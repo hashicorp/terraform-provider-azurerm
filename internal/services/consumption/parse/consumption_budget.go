@@ -33,7 +33,7 @@ func NewConsumptionBudgetId(scope, name string) ConsumptionBudgetId {
 }
 
 func ConsumptionBudgetID(input string) (*ConsumptionBudgetId, error) {
-	// in general, the id of an assignment should be:
+	// in general, the id of a budget should be:
 	// {scope}/providers/Microsoft.Consumption/budgets/{name}
 	regex := regexp.MustCompile(`/providers/Microsoft\.Consumption/budgets/`)
 	if !regex.MatchString(input) {

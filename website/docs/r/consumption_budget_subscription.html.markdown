@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `subscription_id` - (Required) The Subscription resource ID for which to create a Consumption Budget. Changing this forces a new resource to be created.
 
-~> **NOTE:** The `subscription_id` property can accept a subscription ID e.g. `00000000-0000-0000-0000-000000000000` or the subscription resource ID e.g. `/subscriptions/00000000-0000-0000-0000-000000000000`. In version 3.0 this property will only accept the resource ID format of the subscription.
+~> **NOTE:** The `subscription_id` property can accept a subscription ID e.g. `00000000-0000-0000-0000-000000000000` or the subscription resource ID e.g. `/subscriptions/00000000-0000-0000-0000-000000000000`. In version 3.0 this property will only accept the subscription resource ID.
 
 * `amount` - (Required) The total amount of cost to track with the budget.
 
