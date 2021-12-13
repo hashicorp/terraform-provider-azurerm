@@ -73,7 +73,7 @@ func (r AppServiceSlotCustomHostnameBindingResource) Exists(ctx context.Context,
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving App Service Custom Hostname Binding %q (App Service %q / Slot %q / Resource Group %q): %+v", id.HostNameBindingName, id.SiteName, id.SlotName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.HostNameBindingProperties != nil), nil
