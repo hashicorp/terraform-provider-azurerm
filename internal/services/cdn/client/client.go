@@ -6,9 +6,12 @@ import (
 )
 
 type Client struct {
-	CustomDomainsClient *cdn.CustomDomainsClient
-	EndpointsClient     *cdn.EndpointsClient
-	ProfilesClient      *cdn.ProfilesClient
+	CustomDomainsClient   *cdn.CustomDomainsClient
+	EndpointsClient       *cdn.EndpointsClient
+	ProfilesClient        *cdn.ProfilesClient
+	AFDEndpointsClient    *cdn.AFDEndpointsClient
+	AFDOriginGroupsClient *cdn.AFDOriginGroupsClient
+	AFDOriginsClient      *cdn.AFDOriginsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -21,9 +24,21 @@ func NewClient(o *common.ClientOptions) *Client {
 	profilesClient := cdn.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&profilesClient.Client, o.ResourceManagerAuthorizer)
 
+	afdEndpointsClient := cdn.NewAFDEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&afdEndpointsClient.Client, o.ResourceManagerAuthorizer)
+
+	afdOriginsClient := cdn.NewAFDOriginsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&afdOriginsClient.Client, o.ResourceManagerAuthorizer)
+
+	afdOriginGroupsClient := cdn.NewAFDOriginGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&afdOriginGroupsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		CustomDomainsClient: &customDomainsClient,
-		EndpointsClient:     &endpointsClient,
-		ProfilesClient:      &profilesClient,
+		CustomDomainsClient:   &customDomainsClient,
+		EndpointsClient:       &endpointsClient,
+		ProfilesClient:        &profilesClient,
+		AFDEndpointsClient:    &afdEndpointsClient,
+		AFDOriginGroupsClient: &afdOriginGroupsClient,
+		AFDOriginsClient:      &afdOriginsClient,
 	}
 }
