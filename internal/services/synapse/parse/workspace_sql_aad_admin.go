@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type WorkspaceSqlAADAdminId struct {
@@ -42,7 +42,7 @@ func (id WorkspaceSqlAADAdminId) ID() string {
 
 // WorkspaceSqlAADAdminID parses a WorkspaceSqlAADAdmin ID into an WorkspaceSqlAADAdminId struct
 func WorkspaceSqlAADAdminID(input string) (*WorkspaceSqlAADAdminId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
