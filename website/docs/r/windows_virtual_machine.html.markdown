@@ -145,7 +145,7 @@ The following arguments are supported:
 
 * `patch_mode` - (Optional) Specifies the mode of in-guest patching to this Windows Virtual Machine. Possible values are `Manual`, `AutomaticByOS` and `AutomaticByPlatform`. Defaults to `AutomaticByOS`.
 
--> **NOTE:** This is a preview feature, you can opt-in with the command `az feature register -n InGuestAutoPatchVMPreview --namespace Microsoft.Compute`.
+-> **NOTE:** This feature is now officially released
 
 * `plan` - (Optional) A `plan` block as defined below. Changing this forces a new resource to be created.
 
