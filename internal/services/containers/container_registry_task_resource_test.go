@@ -97,21 +97,21 @@ func TestAccContainerRegistryTask_fileTaskStep(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("file_task_step.0.context_access_token"),
+		data.ImportStep("file_step.0.context_access_token"),
 		{
 			Config: r.fileTaskStepUpdate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("file_task_step.0.context_access_token", "file_task_step.0.secret_values"),
+		data.ImportStep("file_step.0.context_access_token", "file_step.0.secret_values"),
 		{
 			Config: r.fileTaskStepBasic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("file_task_step.0.context_access_token"),
+		data.ImportStep("file_step.0.context_access_token"),
 	})
 }
 
@@ -134,21 +134,21 @@ func TestAccContainerRegistryTask_encodedTaskStep(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("encoded_task_step.0.context_access_token"),
+		data.ImportStep("encoded_step.0.context_access_token"),
 		{
 			Config: r.encodedTaskStepUpdate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("encoded_task_step.0.context_access_token", "encoded_task_step.0.secret_values"),
+		data.ImportStep("encoded_step.0.context_access_token", "encoded_step.0.secret_values"),
 		{
 			Config: r.encodedTaskStepBasic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("encoded_task_step.0.context_access_token"),
+		data.ImportStep("encoded_step.0.context_access_token"),
 	})
 }
 
@@ -358,7 +358,7 @@ func TestAccContainerRegistryTask_fileTaskStepRegistryCredential(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("file_task_step.0.context_access_token"),
+		data.ImportStep("file_step.0.context_access_token"),
 		{
 			Config: r.fileTaskStepRegistryCredential(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -366,8 +366,8 @@ func TestAccContainerRegistryTask_fileTaskStepRegistryCredential(t *testing.T) {
 			),
 		},
 		data.ImportStep(
-			"file_task_step.0.context_access_token",
-			"file_task_step.0.registry_credential",
+			"file_step.0.context_access_token",
+			"file_step.0.registry_credential",
 			"registry_credential.#",
 			"registry_credential.0.%",
 			"registry_credential.0.identity",
@@ -381,7 +381,7 @@ func TestAccContainerRegistryTask_fileTaskStepRegistryCredential(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("file_task_step.0.context_access_token"),
+		data.ImportStep("file_step.0.context_access_token"),
 	})
 }
 
@@ -511,7 +511,7 @@ resource "azurerm_container_registry_task" "test" {
   platform {
     os = "Linux"
   }
-  file_task_step {
+  file_step {
     task_file_path       = "taskmulti.yaml"
     context_path         = "%s"
     context_access_token = "%s"
@@ -531,7 +531,7 @@ resource "azurerm_container_registry_task" "test" {
   platform {
     os = "Linux"
   }
-  file_task_step {
+  file_step {
     task_file_path       = "taskmulti-multiregistry.yaml"
     context_path         = "%s"
     context_access_token = "%s"
@@ -557,7 +557,7 @@ resource "azurerm_container_registry_task" "test" {
   platform {
     os = "Linux"
   }
-  encoded_task_step {
+  encoded_step {
     task_content         = <<EOF
 FROM node:15-alpine
 
@@ -584,7 +584,7 @@ resource "azurerm_container_registry_task" "test" {
   platform {
     os = "Linux"
   }
-  encoded_task_step {
+  encoded_step {
     task_content         = <<EOF
 ARG REGISTRY_NAME
 FROM $${REGISTRY_NAME}/baseimages/node:15-alpine
@@ -884,7 +884,7 @@ resource "azurerm_container_registry_task" "test" {
   platform {
     os = "Linux"
   }
-  file_task_step {
+  file_step {
     task_file_path       = "taskmulti-multiregistry.yaml"
     context_path         = "%s"
     context_access_token = "%s"

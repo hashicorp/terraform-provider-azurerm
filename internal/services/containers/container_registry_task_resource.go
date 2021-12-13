@@ -131,8 +131,8 @@ type ContainerRegistryTaskModel struct {
 	Enabled             bool                   `tfschema:"enabled"`
 	TimeoutInSec        int                    `tfschema:"timeout_in_seconds"`
 	DockerStep          []DockerStep           `tfschema:"docker_step"`
-	FileTaskStep        []FileTaskStep         `tfschema:"file_task_step"`
-	EncodedTaskStep     []EncodedTaskStep      `tfschema:"encoded_task_step"`
+	FileTaskStep        []FileTaskStep         `tfschema:"file_step"`
+	EncodedTaskStep     []EncodedTaskStep      `tfschema:"encoded_step"`
 	BaseImageTrigger    []BaseImageTrigger     `tfschema:"base_image_trigger"`
 	SourceTrigger       []SourceTrigger        `tfschema:"source_trigger"`
 	TimerTrigger        []TimerTrigger         `tfschema:"timer_trigger"`
@@ -261,9 +261,9 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 					},
 				},
 			},
-			ConflictsWith: []string{"file_task_step", "encoded_task_step"},
+			ConflictsWith: []string{"file_step", "encoded_step"},
 		},
-		"file_task_step": {
+		"file_step": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -307,9 +307,9 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 					},
 				},
 			},
-			ConflictsWith: []string{"docker_step", "encoded_task_step"},
+			ConflictsWith: []string{"docker_step", "encoded_step"},
 		},
-		"encoded_task_step": {
+		"encoded_step": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -355,7 +355,7 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 					},
 				},
 			},
-			ConflictsWith: []string{"docker_step", "file_task_step"},
+			ConflictsWith: []string{"docker_step", "file_step"},
 		},
 		"base_image_trigger": {
 			Type:     pluginsdk.TypeList,
@@ -619,7 +619,7 @@ func (r ContainerRegistryTaskResource) CustomizeDiff() sdk.ResourceFunc {
 			isSystemTask := rd.Get("is_system_task").(bool)
 
 			if isSystemTask {
-				invalidProps := []string{"platform", "docker_step", "file_task_step", "encoded_task_step", "base_image_trigger", "source_trigger", "timer_trigger"}
+				invalidProps := []string{"platform", "docker_step", "file_step", "encoded_step", "base_image_trigger", "source_trigger", "timer_trigger"}
 				for _, prop := range invalidProps {
 					if v := rd.Get(prop).([]interface{}); len(v) != 0 {
 						return fmt.Errorf("system task can't specify `%s`", prop)
@@ -631,10 +631,10 @@ func (r ContainerRegistryTaskResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 
 				dockerStep := rd.Get("docker_step").([]interface{})
-				fileTaskStep := rd.Get("file_task_step").([]interface{})
-				encodedTaskStep := rd.Get("encoded_task_step").([]interface{})
+				fileTaskStep := rd.Get("file_step").([]interface{})
+				encodedTaskStep := rd.Get("encoded_step").([]interface{})
 				if len(dockerStep)+len(fileTaskStep)+len(encodedTaskStep) == 0 {
-					return fmt.Errorf("non-system task have to specify one of `docker_step`, `file_task_step` and `encoded_task_step`")
+					return fmt.Errorf("non-system task have to specify one of `docker_step`, `file_step` and `encoded_step`")
 				}
 			}
 

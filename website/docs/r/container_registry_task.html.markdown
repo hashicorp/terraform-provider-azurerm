@@ -65,11 +65,11 @@ The following arguments are supported:
 
 * `docker_step` - (Optional) A `docker_step` block as defined below.
 
-* `encoded_task_step` - (Optional) A `encoded_task_step` block as defined below.
+* `encoded_step` - (Optional) A `encoded_step` block as defined below.
 
-* `file_task_step` - (Optional) A `file_task_step` block as defined below.
+* `file_step` - (Optional) A `file_step` block as defined below.
 
-~> **NOTE**: For non-system task (when `is_system_task` is set to `false`), one and only one of the `docker_step`, `encoded_task_step` and `file_task_step` should be specified.
+~> **NOTE**: For non-system task (when `is_system_task` is set to `false`), one and only one of the `docker_step`, `encoded_step` and `file_step` should be specified.
 
 * `base_image_trigger` - (Optional) A `base_image_trigger` block as defined below.
 
@@ -79,7 +79,7 @@ The following arguments are supported:
 
 * `is_system_task` - (Optional) Whether this Container Registry Task is a system task. Changing this forces a new Container Registry Task to be created. Defaults to `false`.
 
-~> **NOTE**: For system task, the `name` has to be set as `quicktask`. And the following properties can't be specified: `docker_step`, `encoded_task_step`, `file_task_step`, `platform`, `base_image_trigger`, `source_trigger`, `timer_trigger`.
+~> **NOTE**: For system task, the `name` has to be set as `quicktask`. And the following properties can't be specified: `docker_step`, `encoded_step`, `file_step`, `platform`, `base_image_trigger`, `source_trigger`, `timer_trigger`.
 
 * `log_template` - (Optional) The template that describes the run log artifact.
 
@@ -147,7 +147,7 @@ A `docker_step` block supports the following:
 
 ---
 
-A `encoded_task_step` block supports the following:
+A `encoded_step` block supports the following:
 
 * `task_content` - (Required) The (optionally base64 encoded) content of the build template.
 
@@ -163,7 +163,7 @@ A `encoded_task_step` block supports the following:
 
 ---
 
-A `file_task_step` block supports the following:
+A `file_step` block supports the following:
 
 * `task_file_path` - (Required) The task template file path relative to the source context.
 
