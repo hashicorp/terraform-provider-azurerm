@@ -67,7 +67,43 @@ func (r WatchlistItemResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r WatchlistItemResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func:    r.createUpdate,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Sentinel.WatchlistItemsClient
+
+			var model WatchlistItemModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding %+v", err)
+			}
+
+			watchlistId, err := parse.WatchlistID(model.WatchlistID)
+			if err != nil {
+				return err
+			}
+			id := parse.NewWatchlistItemID(watchlistId.SubscriptionId, watchlistId.ResourceGroup, watchlistId.WorkspaceName, watchlistId.Name, model.Name)
+
+			existing, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.WatchlistName, id.Name)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+			}
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
+
+			params := securityinsight.WatchlistItem{
+				WatchlistItemProperties: &securityinsight.WatchlistItemProperties{
+					ItemsKeyValue: model.Fields,
+				},
+			}
+
+			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.WatchlistName, id.Name, params); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+			return nil
+		},
 	}
 }
 
@@ -132,46 +168,42 @@ func (r WatchlistItemResource) Delete() sdk.ResourceFunc {
 func (r WatchlistItemResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func:    r.createUpdate,
-	}
-}
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Sentinel.WatchlistItemsClient
 
-func (r WatchlistItemResource) createUpdate(ctx context.Context, metadata sdk.ResourceMetaData) error {
-	client := metadata.Client.Sentinel.WatchlistItemsClient
+			var model WatchlistItemModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding %+v", err)
+			}
 
-	var model WatchlistItemModel
-	if err := metadata.Decode(&model); err != nil {
-		return fmt.Errorf("decoding %+v", err)
-	}
+			watchlistId, err := parse.WatchlistID(model.WatchlistID)
+			if err != nil {
+				return err
+			}
+			id := parse.NewWatchlistItemID(watchlistId.SubscriptionId, watchlistId.ResourceGroup, watchlistId.WorkspaceName, watchlistId.Name, model.Name)
 
-	watchlistId, err := parse.WatchlistID(model.WatchlistID)
-	if err != nil {
-		return err
-	}
-	id := parse.NewWatchlistItemID(watchlistId.SubscriptionId, watchlistId.ResourceGroup, watchlistId.WorkspaceName, watchlistId.Name, model.Name)
-
-	if metadata.ResourceData.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.WatchlistName, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			existing, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.WatchlistName, id.Name)
+			if err != nil {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return metadata.ResourceRequiresImport(r.ResourceType(), id)
-		}
-	}
 
-	params := securityinsight.WatchlistItem{
-		WatchlistItemProperties: &securityinsight.WatchlistItemProperties{
-			ItemsKeyValue: model.Fields,
+			update := securityinsight.WatchlistItem{
+				WatchlistItemProperties: existing.WatchlistItemProperties,
+			}
+
+			if metadata.ResourceData.HasChange("fields") {
+				if update.WatchlistItemProperties == nil {
+					update.WatchlistItemProperties = &securityinsight.WatchlistItemProperties{}
+				}
+				update.WatchlistItemProperties.ItemsKeyValue = model.Fields
+			}
+
+			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.WatchlistName, id.Name, update); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+			return nil
 		},
 	}
-
-	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.WatchlistName, id.Name, params); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	metadata.SetID(id)
-	return nil
 }

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type WatchlistItemId struct {
@@ -45,7 +45,7 @@ func (id WatchlistItemId) ID() string {
 
 // WatchlistItemID parses a WatchlistItem ID into an WatchlistItemId struct
 func WatchlistItemID(input string) (*WatchlistItemId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

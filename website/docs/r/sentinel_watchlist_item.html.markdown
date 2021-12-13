@@ -12,8 +12,6 @@ Manages a Sentinel Watchlist Item.
 
 ## Example Usage
 
-### Basic
-
 ```hcl
 provider "azurerm" {
   features {}
@@ -23,12 +21,14 @@ resource "azurerm_resource_group" "example" {
   name     = "example-rg"
   location = "West Europe"
 }
+
 resource "azurerm_log_analytics_workspace" "example" {
   name                = "example-workspace"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "PerGB2018"
 }
+
 resource "azurerm_log_analytics_solution" "example" {
   solution_name         = "SecurityInsights"
   location              = azurerm_resource_group.example.location
@@ -40,6 +40,7 @@ resource "azurerm_log_analytics_solution" "example" {
     product   = "OMSGallery/SecurityInsights"
   }
 }
+
 resource "azurerm_sentinel_watchlist" "example" {
   name                       = "example-watchlist"
   log_analytics_workspace_id = azurerm_log_analytics_solution.example.workspace_resource_id
@@ -53,29 +54,6 @@ resource "azurerm_sentinel_watchlist_item" "example" {
     k1 = "v1"
     k2 = "v2"
   }
-}
-```
-
-### From a CSV file
-
-```hcl
-# Depended resources are configured as above.
-# ...
-
-locals {
-  csv_data = csvdecode(file("./data.csv"))
-}
-
-resource "random_uuid" "item" {
-  count = length(local.csv_data)
-}
-
-resource "azurerm_sentinel_watchlist_item" "example" {
-  count = length(local.csv_data)
-
-  name         = random_uuid.item[count.index].id
-  watchlist_id = azurerm_sentinel_watchlist.example.id
-  fields       = local.csv_data[count.index]
 }
 ```
 
@@ -109,5 +87,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Sentinel Watchlist Items can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_sentinel_watchlist_item.example subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/watchlists/list1/watchlistItems/item1
+terraform import azurerm_sentinel_watchlist_item.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/watchlists/list1/watchlistItems/item1
 ```
