@@ -105,6 +105,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"api_server_authorized_ip_ranges": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				Computed: true, // when public_network_access_enabled=false, api_server_authorized_ip_ranges will be set automatically
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validate.CIDR,
