@@ -659,7 +659,7 @@ func TestAccWindowsWebAppSlot_withJava8Java(t *testing.T) {
 
 func TestAccWindowsWebAppSlot_withJava11Java(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
-	r := WindowsWebAppResource{}
+	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
