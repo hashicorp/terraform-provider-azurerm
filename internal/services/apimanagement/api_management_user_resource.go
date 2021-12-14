@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -65,8 +65,8 @@ func resourceApiManagementUser() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.Invite),
-					string(apimanagement.Signup),
+					string(apimanagement.ConfirmationInvite),
+					string(apimanagement.ConfirmationSignup),
 				}, false),
 			},
 
@@ -206,7 +206,7 @@ func resourceApiManagementUserDelete(d *pluginsdk.ResourceData, meta interface{}
 	log.Printf("[DEBUG] Deleting %s", *id)
 	deleteSubscriptions := utils.Bool(true)
 	notify := utils.Bool(false)
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, "", deleteSubscriptions, notify, apimanagement.DeveloperPortal)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, "", deleteSubscriptions, notify, apimanagement.AppTypeDeveloperPortal)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)

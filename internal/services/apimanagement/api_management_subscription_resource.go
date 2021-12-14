@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -84,14 +84,14 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 			"state": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(apimanagement.Submitted),
+				Default:  string(apimanagement.SubscriptionStateSubmitted),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.Active),
-					string(apimanagement.Cancelled),
-					string(apimanagement.Expired),
-					string(apimanagement.Rejected),
-					string(apimanagement.Submitted),
-					string(apimanagement.Suspended),
+					string(apimanagement.SubscriptionStateActive),
+					string(apimanagement.SubscriptionStateCancelled),
+					string(apimanagement.SubscriptionStateExpired),
+					string(apimanagement.SubscriptionStateRejected),
+					string(apimanagement.SubscriptionStateSubmitted),
+					string(apimanagement.SubscriptionStateSuspended),
 				}, false),
 			},
 
@@ -187,7 +187,7 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 	sendEmail := utils.Bool(false)
 
 	err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, subscriptionId, params, sendEmail, "", apimanagement.DeveloperPortal); err != nil {
+		if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, subscriptionId, params, sendEmail, "", apimanagement.AppTypeDeveloperPortal); err != nil {
 			// APIM admins set limit on number of subscriptions to a product.  In order to be able to correctly enforce that limit service cannot let simultaneous creations
 			// to go through and first one wins/subsequent one gets 412 and that client/user can retry. This ensures that we have proper limits enforces as desired by APIM admin.
 			if v, ok := err.(autorest.DetailedError); ok && v.StatusCode == http.StatusPreconditionFailed {
