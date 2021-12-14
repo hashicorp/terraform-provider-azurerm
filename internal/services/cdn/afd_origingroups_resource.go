@@ -88,9 +88,10 @@ func resourceAfdOriginGroups() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"path": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  "/",
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      "/",
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"request_type": {
 							Type:     pluginsdk.TypeString,
@@ -220,9 +221,31 @@ func expandHealthProbeSettings(input []interface{}) *cdn.HealthProbeParameters {
 }
 
 func resourceAfdOriginGroupsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Cdn.AFDOriginGroupsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 	id, err := parse.AfdOriginGroupsID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	loadbalancing := d.Get("load_balancing").([]interface{})
+	healthprobes := d.Get("health_probe").([]interface{})
+
+	properties := cdn.AFDOriginGroupUpdateParameters{
+		AFDOriginGroupUpdatePropertiesParameters: &cdn.AFDOriginGroupUpdatePropertiesParameters{
+			LoadBalancingSettings: expandLoadBalancingSettings(loadbalancing),
+			HealthProbeSettings:   expandHealthProbeSettings(healthprobes),
+		},
+	}
+
+	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, properties)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id.OriginGroupName, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the creation of %s: %+v", id.OriginGroupName, err)
 	}
 
 	d.SetId(id.ID())

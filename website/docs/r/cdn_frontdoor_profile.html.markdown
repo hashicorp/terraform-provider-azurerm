@@ -1,7 +1,7 @@
 ---
 subcategory: "Network"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_cdn_frontdoor"
+page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_profile"
 description: |-
   Manages an Azure Front Door (Standard/Premium) instance. (currently in public preview)
 ---
