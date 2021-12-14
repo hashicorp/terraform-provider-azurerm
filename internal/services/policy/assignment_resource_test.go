@@ -54,7 +54,7 @@ func TestAccResourcePolicyAssignment_basicWithBuiltInPolicyNonComplianceMessage(
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("non_compliance_message.#").HasValue("1"),
-				check.That(data.ResourceName).Key("non_compliance_message.0.message").HasValue("test"),
+				check.That(data.ResourceName).Key("non_compliance_message.0.content").HasValue("test"),
 			),
 		},
 		data.ImportStep(),
@@ -71,7 +71,7 @@ func TestAccResourcePolicyAssignment_basicWithBuiltInPolicyNonComplianceMessage(
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("non_compliance_message.#").HasValue("1"),
-				check.That(data.ResourceName).Key("non_compliance_message.0.message").HasValue("test"),
+				check.That(data.ResourceName).Key("non_compliance_message.0.content").HasValue("test"),
 			),
 		},
 		data.ImportStep(),
@@ -117,7 +117,7 @@ func TestAccResourcePolicyAssignment_basicWithBuiltInPolicySetNonComplianceMessa
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("non_compliance_message.#").HasValue("1"),
-				check.That(data.ResourceName).Key("non_compliance_message.0.message").HasValue("test"),
+				check.That(data.ResourceName).Key("non_compliance_message.0.content").HasValue("test"),
 			),
 		},
 		data.ImportStep(),
@@ -126,8 +126,8 @@ func TestAccResourcePolicyAssignment_basicWithBuiltInPolicySetNonComplianceMessa
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("non_compliance_message.#").HasValue("2"),
-				check.That(data.ResourceName).Key("non_compliance_message.0.message").HasValue("test"),
-				check.That(data.ResourceName).Key("non_compliance_message.1.message").HasValue("test2"),
+				check.That(data.ResourceName).Key("non_compliance_message.0.content").HasValue("test"),
+				check.That(data.ResourceName).Key("non_compliance_message.1.content").HasValue("test2"),
 				check.That(data.ResourceName).Key("non_compliance_message.1.policy_definition_reference_id").HasValue("AINE_MinimumPasswordLength"),
 			),
 		},
@@ -137,7 +137,7 @@ func TestAccResourcePolicyAssignment_basicWithBuiltInPolicySetNonComplianceMessa
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("non_compliance_message.#").HasValue("1"),
-				check.That(data.ResourceName).Key("non_compliance_message.0.message").HasValue("test"),
+				check.That(data.ResourceName).Key("non_compliance_message.0.content").HasValue("test"),
 			),
 		},
 		data.ImportStep(),
