@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAfdOrigin() *pluginsdk.Resource {
@@ -61,7 +62,8 @@ func resourceAfdOrigin() *pluginsdk.Resource {
 
 			"host_name": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Required: true,
+				ForceNew: true,
 			},
 
 			"priority": {
@@ -72,7 +74,7 @@ func resourceAfdOrigin() *pluginsdk.Resource {
 			},
 
 			"weight": {
-				Type:         pluginsdk.TypeString,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 1000),
@@ -88,12 +90,12 @@ func resourceAfdOriginsCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	defer cancel()
 
 	originname := d.Get("name").(string)
-	originsgroup := d.Get("origins_group_name").(string)
-	hostname := d.Get("hostname").(string)
+	originsgroup := d.Get("origin_group_name").(string)
+	hostname := d.Get("host_name").(string)
 	priority := int32(d.Get("priority").(int))
 	weight := int32(d.Get("weight").(int))
 
-	id := parse.NewEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("profile_name").(string), d.Get("name").(string))
+	id := parse.NewOriginsID(subscriptionId, d.Get("resource_group_name").(string), d.Get("profile_name").(string), originsgroup, originname)
 
 	afdOrigin := cdn.AFDOrigin{
 		AFDOriginProperties: &cdn.AFDOriginProperties{
@@ -117,13 +119,62 @@ func resourceAfdOriginsCreate(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func resourceAfdOriginsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Cdn.AFDOriginsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.OriginsID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	d.Set("name", id.OriginName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("profile_name", id.ProfileName)
+	d.Set("origin_group_name", id.OriginGroupName)
+
 	return nil
 }
 
 func resourceAfdOriginsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	return nil
+	id, err := parse.OriginsID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	d.SetId(id.ID())
+
+	return resourceAfdOriginsRead(d, meta)
 }
 
 func resourceAfdOriginsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	return nil
+	client := meta.(*clients.Client).Cdn.AFDOriginsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.OriginsID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName)
+	if err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
+	}
+
+	return err
 }

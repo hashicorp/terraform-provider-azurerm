@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -69,8 +70,10 @@ func resourceAfdOriginGroups() *pluginsdk.Resource {
 							Optional: true,
 						},
 						"successful_samples_required": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      1,
+							ValidateFunc: validation.IntBetween(1, 255),
 						},
 						"additional_latency_in_ms": {
 							Type:     pluginsdk.TypeInt,
@@ -133,13 +136,13 @@ func resourceAfdOriginGroupsCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		},
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, name, originGroup)
+	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, originGroup)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id.ProfileName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the creation of %s: %+v", id.ProfileName, err)
+		return fmt.Errorf("waiting for the creation of %s: %+v", id.OriginGroupName, err)
 	}
 
 	d.SetId(id.ID())
@@ -212,13 +215,19 @@ func expandHealthProbeSettings(input []interface{}) *cdn.HealthProbeParameters {
 }
 
 func resourceAfdOriginGroupsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	return nil
+	id, err := parse.OriginGroupsID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	d.SetId(id.ID())
+
+	return resourceAfdOriginGroupsRead(d, meta)
 }
 
 func resourceAfdOriginGroupsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.AFDOriginGroupsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	name := d.Get("name").(string)
 	defer cancel()
 
 	id, err := parse.OriginGroupsID(d.Id())
@@ -226,7 +235,7 @@ func resourceAfdOriginGroupsRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -235,7 +244,7 @@ func resourceAfdOriginGroupsRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("making Read request on Azure CDN OriginGroups %q (Resource Group %q): %+v", name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", name)
+	d.Set("name", id.OriginGroupName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("profile_name", id.ProfileName)
 
@@ -245,7 +254,6 @@ func resourceAfdOriginGroupsRead(d *pluginsdk.ResourceData, meta interface{}) er
 func resourceAfdOriginGroupsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.AFDOriginGroupsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	name := d.Get("name").(string)
 	defer cancel()
 
 	id, err := parse.OriginGroupsID(d.Id())
@@ -253,7 +261,7 @@ func resourceAfdOriginGroupsDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
