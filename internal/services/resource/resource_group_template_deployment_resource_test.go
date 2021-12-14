@@ -257,6 +257,21 @@ func TestAccResourceGroupTemplateDeployment_templateSpecResources(t *testing.T) 
 	})
 }
 
+func TestAccResourceGroupTemplateDeployment_secondaryProvider(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.secondaryProvider(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t ResourceGroupTemplateDeploymentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ResourceGroupTemplateDeploymentID(state.ID)
 	if err != nil {
@@ -351,6 +366,175 @@ resource "azurerm_resource_group_template_deployment" "test" {
 
   template_spec_version_id = data.azurerm_template_spec_version.test.id
 }
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (ResourceGroupTemplateDeploymentResource) secondaryProvider(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_policy_definition" "test" {
+  name         = "acctestpol-%[1]d"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "acctestpol-%[1]d"
+
+  policy_rule = <<POLICY_RULE
+	{
+    "if": {
+      "not": {
+        "field": "location",
+        "in": "[parameters('allowedLocations')]"
+      }
+    },
+    "then": {
+      "effect": "audit"
+    }
+  }
+POLICY_RULE
+
+
+  parameters = <<PARAMETERS
+	{
+    "allowedLocations": {
+      "type": "Array",
+      "metadata": {
+        "description": "The list of allowed locations for resources.",
+        "displayName": "Allowed locations",
+        "strongType": "location"
+      }
+    }
+  }
+PARAMETERS
+
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_policy_assignment" "test" {
+  name                 = "acctestpa-%[1]d"
+  scope                = azurerm_resource_group.test.id
+  policy_definition_id = azurerm_policy_definition.test.id
+  description          = "Policy Assignment created via an Acceptance Test"
+  display_name         = "Acceptance Test Run %[1]d"
+
+  parameters = <<PARAMETERS
+{
+  "allowedLocations": {
+    "value": [ "%[2]s" ]
+  }
+}
+PARAMETERS
+}
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctestrgtd-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Incremental"
+
+  template_content = <<TEMPLATE
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "description": {
+            "type": "String"
+        },
+        "displayName": {
+          "type": "String"
+        },
+        "exemptionCategory": {
+          "type": "String",
+          "allowedValues": [
+            "Waiver",
+            "Mitigated"
+          ]
+        },
+        "expiresOn": {
+          "type": "String"
+        },
+        "metadata": {
+          "type": "Object"
+        },
+        "name": {
+          "type": "String"
+        },
+        "policyAssignmentId": {
+          "type": "String"
+        },
+        "policyDefinitionReferenceIds": {
+          "type": "Array"
+        },
+        "scope": {
+          "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Authorization/policyExemptions",
+            "name": "[parameters('name')]",
+            "apiVersion": "2020-07-01-preview",
+            "scope": "[parameters('scope')]",
+            "properties": {
+                "description": "[parameters('description')]",
+                "displayName": "[parameters('displayName')]",
+                "exemptionCategory": "[parameters('exemptionCategory')]",
+                "expiresOn": "[parameters('expiresOn')]",
+                "metadata": "[parameters('metadata')]",
+                "policyAssignmentId": "[parameters('policyAssignmentId')]",
+                "policyDefinitionReferenceIds": "[parameters('policyDefinitionReferenceIds')]"
+            }
+        }
+    ]
+}
+TEMPLATE
+
+  parameters_content = <<PARAM
+{
+  "description": {
+   "value": "description-%[1]d"
+  },
+  "displayName": {
+    "value": "name--%[1]d"
+  },
+  "exemptionCategory": {
+    "value": "Waiver"
+  },
+  "expiresOn": {
+    "value": ""
+  },
+  "metadata": {
+    "value": {}
+  },
+  "name": {
+    "value": "name--%[1]d"
+  },
+  "policyAssignmentId": {
+    "value": "${azurerm_policy_assignment.test.id}"
+  },
+  "policyDefinitionReferenceIds": {
+    "value": []
+  },
+  "scope": {
+    "value": "${azurerm_log_analytics_workspace.test.id}"
+  }
+}
+PARAM
+}
+
 `, data.RandomInteger, data.Locations.Primary)
 }
 
