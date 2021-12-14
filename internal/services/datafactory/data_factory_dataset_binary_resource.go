@@ -46,6 +46,7 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 			"data_factory_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryName(),
 				Deprecated:   "`data_factory_name` is deprecated in favour of `data_factory_id` and will be removed in version 3.0 of the AzureRM provider",
