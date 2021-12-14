@@ -6,16 +6,17 @@ import (
 )
 
 type Client struct {
-	CassandraClient            *documentdb.CassandraResourcesClient
-	CassandraClustersClient    *documentdb.CassandraClustersClient
-	CassandraDatacentersClient *documentdb.CassandraDataCentersClient
-	DatabaseClient             *documentdb.DatabaseAccountsClient
-	GremlinClient              *documentdb.GremlinResourcesClient
-	MongoDbClient              *documentdb.MongoDBResourcesClient
-	NotebookWorkspaceClient    *documentdb.NotebookWorkspacesClient
-	SqlClient                  *documentdb.SQLResourcesClient
-	SqlResourceClient          *documentdb.SQLResourcesClient
-	TableClient                *documentdb.TableResourcesClient
+	CassandraClient                  *documentdb.CassandraResourcesClient
+	CassandraClustersClient          *documentdb.CassandraClustersClient
+	CassandraDatacentersClient       *documentdb.CassandraDataCentersClient
+	DatabaseClient                   *documentdb.DatabaseAccountsClient
+	GremlinClient                    *documentdb.GremlinResourcesClient
+	MongoDbClient                    *documentdb.MongoDBResourcesClient
+	NotebookWorkspaceClient          *documentdb.NotebookWorkspacesClient
+	RestorableDatabaseAccountsClient *documentdb.RestorableDatabaseAccountsClient
+	SqlClient                        *documentdb.SQLResourcesClient
+	SqlResourceClient                *documentdb.SQLResourcesClient
+	TableClient                      *documentdb.TableResourcesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -40,6 +41,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	notebookWorkspaceClient := documentdb.NewNotebookWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&notebookWorkspaceClient.Client, o.ResourceManagerAuthorizer)
 
+	restorableDatabaseAccountsClient := documentdb.NewRestorableDatabaseAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&restorableDatabaseAccountsClient.Client, o.ResourceManagerAuthorizer)
+
 	sqlClient := documentdb.NewSQLResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlClient.Client, o.ResourceManagerAuthorizer)
 
@@ -50,15 +54,16 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&tableClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		CassandraClient:            &cassandraClient,
-		CassandraClustersClient:    &cassandraClustersClient,
-		CassandraDatacentersClient: &cassandraDatacentersClient,
-		DatabaseClient:             &databaseClient,
-		GremlinClient:              &gremlinClient,
-		MongoDbClient:              &mongoDbClient,
-		NotebookWorkspaceClient:    &notebookWorkspaceClient,
-		SqlClient:                  &sqlClient,
-		SqlResourceClient:          &sqlResourceClient,
-		TableClient:                &tableClient,
+		CassandraClient:                  &cassandraClient,
+		CassandraClustersClient:          &cassandraClustersClient,
+		CassandraDatacentersClient:       &cassandraDatacentersClient,
+		DatabaseClient:                   &databaseClient,
+		GremlinClient:                    &gremlinClient,
+		MongoDbClient:                    &mongoDbClient,
+		NotebookWorkspaceClient:          &notebookWorkspaceClient,
+		RestorableDatabaseAccountsClient: &restorableDatabaseAccountsClient,
+		SqlClient:                        &sqlClient,
+		SqlResourceClient:                &sqlResourceClient,
+		TableClient:                      &tableClient,
 	}
 }

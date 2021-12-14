@@ -43,7 +43,6 @@ var unsupportedAddonsForEnvironment = map[string][]string{
 		azureKeyvaultSecretsProviderKey, // Preview features are not supported in Azure China
 	},
 	azure.USGovernmentCloud.Name: {
-		azurePolicyKey,                  // https://github.com/hashicorp/terraform-provider-azurerm/issues/6702
 		httpApplicationRoutingKey,       // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
 		kubernetesDashboardKey,          // https://github.com/hashicorp/terraform-provider-azurerm/issues/7136
 		openServiceMeshKey,              // Preview features are not supported in Azure Government

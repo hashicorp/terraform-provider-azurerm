@@ -1,29 +1,25 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/redisenterprise/mgmt/2021-03-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2021-08-01/databases"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2021-08-01/redisenterprise"
 )
 
 type Client struct {
-	Client           *redisenterprise.Client
-	DatabaseClient   *redisenterprise.DatabasesClient
-	OperationsClient *redisenterprise.OperationsClient
+	Client         *redisenterprise.RedisEnterpriseClient
+	DatabaseClient *databases.DatabasesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	client := redisenterprise.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	client := redisenterprise.NewRedisEnterpriseClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&client.Client, o.ResourceManagerAuthorizer)
 
-	databaseClient := redisenterprise.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	databaseClient := databases.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&databaseClient.Client, o.ResourceManagerAuthorizer)
 
-	operationsClient := redisenterprise.NewOperationsClient(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&client.Client, o.ResourceManagerAuthorizer)
-
 	return &Client{
-		Client:           &client,
-		DatabaseClient:   &databaseClient,
-		OperationsClient: &operationsClient,
+		Client:         &client,
+		DatabaseClient: &databaseClient,
 	}
 }
