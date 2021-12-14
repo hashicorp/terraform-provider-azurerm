@@ -1197,6 +1197,17 @@ resource "azurerm_windows_web_app_slot" "test" {
     auto_swap_slot_name = "Production"
     auto_heal_enabled   = true
 
+    virtual_application {
+      virtual_path  = "/"
+      physical_path = "site\\wwwroot"
+      preload       = true
+
+      virtual_directory {
+        virtual_path  = "/stuff"
+        physical_path = "site\\stuff"
+      }
+    }
+
     auto_heal_setting {
       trigger {
         status_code {
