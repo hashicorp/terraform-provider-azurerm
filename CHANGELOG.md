@@ -5,6 +5,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating `redisenterprise` to use an Embedded SDK [GH-14502]
+* dependencies: upgrading `apimanagement` to API Version `2021-08-01` [GH-14312]
 
 BUG FIXES:
 
