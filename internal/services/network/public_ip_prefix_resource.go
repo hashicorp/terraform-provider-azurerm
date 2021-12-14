@@ -265,7 +265,7 @@ func resourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if props := resp.PublicIPPrefixPropertiesFormat; props != nil {
 		d.Set("prefix_length", props.PrefixLength)
 		d.Set("ip_prefix", props.IPPrefix)
-		if props.CustomIPPrefix != nil {
+		if props.CustomIPPrefix != nil && props.CustomIPPrefix.ID != nil {
 			d.Set("custom_ip_prefix_id", props.CustomIPPrefix.ID)
 		}
 		if version := props.PublicIPAddressVersion; version != "" {
