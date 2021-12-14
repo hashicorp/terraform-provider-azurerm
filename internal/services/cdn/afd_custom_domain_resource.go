@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/migration"
@@ -53,7 +54,7 @@ func resourceAfdCustomDomains() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.EndpointID,
+				ValidateFunc: validate.ProfileID,
 			},
 
 			"host_name": {
@@ -88,8 +89,9 @@ func resourceAfdCustomDomains() *pluginsdk.Resource {
 							}, false),
 						},
 						"secret_id": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
 				},
@@ -152,9 +154,14 @@ func expandTlsSettings(input []interface{}) *cdn.AFDDomainHTTPSParameters {
 	}
 
 	config := input[0].(map[string]interface{})
+
 	certificateType := config["certificate_type"].(string)
 	minimumTlsVersion := config["minimum_tls_version"].(string)
+
 	secretId := config["secret_id"].(string)
+	secret := cdn.ResourceReference{
+		ID: &secretId,
+	}
 
 	parameters := cdn.AFDDomainHTTPSParameters{}
 
@@ -176,7 +183,11 @@ func expandTlsSettings(input []interface{}) *cdn.AFDDomainHTTPSParameters {
 		parameters.MinimumTLSVersion = cdn.AfdMinimumTLSVersionTLS12
 	}
 
-	parameters.Secret.ID = &secretId
+	if certificateType == "ManagedCertificate" {
+		parameters.Secret = nil
+	} else {
+		parameters.Secret = &secret
+	}
 
 	return &parameters
 }

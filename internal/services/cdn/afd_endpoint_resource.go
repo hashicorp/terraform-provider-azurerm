@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -35,7 +35,7 @@ func resourceAfdEndpoints() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.EndpointID(id)
+			_, err := parse.AfdEndpointsID(id)
 			return err
 		}),
 
@@ -49,13 +49,14 @@ func resourceAfdEndpoints() *pluginsdk.Resource {
 			"enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"profile_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.ProfileID,
 			},
 		},
 	}
@@ -75,8 +76,8 @@ func resourceAfdEndpointsCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	id := parse.NewEndpointID(profile.SubscriptionId, profile.ResourceGroup, profile.Name, d.Get("name").(string))
-	existing, err := afdEndpointsClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
+	id := parse.NewAfdEndpointsID(profile.SubscriptionId, profile.ResourceGroup, profile.Name, d.Get("name").(string))
+	existing, err := afdEndpointsClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -103,7 +104,7 @@ func resourceAfdEndpointsCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		},
 	}
 
-	future, err := afdEndpointsClient.Create(ctx, id.ResourceGroup, id.ProfileName, id.Name, endpoint)
+	future, err := afdEndpointsClient.Create(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, endpoint)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -121,27 +122,27 @@ func resourceAfdEndpointsRead(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EndpointID(d.Id())
+	id, err := parse.AfdEndpointsID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Azure CDN Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on Azure CDN Endpoint %q (Resource Group %q): %+v", id.AfdEndpointName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.AfdEndpointName)
 
 	return nil
 }
 
 func resourceAfdEndpointsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := parse.EndpointID(d.Id())
+	id, err := parse.AfdEndpointsID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -156,12 +157,12 @@ func resourceAfdEndpointsDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EndpointID(d.Id())
+	id, err := parse.AfdEndpointsID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
