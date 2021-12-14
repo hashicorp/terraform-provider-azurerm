@@ -1066,7 +1066,7 @@ resource "azurerm_windows_web_app_slot" "test" {
     account_name = azurerm_storage_account.test.name
     share_name   = azurerm_storage_share.test.name
     access_key   = azurerm_storage_account.test.primary_access_key
-    mount_path   = "/storage/files"
+    mount_path   = "/mounts/files"
   }
 
   tags = {
@@ -1574,7 +1574,16 @@ resource "azurerm_windows_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger, nodeVersion)
 }
 
-func (r WindowsWebAppSlotResource) java(data acceptance.TestData, javaVersion, javaServer, javaServerVersion string) string {
+func (r WindowsWebAppSlotResource) java(data acceptance.TestData, javaVersion string, javaContainer string, javaContainerVersion string) string {
+	javaContainerStr := ""
+	if javaContainer != "" {
+		javaContainerStr = fmt.Sprintf("java_container = %q", javaContainer)
+	}
+	javaContainerVersionStr := ""
+	if javaContainerVersion != "" {
+		javaContainerVersionStr = fmt.Sprintf("java_container_version = %q", javaContainerVersion)
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1591,14 +1600,15 @@ resource "azurerm_windows_web_app_slot" "test" {
 
   site_config {
     application_stack {
-      java_version        = "%s"
-      java_server         = "%s"
-      java_server_version = "%s"
+      current_stack = "java"
+      java_version  = "%s"
+      %s
+      %s
     }
   }
 }
 
-`, r.baseTemplate(data), data.RandomInteger, javaVersion, javaServer, javaServerVersion)
+`, r.baseTemplate(data), data.RandomInteger, javaVersion, javaContainerStr, javaContainerVersionStr)
 }
 
 func (r WindowsWebAppSlotResource) javaPremiumV3Plan(data acceptance.TestData, javaVersion, javaServer, javaServerVersion string) string {
