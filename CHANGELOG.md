@@ -4,8 +4,9 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating `apimanagement` to API Version `2021-08-01` [GH-14312]
 * dependencies: updating `redisenterprise` to use an Embedded SDK [GH-14502]
-* dependencies: upgrading `apimanagement` to API Version `2021-08-01` [GH-14312]
+* dependencies: updating `github.com/hashicorp/terraform-plugin-sdk` [GH-14596]
 * `azurerm_cosmosdb_account` - support for the `create_mode` property and `restore` block [GH-14362]
 
 BUG FIXES:
