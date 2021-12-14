@@ -794,30 +794,30 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 
 	currentStack := ""
 
-	winSiteConfig := siteConfig[0]
+	winSlotSiteConfig := siteConfig[0]
 
 	if metadata.ResourceData.HasChange("site_config.0.always_on") {
-		expanded.AlwaysOn = utils.Bool(winSiteConfig.AlwaysOn)
+		expanded.AlwaysOn = utils.Bool(winSlotSiteConfig.AlwaysOn)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
 		expanded.APIManagementConfig = &web.APIManagementConfig{
-			ID: utils.String(winSiteConfig.ApiManagementConfigId),
+			ID: utils.String(winSlotSiteConfig.ApiManagementConfigId),
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_definition_url") {
 		expanded.APIDefinition = &web.APIDefinitionInfo{
-			URL: utils.String(winSiteConfig.ApiDefinition),
+			URL: utils.String(winSlotSiteConfig.ApiDefinition),
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.app_command_line") {
-		expanded.AppCommandLine = utils.String(winSiteConfig.AppCommandLine)
+		expanded.AppCommandLine = utils.String(winSlotSiteConfig.AppCommandLine)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
-		winAppStack := winSiteConfig.ApplicationStack[0]
+		winAppStack := winSlotSiteConfig.ApplicationStack[0]
 		expanded.NetFrameworkVersion = utils.String(winAppStack.NetFrameworkVersion)
 		expanded.PhpVersion = utils.String(winAppStack.PhpVersion)
 		expanded.NodeVersion = utils.String(winAppStack.NodeVersion)
@@ -832,29 +832,29 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.virtual_application") {
-		expanded.VirtualApplications = expandVirtualApplicationsForUpdate(winSiteConfig.VirtualApplications)
+		expanded.VirtualApplications = expandVirtualApplicationsForUpdate(winSlotSiteConfig.VirtualApplications)
 	} else {
-		expanded.VirtualApplications = expandVirtualApplications(winSiteConfig.VirtualApplications)
+		expanded.VirtualApplications = expandVirtualApplications(winSlotSiteConfig.VirtualApplications)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_use_managed_identity") {
-		expanded.AcrUseManagedIdentityCreds = utils.Bool(winSiteConfig.UseManagedIdentityACR)
+		expanded.AcrUseManagedIdentityCreds = utils.Bool(winSlotSiteConfig.UseManagedIdentityACR)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
-		expanded.AcrUserManagedIdentityID = utils.String(winSiteConfig.ContainerRegistryUserMSI)
+		expanded.AcrUserManagedIdentityID = utils.String(winSlotSiteConfig.ContainerRegistryUserMSI)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.default_documents") {
-		expanded.DefaultDocuments = &winSiteConfig.DefaultDocuments
+		expanded.DefaultDocuments = &winSlotSiteConfig.DefaultDocuments
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.http2_enabled") {
-		expanded.HTTP20Enabled = utils.Bool(winSiteConfig.Http2Enabled)
+		expanded.HTTP20Enabled = utils.Bool(winSlotSiteConfig.Http2Enabled)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
-		ipRestrictions, err := ExpandIpRestrictions(winSiteConfig.IpRestriction)
+		ipRestrictions, err := ExpandIpRestrictions(winSlotSiteConfig.IpRestriction)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -862,11 +862,11 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_use_main_ip_restriction") {
-		expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(winSiteConfig.ScmUseMainIpRestriction)
+		expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(winSlotSiteConfig.ScmUseMainIpRestriction)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
-		scmIpRestrictions, err := ExpandIpRestrictions(winSiteConfig.ScmIpRestriction)
+		scmIpRestrictions, err := ExpandIpRestrictions(winSlotSiteConfig.ScmIpRestriction)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -874,55 +874,59 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.local_mysql_enabled") {
-		expanded.LocalMySQLEnabled = utils.Bool(winSiteConfig.LocalMysql)
+		expanded.LocalMySQLEnabled = utils.Bool(winSlotSiteConfig.LocalMysql)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
-		expanded.LoadBalancing = web.SiteLoadBalancing(winSiteConfig.LoadBalancing)
+		expanded.LoadBalancing = web.SiteLoadBalancing(winSlotSiteConfig.LoadBalancing)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.managed_pipeline_mode") {
-		expanded.ManagedPipelineMode = web.ManagedPipelineMode(winSiteConfig.ManagedPipelineMode)
+		expanded.ManagedPipelineMode = web.ManagedPipelineMode(winSlotSiteConfig.ManagedPipelineMode)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_enabled") {
-		expanded.RemoteDebuggingEnabled = utils.Bool(winSiteConfig.RemoteDebugging)
+		expanded.RemoteDebuggingEnabled = utils.Bool(winSlotSiteConfig.RemoteDebugging)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
-		expanded.RemoteDebuggingVersion = utils.String(winSiteConfig.RemoteDebuggingVersion)
+		expanded.RemoteDebuggingVersion = utils.String(winSlotSiteConfig.RemoteDebuggingVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.use_32_bit_worker") {
-		expanded.Use32BitWorkerProcess = utils.Bool(winSiteConfig.Use32BitWorker)
+		expanded.Use32BitWorkerProcess = utils.Bool(winSlotSiteConfig.Use32BitWorker)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
-		expanded.WebSocketsEnabled = utils.Bool(winSiteConfig.WebSockets)
+		expanded.WebSocketsEnabled = utils.Bool(winSlotSiteConfig.WebSockets)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
-		expanded.FtpsState = web.FtpsState(winSiteConfig.FtpsState)
+		expanded.FtpsState = web.FtpsState(winSlotSiteConfig.FtpsState)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
-		expanded.HealthCheckPath = utils.String(winSiteConfig.HealthCheckPath)
+		expanded.HealthCheckPath = utils.String(winSlotSiteConfig.HealthCheckPath)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.worker_count") {
-		expanded.NumberOfWorkers = utils.Int32(int32(winSiteConfig.WorkerCount))
+		expanded.NumberOfWorkers = utils.Int32(int32(winSlotSiteConfig.WorkerCount))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
-		expanded.MinTLSVersion = web.SupportedTLSVersions(winSiteConfig.MinTlsVersion)
+		expanded.MinTLSVersion = web.SupportedTLSVersions(winSlotSiteConfig.MinTlsVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
-		expanded.ScmMinTLSVersion = web.SupportedTLSVersions(winSiteConfig.ScmMinTlsVersion)
+		expanded.ScmMinTLSVersion = web.SupportedTLSVersions(winSlotSiteConfig.ScmMinTlsVersion)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.auto_swap_slot_name") {
+		expanded.AutoSwapSlotName = utils.String(winSlotSiteConfig.AutoSwapSlotName)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
-		cors := ExpandCorsSettings(winSiteConfig.Cors)
+		cors := ExpandCorsSettings(winSlotSiteConfig.Cors)
 		if cors == nil {
 			cors = &web.CorsSettings{
 				AllowedOrigins: &[]string{},
@@ -933,15 +937,15 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal_enabled") {
-		expanded.AutoHealEnabled = utils.Bool(winSiteConfig.AutoHeal)
+		expanded.AutoHealEnabled = utils.Bool(winSlotSiteConfig.AutoHeal)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal_setting") {
-		expanded.AutoHealRules = expandAutoHealSettingsWindows(winSiteConfig.AutoHealSettings)
+		expanded.AutoHealRules = expandAutoHealSettingsWindows(winSlotSiteConfig.AutoHealSettings)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-		expanded.VnetRouteAllEnabled = utils.Bool(winSiteConfig.VnetRouteAllEnabled)
+		expanded.VnetRouteAllEnabled = utils.Bool(winSlotSiteConfig.VnetRouteAllEnabled)
 	}
 
 	return expanded, &currentStack, nil

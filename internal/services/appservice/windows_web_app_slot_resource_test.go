@@ -161,7 +161,6 @@ func TestAccWindowsWebAppSlot_withConnectionStrings(t *testing.T) {
 			Config: r.withConnectionStrings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,windows"),
 			),
 		},
 		data.ImportStep(),
@@ -177,7 +176,6 @@ func TestAccWindowsWebAppSlot_withConnectionStringsUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,windows"),
 			),
 		},
 		data.ImportStep(),
@@ -185,7 +183,6 @@ func TestAccWindowsWebAppSlot_withConnectionStringsUpdate(t *testing.T) {
 			Config: r.withConnectionStrings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,windows"),
 			),
 		},
 		data.ImportStep(),
@@ -193,7 +190,6 @@ func TestAccWindowsWebAppSlot_withConnectionStringsUpdate(t *testing.T) {
 			Config: r.withConnectionStringsUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,windows"),
 			),
 		},
 		data.ImportStep(),
@@ -201,7 +197,6 @@ func TestAccWindowsWebAppSlot_withConnectionStringsUpdate(t *testing.T) {
 			Config: r.withConnectionStrings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,windows"),
 			),
 		},
 		data.ImportStep(),
@@ -209,7 +204,6 @@ func TestAccWindowsWebAppSlot_withConnectionStringsUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,windows"),
 			),
 		},
 		data.ImportStep(),
@@ -396,7 +390,6 @@ func TestAccWindowsWebAppSlot_loadBalancing(t *testing.T) {
 			Config: r.loadBalancing(data, "WeightedRoundRobin"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,windows"),
 			),
 		},
 		data.ImportStep(),
@@ -412,7 +405,6 @@ func TestAccWindowsWebAppSlot_detailedLogging(t *testing.T) {
 			Config: r.withDetailedLogging(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,windows"),
 			),
 		},
 		data.ImportStep(),
@@ -470,13 +462,13 @@ func TestAccWindowsWebAppSlot_withLoggingUpdate(t *testing.T) {
 
 // App Stacks
 
-func TestAccWindowsWebAppSlot_withDotNet21(t *testing.T) {
+func TestAccWindowsWebAppSlot_withDotNet3(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dotNet(data, "2.1"),
+			Config: r.dotNet(data, "v3.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -485,13 +477,13 @@ func TestAccWindowsWebAppSlot_withDotNet21(t *testing.T) {
 	})
 }
 
-func TestAccWindowsWebAppSlot_withDotNet31(t *testing.T) {
+func TestAccWindowsWebAppSlot_withDotNet4(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dotNet(data, "3.1"),
+			Config: r.dotNet(data, "v4.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -500,13 +492,28 @@ func TestAccWindowsWebAppSlot_withDotNet31(t *testing.T) {
 	})
 }
 
-func TestAccWindowsWebAppSlot_withDotNet50(t *testing.T) {
+func TestAccWindowsWebAppSlot_withDotNet5(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dotNet(data, "5.0"),
+			Config: r.dotNet(data, "v5.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsWebAppSlot_withDotNet6(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dotNet(data, "v6.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -522,21 +529,6 @@ func TestAccWindowsWebAppSlot_withPhp56(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.php(data, "5.6"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccWindowsWebAppSlot_withPhp72(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
-	r := WindowsWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.php(data, "7.2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -575,21 +567,6 @@ func TestAccWindowsWebAppSlot_withPhp74(t *testing.T) {
 	})
 }
 
-func TestAccWindowsWebAppSlot_withPython27(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
-	r := WindowsWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.python(data, "2.7"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccWindowsWebAppSlot_withPython36(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
@@ -605,88 +582,13 @@ func TestAccWindowsWebAppSlot_withPython36(t *testing.T) {
 	})
 }
 
-func TestAccWindowsWebAppSlot_withPython37(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
-	r := WindowsWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.python(data, "3.7"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccWindowsWebAppSlot_withPython38(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
-	r := WindowsWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.python(data, "3.8"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccWindowsWebAppSlot_withNode101(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
-	r := WindowsWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.node(data, "10.1"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccWindowsWebAppSlot_withNode106(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
-	r := WindowsWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.node(data, "10.6"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccWindowsWebAppSlot_withNode1014(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
-	r := WindowsWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.node(data, "10.14"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccWindowsWebAppSlot_withNode10LTS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.node(data, "10-lts"),
+			Config: r.node(data, "10-LTS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -701,7 +603,7 @@ func TestAccWindowsWebAppSlot_withNode12LTS(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.node(data, "12-lts"),
+			Config: r.node(data, "12-LTS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -716,7 +618,7 @@ func TestAccWindowsWebAppSlot_withNode14LTS(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.node(data, "14-lts"),
+			Config: r.node(data, "14-LTS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -725,13 +627,13 @@ func TestAccWindowsWebAppSlot_withNode14LTS(t *testing.T) {
 	})
 }
 
-func TestAccWindowsWebAppSlot_withJre8Java(t *testing.T) {
+func TestAccWindowsWebAppSlot_withNode16LTS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.java(data, "jre8", "JAVA", "8"),
+			Config: r.node(data, "16-LTS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -740,96 +642,30 @@ func TestAccWindowsWebAppSlot_withJre8Java(t *testing.T) {
 	})
 }
 
-func TestAccWindowsWebAppSlot_withJre11Java(t *testing.T) {
+func TestAccWindowsWebAppSlot_withJava8Java(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.java(data, "java11", "JAVA", "11"),
+			Config: r.java(data, "1.8", "JAVA", "9.3"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("JAVA|11-java11"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccWindowsWebAppSlot_withJava1109(t *testing.T) {
+func TestAccWindowsWebAppSlot_withJava11Java(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
-	r := WindowsWebAppSlotResource{}
+	r := WindowsWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.java(data, "11.0.9", "JAVA", ""),
+			Config: r.java(data, "11", "JAVA", "9.3"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("JAVA|11.0.9"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccWindowsWebAppSlot_withJava8u242(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
-	r := WindowsWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.java(data, "8u242", "JAVA", ""),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("JAVA|8u242"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccWindowsWebAppSlot_withJava11Tomcat9(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
-	r := WindowsWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.java(data, "java11", "TOMCAT", "9.0"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("TOMCAT|9.0-java11"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccWindowsWebAppSlot_withJava11Tomcat8561(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
-	r := WindowsWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.java(data, "java11", "TOMCAT", "8.5.61"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("TOMCAT|8.5.61-java11"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccWindowsWebAppSlot_withJava8JBOSSEAP73(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
-	r := WindowsWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.javaPremiumV3Plan(data, "java8", "JBOSSEAP", "7.3"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("JBOSSEAP|7.3-java8"),
 			),
 		},
 		data.ImportStep(),
@@ -1192,7 +1028,7 @@ resource "azurerm_windows_web_app_slot" "test" {
     }
 
     container_registry_use_managed_identity       = true
-    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.id
+    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
 
     auto_swap_slot_name = "Production"
     auto_heal_enabled   = true
@@ -1817,13 +1653,14 @@ resource "azurerm_windows_web_app_slot" "test" {
 
   site_config {
     application_stack {
-      docker_image     = "%s"
-      docker_image_tag = "%s"
+      docker_container_registry = "%s"
+      docker_container_name     = "%s"
+      docker_container_tag      = "%s"
     }
   }
 }
 
-`, r.baseTemplate(data), data.RandomInteger, containerImage, containerTag)
+`, r.baseTemplate(data), data.RandomInteger, "mcr.microsoft.com", "azure-app-service/samples/aspnethelloworld", "latest")
 }
 
 // Templates

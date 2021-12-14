@@ -882,6 +882,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"v3.0",
 						"v4.0",
 						"v5.0",
+						"v6.0",
 					}, false),
 				},
 
@@ -899,8 +900,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"2.7",
-						"3.4.0",
+						"3.6",
 					}, false),
 				},
 
@@ -908,13 +908,10 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"10.1",   // Linux Only?
-						"10.6",   // Linux Only?
-						"10.10",  // Linux Only?
-						"10.14",  // Linux Only?
-						"10-LTS", // Linux Only?
+						"10-LTS", // Deprecated?
 						"12-LTS",
 						"14-LTS",
+						"16-LTS",
 					}, false),
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.java_version",
@@ -926,7 +923,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Optional: true,
 					// Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"1.7",
 						"1.8",
 						"11",
 					}, false),
