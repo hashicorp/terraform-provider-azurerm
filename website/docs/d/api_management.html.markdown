@@ -83,8 +83,6 @@ A `additional_location` block exports the following:
 
 A `identity` block exports the following:
 
-~> **Note:** User Assigned Managed Identities are in Preview
-
 * `type` - Specifies the type of Managed Service Identity that is configured on this API Management Service.
 
 * `principal_id` - Specifies the Principal ID of the System Assigned Managed Service Identity that is configured on this API Management Service.
