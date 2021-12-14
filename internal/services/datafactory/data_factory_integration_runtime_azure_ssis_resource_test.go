@@ -169,7 +169,7 @@ resource "azurerm_data_factory" "test" {
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   name                = "managed-integration-runtime"
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   node_size           = "Standard_D8_v3"
@@ -301,14 +301,14 @@ JSON
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "test" {
   name                = "acctestSIRsh%[1]d"
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   name                = "acctestiras%[1]d"
   description         = "acctest"
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -409,7 +409,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   name                = "acctestiras%[1]d"
   description         = "acctest"
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -570,20 +570,20 @@ JSON
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
   name                = "acctestlinkkv%[1]d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   key_vault_id        = azurerm_key_vault.test.id
 }
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "test" {
   name                = "acctestSIRsh%[1]d"
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   name                = "acctestiras%[1]d"
   description         = "acctest"
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -731,7 +731,7 @@ func (t IntegrationRuntimeManagedSsisResource) Exists(ctx context.Context, clien
 
 	resp, err := clients.DataFactory.IntegrationRuntimesClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Data Factory Integration Runtime Managed SSIS (%s): %+v", *id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
