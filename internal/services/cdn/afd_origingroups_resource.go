@@ -35,7 +35,7 @@ func resourceAfdOriginGroups() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.OriginGroupsID(id)
+			_, err := parse.AfdOriginGroupsID(id)
 			return err
 		}),
 
@@ -46,12 +46,11 @@ func resourceAfdOriginGroups() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"profile_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+			"profile_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"session_affinity_state": {
@@ -117,13 +116,19 @@ func resourceAfdOriginGroups() *pluginsdk.Resource {
 
 func resourceAfdOriginGroupsCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.AFDOriginGroupsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string) // OriginGroupName
 
-	id := parse.NewOriginGroupsID(subscriptionId, d.Get("resource_group_name").(string), d.Get("profile_name").(string), name)
+	// parse profile_id
+	profileId := d.Get("profile_id").(string)
+	profile, err := parse.ProfileID(profileId)
+	if err != nil {
+		return err
+	}
+
+	id := parse.NewAfdOriginGroupsID(profile.SubscriptionId, profile.ResourceGroup, profile.Name, name)
 
 	loadbalancing := d.Get("load_balancing").([]interface{})
 	healthprobes := d.Get("health_probe").([]interface{})
@@ -215,7 +220,7 @@ func expandHealthProbeSettings(input []interface{}) *cdn.HealthProbeParameters {
 }
 
 func resourceAfdOriginGroupsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := parse.OriginGroupsID(d.Id())
+	id, err := parse.AfdOriginGroupsID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -230,7 +235,7 @@ func resourceAfdOriginGroupsRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.OriginGroupsID(d.Id())
+	id, err := parse.AfdOriginGroupsID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -241,12 +246,10 @@ func resourceAfdOriginGroupsRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Azure CDN OriginGroups %q (Resource Group %q): %+v", name, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on Azure CDN OriginGroups %q (Resource Group %q): %+v", id.OriginGroupName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.OriginGroupName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("profile_name", id.ProfileName)
 
 	return nil
 }
@@ -256,7 +259,7 @@ func resourceAfdOriginGroupsDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.OriginGroupsID(d.Id())
+	id, err := parse.AfdOriginGroupsID(d.Id())
 	if err != nil {
 		return err
 	}

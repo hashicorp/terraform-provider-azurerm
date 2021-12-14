@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = OriginGroupsId{}
+var _ resourceid.Formatter = AfdCustomDomainId{}
 
-func TestOriginGroupsIDFormatter(t *testing.T) {
-	actual := NewOriginGroupsID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1", "origingroup1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/origingroup1"
+func TestAfdCustomDomainIDFormatter(t *testing.T) {
+	actual := NewAfdCustomDomainID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1", "custom-domain-com").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/custom-domain-com"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestOriginGroupsID(t *testing.T) {
+func TestAfdCustomDomainID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *OriginGroupsId
+		Expected *AfdCustomDomainId
 	}{
 
 		{
@@ -68,31 +68,31 @@ func TestOriginGroupsID(t *testing.T) {
 		},
 
 		{
-			// missing OriginGroupName
+			// missing CustomDomainName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/",
 			Error: true,
 		},
 
 		{
-			// missing value for OriginGroupName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/",
+			// missing value for CustomDomainName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/origingroup1",
-			Expected: &OriginGroupsId{
-				SubscriptionId:  "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:   "resGroup1",
-				ProfileName:     "profile1",
-				OriginGroupName: "origingroup1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/custom-domain-com",
+			Expected: &AfdCustomDomainId{
+				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:    "resGroup1",
+				ProfileName:      "profile1",
+				CustomDomainName: "custom-domain-com",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/ORIGINGROUPS/ORIGINGROUP1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/CUSTOMDOMAINS/CUSTOM-DOMAIN-COM",
 			Error: true,
 		},
 	}
@@ -100,7 +100,7 @@ func TestOriginGroupsID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := OriginGroupsID(v.Input)
+		actual, err := AfdCustomDomainID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -121,8 +121,8 @@ func TestOriginGroupsID(t *testing.T) {
 		if actual.ProfileName != v.Expected.ProfileName {
 			t.Fatalf("Expected %q but got %q for ProfileName", v.Expected.ProfileName, actual.ProfileName)
 		}
-		if actual.OriginGroupName != v.Expected.OriginGroupName {
-			t.Fatalf("Expected %q but got %q for OriginGroupName", v.Expected.OriginGroupName, actual.OriginGroupName)
+		if actual.CustomDomainName != v.Expected.CustomDomainName {
+			t.Fatalf("Expected %q but got %q for CustomDomainName", v.Expected.CustomDomainName, actual.CustomDomainName)
 		}
 	}
 }

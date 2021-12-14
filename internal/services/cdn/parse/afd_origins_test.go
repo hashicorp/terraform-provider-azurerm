@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = OriginsId{}
+var _ resourceid.Formatter = AfdOriginsId{}
 
-func TestOriginsIDFormatter(t *testing.T) {
-	actual := NewOriginsID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1", "origingroup1", "origin1").ID()
+func TestAfdOriginsIDFormatter(t *testing.T) {
+	actual := NewAfdOriginsID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1", "origingroup1", "origin1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/origingroup1/origins/origin1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestOriginsID(t *testing.T) {
+func TestAfdOriginsID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *OriginsId
+		Expected *AfdOriginsId
 	}{
 
 		{
@@ -94,7 +94,7 @@ func TestOriginsID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/originGroups/origingroup1/origins/origin1",
-			Expected: &OriginsId{
+			Expected: &AfdOriginsId{
 				SubscriptionId:  "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:   "resGroup1",
 				ProfileName:     "profile1",
@@ -113,7 +113,7 @@ func TestOriginsID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := OriginsID(v.Input)
+		actual, err := AfdOriginsID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

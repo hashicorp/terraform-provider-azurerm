@@ -9,48 +9,45 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-type OriginsId struct {
+type AfdOriginGroupsId struct {
 	SubscriptionId  string
 	ResourceGroup   string
 	ProfileName     string
 	OriginGroupName string
-	OriginName      string
 }
 
-func NewOriginsID(subscriptionId, resourceGroup, profileName, originGroupName, originName string) OriginsId {
-	return OriginsId{
+func NewAfdOriginGroupsID(subscriptionId, resourceGroup, profileName, originGroupName string) AfdOriginGroupsId {
+	return AfdOriginGroupsId{
 		SubscriptionId:  subscriptionId,
 		ResourceGroup:   resourceGroup,
 		ProfileName:     profileName,
 		OriginGroupName: originGroupName,
-		OriginName:      originName,
 	}
 }
 
-func (id OriginsId) String() string {
+func (id AfdOriginGroupsId) String() string {
 	segments := []string{
-		fmt.Sprintf("Origin Name %q", id.OriginName),
 		fmt.Sprintf("Origin Group Name %q", id.OriginGroupName),
 		fmt.Sprintf("Profile Name %q", id.ProfileName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Origins", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Afd Origin Groups", segmentsStr)
 }
 
-func (id OriginsId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/originGroups/%s/origins/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName)
+func (id AfdOriginGroupsId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/originGroups/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.OriginGroupName)
 }
 
-// OriginsID parses a Origins ID into an OriginsId struct
-func OriginsID(input string) (*OriginsId, error) {
+// AfdOriginGroupsID parses a AfdOriginGroups ID into an AfdOriginGroupsId struct
+func AfdOriginGroupsID(input string) (*AfdOriginGroupsId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := OriginsId{
+	resourceId := AfdOriginGroupsId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -67,9 +64,6 @@ func OriginsID(input string) (*OriginsId, error) {
 		return nil, err
 	}
 	if resourceId.OriginGroupName, err = id.PopSegment("originGroups"); err != nil {
-		return nil, err
-	}
-	if resourceId.OriginName, err = id.PopSegment("origins"); err != nil {
 		return nil, err
 	}
 

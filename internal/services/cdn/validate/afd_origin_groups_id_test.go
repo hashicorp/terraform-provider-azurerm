@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestOriginGroupsID(t *testing.T) {
+func TestAfdOriginGroupsID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -78,7 +78,7 @@ func TestOriginGroupsID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := OriginGroupsID(tc.Input, "test")
+		_, errors := AfdOriginGroupsID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
