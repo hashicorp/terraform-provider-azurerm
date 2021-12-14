@@ -276,7 +276,7 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 
 			appSettings := helpers.ExpandAppSettings(webApp.AppSettings)
 			if appSettings != nil {
-				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettings); err != nil {
+				if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettings, id.SlotName); err != nil {
 					return fmt.Errorf("setting App Settings for Windows %s: %+v", id, err)
 				}
 			}
@@ -306,7 +306,7 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 
 			storageConfig := helpers.ExpandStorageConfig(webApp.StorageAccounts)
 			if storageConfig.Properties != nil {
-				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageConfig); err != nil {
+				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, *storageConfig, id.SlotName); err != nil {
 					if err != nil {
 						return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", id, err)
 					}
@@ -344,7 +344,8 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Windows %s: %+v", id, err)
 			}
 
-			if webApp.SiteProperties == nil {
+			props := webApp.SiteProperties
+			if props == nil {
 				return fmt.Errorf("reading properties of Windows %s", id)
 			}
 
@@ -404,10 +405,8 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Metadata for Windows %s: %+v", id, err)
 			}
 
-			props := webApp.SiteProperties
-
 			state := WindowsWebAppSlotModel{
-				Name:                        id.SiteName,
+				Name:                        id.SlotName,
 				ResourceGroup:               id.ResourceGroup,
 				AppServiceName:              id.SiteName,
 				ServicePlanId:               utils.NormalizeNilableString(props.ServerFarmID),
