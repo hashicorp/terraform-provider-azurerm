@@ -16,8 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var postgresqlFlexibleServerConfigurationResourceName = "azurerm_postgresql_flexible_server_configuration"
-
 func resourcePostgresqlFlexibleServerConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceFlexibleServerConfigurationUpdate,
@@ -77,8 +75,8 @@ func resourceFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta i
 
 	id := parse.NewFlexibleServerConfigurationID(subscriptionId, serverId.ResourceGroup, serverId.Name, name)
 
-	locks.ByName(id.ConfigurationName, postgresqlFlexibleServerConfigurationResourceName)
-	defer locks.UnlockByName(id.ConfigurationName, postgresqlFlexibleServerConfigurationResourceName)
+	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
 	props := postgresqlflexibleservers.Configuration{
 		ConfigurationProperties: &postgresqlflexibleservers.ConfigurationProperties{
@@ -143,8 +141,8 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	locks.ByName(id.ConfigurationName, postgresqlFlexibleServerConfigurationResourceName)
-	defer locks.UnlockByName(id.ConfigurationName, postgresqlFlexibleServerConfigurationResourceName)
+	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.ConfigurationName)
 	if err != nil {
