@@ -229,7 +229,12 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("empty or nil ID returned for Policy Assignment %q", name)
 	}
-	d.SetId(*resp.ID)
+
+	id, err := parse.PolicyDefinitionID(*resp.ID)
+	if err != nil {
+		return fmt.Errorf("failed to flatten Policy Parameters %q: %+v", *resp.ID, err)
+	}
+	d.SetId(id.Id)
 
 	return resourceArmPolicyDefinitionRead(d, meta)
 }

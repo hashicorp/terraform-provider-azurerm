@@ -361,7 +361,12 @@ func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving Policy Set Definition %q: %+v", name, err)
 	}
 
-	d.SetId(*resp.ID)
+	id, err := parse.PolicySetDefinitionID(*resp.ID)
+	if err != nil {
+		return fmt.Errorf("parsing Policy Set Definition %q: %+v", *resp.ID, err)
+	}
+
+	d.SetId(id.Id)
 
 	return resourceArmPolicySetDefinitionRead(d, meta)
 }
@@ -465,7 +470,12 @@ func resourceArmPolicySetDefinitionUpdate(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving Policy Set Definition %q: %+v", id.Name, err)
 	}
 
-	d.SetId(*resp.ID)
+	id, err = parse.PolicySetDefinitionID(*resp.ID)
+	if err != nil {
+		return fmt.Errorf("parsing Policy Set Definition %q: %+v", *resp.ID, err)
+	}
+
+	d.SetId(id.Id)
 
 	return resourceArmPolicySetDefinitionRead(d, meta)
 }
