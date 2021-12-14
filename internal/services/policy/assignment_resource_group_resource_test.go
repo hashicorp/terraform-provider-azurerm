@@ -425,7 +425,7 @@ resource "azurerm_resource_group_policy_assignment" "test" {
   }
 
   identity {
-    content = "SystemAssigned"
+    type = "SystemAssigned"
   }
 }
 `, template, data.RandomInteger)
