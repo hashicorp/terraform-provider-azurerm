@@ -21,17 +21,15 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-azure-helpers v0.18.0
 	github.com/hashicorp/go-getter v1.5.4
-	github.com/hashicorp/go-hclog v0.16.1 // indirect
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-plugin v1.4.2 // indirect
 	github.com/hashicorp/go-uuid v1.0.2
 	github.com/hashicorp/go-version v1.3.0
 	github.com/hashicorp/hcl/v2 v2.10.0 // indirect
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.8.0
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.10.0
 	github.com/hashicorp/yamux v0.0.0-20210316155119-a95892c5f864 // indirect
 	github.com/klauspost/compress v1.13.1 // indirect
 	github.com/mattn/go-isatty v0.0.13 // indirect
-	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/oklog/run v1.1.0 // indirect
