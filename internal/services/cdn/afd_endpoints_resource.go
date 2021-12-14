@@ -5,13 +5,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -48,21 +46,16 @@ func resourceAfdEndpoints() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"location": azure.SchemaLocation(),
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"tags": tags.Schema(),
-
 			"enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
-			"profile_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+			"profile_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 		},
 	}
@@ -70,13 +63,19 @@ func resourceAfdEndpoints() *pluginsdk.Resource {
 
 func resourceAfdEndpointsCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	afdEndpointsClient := meta.(*clients.Client).Cdn.AFDEndpointsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("profile_name").(string), d.Get("name").(string))
+	location := "global" // location is always global (required)
+
+	// parse profile_id
+	profileId := d.Get("profile_id").(string)
+	profile, err := parse.ProfileID(profileId)
+	if err != nil {
+		return err
+	}
+
+	id := parse.NewEndpointID(profile.SubscriptionId, profile.ResourceGroup, profile.Name, d.Get("name").(string))
 	existing, err := afdEndpointsClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -102,7 +101,6 @@ func resourceAfdEndpointsCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			OriginResponseTimeoutSeconds: nil,
 			EnabledState:                 enabledState,
 		},
-		Tags: tags.Expand(t),
 	}
 
 	future, err := afdEndpointsClient.Create(ctx, id.ResourceGroup, id.ProfileName, id.Name, endpoint)
@@ -134,46 +132,23 @@ func resourceAfdEndpointsRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Azure CDN Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on Azure CDN Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("profile_name", id.ProfileName)
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceAfdEndpointsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.ProfilesClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	if !d.HasChange("tags") {
-		return nil
-	}
-
-	id, err := parse.ProfileID(d.Id())
+	id, err := parse.EndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	newTags := d.Get("tags").(map[string]interface{})
+	d.SetId(id.ID())
 
-	props := cdn.ProfileUpdateParameters{
-		Tags: tags.Expand(newTags),
-	}
-
-	future, err := client.Update(ctx, id.ResourceGroup, id.Name, props)
-	if err != nil {
-		return fmt.Errorf("updating %s: %+v", *id, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
-	}
-
-	return resourceCdnProfileRead(d, meta)
+	return resourceAfdEndpointsRead(d, meta)
 }
 
 func resourceAfdEndpointsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
