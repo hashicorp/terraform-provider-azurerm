@@ -165,31 +165,31 @@ func (PostgresqlFlexibleServerConfigurationResource) multiplePostgresqlFlexibleS
 
 resource "azurerm_postgresql_flexible_server_configuration" "test" {
   name      = "idle_in_transaction_session_timeout"
-  server_id = azurerm_postgresql_flexible_server.cf_db_server.id
+  server_id = azurerm_postgresql_flexible_server.test.id
   value     = "60"
 }
 
 resource "azurerm_postgresql_flexible_server_configuration" "test2" {
   name      = "log_autovacuum_min_duration"
-  server_id = azurerm_postgresql_flexible_server.cf_db_server.id
+  server_id = azurerm_postgresql_flexible_server.test.id
   value     = "10"
 }
 
 resource "azurerm_postgresql_flexible_server_configuration" "test3" {
   name      = "log_lock_waits"
-  server_id = azurerm_postgresql_flexible_server.cf_db_server.id
+  server_id = azurerm_postgresql_flexible_server.test.id
   value     = "on"
 }
 
 resource "azurerm_postgresql_flexible_server_configuration" "test4" {
   name      = "log_min_duration_statement"
-  server_id = azurerm_postgresql_flexible_server.cf_db_server.id
+  server_id = azurerm_postgresql_flexible_server.test.id
   value     = "10"
 }
 
 resource "azurerm_postgresql_flexible_server_configuration" "test5" {
   name      = "log_statement"
-  server_id = azurerm_postgresql_flexible_server.cf_db_server.id
+  server_id = azurerm_postgresql_flexible_server.test.id
   value     = "ddl"
 }
 `, PostgresqlFlexibleServerResource{}.complete(data))
