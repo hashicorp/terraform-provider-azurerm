@@ -240,6 +240,8 @@ func resourceApiManagementService() *pluginsdk.Resource {
 							},
 						},
 
+						"zones": azure.SchemaZones(),
+
 						"gateway_regional_url": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -251,6 +253,12 @@ func resourceApiManagementService() *pluginsdk.Resource {
 								Type: pluginsdk.TypeString,
 							},
 							Computed: true,
+						},
+
+						"public_ip_address_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"private_ip_addresses": {
@@ -585,6 +593,22 @@ func resourceApiManagementService() *pluginsdk.Resource {
 				},
 			},
 
+			"public_ip_address_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
+			"public_network_access": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(apimanagement.PublicNetworkAccessEnabled),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(apimanagement.PublicNetworkAccessEnabled),
+					string(apimanagement.PublicNetworkAccessDisabled),
+				}, false),
+			},
+
 			"private_ip_addresses": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -688,6 +712,8 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
+	publicIpAddressId := d.Get("public_ip_address_id").(string)
+	publicNetworkAccess := d.Get("public_network_access").(string)
 	publisherName := d.Get("publisher_name").(string)
 	publisherEmail := d.Get("publisher_email").(string)
 	notificationSenderEmail := d.Get("notification_sender_email").(string)
@@ -702,10 +728,11 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	properties := apimanagement.ServiceResource{
 		Location: utils.String(location),
 		ServiceProperties: &apimanagement.ServiceProperties{
-			PublisherName:    utils.String(publisherName),
-			PublisherEmail:   utils.String(publisherEmail),
-			CustomProperties: customProperties,
-			Certificates:     certificates,
+			PublisherName:       utils.String(publisherName),
+			PublisherEmail:      utils.String(publisherEmail),
+			PublicNetworkAccess: apimanagement.PublicNetworkAccess(publicNetworkAccess),
+			CustomProperties:    customProperties,
+			Certificates:        certificates,
 		},
 		Tags: tags.Expand(t),
 		Sku:  sku,
@@ -747,6 +774,15 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
+	if publicIpAddressId != "" {
+		if sku.Name != apimanagement.SkuTypePremium && sku.Name != apimanagement.SkuTypeDeveloper {
+			if virtualNetworkType == string(apimanagement.VirtualNetworkTypeNone) {
+				return fmt.Errorf("`public_ip_address_id` is only supported when sku type is `Developer` or `Premium`, and the APIM instance is deployed in a virtual network.")
+			}
+		}
+		properties.ServiceProperties.PublicIPAddressID = utils.String(publicIpAddressId)
+	}
+
 	if d.HasChange("client_certificate_enabled") {
 		enableClientCertificate := d.Get("client_certificate_enabled").(bool)
 		if enableClientCertificate && sku.Name != apimanagement.SkuTypeConsumption {
@@ -770,6 +806,10 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	if v := d.Get("zones").([]interface{}); len(v) > 0 {
 		if sku.Name != apimanagement.SkuTypePremium {
 			return fmt.Errorf("`zones` is only supported when sku type is `Premium`")
+		}
+
+		if publicIpAddressId == "" {
+			return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
 		}
 		properties.Zones = azure.ExpandZones(v)
 	}
@@ -907,6 +947,8 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("management_api_url", props.ManagementAPIURL)
 		d.Set("scm_url", props.ScmURL)
 		d.Set("public_ip_addresses", props.PublicIPAddresses)
+		d.Set("public_ip_address_id", props.PublicIPAddressID)
+		d.Set("public_network_access", props.PublicNetworkAccess)
 		d.Set("private_ip_addresses", props.PrivateIPAddresses)
 		d.Set("virtual_network_type", props.VirtualNetworkType)
 		d.Set("client_certificate_enabled", props.EnableClientCertificate)
@@ -1319,6 +1361,16 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 			}
 		}
 
+		publicIPAddressID := config["public_ip_address_id"].(string)
+		if publicIPAddressID != "" {
+			if sku.Name != apimanagement.SkuTypePremium {
+				if len(childVnetConfig) == 0 {
+					return nil, fmt.Errorf("`public_ip_address_id` for an additional location is only supported when sku type is `Premium`, and the APIM instance is deployed in a virtual network.")
+				}
+			}
+			additionalLocation.PublicIPAddressID = &publicIPAddressID
+		}
+
 		additionalLocations = append(additionalLocations, additionalLocation)
 	}
 
@@ -1346,8 +1398,16 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 			output["public_ip_addresses"] = *prop.PublicIPAddresses
 		}
 
+		if prop.PublicIPAddressID != nil {
+			output["public_ip_address_id"] = *prop.PublicIPAddressID
+		}
+
 		if prop.PrivateIPAddresses != nil {
 			output["private_ip_addresses"] = *prop.PrivateIPAddresses
+		}
+
+		if prop.Zones != nil {
+			output["zones"] = azure.FlattenZones(prop.Zones)
 		}
 
 		if prop.GatewayRegionalURL != nil {

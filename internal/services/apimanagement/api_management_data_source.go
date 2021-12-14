@@ -40,6 +40,11 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 				},
 			},
 
+			"public_ip_address_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"private_ip_addresses": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -157,6 +162,8 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 							Optional: true,
 						},
 
+						"zones": azure.SchemaZones(),
+
 						"gateway_regional_url": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -168,6 +175,11 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
+						},
+
+						"public_ip_address_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 
 						"private_ip_addresses": {
@@ -280,6 +292,7 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("management_api_url", props.ManagementAPIURL)
 		d.Set("scm_url", props.ScmURL)
 		d.Set("public_ip_addresses", props.PublicIPAddresses)
+		d.Set("public_ip_address_id", props.PublicIPAddressID)
 		d.Set("private_ip_addresses", props.PrivateIPAddresses)
 
 		if err := d.Set("hostname_configuration", flattenDataSourceApiManagementHostnameConfigurations(props.HostnameConfigurations)); err != nil {
@@ -376,8 +389,16 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagement.Ad
 			output["capacity"] = *prop.Sku.Capacity
 		}
 
+		if prop.Zones != nil {
+			output["zones"] = azure.FlattenZones(prop.Zones)
+		}
+
 		if prop.PublicIPAddresses != nil {
 			output["public_ip_addresses"] = *prop.PublicIPAddresses
+		}
+
+		if prop.PublicIPAddressID != nil {
+			output["public_ip_address_id"] = *prop.PublicIPAddressID
 		}
 
 		if prop.PrivateIPAddresses != nil {
