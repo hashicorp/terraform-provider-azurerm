@@ -307,7 +307,7 @@ resource "azurerm_resource_policy_assignment" "test" {
   policy_definition_id = data.azurerm_policy_definition.test.id
 
   non_compliance_message {
-    message = "test"
+    content = "test"
   }
 
   parameters = jsonencode({
