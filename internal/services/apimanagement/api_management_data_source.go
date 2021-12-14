@@ -59,8 +59,27 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
+				Type:       pluginsdk.TypeString,
+				Computed:   true,
+				Deprecated: "Deprecated in favour of `sku`",
+			},
+
+			"sku": {
+				Type:     pluginsdk.TypeList,
 				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"capacity": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"identity": {
@@ -132,6 +151,11 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"location": azure.SchemaLocationForDataSource(),
+
+						"capacity": {
+							Type:     pluginsdk.TypeInt,
+							Optional: true,
+						},
 
 						"gateway_regional_url": {
 							Type:     pluginsdk.TypeString,
@@ -268,6 +292,9 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku))
+	if err := d.Set("sku", flattenApiManagementServiceSku(resp.Sku)); err != nil {
+		return fmt.Errorf("setting `sku`: %+v", err)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -343,6 +370,10 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagement.Ad
 
 		if prop.Location != nil {
 			output["location"] = azure.NormalizeLocation(*prop.Location)
+		}
+
+		if prop.Sku.Capacity != nil {
+			output["capacity"] = *prop.Sku.Capacity
 		}
 
 		if prop.PublicIPAddresses != nil {

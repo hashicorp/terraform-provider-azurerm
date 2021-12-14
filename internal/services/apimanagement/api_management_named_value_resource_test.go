@@ -144,7 +144,10 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Consumption_0"
+  sku {
+    name     = "Consumption"
+    capacity = 0
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -208,7 +211,10 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Consumption_0"
+  sku {
+    name     = "Consumption"
+    capacity = 0
+  }
 
   identity {
     type = "UserAssigned"
@@ -366,7 +372,10 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Consumption_0"
+  sku {
+    name     = "Consumption"
+    capacity = 0
+  }
 
   identity {
     type = "SystemAssigned"

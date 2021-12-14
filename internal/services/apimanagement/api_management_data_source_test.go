@@ -21,7 +21,8 @@ func TestAccDataSourceApiManagement_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("publisher_email").HasValue("pub1@email.com"),
 				check.That(data.ResourceName).Key("publisher_name").HasValue("pub1"),
-				check.That(data.ResourceName).Key("sku_name").HasValue("Developer_1"),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Developer"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 				check.That(data.ResourceName).Key("public_ip_addresses.#").Exists(),
 			),
@@ -39,7 +40,8 @@ func TestAccDataSourceApiManagement_identitySystemAssigned(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("publisher_email").HasValue("pub1@email.com"),
 				check.That(data.ResourceName).Key("publisher_name").HasValue("pub1"),
-				check.That(data.ResourceName).Key("sku_name").HasValue("Developer_1"),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Developer"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 				check.That(data.ResourceName).Key("public_ip_addresses.#").Exists(),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
@@ -59,7 +61,8 @@ func TestAccDataSourceApiManagement_identityUserAssigned(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("publisher_email").HasValue("pub1@email.com"),
 				check.That(data.ResourceName).Key("publisher_name").HasValue("pub1"),
-				check.That(data.ResourceName).Key("sku_name").HasValue("Developer_1"),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Developer"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 				check.That(data.ResourceName).Key("public_ip_addresses.#").Exists(),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
@@ -79,7 +82,8 @@ func TestAccDataSourceApiManagement_virtualNetwork(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("publisher_email").HasValue("pub1@email.com"),
 				check.That(data.ResourceName).Key("publisher_name").HasValue("pub1"),
-				check.That(data.ResourceName).Key("sku_name").HasValue("Premium_1"),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Premium"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 				check.That(data.ResourceName).Key("public_ip_addresses.#").Exists(),
 				check.That(data.ResourceName).Key("private_ip_addresses.#").Exists(),
@@ -105,9 +109,13 @@ resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Developer_1"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Developer"
+    capacity = 1
+  }
 }
 
 data "azurerm_api_management" "test" {
@@ -132,9 +140,13 @@ resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Developer_1"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Developer"
+    capacity = 1
+  }
 
   identity {
     type = "SystemAssigned"
@@ -211,7 +223,10 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Premium_1"
+  sku {
+    name     = "Premium"
+    capacity = 1
+  }
 
   additional_location {
     location = azurerm_resource_group.test2.location

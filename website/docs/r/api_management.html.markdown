@@ -47,7 +47,13 @@ The following arguments are supported:
 
 * `publisher_email` - (Required) The email of publisher/company.
 
-* `sku_name` - (Required) `sku_name` is a string consisting of two parts separated by an underscore(\_). The first part is the `name`, valid values include: `Consumption`, `Developer`, `Basic`, `Standard` and `Premium`. The second part is the `capacity` (e.g. the number of deployed units of the `sku`), which must be a positive `integer` (e.g. `Developer_1`).
+* `sku` - (Optional) A `sku` block as defined below.
+
+~> **NOTE:** One of `sku` or `sku_name` is required.
+
+* `sku_name` - (Optional) `sku_name` is a string consisting of two parts separated by an underscore(\_). The first part is the `name`, valid values include: `Consumption`, `Developer`, `Basic`, `Standard` and `Premium`. The second part is the `capacity` (e.g. the number of deployed units of the `sku`), which must be a positive `integer` (e.g. `Developer_1`).
+
+~> **NOTE:** The `sku_name` is deprecated, use a `sku` block instead.
 
 ---
 
@@ -93,6 +99,8 @@ The following arguments are supported:
 A `additional_location` block supports the following:
 
 * `location` - (Required) The name of the Azure Region in which the API Management Service should be expanded to.
+
+* `capacity` - (Optional) The number of compute units in this region. Defaults to the capacity of the main region.
 
 * `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below.  Required when `virtual_network_type` is `External` or `Internal`.
 
@@ -283,6 +291,14 @@ A `security` block supports the following:
 * `disable_frontend_tls11` - (Optional) Should TLS 1.1 be disabled on the frontend of the gateway? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
 
 -> **Note:** This property has been deprecated in favour of the `enable_frontend_tls11` property and will be removed in version 2.0 of the provider.
+
+---
+
+A `sku` block supports the following:
+
+* `name` - (Required) Name of the service SKU. Valid values are `Consumption`, `Developer`, `Basic`, `Standard` and `Premium`.
+
+* `capacity` - (Required) The number of scale units to be deployed. Must be `0` if `name` is `Consumption`.
 
 ---
 

@@ -129,7 +129,11 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Consumption_0"
+
+  sku {
+    name     = "Consumption"
+    capacity = 0
+  }
 }
 
 resource "azurerm_api_management_api" "test" {
@@ -181,7 +185,11 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Consumption_0"
+
+  sku {
+    name     = "Consumption"
+    capacity = 0
+  }
 }
 
 resource "azurerm_api_management_api" "test" {

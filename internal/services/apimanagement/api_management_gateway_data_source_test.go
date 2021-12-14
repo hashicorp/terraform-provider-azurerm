@@ -43,7 +43,11 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Developer_1"
+
+  sku {
+    name     = "Developer"
+    capacity = 1
+  }
 }
 
 resource "azurerm_api_management_gateway" "test" {

@@ -83,10 +83,44 @@ func resourceApiManagementService() *pluginsdk.Resource {
 				ValidateFunc: apimValidate.ApiManagementServicePublisherEmail,
 			},
 
+			// TODO 3.0 - Remove below property
 			"sku_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: apimValidate.ApimSkuName(),
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				Deprecated:    "Deprecated in favour of `sku`",
+				ConflictsWith: []string{"sku"},
+				ValidateFunc:  apimValidate.ApimSkuName(),
+			},
+
+			"sku": {
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				Computed:      true, // TODO -- remove this when deprecation resolves
+				MaxItems:      1,
+				ConflictsWith: []string{"sku_name"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(apimanagement.SkuTypeBasic),
+								string(apimanagement.SkuTypeConsumption),
+								string(apimanagement.SkuTypeDeveloper),
+								string(apimanagement.SkuTypeIsolated),
+								string(apimanagement.SkuTypePremium),
+								string(apimanagement.SkuTypeStandard),
+							}, false),
+						},
+
+						"capacity": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(0, 12),
+						},
+					},
+				},
 			},
 
 			"identity": {
@@ -183,6 +217,13 @@ func resourceApiManagementService() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"location": location.SchemaWithoutForceNew(),
+
+						"capacity": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IntBetween(1, 12),
+						},
 
 						"virtual_network_configuration": {
 							Type:     pluginsdk.TypeList,
@@ -622,7 +663,10 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	sku := expandAzureRmApiManagementSkuName(d)
+	sku, err := expandAzureRmApiManagementSku(d)
+	if err != nil {
+		return err
+	}
 
 	log.Printf("[INFO] preparing arguments for API Management Service creation.")
 
@@ -681,7 +725,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	if _, ok := d.GetOk("additional_location"); ok {
 		var err error
-		properties.ServiceProperties.AdditionalLocations, err = expandAzureRmApiManagementAdditionalLocations(d, sku)
+		properties.ServiceProperties.AdditionalLocations, err = expandAzureRmApiManagementAdditionalLocations(d, *sku)
 		if err != nil {
 			return err
 		}
@@ -903,6 +947,10 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 
 	if err := d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku)); err != nil {
 		return fmt.Errorf("setting `sku_name`: %+v", err)
+	}
+
+	if err := d.Set("sku", flattenApiManagementServiceSku(resp.Sku)); err != nil {
+		return fmt.Errorf("setting `sku`: %+v", err)
 	}
 
 	if err := d.Set("policy", flattenApiManagementPolicies(d, policy)); err != nil {
@@ -1237,7 +1285,7 @@ func expandAzureRmApiManagementCertificates(d *pluginsdk.ResourceData) *[]apiman
 	return &results
 }
 
-func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sku *apimanagement.ServiceSkuProperties) (*[]apimanagement.AdditionalLocation, error) {
+func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sku apimanagement.ServiceSkuProperties) (*[]apimanagement.AdditionalLocation, error) {
 	inputLocations := d.Get("additional_location").([]interface{})
 	parentVnetConfig := d.Get("virtual_network_configuration").([]interface{})
 
@@ -1247,9 +1295,14 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 		config := v.(map[string]interface{})
 		location := azure.NormalizeLocation(config["location"].(string))
 
+		capacity := config["capacity"].(int)
+		if capacity > 0 {
+			sku.Capacity = utils.Int32(int32(capacity))
+		}
+
 		additionalLocation := apimanagement.AdditionalLocation{
 			Location: utils.String(location),
-			Sku:      sku,
+			Sku:      &sku,
 		}
 
 		childVnetConfig := config["virtual_network_configuration"].([]interface{})
@@ -1283,6 +1336,10 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 
 		if prop.Location != nil {
 			output["location"] = azure.NormalizeLocation(*prop.Location)
+		}
+
+		if prop.Sku.Capacity != nil {
+			output["capacity"] = *prop.Sku.Capacity
 		}
 
 		if prop.PublicIPAddresses != nil {
@@ -1373,6 +1430,31 @@ func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceI
 	return []interface{}{result}, nil
 }
 
+func expandAzureRmApiManagementSku(d *pluginsdk.ResourceData) (*apimanagement.ServiceSkuProperties, error) {
+	if vs := d.Get("sku").([]interface{}); len(vs) > 0 {
+		v := vs[0].(map[string]interface{})
+		name := v["name"].(string)
+		capacity := v["capacity"].(int)
+
+		if apimanagement.SkuType(name) == apimanagement.SkuTypeConsumption && capacity != 0 {
+			return nil, fmt.Errorf("`capacity` must be 0 for Sku Tier `Consumption`")
+		}
+
+		if apimanagement.SkuType(name) != apimanagement.SkuTypeConsumption && capacity < 1 {
+			return nil, fmt.Errorf("`capacity` must be at least 1 for non-`Consumption` tiers")
+		}
+
+		return &apimanagement.ServiceSkuProperties{
+			Name:     apimanagement.SkuType(name),
+			Capacity: utils.Int32(int32(capacity)),
+		}, nil
+	} else {
+		return expandAzureRmApiManagementSkuName(d), nil
+	}
+
+	return nil, nil
+}
+
 func expandAzureRmApiManagementSkuName(d *pluginsdk.ResourceData) *apimanagement.ServiceSkuProperties {
 	vs := d.Get("sku_name").(string)
 
@@ -1389,6 +1471,19 @@ func expandAzureRmApiManagementSkuName(d *pluginsdk.ResourceData) *apimanagement
 		Name:     apimanagement.SkuType(name),
 		Capacity: utils.Int32(capacity),
 	}
+}
+
+func flattenApiManagementServiceSku(sku *apimanagement.ServiceSkuProperties) []interface{} {
+	if sku == nil {
+		return []interface{}{}
+	}
+
+	s := map[string]interface{}{
+		"name":     string(sku.Name),
+		"capacity": int(*sku.Capacity),
+	}
+
+	return []interface{}{s}
 }
 
 func flattenApiManagementServiceSkuName(input *apimanagement.ServiceSkuProperties) string {

@@ -230,7 +230,10 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Consumption_0"
+  sku {
+    name     = "Consumption"
+    capacity = 0
+  }
 }
 
 resource "azurerm_api_management_logger" "test" {
@@ -288,7 +291,10 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Consumption_0"
+  sku {
+    name     = "Consumption"
+    capacity = 0
+  }
 }
 
 resource "azurerm_api_management_logger" "test" {
@@ -328,7 +334,10 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Consumption_0"
+  sku {
+    name     = "Consumption"
+    capacity = 0
+  }
 }
 
 resource "azurerm_api_management_logger" "test" {
