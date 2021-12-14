@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type SubscriptionCostManagementExportId struct {
@@ -36,7 +36,7 @@ func (id SubscriptionCostManagementExportId) ID() string {
 
 // SubscriptionCostManagementExportID parses a SubscriptionCostManagementExport ID into an SubscriptionCostManagementExportId struct
 func SubscriptionCostManagementExportID(input string) (*SubscriptionCostManagementExportId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

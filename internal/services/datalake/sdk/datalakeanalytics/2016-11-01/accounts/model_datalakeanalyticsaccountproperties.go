@@ -1,5 +1,11 @@
 package accounts
 
+import (
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/dates"
+)
+
 type DataLakeAnalyticsAccountProperties struct {
 	AccountId                    *string                            `json:"accountId,omitempty"`
 	ComputePolicies              *[]ComputePolicy                   `json:"computePolicies,omitempty"`
@@ -30,4 +36,28 @@ type DataLakeAnalyticsAccountProperties struct {
 	SystemMaxDegreeOfParallelism *int64                             `json:"systemMaxDegreeOfParallelism,omitempty"`
 	SystemMaxJobCount            *int64                             `json:"systemMaxJobCount,omitempty"`
 	VirtualNetworkRules          *[]VirtualNetworkRule              `json:"virtualNetworkRules,omitempty"`
+}
+
+func (o DataLakeAnalyticsAccountProperties) GetCreationTimeAsTime() (*time.Time, error) {
+	if o.CreationTime == nil {
+		return nil, nil
+	}
+	return dates.ParseAsFormat(o.CreationTime, "2006-01-02T15:04:05Z07:00")
+}
+
+func (o DataLakeAnalyticsAccountProperties) SetCreationTimeAsTime(input time.Time) {
+	formatted := input.Format("2006-01-02T15:04:05Z07:00")
+	o.CreationTime = &formatted
+}
+
+func (o DataLakeAnalyticsAccountProperties) GetLastModifiedTimeAsTime() (*time.Time, error) {
+	if o.LastModifiedTime == nil {
+		return nil, nil
+	}
+	return dates.ParseAsFormat(o.LastModifiedTime, "2006-01-02T15:04:05Z07:00")
+}
+
+func (o DataLakeAnalyticsAccountProperties) SetLastModifiedTimeAsTime(input time.Time) {
+	formatted := input.Format("2006-01-02T15:04:05Z07:00")
+	o.LastModifiedTime = &formatted
 }

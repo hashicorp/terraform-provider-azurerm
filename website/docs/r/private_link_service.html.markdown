@@ -130,8 +130,6 @@ The following attributes are exported:
 
 * `alias` - A globally unique DNS Name for your Private Link Service. You can use this alias to request a connection to your Private Link Service.
 
-* `network_interfaces` - A list of network interface resource ids that are being used by the service.
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

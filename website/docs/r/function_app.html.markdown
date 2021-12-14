@@ -175,7 +175,7 @@ The following arguments are supported:
 
 * `storage_account_name` - (Required) The backend storage account name which will be used by this Function App (such as the dashboard, logs).
 
-* `storage_account_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App.
+* `storage_account_access_key` - (Required) The access key which will be used to access the backend storage account for the Function App.
 
 ~> **Note:** When integrating a `CI/CD pipeline` and expecting to run from a deployed package in `Azure` you must seed your `app settings` as part of terraform code for function app to be successfully deployed. `Important Default key pairs`: (`"WEBSITE_RUN_FROM_PACKAGE" = ""`, `"FUNCTIONS_WORKER_RUNTIME" = "node"` (or python, etc), `"WEBSITE_NODE_DEFAULT_VERSION" = "10.14.1"`, `"APPINSIGHTS_INSTRUMENTATIONKEY" = ""`).
 
@@ -342,6 +342,14 @@ A `microsoft` block supports the following:
 * `client_secret` - (Required) The OAuth 2.0 client secret that was created for the app used for authentication.
 
 * `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. https://msdn.microsoft.com/en-us/library/dn631845.aspx
+
+---
+
+A `twitter` block supports the following:
+
+* `consumer_key` - The OAuth 1.0a consumer key of the Twitter application used for sign-in.
+
+* `consumer_secret` - The OAuth 1.0a consumer secret of the Twitter application used for sign-in.
 
 ---
 

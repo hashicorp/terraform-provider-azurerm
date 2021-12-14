@@ -1377,7 +1377,6 @@ resource "azurerm_storage_account" "test" {
     environment = "production"
   }
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
@@ -1406,7 +1405,6 @@ resource "azurerm_storage_account" "test" {
     environment = "production"
   }
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 

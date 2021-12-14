@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type VirtualMachineConfigurationPolicyAssignmentId struct {
@@ -42,7 +42,7 @@ func (id VirtualMachineConfigurationPolicyAssignmentId) ID() string {
 
 // VirtualMachineConfigurationPolicyAssignmentID parses a VirtualMachineConfigurationPolicyAssignment ID into an VirtualMachineConfigurationPolicyAssignmentId struct
 func VirtualMachineConfigurationPolicyAssignmentID(input string) (*VirtualMachineConfigurationPolicyAssignmentId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func VirtualMachineConfigurationPolicyAssignmentID(input string) (*VirtualMachin
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
 func VirtualMachineConfigurationPolicyAssignmentIDInsensitively(input string) (*VirtualMachineConfigurationPolicyAssignmentId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

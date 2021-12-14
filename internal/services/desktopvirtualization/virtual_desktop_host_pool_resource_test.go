@@ -168,7 +168,6 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
     Purpose = "Acceptance-Testing"
   }
 }
-
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString)
 }
 

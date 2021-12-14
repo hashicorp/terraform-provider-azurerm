@@ -51,7 +51,6 @@ data "azurerm_mssql_server" "test" {
   name                = azurerm_mssql_server.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-
 `, MsSqlServerResource{}.basic(data))
 }
 
@@ -63,6 +62,5 @@ data "azurerm_mssql_server" "test" {
   name                = azurerm_mssql_server.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-
 `, MsSqlServerResource{}.complete(data))
 }

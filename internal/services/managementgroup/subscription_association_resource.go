@@ -5,13 +5,13 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
-	subscriptionParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/parse"
-	subscriptionValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -46,7 +46,7 @@ func resourceManagementGroupSubscriptionAssociation() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: subscriptionValidate.SubscriptionID,
+				ValidateFunc: commonids.ValidateSubscriptionID,
 			},
 		},
 	}
@@ -63,12 +63,12 @@ func resourceManagementGroupSubscriptionAssociationCreate(d *pluginsdk.ResourceD
 		return err
 	}
 
-	subscriptionId, err := subscriptionParse.SubscriptionID(d.Get("subscription_id").(string))
+	subscriptionId, err := commonids.ParseSubscriptionID(d.Get("subscription_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewManagementGroupSubscriptionAssociationID(managementGroupId.Name, subscriptionId.SubscriptionID)
+	id := parse.NewManagementGroupSubscriptionAssociationID(managementGroupId.Name, subscriptionId.SubscriptionId)
 
 	existing, err := groupsClient.Get(ctx, id.ManagementGroup, "children", utils.Bool(false), "", "")
 	if err != nil {
@@ -136,7 +136,7 @@ func resourceManagementGroupSubscriptionAssociationRead(d *pluginsdk.ResourceDat
 
 		managementGroupId := parse.NewManagementGroupId(id.ManagementGroup)
 		d.Set("management_group_id", managementGroupId.ID())
-		subscriptionId := subscriptionParse.NewSubscriptionId(id.SubscriptionId)
+		subscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
 		d.Set("subscription_id", subscriptionId.ID())
 	}
 

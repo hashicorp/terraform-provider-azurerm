@@ -84,11 +84,6 @@ func resourceMySQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	if err != nil {
 		return err
 	}
-	keyVaultKeyURI := d.Get("key_vault_key_id").(string)
-	name, err := getMySQLServerKeyName(ctx, keyVaultsClient, resourcesClient, keyVaultKeyURI)
-	if err != nil {
-		return fmt.Errorf("cannot compose name for MySQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroup, serverID.Name, err)
-	}
 
 	locks.ByName(serverID.Name, mySQLServerResourceName)
 	defer locks.UnlockByName(serverID.Name, mySQLServerResourceName)
@@ -102,14 +97,30 @@ func resourceMySQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			return fmt.Errorf("listing existing MySQL Server Keys in Resource Group %q / Server %q: %+v", serverID.ResourceGroup, serverID.Name, err)
 		}
 		keys := resp.Values()
-		if len(keys) > 1 {
-			return fmt.Errorf("expecting at most one MySQL Server Key, but got %q", len(keys))
-		}
-		if len(keys) == 1 && keys[0].ID != nil && *keys[0].ID != "" {
-			return tf.ImportAsExistsError("azurerm_mysql_server_key", *keys[0].ID)
+		if len(keys) > 0 {
+			if len(keys) > 1 {
+				return fmt.Errorf("expecting at most one MySQL Server Key, but got %q", len(keys))
+			}
+			if keys[0].ID == nil || *keys[0].ID != "" {
+				return fmt.Errorf("missing ID for existing MySQL Server Key")
+			}
+
+			id, err := parse.ServerID(*keys[0].ID)
+			if err != nil {
+				return err
+			}
+
+			return tf.ImportAsExistsError("azurerm_mysql_server_key", id.ID())
 		}
 	}
 
+	keyVaultKeyURI := d.Get("key_vault_key_id").(string)
+	name, err := getMySQLServerKeyName(ctx, keyVaultsClient, resourcesClient, keyVaultKeyURI)
+	if err != nil {
+		return fmt.Errorf("cannot compose name for MySQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroup, serverID.Name, err)
+	}
+
+	id := parse.NewKeyID(serverID.SubscriptionId, serverID.ResourceGroup, serverID.Name, *name)
 	param := mysql.ServerKey{
 		ServerKeyProperties: &mysql.ServerKeyProperties{
 			ServerKeyType: utils.String("AzureKeyVault"),
@@ -117,29 +128,19 @@ func resourceMySQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		},
 	}
 
-	future, err := keysClient.CreateOrUpdate(ctx, serverID.Name, *name, param, serverID.ResourceGroup)
+	future, err := keysClient.CreateOrUpdate(ctx, id.ServerName, id.Name, param, id.ResourceGroup)
 	if err != nil {
-		return fmt.Errorf("creating/updating MySQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroup, serverID.Name, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, keysClient.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of MySQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroup, serverID.Name, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	resp, err := keysClient.Get(ctx, serverID.ResourceGroup, serverID.Name, *name)
-	if err != nil {
-		return fmt.Errorf("retrieving MySQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroup, serverID.Name, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for MySQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroup, serverID.Name, err)
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceMySQLServerKeyRead(d, meta)
 }
 
 func resourceMySQLServerKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	serversClient := meta.(*clients.Client).MySQL.ServersClient
 	keysClient := meta.(*clients.Client).MySQL.ServerKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -152,20 +153,16 @@ func resourceMySQLServerKeyRead(d *pluginsdk.ResourceData, meta interface{}) err
 	resp, err := keysClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] MySQL Server Key %q was not found (Resource Group %q / Server %q)", id.Name, id.ResourceGroup, id.ServerName)
+			log.Printf("[WARN] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving MySQL Server Key %q (Resource Group %q / Server %q): %+v", id.Name, id.ResourceGroup, id.ServerName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	respServer, err := serversClient.Get(ctx, id.ResourceGroup, id.ServerName)
-	if err != nil {
-		return fmt.Errorf("cannot get MySQL Server ID: %+v", err)
-	}
-
-	d.Set("server_id", respServer.ID)
+	serverId := parse.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+	d.Set("server_id", serverId.ID())
 	if props := resp.ServerKeyProperties; props != nil {
 		d.Set("key_vault_key_id", props.URI)
 	}
@@ -188,10 +185,11 @@ func resourceMySQLServerKeyDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	future, err := client.Delete(ctx, id.ServerName, id.Name, id.ResourceGroup)
 	if err != nil {
-		return fmt.Errorf("deleting MySQL Server Key %q (Resource Group %q / Server %q): %+v", id.Name, id.ResourceGroup, id.ServerName, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
+
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of MySQL Server Key %q (Resource Group %q / Server %q): %+v", id.Name, id.ResourceGroup, id.ServerName, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

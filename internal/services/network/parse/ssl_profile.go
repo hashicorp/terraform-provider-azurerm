@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type SslProfileId struct {
@@ -42,7 +42,7 @@ func (id SslProfileId) ID() string {
 
 // SslProfileID parses a SslProfile ID into an SslProfileId struct
 func SslProfileID(input string) (*SslProfileId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

@@ -77,6 +77,7 @@ func resourceVirtualHubIP() *pluginsdk.Resource {
 			"public_ip_address_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: networkValidate.PublicIpAddressID,
 			},
 		},
@@ -108,6 +109,10 @@ func resourceVirtualHubIPCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_virtual_hub_ip", *existing.ID)
+		}
+
+		if d.Get("public_ip_address_id").(string) == "" {
+			return fmt.Errorf("`public_ip_address_id` is required for new resources, created after September 1st 2021")
 		}
 	}
 

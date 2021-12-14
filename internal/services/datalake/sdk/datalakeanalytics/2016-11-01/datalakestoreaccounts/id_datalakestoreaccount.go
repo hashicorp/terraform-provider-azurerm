@@ -7,120 +7,131 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+var _ resourceids.ResourceId = DataLakeStoreAccountId{}
+
+// DataLakeStoreAccountId is a struct representing the Resource ID for a Data Lake Store Account
 type DataLakeStoreAccountId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	AccountName    string
-	Name           string
+	SubscriptionId           string
+	ResourceGroupName        string
+	AccountName              string
+	DataLakeStoreAccountName string
 }
 
-func NewDataLakeStoreAccountID(subscriptionId, resourceGroup, accountName, name string) DataLakeStoreAccountId {
+// NewDataLakeStoreAccountID returns a new DataLakeStoreAccountId struct
+func NewDataLakeStoreAccountID(subscriptionId string, resourceGroupName string, accountName string, dataLakeStoreAccountName string) DataLakeStoreAccountId {
 	return DataLakeStoreAccountId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourceGroup,
-		AccountName:    accountName,
-		Name:           name,
+		SubscriptionId:           subscriptionId,
+		ResourceGroupName:        resourceGroupName,
+		AccountName:              accountName,
+		DataLakeStoreAccountName: dataLakeStoreAccountName,
 	}
 }
 
-func (id DataLakeStoreAccountId) String() string {
-	segments := []string{
-		fmt.Sprintf("Name %q", id.Name),
-		fmt.Sprintf("Account Name %q", id.AccountName),
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+// ParseDataLakeStoreAccountID parses 'input' into a DataLakeStoreAccountId
+func ParseDataLakeStoreAccountID(input string) (*DataLakeStoreAccountId, error) {
+	parser := resourceids.NewParserFromResourceIdType(DataLakeStoreAccountId{})
+	parsed, err := parser.Parse(input, false)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
-	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Data Lake Store Account", segmentsStr)
+
+	var ok bool
+	id := DataLakeStoreAccountId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	}
+
+	if id.DataLakeStoreAccountName, ok = parsed.Parsed["dataLakeStoreAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'dataLakeStoreAccountName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
 }
 
+// ParseDataLakeStoreAccountIDInsensitively parses 'input' case-insensitively into a DataLakeStoreAccountId
+// note: this method should only be used for API response data and not user input
+func ParseDataLakeStoreAccountIDInsensitively(input string) (*DataLakeStoreAccountId, error) {
+	parser := resourceids.NewParserFromResourceIdType(DataLakeStoreAccountId{})
+	parsed, err := parser.Parse(input, true)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	var ok bool
+	id := DataLakeStoreAccountId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	}
+
+	if id.DataLakeStoreAccountName, ok = parsed.Parsed["dataLakeStoreAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'dataLakeStoreAccountName' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
+}
+
+// ValidateDataLakeStoreAccountID checks that 'input' can be parsed as a Data Lake Store Account ID
+func ValidateDataLakeStoreAccountID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	if _, err := ParseDataLakeStoreAccountID(v); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
+}
+
+// ID returns the formatted Data Lake Store Account ID
 func (id DataLakeStoreAccountId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataLakeAnalytics/accounts/%s/dataLakeStoreAccounts/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AccountName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.DataLakeStoreAccountName)
 }
 
-// ParseDataLakeStoreAccountID parses a DataLakeStoreAccount ID into an DataLakeStoreAccountId struct
-func ParseDataLakeStoreAccountID(input string) (*DataLakeStoreAccountId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// Segments returns a slice of Resource ID Segments which comprise this Data Lake Store Account ID
+func (id DataLakeStoreAccountId) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
+		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
+		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
+		resourceids.StaticSegment("staticProviders", "providers", "providers"),
+		resourceids.ResourceProviderSegment("staticMicrosoftDataLakeAnalytics", "Microsoft.DataLakeAnalytics", "Microsoft.DataLakeAnalytics"),
+		resourceids.StaticSegment("staticAccounts", "accounts", "accounts"),
+		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.StaticSegment("staticDataLakeStoreAccounts", "dataLakeStoreAccounts", "dataLakeStoreAccounts"),
+		resourceids.UserSpecifiedSegment("dataLakeStoreAccountName", "dataLakeStoreAccountValue"),
 	}
-
-	resourceId := DataLakeStoreAccountId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	if resourceId.AccountName, err = id.PopSegment("accounts"); err != nil {
-		return nil, err
-	}
-	if resourceId.Name, err = id.PopSegment("dataLakeStoreAccounts"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
 }
 
-// ParseDataLakeStoreAccountIDInsensitively parses an DataLakeStoreAccount ID into an DataLakeStoreAccountId struct, insensitively
-// This should only be used to parse an ID for rewriting to a consistent casing,
-// the ParseDataLakeStoreAccountID method should be used instead for validation etc.
-func ParseDataLakeStoreAccountIDInsensitively(input string) (*DataLakeStoreAccountId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
+// String returns a human-readable description of this Data Lake Store Account ID
+func (id DataLakeStoreAccountId) String() string {
+	components := []string{
+		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
+		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Data Lake Store Account Name: %q", id.DataLakeStoreAccountName),
 	}
-
-	resourceId := DataLakeStoreAccountId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	// find the correct casing for the 'accounts' segment
-	accountsKey := "accounts"
-	for key := range id.Path {
-		if strings.EqualFold(key, accountsKey) {
-			accountsKey = key
-			break
-		}
-	}
-	if resourceId.AccountName, err = id.PopSegment(accountsKey); err != nil {
-		return nil, err
-	}
-
-	// find the correct casing for the 'dataLakeStoreAccounts' segment
-	dataLakeStoreAccountsKey := "dataLakeStoreAccounts"
-	for key := range id.Path {
-		if strings.EqualFold(key, dataLakeStoreAccountsKey) {
-			dataLakeStoreAccountsKey = key
-			break
-		}
-	}
-	if resourceId.Name, err = id.PopSegment(dataLakeStoreAccountsKey); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &resourceId, nil
+	return fmt.Sprintf("Data Lake Store Account (%s)", strings.Join(components, "\n"))
 }

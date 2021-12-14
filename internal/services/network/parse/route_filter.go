@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type RouteFilterId struct {
@@ -39,7 +39,7 @@ func (id RouteFilterId) ID() string {
 
 // RouteFilterID parses a RouteFilter ID into an RouteFilterId struct
 func RouteFilterID(input string) (*RouteFilterId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

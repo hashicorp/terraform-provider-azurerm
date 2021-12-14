@@ -263,6 +263,12 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 			},
+
+			"throughput_in_mibps": {
+				Type:     pluginsdk.TypeFloat,
+				Optional: true,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -406,7 +412,12 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if throughputMibps, ok := d.GetOk("throughput_in_mibps"); ok {
+		parameters.VolumeProperties.ThroughputMibps = utils.Float(throughputMibps.(float64))
+	}
+
 	future, err := client.CreateOrUpdate(ctx, parameters, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name)
+
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -503,6 +514,8 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		if err := d.Set("data_protection_replication", flattenNetAppVolumeDataProtectionReplication(props.DataProtection)); err != nil {
 			return fmt.Errorf("setting `data_protection_replication`: %+v", err)
 		}
+
+		d.Set("throughput_in_mibps", props.ThroughputMibps)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -112,6 +113,78 @@ func TestAccVpnGatewayConnection_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccVpnGatewayConnection_updateConnectionMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway_connection", "test")
+	r := VPNGatewayConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateConnectionMode(data, network.VpnLinkConnectionModeDefault),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateConnectionMode(data, network.VpnLinkConnectionModeInitiatorOnly),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVpnGatewayConnection_updateTrafficSelectorPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway_connection", "test")
+	r := VPNGatewayConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateTrafficSelectorPolicy(data, "10.0.0.0/24", "10.0.1.0/24"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateTrafficSelectorPolicy(data, "10.0.2.0/24", "10.0.3.0/24"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t VPNGatewayConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VpnConnectionID(state.ID)
 	if err != nil {
@@ -180,8 +253,12 @@ resource "azurerm_vpn_gateway_connection" "test" {
   vpn_gateway_id     = azurerm_vpn_gateway.test.id
   remote_vpn_site_id = azurerm_vpn_site.test.id
   routing {
-    associated_route_table  = azurerm_virtual_hub_route_table.test.id
-    propagated_route_tables = [azurerm_virtual_hub_route_table.test.id]
+    associated_route_table = azurerm_virtual_hub_route_table.test.id
+
+    propagated_route_table {
+      route_table_ids = [azurerm_virtual_hub_route_table.test.id]
+      labels          = ["label1"]
+    }
   }
   vpn_link {
     name             = "link1"
@@ -232,8 +309,12 @@ resource "azurerm_vpn_gateway_connection" "test" {
   vpn_gateway_id     = azurerm_vpn_gateway.test.id
   remote_vpn_site_id = azurerm_vpn_site.test.id
   routing {
-    associated_route_table  = azurerm_virtual_hub_route_table.test2.id
-    propagated_route_tables = [azurerm_virtual_hub_route_table.test2.id]
+    associated_route_table = azurerm_virtual_hub_route_table.test2.id
+
+    propagated_route_table {
+      route_table_ids = [azurerm_virtual_hub_route_table.test2.id]
+      labels          = ["label2"]
+    }
   }
   vpn_link {
     name             = "link1"
@@ -283,6 +364,51 @@ resource "azurerm_vpn_gateway_connection" "import" {
   }
 }
 `, r.basic(data))
+}
+
+func (r VPNGatewayConnectionResource) updateConnectionMode(data acceptance.TestData, connectionMode network.VpnLinkConnectionMode) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_vpn_gateway_connection" "test" {
+  name               = "acctest-VpnGwConn-%[2]d"
+  vpn_gateway_id     = azurerm_vpn_gateway.test.id
+  remote_vpn_site_id = azurerm_vpn_site.test.id
+  vpn_link {
+    name             = "link1"
+    vpn_site_link_id = azurerm_vpn_site.test.link[0].id
+    connection_mode  = "%s"
+  }
+  vpn_link {
+    name             = "link2"
+    vpn_site_link_id = azurerm_vpn_site.test.link[1].id
+  }
+}
+`, r.template(data), data.RandomInteger, string(connectionMode))
+}
+
+func (r VPNGatewayConnectionResource) updateTrafficSelectorPolicy(data acceptance.TestData, localAddressRange string, remoteAddressRange string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_vpn_gateway_connection" "test" {
+  name               = "acctest-VpnGwConn-%[2]d"
+  vpn_gateway_id     = azurerm_vpn_gateway.test.id
+  remote_vpn_site_id = azurerm_vpn_site.test.id
+  vpn_link {
+    name             = "link1"
+    vpn_site_link_id = azurerm_vpn_site.test.link[0].id
+  }
+  vpn_link {
+    name             = "link2"
+    vpn_site_link_id = azurerm_vpn_site.test.link[1].id
+  }
+  traffic_selector_policy {
+    local_address_ranges  = ["%s"]
+    remote_address_ranges = ["%s"]
+  }
+}
+`, r.template(data), data.RandomInteger, localAddressRange, remoteAddressRange)
 }
 
 func (VPNGatewayConnectionResource) template(data acceptance.TestData) string {

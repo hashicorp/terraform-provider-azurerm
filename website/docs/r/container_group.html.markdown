@@ -280,9 +280,9 @@ The `dns_config` block supports:
 
 * `nameservers` - (Required) A list of nameservers the containers will search out to resolve requests.
 
-* `search_domains` - (Required) A list of search domains that DNS requests will search along.
+* `search_domains` - (Optional) A list of search domains that DNS requests will search along.
 
-* `options` - (Required) A list of [resolver configuration options](https://man7.org/linux/man-pages/man5/resolv.conf.5.html).
+* `options` - (Optional) A list of [resolver configuration options](https://man7.org/linux/man-pages/man5/resolv.conf.5.html).
 
 ## Attributes Reference
 

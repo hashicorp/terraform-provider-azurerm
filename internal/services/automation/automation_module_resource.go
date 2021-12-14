@@ -95,15 +95,13 @@ func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interf
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Module creation.")
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-	accName := d.Get("automation_account_name").(string)
+	id := parse.NewModuleID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, accName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Automation Module %q (Account %q / Resource Group %q): %s", name, accName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -120,7 +118,7 @@ func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, parameters); err != nil {
 		return err
 	}
 
@@ -146,9 +144,9 @@ func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		},
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-			resp, err2 := client.Get(ctx, resGroup, accName, name)
+			resp, err2 := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 			if err2 != nil {
-				return resp, "Error", fmt.Errorf("retrieving Module %q (Automation Account %q / Resource Group %q): %+v", name, accName, resGroup, err2)
+				return resp, "Error", fmt.Errorf("retrieving %s: %+v", id, err2)
 			}
 
 			if properties := resp.ModuleProperties; properties != nil {
@@ -168,19 +166,10 @@ func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Module %q (Automation Account %q / Resource Group %q) to finish provisioning: %+v", name, accName, resGroup, err)
+		return fmt.Errorf("waiting for %s to finish provisioning: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, accName, name)
-	if err != nil {
-		return err
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Automation Module %q (resource group %q) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceAutomationModuleRead(d, meta)
 }

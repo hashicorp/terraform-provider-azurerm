@@ -28,6 +28,8 @@ func TestAccKeyVaultCertificate_basicImportPFX(t *testing.T) {
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
 				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 				check.That(data.ResourceName).Key("certificate_policy.0.secret_properties.0.content_type").HasValue("application/x-pkcs12"),
+				check.That(data.ResourceName).Key("versionless_id").HasValue(fmt.Sprintf("https://acctestkeyvault%s.vault.azure.net/certificates/acctestcert%s", data.RandomString, data.RandomString)),
+				check.That(data.ResourceName).Key("versionless_secret_id").HasValue(fmt.Sprintf("https://acctestkeyvault%s.vault.azure.net/secrets/acctestcert%s", data.RandomString, data.RandomString)),
 			),
 		},
 		data.ImportStep("certificate"),

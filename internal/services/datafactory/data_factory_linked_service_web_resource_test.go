@@ -118,7 +118,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_web" "test" {
   name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "Anonymous"
   url                 = "http://www.bing.com"
 }
@@ -145,7 +145,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_web" "test" {
   name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "Basic"
   url                 = "http://www.bing.com"
   username            = "foo"
@@ -174,7 +174,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_web" "test" {
   name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "Anonymous"
   url                 = "http://www.google.com"
   annotations         = ["test1", "test2", "test3"]

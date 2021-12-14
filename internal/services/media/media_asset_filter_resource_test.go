@@ -111,7 +111,6 @@ resource "azurerm_media_asset_filter" "test" {
   name     = "Filter-1"
   asset_id = azurerm_media_asset.test.id
 }
-
 `, r.template(data))
 }
 
@@ -123,7 +122,6 @@ resource "azurerm_media_asset_filter" "import" {
   name     = azurerm_media_asset_filter.test.name
   asset_id = azurerm_media_asset.test.id
 }
-
 `, r.basic(data))
 }
 
@@ -180,7 +178,6 @@ resource "azurerm_media_asset_filter" "test" {
     }
   }
 }
-
 `, r.template(data))
 }
 

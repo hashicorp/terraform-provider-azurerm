@@ -122,6 +122,8 @@ The following arguments are supported:
 
 * `export_policy_rule` - (Optional) One or more `export_policy_rule` block defined below.
 
+* `throughput_in_mibps` - (Optional) Throughput of this volume in Mibps.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 An example on how to create a dual protocol volume can be found at [`./examples/netapp/volume_dual_protocol` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/netapp/volume_dual_protocol)

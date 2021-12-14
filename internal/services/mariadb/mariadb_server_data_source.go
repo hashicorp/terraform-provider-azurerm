@@ -7,6 +7,8 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -96,45 +98,35 @@ func dataSourceMariaDbServer() *pluginsdk.Resource {
 
 func dataSourceMariaDbServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("MariaDB Server %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("retrieving MariaDB Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("retrieving MariaDB Server %q (Resource Group %q): `id` was nil", name, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
-
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-
+	d.SetId(id.ID())
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku_name", sku.Name)
 	}
 
-	if properties := resp.ServerProperties; properties != nil {
-		d.Set("administrator_login", properties.AdministratorLogin)
-		d.Set("version", string(properties.Version))
-		d.Set("ssl_enforcement", string(properties.SslEnforcement))
-		d.Set("fqdn", properties.FullyQualifiedDomainName)
+	if props := resp.ServerProperties; props != nil {
+		d.Set("administrator_login", props.AdministratorLogin)
+		d.Set("fqdn", props.FullyQualifiedDomainName)
+		d.Set("ssl_enforcement", string(props.SslEnforcement))
+		d.Set("version", string(props.Version))
 
-		if err := d.Set("storage_profile", flattenMariaDbStorageProfile(properties.StorageProfile)); err != nil {
+		if err := d.Set("storage_profile", flattenMariaDbStorageProfile(props.StorageProfile)); err != nil {
 			return fmt.Errorf("setting `storage_profile`: %+v", err)
 		}
 	}

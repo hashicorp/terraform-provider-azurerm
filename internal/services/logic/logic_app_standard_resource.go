@@ -226,39 +226,36 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Logic App Standard creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	existing, err := client.Get(ctx, resourceGroup, name)
+	id := parse.NewLogicAppStandardID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Logic App Standard %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_logic_app_standard", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_logic_app_standard", id.ID())
 	}
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
-		Name: utils.String(name),
+		Name: utils.String(id.SiteName),
 		Type: web.CheckNameResourceTypesMicrosoftWebsites,
 	}
 	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
 	if err != nil {
-		return fmt.Errorf("checking if the name %q was available: %+v", name, err)
+		return fmt.Errorf("checking if the name %q was available: %+v", id.SiteName, err)
 	}
 
 	if !*available.NameAvailable {
-		return fmt.Errorf("name %q used for the Logic App Standard needs to be globally unique and isn't available: %s", name, *available.Message)
+		return fmt.Errorf("the name %q used for the Logic App Standard needs to be globally unique and isn't available: %+v", id.SiteName, *available.Message)
 	}
-
-	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
@@ -266,6 +263,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	clientCertMode := d.Get("client_certificate_mode").(string)
 	clientCertEnabled := clientCertMode != ""
 	httpsOnly := d.Get("https_only").(bool)
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
 	basicAppSettings, err := getBasicLogicAppSettings(d, endpointSuffix)
@@ -275,7 +273,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	siteConfig, err := expandLogicAppStandardSiteConfig(d)
 	if err != nil {
-		return fmt.Errorf("expanding `site_config` for Logic App Standard %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("expanding `site_config`: %+v", err)
 	}
 
 	kind := "functionapp,workflowapp"
@@ -313,27 +311,17 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
-	createFuture, err := client.CreateOrUpdate(ctx, resourceGroup, name, siteEnvelope)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
 	if err != nil {
-		return err
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	err = createFuture.WaitForCompletionRef(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return err
+		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return err
-	}
-
-	if read.ID == nil || *read.ID == "" {
-		return fmt.Errorf("cannot read Logic App Standard %s (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceLogicAppStandardUpdate(d, meta)
 }
 
@@ -364,7 +352,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	siteConfig, err := expandLogicAppStandardSiteConfig(d)
 	if err != nil {
-		return fmt.Errorf("expanding `site_config` for Logic App Standard %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("expanding `site_config`: %+v", err)
 	}
 
 	kind := "functionapp,workflowapp"
@@ -377,7 +365,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	// WEBSITE_VNET_ROUTE_ALL is superseded by a setting in site_config that defaults to false from 2021-02-01
 	appSettings, err := expandLogicAppStandardSettings(d, endpointSuffix)
 	if err != nil {
-		return fmt.Errorf("expanding `app_settings` for Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("expanding `app_settings`: %+v", err)
 	}
 	if vnetRouteAll, ok := appSettings["WEBSITE_VNET_ROUTE_ALL"]; ok {
 		if !d.HasChange("site_config.0.vnet_route_all_enabled") {
@@ -412,11 +400,11 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
 	if err != nil {
-		return fmt.Errorf("updating Logic App Standard %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of Logic App Standard %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the update of %s: %+v", id, err)
 	}
 
 	settings := web.StringDictionary{
@@ -424,20 +412,20 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if _, err = client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, settings); err != nil {
-		return fmt.Errorf("updating Application Settings for Logic App Standard %q: %+v", id.SiteName, err)
+		return fmt.Errorf("updating Application Settings for %s: %+v", *id, err)
 	}
 
 	if d.HasChange("site_config") {
 		siteConfig, err := expandLogicAppStandardSiteConfig(d)
 		if err != nil {
-			return fmt.Errorf("expanding `site_config` for Logic App Standard %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
+			return fmt.Errorf("expanding `site_config`: %+v", err)
 		}
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
 
 		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, siteConfigResource); err != nil {
-			return fmt.Errorf("updating Configuration for Logic App Standard %q: %+v", id.SiteName, err)
+			return fmt.Errorf("updating Configuration for %s: %+v", *id, err)
 		}
 	}
 
@@ -448,7 +436,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, properties); err != nil {
-			return fmt.Errorf("updating Connection Strings for App Service %q: %+v", id.SiteName, err)
+			return fmt.Errorf("updating Connection Strings for %s: %+v", *id, err)
 		}
 	}
 
@@ -468,39 +456,33 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 	resp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Logic App Standard %q (resource group %q) was not found - removing from state", id.SiteName, id.ResourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on AzureRM Logic App Standard %q: %+v", id.SiteName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		if utils.ResponseWasNotFound(appSettingsResp.Response) {
-			log.Printf("[DEBUG] Application Settings of Logic App Standard %q (resource group %q) were not found", id.SiteName, id.ResourceGroup)
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("making Read request on AzureRM Logic App Standard AppSettings %q: %+v", id.SiteName, err)
+		return fmt.Errorf("listing application settings for %s: %+v", *id, err)
 	}
 
 	connectionStringsResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM Logic App Standard ConnectionStrings %q: %+v", id.SiteName, err)
+		return fmt.Errorf("listing connection strings for %s: %+v", *id, err)
 	}
 
 	siteCredFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return err
+		return fmt.Errorf("listing publishing credentials for %s: %+v", *id, err)
 	}
-	err = siteCredFuture.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		return err
+	if err = siteCredFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting to list the publishing credentials for %s: %+v", *id, err)
 	}
 	siteCredResp, err := siteCredFuture.Result(*client)
 	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM App Service Site Credential %q: %+v", id.SiteName, err)
+		return fmt.Errorf("retrieving the publishing credentials for %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.SiteName)
@@ -589,7 +571,7 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM Logic App Standard Configuration %q: %+v", id.SiteName, err)
+		return fmt.Errorf("retrieving the configuration for %s: %+v", *id, err)
 	}
 
 	siteConfig := flattenLogicAppStandardSiteConfig(configResp.SiteConfig)
@@ -615,15 +597,10 @@ func resourceLogicAppStandardDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting Logic App Standard %q (resource group %q)", id.SiteName, id.ResourceGroup)
-
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.SiteName, &deleteMetrics, &deleteEmptyServerFarm)
-	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return err
-		}
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.SiteName, &deleteMetrics, &deleteEmptyServerFarm); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
