@@ -951,67 +951,68 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 	return expanded, &currentStack, nil
 }
 
-func FlattenSiteConfigWindowsAppSlot(appSiteConfig *web.SiteConfig, currentStack string, healthCheckCount *int) []SiteConfigWindowsWebAppSlot {
-	if appSiteConfig == nil {
+func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentStack string, healthCheckCount *int) []SiteConfigWindowsWebAppSlot {
+	if appSiteSlotConfig == nil {
 		return nil
 	}
 
 	siteConfig := SiteConfigWindowsWebAppSlot{
-		AlwaysOn:                 utils.NormaliseNilableBool(appSiteConfig.AlwaysOn),
-		AppCommandLine:           utils.NormalizeNilableString(appSiteConfig.AppCommandLine),
-		AutoHeal:                 utils.NormaliseNilableBool(appSiteConfig.AutoHealEnabled),
-		AutoHealSettings:         flattenAutoHealSettingsWindows(appSiteConfig.AutoHealRules),
-		ContainerRegistryUserMSI: utils.NormalizeNilableString(appSiteConfig.AcrUserManagedIdentityID),
-		DetailedErrorLogging:     utils.NormaliseNilableBool(appSiteConfig.DetailedErrorLoggingEnabled),
-		FtpsState:                string(appSiteConfig.FtpsState),
-		HealthCheckPath:          utils.NormalizeNilableString(appSiteConfig.HealthCheckPath),
+		AlwaysOn:                 utils.NormaliseNilableBool(appSiteSlotConfig.AlwaysOn),
+		AppCommandLine:           utils.NormalizeNilableString(appSiteSlotConfig.AppCommandLine),
+		AutoHeal:                 utils.NormaliseNilableBool(appSiteSlotConfig.AutoHealEnabled),
+		AutoHealSettings:         flattenAutoHealSettingsWindows(appSiteSlotConfig.AutoHealRules),
+		AutoSwapSlotName:         utils.NormalizeNilableString(appSiteSlotConfig.AutoSwapSlotName),
+		ContainerRegistryUserMSI: utils.NormalizeNilableString(appSiteSlotConfig.AcrUserManagedIdentityID),
+		DetailedErrorLogging:     utils.NormaliseNilableBool(appSiteSlotConfig.DetailedErrorLoggingEnabled),
+		FtpsState:                string(appSiteSlotConfig.FtpsState),
+		HealthCheckPath:          utils.NormalizeNilableString(appSiteSlotConfig.HealthCheckPath),
 		HealthCheckEvictionTime:  utils.NormaliseNilableInt(healthCheckCount),
-		Http2Enabled:             utils.NormaliseNilableBool(appSiteConfig.HTTP20Enabled),
-		IpRestriction:            FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions),
-		LoadBalancing:            string(appSiteConfig.LoadBalancing),
-		LocalMysql:               utils.NormaliseNilableBool(appSiteConfig.LocalMySQLEnabled),
-		ManagedPipelineMode:      string(appSiteConfig.ManagedPipelineMode),
-		MinTlsVersion:            string(appSiteConfig.MinTLSVersion),
-		WorkerCount:              int(utils.NormaliseNilableInt32(appSiteConfig.NumberOfWorkers)),
-		RemoteDebugging:          utils.NormaliseNilableBool(appSiteConfig.RemoteDebuggingEnabled),
-		RemoteDebuggingVersion:   strings.ToUpper(utils.NormalizeNilableString(appSiteConfig.RemoteDebuggingVersion)),
-		ScmIpRestriction:         FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions),
-		ScmMinTlsVersion:         string(appSiteConfig.ScmMinTLSVersion),
-		ScmType:                  string(appSiteConfig.ScmType),
-		ScmUseMainIpRestriction:  utils.NormaliseNilableBool(appSiteConfig.ScmIPSecurityRestrictionsUseMain),
-		Use32BitWorker:           utils.NormaliseNilableBool(appSiteConfig.Use32BitWorkerProcess),
-		UseManagedIdentityACR:    utils.NormaliseNilableBool(appSiteConfig.AcrUseManagedIdentityCreds),
-		VirtualApplications:      flattenVirtualApplications(appSiteConfig.VirtualApplications),
-		WebSockets:               utils.NormaliseNilableBool(appSiteConfig.WebSocketsEnabled),
-		VnetRouteAllEnabled:      utils.NormaliseNilableBool(appSiteConfig.VnetRouteAllEnabled),
+		Http2Enabled:             utils.NormaliseNilableBool(appSiteSlotConfig.HTTP20Enabled),
+		IpRestriction:            FlattenIpRestrictions(appSiteSlotConfig.IPSecurityRestrictions),
+		LoadBalancing:            string(appSiteSlotConfig.LoadBalancing),
+		LocalMysql:               utils.NormaliseNilableBool(appSiteSlotConfig.LocalMySQLEnabled),
+		ManagedPipelineMode:      string(appSiteSlotConfig.ManagedPipelineMode),
+		MinTlsVersion:            string(appSiteSlotConfig.MinTLSVersion),
+		WorkerCount:              int(utils.NormaliseNilableInt32(appSiteSlotConfig.NumberOfWorkers)),
+		RemoteDebugging:          utils.NormaliseNilableBool(appSiteSlotConfig.RemoteDebuggingEnabled),
+		RemoteDebuggingVersion:   strings.ToUpper(utils.NormalizeNilableString(appSiteSlotConfig.RemoteDebuggingVersion)),
+		ScmIpRestriction:         FlattenIpRestrictions(appSiteSlotConfig.ScmIPSecurityRestrictions),
+		ScmMinTlsVersion:         string(appSiteSlotConfig.ScmMinTLSVersion),
+		ScmType:                  string(appSiteSlotConfig.ScmType),
+		ScmUseMainIpRestriction:  utils.NormaliseNilableBool(appSiteSlotConfig.ScmIPSecurityRestrictionsUseMain),
+		Use32BitWorker:           utils.NormaliseNilableBool(appSiteSlotConfig.Use32BitWorkerProcess),
+		UseManagedIdentityACR:    utils.NormaliseNilableBool(appSiteSlotConfig.AcrUseManagedIdentityCreds),
+		VirtualApplications:      flattenVirtualApplications(appSiteSlotConfig.VirtualApplications),
+		WebSockets:               utils.NormaliseNilableBool(appSiteSlotConfig.WebSocketsEnabled),
+		VnetRouteAllEnabled:      utils.NormaliseNilableBool(appSiteSlotConfig.VnetRouteAllEnabled),
 	}
 
-	if appSiteConfig.APIManagementConfig != nil && appSiteConfig.APIManagementConfig.ID != nil {
-		siteConfig.ApiManagementConfigId = *appSiteConfig.APIManagementConfig.ID
+	if appSiteSlotConfig.APIManagementConfig != nil && appSiteSlotConfig.APIManagementConfig.ID != nil {
+		siteConfig.ApiManagementConfigId = *appSiteSlotConfig.APIManagementConfig.ID
 	}
 
-	if appSiteConfig.APIDefinition != nil && appSiteConfig.APIDefinition.URL != nil {
-		siteConfig.ApiDefinition = *appSiteConfig.APIDefinition.URL
+	if appSiteSlotConfig.APIDefinition != nil && appSiteSlotConfig.APIDefinition.URL != nil {
+		siteConfig.ApiDefinition = *appSiteSlotConfig.APIDefinition.URL
 	}
 
-	if appSiteConfig.DefaultDocuments != nil {
-		siteConfig.DefaultDocuments = *appSiteConfig.DefaultDocuments
+	if appSiteSlotConfig.DefaultDocuments != nil {
+		siteConfig.DefaultDocuments = *appSiteSlotConfig.DefaultDocuments
 	}
 
-	if appSiteConfig.NumberOfWorkers != nil {
-		siteConfig.WorkerCount = int(*appSiteConfig.NumberOfWorkers)
+	if appSiteSlotConfig.NumberOfWorkers != nil {
+		siteConfig.WorkerCount = int(*appSiteSlotConfig.NumberOfWorkers)
 	}
 
 	var winAppStack ApplicationStackWindows
-	winAppStack.NetFrameworkVersion = utils.NormalizeNilableString(appSiteConfig.NetFrameworkVersion)
-	winAppStack.PhpVersion = utils.NormalizeNilableString(appSiteConfig.PhpVersion)
-	winAppStack.NodeVersion = utils.NormalizeNilableString(appSiteConfig.NodeVersion)
-	winAppStack.PythonVersion = utils.NormalizeNilableString(appSiteConfig.PythonVersion)
-	winAppStack.JavaVersion = utils.NormalizeNilableString(appSiteConfig.JavaVersion)
-	winAppStack.JavaContainer = utils.NormalizeNilableString(appSiteConfig.JavaContainer)
-	winAppStack.JavaContainerVersion = utils.NormalizeNilableString(appSiteConfig.JavaContainerVersion)
+	winAppStack.NetFrameworkVersion = utils.NormalizeNilableString(appSiteSlotConfig.NetFrameworkVersion)
+	winAppStack.PhpVersion = utils.NormalizeNilableString(appSiteSlotConfig.PhpVersion)
+	winAppStack.NodeVersion = utils.NormalizeNilableString(appSiteSlotConfig.NodeVersion)
+	winAppStack.PythonVersion = utils.NormalizeNilableString(appSiteSlotConfig.PythonVersion)
+	winAppStack.JavaVersion = utils.NormalizeNilableString(appSiteSlotConfig.JavaVersion)
+	winAppStack.JavaContainer = utils.NormalizeNilableString(appSiteSlotConfig.JavaContainer)
+	winAppStack.JavaContainerVersion = utils.NormalizeNilableString(appSiteSlotConfig.JavaContainerVersion)
 
-	siteConfig.WindowsFxVersion = utils.NormalizeNilableString(appSiteConfig.WindowsFxVersion)
+	siteConfig.WindowsFxVersion = utils.NormalizeNilableString(appSiteSlotConfig.WindowsFxVersion)
 	if siteConfig.WindowsFxVersion != "" {
 		// Decode the string to docker values
 		parts := strings.Split(strings.TrimPrefix(siteConfig.WindowsFxVersion, "DOCKER|"), ":")
@@ -1024,9 +1025,9 @@ func FlattenSiteConfigWindowsAppSlot(appSiteConfig *web.SiteConfig, currentStack
 
 	siteConfig.ApplicationStack = []ApplicationStackWindows{winAppStack}
 
-	if appSiteConfig.Cors != nil {
+	if appSiteSlotConfig.Cors != nil {
 		cors := CorsSetting{}
-		corsSettings := appSiteConfig.Cors
+		corsSettings := appSiteSlotConfig.Cors
 		if corsSettings.SupportCredentials != nil {
 			cors.SupportCredentials = *corsSettings.SupportCredentials
 		}
