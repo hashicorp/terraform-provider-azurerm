@@ -421,7 +421,7 @@ resource "azurerm_resource_policy_assignment" "test" {
   location             = azurerm_resource_group.test.location
 
   non_compliance_message {
-    message = "test"
+    content = "test"
   }
 
   identity {
@@ -451,11 +451,11 @@ resource "azurerm_resource_policy_assignment" "test" {
   location             = azurerm_resource_group.test.location
 
   non_compliance_message {
-    message = "test"
+    content = "test"
   }
 
   non_compliance_message {
-    message                        = "test2"
+    content                        = "test2"
     policy_definition_reference_id = "AINE_MinimumPasswordLength"
   }
 

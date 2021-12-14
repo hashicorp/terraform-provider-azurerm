@@ -307,7 +307,7 @@ resource "azurerm_resource_group_policy_assignment" "test" {
   policy_definition_id = data.azurerm_policy_definition.test.id
 
   non_compliance_message {
-    message = "test"
+    content = "test"
   }
 
   parameters = jsonencode({
@@ -421,11 +421,11 @@ resource "azurerm_resource_group_policy_assignment" "test" {
   location             = azurerm_resource_group.test.location
 
   non_compliance_message {
-    message = "test"
+    content = "test"
   }
 
   identity {
-    type = "SystemAssigned"
+    content = "SystemAssigned"
   }
 }
 `, template, data.RandomInteger)
@@ -451,11 +451,11 @@ resource "azurerm_resource_group_policy_assignment" "test" {
   location             = azurerm_resource_group.test.location
 
   non_compliance_message {
-    message = "test"
+    content = "test"
   }
 
   non_compliance_message {
-    message                        = "test2"
+    content                        = "test2"
     policy_definition_reference_id = "AINE_MinimumPasswordLength"
   }
 

@@ -336,7 +336,7 @@ resource "azurerm_management_group_policy_assignment" "test" {
   policy_definition_id = data.azurerm_policy_definition.test.id
 
   non_compliance_message {
-    message = "test"
+    content = "test"
   }
 
   parameters = jsonencode({
@@ -450,7 +450,7 @@ resource "azurerm_management_group_policy_assignment" "test" {
   location             = %[3]q
 
   non_compliance_message {
-    message = "test"
+    content = "test"
   }
 
   identity {
@@ -480,11 +480,11 @@ resource "azurerm_management_group_policy_assignment" "test" {
   location             = %[3]q
 
   non_compliance_message {
-    message = "test"
+    content = "test"
   }
 
   non_compliance_message {
-    message                        = "test2"
+    content                        = "test2"
     policy_definition_reference_id = "AINE_MinimumPasswordLength"
   }
 

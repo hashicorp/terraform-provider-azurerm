@@ -341,7 +341,7 @@ func (br assignmentBaseResource) arguments(fields map[string]*pluginsdk.Schema) 
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"message": {
+					"content": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -413,7 +413,7 @@ func (br assignmentBaseResource) flattenNonComplianceMessages(input *[]policy.No
 	if input != nil {
 		for _, v := range *input {
 			output := make(map[string]interface{})
-			output["message"] = v.Message
+			output["content"] = v.Message
 			if v.PolicyDefinitionReferenceID != nil {
 				output["policy_definition_reference_id"] = *v.PolicyDefinitionReferenceID
 			}
@@ -432,7 +432,7 @@ func (br assignmentBaseResource) expandNonComplianceMessages(input []interface{}
 	output := make([]policy.NonComplianceMessage, 0)
 	for _, v := range input {
 		if m, ok := v.(map[string]interface{}); ok {
-			message := utils.String(m["message"].(string))
+			message := utils.String(m["content"].(string))
 			ncm := policy.NonComplianceMessage{
 				Message: message,
 			}
