@@ -74,7 +74,7 @@ func resourceMarketplaceAgreementCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	id := parse.NewPlanID(subscriptionId, d.Get("publisher").(string), d.Get("offer").(string), d.Get("plan").(string))
 
-	log.Printf("[DEBUG] retreiving %s", id)
+	log.Printf("[DEBUG] retrieving %s", id)
 
 	term, err := client.Get(ctx, id.AgreementName, id.OfferName, id.Name)
 	if err != nil {
