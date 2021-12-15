@@ -326,9 +326,7 @@ resource "azurerm_cdn_endpoint_custom_domain" "test" {
   cdn_endpoint_id = azurerm_cdn_endpoint.test.id
   host_name       = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
   user_managed_https {
-    key_vault_id   = azurerm_key_vault.test.id
-    secret_name    = azurerm_key_vault_certificate.test.name
-    secret_version = azurerm_key_vault_certificate.test.version
+    key_vault_certificate_id = azurerm_key_vault_certificate.id
   }
 }
 `, template, data.RandomIntOfLength(8), r.Certificate)

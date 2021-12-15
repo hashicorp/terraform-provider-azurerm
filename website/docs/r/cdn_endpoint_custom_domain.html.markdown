@@ -95,11 +95,7 @@ A `cdn_managed_https` block supports the following:
 
 A `user_managed_https` block supports the following:
 
-* `key_vault_id` - (Required) The ID of the Key Vault that contains the HTTPS certificate.
-
-* `secret_name` - (Required) The name of the Key Vault Certificate that contains the HTTPS certificate.
-
-* `secret_version` - (Required) The version of the Key Vault Certificate that contains the HTTPS certificate.
+* `key_vault_certificate_id` - (Required) The ID of the Key Vault Certificate that contains the HTTPS certificate.
 
 ## Attributes Reference
 

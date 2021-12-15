@@ -11,8 +11,10 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyvaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	resourceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -102,20 +104,10 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"key_vault_id": {
+						"key_vault_certificate_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: keyvaultValidate.VaultID,
-						},
-						"secret_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: keyvaultValidate.NestedItemName,
-						},
-						"secret_version": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: keyvaultValidate.NestedItemIdWithOptionalVersion,
 						},
 					},
 				},
@@ -140,6 +132,8 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 
 func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.CustomDomainsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -192,7 +186,7 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 		if cdnEndpointResp.Sku != nil && (cdnEndpointResp.Sku.Name != cdn.SkuNameStandardMicrosoft && cdnEndpointResp.Sku.Name != cdn.SkuNameStandardVerizon) {
 			return errors.New("user managed HTTPS certificate is only available for Azure CDN from Microsoft or Azure CDN from Verizon profiles")
 		}
-		params, err = expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(v.([]interface{}))
+		params, err = expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx, v.([]interface{}), keyVaultsClient, resourcesClient)
 		if err != nil {
 			return err
 		}
@@ -202,16 +196,7 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 
 	if params != nil {
 		if err := enableArmCdnEndpointCustomDomainHttps(ctx, client, id, params); err != nil {
-			enableErr := err
-			// Rollback the creation
-			future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
-			if err != nil {
-				return fmt.Errorf("provisioning failed: %+v. Deleting %s: %+v", enableErr, id, err)
-			}
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("provisioning failed: %+v. Waiting for deletion of %s: %+v", enableErr, id, err)
-			}
-			return enableErr
+			return err
 		}
 	}
 
@@ -222,6 +207,8 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 
 func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.CustomDomainsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -266,7 +253,7 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta in
 		if props == nil {
 			return errors.New("unexpected nil of `CustomDomainProperties` in response")
 		}
-		param, err := expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(d.Get("user_managed_https").([]interface{}))
+		param, err := expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx, d.Get("user_managed_https").([]interface{}), keyVaultsClient, resourcesClient)
 		if err != nil {
 			return err
 		}
@@ -291,6 +278,7 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta in
 
 func resourceArmCdnEndpointCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.CustomDomainsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -322,7 +310,21 @@ func resourceArmCdnEndpointCustomDomainRead(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("setting `cdn_managed_https`: %+v", err)
 			}
 		case cdn.UserManagedHTTPSParameters:
-			if err := d.Set("user_managed_https", flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(params)); err != nil {
+			var isVersioned bool
+			if b := d.Get("user_managed_https").([]interface{}); len(b) == 1 {
+				if certIdRaw := b[0].(map[string]interface{})["key_vault_certificate_id"].(string); certIdRaw != "" {
+					certId, err := keyvaultParse.ParseOptionallyVersionedNestedItemID(certIdRaw)
+					if err != nil {
+						return fmt.Errorf("parsing Key Vault Certificate Id %q: %v", certIdRaw, err)
+					}
+					isVersioned = certId.Version != ""
+				}
+			}
+			settings, err := flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx, params, keyVaultsClient, isVersioned)
+			if err != nil {
+				return err
+			}
+			if err := d.Set("user_managed_https", settings); err != nil {
 				return fmt.Errorf("setting `user_managed_https`: %+v", err)
 			}
 		}
@@ -371,14 +373,26 @@ func expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input []interface{}
 	return output
 }
 
-func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(input []interface{}) (cdn.BasicCustomDomainHTTPSParameters, error) {
+func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Context, input []interface{}, keyVaultClient *keyvaultClient.Client, resourceClient *resourceClient.Client) (cdn.BasicCustomDomainHTTPSParameters, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
 
 	raw := input[0].(map[string]interface{})
 
-	keyVaultId, err := keyvaultParse.VaultID(raw["key_vault_id"].(string))
+	keyVaultCertId, err := keyvaultParse.ParseOptionallyVersionedNestedItemID(raw["key_vault_certificate_id"].(string))
+	if err != nil {
+		return nil, err
+	}
+
+	keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, resourceClient, keyVaultCertId.KeyVaultBaseUrl)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultCertId.KeyVaultBaseUrl, err)
+	}
+	if keyVaultIdRaw == nil {
+		return nil, fmt.Errorf("unexpected nil Key Vault ID retrieved at URL %q", keyVaultCertId.KeyVaultBaseUrl)
+	}
+	keyVaultId, err := keyvaultParse.VaultID(*keyVaultIdRaw)
 	if err != nil {
 		return nil, err
 	}
@@ -389,8 +403,8 @@ func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(input []interface{
 			SubscriptionID:    &keyVaultId.SubscriptionId,
 			ResourceGroupName: &keyVaultId.ResourceGroup,
 			VaultName:         &keyVaultId.Name,
-			SecretName:        utils.String(raw["secret_name"].(string)),
-			SecretVersion:     utils.String(raw["secret_version"].(string)),
+			SecretName:        &keyVaultCertId.Name,
+			SecretVersion:     &keyVaultCertId.Version,
 			UpdateRule:        utils.String("NoAction"),
 			DeleteRule:        utils.String("NoAction"),
 		},
@@ -416,7 +430,7 @@ func flattenArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input cdn.ManagedH
 	}
 }
 
-func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(input cdn.UserManagedHTTPSParameters) []interface{} {
+func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Context, input cdn.UserManagedHTTPSParameters, keyVaultsClient *keyvaultClient.Client, isVersioned bool) ([]interface{}, error) {
 	var (
 		subscriptionId    string
 		resourceGroupName string
@@ -442,13 +456,33 @@ func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(input cdn.UserMan
 		}
 	}
 
+	keyVaultId := keyvaultParse.NewVaultID(subscriptionId, resourceGroupName, vaultName)
+	keyVaultBaseUrl, err := keyVaultsClient.BaseUriForKeyVault(ctx, keyVaultId)
+	if err != nil {
+		return nil, fmt.Errorf("looking up Key Vault Certificate %q vault url from id %q: %+v", vaultName, keyVaultId, err)
+	}
+	cert, err := keyVaultsClient.ManagementClient.GetCertificate(ctx, *keyVaultBaseUrl, secretName, secretVersion)
+	if err != nil {
+		return nil, err
+	}
+	if cert.ID == nil {
+		return nil, fmt.Errorf("unexpected null Key Vault Certificate retrieved for Key Vault %s / Secret Name %s / Secret Version %s", keyVaultId, secretName, secretVersion)
+	}
+	certId, err := keyvaultParse.ParseOptionallyVersionedNestedItemID(*cert.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	certIdLiteral := certId.ID()
+	if !isVersioned {
+		certIdLiteral = certId.VersionlessID()
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"key_vault_id":   keyvaultParse.NewVaultID(subscriptionId, resourceGroupName, vaultName).ID(),
-			"secret_name":    secretName,
-			"secret_version": secretVersion,
+			"key_vault_certificate_id": certIdLiteral,
 		},
-	}
+	}, nil
 }
 
 func enableArmCdnEndpointCustomDomainHttps(ctx context.Context, client *cdn.CustomDomainsClient, id parse.CustomDomainId, params cdn.BasicCustomDomainHTTPSParameters) error {
