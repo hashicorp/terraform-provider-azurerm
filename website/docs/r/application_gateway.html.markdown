@@ -151,11 +151,6 @@ The following arguments are supported:
 
 -> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).  They are also only supported for [v2 SKUs](https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
 
--> **Please Note**: The `AllowApplicationGatewayPrivateLink` feature must be registered on the subscription before enabling private link
-```bash
-az feature register --name AllowApplicationGatewayPrivateLink --namespace Microsoft.Network
-```
-
 ---
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
@@ -333,6 +328,11 @@ A `private_link_configuration` block supports the following:
 
 * `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined below.
 
+-> **Please Note**: The `AllowApplicationGatewayPrivateLink` feature must be registered on the subscription before enabling private link
+```bash
+az feature register --name AllowApplicationGatewayPrivateLink --namespace Microsoft.Network
+```
+
 ---
 
 An `ip_configuration` block supports the following:
@@ -341,11 +341,11 @@ An `ip_configuration` block supports the following:
 
 * `subnet_id` - (Required) The ID of the subnet the private link configuration should connect to.
 
-* `private_ip_address` - (Optional) The Static IP Address which should be used.
-
 * `private_ip_address_allocation` - (Required) The allocation method used for the Private IP Address. Possible values are `Dynamic` and `Static`.
 
 * `primary` - (Required) Is this the Primary IP Configuration?
+
+* `private_ip_address` - (Optional) The Static IP Address which should be used.
 
 ---
 
