@@ -113,6 +113,15 @@ type Identity struct {
 }
 
 type RegistryCredential struct {
+	Source []SourceRegistryCredential `tfschema:"source"`
+	Custom []CustomRegistryCredential `tfschema:"custom"`
+}
+
+type SourceRegistryCredential struct {
+	LoginMode string `tfschema:"login_mode"`
+}
+
+type CustomRegistryCredential struct {
 	LoginServer string `tfschema:"login_server"`
 	UserName    string `tfschema:"username"`
 	Password    string `tfschema:"password"`
@@ -120,24 +129,24 @@ type RegistryCredential struct {
 }
 
 type ContainerRegistryTaskModel struct {
-	Name                string                 `tfschema:"name"`
-	ContainerRegistryId string                 `tfschema:"container_registry_id"`
-	Identity            []Identity             `tfschema:"identity"`
-	AgentConfig         []AgentConfig          `tfschema:"agent_setting"`
-	AgentPoolName       string                 `tfschema:"agent_pool_name"`
-	IsSystemTask        bool                   `tfschema:"is_system_task"`
-	LogTemplate         string                 `tfschema:"log_template"`
-	Platform            []Platform             `tfschema:"platform"`
-	Enabled             bool                   `tfschema:"enabled"`
-	TimeoutInSec        int                    `tfschema:"timeout_in_seconds"`
-	DockerStep          []DockerStep           `tfschema:"docker_step"`
-	FileTaskStep        []FileTaskStep         `tfschema:"file_step"`
-	EncodedTaskStep     []EncodedTaskStep      `tfschema:"encoded_step"`
-	BaseImageTrigger    []BaseImageTrigger     `tfschema:"base_image_trigger"`
-	SourceTrigger       []SourceTrigger        `tfschema:"source_trigger"`
-	TimerTrigger        []TimerTrigger         `tfschema:"timer_trigger"`
-	RegistryCredential  []RegistryCredential   `tfschema:"registry_credential"`
-	Tags                map[string]interface{} `tfschema:"tags"`
+	Name                string               `tfschema:"name"`
+	ContainerRegistryId string               `tfschema:"container_registry_id"`
+	Identity            []Identity           `tfschema:"identity"`
+	AgentConfig         []AgentConfig        `tfschema:"agent_setting"`
+	AgentPoolName       string               `tfschema:"agent_pool_name"`
+	IsSystemTask        bool                 `tfschema:"is_system_task"`
+	LogTemplate         string               `tfschema:"log_template"`
+	Platform            []Platform           `tfschema:"platform"`
+	Enabled             bool                 `tfschema:"enabled"`
+	TimeoutInSec        int                  `tfschema:"timeout_in_seconds"`
+	DockerStep          []DockerStep         `tfschema:"docker_step"`
+	FileTaskStep        []FileTaskStep       `tfschema:"file_step"`
+	EncodedTaskStep     []EncodedTaskStep    `tfschema:"encoded_step"`
+	BaseImageTrigger    []BaseImageTrigger   `tfschema:"base_image_trigger"`
+	SourceTrigger       []SourceTrigger      `tfschema:"source_trigger"`
+	TimerTrigger        []TimerTrigger       `tfschema:"timer_trigger"`
+	RegistryCredential  []RegistryCredential `tfschema:"registry_credential"`
+	Tags                map[string]string    `tfschema:"tags"`
 }
 
 func userDataStateFunc(v interface{}) string {
@@ -540,30 +549,58 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 			},
 		},
 		"registry_credential": {
-			Type:      pluginsdk.TypeSet,
-			Sensitive: true,
-			Optional:  true,
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
-					"login_server": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+					"source": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"login_mode": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(legacyacr.SourceRegistryLoginModeNone),
+										string(legacyacr.SourceRegistryLoginModeDefault),
+									}, false),
+								},
+							},
+						},
+						AtLeastOneOf: []string{"registry_credential.0.source", "registry_credential.0.custom"},
 					},
-					"username": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"password": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"identity": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+					"custom": {
+						Type:      pluginsdk.TypeSet,
+						Sensitive: true,
+						Optional:  true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"login_server": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"username": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"password": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"identity": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+							},
+						},
+						AtLeastOneOf: []string{"registry_credential.0.source", "registry_credential.0.custom"},
 					},
 				},
 			},
@@ -608,7 +645,7 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 			ValidateFunc: validation.IntBetween(300, 28800),
 			Default:      3600,
 		},
-		"tags": tags.ForceNewSchema(),
+		"tags": tags.Schema(),
 	}
 }
 
@@ -699,25 +736,22 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 
 			params := legacyacr.Task{
 				TaskProperties: &legacyacr.TaskProperties{
-					Platform:     expandRegistryTaskPlatform(model.Platform),
-					Step:         expandRegistryTaskStep(model),
-					Trigger:      expandRegistryTaskTrigger(model),
-					Status:       status,
-					IsSystemTask: &model.IsSystemTask,
-					Timeout:      utils.Int32(int32(model.TimeoutInSec)),
-					Credentials:  expandRegistryTaskCredentials(model.RegistryCredential),
+					Platform:           expandRegistryTaskPlatform(model.Platform),
+					Step:               expandRegistryTaskStep(model),
+					Trigger:            expandRegistryTaskTrigger(model),
+					Status:             status,
+					IsSystemTask:       &model.IsSystemTask,
+					Timeout:            utils.Int32(int32(model.TimeoutInSec)),
+					Credentials:        expandRegistryTaskCredentials(model.RegistryCredential),
+					AgentConfiguration: expandRegistryTaskAgentProperties(model.AgentConfig),
 				},
 
 				// The location of the task must be the same as the registry, otherwise the API will raise error complaining can't find the registry.
 				Location: utils.String(location.NormalizeNilable(registry.Location)),
 				Identity: expandRegistryTaskIdentity(model.Identity),
-				Tags:     tags.Expand(model.Tags),
+				Tags:     tags.FromTypedObject(model.Tags),
 			}
 
-			if len(model.AgentConfig) != 0 {
-				agentConfig := model.AgentConfig[0]
-				params.TaskProperties.AgentConfiguration = &legacyacr.AgentProperties{CPU: utils.Int32(int32(agentConfig.CPU))}
-			}
 			if model.AgentPoolName != "" {
 				params.TaskProperties.AgentPoolName = &model.AgentPoolName
 			}
@@ -781,13 +815,7 @@ func (r ContainerRegistryTaskResource) Read() sdk.ResourceFunc {
 				registryCredential []RegistryCredential
 			)
 			if props := task.TaskProperties; props != nil {
-				if cfg := props.AgentConfiguration; cfg != nil {
-					cpu := 0
-					if cfg.CPU != nil {
-						cpu = int(*cfg.CPU)
-					}
-					agentConfig = []AgentConfig{{CPU: cpu}}
-				}
+				agentConfig = flattenRegistryTaskAgentProperties(props.AgentConfiguration)
 				if props.AgentPoolName != nil {
 					agentPoolName = *props.AgentPoolName
 				}
@@ -810,9 +838,7 @@ func (r ContainerRegistryTaskResource) Read() sdk.ResourceFunc {
 					sourceTrigger = flattenRegistryTaskSourceTriggers(trigger.SourceTriggers, diffOrStateModel)
 					timerTrigger = flattenRegistryTaskTimerTriggers(trigger.TimerTriggers)
 				}
-
-				// The RegistryCredential is not returned from the API, setting it from the state.
-				registryCredential = diffOrStateModel.RegistryCredential
+				registryCredential = flattenRegistryTaskCredentials(props.Credentials, diffOrStateModel)
 			}
 			identity, err := flattenRegistryTaskIdentity(task.Identity)
 			if err != nil {
@@ -836,7 +862,7 @@ func (r ContainerRegistryTaskResource) Read() sdk.ResourceFunc {
 				SourceTrigger:       sourceTrigger,
 				TimerTrigger:        timerTrigger,
 				RegistryCredential:  registryCredential,
-				Tags:                tags.Flatten(task.Tags),
+				Tags:                tags.ToTypedObject(task.Tags),
 			}
 
 			return metadata.Encode(&model)
@@ -880,53 +906,61 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var state ContainerRegistryTaskModel
-			if err := metadata.Decode(&state); err != nil {
+			client := metadata.Client.Containers.TasksClient
+			existing, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.TaskName)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: +%v", *id, err)
+			}
+			if existing.TaskProperties == nil {
+				return fmt.Errorf("unexpected null properties of %s", *id)
+			}
+
+			var model ContainerRegistryTaskModel
+			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			client := metadata.Client.Containers.TasksClient
-
-			status := legacyacr.TaskStatusDisabled
-			if state.Enabled {
-				status = legacyacr.TaskStatusEnabled
+			if metadata.ResourceData.HasChange("platform") {
+				existing.TaskProperties.Platform = expandRegistryTaskPlatform(model.Platform)
 			}
-
-			registryClient := metadata.Client.Containers.RegistriesClient
-			registry, err := registryClient.Get(ctx, id.ResourceGroup, id.RegistryName)
-			if err != nil {
-				return fmt.Errorf("getting registry %s: %+v", id.RegistryName, err)
+			if metadata.ResourceData.HasChange("docker_step") || metadata.ResourceData.HasChange("file_step") || metadata.ResourceData.HasChange("encoded_step") {
+				existing.TaskProperties.Step = expandRegistryTaskStep(model)
 			}
-
-			params := legacyacr.Task{
-				TaskProperties: &legacyacr.TaskProperties{
-					Platform:     expandRegistryTaskPlatform(state.Platform),
-					Step:         expandRegistryTaskStep(state),
-					Trigger:      expandRegistryTaskTrigger(state),
-					Status:       status,
-					IsSystemTask: &state.IsSystemTask,
-					Timeout:      utils.Int32(int32(state.TimeoutInSec)),
-					Credentials:  expandRegistryTaskCredentials(state.RegistryCredential),
-				},
-				Location: utils.String(location.NormalizeNilable(registry.Location)),
-				Identity: expandRegistryTaskIdentity(state.Identity),
-				Tags:     tags.Expand(state.Tags),
+			if metadata.ResourceData.HasChange("base_image_trigger") || metadata.ResourceData.HasChange("source_trigger") || metadata.ResourceData.HasChange("timer_trigger") {
+				existing.TaskProperties.Trigger = expandRegistryTaskTrigger(model)
 			}
-
-			if len(state.AgentConfig) != 0 {
-				agentConfig := state.AgentConfig[0]
-				params.TaskProperties.AgentConfiguration = &legacyacr.AgentProperties{CPU: utils.Int32(int32(agentConfig.CPU))}
+			if metadata.ResourceData.HasChange("identity") {
+				existing.Identity = expandRegistryTaskIdentity(model.Identity)
 			}
-			if state.AgentPoolName != "" {
-				params.TaskProperties.AgentPoolName = &state.AgentPoolName
+			if metadata.ResourceData.HasChange("registry_credential") {
+				existing.TaskProperties.Credentials = expandRegistryTaskCredentials(model.RegistryCredential)
 			}
-			if state.LogTemplate != "" {
-				params.TaskProperties.LogTemplate = &state.LogTemplate
+			if metadata.ResourceData.HasChange("agent_setting") {
+				existing.TaskProperties.AgentConfiguration = expandRegistryTaskAgentProperties(model.AgentConfig)
+			}
+			if metadata.ResourceData.HasChange("agent_pool_name") && model.AgentPoolName != "" {
+				existing.TaskProperties.AgentPoolName = &model.AgentPoolName
+			}
+			if metadata.ResourceData.HasChange("enabled") {
+				status := legacyacr.TaskStatusDisabled
+				if model.Enabled {
+					status = legacyacr.TaskStatusEnabled
+				}
+				existing.TaskProperties.Status = status
+			}
+			if metadata.ResourceData.HasChange("log_template") && model.LogTemplate != "" {
+				existing.TaskProperties.LogTemplate = &model.LogTemplate
+			}
+			if metadata.ResourceData.HasChange("timeout_in_seconds") {
+				existing.TaskProperties.Timeout = utils.Int32(int32(model.TimeoutInSec))
+			}
+			if metadata.ResourceData.HasChange("tags") {
+				existing.Tags = tags.FromTypedObject(model.Tags)
 			}
 
 			// Due to the fact that the service doesn't honor explicitly set to null fields in the PATCH request,
 			// we can not use PATCH (i.e. the Update) here.
-			future, err := client.Create(ctx, id.ResourceGroup, id.RegistryName, id.TaskName, params)
+			future, err := client.Create(ctx, id.ResourceGroup, id.RegistryName, id.TaskName, existing)
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
@@ -1513,11 +1547,53 @@ func expandRegistryTaskCredentials(input []RegistryCredential) *legacyacr.Creden
 		return nil
 	}
 
-	out := legacyacr.Credentials{
-		SourceRegistry:   &legacyacr.SourceRegistryCredentials{LoginMode: legacyacr.SourceRegistryLoginModeDefault},
-		CustomRegistries: map[string]*legacyacr.CustomRegistryCredentials{},
+	return &legacyacr.Credentials{
+		SourceRegistry:   expandSourceRegistryCredential(input[0].Source),
+		CustomRegistries: expandCustomRegistryCredential(input[0].Custom),
+	}
+}
+
+func flattenRegistryTaskCredentials(input *legacyacr.Credentials, model ContainerRegistryTaskModel) []RegistryCredential {
+	if input == nil {
+		return nil
 	}
 
+	// The customRegistryCredentials is sensitive and won't return from API, setting it from the config.
+	var custom []CustomRegistryCredential
+	if len(model.RegistryCredential) == 1 {
+		custom = model.RegistryCredential[0].Custom
+	}
+
+	return []RegistryCredential{
+		{
+			Source: flattenSourceRegistryCredential(input.SourceRegistry),
+			Custom: custom,
+		},
+	}
+}
+
+func expandSourceRegistryCredential(input []SourceRegistryCredential) *legacyacr.SourceRegistryCredentials {
+	if len(input) == 0 {
+		return nil
+	}
+
+	return &legacyacr.SourceRegistryCredentials{LoginMode: legacyacr.SourceRegistryLoginMode(input[0].LoginMode)}
+}
+
+func flattenSourceRegistryCredential(input *legacyacr.SourceRegistryCredentials) []SourceRegistryCredential {
+	if input == nil {
+		return nil
+	}
+
+	return []SourceRegistryCredential{{LoginMode: string(input.LoginMode)}}
+}
+
+func expandCustomRegistryCredential(input []CustomRegistryCredential) map[string]*legacyacr.CustomRegistryCredentials {
+	if len(input) == 0 {
+		return nil
+	}
+
+	out := map[string]*legacyacr.CustomRegistryCredentials{}
 	for _, credential := range input {
 		cred := &legacyacr.CustomRegistryCredentials{}
 
@@ -1544,8 +1620,28 @@ func expandRegistryTaskCredentials(input []RegistryCredential) *legacyacr.Creden
 		if credential.Identity != "" {
 			cred.Identity = utils.String(credential.Identity)
 		}
-		out.CustomRegistries[credential.LoginServer] = cred
+		out[credential.LoginServer] = cred
+	}
+	return out
+}
+
+func expandRegistryTaskAgentProperties(input []AgentConfig) *legacyacr.AgentProperties {
+	if len(input) == 0 {
+		return nil
 	}
 
-	return &out
+	agentConfig := input[0]
+	return &legacyacr.AgentProperties{CPU: utils.Int32(int32(agentConfig.CPU))}
+}
+
+func flattenRegistryTaskAgentProperties(input *legacyacr.AgentProperties) []AgentConfig {
+	if input == nil {
+		return nil
+	}
+
+	cpu := 0
+	if input.CPU != nil {
+		cpu = int(*input.CPU)
+	}
+	return []AgentConfig{{CPU: cpu}}
 }

@@ -83,9 +83,9 @@ The following arguments are supported:
 
 * `log_template` - (Optional) The template that describes the run log artifact.
 
-* `registry_credential` - (Optional) One or more `registry_credential` blocks as defined below.
+* `registry_credential` - (Optional) One `registry_credential` block as defined below.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Container Registry Task. Changing this forces a new Container Registry Task to be created.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Container Registry Task.
 
 * `timeout_in_seconds` - (Optional) The timeout of this Container Registry Task in seconds. The valid range lies from 300 to 28800. Defaults to 3600.
 
@@ -122,6 +122,18 @@ A `base_image_trigger` block supports the following:
 * `update_trigger_endpoint` - (Optional) The endpoint URL for receiving the trigger.
 
 * `update_trigger_payload_type` - (Optional) Type of payload body for the trigger. Possible values are `Default` and `Token`.
+
+---
+
+A `custom` block supports the following:
+
+* `login_server` - (Required) The login server of the custom Container Registry.
+
+* `identity` - (Optional) The managed identity assigned to this custom credential. For user assigned identity, the value is the client ID of the identity. For system assigned identity, the value is `system`.
+
+* `password` - (Optional) The password for logging into the custom Container Registry. It can be either a plain text of password, or a Keyvault Secret ID.
+
+* `username` - (Optional) The username for logging into the custom Container Registry. It can be either a plain text of username, or a Keyvault Secret ID.
 
 ---
 
@@ -199,13 +211,15 @@ A `platform` block supports the following:
 
 A `registry_credential` block supports the following:
 
-* `login_server` - (Required) The login server of the custom Container Registry.
+* `source` - (Optional) One `source` block as defined below.
 
-* `identity` - (Optional) The managed identity assigned to this custom credential. For user assigned identity, the value is the client ID of the identity. For system assigned identity, the value is `system`.
+* `custom` - (Optional) One or more `custom` blocks as defined above.
 
-* `password` - (Optional) The password for logging into the custom Container Registry. It can be either a plain text of password, or a Keyvault Secret ID.
+---
 
-* `username` - (Optional) The username for logging into the custom Container Registry. It can be either a plain text of username, or a Keyvault Secret ID.
+A `source` block supports the following:
+
+* `login_mode` - (Required) The login mode for the source registry. Possible values are `None` and `Default`.
 
 ---
 

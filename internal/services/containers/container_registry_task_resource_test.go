@@ -367,13 +367,12 @@ func TestAccContainerRegistryTask_fileTaskStepRegistryCredential(t *testing.T) {
 		},
 		data.ImportStep(
 			"file_step.0.context_access_token",
-			"file_step.0.registry_credential",
-			"registry_credential.#",
-			"registry_credential.0.%",
-			"registry_credential.0.identity",
-			"registry_credential.0.login_server",
-			"registry_credential.0.password",
-			"registry_credential.0.username",
+			"registry_credential.0.custom.#",
+			"registry_credential.0.custom.0.%",
+			"registry_credential.0.custom.0.identity",
+			"registry_credential.0.custom.0.login_server",
+			"registry_credential.0.custom.0.password",
+			"registry_credential.0.custom.0.username",
 		),
 		{
 			Config: r.fileTaskStepBasic(data),
@@ -893,9 +892,11 @@ resource "azurerm_container_registry_task" "test" {
     }
   }
   registry_credential {
-    login_server = azurerm_container_registry.test2.login_server
-    username     = "%s"
-    password     = "%s"
+    custom {
+      login_server = azurerm_container_registry.test2.login_server
+      username     = "%s"
+      password     = "%s"
+    }
   }
 }
 `, template, data.RandomInteger, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, os.Getenv("ARM_CLIENT_ID"), os.Getenv("ARM_CLIENT_SECRET"))
