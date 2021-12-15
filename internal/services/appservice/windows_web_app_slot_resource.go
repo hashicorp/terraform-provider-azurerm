@@ -3,10 +3,11 @@ package appservice
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
