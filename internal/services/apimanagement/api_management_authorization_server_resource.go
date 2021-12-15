@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -54,14 +54,14 @@ func resourceApiManagementAuthorizationServer() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(apimanagement.DELETE),
-						string(apimanagement.GET),
-						string(apimanagement.HEAD),
-						string(apimanagement.OPTIONS),
-						string(apimanagement.PATCH),
-						string(apimanagement.POST),
-						string(apimanagement.PUT),
-						string(apimanagement.TRACE),
+						string(apimanagement.AuthorizationMethodDELETE),
+						string(apimanagement.AuthorizationMethodGET),
+						string(apimanagement.AuthorizationMethodHEAD),
+						string(apimanagement.AuthorizationMethodOPTIONS),
+						string(apimanagement.AuthorizationMethodPATCH),
+						string(apimanagement.AuthorizationMethodPOST),
+						string(apimanagement.AuthorizationMethodPUT),
+						string(apimanagement.AuthorizationMethodTRACE),
 					}, false),
 				},
 				Set: pluginsdk.HashString,
@@ -91,10 +91,10 @@ func resourceApiManagementAuthorizationServer() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(apimanagement.AuthorizationCode),
-						string(apimanagement.ClientCredentials),
-						string(apimanagement.Implicit),
-						string(apimanagement.ResourceOwnerPassword),
+						string(apimanagement.GrantTypeAuthorizationCode),
+						string(apimanagement.GrantTypeClientCredentials),
+						string(apimanagement.GrantTypeImplicit),
+						string(apimanagement.GrantTypeResourceOwnerPassword),
 					}, false),
 				},
 				Set: pluginsdk.HashString,
@@ -107,8 +107,8 @@ func resourceApiManagementAuthorizationServer() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(apimanagement.AuthorizationHeader),
-						string(apimanagement.Query),
+						string(apimanagement.BearerTokenSendingMethodAuthorizationHeader),
+						string(apimanagement.BearerTokenSendingMethodQuery),
 					}, false),
 				},
 				Set: pluginsdk.HashString,
@@ -120,8 +120,8 @@ func resourceApiManagementAuthorizationServer() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(apimanagement.Basic),
-						string(apimanagement.Body),
+						string(apimanagement.ClientAuthenticationMethodBasic),
+						string(apimanagement.ClientAuthenticationMethodBody),
 					}, false),
 				},
 				Set: pluginsdk.HashString,
