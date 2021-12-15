@@ -502,11 +502,11 @@ resource "azurerm_iothub" "test" {
   event_hub_partition_count   = 77
 
   endpoint {
-    type                       = "AzureIotHub.StorageContainer"
-    connection_string          = azurerm_storage_account.test.primary_blob_connection_string
-    name                       = "export"
-    container_name             = azurerm_storage_container.test.name
-    resource_group_name        = azurerm_resource_group.test.name
+    type                = "AzureIotHub.StorageContainer"
+    connection_string   = azurerm_storage_account.test.primary_blob_connection_string
+    name                = "export"
+    container_name      = azurerm_storage_container.test.name
+    resource_group_name = azurerm_resource_group.test.name
   }
 
   endpoint {
