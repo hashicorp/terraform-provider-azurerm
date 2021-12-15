@@ -276,7 +276,6 @@ resource "azurerm_postgresql_configuration" "test8" {
 }
 
 resource "azurerm_postgresql_configuration" "test9" {
-  count               = 1
   name                = "pg_qs.max_query_text_length"
   resource_group_name = azurerm_postgresql_server.test.resource_group_name
   server_name         = azurerm_postgresql_server.test.name
@@ -284,7 +283,6 @@ resource "azurerm_postgresql_configuration" "test9" {
 }
 
 resource "azurerm_postgresql_configuration" "test10" {
-  count               = 1
   name                = "pg_qs.retention_period_in_days"
   resource_group_name = azurerm_postgresql_server.test.resource_group_name
   server_name         = azurerm_postgresql_server.test.name
