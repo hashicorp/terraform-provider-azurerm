@@ -3,12 +3,13 @@ package logic
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"log"
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
