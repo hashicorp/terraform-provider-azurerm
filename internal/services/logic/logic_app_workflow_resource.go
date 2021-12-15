@@ -3,6 +3,8 @@ package logic
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"log"
 	"regexp"
 	"strconv"
@@ -12,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
@@ -26,7 +27,7 @@ import (
 
 var logicAppResourceName = "azurerm_logic_app"
 
-type logicAppWorkflowIdentity = identity.IndependentSystemAssignedUserAssigned
+type logicAppWorkflowIdentity = identity.SystemOrUserAssignedMap
 
 func resourceLogicAppWorkflow() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -199,7 +200,7 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": logicAppWorkflowIdentity{}.Schema(),
+			"identity": commonschema.SystemOrUserAssignedIdentity(),
 
 			"logic_app_integration_account_id": {
 				Type:         pluginsdk.TypeString,
@@ -824,7 +825,7 @@ func expandLogicAppWorkflowOpenAuthenticationPolicy(input []interface{}) map[str
 		policyName := v["name"].(string)
 
 		results[policyName] = &logic.OpenAuthenticationAccessPolicy{
-			Type:   logic.AAD,
+			Type:   logic.OpenAuthenticationProviderTypeAAD,
 			Claims: expandLogicAppWorkflowOpenAuthenticationPolicyClaim(v["claim"].(*pluginsdk.Set).List()),
 		}
 	}
@@ -847,15 +848,15 @@ func expandLogicAppWorkflowOpenAuthenticationPolicyClaim(input []interface{}) *[
 }
 
 func expandLogicAppWorkflowIdentity(input []interface{}) (*logic.ManagedServiceIdentity, error) {
-	config, err := logicAppWorkflowIdentity{}.Expand(input)
+	config, err := identity.ExpandSystemOrUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
 	var identityIds map[string]*logic.UserAssignedIdentity
-	if len(config.UserAssignedIdentityIds) != 0 {
+	if len(config.IdentityIds) != 0 {
 		identityIds = map[string]*logic.UserAssignedIdentity{}
-		for _, id := range config.UserAssignedIdentityIds {
+		for id := range config.IdentityIds {
 			identityIds[id] = &logic.UserAssignedIdentity{}
 		}
 	}
@@ -986,17 +987,18 @@ func flattenLogicAppWorkflowOpenAuthenticationPolicyClaim(input *[]logic.OpenAut
 	return results
 }
 
-func flattenLogicAppWorkflowIdentity(input *logic.ManagedServiceIdentity) ([]interface{}, error) {
-	var config *identity.ExpandedConfig
-
+func flattenLogicAppWorkflowIdentity(input *logic.ManagedServiceIdentity) (*[]interface{}, error) {
+	var config *identity.SystemOrUserAssignedMap
 	if input != nil {
-		var identityIds []string
+		identityIds := map[string]identity.UserAssignedIdentityDetails{}
 		for id := range input.UserAssignedIdentities {
 			parsedId, err := msiParser.UserAssignedIdentityIDInsensitively(id)
 			if err != nil {
 				return nil, err
 			}
-			identityIds = append(identityIds, parsedId.ID())
+			identityIds[parsedId.ID()] = identity.UserAssignedIdentityDetails{
+				// intentionally empty
+			}
 		}
 
 		principalId := ""
@@ -1009,12 +1011,12 @@ func flattenLogicAppWorkflowIdentity(input *logic.ManagedServiceIdentity) ([]int
 			tenantId = input.TenantID.String()
 		}
 
-		config = &identity.ExpandedConfig{
-			Type:                    identity.Type(string(input.Type)),
-			PrincipalId:             principalId,
-			TenantId:                tenantId,
-			UserAssignedIdentityIds: identityIds,
+		config = &identity.SystemOrUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			PrincipalId: principalId,
+			TenantId:    tenantId,
+			IdentityIds: identityIds,
 		}
 	}
-	return logicAppWorkflowIdentity{}.Flatten(config), nil
+	return identity.FlattenSystemOrUserAssignedMap(config)
 }
