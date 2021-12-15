@@ -3,7 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_container_registry_task` [GH-14533]
-* 
+
 ENHANCEMENTS:
 
 * dependencies: updating `apimanagement` to API Version `2021-08-01` [GH-14312]
@@ -18,6 +18,8 @@ ENHANCEMENTS:
 * `azurerm_cosmosdb_account` - support for the `create_mode` property and `restore` block [GH-14362]
 
 BUG FIXES:
+
+* `azurerm_marketplace_agreement` - fix crash when the import check triggers [GH-14614]
 
 ## 2.89.0 (December 10, 2021)
 
