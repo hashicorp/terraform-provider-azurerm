@@ -92,7 +92,7 @@ func (t TriggerScheduleResource) Exists(ctx context.Context, clients *clients.Cl
 
 	resp, err := clients.DataFactory.TriggersClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Data Factory Trigger Schedule (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -118,7 +118,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_pipeline" "test" {
   name                = "acctest%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
 
   parameters = {
     test = "testparameter"
@@ -127,7 +127,7 @@ resource "azurerm_data_factory_pipeline" "test" {
 
 resource "azurerm_data_factory_trigger_schedule" "test" {
   name                = "acctestdf%d"
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   resource_group_name = azurerm_resource_group.test.name
   pipeline_name       = azurerm_data_factory_pipeline.test.name
 
@@ -200,7 +200,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_pipeline" "test" {
   name                = "acctest%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
 
   parameters = {
     test = "testparameter"
@@ -209,7 +209,7 @@ resource "azurerm_data_factory_pipeline" "test" {
 
 resource "azurerm_data_factory_trigger_schedule" "test" {
   name                = "acctestdf%d"
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   resource_group_name = azurerm_resource_group.test.name
   pipeline_name       = azurerm_data_factory_pipeline.test.name
 
@@ -246,7 +246,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_pipeline" "test" {
   name                = "acctest%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
 
   parameters = {
     test = "testparameter"
@@ -255,7 +255,7 @@ resource "azurerm_data_factory_pipeline" "test" {
 
 resource "azurerm_data_factory_trigger_schedule" "test" {
   name                = "acctestdf%d"
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   resource_group_name = azurerm_resource_group.test.name
   pipeline_name       = azurerm_data_factory_pipeline.test.name
 
