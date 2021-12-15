@@ -678,7 +678,7 @@ func TestAccWindowsWebAppSlot_withDocker(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.docker(data, "mcr.microsoft.com/appsvc/staticsite", "latest"),
+			Config: r.docker(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|mcr.microsoft.com/azure-app-service/samples/aspnethelloworld:latest"),
@@ -1612,34 +1612,7 @@ resource "azurerm_windows_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger, javaVersion, javaContainerStr, javaContainerVersionStr)
 }
 
-func (r WindowsWebAppSlotResource) javaPremiumV3Plan(data acceptance.TestData, javaVersion, javaServer, javaServerVersion string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_windows_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_windows_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  site_config {
-    application_stack {
-      java_version        = "%s"
-      java_server         = "%s"
-      java_server_version = "%s"
-    }
-  }
-}
-
-`, r.premiumV3PlanTemplate(data), data.RandomInteger, javaVersion, javaServer, javaServerVersion)
-}
-
-func (r WindowsWebAppSlotResource) docker(data acceptance.TestData, containerImage, containerTag string) string {
+func (r WindowsWebAppSlotResource) docker(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1764,31 +1737,4 @@ data "azurerm_storage_account_sas" "test" {
   }
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomString)
-}
-
-func (WindowsWebAppSlotResource) premiumV3PlanTemplate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  os_type             = "Windows"
-  sku_name            = "P1v3"
-}
-
-resource "azurerm_windows_web_app" "test" {
-  name                = "acctestWA-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  site_config {}
-}
-`, data.RandomInteger, data.Locations.Primary)
 }
