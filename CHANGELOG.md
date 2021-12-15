@@ -3,11 +3,13 @@
 FEATURES:
 
 * **New Resource:** `azurerm_container_registry_task` [GH-14533]
+* 
 ENHANCEMENTS:
 
 * dependencies: updating `apimanagement` to API Version `2021-08-01` [GH-14312]
 * dependencies: updating `redisenterprise` to use an Embedded SDK [GH-14502]
-* dependencies: updating `github.com/hashicorp/terraform-plugin-sdk` [GH-14596]
+* dependencies: updating to `v0.19.1` of `github.com/hashicorp/go-azure-helpers` [GH-14627]
+* dependencies: updating to `v2.10.0` of `github.com/hashicorp/terraform-plugin-sdk` [GH-14596]
 * `azurerm_data_factory_dataset_*` - deprecate data_factory_name in favour of data_factory_id for consistency across all data factory dataset resources [GH-14610]
 * `azurerm_data_factory_integration_runtime_*`- deprecate data_factory_name in favour of data_factory_id for consistency across all data factory integration runtime resources [GH-14610]
 * `azurerm_data_factory_trigger_*`- deprecate data_factory_name in favour of data_factory_id for consistency across all data factory trigger resources [GH-14610]
