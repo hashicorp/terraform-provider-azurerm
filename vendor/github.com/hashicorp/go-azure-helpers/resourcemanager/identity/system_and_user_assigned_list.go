@@ -5,21 +5,22 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-var _ json.Marshaler = &SystemUserAssignedMap{}
+var _ json.Marshaler = &SystemAndUserAssignedList{}
 
-type SystemUserAssignedMap struct {
-	Type        Type                                   `json:"type"`
-	PrincipalId string                                 `json:"principalId"`
-	TenantId    string                                 `json:"tenantId"`
-	IdentityIds map[string]UserAssignedIdentityDetails `json:"userAssignedIdentities"`
+type SystemAndUserAssignedList struct {
+	Type        Type     `json:"type"`
+	PrincipalId string   `json:"principalId"`
+	TenantId    string   `json:"tenantId"`
+	IdentityIds []string `json:"userAssignedIdentities"`
 }
 
-func (s *SystemUserAssignedMap) MarshalJSON() ([]byte, error) {
+func (s *SystemAndUserAssignedList) MarshalJSON() ([]byte, error) {
 	// we use a custom marshal function here since we can only send the Type / UserAssignedIdentities field
 	identityType := TypeNone
-	userAssignedIdentityIds := map[string]UserAssignedIdentityDetails{}
+	userAssignedIdentityIds := []string{}
 
 	if s != nil {
 		if s.Type == TypeSystemAssigned {
@@ -44,10 +45,10 @@ func (s *SystemUserAssignedMap) MarshalJSON() ([]byte, error) {
 	return json.Marshal(out)
 }
 
-// ExpandSystemAssignedUserAssignedMap expands the schema input into a SystemUserAssignedMap struct
-func ExpandSystemAssignedUserAssignedMap(input []interface{}) (*SystemUserAssignedMap, error) {
+// ExpandSystemAndUserAssignedList expands the schema input into a SystemAndUserAssignedList struct
+func ExpandSystemAndUserAssignedList(input []interface{}) (*SystemAndUserAssignedList, error) {
 	identityType := TypeNone
-	identityIds := make(map[string]UserAssignedIdentityDetails, 0)
+	identityIds := make([]string, 0)
 
 	if len(input) > 0 {
 		raw := input[0].(map[string]interface{})
@@ -62,11 +63,9 @@ func ExpandSystemAssignedUserAssignedMap(input []interface{}) (*SystemUserAssign
 			identityType = TypeUserAssigned
 		}
 
-		identityIdsRaw := raw["identity_ids"].([]interface{})
+		identityIdsRaw := raw["identity_ids"].(*schema.Set).List()
 		for _, v := range identityIdsRaw {
-			identityIds[v.(string)] = UserAssignedIdentityDetails{
-				// intentionally empty since the expand shouldn't send these values
-			}
+			identityIds = append(identityIds, v.(string))
 		}
 	}
 
@@ -74,20 +73,20 @@ func ExpandSystemAssignedUserAssignedMap(input []interface{}) (*SystemUserAssign
 		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` is set to %q or %q", string(TypeSystemAssignedUserAssigned), string(TypeUserAssigned))
 	}
 
-	return &SystemUserAssignedMap{
+	return &SystemAndUserAssignedList{
 		Type:        identityType,
 		IdentityIds: identityIds,
 	}, nil
 }
 
-// FlattenSystemAssignedUserAssignedMap turns a SystemUserAssignedMap into a []interface{}
-func FlattenSystemAssignedUserAssignedMap(input *SystemUserAssignedMap) (*[]interface{}, error) {
+// FlattenSystemAndUserAssignedList turns a SystemAndUserAssignedList into a []interface{}
+func FlattenSystemAndUserAssignedList(input *SystemAndUserAssignedList) (*[]interface{}, error) {
 	if input == nil || (input.Type != TypeSystemAssigned && input.Type != TypeSystemAssignedUserAssigned && input.Type != TypeUserAssigned) {
 		return &[]interface{}{}, nil
 	}
 
 	identityIds := make([]string, 0)
-	for raw := range input.IdentityIds {
+	for _, raw := range input.IdentityIds {
 		id, err := commonids.ParseUserAssignedIdentityIDInsensitively(raw)
 		if err != nil {
 			return nil, fmt.Errorf("parsing %q as a User Assigned Identity ID: %+v", raw, err)
