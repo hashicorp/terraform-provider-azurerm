@@ -124,7 +124,6 @@ func resourceAfdEndpointRoutes() *pluginsdk.Resource {
 			"enable_caching": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				ForceNew: true, // had issues when updating it - heoelri 12/15/2021
 				Default:  false,
 			},
 
@@ -192,7 +191,6 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 	defer cancel()
 
 	routeName := d.Get("name").(string)
-	originPath := d.Get("origin_path").(string)
 
 	// parse endpoint_id
 	endpointId := d.Get("endpoint_id").(string)
@@ -218,7 +216,7 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 		contentTypesToCompressArray = append(contentTypesToCompressArray, pattern)
 	}
 
-	if cachingEnabled {
+	if cachingEnabled == true {
 		compressionSettings.IsCompressionEnabled = &cachingEnabled
 		compressionSettings.ContentTypesToCompress = &contentTypesToCompressArray
 	}
@@ -315,11 +313,16 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 			SupportedProtocols:  &supportedProtocolsArray,
 			ForwardingProtocol:  cdn.ForwardingProtocol(forwardingProtocol),
 			LinkToDefaultDomain: linkToDefault,
-			OriginPath:          utils.String(originPath),
 			RuleSets:            &ruleSetsArray,
 			PatternsToMatch:     &patternsToMatchArray,
 			HTTPSRedirect:       httpsRedirectSet,
 		},
+	}
+
+	// originPath
+	originPath := d.Get("origin_path").(string)
+	if originPath != "" {
+		route.OriginPath = &originPath
 	}
 
 	// query_string_caching_behavior
