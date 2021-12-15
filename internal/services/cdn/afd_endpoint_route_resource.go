@@ -59,6 +59,17 @@ func resourceAfdEndpointRoutes() *pluginsdk.Resource {
 				ValidateFunc: validate.AfdEndpointsID,
 			},
 
+			// CustomDomains - Domains referenced by this endpoint.
+			"custom_domains": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
+			// OriginGroup - A reference to the origin group.
 			"origin_group_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -66,16 +77,24 @@ func resourceAfdEndpointRoutes() *pluginsdk.Resource {
 				ValidateFunc: validate.AfdOriginGroupsID,
 			},
 
-			"forwarding_protocol": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.ForwardingProtocolHTTPOnly),
-					string(cdn.ForwardingProtocolHTTPSOnly),
-					string(cdn.ForwardingProtocolMatchRequest),
-				}, false),
+			// OriginPath - A directory path on the origin that AzureFrontDoor can use to retrieve content from, e.g. contoso.cloudapp.net/originpath.
+			"origin_path": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			// RuleSets - rule sets referenced by this endpoint.
+			"rule_sets": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
+			// SupportedProtocols - List of supported protocols for this route.
 			"supported_protocols": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -90,19 +109,78 @@ func resourceAfdEndpointRoutes() *pluginsdk.Resource {
 				},
 			},
 
-			"link_to_default_domain": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
-			"custom_domains": {
+			// PatternsToMatch - The route patterns of the rule.
+			"patterns_to_match": {
 				Type:     pluginsdk.TypeList,
-				Required: true,
-				MinItems: 1,
+				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+			},
+
+			// CompressionSettings - compression settings
+			// IsCompressionEnabled - Indicates whether content compression is enabled on AzureFrontDoor. Default value is false. If compression is enabled, content will be served as compressed if user requests for a compressed version. Content won't be compressed on AzureFrontDoor when requested content is smaller than 1 byte or larger than 1 MB.
+			"enable_caching": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true, // had issues when updating it - heoelri 12/15/2021
+				Default:  false,
+			},
+
+			// ContentTypesToCompress - List of content types on which compression applies. The value should be a valid MIME type.
+			"content_types_to_compress": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+
+			// QueryStringCachingBehavior - Defines how CDN caches requests that include query strings. You can ignore any query strings when caching, bypass caching to prevent requests that contain query strings from being cached, or cache every request with a unique URL. Possible values include: 'AfdQueryStringCachingBehaviorIgnoreQueryString', 'AfdQueryStringCachingBehaviorUseQueryString', 'AfdQueryStringCachingBehaviorNotSet'
+			"query_string_caching_behavior": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  cdn.AfdQueryStringCachingBehaviorNotSet,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(cdn.AfdQueryStringCachingBehaviorIgnoreQueryString),
+					string(cdn.AfdQueryStringCachingBehaviorNotSet),
+					string(cdn.AfdQueryStringCachingBehaviorUseQueryString),
+				}, false),
+			},
+
+			// ForwardingProtocol - Protocol this rule will use when forwarding traffic to backends. Possible values include: 'ForwardingProtocolHTTPOnly', 'ForwardingProtocolHTTPSOnly', 'ForwardingProtocolMatchRequest'
+			"forwarding_protocol": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  cdn.ForwardingProtocolMatchRequest,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(cdn.ForwardingProtocolHTTPOnly),
+					string(cdn.ForwardingProtocolHTTPSOnly),
+					string(cdn.ForwardingProtocolMatchRequest),
+				}, false),
+			},
+
+			// LinkToDefaultDomain - whether this route will be linked to the default endpoint domain.
+			"link_to_default_domain": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
+			// HTTPSRedirect - Whether to automatically redirect HTTP traffic to HTTPS traffic. Note that this is a easy way to set up this rule and it will be the first rule that gets executed.
+			"https_redirect": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  cdn.HTTPSRedirectDisabled,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(cdn.HTTPSRedirectDisabled),
+					string(cdn.HTTPSRedirectEnabled),
+				}, false),
 			},
 		},
 	}
@@ -114,6 +192,7 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 	defer cancel()
 
 	routeName := d.Get("name").(string)
+	originPath := d.Get("origin_path").(string)
 
 	// parse endpoint_id
 	endpointId := d.Get("endpoint_id").(string)
@@ -128,6 +207,23 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 		ID: &originGroupId,
 	}
 
+	// caching
+	cachingEnabled := d.Get("enable_caching").(bool)
+	contentTypesToCompress := d.Get("content_types_to_compress").([]interface{})
+	// create an array of content types
+	var compressionSettings cdn.CompressionSettings
+	contentTypesToCompressArray := make([]string, 0)
+	for _, contentType := range contentTypesToCompress {
+		pattern := contentType.(string)
+		contentTypesToCompressArray = append(contentTypesToCompressArray, pattern)
+	}
+
+	if cachingEnabled {
+		compressionSettings.IsCompressionEnabled = &cachingEnabled
+		compressionSettings.ContentTypesToCompress = &contentTypesToCompressArray
+	}
+
+	// endpoint route enabled state
 	var enabledState cdn.EnabledState = cdn.EnabledStateEnabled
 	if !d.Get("enabled").(bool) {
 		enabledState = cdn.EnabledStateDisabled
@@ -136,6 +232,18 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	id := parse.NewAfdEndpointRouteID(endpoint.SubscriptionId, endpoint.ResourceGroup, endpoint.ProfileName, endpoint.AfdEndpointName, routeName)
+
+	// parse custom_domains (TypeList)
+	customDomains := d.Get("custom_domains").([]interface{})
+	// create an Array of ResourceReferences per custom domain
+	customDomainsArray := make([]cdn.ResourceReference, 0)
+	for _, v := range customDomains {
+		resourceId := v.(string)
+		resourceReference := cdn.ResourceReference{
+			ID: &resourceId,
+		}
+		customDomainsArray = append(customDomainsArray, resourceReference)
+	}
 
 	// link to default domain
 	var linkToDefault cdn.LinkToDefaultDomain
@@ -146,24 +254,29 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 		linkToDefault = cdn.LinkToDefaultDomainDisabled
 	}
 
-	// parse custom domains (TypeList)
-	customDomains := d.Get("custom_domains").([]interface{})
-	if len(customDomains) == 0 || customDomains[0] == nil {
-		return nil
-	}
+	// parse rule_sets (TypeList)
+	ruleSets := d.Get("rule_sets").([]interface{})
 	// create an Array of ResourceReferences per custom domain
-	customDomainsArray := make([]cdn.ResourceReference, 0)
-	for _, v := range customDomains {
-
-		resourceId := v.(string)
+	ruleSetsArray := make([]cdn.ResourceReference, 0)
+	for _, r := range ruleSets {
+		ruleSetId := r.(string)
 		resourceReference := cdn.ResourceReference{
-			ID: &resourceId,
+			ID: &ruleSetId,
 		}
-		customDomainsArray = append(customDomainsArray, resourceReference)
+		ruleSetsArray = append(ruleSetsArray, resourceReference)
 	}
 
 	// forwarding protocol
 	forwardingProtocol := d.Get("forwarding_protocol").(string)
+
+	// HTTPSRedirect
+	var httpsRedirectSet cdn.HTTPSRedirect
+	httpsRedirect := d.Get("https_redirect").(string)
+	if httpsRedirect == "Enabled" {
+		httpsRedirectSet = cdn.HTTPSRedirectEnabled
+	} else {
+		httpsRedirectSet = cdn.HTTPSRedirectDisabled
+	}
 
 	// supported protocols
 	supportedProtocols := d.Get("supported_protocols").([]interface{})
@@ -186,16 +299,54 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 		supportedProtocolsArray = append(supportedProtocolsArray, supportedProtocol)
 	}
 
+	// patterns_to_match
+	patternsToMatch := d.Get("patterns_to_match").([]interface{})
+	// create an Array of ResourceReferences per custom domain
+	patternsToMatchArray := make([]string, 0)
+	for _, p := range patternsToMatch {
+		pattern := p.(string)
+		patternsToMatchArray = append(patternsToMatchArray, pattern)
+	}
+
 	route := cdn.Route{
-		Name: &routeName,
 		RouteProperties: &cdn.RouteProperties{
-			CustomDomains:       &customDomainsArray,
 			OriginGroup:         originGroupRef,
 			EnabledState:        enabledState,
 			SupportedProtocols:  &supportedProtocolsArray,
 			ForwardingProtocol:  cdn.ForwardingProtocol(forwardingProtocol),
 			LinkToDefaultDomain: linkToDefault,
+			OriginPath:          utils.String(originPath),
+			RuleSets:            &ruleSetsArray,
+			PatternsToMatch:     &patternsToMatchArray,
+			HTTPSRedirect:       httpsRedirectSet,
 		},
+	}
+
+	// query_string_caching_behavior
+	queryStringCachingBehavior := d.Get("query_string_caching_behavior").(string)
+	switch queryStringCachingBehavior {
+	case "IgnoreQueryString":
+		route.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorIgnoreQueryString
+	case "NotSet":
+		route.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorNotSet
+	case "UseQueryString":
+		route.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorUseQueryString
+	default:
+		route.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorNotSet
+	}
+
+	// use route.CompressionSettings only when caching is enabled
+	if cachingEnabled == true {
+		route.CompressionSettings = compressionSettings
+	} else {
+		route.CompressionSettings = nil
+	}
+
+	// custom domains can only be set when link_to_default_domain is false
+	if linkToDefaultDomain == true {
+		route.CustomDomains = nil
+	} else {
+		route.CustomDomains = &customDomainsArray
 	}
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, routeName, route)
@@ -233,16 +384,161 @@ func resourceAfdEndpointRouteRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("enabled", resp.EnabledState)
+
+	d.Set("query_string_caching_behavior", resp.QueryStringCachingBehavior)
+	d.Set("supported_protocols", resp.SupportedProtocols)
+	d.Set("patterns_to_match", resp.PatternsToMatch)
+	d.Set("forwarding_protocol", resp.ForwardingProtocol)
 	d.Set("custom_domains", resp.CustomDomains)
-	d.Set("id", resp.ID)
+
+	if resp.EnabledState == cdn.EnabledStateEnabled {
+		d.Set("enabled", true)
+	} else {
+		d.Set("enabled", false)
+	}
+
+	d.Set("https_redirect", resp.HTTPSRedirect)
 
 	return nil
 }
 func resourceAfdEndpointRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Cdn.AFDEndpointRouteClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
 	id, err := parse.AfdEndpointRouteID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	cachingEnabled := d.Get("enable_caching").(bool)
+	contentTypesToCompress := d.Get("content_types_to_compress").([]interface{})
+	queryStringCachingBehavior := d.Get("query_string_caching_behavior").(string)
+	linkToDefaultDomain := d.Get("link_to_default_domain").(bool)
+	forwardingProtocol := d.Get("forwarding_protocol").(string)
+	patternsToMatch := d.Get("patterns_to_match").([]interface{})
+	customDomains := d.Get("custom_domains").([]interface{})
+
+	// create an array of content types
+	contentTypesToCompressArray := make([]string, 0)
+	for _, contentType := range contentTypesToCompress {
+		pattern := contentType.(string)
+		contentTypesToCompressArray = append(contentTypesToCompressArray, pattern)
+	}
+
+	var routeUpdate cdn.RouteUpdateParameters
+	var routeUpdateProperties cdn.RouteUpdatePropertiesParameters
+
+	// patterns_to_match
+	if d.HasChange("patterns_to_match") {
+		log.Printf("[DEBUG] Updating patterns_to_match for route %s on endpoint %s", id.RouteName, id.AfdEndpointName)
+
+		patternsToMatchArray := make([]string, 0)
+		for _, p := range patternsToMatch {
+			pattern := p.(string)
+			patternsToMatchArray = append(patternsToMatchArray, pattern)
+		}
+
+		routeUpdateProperties.PatternsToMatch = &patternsToMatchArray
+	}
+
+	// forwarding_protocol
+	if d.HasChange("forwarding_protocol") {
+		log.Printf("[DEBUG] Updating forwarding_protocol for route %s on endpoint %s", id.RouteName, id.AfdEndpointName)
+		routeUpdateProperties.ForwardingProtocol = cdn.ForwardingProtocol(forwardingProtocol)
+	}
+
+	// linkToDefaultDomain
+	if d.HasChange("link_to_default_domain") || d.HasChange("custom_domains") {
+		log.Printf("[DEBUG] Updating link_to_default_domain configuration for route %s on endpoint %s", id.RouteName, id.AfdEndpointName)
+
+		customDomainsArray := make([]cdn.ResourceReference, 0)
+		for _, v := range customDomains {
+			resourceId := v.(string)
+			resourceReference := cdn.ResourceReference{
+				ID: &resourceId,
+			}
+			customDomainsArray = append(customDomainsArray, resourceReference)
+		}
+
+		if linkToDefaultDomain == true {
+			routeUpdateProperties.LinkToDefaultDomain = cdn.LinkToDefaultDomainEnabled
+			routeUpdateProperties.CustomDomains = nil
+		} else {
+			routeUpdateProperties.LinkToDefaultDomain = cdn.LinkToDefaultDomainDisabled
+			routeUpdateProperties.CustomDomains = &customDomainsArray
+		}
+	}
+
+	// update caching & compression settings
+	if cachingEnabled == true && (d.HasChange("query_string_caching_behavior") || d.HasChange("content_types_to_compress")) {
+
+		log.Printf("[DEBUG] Updating query_string_caching_behavior configuration for route %s on endpoint %s", id.RouteName, id.AfdEndpointName)
+
+		switch queryStringCachingBehavior {
+		case "IgnoreQueryString":
+			routeUpdateProperties.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorIgnoreQueryString
+		case "NotSet":
+			routeUpdateProperties.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorNotSet
+		case "UseQueryString":
+			routeUpdateProperties.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorUseQueryString
+		default:
+			routeUpdateProperties.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorNotSet
+		}
+
+		routeUpdateProperties.CompressionSettings = cdn.CompressionSettings{
+			IsCompressionEnabled:   &cachingEnabled,
+			ContentTypesToCompress: &contentTypesToCompressArray,
+		}
+
+	}
+
+	if cachingEnabled == false {
+		routeUpdateProperties.CompressionSettings = nil
+		//routeUpdateProperties.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorNotSet
+	}
+
+	if d.HasChange("custom_domains") || d.HasChange("link_to_default_domain") {
+		log.Printf("[DEBUG] Updating custom domains for route %s on endpoint %s", id.RouteName, id.AfdEndpointName)
+
+		// link to default domain
+		var linkToDefault cdn.LinkToDefaultDomain
+
+		if linkToDefaultDomain {
+			linkToDefault = cdn.LinkToDefaultDomainEnabled
+		} else {
+			linkToDefault = cdn.LinkToDefaultDomainDisabled
+		}
+
+		// parse custom_domains (TypeList)
+		customDomains := d.Get("custom_domains").([]interface{})
+		// create an Array of ResourceReferences per custom domain
+		customDomainsArray := make([]cdn.ResourceReference, 0)
+		for _, v := range customDomains {
+			resourceId := v.(string)
+			resourceReference := cdn.ResourceReference{
+				ID: &resourceId,
+			}
+			customDomainsArray = append(customDomainsArray, resourceReference)
+		}
+		if linkToDefaultDomain {
+			routeUpdateProperties.LinkToDefaultDomain = linkToDefault
+		} else {
+			routeUpdateProperties.LinkToDefaultDomain = linkToDefault
+			routeUpdateProperties.CustomDomains = &customDomainsArray
+		}
+	}
+
+	routeUpdate.RouteUpdatePropertiesParameters = &routeUpdateProperties
+
+	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, routeUpdate)
+
+	if err != nil {
+		return fmt.Errorf("updating Front Door Endpoint Route %q (Resource Group %q): %+v", id.RouteName, id.ResourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of Front Door Route %q (Resource Group %q): %+v", id.RouteName, id.ResourceGroup, err)
 	}
 
 	d.SetId(id.ID())

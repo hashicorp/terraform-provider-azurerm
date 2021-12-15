@@ -64,6 +64,12 @@ func resourceAfdCustomDomains() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"validation_token": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+				// Sensitive: true, // tbd if this is sensitive or not
+			},
+
 			"tls": {
 				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
@@ -215,6 +221,7 @@ func resourceAfdCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	d.Set("name", resp.Name)
 	d.Set("host_name", resp.HostName)
+	d.Set("validation_token", resp.ValidationProperties.ValidationToken)
 
 	return nil
 }
