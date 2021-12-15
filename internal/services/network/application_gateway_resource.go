@@ -1563,8 +1563,6 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("expanding `redirect_configuration`: %+v", err)
 	}
 
-	privateLinkConfigurations := expandApplicationGatewayPrivateLinkConfigurations(d)
-
 	sslCertificates, err := expandApplicationGatewaySslCertificates(d)
 	if err != nil {
 		return fmt.Errorf("expanding `ssl_certificate`: %+v", err)
@@ -1606,7 +1604,7 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			FrontendPorts:                 expandApplicationGatewayFrontendPorts(d),
 			GatewayIPConfigurations:       gatewayIPConfigurations,
 			HTTPListeners:                 httpListeners,
-			PrivateLinkConfigurations:     privateLinkConfigurations,
+			PrivateLinkConfigurations:     expandApplicationGatewayPrivateLinkConfigurations(d),
 			Probes:                        expandApplicationGatewayProbes(d),
 			RequestRoutingRules:           requestRoutingRules,
 			RedirectConfigurations:        redirectConfigurations,
