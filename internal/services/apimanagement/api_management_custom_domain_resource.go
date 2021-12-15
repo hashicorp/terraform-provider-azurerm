@@ -80,7 +80,7 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 					Schema: apiManagementResourceHostnameProxySchema(),
 				},
 				ConflictsWith: []string{"gateway"},
-				Deprecated: "`proxy` is deprecated in favour of `gateway` and will be removed in version 3.0 of the AzureRM provider",
+				Deprecated:    "`proxy` is deprecated in favour of `gateway` and will be removed in version 3.0 of the AzureRM provider",
 			},
 			"gateway": {
 				Type:         pluginsdk.TypeList,
