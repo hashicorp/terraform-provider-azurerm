@@ -175,22 +175,16 @@ func TestAccLogicAppWorkflow_identity(t *testing.T) {
 	r := LogicAppWorkflowResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		data.ImportStep(),
 		{
-			Config: r.empty(data),
+			Config: r.systemAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.identity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.updateIdentity(data),
+			Config: r.userAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -524,7 +518,7 @@ resource "azurerm_logic_app_workflow" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (LogicAppWorkflowResource) identity(data acceptance.TestData) string {
+func (LogicAppWorkflowResource) systemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -547,7 +541,7 @@ resource "azurerm_logic_app_workflow" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (LogicAppWorkflowResource) updateIdentity(data acceptance.TestData) string {
+func (LogicAppWorkflowResource) userAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

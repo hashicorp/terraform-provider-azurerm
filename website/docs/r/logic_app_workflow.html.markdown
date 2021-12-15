@@ -115,9 +115,9 @@ A `claim` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The identity type of the Logic App Workflow. Possible values are `SystemAssigned` and `UserAssigned`.
+* `type` - (Required) The Type of Managed Identity assigned to this Logic App Workflow. Possible values are `SystemAssigned` and `UserAssigned`.
 
-* `identity_ids` - (Optional) A list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
+* `identity_ids` - (Optional) A list of Managed Identity ID's which should be assigned to this Logic App Workflow.
 
 ## Attributes Reference
 

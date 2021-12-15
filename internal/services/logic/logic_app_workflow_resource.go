@@ -8,10 +8,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-
-	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -27,8 +26,6 @@ import (
 )
 
 var logicAppResourceName = "azurerm_logic_app"
-
-type logicAppWorkflowIdentity = identity.SystemOrUserAssignedMap
 
 func resourceLogicAppWorkflow() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -911,22 +908,16 @@ func flattenLogicAppWorkflowFlowAccessControl(input *logic.FlowAccessControlConf
 }
 
 func flattenLogicAppWorkflowAccessControlConfigurationPolicy(input *logic.FlowAccessControlConfigurationPolicy) []interface{} {
-	results := make([]interface{}, 0)
 	if input == nil {
-		return results
+		return []interface{}{}
 	}
 
-	result := make(map[string]interface{})
-
-	if input.AllowedCallerIPAddresses != nil {
-		result["allowed_caller_ip_address_range"] = flattenLogicAppWorkflowIPAddressRanges(input.AllowedCallerIPAddresses)
+	return []interface{}{
+		map[string]interface{}{
+			"allowed_caller_ip_address_range": flattenLogicAppWorkflowIPAddressRanges(input.AllowedCallerIPAddresses),
+			"open_authentication_policy":      flattenLogicAppWorkflowOpenAuthenticationPolicy(input.OpenAuthenticationPolicies),
+		},
 	}
-
-	if input.OpenAuthenticationPolicies != nil && input.OpenAuthenticationPolicies.Policies != nil {
-		result["open_authentication_policy"] = flattenLogicAppWorkflowOpenAuthenticationPolicy(input.OpenAuthenticationPolicies.Policies)
-	}
-
-	return append(results, result)
 }
 
 func flattenLogicAppWorkflowIPAddressRanges(input *[]logic.IPAddressRange) []interface{} {
@@ -946,13 +937,13 @@ func flattenLogicAppWorkflowIPAddressRanges(input *[]logic.IPAddressRange) []int
 	return results
 }
 
-func flattenLogicAppWorkflowOpenAuthenticationPolicy(input map[string]*logic.OpenAuthenticationAccessPolicy) []interface{} {
+func flattenLogicAppWorkflowOpenAuthenticationPolicy(input *logic.OpenAuthenticationAccessPolicies) []interface{} {
 	results := make([]interface{}, 0)
-	if input == nil {
+	if input == nil || input.Policies == nil {
 		return results
 	}
 
-	for k, v := range input {
+	for k, v := range input.Policies {
 		results = append(results, map[string]interface{}{
 			"name":  k,
 			"claim": flattenLogicAppWorkflowOpenAuthenticationPolicyClaim(v.Claims),
