@@ -58,7 +58,6 @@ func resourceIotHubEndpointEventHub() *pluginsdk.Resource {
 				ConflictsWith: []string{"iothub_id"},
 			},
 
-			// TODO state migration?
 			"iothub_id": {
 				Type: pluginsdk.TypeString,
 				// TODO add Required: true in 3.0
