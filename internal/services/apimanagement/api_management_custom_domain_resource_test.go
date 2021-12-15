@@ -84,7 +84,7 @@ func (ApiManagementCustomDomainResource) Exists(ctx context.Context, clients *cl
 
 	resp, err := clients.ApiManagement.ServiceClient.Get(ctx, resourceGroup, serviceName)
 	if err != nil {
-		return nil, fmt.Errorf("reading ApiManagement Custom Domain (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -117,7 +117,7 @@ func (r ApiManagementCustomDomainResource) proxyOnly(data acceptance.TestData) s
 resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
 
-  proxy {
+  gateway {
     host_name    = "api.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
@@ -147,7 +147,7 @@ func (r ApiManagementCustomDomainResource) requiresImport(data acceptance.TestDa
 resource "azurerm_api_management_custom_domain" "import" {
   api_management_id = azurerm_api_management_custom_domain.test.api_management_id
 
-  proxy {
+  gateway {
     host_name    = "api.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
