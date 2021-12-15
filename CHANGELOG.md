@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_container_registry_task` [GH-14533]
 ENHANCEMENTS:
 
 * dependencies: updating `apimanagement` to API Version `2021-08-01` [GH-14312]
