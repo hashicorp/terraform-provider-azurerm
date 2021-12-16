@@ -527,11 +527,13 @@ func flattenDataFactoryDatasetCompression(input *datafactory.DatasetCompression)
 	result := make(map[string]interface{})
 
 	result["type"] = input.Type
-	result["level"] = ""
+	var level string
 
-	if compressionLevel := input.Level; compressionLevel != nil {
-		result["level"] = input.Level
+	if input.Level != nil {
+		level = input.Level.(string)
 	}
+
+	result["level"] = level
 
 	return []interface{}{result}
 }
