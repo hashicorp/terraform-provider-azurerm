@@ -14,8 +14,9 @@ import (
 	"net/http"
 )
 
-// Client is the the Azure Management Groups API enables consolidation of multiple subscriptions/resources into an
-// organizational hierarchy and centrally manage access control, policies, alerting and reporting for those resources.
+// Client is the the Azure Management Groups API enables consolidation of multiple
+// subscriptions/resources into an organizational hierarchy and centrally
+// manage access control, policies, alerting and reporting for those resources.
 type Client struct {
 	BaseClient
 }
@@ -31,8 +32,9 @@ func NewClientWithBaseURI(baseURI string) Client {
 	return Client{NewWithBaseURI(baseURI)}
 }
 
-// CreateOrUpdate create or update a management group. If a management group is already created and a subsequent create
-// request is issued with different properties, the management group properties will be updated.
+// CreateOrUpdate create or update a management group.
+// If a management group is already created and a subsequent create request is issued with different properties, the
+// management group properties will be updated.
 // Parameters:
 // groupID - management Group ID.
 // createManagementGroupRequest - management group creation parameters.
@@ -69,7 +71,7 @@ func (client Client) CreateOrUpdatePreparer(ctx context.Context, groupID string,
 		"groupId": autorest.Encode("path", groupID),
 	}
 
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -121,7 +123,8 @@ func (client Client) CreateOrUpdateResponder(resp *http.Response) (result SetObj
 	return
 }
 
-// Delete delete management group. If a management group contains child resources, the request will fail.
+// Delete delete management group.
+// If a management group contains child resources, the request will fail.
 // Parameters:
 // groupID - management Group ID.
 // cacheControl - indicates that the request shouldn't utilize any caches.
@@ -157,7 +160,7 @@ func (client Client) DeletePreparer(ctx context.Context, groupID string, cacheCo
 		"groupId": autorest.Encode("path", groupID),
 	}
 
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -195,7 +198,7 @@ func (client Client) DeleteSender(req *http.Request) (future DeleteFuture, err e
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client Client) DeleteResponder(resp *http.Response) (result OperationResults, err error) {
+func (client Client) DeleteResponder(resp *http.Response) (result AzureAsyncOperationResults, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
@@ -209,7 +212,7 @@ func (client Client) DeleteResponder(resp *http.Response) (result OperationResul
 // Parameters:
 // groupID - management Group ID.
 // expand - the $expand=children query string parameter allows clients to request inclusion of children in the
-// response payload.
+// response payload.  $expand=path includes the path from the root group to the current group.
 // recurse - the $recurse=true query string parameter allows clients to request inclusion of entire hierarchy
 // in the response payload. Note that  $expand=children must be passed up if $recurse is set to true.
 // filter - a filter which allows the exclusion of subscriptions from results (i.e. '$filter=children.childType
@@ -254,7 +257,7 @@ func (client Client) GetPreparer(ctx context.Context, groupID string, expand str
 		"groupId": autorest.Encode("path", groupID),
 	}
 
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -304,8 +307,8 @@ func (client Client) GetResponder(resp *http.Response) (result ManagementGroup, 
 // GetDescendants list all entities that descend from a management group.
 // Parameters:
 // groupID - management Group ID.
-// skiptoken - page continuation token is only used if a previous operation returned a partial result. If a
-// previous response contains a nextLink element, the value of the nextLink element will include a token
+// skiptoken - page continuation token is only used if a previous operation returned a partial result.
+// If a previous response contains a nextLink element, the value of the nextLink element will include a token
 // parameter that specifies a starting point to use for subsequent calls.
 // top - number of elements to return when retrieving results. Passing this in will override $skipToken.
 func (client Client) GetDescendants(ctx context.Context, groupID string, skiptoken string, top *int32) (result DescendantListResultPage, err error) {
@@ -352,7 +355,7 @@ func (client Client) GetDescendantsPreparer(ctx context.Context, groupID string,
 		"groupId": autorest.Encode("path", groupID),
 	}
 
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -429,8 +432,8 @@ func (client Client) GetDescendantsComplete(ctx context.Context, groupID string,
 // List list management groups for the authenticated user.
 // Parameters:
 // cacheControl - indicates that the request shouldn't utilize any caches.
-// skiptoken - page continuation token is only used if a previous operation returned a partial result. If a
-// previous response contains a nextLink element, the value of the nextLink element will include a token
+// skiptoken - page continuation token is only used if a previous operation returned a partial result.
+// If a previous response contains a nextLink element, the value of the nextLink element will include a token
 // parameter that specifies a starting point to use for subsequent calls.
 func (client Client) List(ctx context.Context, cacheControl string, skiptoken string) (result ListResultPage, err error) {
 	if tracing.IsEnabled() {
@@ -472,7 +475,7 @@ func (client Client) List(ctx context.Context, cacheControl string, skiptoken st
 
 // ListPreparer prepares the List request.
 func (client Client) ListPreparer(ctx context.Context, cacheControl string, skiptoken string) (*http.Request, error) {
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -594,7 +597,7 @@ func (client Client) UpdatePreparer(ctx context.Context, groupID string, patchGr
 		"groupId": autorest.Encode("path", groupID),
 	}
 
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

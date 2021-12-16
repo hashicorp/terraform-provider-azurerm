@@ -14,9 +14,9 @@ import (
 	"net/http"
 )
 
-// OperationsClient is the the Azure Management Groups API enables consolidation of multiple subscriptions/resources
-// into an organizational hierarchy and centrally manage access control, policies, alerting and reporting for those
-// resources.
+// OperationsClient is the the Azure Management Groups API enables consolidation of multiple
+// subscriptions/resources into an organizational hierarchy and centrally
+// manage access control, policies, alerting and reporting for those resources.
 type OperationsClient struct {
 	BaseClient
 }
@@ -73,7 +73,7 @@ func (client OperationsClient) List(ctx context.Context) (result OperationListRe
 
 // ListPreparer prepares the List request.
 func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
