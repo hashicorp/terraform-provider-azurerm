@@ -1,6 +1,7 @@
 package consumption
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/migration"
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -15,6 +16,7 @@ type SubscriptionConsumptionBudget struct {
 
 var _ sdk.Resource = SubscriptionConsumptionBudget{}
 var _ sdk.ResourceWithCustomImporter = SubscriptionConsumptionBudget{}
+var _ sdk.ResourceWithStateMigration = SubscriptionConsumptionBudget{}
 
 func (r SubscriptionConsumptionBudget) Arguments() map[string]*pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{
@@ -77,4 +79,13 @@ func (r SubscriptionConsumptionBudget) Update() sdk.ResourceFunc {
 
 func (r SubscriptionConsumptionBudget) CustomImporter() sdk.ResourceRunFunc {
 	return r.base.importerFunc("subscription")
+}
+
+func (r SubscriptionConsumptionBudget) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.SubscriptionConsumptionBudgetV0ToV1{},
+		},
+	}
 }

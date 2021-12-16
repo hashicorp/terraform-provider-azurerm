@@ -312,6 +312,8 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 			},
 		},
 	}
+	// Consumption Budgets for Management Groups have a different notification schema,
+	// here we override the notification schema in the base resource
 	for k, v := range fields {
 		output[k] = v
 	}
@@ -559,12 +561,20 @@ func flattenConsumptionBudgetTimePeriod(input *consumption.BudgetTimePeriod) []i
 		return timePeriod
 	}
 
-	timePeriodBlock := make(map[string]interface{})
+	startDate := ""
+	if v := input.StartDate; v != nil {
+		startDate = v.String()
+	}
 
-	timePeriodBlock["start_date"] = input.StartDate.String()
-	timePeriodBlock["end_date"] = input.EndDate.String()
+	endDate := ""
+	if v := input.EndDate; v != nil {
+		endDate = v.String()
+	}
 
-	return append(timePeriod, timePeriodBlock)
+	return append(timePeriod, map[string]interface{}{
+		"start_date": startDate,
+		"end_date":   endDate,
+	})
 }
 
 func expandConsumptionBudgetNotifications(input []interface{}) map[string]*consumption.Notification {
