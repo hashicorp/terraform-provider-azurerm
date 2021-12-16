@@ -115,6 +115,10 @@ A `vpn_link` block supports the following:
 
 * `name` - (Required) The name which should be used for this VPN Link Connection.
 
+* `egress_nat_rule_ids` - (Optional) A list of the egress Nat Rule Ids.
+
+* `ingress_nat_rule_ids` - (Optional) A list of the ingress Nat Rule Ids.
+
 * `vpn_site_link_id` - (Required) The ID of the connected VPN Site Link. Changing this forces a new VPN Gateway Connection to be created.
 
 * `bandwidth_mbps` - (Optional) The expected connection bandwidth in MBPS. Defaults to `10`.
