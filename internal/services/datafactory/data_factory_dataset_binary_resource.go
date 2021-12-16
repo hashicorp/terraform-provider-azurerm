@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -232,14 +231,12 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 						"type": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(datafactory.CompressionCodecBzip2),
 								string(datafactory.CompressionCodecDeflate),
 								string(datafactory.CompressionCodecGzip),
 								string(datafactory.CompressionCodecLz4),
 								string(datafactory.CompressionCodecLzo),
-								string(datafactory.CompressionCodecNone),
 								string(datafactory.CompressionCodecSnappy),
 								string(datafactory.CompressionCodecTar),
 								string(datafactory.CompressionCodecTarGZip),
