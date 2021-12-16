@@ -327,6 +327,7 @@ func TestAccSignalRService_featureFlags(t *testing.T) {
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("connectivity_logs_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("messaging_logs_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("live_trace_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("service_mode").HasValue("Serverless"),
 			),
 		},
@@ -345,6 +346,7 @@ func TestAccSignalRService_featureFlags(t *testing.T) {
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("connectivity_logs_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("messaging_logs_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("live_trace_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("service_mode").HasValue("Classic"),
 			),
 		},
@@ -632,6 +634,7 @@ resource "azurerm_signalr_service" "test" {
 
   connectivity_logs_enabled = true
   messaging_logs_enabled    = true
+  live_trace_enabled        = true
   service_mode              = "Serverless"
 
 }
@@ -661,6 +664,7 @@ resource "azurerm_signalr_service" "test" {
 
   connectivity_logs_enabled = false
   messaging_logs_enabled    = false
+  live_trace_enabled        = false
   service_mode              = "Classic"
 
 }
