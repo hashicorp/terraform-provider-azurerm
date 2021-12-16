@@ -30,6 +30,85 @@ func NewContainersClientWithBaseURI(baseURI string, subscriptionID string) Conta
 	return ContainersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// Attach attach to the output stream of a specific container instance in a specified resource group and container
+// group.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// containerGroupName - the name of the container group.
+// containerName - the name of the container instance.
+func (client ContainersClient) Attach(ctx context.Context, resourceGroupName string, containerGroupName string, containerName string) (result ContainerAttachResponse, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ContainersClient.Attach")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.AttachPreparer(ctx, resourceGroupName, containerGroupName, containerName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainersClient", "Attach", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.AttachSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainersClient", "Attach", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.AttachResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainersClient", "Attach", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// AttachPreparer prepares the Attach request.
+func (client ContainersClient) AttachPreparer(ctx context.Context, resourceGroupName string, containerGroupName string, containerName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"containerGroupName": autorest.Encode("path", containerGroupName),
+		"containerName":      autorest.Encode("path", containerName),
+		"resourceGroupName":  autorest.Encode("path", resourceGroupName),
+		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-03-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/containers/{containerName}/attach", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// AttachSender sends the Attach request. The method will close the
+// http.Response Body if it receives an error.
+func (client ContainersClient) AttachSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// AttachResponder handles the response to the Attach request. The method always
+// closes the http.Response Body.
+func (client ContainersClient) AttachResponder(resp *http.Response) (result ContainerAttachResponse, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // ExecuteCommand executes a command for a specific container instance in a specified resource group and container
 // group.
 // Parameters:
@@ -79,7 +158,7 @@ func (client ContainersClient) ExecuteCommandPreparer(ctx context.Context, resou
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -119,7 +198,9 @@ func (client ContainersClient) ExecuteCommandResponder(resp *http.Response) (res
 // containerName - the name of the container instance.
 // tail - the number of lines to show from the tail of the container instance log. If not provided, all
 // available logs are shown up to 4mb.
-func (client ContainersClient) ListLogs(ctx context.Context, resourceGroupName string, containerGroupName string, containerName string, tail *int32) (result Logs, err error) {
+// timestamps - if true, adds a timestamp at the beginning of every line of log output. If not provided,
+// defaults to false.
+func (client ContainersClient) ListLogs(ctx context.Context, resourceGroupName string, containerGroupName string, containerName string, tail *int32, timestamps *bool) (result Logs, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ContainersClient.ListLogs")
 		defer func() {
@@ -130,7 +211,7 @@ func (client ContainersClient) ListLogs(ctx context.Context, resourceGroupName s
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ListLogsPreparer(ctx, resourceGroupName, containerGroupName, containerName, tail)
+	req, err := client.ListLogsPreparer(ctx, resourceGroupName, containerGroupName, containerName, tail, timestamps)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerinstance.ContainersClient", "ListLogs", nil, "Failure preparing request")
 		return
@@ -153,7 +234,7 @@ func (client ContainersClient) ListLogs(ctx context.Context, resourceGroupName s
 }
 
 // ListLogsPreparer prepares the ListLogs request.
-func (client ContainersClient) ListLogsPreparer(ctx context.Context, resourceGroupName string, containerGroupName string, containerName string, tail *int32) (*http.Request, error) {
+func (client ContainersClient) ListLogsPreparer(ctx context.Context, resourceGroupName string, containerGroupName string, containerName string, tail *int32, timestamps *bool) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"containerGroupName": autorest.Encode("path", containerGroupName),
 		"containerName":      autorest.Encode("path", containerName),
@@ -161,12 +242,15 @@ func (client ContainersClient) ListLogsPreparer(ctx context.Context, resourceGro
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 	if tail != nil {
 		queryParameters["tail"] = autorest.Encode("query", *tail)
+	}
+	if timestamps != nil {
+		queryParameters["timestamps"] = autorest.Encode("query", *timestamps)
 	}
 
 	preparer := autorest.CreatePreparer(

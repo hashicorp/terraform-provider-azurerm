@@ -10,62 +10,62 @@ package containerinstance
 type ContainerGroupIPAddressType string
 
 const (
-	// Private ...
-	Private ContainerGroupIPAddressType = "Private"
-	// Public ...
-	Public ContainerGroupIPAddressType = "Public"
+	// ContainerGroupIPAddressTypePrivate ...
+	ContainerGroupIPAddressTypePrivate ContainerGroupIPAddressType = "Private"
+	// ContainerGroupIPAddressTypePublic ...
+	ContainerGroupIPAddressTypePublic ContainerGroupIPAddressType = "Public"
 )
 
 // PossibleContainerGroupIPAddressTypeValues returns an array of possible values for the ContainerGroupIPAddressType const type.
 func PossibleContainerGroupIPAddressTypeValues() []ContainerGroupIPAddressType {
-	return []ContainerGroupIPAddressType{Private, Public}
+	return []ContainerGroupIPAddressType{ContainerGroupIPAddressTypePrivate, ContainerGroupIPAddressTypePublic}
 }
 
 // ContainerGroupNetworkProtocol enumerates the values for container group network protocol.
 type ContainerGroupNetworkProtocol string
 
 const (
-	// TCP ...
-	TCP ContainerGroupNetworkProtocol = "TCP"
-	// UDP ...
-	UDP ContainerGroupNetworkProtocol = "UDP"
+	// ContainerGroupNetworkProtocolTCP ...
+	ContainerGroupNetworkProtocolTCP ContainerGroupNetworkProtocol = "TCP"
+	// ContainerGroupNetworkProtocolUDP ...
+	ContainerGroupNetworkProtocolUDP ContainerGroupNetworkProtocol = "UDP"
 )
 
 // PossibleContainerGroupNetworkProtocolValues returns an array of possible values for the ContainerGroupNetworkProtocol const type.
 func PossibleContainerGroupNetworkProtocolValues() []ContainerGroupNetworkProtocol {
-	return []ContainerGroupNetworkProtocol{TCP, UDP}
+	return []ContainerGroupNetworkProtocol{ContainerGroupNetworkProtocolTCP, ContainerGroupNetworkProtocolUDP}
 }
 
 // ContainerGroupRestartPolicy enumerates the values for container group restart policy.
 type ContainerGroupRestartPolicy string
 
 const (
-	// Always ...
-	Always ContainerGroupRestartPolicy = "Always"
-	// Never ...
-	Never ContainerGroupRestartPolicy = "Never"
-	// OnFailure ...
-	OnFailure ContainerGroupRestartPolicy = "OnFailure"
+	// ContainerGroupRestartPolicyAlways ...
+	ContainerGroupRestartPolicyAlways ContainerGroupRestartPolicy = "Always"
+	// ContainerGroupRestartPolicyNever ...
+	ContainerGroupRestartPolicyNever ContainerGroupRestartPolicy = "Never"
+	// ContainerGroupRestartPolicyOnFailure ...
+	ContainerGroupRestartPolicyOnFailure ContainerGroupRestartPolicy = "OnFailure"
 )
 
 // PossibleContainerGroupRestartPolicyValues returns an array of possible values for the ContainerGroupRestartPolicy const type.
 func PossibleContainerGroupRestartPolicyValues() []ContainerGroupRestartPolicy {
-	return []ContainerGroupRestartPolicy{Always, Never, OnFailure}
+	return []ContainerGroupRestartPolicy{ContainerGroupRestartPolicyAlways, ContainerGroupRestartPolicyNever, ContainerGroupRestartPolicyOnFailure}
 }
 
 // ContainerGroupSku enumerates the values for container group sku.
 type ContainerGroupSku string
 
 const (
-	// Dedicated ...
-	Dedicated ContainerGroupSku = "Dedicated"
-	// Standard ...
-	Standard ContainerGroupSku = "Standard"
+	// ContainerGroupSkuDedicated ...
+	ContainerGroupSkuDedicated ContainerGroupSku = "Dedicated"
+	// ContainerGroupSkuStandard ...
+	ContainerGroupSkuStandard ContainerGroupSku = "Standard"
 )
 
 // PossibleContainerGroupSkuValues returns an array of possible values for the ContainerGroupSku const type.
 func PossibleContainerGroupSkuValues() []ContainerGroupSku {
-	return []ContainerGroupSku{Dedicated, Standard}
+	return []ContainerGroupSku{ContainerGroupSkuDedicated, ContainerGroupSkuStandard}
 }
 
 // ContainerNetworkProtocol enumerates the values for container network protocol.
@@ -87,94 +87,94 @@ func PossibleContainerNetworkProtocolValues() []ContainerNetworkProtocol {
 type GpuSku string
 
 const (
-	// K80 ...
-	K80 GpuSku = "K80"
-	// P100 ...
-	P100 GpuSku = "P100"
-	// V100 ...
-	V100 GpuSku = "V100"
+	// GpuSkuK80 ...
+	GpuSkuK80 GpuSku = "K80"
+	// GpuSkuP100 ...
+	GpuSkuP100 GpuSku = "P100"
+	// GpuSkuV100 ...
+	GpuSkuV100 GpuSku = "V100"
 )
 
 // PossibleGpuSkuValues returns an array of possible values for the GpuSku const type.
 func PossibleGpuSkuValues() []GpuSku {
-	return []GpuSku{K80, P100, V100}
+	return []GpuSku{GpuSkuK80, GpuSkuP100, GpuSkuV100}
 }
 
 // LogAnalyticsLogType enumerates the values for log analytics log type.
 type LogAnalyticsLogType string
 
 const (
-	// ContainerInsights ...
-	ContainerInsights LogAnalyticsLogType = "ContainerInsights"
-	// ContainerInstanceLogs ...
-	ContainerInstanceLogs LogAnalyticsLogType = "ContainerInstanceLogs"
+	// LogAnalyticsLogTypeContainerInsights ...
+	LogAnalyticsLogTypeContainerInsights LogAnalyticsLogType = "ContainerInsights"
+	// LogAnalyticsLogTypeContainerInstanceLogs ...
+	LogAnalyticsLogTypeContainerInstanceLogs LogAnalyticsLogType = "ContainerInstanceLogs"
 )
 
 // PossibleLogAnalyticsLogTypeValues returns an array of possible values for the LogAnalyticsLogType const type.
 func PossibleLogAnalyticsLogTypeValues() []LogAnalyticsLogType {
-	return []LogAnalyticsLogType{ContainerInsights, ContainerInstanceLogs}
+	return []LogAnalyticsLogType{LogAnalyticsLogTypeContainerInsights, LogAnalyticsLogTypeContainerInstanceLogs}
 }
 
 // OperatingSystemTypes enumerates the values for operating system types.
 type OperatingSystemTypes string
 
 const (
-	// Linux ...
-	Linux OperatingSystemTypes = "Linux"
-	// Windows ...
-	Windows OperatingSystemTypes = "Windows"
+	// OperatingSystemTypesLinux ...
+	OperatingSystemTypesLinux OperatingSystemTypes = "Linux"
+	// OperatingSystemTypesWindows ...
+	OperatingSystemTypesWindows OperatingSystemTypes = "Windows"
 )
 
 // PossibleOperatingSystemTypesValues returns an array of possible values for the OperatingSystemTypes const type.
 func PossibleOperatingSystemTypesValues() []OperatingSystemTypes {
-	return []OperatingSystemTypes{Linux, Windows}
+	return []OperatingSystemTypes{OperatingSystemTypesLinux, OperatingSystemTypesWindows}
 }
 
 // OperationsOrigin enumerates the values for operations origin.
 type OperationsOrigin string
 
 const (
-	// System ...
-	System OperationsOrigin = "System"
-	// User ...
-	User OperationsOrigin = "User"
+	// OperationsOriginSystem ...
+	OperationsOriginSystem OperationsOrigin = "System"
+	// OperationsOriginUser ...
+	OperationsOriginUser OperationsOrigin = "User"
 )
 
 // PossibleOperationsOriginValues returns an array of possible values for the OperationsOrigin const type.
 func PossibleOperationsOriginValues() []OperationsOrigin {
-	return []OperationsOrigin{System, User}
+	return []OperationsOrigin{OperationsOriginSystem, OperationsOriginUser}
 }
 
 // ResourceIdentityType enumerates the values for resource identity type.
 type ResourceIdentityType string
 
 const (
-	// None ...
-	None ResourceIdentityType = "None"
-	// SystemAssigned ...
-	SystemAssigned ResourceIdentityType = "SystemAssigned"
-	// SystemAssignedUserAssigned ...
-	SystemAssignedUserAssigned ResourceIdentityType = "SystemAssigned, UserAssigned"
-	// UserAssigned ...
-	UserAssigned ResourceIdentityType = "UserAssigned"
+	// ResourceIdentityTypeNone ...
+	ResourceIdentityTypeNone ResourceIdentityType = "None"
+	// ResourceIdentityTypeSystemAssigned ...
+	ResourceIdentityTypeSystemAssigned ResourceIdentityType = "SystemAssigned"
+	// ResourceIdentityTypeSystemAssignedUserAssigned ...
+	ResourceIdentityTypeSystemAssignedUserAssigned ResourceIdentityType = "SystemAssigned, UserAssigned"
+	// ResourceIdentityTypeUserAssigned ...
+	ResourceIdentityTypeUserAssigned ResourceIdentityType = "UserAssigned"
 )
 
 // PossibleResourceIdentityTypeValues returns an array of possible values for the ResourceIdentityType const type.
 func PossibleResourceIdentityTypeValues() []ResourceIdentityType {
-	return []ResourceIdentityType{None, SystemAssigned, SystemAssignedUserAssigned, UserAssigned}
+	return []ResourceIdentityType{ResourceIdentityTypeNone, ResourceIdentityTypeSystemAssigned, ResourceIdentityTypeSystemAssignedUserAssigned, ResourceIdentityTypeUserAssigned}
 }
 
 // Scheme enumerates the values for scheme.
 type Scheme string
 
 const (
-	// HTTP ...
-	HTTP Scheme = "http"
-	// HTTPS ...
-	HTTPS Scheme = "https"
+	// SchemeHTTP ...
+	SchemeHTTP Scheme = "http"
+	// SchemeHTTPS ...
+	SchemeHTTPS Scheme = "https"
 )
 
 // PossibleSchemeValues returns an array of possible values for the Scheme const type.
 func PossibleSchemeValues() []Scheme {
-	return []Scheme{HTTP, HTTPS}
+	return []Scheme{SchemeHTTP, SchemeHTTPS}
 }

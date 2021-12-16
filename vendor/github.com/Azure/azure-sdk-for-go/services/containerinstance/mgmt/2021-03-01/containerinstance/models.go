@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2019-12-01/containerinstance"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2021-03-01/containerinstance"
 
 // AzureFileVolume the properties of the Azure File volume. Azure File shares are mounted as volumes.
 type AzureFileVolume struct {
@@ -466,6 +466,15 @@ func (c *Container) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// ContainerAttachResponse the information for the output stream from container attach.
+type ContainerAttachResponse struct {
+	autorest.Response `json:"-"`
+	// WebSocketURI - The uri for the output stream from the attach.
+	WebSocketURI *string `json:"webSocketUri,omitempty"`
+	// Password - The password to the output stream from the attach. Send as an Authorization header value when connecting to the websocketUri.
+	Password *string `json:"password,omitempty"`
+}
+
 // ContainerExec the container execution command, for liveness or readiness probe
 type ContainerExec struct {
 	// Command - The commands to execute within the container.
@@ -624,7 +633,7 @@ type ContainerGroupIdentity struct {
 	PrincipalID *string `json:"principalId,omitempty"`
 	// TenantID - READ-ONLY; The tenant id associated with the container group. This property will only be provided for a system assigned identity.
 	TenantID *string `json:"tenantId,omitempty"`
-	// Type - The type of identity used for the container group. The type 'SystemAssigned, UserAssigned' includes both an implicitly created identity and a set of user assigned identities. The type 'None' will remove any identities from the container group. Possible values include: 'SystemAssigned', 'UserAssigned', 'SystemAssignedUserAssigned', 'None'
+	// Type - The type of identity used for the container group. The type 'SystemAssigned, UserAssigned' includes both an implicitly created identity and a set of user assigned identities. The type 'None' will remove any identities from the container group. Possible values include: 'ResourceIdentityTypeSystemAssigned', 'ResourceIdentityTypeUserAssigned', 'ResourceIdentityTypeSystemAssignedUserAssigned', 'ResourceIdentityTypeNone'
 	Type ResourceIdentityType `json:"type,omitempty"`
 	// UserAssignedIdentities - The list of user identities associated with the container group. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'.
 	UserAssignedIdentities map[string]*ContainerGroupIdentityUserAssignedIdentitiesValue `json:"userAssignedIdentities"`
@@ -833,11 +842,11 @@ type ContainerGroupProperties struct {
 	// - `Always` Always restart
 	// - `OnFailure` Restart on failure
 	// - `Never` Never restart
-	// . Possible values include: 'Always', 'OnFailure', 'Never'
+	// . Possible values include: 'ContainerGroupRestartPolicyAlways', 'ContainerGroupRestartPolicyOnFailure', 'ContainerGroupRestartPolicyNever'
 	RestartPolicy ContainerGroupRestartPolicy `json:"restartPolicy,omitempty"`
 	// IPAddress - The IP address type of the container group.
 	IPAddress *IPAddress `json:"ipAddress,omitempty"`
-	// OsType - The operating system type required by the containers in the container group. Possible values include: 'Windows', 'Linux'
+	// OsType - The operating system type required by the containers in the container group. Possible values include: 'OperatingSystemTypesWindows', 'OperatingSystemTypesLinux'
 	OsType OperatingSystemTypes `json:"osType,omitempty"`
 	// Volumes - The list of volumes that can be mounted by containers in this container group.
 	Volumes *[]Volume `json:"volumes,omitempty"`
@@ -849,7 +858,7 @@ type ContainerGroupProperties struct {
 	NetworkProfile *ContainerGroupNetworkProfile `json:"networkProfile,omitempty"`
 	// DNSConfig - The DNS config information for a container group.
 	DNSConfig *DNSConfiguration `json:"dnsConfig,omitempty"`
-	// Sku - The SKU for a container group. Possible values include: 'Standard', 'Dedicated'
+	// Sku - The SKU for a container group. Possible values include: 'ContainerGroupSkuStandard', 'ContainerGroupSkuDedicated'
 	Sku ContainerGroupSku `json:"sku,omitempty"`
 	// EncryptionProperties - The encryption properties for a container group.
 	EncryptionProperties *EncryptionProperties `json:"encryptionProperties,omitempty"`
@@ -1079,8 +1088,10 @@ type ContainerHTTPGet struct {
 	Path *string `json:"path,omitempty"`
 	// Port - The port number to probe.
 	Port *int32 `json:"port,omitempty"`
-	// Scheme - The scheme. Possible values include: 'HTTP', 'HTTPS'
+	// Scheme - The scheme. Possible values include: 'SchemeHTTP', 'SchemeHTTPS'
 	Scheme Scheme `json:"scheme,omitempty"`
+	// HTTPHeaders - The HTTP headers.
+	HTTPHeaders *HTTPHeaders `json:"httpHeaders,omitempty"`
 }
 
 // ContainerPort the port exposed on the container instance.
@@ -1265,8 +1276,16 @@ type GitRepoVolume struct {
 type GpuResource struct {
 	// Count - The count of the GPU resource.
 	Count *int32 `json:"count,omitempty"`
-	// Sku - The SKU of the GPU resource. Possible values include: 'K80', 'P100', 'V100'
+	// Sku - The SKU of the GPU resource. Possible values include: 'GpuSkuK80', 'GpuSkuP100', 'GpuSkuV100'
 	Sku GpuSku `json:"sku,omitempty"`
+}
+
+// HTTPHeaders the HTTP headers.
+type HTTPHeaders struct {
+	// Name - The header name.
+	Name *string `json:"name,omitempty"`
+	// Value - The header value.
+	Value *string `json:"value,omitempty"`
 }
 
 // ImageRegistryCredential image registry credential.
@@ -1387,7 +1406,7 @@ func (icpdV InitContainerPropertiesDefinitionInstanceView) MarshalJSON() ([]byte
 type IPAddress struct {
 	// Ports - The list of ports exposed on the container group.
 	Ports *[]Port `json:"ports,omitempty"`
-	// Type - Specifies if the IP is exposed to the public internet or private VNET. Possible values include: 'Public', 'Private'
+	// Type - Specifies if the IP is exposed to the public internet or private VNET. Possible values include: 'ContainerGroupIPAddressTypePublic', 'ContainerGroupIPAddressTypePrivate'
 	Type ContainerGroupIPAddressType `json:"type,omitempty"`
 	// IP - The IP exposed to the public internet.
 	IP *string `json:"ip,omitempty"`
@@ -1421,10 +1440,12 @@ type LogAnalytics struct {
 	WorkspaceID *string `json:"workspaceId,omitempty"`
 	// WorkspaceKey - The workspace key for log analytics
 	WorkspaceKey *string `json:"workspaceKey,omitempty"`
-	// LogType - The log type to be used. Possible values include: 'ContainerInsights', 'ContainerInstanceLogs'
+	// LogType - The log type to be used. Possible values include: 'LogAnalyticsLogTypeContainerInsights', 'LogAnalyticsLogTypeContainerInstanceLogs'
 	LogType LogAnalyticsLogType `json:"logType,omitempty"`
 	// Metadata - Metadata for log analytics.
 	Metadata map[string]*string `json:"metadata"`
+	// WorkspaceResourceID - The workspace resource id for log analytics
+	WorkspaceResourceID map[string]*string `json:"workspaceResourceId"`
 }
 
 // MarshalJSON is the custom marshaler for LogAnalytics.
@@ -1441,6 +1462,9 @@ func (la LogAnalytics) MarshalJSON() ([]byte, error) {
 	}
 	if la.Metadata != nil {
 		objectMap["metadata"] = la.Metadata
+	}
+	if la.WorkspaceResourceID != nil {
+		objectMap["workspaceResourceId"] = la.WorkspaceResourceID
 	}
 	return json.Marshal(objectMap)
 }
@@ -1460,7 +1484,7 @@ type Operation struct {
 	Display *OperationDisplay `json:"display,omitempty"`
 	// Properties - The additional properties.
 	Properties interface{} `json:"properties,omitempty"`
-	// Origin - The intended executor of the operation. Possible values include: 'User', 'System'
+	// Origin - The intended executor of the operation. Possible values include: 'OperationsOriginUser', 'OperationsOriginSystem'
 	Origin OperationsOrigin `json:"origin,omitempty"`
 }
 
@@ -1638,7 +1662,7 @@ func NewOperationListResultPage(cur OperationListResult, getNextPage func(contex
 
 // Port the port exposed on the container group.
 type Port struct {
-	// Protocol - The protocol associated with the port. Possible values include: 'TCP', 'UDP'
+	// Protocol - The protocol associated with the port. Possible values include: 'ContainerGroupNetworkProtocolTCP', 'ContainerGroupNetworkProtocolUDP'
 	Protocol ContainerGroupNetworkProtocol `json:"protocol,omitempty"`
 	// Port - The port number.
 	Port *int32 `json:"port,omitempty"`

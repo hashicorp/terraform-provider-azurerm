@@ -1,4 +1,4 @@
-// Package containerinstance implements the Azure ARM Containerinstance service API version 2019-12-01.
+// Package containerinstance implements the Azure ARM Containerinstance service API version 2021-03-01.
 //
 //
 package containerinstance
