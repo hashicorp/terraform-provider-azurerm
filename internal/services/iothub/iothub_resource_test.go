@@ -97,6 +97,10 @@ func TestAccIotHub_customRoutes(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("endpoint.#").HasValue("2"),
 				check.That(data.ResourceName).Key("endpoint.0.type").HasValue("AzureIotHub.StorageContainer"),
+				check.That(data.ResourceName).Key("endpoint.0.batch_frequency_in_seconds").HasValue("300"),
+				check.That(data.ResourceName).Key("endpoint.0.max_chunk_size_in_bytes").HasValue("314572800"),
+				check.That(data.ResourceName).Key("endpoint.0.encoding").HasValue("Avro"),
+				check.That(data.ResourceName).Key("endpoint.0.file_name_format").HasValue("{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}"),
 				check.That(data.ResourceName).Key("endpoint.1.type").HasValue("AzureIotHub.EventHub"),
 				check.That(data.ResourceName).Key("route.#").HasValue("2"),
 			),
@@ -498,15 +502,11 @@ resource "azurerm_iothub" "test" {
   event_hub_partition_count   = 77
 
   endpoint {
-    type                       = "AzureIotHub.StorageContainer"
-    connection_string          = azurerm_storage_account.test.primary_blob_connection_string
-    name                       = "export"
-    batch_frequency_in_seconds = 60
-    max_chunk_size_in_bytes    = 10485760
-    container_name             = azurerm_storage_container.test.name
-    encoding                   = "Avro"
-    file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
-    resource_group_name        = azurerm_resource_group.test.name
+    type                = "AzureIotHub.StorageContainer"
+    connection_string   = azurerm_storage_account.test.primary_blob_connection_string
+    name                = "export"
+    container_name      = azurerm_storage_container.test.name
+    resource_group_name = azurerm_resource_group.test.name
   }
 
   endpoint {

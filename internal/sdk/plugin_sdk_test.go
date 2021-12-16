@@ -178,7 +178,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 								})
 								return nil
 							},
-							Read: func(d *schema.ResourceData, _ interface{}) error {
+							Read: func(d *schema.ResourceData, _ interface{}) error { //nolint:SA1019
 								wrapper := ResourceMetaData{
 									ResourceData:             d,
 									Logger:                   ConsoleLogger{},
@@ -196,7 +196,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 
 								return nil
 							},
-							Delete: func(_ *schema.ResourceData, _ interface{}) error {
+							Delete: func(_ *schema.ResourceData, _ interface{}) error { //nolint:SA1019
 								return nil
 							},
 						},

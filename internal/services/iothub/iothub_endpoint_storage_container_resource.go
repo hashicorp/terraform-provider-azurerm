@@ -15,6 +15,7 @@ import (
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -65,6 +66,7 @@ func resourceIotHubEndpointStorageContainer() *pluginsdk.Resource {
 			"file_name_format": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				Default:      "{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}",
 				ValidateFunc: iothubValidate.FileNameFormat,
 			},
 
@@ -95,8 +97,11 @@ func resourceIotHubEndpointStorageContainer() *pluginsdk.Resource {
 			},
 
 			"encoding": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				Default:          string(devices.EncodingAvro),
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(devices.EncodingAvro),
 					string(devices.EncodingAvroDeflate),

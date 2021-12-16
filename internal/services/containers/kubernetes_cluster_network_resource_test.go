@@ -10,35 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-var kubernetesNetworkAuthTests = map[string]func(t *testing.T){
-	"enableNodePublicIP":                            testAccKubernetesCluster_enableNodePublicIP,
-	"internalNetwork":                               testAccKubernetesCluster_internalNetwork,
-	"changingLoadBalancerProfile":                   testAccKubernetesCluster_changingLoadBalancerProfile,
-	"prefixedLoadBalancerProfile":                   testAccKubernetesCluster_prefixedLoadBalancerProfile,
-	"standardLoadBalancer":                          testAccKubernetesCluster_standardLoadBalancer,
-	"standardLoadBalancerComplete":                  testAccKubernetesCluster_standardLoadBalancerComplete,
-	"standardLoadBalancerProfile":                   testAccKubernetesCluster_standardLoadBalancerProfile,
-	"standardLoadBalancerProfileComplete":           testAccKubernetesCluster_standardLoadBalancerProfileComplete,
-	"natGatewayProfile":                             testAccKubernetesCluster_natGatewayProfile,
-	"userAssignedNatGateway":                        testAccKubernetesCluster_userAssignedNatGateway,
-	"advancedNetworkingKubenet":                     testAccKubernetesCluster_advancedNetworkingKubenet,
-	"advancedNetworkingKubenetComplete":             testAccKubernetesCluster_advancedNetworkingKubenetComplete,
-	"advancedNetworkingAzure":                       testAccKubernetesCluster_advancedNetworkingAzure,
-	"advancedNetworkingAzureComplete":               testAccKubernetesCluster_advancedNetworkingAzureComplete,
-	"advancedNetworkingAzureCalicoPolicy":           testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicy,
-	"advancedNetworkingAzureCalicoPolicyComplete":   testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete,
-	"advancedNetworkingAzureNPMPolicy":              testAccKubernetesCluster_advancedNetworkingAzureNPMPolicy,
-	"advancedNetworkingAzureNPMPolicyComplete":      testAccKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete,
-	"basicLoadBalancerProfile":                      testAccKubernetesCluster_basicLoadBalancerProfile,
-	"standardLoadBalancerProfileWithPortAndTimeout": testAccKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout,
-}
-
 func TestAccKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_advancedNetworkingKubenet(t)
-}
-
-func testAccKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -55,11 +27,6 @@ func testAccKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_advancedNetworkingKubenetComplete(t)
-}
-
-func testAccKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -76,11 +43,6 @@ func testAccKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_advancedNetworkingAzure(t)
-}
-
-func testAccKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -97,11 +59,6 @@ func testAccKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_advancedNetworkingAzureComplete(t)
-}
-
-func testAccKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -118,11 +75,6 @@ func testAccKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t)
-}
-
-func testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -140,11 +92,6 @@ func testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) 
 }
 
 func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t)
-}
-
-func testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -180,11 +127,6 @@ func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyNetworkModeTran
 }
 
 func TestAccKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_advancedNetworkingAzureNPMPolicy(t)
-}
-
-func testAccKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -202,11 +144,6 @@ func testAccKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t)
-}
-
-func testAccKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -224,11 +161,6 @@ func testAccKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testin
 }
 
 func TestAccKubernetesCluster_enableNodePublicIP(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_enableNodePublicIP(t)
-}
-
-func testAccKubernetesCluster_enableNodePublicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -245,11 +177,6 @@ func testAccKubernetesCluster_enableNodePublicIP(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_internalNetwork(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_internalNetwork(t)
-}
-
-func testAccKubernetesCluster_internalNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -266,11 +193,6 @@ func testAccKubernetesCluster_internalNetwork(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_nodePublicIPPrefix(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_nodePublicIPPrefix(t)
-}
-
-func testAccKubernetesCluster_nodePublicIPPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -288,11 +210,6 @@ func testAccKubernetesCluster_nodePublicIPPrefix(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_outboundTypeLoadBalancer(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_outboundTypeLoadBalancer(t)
-}
-
-func testAccKubernetesCluster_outboundTypeLoadBalancer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -308,11 +225,6 @@ func testAccKubernetesCluster_outboundTypeLoadBalancer(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_natGatewayProfile(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_natGatewayProfile(t)
-}
-
-func testAccKubernetesCluster_natGatewayProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -341,11 +253,6 @@ func testAccKubernetesCluster_natGatewayProfile(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_managedNatGateway(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_managedNatGateway(t)
-}
-
-func testAccKubernetesCluster_managedNatGateway(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -364,11 +271,6 @@ func testAccKubernetesCluster_managedNatGateway(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_userAssignedNatGateway(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_userAssignedNatGateway(t)
-}
-
-func testAccKubernetesCluster_userAssignedNatGateway(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -384,11 +286,6 @@ func testAccKubernetesCluster_userAssignedNatGateway(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_privateClusterOn(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_privateClusterOn(t)
-}
-
-func testAccKubernetesCluster_privateClusterOn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -406,11 +303,6 @@ func testAccKubernetesCluster_privateClusterOn(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_privateClusterOnWithPrivateDNSZone(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_privateClusterOnWithPrivateDNSZone(t)
-}
-
-func testAccKubernetesCluster_privateClusterOnWithPrivateDNSZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -427,11 +319,6 @@ func testAccKubernetesCluster_privateClusterOnWithPrivateDNSZone(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneAndServicePrincipal(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneAndServicePrincipal(t)
-}
-
-func testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneAndServicePrincipal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
@@ -449,11 +336,6 @@ func testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneAndServicePrinci
 }
 
 func TestAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSubDomain(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSubDomain(t)
-}
-
-func testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSubDomain(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -468,11 +350,6 @@ func testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSubDomain(t *tes
 }
 
 func TestAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSystem(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSystem(t)
-}
-
-func testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSystem(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -489,11 +366,6 @@ func testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSystem(t *testin
 }
 
 func TestAccKubernetesCluster_privateClusterOff(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_privateClusterOff(t)
-}
-
-func testAccKubernetesCluster_privateClusterOff(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -510,11 +382,6 @@ func testAccKubernetesCluster_privateClusterOff(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_standardLoadBalancer(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_standardLoadBalancer(t)
-}
-
-func testAccKubernetesCluster_standardLoadBalancer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -531,11 +398,6 @@ func testAccKubernetesCluster_standardLoadBalancer(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_standardLoadBalancerComplete(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_standardLoadBalancerComplete(t)
-}
-
-func testAccKubernetesCluster_standardLoadBalancerComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -552,11 +414,6 @@ func testAccKubernetesCluster_standardLoadBalancerComplete(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_standardLoadBalancerProfile(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_standardLoadBalancerProfile(t)
-}
-
-func testAccKubernetesCluster_standardLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -577,11 +434,6 @@ func testAccKubernetesCluster_standardLoadBalancerProfile(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_standardLoadBalancerProfileComplete(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_standardLoadBalancerProfileComplete(t)
-}
-
-func testAccKubernetesCluster_standardLoadBalancerProfileComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -600,11 +452,6 @@ func testAccKubernetesCluster_standardLoadBalancerProfileComplete(t *testing.T) 
 }
 
 func TestAccKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout(t)
-}
-
-func testAccKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -624,11 +471,6 @@ func testAccKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout(t *t
 }
 
 func TestAccKubernetesCluster_basicLoadBalancerProfile(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_basicLoadBalancerProfile(t)
-}
-
-func testAccKubernetesCluster_basicLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -641,11 +483,6 @@ func testAccKubernetesCluster_basicLoadBalancerProfile(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_prefixedLoadBalancerProfile(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_prefixedLoadBalancerProfile(t)
-}
-
-func testAccKubernetesCluster_prefixedLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -664,11 +501,6 @@ func testAccKubernetesCluster_prefixedLoadBalancerProfile(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_changingLoadBalancerProfile(t)
-}
-
-func testAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 

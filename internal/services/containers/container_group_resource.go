@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2019-12-01/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -540,22 +542,21 @@ func resourceContainerGroup() *pluginsdk.Resource {
 
 func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.GroupsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-
+	id := parse.NewContainerGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Container Group %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_container_group", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_container_group", id.ID())
 		}
 	}
 
@@ -572,7 +573,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 	containerGroup := containerinstance.ContainerGroup{
-		Name:     &name,
+		Name:     utils.String(id.Name),
 		Location: &location,
 		Tags:     tags.Expand(t),
 		Identity: expandContainerGroupIdentity(d),
@@ -606,26 +607,16 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, containerGroup)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, containerGroup)
 	if err != nil {
-		return fmt.Errorf("creating/updating container group %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of container group %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return err
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read container group %s (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceContainerGroupRead(d, meta)
 }
 
@@ -646,7 +637,7 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
-		return fmt.Errorf("updating container group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourceContainerGroupRead(d, meta)
@@ -665,7 +656,7 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Container Group %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
@@ -782,22 +773,18 @@ func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if networkProfileId != "" {
-		// TODO update with NetworkProfile parser when this has been added
-		parsedProfileId, err := azure.ParseAzureResourceID(networkProfileId)
+		networkProfileClient := meta.(*clients.Client).Network.ProfileClient
+		networkProfileId, err := networkParse.NetworkProfileID(networkProfileId)
 		if err != nil {
 			return err
 		}
-
-		networkProfileClient := meta.(*clients.Client).Network.ProfileClient
-		networkProfileResourceGroup := parsedProfileId.ResourceGroup
-		networkProfileName := parsedProfileId.Path["networkProfiles"]
 
 		// TODO: remove when https://github.com/Azure/azure-sdk-for-go/issues/5082 has been fixed
 		log.Printf("[DEBUG] Waiting for Container Group %q (Resource Group %q) to be finish deleting", id.Name, id.ResourceGroup)
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending:                   []string{"Attached"},
 			Target:                    []string{"Detached"},
-			Refresh:                   containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx, networkProfileClient, networkProfileResourceGroup, networkProfileName, id.ResourceGroup, id.Name),
+			Refresh:                   containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx, networkProfileClient, networkProfileId.ResourceGroup, networkProfileId.Name, id.ResourceGroup, id.Name),
 			MinTimeout:                15 * time.Second,
 			ContinuousTargetOccurence: 5,
 			Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),

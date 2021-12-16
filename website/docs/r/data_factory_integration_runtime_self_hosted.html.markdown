@@ -26,8 +26,8 @@ resource "azurerm_data_factory" "example" {
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "example" {
   name                = "example"
-  resource_group_name = "example"
-  data_factory_name   = "example"
+  resource_group_name = azurerm_resource_group.example.name
+  data_factory_id     = azurerm_data_factory.example.id
 }
 ```
 
@@ -35,7 +35,13 @@ resource "azurerm_data_factory_integration_runtime_self_hosted" "example" {
 
 The following arguments are supported:
 
-* `data_factory_name` - (Required) Changing this forces a new Data Factory Self-hosted Integration Runtime to be created.
+* `data_factory_id` - (Optional) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
+
+* `data_factory_name` - (Optional) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
+
+-> **Note:** This property has been deprecated in favour of the `data_factory_id` property and will be removed in version 3.0 of the provider.
+
+-> **Note:** At least one of `data_factory_id` or `data_factory_name` must be set.
 
 * `name` - (Required) The name which should be used for this Data Factory. Changing this forces a new Data Factory Self-hosted Integration Runtime to be created.
 

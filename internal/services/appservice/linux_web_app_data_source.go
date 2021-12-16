@@ -28,11 +28,12 @@ type LinuxWebAppDataSourceModel struct {
 	AuthSettings                  []helpers.AuthSettings     `tfschema:"auth_settings"`
 	Backup                        []helpers.Backup           `tfschema:"backup"`
 	ClientAffinityEnabled         bool                       `tfschema:"client_affinity_enabled"`
-	ClientCertEnabled             bool                       `tfschema:"client_cert_enabled"`
-	ClientCertMode                string                     `tfschema:"client_cert_mode"`
+	ClientCertEnabled             bool                       `tfschema:"client_certificate_enabled"`
+	ClientCertMode                string                     `tfschema:"client_certificate_mode"`
 	Enabled                       bool                       `tfschema:"enabled"`
 	HttpsOnly                     bool                       `tfschema:"https_only"`
 	Identity                      []helpers.Identity         `tfschema:"identity"`
+	KeyVaultReferenceIdentityID   string                     `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                    []helpers.LogsConfig       `tfschema:"logs"`
 	MetaData                      map[string]string          `tfschema:"app_metadata"`
 	SiteConfig                    []helpers.SiteConfigLinux  `tfschema:"site_config"`
@@ -100,12 +101,12 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"client_cert_enabled": {
+		"client_certificate_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 
-		"client_cert_mode": {
+		"client_certificate_mode": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -134,6 +135,11 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"identity": helpers.IdentitySchemaComputed(),
+
+		"key_vault_reference_identity_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 
 		"kind": {
 			Type:     pluginsdk.TypeString,

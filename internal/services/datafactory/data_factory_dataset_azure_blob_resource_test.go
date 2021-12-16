@@ -86,7 +86,7 @@ func (t DatasetAzureBlobResource) Exists(ctx context.Context, clients *clients.C
 
 	resp, err := clients.DataFactory.DatasetClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Data Factory Dataset Azure Blob (%s): %+v", *id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -112,14 +112,14 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   connection_string   = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
 }
 
 resource "azurerm_data_factory_dataset_azure_blob" "test" {
   name                = "acctestds%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
 
   path     = "foo"
@@ -204,7 +204,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   connection_string   = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
 }
 
@@ -266,7 +266,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   connection_string   = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
 }
 

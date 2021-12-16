@@ -3,8 +3,9 @@ package consumption
 import (
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
-	subscriptionParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -31,8 +32,8 @@ func resourceArmConsumptionBudgetSubscription() *pluginsdk.Resource {
 }
 
 func resourceArmConsumptionBudgetSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	subscriptionId := subscriptionParse.NewSubscriptionId(d.Get("subscription_id").(string))
-	id := parse.NewConsumptionBudgetSubscriptionID(subscriptionId.SubscriptionID, d.Get("name").(string))
+	subscriptionId := commonids.NewSubscriptionID(d.Get("subscription_id").(string))
+	id := parse.NewConsumptionBudgetSubscriptionID(subscriptionId.SubscriptionId, d.Get("name").(string))
 
 	err := resourceArmConsumptionBudgetCreateUpdate(d, meta, consumptionBudgetSubscriptionName, subscriptionId.ID())
 	if err != nil {
@@ -50,9 +51,9 @@ func resourceArmConsumptionBudgetSubscriptionRead(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	subscriptionId := subscriptionParse.NewSubscriptionId(consumptionBudgetId.SubscriptionId)
+	subscriptionId := commonids.NewSubscriptionID(consumptionBudgetId.SubscriptionId)
 
-	err = resourceArmConsumptionBudgetRead(d, meta, subscriptionId.ID(), consumptionBudgetId.BudgetName)
+	err = resourceArmConsumptionBudgetRead(d, meta, subscriptionId.ID(), consumptionBudgetId.BudgetName, SchemaConsumptionBudgetNotificationElement, FlattenConsumptionBudgetNotifications)
 	if err != nil {
 		return err
 	}
@@ -68,7 +69,7 @@ func resourceArmConsumptionBudgetSubscriptionDelete(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	subscriptionId := subscriptionParse.NewSubscriptionId(consumptionBudgetId.SubscriptionId)
+	subscriptionId := commonids.NewSubscriptionID(consumptionBudgetId.SubscriptionId)
 
 	return resourceArmConsumptionBudgetDelete(d, meta, subscriptionId.ID())
 }

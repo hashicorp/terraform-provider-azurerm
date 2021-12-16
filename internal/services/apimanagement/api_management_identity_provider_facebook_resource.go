@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -65,10 +65,10 @@ func resourceApiManagementIdentityProviderFacebookCreateUpdate(d *pluginsdk.Reso
 	clientSecret := d.Get("app_secret").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Facebook)
+		existing, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderTypeFacebook)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Identity Provider %q (API Management Service %q / Resource Group %q): %s", apimanagement.Facebook, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Identity Provider %q (API Management Service %q / Resource Group %q): %s", apimanagement.IdentityProviderTypeFacebook, serviceName, resourceGroup, err)
 			}
 		}
 
@@ -81,20 +81,20 @@ func resourceApiManagementIdentityProviderFacebookCreateUpdate(d *pluginsdk.Reso
 		IdentityProviderCreateContractProperties: &apimanagement.IdentityProviderCreateContractProperties{
 			ClientID:     utils.String(clientID),
 			ClientSecret: utils.String(clientSecret),
-			Type:         apimanagement.Facebook,
+			Type:         apimanagement.IdentityProviderTypeFacebook,
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apimanagement.Facebook, parameters, ""); err != nil {
-		return fmt.Errorf("creating or updating Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.Facebook, resourceGroup, serviceName, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderTypeFacebook, parameters, ""); err != nil {
+		return fmt.Errorf("creating or updating Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.IdentityProviderTypeFacebook, resourceGroup, serviceName, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Facebook)
+	resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderTypeFacebook)
 	if err != nil {
-		return fmt.Errorf("retrieving Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.Facebook, resourceGroup, serviceName, err)
+		return fmt.Errorf("retrieving Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.IdentityProviderTypeFacebook, resourceGroup, serviceName, err)
 	}
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Identity Provider %q (Resource Group %q / API Management Service %q)", apimanagement.Facebook, resourceGroup, serviceName)
+		return fmt.Errorf("Cannot read ID for Identity Provider %q (Resource Group %q / API Management Service %q)", apimanagement.IdentityProviderTypeFacebook, resourceGroup, serviceName)
 	}
 	d.SetId(*resp.ID)
 

@@ -27,14 +27,14 @@ resource "azurerm_data_factory" "example" {
 resource "azurerm_data_factory_linked_service_sql_server" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
+  data_factory_id     = azurerm_data_factory.example.id
   connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
 }
 
 resource "azurerm_data_factory_dataset_sql_server_table" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
+  data_factory_id     = azurerm_data_factory.example.id
   linked_service_name = azurerm_data_factory_linked_service_sql_server.example.name
 }
 ```
@@ -47,7 +47,13 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Dataset SQL Server Table. Changing this forces a new resource
 
-* `data_factory_name` - (Required) The Data Factory name in which to associate the Dataset with. Changing this forces a new resource.
+* `data_factory_id` - (Optional) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
+
+* `data_factory_name` - (Optional) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
+
+-> **Note:** This property has been deprecated in favour of the `data_factory_id` property and will be removed in version 3.0 of the provider.
+
+-> **Note:** At least one of `data_factory_id` or `data_factory_name` must be set.
 
 * `linked_service_name` - (Required) The Data Factory Linked Service name in which to associate the Dataset with.
 

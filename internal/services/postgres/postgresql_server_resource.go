@@ -757,21 +757,36 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if d.HasChange("administrator_login_password") {
-		properties.ServerUpdateParametersProperties.AdministratorLoginPassword = utils.String(d.Get("administrator_login_password").(string))
+	oldCreateMode, newCreateMode := d.GetChange("create_mode")
+	replicaUpdatedToDefault := postgresql.CreateMode(oldCreateMode.(string)) == postgresql.CreateModeReplica && postgresql.CreateMode(newCreateMode.(string)) == postgresql.CreateModeDefault
+	if replicaUpdatedToDefault {
+		properties.ServerUpdateParametersProperties.ReplicationRole = utils.String("None")
 	}
 
-	if old, new := d.GetChange("create_mode"); postgresql.CreateMode(old.(string)) == postgresql.CreateModeReplica && postgresql.CreateMode(new.(string)) == postgresql.CreateModeDefault {
-		properties.ServerUpdateParametersProperties.ReplicationRole = utils.String("None")
+	// Update Admin Password in the separate call when Replication is stopped: https://github.com/Azure/azure-rest-api-specs/issues/16898
+	if d.HasChange("administrator_login_password") && !replicaUpdatedToDefault {
+		properties.ServerUpdateParametersProperties.AdministratorLoginPassword = utils.String(d.Get("administrator_login_password").(string))
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
 	if err != nil {
-		return fmt.Errorf("updating PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating %q: %+v", id, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of %q: %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	// Update Admin Password in a separate call when Replication is stopped: https://github.com/Azure/azure-rest-api-specs/issues/16898
+	if d.HasChange("administrator_login_password") && replicaUpdatedToDefault {
+		properties.ServerUpdateParametersProperties.AdministratorLoginPassword = utils.String(d.Get("administrator_login_password").(string))
+
+		future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
+		if err != nil {
+			return fmt.Errorf("updating Admin Password of %q: %+v", id, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for Admin Password update of %q: %+v", id, err)
+		}
 	}
 
 	if v, ok := d.GetOk("threat_detection_policy"); ok {

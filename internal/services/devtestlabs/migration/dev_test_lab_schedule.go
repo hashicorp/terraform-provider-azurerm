@@ -24,27 +24,15 @@ func (DevTestLabScheduleUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc
 		// 	/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.devtestlab/labs/{labName}/schedules/{scheduleName}
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/schedules/{scheduleName}
-		oldId, err := azure.ParseAzureResourceID(rawState["id"].(string))
-
+		oldId := rawState["id"].(string)
+		id, err := parse.DevTestLabScheduleIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}
 
-		labName, err := oldId.PopSegment("labs")
-		if err != nil {
-			return rawState, err
-		}
-
-		scheduleName, err := oldId.PopSegment("schedules")
-		if err != nil {
-			return rawState, err
-		}
-
-		newId := parse.NewDevTestLabScheduleID(oldId.SubscriptionID, oldId.ResourceGroup, labName, scheduleName)
-
-		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId.ID())
-
-		rawState["id"] = newId.ID()
+		newId := id.ID()
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+		rawState["id"] = newId
 
 		return rawState, nil
 	}
