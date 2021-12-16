@@ -24,6 +24,8 @@ BUG FIXES:
 
 * `azurerm_marketplace_agreement` - fix crash when the import check triggers [GH-14614]
 * `azurerm_postgresql_configuration` - now locks during write operations to prevent conflicts [GH-14619]
+* `azurerm_postgresql_flexible_server_configuration` - now locks during write operations to prevent conflicts [GH-14607]
+
 
 ## 2.89.0 (December 10, 2021)
 
