@@ -273,6 +273,7 @@ func resourceAfdOriginGroupsRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	d.Set("name", id.OriginGroupName)
+	d.Set("session_affinity_state", resp.SessionAffinityState)
 
 	return nil
 }
