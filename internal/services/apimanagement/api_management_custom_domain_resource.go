@@ -173,6 +173,8 @@ func apiManagementCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
+	apiMgmtId := parse.NewApiManagementID(id.SubscriptionId, id.ResourceGroup, id.ServiceName)
+
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -184,7 +186,7 @@ func apiManagementCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("api_management_id", id.ID())
+	d.Set("api_management_id", apiMgmtId.ID())
 
 	if resp.ServiceProperties != nil && resp.ServiceProperties.HostnameConfigurations != nil {
 		apimHostNameSuffix := environment.APIManagementHostNameSuffix
