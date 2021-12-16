@@ -216,7 +216,7 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 		contentTypesToCompressArray = append(contentTypesToCompressArray, pattern)
 	}
 
-	if cachingEnabled == true {
+	if cachingEnabled {
 		compressionSettings.IsCompressionEnabled = &cachingEnabled
 		compressionSettings.ContentTypesToCompress = &contentTypesToCompressArray
 	}

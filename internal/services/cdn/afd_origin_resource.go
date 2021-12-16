@@ -69,6 +69,12 @@ func resourceAfdOrigin() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"priority": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -157,6 +163,7 @@ func resourceAfdOriginsCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	originHostHeader := d.Get("origin_host_header").(string)
 	azureOrigin := d.Get("azure_origin").(string)
 	privateLinkSettings := d.Get("private_link").([]interface{})
+	enabled := d.Get("enabled").(bool)
 
 	id := parse.NewAfdOriginsID(originGroup.SubscriptionId, originGroup.ResourceGroup, originGroup.ProfileName, originGroup.OriginGroupName, originname)
 
@@ -168,6 +175,12 @@ func resourceAfdOriginsCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			HTTPPort:  &httpPort,
 			HTTPSPort: &httpsPort,
 		},
+	}
+
+	if enabled {
+		afdOrigin.EnabledState = cdn.EnabledStateEnabled
+	} else {
+		afdOrigin.EnabledState = cdn.EnabledStateDisabled
 	}
 
 	if azureOrigin != "" {
@@ -204,7 +217,7 @@ func expandPrivateLinkSettings(input []interface{}) interface{} {
 
 	config := input[0].(map[string]interface{})
 
-	//privateLinkResource := make(map[string]interface{})
+	// privateLinkResource := make(map[string]interface{})
 	resourceId := config["resource_id"].(string)
 	location := config["location"].(string)
 
@@ -215,10 +228,10 @@ func expandPrivateLinkSettings(input []interface{}) interface{} {
 		PrivateLinkLocation: &location,
 	}
 
-	//privateLinkResource["PrivateLinkAlias"] = config["alias"].(string)
-	//privateLinkResource["PrivateLinkResourceID"] = config["resource_id"].(string)
-	//privateLinkResource["PrivateLinkLocation"] = config["location"].(string)
-	//privateLinkResource["PrivateLinkApprovalMessage"] = config["approval_message"].(string)
+	// privateLinkResource["PrivateLinkAlias"] = config["alias"].(string)
+	// privateLinkResource["PrivateLinkResourceID"] = config["resource_id"].(string)
+	// privateLinkResourctere["PrivateLinkLocation"] = config["location"].(string)
+	// privateLinkResource["PrivateLinkApprovalMessage"] = config["approval_message"].(string)
 
 	return privateLinkResource
 }
@@ -276,6 +289,14 @@ func resourceAfdOriginsUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		originUpdateProperties.OriginHostHeader = &httpPort
 	}
 
+	if d.HasChange("enabled") {
+		if d.Get("enabled").(bool) {
+			// originUpdateProperties.EnabledState = cdn.EnabledStateEnabled
+		} else {
+			// originUpdateProperties.EnabledState = cdn.EnabledStateDisabled
+		}
+	}
+
 	if d.HasChange("https_port") {
 		httpsPort := d.Get("https_port").(string)
 		originUpdateProperties.OriginHostHeader = &httpsPort
@@ -286,10 +307,10 @@ func resourceAfdOriginsUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		originUpdateProperties.OriginHostHeader = &priority
 	}
 
-	if d.HasChange("private_link") {
-		privateLink := d.Get("private_link").([]interface{})
-		originUpdateProperties.SharedPrivateLinkResource = expandPrivateLinkSettings(privateLink)
-	}
+	// if d.HasChange("private_link") {
+	// 	privateLink := d.Get("private_link").([]interface{})
+	// 	originUpdateProperties.SharedPrivateLinkResource = expandPrivateLinkSettings(privateLink)
+	// }
 
 	if d.HasChange("weight") {
 		weight := d.Get("weight").(string)

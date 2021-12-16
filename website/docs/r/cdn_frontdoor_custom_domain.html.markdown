@@ -24,9 +24,9 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain" "example" {
-  name            = "mycustomdomain"
-  profile_id      = azurerm_cdn_frontdoor_profile.example.id
-  host_name       = "mycustomdomain.com"
+  name       = "mycustomdomain"
+  profile_id = azurerm_cdn_frontdoor_profile.example.id
+  host_name  = "mycustomdomain.com"
 
   tls {
     certificate_type = "ManagedCertificate"

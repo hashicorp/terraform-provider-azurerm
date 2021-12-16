@@ -136,15 +136,45 @@ func resourceAfdEndpointsRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("making Read request on Azure CDN Endpoint %q (Resource Group %q): %+v", id.AfdEndpointName, id.ResourceGroup, err)
 	}
 
+	if resp.EnabledState == cdn.EnabledStateEnabled {
+		d.Set("enabled", true)
+	} else {
+		d.Set("enabled", false)
+	}
+
 	d.Set("name", id.AfdEndpointName)
 
 	return nil
 }
 
 func resourceAfdEndpointsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Cdn.AFDEndpointsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
 	id, err := parse.AfdEndpointsID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	endpointUpdate := cdn.AFDEndpointUpdateParameters{}
+
+	if d.HasChange("enabled") {
+
+		if d.Get("enabled").(bool) {
+			// endpointUpdate.EnabledState = cdn.EnabledStateEnabled
+		} else {
+			// endpointUpdate.EnabledState = cdn.EnabledStateDisabled
+		}
+	}
+
+	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, endpointUpdate)
+	if err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	d.SetId(id.ID())
