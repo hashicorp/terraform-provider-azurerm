@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -68,6 +69,9 @@ func resourcePostgreSQLConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta
 	resGroup := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
 	value := d.Get("value").(string)
+
+	locks.ByName(serverName, postgreSQLServerResourceName)
+	defer locks.UnlockByName(serverName, postgreSQLServerResourceName)
 
 	properties := postgresql.Configuration{
 		ConfigurationProperties: &postgresql.ConfigurationProperties{
@@ -141,6 +145,9 @@ func resourcePostgreSQLConfigurationDelete(d *pluginsdk.ResourceData, meta inter
 	if err != nil {
 		return err
 	}
+
+	locks.ByName(id.ServerName, postgreSQLServerResourceName)
+	defer locks.UnlockByName(id.ServerName, postgreSQLServerResourceName)
 
 	// "delete" = resetting this to the default value
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
