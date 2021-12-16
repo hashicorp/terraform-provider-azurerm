@@ -13,6 +13,8 @@ type SubscriptionConsumptionBudgetV0ToV1 struct{}
 
 func (SubscriptionConsumptionBudgetV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+		// The previous validation behaviour of subscription_id meant that we were only accepting this format 00000000-0000-0000-0000-000000000000,
+		// but we should be accepting /subscriptions/00000000-0000-0000-0000-000000000000
 		rawState["subscription_id"] = commonids.NewSubscriptionID(rawState["subscription_id"].(string))
 
 		return rawState, nil
