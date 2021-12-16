@@ -76,7 +76,7 @@ gencheck:
 	@make generate
 	@echo "==> Comparing generated code to committed code..."
 	@git diff --compact-summary --exit-code -- ./ || \
-    		(echo; echo "Unexpected difference in generated code. Run 'go generate' to update the generated code and commit."; exit 1)
+    		(echo; echo "Unexpected difference in generated code. Run 'make generate' to update the generated code and commit."; exit 1)
 
 tflint:
 	./scripts/run-tflint.sh
@@ -138,5 +138,7 @@ teamcity-test:
 
 validate-examples:
 	./scripts/validate-examples.sh
+
+pr-check: generate build test lint tflint website-lint
 
 .PHONY: build build-docker test test-docker testacc vet fmt fmtcheck errcheck scaffold-website test-compile website website-test validate-examples
