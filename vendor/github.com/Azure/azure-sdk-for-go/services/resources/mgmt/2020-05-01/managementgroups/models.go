@@ -18,13 +18,96 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-05-01/managementgroups"
+
+// AzureAsyncOperationResults the results of Azure-AsyncOperation.
+type AzureAsyncOperationResults struct {
+	autorest.Response `json:"-"`
+	// ID - READ-ONLY; The fully qualified ID for the management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
+	ID *string `json:"id,omitempty"`
+	// Type - READ-ONLY; The type of the resource.  For example, Microsoft.Management/managementGroups
+	Type *string `json:"type,omitempty"`
+	// Name - READ-ONLY; The name of the management group. For example, 00000000-0000-0000-0000-000000000000
+	Name *string `json:"name,omitempty"`
+	// Status - READ-ONLY; The current status of the asynchronous operation performed . For example, Running, Succeeded, Failed
+	Status          *string `json:"status,omitempty"`
+	*InfoProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AzureAsyncOperationResults.
+func (aaor AzureAsyncOperationResults) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if aaor.InfoProperties != nil {
+		objectMap["properties"] = aaor.InfoProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for AzureAsyncOperationResults struct.
+func (aaor *AzureAsyncOperationResults) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				aaor.ID = &ID
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				aaor.Type = &typeVar
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				aaor.Name = &name
+			}
+		case "status":
+			if v != nil {
+				var status string
+				err = json.Unmarshal(*v, &status)
+				if err != nil {
+					return err
+				}
+				aaor.Status = &status
+			}
+		case "properties":
+			if v != nil {
+				var infoProperties InfoProperties
+				err = json.Unmarshal(*v, &infoProperties)
+				if err != nil {
+					return err
+				}
+				aaor.InfoProperties = &infoProperties
+			}
+		}
+	}
+
+	return nil
+}
 
 // CheckNameAvailabilityRequest management group name availability check parameters.
 type CheckNameAvailabilityRequest struct {
 	// Name - the name to check for availability
 	Name *string `json:"name,omitempty"`
-	// Type - fully qualified resource type which includes provider namespace. Possible values include: 'ProvidersMicrosoftManagementmanagementGroups'
+	// Type - fully qualified resource type which includes provider namespace. Possible values include: 'MicrosoftManagementmanagementGroups'
 	Type Type `json:"type,omitempty"`
 }
 
@@ -48,7 +131,7 @@ func (cnar CheckNameAvailabilityResult) MarshalJSON() ([]byte, error) {
 
 // ChildInfo the child information of a management group.
 type ChildInfo struct {
-	// Type - The fully qualified resource type which includes provider namespace (e.g. /providers/Microsoft.Management/managementGroups). Possible values include: 'Type1ProvidersMicrosoftManagementmanagementGroups', 'Type1Subscriptions'
+	// Type - The fully qualified resource type which includes provider namespace (e.g. Microsoft.Management/managementGroups). Possible values include: 'Type1MicrosoftManagementmanagementGroups', 'Type1Subscriptions'
 	Type Type1 `json:"type,omitempty"`
 	// ID - The fully qualified ID for the child resource (management group or subscription).  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
 	ID *string `json:"id,omitempty"`
@@ -56,15 +139,13 @@ type ChildInfo struct {
 	Name *string `json:"name,omitempty"`
 	// DisplayName - The friendly name of the child resource.
 	DisplayName *string `json:"displayName,omitempty"`
-	// Roles - The roles definitions associated with the management group.
-	Roles *[]string `json:"roles,omitempty"`
 	// Children - The list of children.
 	Children *[]ChildInfo `json:"children,omitempty"`
 }
 
 // CreateManagementGroupChildInfo the child information of a management group used during creation.
 type CreateManagementGroupChildInfo struct {
-	// Type - READ-ONLY; The fully qualified resource type which includes provider namespace (e.g. /providers/Microsoft.Management/managementGroups). Possible values include: 'Type2ProvidersMicrosoftManagementmanagementGroups', 'Type2Subscriptions'
+	// Type - READ-ONLY; The fully qualified resource type which includes provider namespace (e.g. Microsoft.Management/managementGroups). Possible values include: 'Type2MicrosoftManagementmanagementGroups', 'Type2Subscriptions'
 	Type Type2 `json:"type,omitempty"`
 	// ID - READ-ONLY; The fully qualified ID for the child resource (management group or subscription).  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
 	ID *string `json:"id,omitempty"`
@@ -72,8 +153,6 @@ type CreateManagementGroupChildInfo struct {
 	Name *string `json:"name,omitempty"`
 	// DisplayName - READ-ONLY; The friendly name of the child resource.
 	DisplayName *string `json:"displayName,omitempty"`
-	// Roles - READ-ONLY; The roles definitions associated with the management group.
-	Roles *[]string `json:"roles,omitempty"`
 	// Children - READ-ONLY; The list of children.
 	Children *[]CreateManagementGroupChildInfo `json:"children,omitempty"`
 }
@@ -109,10 +188,8 @@ type CreateManagementGroupProperties struct {
 	// TenantID - READ-ONLY; The AAD Tenant ID associated with the management group. For example, 00000000-0000-0000-0000-000000000000
 	TenantID *string `json:"tenantId,omitempty"`
 	// DisplayName - The friendly name of the management group. If no value is passed then this  field will be set to the groupId.
-	DisplayName *string `json:"displayName,omitempty"`
-	// Roles - READ-ONLY; The roles definitions associated with the management group.
-	Roles   *[]string                     `json:"roles,omitempty"`
-	Details *CreateManagementGroupDetails `json:"details,omitempty"`
+	DisplayName *string                       `json:"displayName,omitempty"`
+	Details     *CreateManagementGroupDetails `json:"details,omitempty"`
 	// Children - READ-ONLY; The list of children.
 	Children *[]CreateManagementGroupChildInfo `json:"children,omitempty"`
 }
@@ -133,7 +210,7 @@ func (cmgp CreateManagementGroupProperties) MarshalJSON() ([]byte, error) {
 type CreateManagementGroupRequest struct {
 	// ID - READ-ONLY; The fully qualified ID for the management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
 	ID *string `json:"id,omitempty"`
-	// Type - READ-ONLY; The type of the resource.  For example, /providers/Microsoft.Management/managementGroups
+	// Type - READ-ONLY; The type of the resource.  For example, Microsoft.Management/managementGroups
 	Type *string `json:"type,omitempty"`
 	// Name - The name of the management group. For example, 00000000-0000-0000-0000-000000000000
 	Name                             *string `json:"name,omitempty"`
@@ -246,6 +323,53 @@ func (future *CreateOrUpdateFuture) result(client Client) (so SetObject, err err
 	return
 }
 
+// CreateOrUpdateSettingsProperties the properties of the request to create or update Management Group
+// settings
+type CreateOrUpdateSettingsProperties struct {
+	// RequireAuthorizationForGroupCreation - Indicates whether RBAC access is required upon group creation under the root Management Group. If set to true, user will require Microsoft.Management/managementGroups/write action on the root Management Group scope in order to create new Groups directly under the root. This will prevent new users from creating new Management Groups, unless they are given access.
+	RequireAuthorizationForGroupCreation *bool `json:"requireAuthorizationForGroupCreation,omitempty"`
+	// DefaultManagementGroup - Settings that sets the default Management Group under which new subscriptions get added in this tenant. For example, /providers/Microsoft.Management/managementGroups/defaultGroup
+	DefaultManagementGroup *string `json:"defaultManagementGroup,omitempty"`
+}
+
+// CreateOrUpdateSettingsRequest parameters for creating or updating Management Group settings
+type CreateOrUpdateSettingsRequest struct {
+	*CreateOrUpdateSettingsProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CreateOrUpdateSettingsRequest.
+func (cousr CreateOrUpdateSettingsRequest) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cousr.CreateOrUpdateSettingsProperties != nil {
+		objectMap["properties"] = cousr.CreateOrUpdateSettingsProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for CreateOrUpdateSettingsRequest struct.
+func (cousr *CreateOrUpdateSettingsRequest) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var createOrUpdateSettingsProperties CreateOrUpdateSettingsProperties
+				err = json.Unmarshal(*v, &createOrUpdateSettingsProperties)
+				if err != nil {
+					return err
+				}
+				cousr.CreateOrUpdateSettingsProperties = &createOrUpdateSettingsProperties
+			}
+		}
+	}
+
+	return nil
+}
+
 // CreateParentGroupInfo (Optional) The ID of the parent management group used during creation.
 type CreateParentGroupInfo struct {
 	// ID - The fully qualified ID for the parent management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
@@ -270,7 +394,7 @@ type DeleteFuture struct {
 	azure.FutureAPI
 	// Result returns the result of the asynchronous operation.
 	// If the operation has not completed it will return an error.
-	Result func(Client) (OperationResults, error)
+	Result func(Client) (AzureAsyncOperationResults, error)
 }
 
 // UnmarshalJSON is the custom unmarshaller for CreateFuture.
@@ -285,7 +409,7 @@ func (future *DeleteFuture) UnmarshalJSON(body []byte) error {
 }
 
 // result is the default implementation for DeleteFuture.Result.
-func (future *DeleteFuture) result(client Client) (or OperationResults, err error) {
+func (future *DeleteFuture) result(client Client) (aaor AzureAsyncOperationResults, err error) {
 	var done bool
 	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
@@ -293,15 +417,15 @@ func (future *DeleteFuture) result(client Client) (or OperationResults, err erro
 		return
 	}
 	if !done {
-		or.Response.Response = future.Response()
+		aaor.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("managementgroups.DeleteFuture")
 		return
 	}
 	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if or.Response.Response, err = future.GetResult(sender); err == nil && or.Response.Response.StatusCode != http.StatusNoContent {
-		or, err = client.DeleteResponder(or.Response.Response)
+	if aaor.Response.Response, err = future.GetResult(sender); err == nil && aaor.Response.Response.StatusCode != http.StatusNoContent {
+		aaor, err = client.DeleteResponder(aaor.Response.Response)
 		if err != nil {
-			err = autorest.NewErrorWithError(err, "managementgroups.DeleteFuture", "Result", or.Response.Response, "Failure responding to request")
+			err = autorest.NewErrorWithError(err, "managementgroups.DeleteFuture", "Result", aaor.Response.Response, "Failure responding to request")
 		}
 	}
 	return
@@ -311,7 +435,7 @@ func (future *DeleteFuture) result(client Client) (or OperationResults, err erro
 type DescendantInfo struct {
 	// ID - READ-ONLY; The fully qualified ID for the descendant.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000 or /subscriptions/0000000-0000-0000-0000-000000000000
 	ID *string `json:"id,omitempty"`
-	// Type - READ-ONLY; The type of the resource. For example, /providers/Microsoft.Management/managementGroups or /subscriptions
+	// Type - READ-ONLY; The type of the resource. For example, Microsoft.Management/managementGroups or /subscriptions
 	Type *string `json:"type,omitempty"`
 	// Name - READ-ONLY; The name of the descendant. For example, 00000000-0000-0000-0000-000000000000
 	Name                      *string `json:"name,omitempty"`
@@ -574,7 +698,7 @@ type Details struct {
 type EntityHierarchyItem struct {
 	// ID - READ-ONLY; The fully qualified ID for the management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
 	ID *string `json:"id,omitempty"`
-	// Type - READ-ONLY; The type of the resource.  For example, /providers/Microsoft.Management/managementGroups
+	// Type - READ-ONLY; The type of the resource.  For example, Microsoft.Management/managementGroups
 	Type *string `json:"type,omitempty"`
 	// Name - READ-ONLY; The name of the management group. For example, 00000000-0000-0000-0000-000000000000
 	Name                           *string `json:"name,omitempty"`
@@ -655,7 +779,7 @@ type EntityHierarchyItemProperties struct {
 type EntityInfo struct {
 	// ID - READ-ONLY; The fully qualified ID for the entity.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
 	ID *string `json:"id,omitempty"`
-	// Type - READ-ONLY; The type of the resource. For example, /providers/Microsoft.Management/managementGroups
+	// Type - READ-ONLY; The type of the resource. For example, Microsoft.Management/managementGroups
 	Type *string `json:"type,omitempty"`
 	// Name - READ-ONLY; The name of the entity. For example, 00000000-0000-0000-0000-000000000000
 	Name                  *string `json:"name,omitempty"`
@@ -736,7 +860,7 @@ type EntityInfoProperties struct {
 	NumberOfDescendants  *int32               `json:"numberOfDescendants,omitempty"`
 	// NumberOfChildren - Number of children is the number of Groups and Subscriptions that are exactly one level underneath the current Group.
 	NumberOfChildren *int32 `json:"numberOfChildren,omitempty"`
-	// NumberOfChildGroups - Number of child groups is the number of Groups that are exactly one level underneath the current Group.
+	// NumberOfChildGroups - Number of children is the number of Groups that are exactly one level underneath the current Group.
 	NumberOfChildGroups *int32 `json:"numberOfChildGroups,omitempty"`
 	// ParentDisplayNameChain - The parent display name chain from the root group to the immediate parent
 	ParentDisplayNameChain *[]string `json:"parentDisplayNameChain,omitempty"`
@@ -935,11 +1059,182 @@ type ErrorResponse struct {
 	Error *ErrorDetails `json:"error,omitempty"`
 }
 
+// HierarchySettings settings defined at the Management Group scope.
+type HierarchySettings struct {
+	autorest.Response `json:"-"`
+	// ID - READ-ONLY; The fully qualified ID for the settings object.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000/settings/default.
+	ID *string `json:"id,omitempty"`
+	// Type - READ-ONLY; The type of the resource.  For example, Microsoft.Management/managementGroups/settings.
+	Type *string `json:"type,omitempty"`
+	// Name - READ-ONLY; The name of the object. In this case, default.
+	Name                         *string `json:"name,omitempty"`
+	*HierarchySettingsProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for HierarchySettings.
+func (hs HierarchySettings) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if hs.HierarchySettingsProperties != nil {
+		objectMap["properties"] = hs.HierarchySettingsProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for HierarchySettings struct.
+func (hs *HierarchySettings) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				hs.ID = &ID
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				hs.Type = &typeVar
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				hs.Name = &name
+			}
+		case "properties":
+			if v != nil {
+				var hierarchySettingsProperties HierarchySettingsProperties
+				err = json.Unmarshal(*v, &hierarchySettingsProperties)
+				if err != nil {
+					return err
+				}
+				hs.HierarchySettingsProperties = &hierarchySettingsProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// HierarchySettingsInfo the hierarchy settings resource.
+type HierarchySettingsInfo struct {
+	// ID - READ-ONLY; The fully qualified ID for the settings object.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000/settings/default.
+	ID *string `json:"id,omitempty"`
+	// Type - READ-ONLY; The type of the resource.  For example, Microsoft.Management/managementGroups/settings.
+	Type *string `json:"type,omitempty"`
+	// Name - READ-ONLY; The name of the object. In this case, default.
+	Name                         *string `json:"name,omitempty"`
+	*HierarchySettingsProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for HierarchySettingsInfo.
+func (hsi HierarchySettingsInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if hsi.HierarchySettingsProperties != nil {
+		objectMap["properties"] = hsi.HierarchySettingsProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for HierarchySettingsInfo struct.
+func (hsi *HierarchySettingsInfo) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				hsi.ID = &ID
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				hsi.Type = &typeVar
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				hsi.Name = &name
+			}
+		case "properties":
+			if v != nil {
+				var hierarchySettingsProperties HierarchySettingsProperties
+				err = json.Unmarshal(*v, &hierarchySettingsProperties)
+				if err != nil {
+					return err
+				}
+				hsi.HierarchySettingsProperties = &hierarchySettingsProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// HierarchySettingsList lists all hierarchy settings.
+type HierarchySettingsList struct {
+	autorest.Response `json:"-"`
+	// Value - The list of hierarchy settings.
+	Value *[]HierarchySettingsInfo `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URL to use for getting the next set of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for HierarchySettingsList.
+func (hsl HierarchySettingsList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if hsl.Value != nil {
+		objectMap["value"] = hsl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// HierarchySettingsProperties the generic properties of hierarchy settings.
+type HierarchySettingsProperties struct {
+	// TenantID - The AAD Tenant ID associated with the hierarchy settings. For example, 00000000-0000-0000-0000-000000000000
+	TenantID *string `json:"tenantId,omitempty"`
+	// RequireAuthorizationForGroupCreation - Indicates whether RBAC access is required upon group creation under the root Management Group. If set to true, user will require Microsoft.Management/managementGroups/write action on the root Management Group scope in order to create new Groups directly under the root. This will prevent new users from creating new Management Groups, unless they are given access.
+	RequireAuthorizationForGroupCreation *bool `json:"requireAuthorizationForGroupCreation,omitempty"`
+	// DefaultManagementGroup - Settings that sets the default Management Group under which new subscriptions get added in this tenant. For example, /providers/Microsoft.Management/managementGroups/defaultGroup
+	DefaultManagementGroup *string `json:"defaultManagementGroup,omitempty"`
+}
+
 // Info the management group resource.
 type Info struct {
 	// ID - READ-ONLY; The fully qualified ID for the management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
 	ID *string `json:"id,omitempty"`
-	// Type - READ-ONLY; The type of the resource. For example, /providers/Microsoft.Management/managementGroups
+	// Type - READ-ONLY; The type of the resource. For example, Microsoft.Management/managementGroups
 	Type *string `json:"type,omitempty"`
 	// Name - READ-ONLY; The name of the management group. For example, 00000000-0000-0000-0000-000000000000
 	Name            *string `json:"name,omitempty"`
@@ -1182,12 +1477,181 @@ func NewListResultPage(cur ListResult, getNextPage func(context.Context, ListRes
 	}
 }
 
+// ListSubscriptionUnderManagementGroup the details of all subscriptions under management group.
+type ListSubscriptionUnderManagementGroup struct {
+	autorest.Response `json:"-"`
+	// Value - The list of subscriptions.
+	Value *[]SubscriptionUnderManagementGroup `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URL to use for getting the next set of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ListSubscriptionUnderManagementGroup.
+func (lsumg ListSubscriptionUnderManagementGroup) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if lsumg.Value != nil {
+		objectMap["value"] = lsumg.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// ListSubscriptionUnderManagementGroupIterator provides access to a complete listing of
+// SubscriptionUnderManagementGroup values.
+type ListSubscriptionUnderManagementGroupIterator struct {
+	i    int
+	page ListSubscriptionUnderManagementGroupPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ListSubscriptionUnderManagementGroupIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ListSubscriptionUnderManagementGroupIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ListSubscriptionUnderManagementGroupIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ListSubscriptionUnderManagementGroupIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ListSubscriptionUnderManagementGroupIterator) Response() ListSubscriptionUnderManagementGroup {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ListSubscriptionUnderManagementGroupIterator) Value() SubscriptionUnderManagementGroup {
+	if !iter.page.NotDone() {
+		return SubscriptionUnderManagementGroup{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ListSubscriptionUnderManagementGroupIterator type.
+func NewListSubscriptionUnderManagementGroupIterator(page ListSubscriptionUnderManagementGroupPage) ListSubscriptionUnderManagementGroupIterator {
+	return ListSubscriptionUnderManagementGroupIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (lsumg ListSubscriptionUnderManagementGroup) IsEmpty() bool {
+	return lsumg.Value == nil || len(*lsumg.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (lsumg ListSubscriptionUnderManagementGroup) hasNextLink() bool {
+	return lsumg.NextLink != nil && len(*lsumg.NextLink) != 0
+}
+
+// listSubscriptionUnderManagementGroupPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (lsumg ListSubscriptionUnderManagementGroup) listSubscriptionUnderManagementGroupPreparer(ctx context.Context) (*http.Request, error) {
+	if !lsumg.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(lsumg.NextLink)))
+}
+
+// ListSubscriptionUnderManagementGroupPage contains a page of SubscriptionUnderManagementGroup values.
+type ListSubscriptionUnderManagementGroupPage struct {
+	fn    func(context.Context, ListSubscriptionUnderManagementGroup) (ListSubscriptionUnderManagementGroup, error)
+	lsumg ListSubscriptionUnderManagementGroup
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ListSubscriptionUnderManagementGroupPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ListSubscriptionUnderManagementGroupPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.lsumg)
+		if err != nil {
+			return err
+		}
+		page.lsumg = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ListSubscriptionUnderManagementGroupPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ListSubscriptionUnderManagementGroupPage) NotDone() bool {
+	return !page.lsumg.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ListSubscriptionUnderManagementGroupPage) Response() ListSubscriptionUnderManagementGroup {
+	return page.lsumg
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ListSubscriptionUnderManagementGroupPage) Values() []SubscriptionUnderManagementGroup {
+	if page.lsumg.IsEmpty() {
+		return nil
+	}
+	return *page.lsumg.Value
+}
+
+// Creates a new instance of the ListSubscriptionUnderManagementGroupPage type.
+func NewListSubscriptionUnderManagementGroupPage(cur ListSubscriptionUnderManagementGroup, getNextPage func(context.Context, ListSubscriptionUnderManagementGroup) (ListSubscriptionUnderManagementGroup, error)) ListSubscriptionUnderManagementGroupPage {
+	return ListSubscriptionUnderManagementGroupPage{
+		fn:    getNextPage,
+		lsumg: cur,
+	}
+}
+
 // ManagementGroup the management group details.
 type ManagementGroup struct {
 	autorest.Response `json:"-"`
 	// ID - READ-ONLY; The fully qualified ID for the management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
 	ID *string `json:"id,omitempty"`
-	// Type - READ-ONLY; The type of the resource.  For example, /providers/Microsoft.Management/managementGroups
+	// Type - READ-ONLY; The type of the resource.  For example, Microsoft.Management/managementGroups
 	Type *string `json:"type,omitempty"`
 	// Name - READ-ONLY; The name of the management group. For example, 00000000-0000-0000-0000-000000000000
 	Name        *string `json:"name,omitempty"`
@@ -1455,21 +1919,20 @@ func NewOperationListResultPage(cur OperationListResult, getNextPage func(contex
 
 // OperationResults the results of an asynchronous operation.
 type OperationResults struct {
-	autorest.Response `json:"-"`
 	// ID - READ-ONLY; The fully qualified ID for the management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
 	ID *string `json:"id,omitempty"`
-	// Type - READ-ONLY; The type of the resource.  For example, /providers/Microsoft.Management/managementGroups
+	// Type - READ-ONLY; The type of the resource.  For example, Microsoft.Management/managementGroups
 	Type *string `json:"type,omitempty"`
 	// Name - READ-ONLY; The name of the management group. For example, 00000000-0000-0000-0000-000000000000
-	Name                        *string `json:"name,omitempty"`
-	*OperationResultsProperties `json:"properties,omitempty"`
+	Name            *string `json:"name,omitempty"`
+	*InfoProperties `json:"properties,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for OperationResults.
 func (or OperationResults) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if or.OperationResultsProperties != nil {
-		objectMap["properties"] = or.OperationResultsProperties
+	if or.InfoProperties != nil {
+		objectMap["properties"] = or.InfoProperties
 	}
 	return json.Marshal(objectMap)
 }
@@ -1512,23 +1975,17 @@ func (or *OperationResults) UnmarshalJSON(body []byte) error {
 			}
 		case "properties":
 			if v != nil {
-				var operationResultsProperties OperationResultsProperties
-				err = json.Unmarshal(*v, &operationResultsProperties)
+				var infoProperties InfoProperties
+				err = json.Unmarshal(*v, &infoProperties)
 				if err != nil {
 					return err
 				}
-				or.OperationResultsProperties = &operationResultsProperties
+				or.InfoProperties = &infoProperties
 			}
 		}
 	}
 
 	return nil
-}
-
-// OperationResultsProperties ...
-type OperationResultsProperties struct {
-	// ProvisioningState - Possible values include: 'Updating'
-	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
 // ParentGroupInfo (Optional) The ID of the parent management group.
@@ -1545,8 +2002,16 @@ type ParentGroupInfo struct {
 type PatchManagementGroupRequest struct {
 	// DisplayName - The friendly name of the management group.
 	DisplayName *string `json:"displayName,omitempty"`
-	// ParentID - (Optional) The fully qualified ID for the parent management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
-	ParentID *string `json:"parentId,omitempty"`
+	// ParentGroupID - (Optional) The fully qualified ID for the parent management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
+	ParentGroupID *string `json:"parentGroupId,omitempty"`
+}
+
+// PathElement a path element of a management group ancestors.
+type PathElement struct {
+	// Name - The name of the group.
+	Name *string `json:"name,omitempty"`
+	// DisplayName - The friendly name of the group.
+	DisplayName *string `json:"displayName,omitempty"`
 }
 
 // Properties the generic properties of a management group.
@@ -1554,18 +2019,102 @@ type Properties struct {
 	// TenantID - The AAD Tenant ID associated with the management group. For example, 00000000-0000-0000-0000-000000000000
 	TenantID *string `json:"tenantId,omitempty"`
 	// DisplayName - The friendly name of the management group.
-	DisplayName *string `json:"displayName,omitempty"`
-	// Roles - The role definitions associated with the management group.
-	Roles   *[]string `json:"roles,omitempty"`
-	Details *Details  `json:"details,omitempty"`
+	DisplayName *string  `json:"displayName,omitempty"`
+	Details     *Details `json:"details,omitempty"`
 	// Children - The list of children.
 	Children *[]ChildInfo `json:"children,omitempty"`
+	// Path - The path from the root to the current group.
+	Path *[]PathElement `json:"path,omitempty"`
 }
 
 // SetObject ...
 type SetObject struct {
 	autorest.Response `json:"-"`
 	Value             interface{} `json:"value,omitempty"`
+}
+
+// SubscriptionUnderManagementGroup the details of subscription under management group.
+type SubscriptionUnderManagementGroup struct {
+	autorest.Response `json:"-"`
+	// ID - READ-ONLY; The fully qualified ID for the subscription.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000/subscriptions/0000000-0000-0000-0000-000000000001
+	ID *string `json:"id,omitempty"`
+	// Type - READ-ONLY; The type of the resource.  For example, Microsoft.Management/managementGroups/subscriptions
+	Type *string `json:"type,omitempty"`
+	// Name - READ-ONLY; The stringified id of the subscription. For example, 00000000-0000-0000-0000-000000000000
+	Name                                        *string `json:"name,omitempty"`
+	*SubscriptionUnderManagementGroupProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SubscriptionUnderManagementGroup.
+func (sumg SubscriptionUnderManagementGroup) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sumg.SubscriptionUnderManagementGroupProperties != nil {
+		objectMap["properties"] = sumg.SubscriptionUnderManagementGroupProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for SubscriptionUnderManagementGroup struct.
+func (sumg *SubscriptionUnderManagementGroup) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				sumg.ID = &ID
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sumg.Type = &typeVar
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sumg.Name = &name
+			}
+		case "properties":
+			if v != nil {
+				var subscriptionUnderManagementGroupProperties SubscriptionUnderManagementGroupProperties
+				err = json.Unmarshal(*v, &subscriptionUnderManagementGroupProperties)
+				if err != nil {
+					return err
+				}
+				sumg.SubscriptionUnderManagementGroupProperties = &subscriptionUnderManagementGroupProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// SubscriptionUnderManagementGroupProperties the generic properties of subscription under a management
+// group.
+type SubscriptionUnderManagementGroupProperties struct {
+	// Tenant - The AAD Tenant ID associated with the subscription. For example, 00000000-0000-0000-0000-000000000000
+	Tenant *string `json:"tenant,omitempty"`
+	// DisplayName - The friendly name of the subscription.
+	DisplayName *string                    `json:"displayName,omitempty"`
+	Parent      *DescendantParentGroupInfo `json:"parent,omitempty"`
+	// State - The state of the subscription.
+	State *string `json:"state,omitempty"`
 }
 
 // TenantBackfillStatusResult the tenant backfill status

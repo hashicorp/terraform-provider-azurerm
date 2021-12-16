@@ -1,7 +1,9 @@
-// Package managementgroups implements the Azure ARM Managementgroups service API version 2018-03-01-preview.
+// Package managementgroups implements the Azure ARM Managementgroups service API version 2020-05-01.
 //
-// The Azure Management Groups API enables consolidation of multiple subscriptions/resources into an organizational
-// hierarchy and centrally manage access control, policies, alerting and reporting for those resources.
+// The Azure Management Groups API enables consolidation of multiple
+// subscriptions/resources into an organizational hierarchy and centrally
+// manage access control, policies, alerting and reporting for those resources.
+//
 package managementgroups
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -81,7 +83,7 @@ func (client BaseClient) CheckNameAvailability(ctx context.Context, checkNameAva
 
 // CheckNameAvailabilityPreparer prepares the CheckNameAvailability request.
 func (client BaseClient) CheckNameAvailabilityPreparer(ctx context.Context, checkNameAvailabilityRequest CheckNameAvailabilityRequest) (*http.Request, error) {
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -150,7 +152,7 @@ func (client BaseClient) StartTenantBackfill(ctx context.Context) (result Tenant
 
 // StartTenantBackfillPreparer prepares the StartTenantBackfill request.
 func (client BaseClient) StartTenantBackfillPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -217,7 +219,7 @@ func (client BaseClient) TenantBackfillStatus(ctx context.Context) (result Tenan
 
 // TenantBackfillStatusPreparer prepares the TenantBackfillStatus request.
 func (client BaseClient) TenantBackfillStatusPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

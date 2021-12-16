@@ -63,19 +63,6 @@ func PossiblePermissions1Values() []Permissions1 {
 	return []Permissions1{Permissions1Delete, Permissions1Edit, Permissions1Noaccess, Permissions1View}
 }
 
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// Updating ...
-	Updating ProvisioningState = "Updating"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Updating}
-}
-
 // Reason enumerates the values for reason.
 type Reason string
 
@@ -118,41 +105,41 @@ func PossibleStatusValues() []Status {
 type Type string
 
 const (
-	// ProvidersMicrosoftManagementmanagementGroups ...
-	ProvidersMicrosoftManagementmanagementGroups Type = "/providers/Microsoft.Management/managementGroups"
+	// MicrosoftManagementmanagementGroups ...
+	MicrosoftManagementmanagementGroups Type = "Microsoft.Management/managementGroups"
 )
 
 // PossibleTypeValues returns an array of possible values for the Type const type.
 func PossibleTypeValues() []Type {
-	return []Type{ProvidersMicrosoftManagementmanagementGroups}
+	return []Type{MicrosoftManagementmanagementGroups}
 }
 
 // Type1 enumerates the values for type 1.
 type Type1 string
 
 const (
-	// Type1ProvidersMicrosoftManagementmanagementGroups ...
-	Type1ProvidersMicrosoftManagementmanagementGroups Type1 = "/providers/Microsoft.Management/managementGroups"
+	// Type1MicrosoftManagementmanagementGroups ...
+	Type1MicrosoftManagementmanagementGroups Type1 = "Microsoft.Management/managementGroups"
 	// Type1Subscriptions ...
 	Type1Subscriptions Type1 = "/subscriptions"
 )
 
 // PossibleType1Values returns an array of possible values for the Type1 const type.
 func PossibleType1Values() []Type1 {
-	return []Type1{Type1ProvidersMicrosoftManagementmanagementGroups, Type1Subscriptions}
+	return []Type1{Type1MicrosoftManagementmanagementGroups, Type1Subscriptions}
 }
 
 // Type2 enumerates the values for type 2.
 type Type2 string
 
 const (
-	// Type2ProvidersMicrosoftManagementmanagementGroups ...
-	Type2ProvidersMicrosoftManagementmanagementGroups Type2 = "/providers/Microsoft.Management/managementGroups"
+	// Type2MicrosoftManagementmanagementGroups ...
+	Type2MicrosoftManagementmanagementGroups Type2 = "Microsoft.Management/managementGroups"
 	// Type2Subscriptions ...
 	Type2Subscriptions Type2 = "/subscriptions"
 )
 
 // PossibleType2Values returns an array of possible values for the Type2 const type.
 func PossibleType2Values() []Type2 {
-	return []Type2{Type2ProvidersMicrosoftManagementmanagementGroups, Type2Subscriptions}
+	return []Type2{Type2MicrosoftManagementmanagementGroups, Type2Subscriptions}
 }
