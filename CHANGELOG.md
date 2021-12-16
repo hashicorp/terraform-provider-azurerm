@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_container_registry_task` [GH-14533]
+* **New Datasource:** `azurerm_app_configuration_key` [GH-14484]
 
 ENHANCEMENTS:
 
