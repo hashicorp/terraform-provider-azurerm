@@ -1,10 +1,10 @@
 package consumption
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/migration"
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
