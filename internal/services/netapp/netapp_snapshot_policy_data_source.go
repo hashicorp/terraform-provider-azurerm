@@ -70,17 +70,17 @@ func dataSourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"snapshots_to_keep": {
 							Type:     pluginsdk.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 
 						"hour": {
 							Type:     pluginsdk.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 
 						"minute": {
 							Type:     pluginsdk.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 					},
 				},
@@ -94,12 +94,12 @@ func dataSourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"snapshots_to_keep": {
 							Type:     pluginsdk.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 
 						"days_of_week": {
 							Type:     pluginsdk.TypeSet,
-							Required: true,
+							Computed: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -107,12 +107,12 @@ func dataSourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 
 						"hour": {
 							Type:     pluginsdk.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 
 						"minute": {
 							Type:     pluginsdk.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 					},
 				},
@@ -126,12 +126,12 @@ func dataSourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"snapshots_to_keep": {
 							Type:     pluginsdk.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 
 						"days_of_month": {
 							Type:     pluginsdk.TypeSet,
-							Required: true,
+							Computed: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeInt,
 							},
@@ -139,12 +139,12 @@ func dataSourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 
 						"hour": {
 							Type:     pluginsdk.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 
 						"minute": {
 							Type:     pluginsdk.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 					},
 				},
