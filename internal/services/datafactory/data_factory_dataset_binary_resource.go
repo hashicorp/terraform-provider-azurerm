@@ -2,7 +2,6 @@ package datafactory
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
@@ -12,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -244,7 +244,7 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 								string(datafactory.CompressionCodecTar),
 								string(datafactory.CompressionCodecTarGZip),
 								string(datafactory.CompressionCodecZipDeflate),
-							}, false),
+							}, true),
 						},
 					},
 				},
