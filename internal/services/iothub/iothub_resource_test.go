@@ -251,6 +251,37 @@ func TestAccIotHub_minTLSVersion(t *testing.T) {
 	})
 }
 
+func TestAccIotHub_cloudToDevice(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	r := IotHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cloudToDevice(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cloud_to_device.0.max_delivery_count").HasValue("20"),
+				check.That(data.ResourceName).Key("cloud_to_device.0.default_ttl").HasValue("PT1H30M"),
+				check.That(data.ResourceName).Key("cloud_to_device.0.feedback.0.time_to_live").HasValue("PT1H15M"),
+				check.That(data.ResourceName).Key("cloud_to_device.0.feedback.0.max_delivery_count").HasValue("25"),
+				check.That(data.ResourceName).Key("cloud_to_device.0.feedback.0.lock_duration").HasValue("PT55S"),
+			),
+		},
+		{
+			Config: r.cloudToDeviceUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cloud_to_device.0.max_delivery_count").HasValue("30"),
+				check.That(data.ResourceName).Key("cloud_to_device.0.default_ttl").HasValue("PT1H"),
+				check.That(data.ResourceName).Key("cloud_to_device.0.feedback.0.time_to_live").HasValue("PT1H10M"),
+				check.That(data.ResourceName).Key("cloud_to_device.0.feedback.0.max_delivery_count").HasValue("15"),
+				check.That(data.ResourceName).Key("cloud_to_device.0.feedback.0.lock_duration").HasValue("PT30S"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t IotHubResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.IotHubID(state.ID)
 	if err != nil {
@@ -976,4 +1007,80 @@ resource "azurerm_iothub" "test" {
   }
 }
 `, data.RandomInteger, "eastus", data.RandomInteger)
+}
+
+func (IotHubResource) cloudToDevice(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-iothub-%d"
+  location = "%s"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "B1"
+    capacity = "1"
+  }
+
+  cloud_to_device {
+    max_delivery_count = 20
+    default_ttl        = "PT1H30M"
+    feedback {
+      time_to_live       = "PT1H15M"
+      max_delivery_count = 25
+      lock_duration      = "PT55S"
+    }
+  }
+
+  tags = {
+    purpose = "testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (IotHubResource) cloudToDeviceUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-iothub-%d"
+  location = "%s"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "B1"
+    capacity = "1"
+  }
+
+  cloud_to_device {
+    max_delivery_count = 30
+    default_ttl        = "PT1H"
+    feedback {
+      time_to_live       = "PT1H10M"
+      max_delivery_count = 15
+      lock_duration      = "PT30S"
+    }
+  }
+
+  tags = {
+    purpose = "testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
