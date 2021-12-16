@@ -54,7 +54,9 @@ The following arguments are supported:
 
 * `origin_group_id` - (Required)
 
-* `origin_host_header`
+* `enabled` - Can be set to `true` or `false`.
+
+* `origin_host_header` - The host header value sent to the origin with each request.
 
 * `host_name` - (Required) The address of the origin. Domain names, IPv4 addresses, and IPv6 addresses are supported.This should be unique across all origins in an endpoint.
 

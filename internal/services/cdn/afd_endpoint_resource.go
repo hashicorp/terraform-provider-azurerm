@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -41,9 +42,10 @@ func resourceAfdEndpoints() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"enabled": {
@@ -58,6 +60,13 @@ func resourceAfdEndpoints() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validate.ProfileID,
 			},
+
+			"origin_response_timeout_in_seconds": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      0,
+				ValidateFunc: validation.IntAtLeast(0),
+			},
 		},
 	}
 }
@@ -68,6 +77,8 @@ func resourceAfdEndpointsCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	defer cancel()
 
 	location := "global" // location is always global (required)
+	enabledState := d.Get("enabled").(bool)
+	originResponseTimeoutInSeconds := int32(d.Get("origin_response_timeout_in_seconds").(int))
 
 	// parse profile_id
 	profileId := d.Get("profile_id").(string)
@@ -88,20 +99,17 @@ func resourceAfdEndpointsCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_endpoint", id.ID())
 	}
 
-	var enabledState cdn.EnabledState
-
-	if !d.Get("enabled").(bool) {
-		enabledState = cdn.EnabledStateDisabled
-	} else {
-		enabledState = cdn.EnabledStateEnabled
-	}
-
 	endpoint := cdn.AFDEndpoint{
 		Location: &location,
 		AFDEndpointProperties: &cdn.AFDEndpointProperties{
-			OriginResponseTimeoutSeconds: nil,
-			EnabledState:                 enabledState,
+			OriginResponseTimeoutSeconds: &originResponseTimeoutInSeconds,
 		},
+	}
+
+	if enabledState {
+		endpoint.EnabledState = cdn.EnabledStateEnabled
+	} else {
+		endpoint.EnabledState = cdn.EnabledStateDisabled
 	}
 
 	future, err := afdEndpointsClient.Create(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, endpoint)
@@ -136,12 +144,13 @@ func resourceAfdEndpointsRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("making Read request on Azure CDN Endpoint %q (Resource Group %q): %+v", id.AfdEndpointName, id.ResourceGroup, err)
 	}
 
+	d.Set("origin_response_timeout_in_seconds", resp.OriginResponseTimeoutSeconds)
+
 	if resp.EnabledState == cdn.EnabledStateEnabled {
 		d.Set("enabled", true)
 	} else {
 		d.Set("enabled", false)
 	}
-
 	d.Set("name", id.AfdEndpointName)
 
 	return nil
@@ -160,11 +169,11 @@ func resourceAfdEndpointsUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	endpointUpdate := cdn.AFDEndpointUpdateParameters{}
 
 	if d.HasChange("enabled") {
-
-		if d.Get("enabled").(bool) {
-			// endpointUpdate.EnabledState = cdn.EnabledStateEnabled
+		enabledState := d.Get("enabled").(bool)
+		if enabledState {
+			endpointUpdate.EnabledState = cdn.EnabledStateEnabled
 		} else {
-			// endpointUpdate.EnabledState = cdn.EnabledStateDisabled
+			endpointUpdate.EnabledState = cdn.EnabledStateDisabled
 		}
 	}
 

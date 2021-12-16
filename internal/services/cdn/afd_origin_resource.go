@@ -163,7 +163,7 @@ func resourceAfdOriginsCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	originHostHeader := d.Get("origin_host_header").(string)
 	azureOrigin := d.Get("azure_origin").(string)
 	privateLinkSettings := d.Get("private_link").([]interface{})
-	enabled := d.Get("enabled").(bool)
+	enabledState := d.Get("enabled").(bool)
 
 	id := parse.NewAfdOriginsID(originGroup.SubscriptionId, originGroup.ResourceGroup, originGroup.ProfileName, originGroup.OriginGroupName, originname)
 
@@ -177,7 +177,7 @@ func resourceAfdOriginsCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		},
 	}
 
-	if enabled {
+	if enabledState {
 		afdOrigin.EnabledState = cdn.EnabledStateEnabled
 	} else {
 		afdOrigin.EnabledState = cdn.EnabledStateDisabled
@@ -230,7 +230,7 @@ func expandPrivateLinkSettings(input []interface{}) interface{} {
 
 	// privateLinkResource["PrivateLinkAlias"] = config["alias"].(string)
 	// privateLinkResource["PrivateLinkResourceID"] = config["resource_id"].(string)
-	// privateLinkResourctere["PrivateLinkLocation"] = config["location"].(string)
+	// privateLinkResource["PrivateLinkLocation"] = config["location"].(string)
 	// privateLinkResource["PrivateLinkApprovalMessage"] = config["approval_message"].(string)
 
 	return privateLinkResource
@@ -264,6 +264,12 @@ func resourceAfdOriginsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("host_name", resp.HostName)
 	d.Set("origin_host_header", resp.OriginHostHeader)
 
+	if resp.EnabledState == cdn.EnabledStateEnabled {
+		d.Set("enabled", true)
+	} else {
+		d.Set("enabled", false)
+	}
+
 	return nil
 }
 
@@ -290,10 +296,11 @@ func resourceAfdOriginsUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("enabled") {
-		if d.Get("enabled").(bool) {
-			// originUpdateProperties.EnabledState = cdn.EnabledStateEnabled
+		enabledState := d.Get("enabled").(bool)
+		if enabledState {
+			originUpdateProperties.EnabledState = cdn.EnabledStateEnabled
 		} else {
-			// originUpdateProperties.EnabledState = cdn.EnabledStateDisabled
+			originUpdateProperties.EnabledState = cdn.EnabledStateDisabled
 		}
 	}
 

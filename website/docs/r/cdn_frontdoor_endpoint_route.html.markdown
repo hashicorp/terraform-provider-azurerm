@@ -62,15 +62,24 @@ resource "azurerm_cdn_frontdoor_endpoint_route" "example" {
 
 The following arguments are supported:
 
-* `name`
+* `name` - (Required) Endpoint name.
+
 * `enabled` - (Required) Can be set to `true` or `false`.
+
 * `endpoint_id` - (Required) Refers to the Front Door endpoint.
+
 * `custom_domains` - List of custom domains (resource id).
+
 * `origin_group_id` - (Required) Refers to the Front Door origin group (resource id).
+
 * `origin_path`
+
 * `rule_sets`
+
 * `supported_protocols` - List of supported protocols. Can be set to `Http` and/or `Https`.
+
 * `patterns_to_match`
+
 * `forwarding_protocol` - Protocol this rule will use when forwarding traffic to backends. Can be set to `Https`, `Http` or `MatchRequest`. Defaults to `MatchRequest`.
 
 * `link_to_default_domain` - Whether this route will be linked to the default endpoint domain. Can be set to `true` or `false`.

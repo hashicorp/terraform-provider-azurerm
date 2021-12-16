@@ -50,6 +50,7 @@ func resourceAfdEndpointRoutes() *pluginsdk.Resource {
 			"enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"endpoint_id": {
@@ -222,12 +223,7 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	// endpoint route enabled state
-	var enabledState cdn.EnabledState = cdn.EnabledStateEnabled
-	if !d.Get("enabled").(bool) {
-		enabledState = cdn.EnabledStateDisabled
-	} else {
-		enabledState = cdn.EnabledStateEnabled
-	}
+	enabledState := d.Get("enabled").(bool)
 
 	id := parse.NewAfdEndpointRouteID(endpoint.SubscriptionId, endpoint.ResourceGroup, endpoint.ProfileName, endpoint.AfdEndpointName, routeName)
 
@@ -309,7 +305,6 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 	route := cdn.Route{
 		RouteProperties: &cdn.RouteProperties{
 			OriginGroup:         originGroupRef,
-			EnabledState:        enabledState,
 			SupportedProtocols:  &supportedProtocolsArray,
 			ForwardingProtocol:  cdn.ForwardingProtocol(forwardingProtocol),
 			LinkToDefaultDomain: linkToDefault,
@@ -317,6 +312,13 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 			PatternsToMatch:     &patternsToMatchArray,
 			HTTPSRedirect:       httpsRedirectSet,
 		},
+	}
+
+	// enabledState
+	if enabledState {
+		route.EnabledState = cdn.EnabledStateEnabled
+	} else {
+		route.EnabledState = cdn.EnabledStateDisabled
 	}
 
 	// originPath
@@ -421,6 +423,7 @@ func resourceAfdEndpointRouteUpdate(d *pluginsdk.ResourceData, meta interface{})
 	forwardingProtocol := d.Get("forwarding_protocol").(string)
 	patternsToMatch := d.Get("patterns_to_match").([]interface{})
 	customDomains := d.Get("custom_domains").([]interface{})
+	enabledState := d.Get("enabled").(bool)
 
 	// create an array of content types
 	contentTypesToCompressArray := make([]string, 0)
@@ -431,6 +434,16 @@ func resourceAfdEndpointRouteUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	var routeUpdate cdn.RouteUpdateParameters
 	var routeUpdateProperties cdn.RouteUpdatePropertiesParameters
+
+	if d.HasChange("enabled") {
+		log.Printf("[DEBUG] Updating enabled for route %s on endpoint %s", id.RouteName, id.AfdEndpointName)
+
+		if enabledState {
+			routeUpdateProperties.EnabledState = cdn.EnabledStateEnabled
+		} else {
+			routeUpdateProperties.EnabledState = cdn.EnabledStateDisabled
+		}
+	}
 
 	// patterns_to_match
 	if d.HasChange("patterns_to_match") {

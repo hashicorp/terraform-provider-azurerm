@@ -41,9 +41,10 @@ func resourceAfdOriginGroups() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"profile_id": {
@@ -56,6 +57,11 @@ func resourceAfdOriginGroups() *pluginsdk.Resource {
 			"session_affinity_state": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default:  cdn.EnabledStateDisabled,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(cdn.EnabledStateEnabled),
+					string(cdn.EnabledStateDisabled),
+				}, false),
 			},
 
 			"load_balancing": {
@@ -121,6 +127,7 @@ func resourceAfdOriginGroupsCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	defer cancel()
 
 	name := d.Get("name").(string) // OriginGroupName
+	sessionAffinityState := d.Get("session_affinity_state").(string)
 
 	// parse profile_id
 	profileId := d.Get("profile_id").(string)
@@ -140,6 +147,10 @@ func resourceAfdOriginGroupsCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			LoadBalancingSettings: expandLoadBalancingSettings(loadbalancing),
 			HealthProbeSettings:   expandHealthProbeSettings(healthprobes),
 		},
+	}
+
+	if sessionAffinityState != "" {
+		originGroup.SessionAffinityState = cdn.EnabledState(sessionAffinityState)
 	}
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, originGroup)
@@ -231,12 +242,17 @@ func resourceAfdOriginGroupsUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	loadbalancing := d.Get("load_balancing").([]interface{})
 	healthprobes := d.Get("health_probe").([]interface{})
+	sessionAffinityState := d.Get("session_affinity_state").(string)
 
 	properties := cdn.AFDOriginGroupUpdateParameters{
 		AFDOriginGroupUpdatePropertiesParameters: &cdn.AFDOriginGroupUpdatePropertiesParameters{
 			LoadBalancingSettings: expandLoadBalancingSettings(loadbalancing),
 			HealthProbeSettings:   expandHealthProbeSettings(healthprobes),
 		},
+	}
+
+	if d.HasChange("session_affinity_state") {
+		properties.SessionAffinityState = cdn.EnabledState(sessionAffinityState)
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, properties)
