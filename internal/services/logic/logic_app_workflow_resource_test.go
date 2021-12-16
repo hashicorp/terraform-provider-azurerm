@@ -175,7 +175,6 @@ func TestAccLogicAppWorkflow_identity(t *testing.T) {
 	r := LogicAppWorkflowResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		data.ImportStep(),
 		{
 			Config: r.systemAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(

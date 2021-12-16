@@ -768,7 +768,7 @@ func expandLogicAppWorkflowAccessControl(input []interface{}) *logic.FlowAccessC
 	}
 
 	if triggers := v["trigger"].([]interface{}); len(triggers) != 0 {
-		result.Triggers = expandLogicAppWorkflowAccessControlConfigurationPolicy(triggers)
+		result.Triggers = expandLogicAppWorkflowAccessControlTriggerConfigurationPolicy(triggers)
 	}
 
 	if workflowManagement := v["workflow_management"].([]interface{}); len(workflowManagement) != 0 {
@@ -779,6 +779,17 @@ func expandLogicAppWorkflowAccessControl(input []interface{}) *logic.FlowAccessC
 }
 
 func expandLogicAppWorkflowAccessControlConfigurationPolicy(input []interface{}) *logic.FlowAccessControlConfigurationPolicy {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+
+	return &logic.FlowAccessControlConfigurationPolicy{
+		AllowedCallerIPAddresses: expandLogicAppWorkflowIPAddressRanges(v["allowed_caller_ip_address_range"].(*pluginsdk.Set).List()),
+	}
+}
+
+func expandLogicAppWorkflowAccessControlTriggerConfigurationPolicy(input []interface{}) *logic.FlowAccessControlConfigurationPolicy {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -901,13 +912,25 @@ func flattenLogicAppWorkflowFlowAccessControl(input *logic.FlowAccessControlConf
 		map[string]interface{}{
 			"action":              flattenLogicAppWorkflowAccessControlConfigurationPolicy(input.Actions),
 			"content":             flattenLogicAppWorkflowAccessControlConfigurationPolicy(input.Contents),
-			"trigger":             flattenLogicAppWorkflowAccessControlConfigurationPolicy(input.Triggers),
+			"trigger":             flattenLogicAppWorkflowAccessControlTriggerConfigurationPolicy(input.Triggers),
 			"workflow_management": flattenLogicAppWorkflowAccessControlConfigurationPolicy(input.WorkflowManagement),
 		},
 	}
 }
 
 func flattenLogicAppWorkflowAccessControlConfigurationPolicy(input *logic.FlowAccessControlConfigurationPolicy) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"allowed_caller_ip_address_range": flattenLogicAppWorkflowIPAddressRanges(input.AllowedCallerIPAddresses),
+		},
+	}
+}
+
+func flattenLogicAppWorkflowAccessControlTriggerConfigurationPolicy(input *logic.FlowAccessControlConfigurationPolicy) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
