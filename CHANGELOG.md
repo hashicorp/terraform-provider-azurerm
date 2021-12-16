@@ -7,16 +7,17 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating `apimanagement` to API Version `2021-08-01` [GH-14312]
+* dependencies: updating `managementgroups` to API Version `2020-05-01` [GH-14635]
 * dependencies: updating `redisenterprise` to use an Embedded SDK [GH-14502]
 * dependencies: updating to `v0.19.1` of `github.com/hashicorp/go-azure-helpers` [GH-14627]
 * dependencies: updating to `v2.10.0` of `github.com/hashicorp/terraform-plugin-sdk` [GH-14596]
-* `data.azurerm_function_app_host_keys` - support for `signalr_extension_key` and `durabletask_extension_key` [GH-13648]
+* Data Source: `azurerm_function_app_host_keys` - support for `signalr_extension_key` and `durabletask_extension_key` [GH-13648]
 * `azurerm_application_gateway ` - support for private link configuration [GH-14583]
 * `azurerm_cosmosdb_account` - support for the `create_mode` property and `restore` block [GH-14362]
-* `azurerm_data_factory_dataset_*` - deprecate data_factory_name in favour of data_factory_id for consistency across all data factory dataset resources [GH-14610]
-* `azurerm_data_factory_integration_runtime_*`- deprecate data_factory_name in favour of data_factory_id for consistency across all data factory integration runtime resources [GH-14610]
-* `azurerm_data_factory_trigger_*`- deprecate data_factory_name in favour of data_factory_id for consistency across all data factory trigger resources [GH-14610]
-* `azurerm_data_factory_pipeline`- deprecate data_factory_name in favour of data_factory_id for consistency across all data factory resources [GH-14610]
+* `azurerm_data_factory_dataset_*` - deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory dataset resources [GH-14610]
+* `azurerm_data_factory_integration_runtime_*`- deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory integration runtime resources [GH-14610]
+* `azurerm_data_factory_trigger_*`- deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory trigger resources [GH-14610]
+* `azurerm_data_factory_pipeline`- deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory resources [GH-14610]
 
 BUG FIXES:
 
