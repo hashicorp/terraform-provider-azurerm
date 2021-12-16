@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v2.10.0` of `github.com/hashicorp/terraform-plugin-sdk` [GH-14596]
 * Data Source: `azurerm_function_app_host_keys` - support for `signalr_extension_key` and `durabletask_extension_key` [GH-13648]
 * `azurerm_application_gateway ` - support for private link configuration [GH-14583]
+* `azurerm_container_group` - support for `ip_address_type = None` [GH-14460]
 * `azurerm_cosmosdb_account` - support for the `create_mode` property and `restore` block [GH-14362]
 * `azurerm_data_factory_dataset_*` - deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory dataset resources [GH-14610]
 * `azurerm_data_factory_integration_runtime_*`- deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory integration runtime resources [GH-14610]
