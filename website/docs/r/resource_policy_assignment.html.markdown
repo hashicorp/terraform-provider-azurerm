@@ -73,6 +73,8 @@ The following arguments are supported:
 
 * `metadata` - (Optional) A JSON mapping of any Metadata for this Policy.
 
+* `non_compliance_message` - (Optional) One or more `non_compliance_message` blocks as defined below.
+
 * `not_scopes` - (Optional) Specifies a list of Resource Scopes (for example a Subscription, or a Resource Group) within this Management Group which are excluded from this Policy.
 
 * `parameters` - (Optional) A JSON mapping of any Parameters for this Policy. Changing this forces a new Management Group Policy Assignment to be created.
@@ -83,9 +85,17 @@ A `identity` block supports the following:
 
 * `type` - (Optional) The Type of Managed Identity which should be added to this Policy Definition. The only possible value is `SystemAssigned`.
 
+---
+
+A `non_compliance_message` block supports the following:
+
+* `content` - (Required) The non-compliance message text. When assigning policy sets (initiatives), unless `policy_definition_reference_id` is specified then this message will be the default for all policies.
+
+* `policy_definition_reference_id` - (Optional) When assigning policy sets (initiatives), this is the ID of the policy definition that the non-compliance message applies to.
+
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Resource Policy Assignment.
 

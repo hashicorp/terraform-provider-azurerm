@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -113,7 +114,12 @@ func dataSourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	d.SetId(*policyDefinition.ID)
+	id, err := parse.PolicyDefinitionID(*policyDefinition.ID)
+	if err != nil {
+		return fmt.Errorf("parsing Policy Definition %q: %+v", *policyDefinition.ID, err)
+	}
+
+	d.SetId(id.Id)
 	d.Set("name", policyDefinition.Name)
 	d.Set("display_name", policyDefinition.DisplayName)
 	d.Set("description", policyDefinition.Description)
