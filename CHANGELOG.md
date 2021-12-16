@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Datasource:** `azurerm_app_configuration_key` [GH-14484]
 * **New Resource:** `azurerm_container_registry_task` [GH-14533]
+* **New Resource:** `azurerm_netapp_snapshot_policy` [GH-14230]
 * **New Resource:** `azurerm_synapse_sql_pool_workload_classifier` [GH-14412]
 * **New Resource:** `azurerm_synapse_workspace_sql_aad_admin` [GH-14341]
 * **New Resource:** `azurerm_vpn_gateway_nat_rule` [GH-14527]
