@@ -54,6 +54,8 @@ The following arguments are supported:
 
 * `origin_group_id` - (Required)
 
+* `origin_host_header`
+
 * `host_name` - (Required) The address of the origin. Domain names, IPv4 addresses, and IPv6 addresses are supported.This should be unique across all origins in an endpoint.
 
 * `priority` - Priority of origin in given origin group for load balancing. Higher priorities will not be used for load balancing if any lower priority origin is healthy.Must be between 1 and 5
@@ -63,3 +65,15 @@ The following arguments are supported:
 * `http_port` - The value of the HTTP port. Must be between 1 and 65535. Defaults to `80`.
 
 * `https_port` - The value of the HTTPS port. Must be between 1 and 65535. Defaults to `443`.
+
+---
+
+The `private_link` block supports the following:
+
+* `alias` -  The Alias of the Private Link resource. Populating this optional field indicates that this origin is 'Private'
+
+* `approval_message` - A custom message to be included in the approval request to connect to the Private Link.
+
+* `location` - The location of the Private Link resource. Required only if `resource_id` is populated.
+
+* `resource_id` - The Resource Id of the Private Link resource. Populating this optional field indicates that this backend is 'Private'.
