@@ -40,23 +40,22 @@ func dataSourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 
 			"enabled": {
 				Type:     pluginsdk.TypeBool,
-				Optional: true,
+				Computed: true,
 			},
 
 			"hourly_schedule": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"snapshots_to_keep": {
 							Type:     pluginsdk.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 
 						"minute": {
 							Type:     pluginsdk.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 					},
 				},
@@ -64,7 +63,6 @@ func dataSourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 
 			"daily_schedule": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -88,7 +86,6 @@ func dataSourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 
 			"weekly_schedule": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -120,7 +117,6 @@ func dataSourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 
 			"monthly_schedule": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
