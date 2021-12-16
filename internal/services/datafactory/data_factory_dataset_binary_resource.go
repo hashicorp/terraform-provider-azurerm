@@ -229,8 +229,8 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 						},
 						// SFTP Specific field
 						"type": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
+							Type:     pluginsdk.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(datafactory.CompressionCodecBzip2),
 								string(datafactory.CompressionCodecDeflate),
