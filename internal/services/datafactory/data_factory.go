@@ -527,6 +527,7 @@ func flattenDataFactoryDatasetCompression(input *datafactory.DatasetCompression)
 	result := make(map[string]interface{})
 
 	result["type"] = input.Type
+	result["level"] = ""
 
 	if compressionLevel := input.Level; compressionLevel != nil {
 		result["level"] = input.Level
@@ -544,11 +545,8 @@ func expandDataFactoryDatasetCompression(d *pluginsdk.ResourceData) *datafactory
 	props := compression[0].(map[string]interface{})
 
 	compressionProps := datafactory.DatasetCompression{
-		Type: props["type"].(string),
-	}
-
-	if v, ok := props["level"]; ok {
-		compressionProps.Level = utils.String(v.(string))
+		Type:  props["type"].(string),
+		Level: utils.String(props["level"].(string)),
 	}
 
 	return &compressionProps

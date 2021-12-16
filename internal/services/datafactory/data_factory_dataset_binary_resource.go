@@ -2,6 +2,7 @@ package datafactory
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
@@ -229,8 +230,9 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 						},
 						// SFTP Specific field
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Type:             pluginsdk.TypeString,
+							Required:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(datafactory.CompressionCodecBzip2),
 								string(datafactory.CompressionCodecDeflate),
