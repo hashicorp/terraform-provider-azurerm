@@ -220,8 +220,6 @@ A `addon_profile` block supports the following:
 
 * `azure_policy` - (Optional) A `azure_policy` block as defined below. For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
 
--> **NOTE:** At this time Azure Policy is not supported in Azure US Government.
-
 * `http_application_routing` - (Optional) A `http_application_routing` block as defined below.
 
 -> **NOTE:** At this time HTTP Application Routing is not supported in Azure China or Azure US Government.

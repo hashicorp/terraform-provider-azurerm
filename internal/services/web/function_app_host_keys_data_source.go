@@ -51,6 +51,18 @@ func dataSourceFunctionAppHostKeys() *pluginsdk.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"signalr_extension_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"durabletask_extension_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -100,6 +112,18 @@ func dataSourceFunctionAppHostKeysRead(d *pluginsdk.ResourceData, meta interface
 			eventGridExtensionConfigKey = *v
 		}
 		d.Set("event_grid_extension_config_key", eventGridExtensionConfigKey)
+
+		signalrExtensionKey := ""
+		if v, ok := res.SystemKeys["signalr_extension"]; ok {
+			signalrExtensionKey = *v
+		}
+		d.Set("signalr_extension_key", signalrExtensionKey)
+
+		durableTaskExtensionKey := ""
+		if v, ok := res.SystemKeys["durabletask_extension"]; ok {
+			durableTaskExtensionKey = *v
+		}
+		d.Set("durabletask_extension_key", durableTaskExtensionKey)
 
 		return nil
 	})

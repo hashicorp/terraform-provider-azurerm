@@ -70,6 +70,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"associated_route_table": {
@@ -79,11 +80,42 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 						},
 						"propagated_route_tables": {
 							Type:     pluginsdk.TypeList,
-							Required: true,
+							Optional: true,
+							Computed: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validate.HubRouteTableID,
 							},
+							ExactlyOneOf: []string{"routing.0.propagated_route_tables", "routing.0.propagated_route_table"},
+							Deprecated:   "Deprecated in favour of `propagated_route_table`",
+						},
+						"propagated_route_table": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"route_table_ids": {
+										Type:     pluginsdk.TypeList,
+										Required: true,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validate.HubRouteTableID,
+										},
+									},
+
+									"labels": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+									},
+								},
+							},
+							ExactlyOneOf: []string{"routing.0.propagated_route_tables", "routing.0.propagated_route_table"},
 						},
 					},
 				},
@@ -107,6 +139,17 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 							// The vpn site link associated with one link connection can not be updated
 							ForceNew:     true,
 							ValidateFunc: validate.VpnSiteLinkID,
+						},
+
+						"connection_mode": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.VpnLinkConnectionModeDefault),
+								string(network.VpnLinkConnectionModeInitiatorOnly),
+								string(network.VpnLinkConnectionModeResponderOnly),
+							}, false),
+							Default: string(network.VpnLinkConnectionModeDefault),
 						},
 
 						"route_weight": {
@@ -271,6 +314,32 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"traffic_selector_policy": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"local_address_ranges": {
+							Type:     pluginsdk.TypeSet,
+							Required: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.IsCIDR,
+							},
+						},
+
+						"remote_address_ranges": {
+							Type:     pluginsdk.TypeSet,
+							Required: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.IsCIDR,
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -312,6 +381,10 @@ func resourceVpnGatewayConnectionResourceCreateUpdate(d *pluginsdk.ResourceData,
 			VpnLinkConnections:   expandVpnGatewayConnectionVpnSiteLinkConnections(d.Get("vpn_link").([]interface{})),
 			RoutingConfiguration: expandVpnGatewayConnectionRoutingConfiguration(d.Get("routing").([]interface{})),
 		},
+	}
+
+	if v, ok := d.GetOk("traffic_selector_policy"); ok {
+		param.VpnConnectionProperties.TrafficSelectorPolicies = expandVpnGatewayConnectionTrafficSelectorPolicy(v.(*pluginsdk.Set).List())
 	}
 
 	future, err := client.CreateOrUpdate(ctx, gatewayId.ResourceGroup, gatewayId.Name, name, param)
@@ -392,6 +465,10 @@ func resourceVpnGatewayConnectionResourceRead(d *pluginsdk.ResourceData, meta in
 		if err := d.Set("vpn_link", flattenVpnGatewayConnectionVpnSiteLinkConnections(prop.VpnLinkConnections)); err != nil {
 			return fmt.Errorf(`setting "vpn_link": %v`, err)
 		}
+
+		if err := d.Set("traffic_selector_policy", flattenVpnGatewayConnectionTrafficSelectorPolicy(prop.TrafficSelectorPolicies)); err != nil {
+			return fmt.Errorf("setting `traffic_selector_policy`: %+v", err)
+		}
 	}
 
 	return nil
@@ -438,6 +515,7 @@ func expandVpnGatewayConnectionVpnSiteLinkConnections(input []interface{}) *[]ne
 				VpnSiteLink:                    &network.SubResource{ID: utils.String(e["vpn_site_link_id"].(string))},
 				RoutingWeight:                  utils.Int32(int32(e["route_weight"].(int))),
 				VpnConnectionProtocolType:      network.VirtualNetworkGatewayConnectionProtocol(e["protocol"].(string)),
+				VpnLinkConnectionMode:          network.VpnLinkConnectionMode(e["connection_mode"].(string)),
 				ConnectionBandwidth:            utils.Int32(int32(e["bandwidth_mbps"].(int))),
 				EnableBgp:                      utils.Bool(e["bgp_enabled"].(bool)),
 				IpsecPolicies:                  expandVpnGatewayConnectionIpSecPolicies(e["ipsec_policy"].([]interface{})),
@@ -515,6 +593,7 @@ func flattenVpnGatewayConnectionVpnSiteLinkConnections(input *[]network.VpnSiteL
 			"vpn_site_link_id":                      vpnSiteLinkId,
 			"route_weight":                          routeWeight,
 			"protocol":                              string(e.VpnConnectionProtocolType),
+			"connection_mode":                       string(e.VpnLinkConnectionMode),
 			"bandwidth_mbps":                        bandwidth,
 			"shared_key":                            sharedKey,
 			"bgp_enabled":                           bgpEnabled,
@@ -596,8 +675,17 @@ func expandVpnGatewayConnectionRoutingConfiguration(input []interface{}) *networ
 	}
 	raw := input[0].(map[string]interface{})
 	output := &network.RoutingConfiguration{
-		AssociatedRouteTable:  &network.SubResource{ID: utils.String(raw["associated_route_table"].(string))},
-		PropagatedRouteTables: &network.PropagatedRouteTable{Ids: expandNetworkSubResourceID(raw["propagated_route_tables"].([]interface{}))},
+		AssociatedRouteTable: &network.SubResource{ID: utils.String(raw["associated_route_table"].(string))},
+	}
+
+	if v := raw["propagated_route_tables"].([]interface{}); len(v) != 0 {
+		output.PropagatedRouteTables = &network.PropagatedRouteTable{
+			Ids: expandNetworkSubResourceID(v),
+		}
+	}
+
+	if v := raw["propagated_route_table"].([]interface{}); len(v) != 0 {
+		output.PropagatedRouteTables = expandVpnGatewayConnectionPropagatedRouteTable(v)
 	}
 
 	return output
@@ -628,6 +716,79 @@ func flattenVpnGatewayConnectionRoutingConfiguration(input *network.RoutingConfi
 		map[string]interface{}{
 			"associated_route_table":  associateRouteTable,
 			"propagated_route_tables": propagatedRouteTables,
+			"propagated_route_table":  flattenVpnGatewayConnectionPropagatedRouteTable(input.PropagatedRouteTables),
+		},
+	}
+}
+
+func expandVpnGatewayConnectionTrafficSelectorPolicy(input []interface{}) *[]network.TrafficSelectorPolicy {
+	results := make([]network.TrafficSelectorPolicy, 0)
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		results = append(results, network.TrafficSelectorPolicy{
+			LocalAddressRanges:  utils.ExpandStringSlice(v["local_address_ranges"].(*pluginsdk.Set).List()),
+			RemoteAddressRanges: utils.ExpandStringSlice(v["remote_address_ranges"].(*pluginsdk.Set).List()),
+		})
+	}
+
+	return &results
+}
+
+func flattenVpnGatewayConnectionTrafficSelectorPolicy(input *[]network.TrafficSelectorPolicy) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		results = append(results, map[string]interface{}{
+			"local_address_ranges":  utils.FlattenStringSlice(item.LocalAddressRanges),
+			"remote_address_ranges": utils.FlattenStringSlice(item.RemoteAddressRanges),
+		})
+	}
+
+	return results
+}
+
+func expandVpnGatewayConnectionPropagatedRouteTable(input []interface{}) *network.PropagatedRouteTable {
+	if len(input) == 0 {
+		return &network.PropagatedRouteTable{}
+	}
+
+	v := input[0].(map[string]interface{})
+
+	result := network.PropagatedRouteTable{
+		Ids: expandIDsToSubResources(v["route_table_ids"].([]interface{})),
+	}
+
+	if labels := v["labels"].(*pluginsdk.Set).List(); len(labels) != 0 {
+		result.Labels = utils.ExpandStringSlice(labels)
+	}
+
+	return &result
+}
+
+func flattenVpnGatewayConnectionPropagatedRouteTable(input *network.PropagatedRouteTable) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	labels := make([]interface{}, 0)
+	if input.Labels != nil {
+		labels = utils.FlattenStringSlice(input.Labels)
+	}
+
+	routeTableIds := make([]interface{}, 0)
+	if input.Ids != nil {
+		routeTableIds = flattenSubResourcesToIDs(input.Ids)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"labels":          labels,
+			"route_table_ids": routeTableIds,
 		},
 	}
 }

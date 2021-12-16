@@ -112,6 +112,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		batch.Registration{},
 		bot.Registration{},
 		consumption.Registration{},
+		containers.Registration{},
 		costmanagement.Registration{},
 		eventhub.Registration{},
 		loadbalancer.Registration{},
