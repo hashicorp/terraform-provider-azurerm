@@ -40,14 +40,14 @@ func suppressIfTypeIsNot(t string) pluginsdk.SchemaDiffSuppressFunc {
 }
 
 // nolint unparam
-func supressWhenAll(fs ...pluginsdk.SchemaDiffSuppressFunc) pluginsdk.SchemaDiffSuppressFunc {
+func suppressWhenAny(fs ...pluginsdk.SchemaDiffSuppressFunc) pluginsdk.SchemaDiffSuppressFunc {
 	return func(k, old, new string, d *pluginsdk.ResourceData) bool {
 		for _, f := range fs {
-			if !f(k, old, new, d) {
-				return false
+			if f(k, old, new, d) {
+				return true
 			}
 		}
-		return true
+		return false
 	}
 }
 
@@ -263,10 +263,14 @@ func resourceIotHub() *pluginsdk.Resource {
 							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 						},
 
+						// encoding should be case-sensitive but kept case-insensitive for backward compatibility.
+						// todo remove suppress.CaseDifference, make encoding case-sensitive and normalize it with pandora in 3.0 or 4.0
 						"encoding": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							DiffSuppressFunc: supressWhenAll(
+							ForceNew: true,
+							Default:  string(devices.EncodingAvro),
+							DiffSuppressFunc: suppressWhenAny(
 								suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 								suppress.CaseDifference),
 							ValidateFunc: validation.StringInSlice([]string{
@@ -277,9 +281,11 @@ func resourceIotHub() *pluginsdk.Resource {
 						},
 
 						"file_name_format": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: iothubValidate.FileNameFormat,
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							Default:          "{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}",
+							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
+							ValidateFunc:     iothubValidate.FileNameFormat,
 						},
 
 						"resource_group_name": azure.SchemaResourceGroupNameOptional(),
