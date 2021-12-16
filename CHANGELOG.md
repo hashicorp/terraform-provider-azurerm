@@ -22,6 +22,7 @@ ENHANCEMENTS:
 * `azurerm_iothub` - support for the `cloud_to_device` block [GH-14546]
 * `azurerm_iothub_endpoint_eventhub` - the `iothub_name` property has been deprecated in favour of the `iothub_id` property [GH-14632]
 * `azurerm_signalr` - support for the `live_trace_enabled` property [GH-14646]
+* `azurerm_xyz_policy_assignment` add support for `non_compliance_message` [GH-14518]
 
 BUG FIXES:
 
