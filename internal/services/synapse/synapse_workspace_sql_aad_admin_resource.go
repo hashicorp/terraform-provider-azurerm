@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceSynapseWorkspaceAADAdmin() *pluginsdk.Resource {
+func resourceSynapseWorkspaceSqlAADAdmin() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSynapseWorkspaceAADAdminCreateUpdate,
-		Read:   resourceSynapseWorkspaceAADAdminRead,
-		Update: resourceSynapseWorkspaceAADAdminCreateUpdate,
-		Delete: resourceSynapseWorkspaceAADAdminDelete,
+		Create: resourceSynapseWorkspaceSqlAADAdminCreateUpdate,
+		Read:   resourceSynapseWorkspaceSqlAADAdminRead,
+		Update: resourceSynapseWorkspaceSqlAADAdminCreateUpdate,
+		Delete: resourceSynapseWorkspaceSqlAADAdminDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -29,7 +29,7 @@ func resourceSynapseWorkspaceAADAdmin() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.WorkspaceAADAdminID(id)
+			_, err := parse.WorkspaceSqlAADAdminID(id)
 			return err
 		}),
 
@@ -61,7 +61,7 @@ func resourceSynapseWorkspaceAADAdmin() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseWorkspaceAADAdminCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceSqlAADAdminCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -84,25 +84,25 @@ func resourceSynapseWorkspaceAADAdminCreateUpdate(d *pluginsdk.ResourceData, met
 
 	workspaceAadAdminsCreateOrUpdateFuture, err := client.CreateOrUpdate(ctx, workspaceResourceGroup, workspaceName, *aadAdmin)
 	if err != nil {
-		return fmt.Errorf("updating Synapse Workspace %q AAD Admin (Resource Group %q): %+v", workspaceName, workspaceResourceGroup, err)
+		return fmt.Errorf("updating Synapse Workspace %q Sql AAD Admin (Resource Group %q): %+v", workspaceName, workspaceResourceGroup, err)
 	}
 
 	if err = workspaceAadAdminsCreateOrUpdateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on updating for Synapse Workspace %q AAD Admin (Resource Group %q): %+v", workspaceName, workspaceResourceGroup, err)
+		return fmt.Errorf("waiting on updating for Synapse Workspace %q Sql AAD Admin (Resource Group %q): %+v", workspaceName, workspaceResourceGroup, err)
 	}
 
-	id := parse.NewWorkspaceAADAdminID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, "activeDirectory")
+	id := parse.NewWorkspaceSqlAADAdminID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, "activeDirectory")
 	d.SetId(id.ID())
 
-	return resourceSynapseWorkspaceAADAdminRead(d, meta)
+	return resourceSynapseWorkspaceSqlAADAdminRead(d, meta)
 }
 
-func resourceSynapseWorkspaceAADAdminRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceSqlAADAdminRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WorkspaceAADAdminID(d.Id())
+	id, err := parse.WorkspaceSqlAADAdminID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -110,7 +110,7 @@ func resourceSynapseWorkspaceAADAdminRead(d *pluginsdk.ResourceData, meta interf
 	aadAdmin, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(aadAdmin.Response) {
-			return fmt.Errorf("retrieving Synapse Workspace %q AAD Admin (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving Synapse Workspace %q Sql AAD Admin (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroup, err)
 		}
 	}
 
@@ -124,23 +124,23 @@ func resourceSynapseWorkspaceAADAdminRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceSynapseWorkspaceAADAdminDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceSqlAADAdminDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WorkspaceAADAdminID(d.Id())
+	id, err := parse.WorkspaceSqlAADAdminID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName)
 	if err != nil {
-		return fmt.Errorf("setting empty Synapse Workspace %q AAD Admin (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("setting empty Synapse Workspace %q Sql AAD Admin (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on setting empty Synapse Workspace %q AAD Admin (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting on setting empty Synapse Workspace %q Sql AAD Admin (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroup, err)
 	}
 
 	return nil
