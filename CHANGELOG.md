@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * `azurerm_data_factory_integration_runtime_*`- deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory integration runtime resources [GH-14610]
 * `azurerm_data_factory_trigger_*`- deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory trigger resources [GH-14610]
 * `azurerm_data_factory_pipeline`- deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory resources [GH-14610]
+* `azurerm_iothub` - support for the `cloud_to_device` block [GH-14546]
 
 BUG FIXES:
 
