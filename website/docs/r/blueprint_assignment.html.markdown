@@ -128,6 +128,8 @@ resource "azurerm_blueprint_assignment" "example" {
 
 * `lock_exclude_principals` - (Optional) a list of up to 5 Principal IDs that are permitted to bypass the locks applied by the Blueprint.
 
+* `lock_exclude_actions` - (Optional) a list of up to 200 actions that are permitted to bypass the locks applied by the Blueprint.
+
 ---
 
 An `identity` block supports the following Arguments
