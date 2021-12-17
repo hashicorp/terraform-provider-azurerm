@@ -22,10 +22,6 @@ tools:
 build: fmtcheck generate
 	go install
 
-build-docker:
-	mkdir -p bin
-	docker run --rm -v $$(pwd)/bin:/go/bin -v $$(pwd):/go/src/github.com/hashicorp/terraform-provider-azurerm -w /go/src/github.com/hashicorp/terraform-provider-azurerm -e GOOS golang:1.16 make build
-
 fmt:
 	@echo "==> Fixing source code with gofmt..."
 	# This logic should match the search logic in scripts/gofmtcheck.sh
@@ -85,9 +81,6 @@ whitespace:
 	@echo "==> Fixing source code with whitespace linter..."
 	golangci-lint run ./... --no-config --disable-all --enable=whitespace --fix
 
-test-docker:
-	docker run --rm -v $$(pwd):/go/src/github.com/hashicorp/terraform-provider-azurerm -w /go/src/github.com/hashicorp/terraform-provider-azurerm golang:1.13 make test
-
 test: fmtcheck
 	@TEST=$(TEST) ./scripts/run-gradually-deprecated.sh
 	@TEST=$(TEST) ./scripts/run-test.sh
@@ -141,4 +134,4 @@ validate-examples:
 
 pr-check: generate build test lint tflint website-lint
 
-.PHONY: build build-docker test test-docker testacc vet fmt fmtcheck errcheck scaffold-website test-compile website website-test validate-examples
+.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples
