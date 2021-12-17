@@ -283,16 +283,12 @@ func resourceAfdOriginsUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 
-	var originUpdateProperties cdn.AFDOriginUpdateParameters
+	var originUpdate cdn.AFDOriginUpdateParameters
+	var originUpdateProperties cdn.AFDOriginUpdatePropertiesParameters
 
 	if d.HasChange("origin_host_header") {
 		originHostHeader := d.Get("origin_host_header").(string)
 		originUpdateProperties.OriginHostHeader = &originHostHeader
-	}
-
-	if d.HasChange("http_port") {
-		httpPort := d.Get("http_port").(string)
-		originUpdateProperties.OriginHostHeader = &httpPort
 	}
 
 	if d.HasChange("enabled") {
@@ -304,14 +300,19 @@ func resourceAfdOriginsUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
+	if d.HasChange("http_port") {
+		httpPort := int32(d.Get("http_port").(int))
+		originUpdateProperties.HTTPPort = &httpPort
+	}
+
 	if d.HasChange("https_port") {
-		httpsPort := d.Get("https_port").(string)
-		originUpdateProperties.OriginHostHeader = &httpsPort
+		httpsPort := int32(d.Get("https_port").(int))
+		originUpdateProperties.HTTPSPort = &httpsPort
 	}
 
 	if d.HasChange("priority") {
-		priority := d.Get("priority").(string)
-		originUpdateProperties.OriginHostHeader = &priority
+		priority := int32(d.Get("priority").(int))
+		originUpdateProperties.Priority = &priority
 	}
 
 	// if d.HasChange("private_link") {
@@ -320,17 +321,19 @@ func resourceAfdOriginsUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	// }
 
 	if d.HasChange("weight") {
-		weight := d.Get("weight").(string)
-		originUpdateProperties.OriginHostHeader = &weight
+		weight := int32(d.Get("weight").(int))
+		originUpdateProperties.Weight = &weight
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName, originUpdateProperties)
+	originUpdate.AFDOriginUpdatePropertiesParameters = &originUpdateProperties
+
+	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName, originUpdate)
 	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
+		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
 	d.SetId(id.ID())

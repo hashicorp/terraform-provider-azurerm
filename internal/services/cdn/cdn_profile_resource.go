@@ -72,6 +72,11 @@ func resourceCdnProfile() *pluginsdk.Resource {
 			},
 
 			"tags": tags.Schema(),
+
+			"header_frontdoor_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -178,6 +183,11 @@ func resourceCdnProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
+	}
+
+	// expose header_frontdoor_id only for AzureFrontDoor SKUs
+	if resp.Sku.Name == cdn.SkuNamePremiumAzureFrontDoor || resp.Sku.Name == cdn.SkuNameStandardAzureFrontDoor {
+		d.Set("header_frontdoor_id", resp.FrontdoorID)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

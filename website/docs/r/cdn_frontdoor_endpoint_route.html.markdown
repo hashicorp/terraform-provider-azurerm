@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `origin_group_id` - (Required) Refers to the Front Door origin group (resource id).
 
-* `origin_path`
+* `origin_path` - A directory path on the origin that AzureFrontDoor can use to retrieve content from, e.g. `contoso.cloudapp.net/originpath`.
 
 * `rule_sets`
 
@@ -80,7 +80,7 @@ The following arguments are supported:
 
 * `patterns_to_match`
 
-* `forwarding_protocol` - Protocol this rule will use when forwarding traffic to backends. Can be set to `Https`, `Http` or `MatchRequest`. Defaults to `MatchRequest`.
+* `forwarding_protocol` - Protocol this rule will use when forwarding traffic to backends. Can be set to `HttpsOnly`, `HttpOnly` or `MatchRequest`. Defaults to `MatchRequest`.
 
 * `link_to_default_domain` - Whether this route will be linked to the default endpoint domain. Can be set to `true` or `false`.
 

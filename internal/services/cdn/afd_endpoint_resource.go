@@ -64,8 +64,8 @@ func resourceAfdEndpoints() *pluginsdk.Resource {
 			"origin_response_timeout_in_seconds": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Default:      0,
-				ValidateFunc: validation.IntAtLeast(0),
+				Default:      60,
+				ValidateFunc: validation.IntBetween(16, 240),
 			},
 		},
 	}
@@ -167,23 +167,31 @@ func resourceAfdEndpointsUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	endpointUpdate := cdn.AFDEndpointUpdateParameters{}
+	endpointUpdateParameters := cdn.AFDEndpointPropertiesUpdateParameters{}
 
 	if d.HasChange("enabled") {
 		enabledState := d.Get("enabled").(bool)
 		if enabledState {
-			endpointUpdate.EnabledState = cdn.EnabledStateEnabled
+			endpointUpdateParameters.EnabledState = cdn.EnabledStateEnabled
 		} else {
-			endpointUpdate.EnabledState = cdn.EnabledStateDisabled
+			endpointUpdateParameters.EnabledState = cdn.EnabledStateDisabled
 		}
 	}
 
+	if d.HasChange("origin_response_timeout_in_seconds") {
+		originResponseTimeoutInSeconds := int32(d.Get("origin_response_timeout_in_seconds").(int))
+		endpointUpdateParameters.OriginResponseTimeoutSeconds = utils.Int32(originResponseTimeoutInSeconds)
+	}
+
+	endpointUpdate.AFDEndpointPropertiesUpdateParameters = &endpointUpdateParameters
+
 	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, endpointUpdate)
 	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
+		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
 	d.SetId(id.ID())

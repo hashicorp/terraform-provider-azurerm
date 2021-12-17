@@ -35,3 +35,11 @@ The following arguments are supported:
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Front Door service should exist. Changing this forces a new resource to be created.
 
 * `sku` - (Required) Can be either `Premium_AzureFrontDoor` or `Standard_AzureFrontDoor`. Changing this forces a new resource to be created.
+
+---
+
+The following attributes are exported:
+
+* `id` - The ID of the FrontDoor.
+
+* `header_frontdoor_id` - The unique ID of the Front Door which is embedded into the incoming headers `X-Azure-FDID` attribute and maybe used to filter traffic sent by the Front Door to your backend.
