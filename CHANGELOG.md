@@ -4,6 +4,9 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `azurerm_managed_disk` - support for the `gallery_image_reference_id` property [GH-14121]
+
+
 BUG FIXES:
 
 ## 2.90.0 (December 17, 2021)
