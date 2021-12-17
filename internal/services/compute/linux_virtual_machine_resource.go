@@ -1254,7 +1254,7 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
 
 	log.Printf("[DEBUG] Retrieving Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(existing.Response) {
 			return nil

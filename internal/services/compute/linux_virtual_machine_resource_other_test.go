@@ -266,12 +266,19 @@ func TestAccLinuxVirtualMachine_otherUserData(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherUserData(data),
+			Config: r.otherUserData(data, "Hello World"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("user_data"),
+		data.ImportStep(),
+		{
+			Config: r.otherUserData(data, "Goodbye World"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -1054,7 +1061,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineResource) otherUserData(data acceptance.TestData) string {
+func (r LinuxVirtualMachineResource) otherUserData(data acceptance.TestData, userData string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1064,7 +1071,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   location            = azurerm_resource_group.test.location
   size                = "Standard_F2"
   admin_username      = "adminuser"
-  user_data           = base64encode("Hello World")
+  user_data           = base64encode(%q)
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1086,7 +1093,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, userData)
 }
 
 func (r LinuxVirtualMachineResource) otherSkipShutdownAndForceDelete(data acceptance.TestData) string {
