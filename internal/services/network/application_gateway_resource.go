@@ -2054,6 +2054,7 @@ func flattenApplicationGatewayTrustedRootCertificates(certs *[]network.Applicati
 	if certs == nil {
 		return results
 	}
+
 	// since the certificate data isn't returned lets load any existing data
 	nameToDataMap := map[string]string{}
 	if existing, ok := d.GetOk("trusted_root_certificate"); ok && existing != nil {
@@ -2062,8 +2063,10 @@ func flattenApplicationGatewayTrustedRootCertificates(certs *[]network.Applicati
 			nameToDataMap[b["name"].(string)] = b["data"].(string)
 		}
 	}
+
 	for _, cert := range *certs {
 		output := map[string]interface{}{}
+
 		if v := cert.ID; v != nil {
 			output["id"] = *v
 		}
@@ -2078,13 +2081,16 @@ func flattenApplicationGatewayTrustedRootCertificates(certs *[]network.Applicati
 
 		if v := cert.Name; v != nil {
 			output["name"] = *v
+
 			// if theres no key vauld ID and we have a name, so try and look up the old data to pass it along
 			if data, ok := nameToDataMap[*v]; ok && data != "" {
 				output["data"] = data
 			}
 		}
+
 		results = append(results, output)
 	}
+
 	return results
 }
 
