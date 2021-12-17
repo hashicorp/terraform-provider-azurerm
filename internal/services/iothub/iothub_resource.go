@@ -11,11 +11,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
@@ -27,8 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-type iothubIdentity = identity.SystemAssignedUserAssigned
 
 // TODO: outside of this pr make this private
 
@@ -542,7 +541,7 @@ func resourceIotHub() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": iothubIdentity{}.Schema(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentity(),
 
 			"tags": tags.Schema(),
 		},
@@ -1444,7 +1443,7 @@ func flattenIPFilterRules(in *[]devices.IPFilterRule) []interface{} {
 }
 
 func expandIotHubIdentity(input []interface{}) (*devices.ArmIdentity, error) {
-	config, err := iothubIdentity{}.Expand(input)
+	config, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
@@ -1453,9 +1452,9 @@ func expandIotHubIdentity(input []interface{}) (*devices.ArmIdentity, error) {
 		Type: devices.ResourceIdentityType(config.Type),
 	}
 
-	if len(config.UserAssignedIdentityIds) != 0 {
-		identityIds := make(map[string]*devices.ArmUserIdentity, len(config.UserAssignedIdentityIds))
-		for _, id := range config.UserAssignedIdentityIds {
+	if len(config.IdentityIds) != 0 {
+		identityIds := make(map[string]*devices.ArmUserIdentity, len(config.IdentityIds))
+		for id := range config.IdentityIds {
 			identityIds[id] = &devices.ArmUserIdentity{}
 		}
 		identity.UserAssignedIdentities = identityIds
@@ -1464,17 +1463,18 @@ func expandIotHubIdentity(input []interface{}) (*devices.ArmIdentity, error) {
 	return &identity, nil
 }
 
-func flattenIotHubIdentity(input *devices.ArmIdentity) ([]interface{}, error) {
-	var config *identity.ExpandedConfig
-
+func flattenIotHubIdentity(input *devices.ArmIdentity) (*[]interface{}, error) {
+	var config *identity.SystemAndUserAssignedMap
 	if input != nil {
-		var identityIds []string
+		identityIds := map[string]identity.UserAssignedIdentityDetails{}
 		for id := range input.UserAssignedIdentities {
 			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(id)
 			if err != nil {
 				return nil, err
 			}
-			identityIds = append(identityIds, parsedId.ID())
+			identityIds[parsedId.ID()] = identity.UserAssignedIdentityDetails{
+				// intentionally empty
+			}
 		}
 
 		principalId := ""
@@ -1487,14 +1487,14 @@ func flattenIotHubIdentity(input *devices.ArmIdentity) ([]interface{}, error) {
 			tenantId = *input.TenantID
 		}
 
-		config = &identity.ExpandedConfig{
-			Type:                    identity.Type(string(input.Type)),
-			PrincipalId:             principalId,
-			TenantId:                tenantId,
-			UserAssignedIdentityIds: identityIds,
+		config = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			PrincipalId: principalId,
+			TenantId:    tenantId,
+			IdentityIds: identityIds,
 		}
 	}
-	return iothubIdentity{}.Flatten(config), nil
+	return identity.FlattenSystemAndUserAssignedMap(config)
 }
 
 func fileUploadConnectionStringDiffSuppress(k, old, new string, d *pluginsdk.ResourceData) bool {
