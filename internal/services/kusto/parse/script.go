@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ScriptId struct {
@@ -45,7 +45,7 @@ func (id ScriptId) ID() string {
 
 // ScriptID parses a Script ID into an ScriptId struct
 func ScriptID(input string) (*ScriptId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

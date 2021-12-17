@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
 	"github.com/Azure/go-autorest/autorest/azure"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	laparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	applicationGatewayValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -18,13 +19,14 @@ import (
 
 const (
 	// note: the casing on these keys is important
-	aciConnectorKey              = "aciConnectorLinux"
-	azurePolicyKey               = "azurepolicy"
-	kubernetesDashboardKey       = "kubeDashboard"
-	httpApplicationRoutingKey    = "httpApplicationRouting"
-	omsAgentKey                  = "omsagent"
-	ingressApplicationGatewayKey = "ingressApplicationGateway"
-	openServiceMeshKey           = "openServiceMesh"
+	aciConnectorKey                 = "aciConnectorLinux"
+	azurePolicyKey                  = "azurepolicy"
+	kubernetesDashboardKey          = "kubeDashboard"
+	httpApplicationRoutingKey       = "httpApplicationRouting"
+	omsAgentKey                     = "omsagent"
+	ingressApplicationGatewayKey    = "ingressApplicationGateway"
+	openServiceMeshKey              = "openServiceMesh"
+	azureKeyvaultSecretsProviderKey = "azureKeyvaultSecretsProvider"
 )
 
 // The AKS API hard-codes which add-ons are supported in which environment
@@ -34,16 +36,17 @@ const (
 // omitted from this list an addon/environment combination will be supported
 var unsupportedAddonsForEnvironment = map[string][]string{
 	azure.ChinaCloud.Name: {
-		aciConnectorKey,           // https://github.com/hashicorp/terraform-provider-azurerm/issues/5510
-		httpApplicationRoutingKey, // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
-		kubernetesDashboardKey,    // https://github.com/hashicorp/terraform-provider-azurerm/issues/7487
-		openServiceMeshKey,        // Preview features are not supported in Azure China
+		aciConnectorKey,                 // https://github.com/hashicorp/terraform-provider-azurerm/issues/5510
+		httpApplicationRoutingKey,       // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
+		kubernetesDashboardKey,          // https://github.com/hashicorp/terraform-provider-azurerm/issues/7487
+		openServiceMeshKey,              // Preview features are not supported in Azure China
+		azureKeyvaultSecretsProviderKey, // Preview features are not supported in Azure China
 	},
 	azure.USGovernmentCloud.Name: {
-		azurePolicyKey,            // https://github.com/hashicorp/terraform-provider-azurerm/issues/6702
-		httpApplicationRoutingKey, // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
-		kubernetesDashboardKey,    // https://github.com/hashicorp/terraform-provider-azurerm/issues/7136
-		openServiceMeshKey,        // Preview features are not supported in Azure Government
+		httpApplicationRoutingKey,       // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
+		kubernetesDashboardKey,          // https://github.com/hashicorp/terraform-provider-azurerm/issues/7136
+		openServiceMeshKey,              // Preview features are not supported in Azure Government
+		azureKeyvaultSecretsProviderKey, // Preview features are not supported in Azure China
 	},
 }
 
@@ -235,6 +238,50 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 						},
 					},
 				},
+				"azure_keyvault_secrets_provider": {
+					Type:     pluginsdk.TypeList,
+					MaxItems: 1,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"enabled": {
+								Type:     pluginsdk.TypeBool,
+								Required: true,
+							},
+							"secret_rotation_enabled": {
+								Type:     pluginsdk.TypeBool,
+								Default:  false,
+								Optional: true,
+							},
+							"secret_rotation_interval": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								Default:      "2m",
+								ValidateFunc: containerValidate.Duration,
+							},
+							"secret_identity": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Resource{
+									Schema: map[string]*pluginsdk.Schema{
+										"client_id": {
+											Type:     pluginsdk.TypeString,
+											Computed: true,
+										},
+										"object_id": {
+											Type:     pluginsdk.TypeString,
+											Computed: true,
+										},
+										"user_assigned_identity_id": {
+											Type:     pluginsdk.TypeString,
+											Computed: true,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -246,13 +293,14 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 	}
 
 	profiles := map[string]*containerservice.ManagedClusterAddonProfile{
-		aciConnectorKey:              &disabled,
-		azurePolicyKey:               &disabled,
-		kubernetesDashboardKey:       &disabled,
-		httpApplicationRoutingKey:    &disabled,
-		omsAgentKey:                  &disabled,
-		ingressApplicationGatewayKey: &disabled,
-		openServiceMeshKey:           &disabled,
+		aciConnectorKey:                 &disabled,
+		azurePolicyKey:                  &disabled,
+		kubernetesDashboardKey:          &disabled,
+		httpApplicationRoutingKey:       &disabled,
+		omsAgentKey:                     &disabled,
+		ingressApplicationGatewayKey:    &disabled,
+		openServiceMeshKey:              &disabled,
+		azureKeyvaultSecretsProviderKey: &disabled,
 	}
 
 	if len(input) == 0 || input[0] == nil {
@@ -367,6 +415,26 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 		addonProfiles[openServiceMeshKey] = &containerservice.ManagedClusterAddonProfile{
 			Enabled: utils.Bool(enabled),
 			Config:  nil,
+		}
+
+	}
+
+	azureKeyvaultSecretsProvider := profile["azure_keyvault_secrets_provider"].([]interface{})
+	if len(azureKeyvaultSecretsProvider) > 0 && azureKeyvaultSecretsProvider[0] != nil {
+		value := azureKeyvaultSecretsProvider[0].(map[string]interface{})
+		config := make(map[string]*string)
+		enabled := value["enabled"].(bool)
+
+		enableSecretRotation := "false"
+		if value["secret_rotation_enabled"].(bool) {
+			enableSecretRotation = "true"
+		}
+		config["enableSecretRotation"] = utils.String(enableSecretRotation)
+		config["rotationPollInterval"] = utils.String(value["secret_rotation_interval"].(string))
+
+		addonProfiles[azureKeyvaultSecretsProviderKey] = &containerservice.ManagedClusterAddonProfile{
+			Enabled: utils.Bool(enabled),
+			Config:  config,
 		}
 
 	}
@@ -544,20 +612,47 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 		})
 	}
 
+	azureKeyvaultSecretsProviders := make([]interface{}, 0)
+	if azureKeyvaultSecretsProvider := kubernetesAddonProfileLocate(profile, azureKeyvaultSecretsProviderKey); azureKeyvaultSecretsProvider != nil {
+		enabled := false
+		if enabledVal := azureKeyvaultSecretsProvider.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+		enableSecretRotation := false
+		if v := kubernetesAddonProfilelocateInConfig(azureKeyvaultSecretsProvider.Config, "enableSecretRotation"); v != nil && *v != "false" {
+			enableSecretRotation = true
+		}
+		rotationPollInterval := ""
+		if v := kubernetesAddonProfilelocateInConfig(azureKeyvaultSecretsProvider.Config, "rotationPollInterval"); v != nil {
+			rotationPollInterval = *v
+		}
+
+		azureKeyvaultSecretsProviderIdentity := flattenKubernetesClusterAddOnIdentityProfile(azureKeyvaultSecretsProvider.Identity)
+
+		azureKeyvaultSecretsProviders = append(azureKeyvaultSecretsProviders, map[string]interface{}{
+			"enabled":                  enabled,
+			"secret_rotation_enabled":  enableSecretRotation,
+			"secret_rotation_interval": rotationPollInterval,
+			"secret_identity":          azureKeyvaultSecretsProviderIdentity,
+		})
+
+	}
+
 	// this is a UX hack, since if the top level block isn't defined everything should be turned off
-	if len(aciConnectors) == 0 && len(azurePolicies) == 0 && len(httpApplicationRoutes) == 0 && len(kubeDashboards) == 0 && len(omsAgents) == 0 && len(ingressApplicationGateways) == 0 && len(openServiceMeshes) == 0 {
+	if len(aciConnectors) == 0 && len(azurePolicies) == 0 && len(httpApplicationRoutes) == 0 && len(kubeDashboards) == 0 && len(omsAgents) == 0 && len(ingressApplicationGateways) == 0 && len(openServiceMeshes) == 0 && len(azureKeyvaultSecretsProviders) == 0 {
 		return []interface{}{}
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"aci_connector_linux":         aciConnectors,
-			"azure_policy":                azurePolicies,
-			"http_application_routing":    httpApplicationRoutes,
-			"kube_dashboard":              kubeDashboards,
-			"oms_agent":                   omsAgents,
-			"ingress_application_gateway": ingressApplicationGateways,
-			"open_service_mesh":           openServiceMeshes,
+			"aci_connector_linux":             aciConnectors,
+			"azure_policy":                    azurePolicies,
+			"http_application_routing":        httpApplicationRoutes,
+			"kube_dashboard":                  kubeDashboards,
+			"oms_agent":                       omsAgents,
+			"ingress_application_gateway":     ingressApplicationGateways,
+			"open_service_mesh":               openServiceMeshes,
+			"azure_keyvault_secrets_provider": azureKeyvaultSecretsProviders,
 		},
 	}
 }

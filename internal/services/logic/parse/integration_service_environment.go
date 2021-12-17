@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type IntegrationServiceEnvironmentId struct {
@@ -39,7 +39,7 @@ func (id IntegrationServiceEnvironmentId) ID() string {
 
 // IntegrationServiceEnvironmentID parses a IntegrationServiceEnvironment ID into an IntegrationServiceEnvironmentId struct
 func IntegrationServiceEnvironmentID(input string) (*IntegrationServiceEnvironmentId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

@@ -52,9 +52,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 				ValidateFunc: validate.PoolName,
 			},
 
-			// TODO: make this case sensitive once this API bug has been fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/5574
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,
@@ -301,11 +299,25 @@ func resourceBatchPool() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
-						// TODO 3.0 - rename to task_retry_maximum to be consistent with azurerm_batch_job
+						// TODO: Remove in 3.0
 						"max_task_retry_count": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
-							Default:  1,
+							Computed: true, // Remove in 3.0
+							// Need to default this in the expand function for this block for the deprecation
+							Deprecated: "Deprecated in favour of `task_retry_maximum`",
+							ConflictsWith: []string{
+								"start_task.0.task_retry_maximum",
+							},
+						},
+
+						"task_retry_maximum": {
+							Type:     pluginsdk.TypeInt,
+							Optional: true,
+							Computed: true, // Remove in 3.0
+							ConflictsWith: []string{
+								"start_task.0.max_task_retry_count",
+							},
 						},
 
 						"wait_for_success": {
@@ -314,12 +326,29 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Default:  false,
 						},
 
-						// TODO 3.0 - rename to common_environment_properties to be consistent with azurerm_batch_job
+						// TODO: Remove in 3.0
 						"environment": {
 							Type:     pluginsdk.TypeMap,
 							Optional: true,
+							Computed: true, // Remove in 3.0
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
+							},
+							Deprecated: "Deprecated in favour of `common_environment_properties`",
+							ConflictsWith: []string{
+								"start_task.0.common_environment_properties",
+							},
+						},
+
+						"common_environment_properties": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Computed: true, // Remove in 3.0
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+							ConflictsWith: []string{
+								"start_task.0.environment",
 							},
 						},
 
@@ -514,41 +543,46 @@ func resourceBatchPool() *pluginsdk.Resource {
 				},
 			},
 		},
+
+		// TODO: Remove in 3.0
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			if d.HasChange("start_task.0.max_task_retry_count") || d.HasChange("start_task.0.task_retry_maximum") {
+				_, newMax := d.GetChange("start_task.0.task_retry_maximum")
+				d.SetNew("start_task.0.max_task_retry_count", newMax)
+				d.SetNew("start_task.0.task_retry_maximum", newMax)
+			}
+
+			return nil
+		}),
 	}
 }
 
 func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.PoolClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Batch pool creation.")
-
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("account_name").(string)
-	poolName := d.Get("name").(string)
-	displayName := d.Get("display_name").(string)
-	vmSize := d.Get("vm_size").(string)
-	maxTasksPerNode := int32(d.Get("max_tasks_per_node").(int))
+	id := parse.NewPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, accountName, poolName)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Batch Pool %q (Account %q / Resource Group %q): %+v", poolName, accountName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_batch_pool", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_batch_pool", id.ID())
 		}
 	}
 
 	parameters := batch.Pool{
 		PoolProperties: &batch.PoolProperties{
-			VMSize:           &vmSize,
-			DisplayName:      &displayName,
-			TaskSlotsPerNode: &maxTasksPerNode,
+			VMSize:           utils.String(d.Get("vm_size").(string)),
+			DisplayName:      utils.String(d.Get("display_name").(string)),
+			TaskSlotsPerNode: utils.Int32(int32(d.Get("max_tasks_per_node").(int))),
 		},
 	}
 
@@ -570,18 +604,18 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
 	imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet)
 	if err != nil {
-		return fmt.Errorf("creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if imageReference != nil {
 		// if an image reference ID is specified, the user wants use a custom image. This property is mutually exclusive with other properties.
 		if imageReference.ID != nil && (imageReference.Offer != nil || imageReference.Publisher != nil || imageReference.Sku != nil || imageReference.Version != nil) {
-			return fmt.Errorf("creating Batch pool %q (Resource Group %q): Properties version, offer, publish cannot be defined when using a custom image id", poolName, resourceGroup)
+			return fmt.Errorf("creating %s: Properties version, offer, publish cannot be defined when using a custom image id", id)
 		} else if imageReference.ID == nil && (imageReference.Offer == nil || imageReference.Publisher == nil || imageReference.Sku == nil || imageReference.Version == nil) {
-			return fmt.Errorf("creating Batch pool %q (Resource Group %q): Properties version, offer, publish and sku are mandatory when not using a custom image", poolName, resourceGroup)
+			return fmt.Errorf("creating %s: Properties version, offer, publish and sku are mandatory when not using a custom image", id)
 		}
 	} else {
-		return fmt.Errorf("creating Batch pool %q (Resource Group %q): image reference property can not be empty", poolName, resourceGroup)
+		return fmt.Errorf("creating %s: image reference property can not be empty", id)
 	}
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
@@ -589,13 +623,13 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		startTask, startTaskErr := ExpandBatchPoolStartTask(startTaskList)
 
 		if startTaskErr != nil {
-			return fmt.Errorf("creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, startTaskErr)
+			return fmt.Errorf("creating %s: %+v", id, startTaskErr)
 		}
 
 		// start task should have a user identity defined
 		userIdentity := startTask.UserIdentity
 		if userIdentityError := validateUserIdentity(userIdentity); userIdentityError != nil {
-			return fmt.Errorf("creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, userIdentityError)
+			return fmt.Errorf("creating %s: %+v", id, userIdentityError)
 		}
 
 		parameters.PoolProperties.StartTask = startTask
@@ -603,7 +637,7 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	containerConfiguration, err := ExpandBatchPoolContainerConfiguration(d.Get("container_configuration").([]interface{}))
 	if err != nil {
-		return fmt.Errorf("creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	parameters.PoolProperties.DeploymentConfiguration = &batch.DeploymentConfiguration{
@@ -634,26 +668,22 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("expanding `network_configuration`: %+v", err)
 	}
 
-	_, err = client.Create(ctx, resourceGroup, accountName, poolName, parameters, "", "")
+	_, err = client.Create(ctx, id.ResourceGroup, id.BatchAccountName, id.Name, parameters, "", "")
 	if err != nil {
-		return fmt.Errorf("creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, accountName, poolName)
+	read, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Batch pool %q (resource group %q) ID", poolName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	// if the pool is not Steady after the create operation, wait for it to be Steady
 	if props := read.PoolProperties; props != nil && props.AllocationState != batch.AllocationStateSteady {
-		if err = waitForBatchPoolPendingResizeOperation(ctx, client, resourceGroup, accountName, poolName); err != nil {
-			return fmt.Errorf("waiting for Batch pool %q (resource group %q) being ready", poolName, resourceGroup)
+		if err = waitForBatchPoolPendingResizeOperation(ctx, client, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
+			return fmt.Errorf("waiting for %s", id)
 		}
 	}
 
@@ -672,24 +702,24 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving the Batch pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	if resp.PoolProperties.AllocationState != batch.AllocationStateSteady {
 		log.Printf("[INFO] there is a pending resize operation on this pool...")
 		stopPendingResizeOperation := d.Get("stop_pending_resize_operation").(bool)
 		if !stopPendingResizeOperation {
-			return fmt.Errorf("updating the Batch pool %q (Resource Group %q) because of pending resize operation. Set flag `stop_pending_resize_operation` to true to force update", id.Name, id.ResourceGroup)
+			return fmt.Errorf("updating %s because of pending resize operation. Set flag `stop_pending_resize_operation` to true to force update", *id)
 		}
 
 		log.Printf("[INFO] stopping the pending resize operation on this pool...")
 		if _, err = client.StopResize(ctx, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
-			return fmt.Errorf("stopping resize operation for Batch pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("stopping resize operation for %s: %+v", *id, err)
 		}
 
 		// waiting for the pool to be in steady state
 		if err = waitForBatchPoolPendingResizeOperation(ctx, client, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
-			return fmt.Errorf("waiting for Batch pool %q (resource group %q) being ready", id.Name, id.ResourceGroup)
+			return fmt.Errorf("waiting for %s", *id)
 		}
 	}
 
@@ -715,13 +745,13 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		startTask, startTaskErr := ExpandBatchPoolStartTask(startTaskList)
 
 		if startTaskErr != nil {
-			return fmt.Errorf("updating Batch pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, startTaskErr)
+			return fmt.Errorf("updating %s: %+v", *id, startTaskErr)
 		}
 
 		// start task should have a user identity defined
 		userIdentity := startTask.UserIdentity
 		if userIdentityError := validateUserIdentity(userIdentity); userIdentityError != nil {
-			return fmt.Errorf("creating Batch pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, userIdentityError)
+			return fmt.Errorf("creating %s: %+v", *id, userIdentityError)
 		}
 
 		parameters.PoolProperties.StartTask = startTask
@@ -738,7 +768,7 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	if d.HasChange("metadata") {
-		log.Printf("[DEBUG] Updating the MetaData for Batch pool %q (Account name %q / Resource Group %q)..", id.Name, id.BatchAccountName, id.ResourceGroup)
+		log.Printf("[DEBUG] Updating the MetaData for %s", *id)
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
 
 		parameters.PoolProperties.Metadata = ExpandBatchMetaData(metaDataRaw)
@@ -746,13 +776,13 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	result, err := client.Update(ctx, id.ResourceGroup, id.BatchAccountName, id.Name, parameters, "")
 	if err != nil {
-		return fmt.Errorf("updating Batch pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	// if the pool is not Steady after the update, wait for it to be Steady
 	if props := result.PoolProperties; props != nil && props.AllocationState != batch.AllocationStateSteady {
 		if err := waitForBatchPoolPendingResizeOperation(ctx, client, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
-			return fmt.Errorf("waiting for Batch pool %q (resource group %q) being ready", id.Name, id.ResourceGroup)
+			return fmt.Errorf("waiting for %s", *id)
 		}
 	}
 
@@ -772,9 +802,9 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Batch pool %q in account %q (Resource Group %q) was not found", id.Name, id.BatchAccountName, id.ResourceGroup)
+			return fmt.Errorf("%s was not found", *id)
 		}
-		return fmt.Errorf("making Read request on AzureRM Batch pool %q: %+v", id.Name, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -846,12 +876,12 @@ func resourceBatchPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Batch pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of Batch pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 		}
 	}
 	return nil
@@ -864,17 +894,17 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*batch.ScaleSettin
 	fixedScaleValue, fixedScaleOk := d.GetOk("fixed_scale")
 
 	if !autoScaleOk && !fixedScaleOk {
-		return nil, fmt.Errorf("Error: auto_scale block or fixed_scale block need to be specified")
+		return nil, fmt.Errorf("auto_scale block or fixed_scale block need to be specified")
 	}
 
 	if autoScaleOk && fixedScaleOk {
-		return nil, fmt.Errorf("Error: auto_scale and fixed_scale blocks cannot be specified at the same time")
+		return nil, fmt.Errorf("auto_scale and fixed_scale blocks cannot be specified at the same time")
 	}
 
 	if autoScaleOk {
 		autoScale := autoScaleValue.([]interface{})
 		if len(autoScale) == 0 {
-			return nil, fmt.Errorf("Error: when scale mode is Auto, auto_scale block is required")
+			return nil, fmt.Errorf("when scale mode is Auto, auto_scale block is required")
 		}
 
 		autoScaleSettings := autoScale[0].(map[string]interface{})
@@ -889,7 +919,7 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*batch.ScaleSettin
 	} else if fixedScaleOk {
 		fixedScale := fixedScaleValue.([]interface{})
 		if len(fixedScale) == 0 {
-			return nil, fmt.Errorf("Error: when scale mode is Fixed, fixed_scale block is required")
+			return nil, fmt.Errorf("when scale mode is Fixed, fixed_scale block is required")
 		}
 
 		fixedScaleSettings := fixedScale[0].(map[string]interface{})
@@ -963,7 +993,7 @@ func validateBatchPoolCrossFieldRules(pool *batch.Pool) error {
 					sourceCount++
 				}
 				if sourceCount != 1 {
-					return fmt.Errorf("Exactly one of auto_storage_container_name, storage_container_url and http_url must be specified")
+					return fmt.Errorf("exactly one of auto_storage_container_name, storage_container_url and http_url must be specified")
 				}
 
 				if referenceFile.BlobPrefix != nil {

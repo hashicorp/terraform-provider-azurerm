@@ -57,7 +57,7 @@ resource "azurerm_storage_account" "audit_logs" {
 }
 
 resource "azurerm_synapse_sql_pool_extended_auditing_policy" "example" {
-  server_id                               = azurerm_synapse_sql_pool.example.id
+  sql_pool_id                             = azurerm_synapse_sql_pool.example.id
   storage_endpoint                        = azurerm_storage_account.audit_logs.primary_blob_endpoint
   storage_account_access_key              = azurerm_storage_account.audit_logs.primary_access_key
   storage_account_access_key_is_secondary = false

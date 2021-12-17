@@ -9,25 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-var kubernetesScalingTests = map[string]func(t *testing.T){
-	"addAgent":                         testAccKubernetesCluster_addAgent,
-	"manualScaleIgnoreChanges":         testAccKubernetesCluster_manualScaleIgnoreChanges,
-	"removeAgent":                      testAccKubernetesCluster_removeAgent,
-	"autoScalingEnabledError":          testAccKubernetesCluster_autoScalingError,
-	"autoScalingEnabledErrorMax":       testAccKubernetesCluster_autoScalingErrorMax,
-	"autoScalingEnabledErrorMin":       testAccKubernetesCluster_autoScalingErrorMin,
-	"autoScalingEnabledWithMaxCount":   testAccKubernetesCluster_autoScalingWithMaxCount,
-	"autoScalingNodeCountUnset":        testAccKubernetesCluster_autoScalingNodeCountUnset,
-	"autoScalingNoAvailabilityZones":   testAccKubernetesCluster_autoScalingNoAvailabilityZones,
-	"autoScalingWithAvailabilityZones": testAccKubernetesCluster_autoScalingWithAvailabilityZones,
-}
-
 func TestAccKubernetesCluster_addAgent(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_addAgent(t)
-}
-
-func testAccKubernetesCluster_addAgent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -49,11 +31,6 @@ func testAccKubernetesCluster_addAgent(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_manualScaleIgnoreChanges(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_manualScaleIgnoreChanges(t)
-}
-
-func testAccKubernetesCluster_manualScaleIgnoreChanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -77,11 +54,6 @@ func testAccKubernetesCluster_manualScaleIgnoreChanges(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_removeAgent(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_removeAgent(t)
-}
-
-func testAccKubernetesCluster_removeAgent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -103,11 +75,6 @@ func testAccKubernetesCluster_removeAgent(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_autoScalingError(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_autoScalingError(t)
-}
-
-func testAccKubernetesCluster_autoScalingError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -130,11 +97,6 @@ func testAccKubernetesCluster_autoScalingError(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_autoScalingErrorMax(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_autoScalingErrorMax(t)
-}
-
-func testAccKubernetesCluster_autoScalingErrorMax(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -150,11 +112,6 @@ func testAccKubernetesCluster_autoScalingErrorMax(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_autoScalingWithMaxCount(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_autoScalingWithMaxCount(t)
-}
-
-func testAccKubernetesCluster_autoScalingWithMaxCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -170,11 +127,6 @@ func testAccKubernetesCluster_autoScalingWithMaxCount(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_autoScalingErrorMin(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_autoScalingErrorMin(t)
-}
-
-func testAccKubernetesCluster_autoScalingErrorMin(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -190,11 +142,6 @@ func testAccKubernetesCluster_autoScalingErrorMin(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_autoScalingNodeCountUnset(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_autoScalingNodeCountUnset(t)
-}
-
-func testAccKubernetesCluster_autoScalingNodeCountUnset(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -222,11 +169,6 @@ func testAccKubernetesCluster_autoScalingNodeCountUnset(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_autoScalingNoAvailabilityZones(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_autoScalingNoAvailabilityZones(t)
-}
-
-func testAccKubernetesCluster_autoScalingNoAvailabilityZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -246,11 +188,6 @@ func testAccKubernetesCluster_autoScalingNoAvailabilityZones(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_autoScalingWithAvailabilityZones(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_autoScalingWithAvailabilityZones(t)
-}
-
-func testAccKubernetesCluster_autoScalingWithAvailabilityZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -273,11 +210,6 @@ func testAccKubernetesCluster_autoScalingWithAvailabilityZones(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_autoScalingProfile(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesCluster_autoScalingProfile(t)
-}
-
-func testAccKubernetesCluster_autoScalingProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 

@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-11-01/subscriptions"
 	"github.com/hashicorp/go-uuid"
@@ -15,9 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
-	managementGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
-	resourceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
-	subscriptionValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -55,9 +54,9 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.Any(
 					billingValidate.EnrollmentID,
-					managementGroupValidate.ManagementGroupID,
-					subscriptionValidate.SubscriptionID,
-					resourceValidate.ResourceGroupID,
+					commonids.ValidateManagementGroupID,
+					commonids.ValidateSubscriptionID,
+					commonids.ValidateResourceGroupID,
 					azure.ValidateResourceID,
 				),
 			},
@@ -307,7 +306,6 @@ func resourceArmRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-//lintignore:R006
 func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}, tenantId string) func() *pluginsdk.RetryError {
 	return func() *pluginsdk.RetryError {
 		roleAssignmentsClient := meta.(*clients.Client).Authorization.RoleAssignmentsClient

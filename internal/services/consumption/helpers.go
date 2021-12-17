@@ -83,8 +83,16 @@ func ExpandConsumptionBudgetNotifications(input []interface{}) map[string]*consu
 			notification.ThresholdType = consumption.ThresholdType(notificationRaw["threshold_type"].(string))
 
 			notification.ContactEmails = utils.ExpandStringSlice(notificationRaw["contact_emails"].([]interface{}))
-			notification.ContactRoles = utils.ExpandStringSlice(notificationRaw["contact_roles"].([]interface{}))
-			notification.ContactGroups = utils.ExpandStringSlice(notificationRaw["contact_groups"].([]interface{}))
+
+			// contact_roles cannot be set on consumption budgets for management groups
+			if _, ok := notificationRaw["contact_roles"]; ok {
+				notification.ContactRoles = utils.ExpandStringSlice(notificationRaw["contact_roles"].([]interface{}))
+			}
+
+			// contact_groups cannot be set on consumption budgets for management groups
+			if _, ok := notificationRaw["contact_groups"]; ok {
+				notification.ContactGroups = utils.ExpandStringSlice(notificationRaw["contact_groups"].([]interface{}))
+			}
 
 			notificationKey := fmt.Sprintf("actual_%s_%s_Percent", string(notification.Operator), notification.Threshold.StringFixed(0))
 			notifications[notificationKey] = &notification

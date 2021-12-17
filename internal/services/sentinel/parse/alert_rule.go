@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type AlertRuleId struct {
@@ -42,7 +42,7 @@ func (id AlertRuleId) ID() string {
 
 // AlertRuleID parses a AlertRule ID into an AlertRuleId struct
 func AlertRuleID(input string) (*AlertRuleId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

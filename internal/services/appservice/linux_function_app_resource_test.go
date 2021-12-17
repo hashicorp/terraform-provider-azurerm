@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -375,7 +376,7 @@ func TestAccLinuxFunctionApp_withConnectionStrings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.builtInLogging(data, SkuStandardPlan, true),
+			Config: r.connectionStrings(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -765,6 +766,22 @@ func TestAccLinuxFunctionApp_appStackDockerManagedServiceIdentity(t *testing.T) 
 	})
 }
 
+func TestAccLinuxFunctionApp_appStackPowerShellCore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackPowerShellCore(data, SkuBasicPlan, "7"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // Others
 
 func TestAccLinuxFunctionApp_updateServicePlan(t *testing.T) {
@@ -870,7 +887,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -892,7 +909,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -916,7 +933,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -941,7 +958,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -968,7 +985,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -992,7 +1009,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1019,7 +1036,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1047,7 +1064,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1071,7 +1088,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1119,7 +1136,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1153,7 +1170,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1180,7 +1197,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1206,7 +1223,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1232,7 +1249,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1258,7 +1275,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1284,7 +1301,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1314,7 +1331,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1342,6 +1359,32 @@ resource "azurerm_linux_function_app" "test" {
 `, r.identityTemplate(data, planSku), data.RandomInteger)
 }
 
+func (r LinuxFunctionAppResource) appStackPowerShellCore(data acceptance.TestData, planSku string, version string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    application_stack {
+      powershell_core_version = "%s"
+    }
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, version)
+}
+
 func (r LinuxFunctionAppResource) backup(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1351,7 +1394,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1396,7 +1439,7 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%[2]d"
+  name                = "acctest-LFA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1436,9 +1479,9 @@ resource "azurerm_linux_function_app" "test" {
     }
   }
 
-  builtin_logging_enabled = false
-  client_cert_enabled     = true
-  client_cert_mode        = "Required"
+  builtin_logging_enabled    = false
+  client_certificate_enabled = true
+  client_certificate_mode    = "Required"
 
   connection_string {
     name  = "Second"
@@ -1487,7 +1530,7 @@ resource "azurerm_linux_function_app" "test" {
       }
     }
     load_balancing_mode      = "LeastResponseTime"
-    remote_debugging         = true
+    remote_debugging_enabled = true
     remote_debugging_version = "VS2019"
 
     scm_ip_restriction {
@@ -1556,7 +1599,7 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%[2]d"
+  name                = "acctest-LFA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1605,9 +1648,9 @@ resource "azurerm_linux_function_app" "test" {
     }
   }
 
-  builtin_logging_enabled = false
-  client_cert_enabled     = true
-  client_cert_mode        = "OptionalInteractiveUser"
+  builtin_logging_enabled    = false
+  client_certificate_enabled = true
+  client_certificate_mode    = "OptionalInteractiveUser"
 
   connection_string {
     name  = "First"
@@ -1663,7 +1706,7 @@ resource "azurerm_linux_function_app" "test" {
 
     load_balancing_mode       = "LeastResponseTime"
     pre_warmed_instance_count = 2
-    remote_debugging          = true
+    remote_debugging_enabled  = true
     remote_debugging_version  = "VS2017"
 
     scm_ip_restriction {
@@ -1683,7 +1726,7 @@ resource "azurerm_linux_function_app" "test" {
     websockets_enabled = true
     ftps_state         = "FtpsOnly"
     health_check_path  = "/health-check"
-    number_of_workers  = 3
+    worker_count       = 3
 
     minimum_tls_version     = "1.1"
     scm_minimum_tls_version = "1.1"
@@ -1716,8 +1759,21 @@ provider "azurerm" {
 
 %s
 
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1745,7 +1801,80 @@ resource "azurerm_linux_function_app" "test" {
     type  = "PostgreSQL"
   }
 
-  site_config {}
+  site_config {
+    app_command_line   = "whoami"
+    api_definition_url = "https://example.com/azure_function_app_def.json"
+    // api_management_api_id = ""  // TODO
+    application_insights_key               = azurerm_application_insights.test.instrumentation_key
+    application_insights_connection_string = azurerm_application_insights.test.connection_string
+
+    application_stack {
+      python_version = "3.8"
+    }
+
+    container_registry_use_managed_identity       = true
+    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
+
+    default_documents = [
+      "first.html",
+      "second.jsp",
+      "third.aspx",
+      "hostingstart.html",
+    ]
+
+    http2_enabled = true
+
+    ip_restriction {
+      ip_address = "10.10.10.10/32"
+      name       = "test-restriction"
+      priority   = 123
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+
+    load_balancing_mode       = "LeastResponseTime"
+    pre_warmed_instance_count = 2
+    remote_debugging_enabled  = true
+    remote_debugging_version  = "VS2017"
+
+    scm_ip_restriction {
+      ip_address = "10.20.20.20/32"
+      name       = "test-scm-restriction"
+      priority   = 123
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+
+    use_32_bit_worker  = true
+    websockets_enabled = true
+    ftps_state         = "FtpsOnly"
+    health_check_path  = "/health-check"
+    worker_count       = 3
+
+    minimum_tls_version     = "1.1"
+    scm_minimum_tls_version = "1.1"
+
+    cors {
+      allowed_origins = [
+        "https://www.contoso.com",
+        "www.contoso.com",
+      ]
+
+      support_credentials = true
+    }
+
+    vnet_route_all_enabled = true
+  }
 }
 `, r.storageContainerTemplate(data, SkuElasticPremiumPlan), data.RandomInteger)
 }
@@ -1759,7 +1888,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.update.id
@@ -1783,7 +1912,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-FA-%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -1797,9 +1926,13 @@ resource "azurerm_linux_function_app" "test" {
 }
 
 func (LinuxFunctionAppResource) template(data acceptance.TestData, planSku string) string {
+	var additionalConfig string
+	if strings.EqualFold(planSku, "EP1") {
+		additionalConfig = "maximum_elastic_worker_count = 5"
+	}
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-LFA-%d"
   location = "%s"
 }
 
@@ -1817,14 +1950,15 @@ resource "azurerm_service_plan" "test" {
   resource_group_name = azurerm_resource_group.test.name
   os_type             = "Linux"
   sku_name            = "%s"
+  %s
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, planSku)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, planSku, additionalConfig)
 }
 
 func (LinuxFunctionAppResource) templateExtraStorageAccount(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-LFA-%[1]d"
   location = "%[2]s"
 }
 

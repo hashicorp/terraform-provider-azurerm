@@ -1089,22 +1089,42 @@ func TestAccApplicationGateway_requestRoutingRulePriority(t *testing.T) {
 	})
 }
 
-func TestAccApplicationGateway_updateEnableFips(t *testing.T) {
+func TestAccApplicationGateway_privateLink(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.updateEnableFips(data, true),
+			Config: r.basic_v2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_v2"),
+				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Standard_v2"),
+				check.That(data.ResourceName).Key("private_link_configuration.#").HasValue("0"),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.1.private_link_configuration_name").DoesNotExist(),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.1.private_link_configuration_id").DoesNotExist(),
 			),
 		},
-		data.ImportStep(),
 		{
-			Config: r.updateEnableFips(data, false),
+			Config: r.privateLink(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.1.private_link_configuration_name").HasValue("private_link"),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.1.private_link_configuration_id").IsSet(),
+				check.That(data.ResourceName).Key("private_link_configuration.0.name").HasValue("private_link"),
+				check.That(data.ResourceName).Key("private_link_configuration.0.id").IsSet(),
+				check.That(data.ResourceName).Key("private_link_configuration.0.ip_configuration.0.name").HasValue("primary"),
+			),
+		},
+		{
+			Config: r.basic_v2(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_v2"),
+				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Standard_v2"),
+				check.That(data.ResourceName).Key("private_link_configuration.#").HasValue("0"),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.1.private_link_configuration_name").DoesNotExist(),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.1.private_link_configuration_id").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -1133,50 +1153,6 @@ func TestAccApplicationGateway_updateForceFirewallPolicyAssociation(t *testing.T
 	})
 }
 
-func TestAccApplicationGateway_updatePrivateLinkConfiguration(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
-	r := ApplicationGatewayResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.privateLinkConfiguration(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.updatePrivateLinkConfiguration(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccApplicationGateway_updateFrontendIPConfigurationWithPrivateLinkConfiguration(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
-	r := ApplicationGatewayResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.frontendIPConfigurationWithPrivateLinkConfiguration(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.updateFrontendIPConfigurationWithPrivateLinkConfiguration(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (t ApplicationGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ApplicationGatewayID(state.ID)
 	if err != nil {
@@ -1195,7 +1171,7 @@ func (r ApplicationGatewayResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -1261,11 +1237,89 @@ resource "azurerm_application_gateway" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r ApplicationGatewayResource) basic_v2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-standard-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+    capacity = 2
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.test_standard.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                  = local.http_setting_name
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = local.request_routing_rule_name
+    rule_type                  = "Basic"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
 func (r ApplicationGatewayResource) UserDefinedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -1354,7 +1408,7 @@ func (r ApplicationGatewayResource) zones(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -1433,7 +1487,7 @@ func (r ApplicationGatewayResource) autoscaleConfiguration(data acceptance.TestD
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -1515,7 +1569,7 @@ func (r ApplicationGatewayResource) autoscaleConfigurationNoMaxCapacity(data acc
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -1596,7 +1650,7 @@ func (r ApplicationGatewayResource) overridePath(data acceptance.TestData) strin
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -1667,7 +1721,7 @@ func (r ApplicationGatewayResource) http2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -1798,7 +1852,7 @@ func (r ApplicationGatewayResource) authCertificate(data acceptance.TestData) st
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   auth_cert_name                 = "${azurerm_virtual_network.test.name}-auth"
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
@@ -1879,7 +1933,7 @@ func (r ApplicationGatewayResource) trustedRootCertificate_keyvault(data accepta
 	return fmt.Sprintf(`
 %[1]s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   auth_cert_name                 = "${azurerm_virtual_network.test.name}-auth"
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
@@ -1895,8 +1949,7 @@ data "azurerm_client_config" "test" {}
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-
-  name = "acctest%[2]d"
+  name                = "acctest%[2]d"
 }
 
 resource "azurerm_public_ip" "testStd" {
@@ -2026,7 +2079,7 @@ func (r ApplicationGatewayResource) update_trustedRootCertificate_keyvault(data 
 	return fmt.Sprintf(`
 %[1]s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   auth_cert_name                 = "${azurerm_virtual_network.test.name}-auth"
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
@@ -2042,8 +2095,7 @@ data "azurerm_client_config" "test" {}
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-
-  name = "acctest%[2]d"
+  name                = "acctest%[2]d"
 }
 
 resource "azurerm_public_ip" "testStd" {
@@ -2196,11 +2248,82 @@ resource "azurerm_application_gateway" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r ApplicationGatewayResource) updateForceFirewallPolicyAssociation(data acceptance.TestData, forceFirewallPolicyAssociation bool) string {
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                              = "acctestag-%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  location                          = azurerm_resource_group.test.location
+  force_firewall_policy_association = %t
+
+  sku {
+    name     = "Standard_Small"
+    tier     = "Standard"
+    capacity = 2
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                  = local.http_setting_name
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = local.request_routing_rule_name
+    rule_type                  = "Basic"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
+  }
+}
+`, r.template(data), data.RandomInteger, forceFirewallPolicyAssociation)
+}
+
 func (r ApplicationGatewayResource) trustedRootCertificate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   auth_cert_name                 = "${azurerm_virtual_network.test.name}-auth"
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
@@ -2287,7 +2410,7 @@ func (r ApplicationGatewayResource) customFirewallPolicy(data acceptance.TestDat
 	return fmt.Sprintf(`
 %[1]s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -2390,7 +2513,7 @@ func (r ApplicationGatewayResource) customHttpListenerFirewallPolicy(data accept
 	return fmt.Sprintf(`
 %[1]s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -2509,7 +2632,7 @@ func (r ApplicationGatewayResource) customPathRuleFirewallPolicy(data acceptance
 	return fmt.Sprintf(`
 %[1]s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -2644,7 +2767,7 @@ func (r ApplicationGatewayResource) authCertificateUpdated(data acceptance.TestD
 	return fmt.Sprintf(`
 %[1]s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   auth_cert_name                 = "${azurerm_virtual_network.test.name}-auth2"
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
@@ -2724,7 +2847,7 @@ func (r ApplicationGatewayResource) trustedRootCertificateUpdated(data acceptanc
 	return fmt.Sprintf(`
 %[1]s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   auth_cert_name                 = "${azurerm_virtual_network.test.name}-auth2"
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
@@ -2811,7 +2934,7 @@ func (r ApplicationGatewayResource) pathBasedRouting(data acceptance.TestData) s
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -2898,7 +3021,7 @@ func (r ApplicationGatewayResource) routingRedirect_httpListener(data acceptance
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -2992,7 +3115,7 @@ func (r ApplicationGatewayResource) routingRedirect_httpListenerError(data accep
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -3087,7 +3210,7 @@ func (r ApplicationGatewayResource) routingRedirect_pathBased(data acceptance.Te
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -3215,7 +3338,7 @@ func (r ApplicationGatewayResource) probes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -3317,7 +3440,7 @@ func (r ApplicationGatewayResource) probesEmptyMatch(data acceptance.TestData) s
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -3422,7 +3545,7 @@ func (r ApplicationGatewayResource) probesPickHostNameFromBackendHTTPSettings(da
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -3505,7 +3628,7 @@ func (r ApplicationGatewayResource) probesWithPort(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -3596,7 +3719,7 @@ func (r ApplicationGatewayResource) backendHttpSettingsHostName(data acceptance.
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -3677,7 +3800,7 @@ resource "azurerm_public_ip" "test2" {
   domain_name_label   = "testdns-123"
 }
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -3748,7 +3871,7 @@ func (r ApplicationGatewayResource) settingsPickHostNameFromBackendAddress(data 
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -3819,7 +3942,7 @@ func (r ApplicationGatewayResource) sslCertificate_keyvault_versionless(data acc
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   auth_cert_name                 = "${azurerm_virtual_network.test.name}-auth"
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
@@ -3969,7 +4092,7 @@ func (r ApplicationGatewayResource) sslCertificate_keyvault_versioned(data accep
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   auth_cert_name                 = "${azurerm_virtual_network.test.name}-auth"
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
@@ -4119,7 +4242,7 @@ func (r ApplicationGatewayResource) sslCertificate(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -4197,7 +4320,7 @@ func (r ApplicationGatewayResource) sslCertificateUpdated(data acceptance.TestDa
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -4275,7 +4398,7 @@ func (r ApplicationGatewayResource) sslCertificateEmptyPassword(data acceptance.
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -4395,7 +4518,7 @@ func (r ApplicationGatewayResource) manualSslCertificateChangeIgnoreChangesConfi
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -4478,7 +4601,7 @@ func (r ApplicationGatewayResource) manualSslCertificateChangeIgnoreChangesUpdat
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -4561,7 +4684,7 @@ func (r ApplicationGatewayResource) webApplicationFirewall(data acceptance.TestD
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -4641,7 +4764,7 @@ func (r ApplicationGatewayResource) connectionDraining(data acceptance.TestData)
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -4717,7 +4840,7 @@ func (r ApplicationGatewayResource) webApplicationFirewall_disabledRuleGroups(da
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -4819,7 +4942,7 @@ func (r ApplicationGatewayResource) webApplicationFirewall_disabledRuleGroups_en
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -4916,7 +5039,7 @@ func (r ApplicationGatewayResource) webApplicationFirewall_exclusions_many(data 
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -5032,7 +5155,7 @@ func (r ApplicationGatewayResource) webApplicationFirewall_exclusions_one(data a
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -5387,10 +5510,11 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "subnet-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.0.0/24"
+  name                                          = "subnet-%d"
+  resource_group_name                           = azurerm_resource_group.test.name
+  virtual_network_name                          = azurerm_virtual_network.test.name
+  address_prefix                                = "10.0.0.0/24"
+  enforce_private_link_service_network_policies = true
 }
 
 resource "azurerm_public_ip" "test" {
@@ -5406,7 +5530,7 @@ func (r ApplicationGatewayResource) customErrorConfigurations(data acceptance.Te
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -5498,7 +5622,7 @@ func (r ApplicationGatewayResource) rewriteRuleSets_backend(data acceptance.Test
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -5598,7 +5722,7 @@ func (r ApplicationGatewayResource) rewriteRuleSets_redirect(data acceptance.Tes
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -5720,7 +5844,7 @@ func (r ApplicationGatewayResource) rewriteRuleSets_rewriteUrl(data acceptance.T
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -5842,7 +5966,7 @@ func (r ApplicationGatewayResource) cookieAffinity(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -5913,7 +6037,7 @@ func (r ApplicationGatewayResource) cookieAffinityUpdated(data acceptance.TestDa
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -5990,7 +6114,7 @@ resource "azurerm_subnet" "test1" {
   address_prefix       = "10.0.1.0/24"
 }
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -6060,7 +6184,7 @@ func (r ApplicationGatewayResource) v2SKUCapacity(data acceptance.TestData) stri
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -6138,7 +6262,7 @@ func (r ApplicationGatewayResource) includePathWithTargetURL(data acceptance.Tes
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -6267,7 +6391,7 @@ func (r ApplicationGatewayResource) backendAddressPoolEmptyIpList(data acceptanc
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -6338,7 +6462,7 @@ func (r ApplicationGatewayResource) sslProfile(data acceptance.TestData) string 
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -6434,7 +6558,7 @@ func (r ApplicationGatewayResource) sslProfileUpdateOne(data acceptance.TestData
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -6531,7 +6655,7 @@ func (r ApplicationGatewayResource) sslProfileWithClientCertificateVerification(
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -6635,7 +6759,7 @@ func (r ApplicationGatewayResource) sslProfileWithClientCertificateVerificationU
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -6738,7 +6862,7 @@ func (r ApplicationGatewayResource) sslProfileWithClientCertificateVerificationU
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
@@ -7134,29 +7258,38 @@ resource "azurerm_application_gateway" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r ApplicationGatewayResource) updateEnableFips(data acceptance.TestData, enableFips bool) string {
+func (r ApplicationGatewayResource) privateLink(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
-  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
-  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
-  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
-  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  backend_address_pool_name               = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name                      = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name          = "${azurerm_virtual_network.test.name}-feip"
+  frontend_ip_configuration_internal_name = "${azurerm_virtual_network.test.name}-feipint"
+  http_setting_name                       = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                           = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name               = "${azurerm_virtual_network.test.name}-rqrt"
+  private_link_configuration_name         = "private_link"
+}
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-standard-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_application_gateway" "test" {
   name                = "acctestag-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  fips_enabled        = %t
 
   sku {
-    name     = "Standard_Small"
-    tier     = "Standard"
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
     capacity = 2
   }
 
@@ -7172,553 +7305,25 @@ resource "azurerm_application_gateway" "test" {
 
   frontend_ip_configuration {
     name                 = local.frontend_ip_configuration_name
-    public_ip_address_id = azurerm_public_ip.test.id
-  }
-
-  backend_address_pool {
-    name = local.backend_address_pool_name
-  }
-
-  backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
-  }
-
-  http_listener {
-    name                           = local.listener_name
-    frontend_ip_configuration_name = local.frontend_ip_configuration_name
-    frontend_port_name             = local.frontend_port_name
-    protocol                       = "Http"
-  }
-
-  request_routing_rule {
-    name                       = local.request_routing_rule_name
-    rule_type                  = "Basic"
-    http_listener_name         = local.listener_name
-    backend_address_pool_name  = local.backend_address_pool_name
-    backend_http_settings_name = local.http_setting_name
-  }
-}
-`, r.template(data), data.RandomInteger, enableFips)
-}
-
-func (r ApplicationGatewayResource) updateForceFirewallPolicyAssociation(data acceptance.TestData, forceFirewallPolicyAssociation bool) string {
-	return fmt.Sprintf(`
-%s
-
-# since these variables are re-used - a locals block makes this more maintainable
-locals {
-  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
-  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
-  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
-  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
-}
-
-resource "azurerm_application_gateway" "test" {
-  name                              = "acctestag-%d"
-  resource_group_name               = azurerm_resource_group.test.name
-  location                          = azurerm_resource_group.test.location
-  force_firewall_policy_association = %t
-
-  sku {
-    name     = "Standard_Small"
-    tier     = "Standard"
-    capacity = 2
-  }
-
-  gateway_ip_configuration {
-    name      = "my-gateway-ip-configuration"
-    subnet_id = azurerm_subnet.test.id
-  }
-
-  frontend_port {
-    name = local.frontend_port_name
-    port = 80
+    public_ip_address_id = azurerm_public_ip.test_standard.id
   }
 
   frontend_ip_configuration {
-    name                 = local.frontend_ip_configuration_name
-    public_ip_address_id = azurerm_public_ip.test.id
-  }
-
-  backend_address_pool {
-    name = local.backend_address_pool_name
-  }
-
-  backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
-  }
-
-  http_listener {
-    name                           = local.listener_name
-    frontend_ip_configuration_name = local.frontend_ip_configuration_name
-    frontend_port_name             = local.frontend_port_name
-    protocol                       = "Http"
-  }
-
-  request_routing_rule {
-    name                       = local.request_routing_rule_name
-    rule_type                  = "Basic"
-    http_listener_name         = local.listener_name
-    backend_address_pool_name  = local.backend_address_pool_name
-    backend_http_settings_name = local.http_setting_name
-  }
-}
-`, r.template(data), data.RandomInteger, forceFirewallPolicyAssociation)
-}
-
-func (r ApplicationGatewayResource) privateLinkConfiguration(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appgw-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  enforce_private_link_service_network_policies = true
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctest-pubip-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-  allocation_method   = "Static"
-}
-
-# since these variables are re-used - a locals block makes this more maintainable
-locals {
-  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
-  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
-  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
-  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
-}
-
-resource "azurerm_application_gateway" "test" {
-  name                = "acctest-ag-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  sku {
-    name     = "Standard_v2"
-    tier     = "Standard_v2"
-    capacity = 124
-  }
-
-  gateway_ip_configuration {
-    name      = "my-gateway-ip-configuration"
-    subnet_id = azurerm_subnet.test.id
-  }
-
-  frontend_port {
-    name = local.frontend_port_name
-    port = 80
-  }
-
-  backend_address_pool {
-    name = local.backend_address_pool_name
-  }
-
-  backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
-  }
-
-  http_listener {
-    name                           = local.listener_name
-    frontend_ip_configuration_name = local.frontend_ip_configuration_name
-    frontend_port_name             = local.frontend_port_name
-    protocol                       = "Http"
-  }
-
-  request_routing_rule {
-    name                       = local.request_routing_rule_name
-    rule_type                  = "Basic"
-    http_listener_name         = local.listener_name
-    backend_address_pool_name  = local.backend_address_pool_name
-    backend_http_settings_name = local.http_setting_name
-  }
-
-  ssl_policy {
-    policy_name = "AppGwSslPolicy20150501"
-    policy_type = "Predefined"
-  }
-
-  frontend_ip_configuration {
-    name                          = local.frontend_ip_configuration_name
-    public_ip_address_id          = azurerm_public_ip.test.id
-    private_ip_address_allocation = "Dynamic"
-  }
-
-  private_link_configuration {
-    name = "plc"
-
-    ip_configuration {
-      name       = "testIPConfig"
-      is_primary = true
-      subnet_id  = azurerm_subnet.test.id
-    }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (r ApplicationGatewayResource) updatePrivateLinkConfiguration(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appgw-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  enforce_private_link_service_network_policies = true
-}
-
-resource "azurerm_subnet" "test2" {
-  name                 = "internal2"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.3.0/24"]
-
-  enforce_private_link_service_network_policies = true
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctest-pubip-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-  allocation_method   = "Static"
-}
-
-# since these variables are re-used - a locals block makes this more maintainable
-locals {
-  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
-  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
-  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
-  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
-}
-
-resource "azurerm_application_gateway" "test" {
-  name                = "acctest-ag-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  sku {
-    name     = "Standard_v2"
-    tier     = "Standard_v2"
-    capacity = 124
-  }
-
-  gateway_ip_configuration {
-    name      = "my-gateway-ip-configuration"
-    subnet_id = azurerm_subnet.test.id
-  }
-
-  frontend_port {
-    name = local.frontend_port_name
-    port = 80
-  }
-
-  backend_address_pool {
-    name = local.backend_address_pool_name
-  }
-
-  backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
-  }
-
-  http_listener {
-    name                           = local.listener_name
-    frontend_ip_configuration_name = local.frontend_ip_configuration_name
-    frontend_port_name             = local.frontend_port_name
-    protocol                       = "Http"
-  }
-
-  request_routing_rule {
-    name                       = local.request_routing_rule_name
-    rule_type                  = "Basic"
-    http_listener_name         = local.listener_name
-    backend_address_pool_name  = local.backend_address_pool_name
-    backend_http_settings_name = local.http_setting_name
-  }
-
-  ssl_policy {
-    policy_name = "AppGwSslPolicy20150501"
-    policy_type = "Predefined"
-  }
-
-  frontend_ip_configuration {
-    name                          = local.frontend_ip_configuration_name
-    public_ip_address_id          = azurerm_public_ip.test.id
-    private_ip_address_allocation = "Dynamic"
-  }
-
-  private_link_configuration {
-    name = "updateplc"
-
-    ip_configuration {
-      name       = "testIPConfig2"
-      is_primary = true
-      subnet_id  = azurerm_subnet.test2.id
-    }
-
-    ip_configuration {
-      name       = "testIPConfig3"
-      is_primary = false
-      subnet_id  = azurerm_subnet.test2.id
-    }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (r ApplicationGatewayResource) frontendIPConfigurationWithPrivateLinkConfiguration(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appgw-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  enforce_private_link_service_network_policies = true
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctest-pubip-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-  allocation_method   = "Static"
-}
-
-# since these variables are re-used - a locals block makes this more maintainable
-locals {
-  backend_address_pool_name       = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name              = "${azurerm_virtual_network.test.name}-feport"
-  frontend_ip_configuration_name  = "${azurerm_virtual_network.test.name}-feip"
-  http_setting_name               = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name                   = "${azurerm_virtual_network.test.name}-httplstn"
-  request_routing_rule_name       = "${azurerm_virtual_network.test.name}-rqrt"
-  private_link_configuration_name = "plc"
-}
-
-resource "azurerm_application_gateway" "test" {
-  name                = "acctest-ag-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  sku {
-    name     = "Standard_v2"
-    tier     = "Standard_v2"
-    capacity = 124
-  }
-
-  gateway_ip_configuration {
-    name      = "my-gateway-ip-configuration"
-    subnet_id = azurerm_subnet.test.id
-  }
-
-  frontend_port {
-    name = local.frontend_port_name
-    port = 80
-  }
-
-  backend_address_pool {
-    name = local.backend_address_pool_name
-  }
-
-  backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
-  }
-
-  http_listener {
-    name                           = local.listener_name
-    frontend_ip_configuration_name = local.frontend_ip_configuration_name
-    frontend_port_name             = local.frontend_port_name
-    protocol                       = "Http"
-  }
-
-  request_routing_rule {
-    name                       = local.request_routing_rule_name
-    rule_type                  = "Basic"
-    http_listener_name         = local.listener_name
-    backend_address_pool_name  = local.backend_address_pool_name
-    backend_http_settings_name = local.http_setting_name
-  }
-
-  ssl_policy {
-    policy_name = "AppGwSslPolicy20150501"
-    policy_type = "Predefined"
-  }
-
-  frontend_ip_configuration {
-    name                            = local.frontend_ip_configuration_name
-    public_ip_address_id            = azurerm_public_ip.test.id
-    private_ip_address_allocation   = "Dynamic"
+    name                            = local.frontend_ip_configuration_internal_name
+    subnet_id                       = azurerm_subnet.test.id
+    private_ip_address_allocation   = "Static"
+    private_ip_address              = "10.0.0.10"
     private_link_configuration_name = local.private_link_configuration_name
   }
 
   private_link_configuration {
     name = local.private_link_configuration_name
-
     ip_configuration {
-      name       = "testIPConfig"
-      is_primary = true
-      subnet_id  = azurerm_subnet.test.id
+      name                          = "primary"
+      subnet_id                     = azurerm_subnet.test.id
+      private_ip_address_allocation = "Dynamic"
+      primary                       = true
     }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (r ApplicationGatewayResource) updateFrontendIPConfigurationWithPrivateLinkConfiguration(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appgw-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  enforce_private_link_service_network_policies = true
-}
-
-resource "azurerm_subnet" "test2" {
-  name                 = "internal2"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.3.0/24"]
-
-  enforce_private_link_service_network_policies = true
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctest-pubip-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-  allocation_method   = "Static"
-}
-
-# since these variables are re-used - a locals block makes this more maintainable
-locals {
-  backend_address_pool_name        = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name               = "${azurerm_virtual_network.test.name}-feport"
-  frontend_ip_configuration_name   = "${azurerm_virtual_network.test.name}-feip"
-  http_setting_name                = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name                    = "${azurerm_virtual_network.test.name}-httplstn"
-  request_routing_rule_name        = "${azurerm_virtual_network.test.name}-rqrt"
-  private_link_configuration_name  = "plc"
-  private_link_configuration_name2 = "updateplc"
-}
-
-resource "azurerm_application_gateway" "test" {
-  name                = "acctest-ag-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  sku {
-    name     = "Standard_v2"
-    tier     = "Standard_v2"
-    capacity = 124
-  }
-
-  gateway_ip_configuration {
-    name      = "my-gateway-ip-configuration"
-    subnet_id = azurerm_subnet.test.id
-  }
-
-  frontend_port {
-    name = local.frontend_port_name
-    port = 80
   }
 
   backend_address_pool {
@@ -7747,38 +7352,6 @@ resource "azurerm_application_gateway" "test" {
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
   }
-
-  ssl_policy {
-    policy_name = "AppGwSslPolicy20150501"
-    policy_type = "Predefined"
-  }
-
-  frontend_ip_configuration {
-    name                            = local.frontend_ip_configuration_name
-    public_ip_address_id            = azurerm_public_ip.test.id
-    private_ip_address_allocation   = "Dynamic"
-    private_link_configuration_name = local.private_link_configuration_name2
-  }
-
-  private_link_configuration {
-    name = local.private_link_configuration_name
-
-    ip_configuration {
-      name       = "testIPConfig"
-      is_primary = true
-      subnet_id  = azurerm_subnet.test.id
-    }
-  }
-
-  private_link_configuration {
-    name = local.private_link_configuration_name2
-
-    ip_configuration {
-      name       = "testIPConfig2"
-      is_primary = false
-      subnet_id  = azurerm_subnet.test2.id
-    }
-  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }

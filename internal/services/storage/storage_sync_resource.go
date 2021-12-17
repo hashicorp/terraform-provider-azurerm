@@ -67,20 +67,19 @@ func resourceStorageSync() *pluginsdk.Resource {
 
 func resourceStorageSyncCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroupName := d.Get("resource_group_name").(string)
-
-	existing, err := client.Get(ctx, resourceGroupName, name)
+	id := parse.NewStorageSyncServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_storage_sync", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_storage_sync", id.ID())
 	}
 
 	parameters := storagesync.ServiceCreateParameters{
@@ -91,24 +90,16 @@ func resourceStorageSyncCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Create(ctx, resourceGroupName, name, parameters)
+	future, err := client.Create(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("creating Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroupName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("storage Sync(Storage Sync Name %q / Resource Group %q) ID is empty or nil", name, resourceGroupName)
-	}
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceStorageSyncRead(d, meta)
 }
 
@@ -125,11 +116,11 @@ func resourceStorageSyncRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Storage Sync %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
@@ -164,11 +155,11 @@ func resourceStorageSyncUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, &update)
 	if err != nil {
-		return fmt.Errorf("updating Storage Sync %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
 	return resourceStorageSyncRead(d, meta)
@@ -186,11 +177,11 @@ func resourceStorageSyncDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

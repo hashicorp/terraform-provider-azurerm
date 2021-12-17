@@ -10,7 +10,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -21,7 +20,7 @@ type SiteConfigWindows struct {
 	ApiManagementConfigId    string                    `tfschema:"api_management_api_id"`
 	ApiDefinition            string                    `tfschema:"api_definition_url"`
 	AppCommandLine           string                    `tfschema:"app_command_line"`
-	AutoHeal                 bool                      `tfschema:"auto_heal"`
+	AutoHeal                 bool                      `tfschema:"auto_heal_enabled"`
 	AutoHealSettings         []AutoHealSettingWindows  `tfschema:"auto_heal_setting"`
 	UseManagedIdentityACR    bool                      `tfschema:"container_registry_use_managed_identity"`
 	ContainerRegistryUserMSI string                    `tfschema:"container_registry_managed_identity_client_id"`
@@ -31,9 +30,9 @@ type SiteConfigWindows struct {
 	ScmUseMainIpRestriction  bool                      `tfschema:"scm_use_main_ip_restriction"`
 	ScmIpRestriction         []IpRestriction           `tfschema:"scm_ip_restriction"`
 	LoadBalancing            string                    `tfschema:"load_balancing_mode"`
-	LocalMysql               bool                      `tfschema:"local_mysql"`
+	LocalMysql               bool                      `tfschema:"local_mysql_enabled"`
 	ManagedPipelineMode      string                    `tfschema:"managed_pipeline_mode"`
-	RemoteDebugging          bool                      `tfschema:"remote_debugging"`
+	RemoteDebugging          bool                      `tfschema:"remote_debugging_enabled"`
 	RemoteDebuggingVersion   string                    `tfschema:"remote_debugging_version"`
 	ScmType                  string                    `tfschema:"scm_type"`
 	Use32BitWorker           bool                      `tfschema:"use_32_bit_worker"`
@@ -41,14 +40,14 @@ type SiteConfigWindows struct {
 	FtpsState                string                    `tfschema:"ftps_state"`
 	HealthCheckPath          string                    `tfschema:"health_check_path"`
 	HealthCheckEvictionTime  int                       `tfschema:"health_check_eviction_time_in_min"`
-	NumberOfWorkers          int                       `tfschema:"number_of_workers"`
+	WorkerCount              int                       `tfschema:"worker_count"`
 	ApplicationStack         []ApplicationStackWindows `tfschema:"application_stack"`
 	VirtualApplications      []VirtualApplication      `tfschema:"virtual_application"`
 	MinTlsVersion            string                    `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion         string                    `tfschema:"scm_minimum_tls_version"`
 	AutoSwapSlotName         string                    `tfschema:"auto_swap_slot_name"`
 	Cors                     []CorsSetting             `tfschema:"cors"`
-	DetailedErrorLogging     bool                      `tfschema:"detailed_error_logging"`
+	DetailedErrorLogging     bool                      `tfschema:"detailed_error_logging_enabled"`
 	WindowsFxVersion         string                    `tfschema:"windows_fx_version"`
 	VnetRouteAllEnabled      bool                      `tfschema:"vnet_route_all_enabled"`
 	// TODO new properties / blocks
@@ -61,7 +60,7 @@ type SiteConfigLinux struct {
 	ApiManagementConfigId   string                  `tfschema:"api_management_api_id"`
 	ApiDefinition           string                  `tfschema:"api_definition_url"`
 	AppCommandLine          string                  `tfschema:"app_command_line"`
-	AutoHeal                bool                    `tfschema:"auto_heal"`
+	AutoHeal                bool                    `tfschema:"auto_heal_enabled"`
 	AutoHealSettings        []AutoHealSettingLinux  `tfschema:"auto_heal_setting"`
 	UseManagedIdentityACR   bool                    `tfschema:"container_registry_use_managed_identity"`
 	ContainerRegistryMSI    string                  `tfschema:"container_registry_managed_identity_client_id"`
@@ -71,9 +70,9 @@ type SiteConfigLinux struct {
 	ScmUseMainIpRestriction bool                    `tfschema:"scm_use_main_ip_restriction"`
 	ScmIpRestriction        []IpRestriction         `tfschema:"scm_ip_restriction"`
 	LoadBalancing           string                  `tfschema:"load_balancing_mode"`
-	LocalMysql              bool                    `tfschema:"local_mysql"`
+	LocalMysql              bool                    `tfschema:"local_mysql_enabled"`
 	ManagedPipelineMode     string                  `tfschema:"managed_pipeline_mode"`
-	RemoteDebugging         bool                    `tfschema:"remote_debugging"`
+	RemoteDebugging         bool                    `tfschema:"remote_debugging_enabled"`
 	RemoteDebuggingVersion  string                  `tfschema:"remote_debugging_version"`
 	ScmType                 string                  `tfschema:"scm_type"`
 	Use32BitWorker          bool                    `tfschema:"use_32_bit_worker"`
@@ -81,13 +80,12 @@ type SiteConfigLinux struct {
 	FtpsState               string                  `tfschema:"ftps_state"`
 	HealthCheckPath         string                  `tfschema:"health_check_path"`
 	HealthCheckEvictionTime int                     `tfschema:"health_check_eviction_time_in_min"`
-	NumberOfWorkers         int                     `tfschema:"number_of_workers"`
+	NumberOfWorkers         int                     `tfschema:"worker_count"`
 	ApplicationStack        []ApplicationStackLinux `tfschema:"application_stack"`
 	MinTlsVersion           string                  `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion        string                  `tfschema:"scm_minimum_tls_version"`
-	AutoSwapSlotName        string                  `tfschema:"auto_swap_slot_name"`
 	Cors                    []CorsSetting           `tfschema:"cors"`
-	DetailedErrorLogging    bool                    `tfschema:"detailed_error_logging"`
+	DetailedErrorLogging    bool                    `tfschema:"detailed_error_logging_enabled"`
 	LinuxFxVersion          string                  `tfschema:"linux_fx_version"`
 	VnetRouteAllEnabled     bool                    `tfschema:"vnet_route_all_enabled"`
 	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - New block to (possibly) support? No way to configure this in the portal?
@@ -125,7 +123,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 					Optional: true,
 				},
 
-				"auto_heal": {
+				"auto_heal_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -145,7 +143,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"container_registry_managed_identity_client_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: msiValidate.UserAssignedIdentityID,
+					ValidateFunc: validation.IsUUID,
 				},
 
 				"default_documents": {
@@ -173,7 +171,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 
 				"scm_ip_restriction": IpRestrictionSchema(),
 
-				"local_mysql": {
+				"local_mysql_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -203,7 +201,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 					}, false),
 				},
 
-				"remote_debugging": {
+				"remote_debugging_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -259,7 +257,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
 				},
 
-				"number_of_workers": {
+				"worker_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true,
@@ -305,7 +303,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 					// TODO - Add slot name validation here?
 				},
 
-				"detailed_error_logging": {
+				"detailed_error_logging_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -352,7 +350,7 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"auto_heal": {
+				"auto_heal_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -391,7 +389,7 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 
 				"scm_ip_restriction": IpRestrictionSchemaComputed(),
 
-				"local_mysql": {
+				"local_mysql_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -406,7 +404,7 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"remote_debugging": {
+				"remote_debugging_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -446,7 +444,7 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"number_of_workers": {
+				"worker_count": {
 					Type:     pluginsdk.TypeInt,
 					Computed: true,
 				},
@@ -470,7 +468,7 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"detailed_error_logging": {
+				"detailed_error_logging_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -521,7 +519,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 
 				"application_stack": linuxApplicationStackSchema(),
 
-				"auto_heal": {
+				"auto_heal_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					RequiredWith: []string{
@@ -540,7 +538,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"container_registry_managed_identity_client_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: msiValidate.UserAssignedIdentityID,
+					ValidateFunc: validation.IsUUID,
 				},
 
 				"default_documents": {
@@ -568,7 +566,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 
 				"scm_ip_restriction": IpRestrictionSchema(),
 
-				"local_mysql": {
+				"local_mysql_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -598,7 +596,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					}, false),
 				},
 
-				"remote_debugging": {
+				"remote_debugging_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -655,7 +653,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
 				},
 
-				"number_of_workers": {
+				"worker_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true,
@@ -699,7 +697,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
 				},
 
-				"detailed_error_logging": {
+				"detailed_error_logging_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -741,7 +739,7 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 
 				"application_stack": linuxApplicationStackSchemaComputed(),
 
-				"auto_heal": {
+				"auto_heal_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -780,7 +778,7 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 
 				"scm_ip_restriction": IpRestrictionSchemaComputed(),
 
-				"local_mysql": {
+				"local_mysql_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -795,7 +793,7 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"remote_debugging": {
+				"remote_debugging_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -835,7 +833,7 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"number_of_workers": {
+				"worker_count": {
 					Type:     pluginsdk.TypeInt,
 					Computed: true,
 				},
@@ -857,7 +855,7 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"detailed_error_logging": {
+				"detailed_error_logging_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -1384,7 +1382,7 @@ func autoHealSettingSchemaWindows() *pluginsdk.Schema {
 			},
 		},
 		RequiredWith: []string{
-			"site_config.0.auto_heal",
+			"site_config.0.auto_heal_enabled",
 		},
 	}
 }
@@ -1416,7 +1414,7 @@ func autoHealSettingSchemaLinux() *pluginsdk.Schema {
 			},
 		},
 		RequiredWith: []string{
-			"site_config.0.auto_heal",
+			"site_config.0.auto_heal_enabled",
 		},
 	}
 }
@@ -2854,7 +2852,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.local_mysql") {
+	if metadata.ResourceData.HasChange("site_config.0.local_mysql_enabled") {
 		expanded.LocalMySQLEnabled = utils.Bool(winSiteConfig.LocalMysql)
 	}
 
@@ -2866,7 +2864,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.ManagedPipelineMode = web.ManagedPipelineMode(winSiteConfig.ManagedPipelineMode)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.remote_debugging") {
+	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_enabled") {
 		expanded.RemoteDebuggingEnabled = utils.Bool(winSiteConfig.RemoteDebugging)
 	}
 
@@ -2890,8 +2888,8 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.HealthCheckPath = utils.String(winSiteConfig.HealthCheckPath)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.number_of_workers") {
-		expanded.NumberOfWorkers = utils.Int32(int32(winSiteConfig.NumberOfWorkers))
+	if metadata.ResourceData.HasChange("site_config.0.worker_count") {
+		expanded.NumberOfWorkers = utils.Int32(int32(winSiteConfig.WorkerCount))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
@@ -2917,7 +2915,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.auto_heal") {
+	if metadata.ResourceData.HasChange("site_config.0.auto_heal_enabled") {
 		expanded.AutoHealEnabled = utils.Bool(winSiteConfig.AutoHeal)
 	}
 
@@ -3028,7 +3026,7 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.local_mysql") {
+	if metadata.ResourceData.HasChange("site_config.0.local_mysql_enabled") {
 		expanded.LocalMySQLEnabled = utils.Bool(linuxSiteConfig.LocalMysql)
 	}
 
@@ -3040,7 +3038,7 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 		expanded.ManagedPipelineMode = web.ManagedPipelineMode(linuxSiteConfig.ManagedPipelineMode)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.remote_debugging") {
+	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_enabled") {
 		expanded.RemoteDebuggingEnabled = utils.Bool(linuxSiteConfig.RemoteDebugging)
 	}
 
@@ -3064,7 +3062,7 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 		expanded.HealthCheckPath = utils.String(linuxSiteConfig.HealthCheckPath)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.number_of_workers") {
+	if metadata.ResourceData.HasChange("site_config.0.worker_count") {
 		expanded.NumberOfWorkers = utils.Int32(int32(linuxSiteConfig.NumberOfWorkers))
 	}
 
@@ -3074,10 +3072,6 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
 		expanded.ScmMinTLSVersion = web.SupportedTLSVersions(linuxSiteConfig.ScmMinTlsVersion)
-	}
-
-	if metadata.ResourceData.HasChange("site_config.0.auto_swap_slot_name") {
-		expanded.AutoSwapSlotName = utils.String(linuxSiteConfig.AutoSwapSlotName)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
@@ -3090,7 +3084,7 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 		expanded.Cors = cors
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.auto_heal") {
+	if metadata.ResourceData.HasChange("site_config.0.auto_heal_enabled") {
 		expanded.AutoHealEnabled = utils.Bool(linuxSiteConfig.AutoHeal)
 	}
 
@@ -3476,7 +3470,7 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		LocalMysql:               utils.NormaliseNilableBool(appSiteConfig.LocalMySQLEnabled),
 		ManagedPipelineMode:      string(appSiteConfig.ManagedPipelineMode),
 		MinTlsVersion:            string(appSiteConfig.MinTLSVersion),
-		NumberOfWorkers:          int(utils.NormaliseNilableInt32(appSiteConfig.NumberOfWorkers)),
+		WorkerCount:              int(utils.NormaliseNilableInt32(appSiteConfig.NumberOfWorkers)),
 		RemoteDebugging:          utils.NormaliseNilableBool(appSiteConfig.RemoteDebuggingEnabled),
 		RemoteDebuggingVersion:   strings.ToUpper(utils.NormalizeNilableString(appSiteConfig.RemoteDebuggingVersion)),
 		ScmIpRestriction:         FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions),
@@ -3487,6 +3481,7 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		UseManagedIdentityACR:    utils.NormaliseNilableBool(appSiteConfig.AcrUseManagedIdentityCreds),
 		VirtualApplications:      flattenVirtualApplications(appSiteConfig.VirtualApplications),
 		WebSockets:               utils.NormaliseNilableBool(appSiteConfig.WebSocketsEnabled),
+		VnetRouteAllEnabled:      utils.NormaliseNilableBool(appSiteConfig.VnetRouteAllEnabled),
 	}
 
 	if appSiteConfig.APIManagementConfig != nil && appSiteConfig.APIManagementConfig.ID != nil {
@@ -3502,7 +3497,7 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 	}
 
 	if appSiteConfig.NumberOfWorkers != nil {
-		siteConfig.NumberOfWorkers = int(*appSiteConfig.NumberOfWorkers)
+		siteConfig.WorkerCount = int(*appSiteConfig.NumberOfWorkers)
 	}
 
 	var winAppStack ApplicationStackWindows
@@ -3682,6 +3677,7 @@ func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {
 		"DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS",
 		"WEBSITE_HTTPLOGGING_CONTAINER_URL",
 		"WEBSITE_HTTPLOGGING_RETENTION_DAYS",
+		"WEBSITE_VNET_ROUTE_ALL",
 		maxPingFailures,
 	}
 
@@ -3692,7 +3688,7 @@ func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {
 		healthCheckCount = &h
 	}
 
-	// Remove the settings the service adds for legacy reasons when logging settings are specified.
+	// Remove the settings the service adds for legacy reasons.
 	for _, v := range unmanagedSettings { //nolint:typecheck
 		delete(appSettings, v)
 	}

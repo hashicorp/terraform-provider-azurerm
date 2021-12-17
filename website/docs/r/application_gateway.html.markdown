@@ -137,6 +137,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `private_link_configuration` - (Optional) One or more `private_link_configuration` blocks as defined below.
+
 * `request_routing_rule` - (Required) One or more `request_routing_rule` blocks as defined below.
 
 * `sku` - (Required) A `sku` block as defined below.
@@ -149,8 +151,6 @@ The following arguments are supported:
 
 -> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).  They are also only supported for [v2 SKUs](https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
 
-* `private_link_configuration` - (Optional) One or more `private_link_configuration` blocks as defined below.
-
 ---
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
@@ -158,8 +158,6 @@ The following arguments are supported:
 * `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
 
 * `ssl_policy` - (Optional) a `ssl policy` block as defined below.
-
-* `fips_enabled` - (Optional) Is FIPS enabled on the Application Gateway?
 
 * `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
 
@@ -276,7 +274,7 @@ A `frontend_ip_configuration` block supports the following:
 
 * `private_ip_address_allocation` - (Optional) The Allocation Method for the Private IP Address. Possible values are `Dynamic` and `Static`.
 
-* `private_link_configuration_name` - (Optional) The name of the Private Link Configuration on the Application Gateway.
+* `private_link_configuration_name` - (Optional) The name of the private link configuration to use for this frontend IP configuration.
 
 ---
 
@@ -332,6 +330,33 @@ A `identity` block supports the following:
 
 ---
 
+A `private_link_configuration` block supports the following:
+
+* `name` - (Required) The name of the private link configuration.
+
+* `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined below.
+
+-> **Please Note**: The `AllowApplicationGatewayPrivateLink` feature must be registered on the subscription before enabling private link
+```bash
+az feature register --name AllowApplicationGatewayPrivateLink --namespace Microsoft.Network
+```
+
+---
+
+An `ip_configuration` block supports the following:
+
+* `name` - (Required) The name of the IP configuration.
+
+* `subnet_id` - (Required) The ID of the subnet the private link configuration should connect to.
+
+* `private_ip_address_allocation` - (Required) The allocation method used for the Private IP Address. Possible values are `Dynamic` and `Static`.
+
+* `primary` - (Required) Is this the Primary IP Configuration?
+
+* `private_ip_address` - (Optional) The Static IP Address which should be used.
+
+---
+
 A `match` block supports the following:
 
 * `body` - (Optional) A snippet from the Response Body which must be present in the Response..
@@ -355,14 +380,6 @@ A `path_rule` block supports the following:
 * `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
 
 * `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used as a HTTP Listener.
-
----
-
-A `private_link_configuration` block supports the following:
-
-* `name` - (Required) The Name of the Private Link Configuration on the Application Gateway.
-
-* `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined below.
 
 ---
 
@@ -660,6 +677,10 @@ The following attributes are exported:
 
 * `http_listener` - A list of `http_listener` blocks as defined below.
 
+* `private_endpoint_connection` - A list of `private_endpoint_connection` blocks as defined below.
+
+* `private_link_configuration` - A list of `private_link_configuration` blocks as defined below.
+
 * `probe` - A `probe` block as defined below.
 
 * `request_routing_rule` - A list of `request_routing_rule` blocks as defined below.
@@ -704,6 +725,8 @@ A `frontend_ip_configuration` block exports the following:
 
 * `id` - The ID of the Frontend IP Configuration.
 
+* `private_link_configuration_id` - The ID of the associated private link configuration.
+
 ---
 
 A `frontend_port` block exports the following:
@@ -743,6 +766,20 @@ A `path_rule` block exports the following:
 * `redirect_configuration_id` - The ID of the Redirect Configuration used in this Path Rule.
 
 * `rewrite_rule_set_id` - The ID of the Rewrite Rule Set used in this Path Rule.
+
+---
+
+A `private_endpoint_connection` block exports the following:
+
+* `name` - The name of the private endpoint connection.
+
+* `id` - The ID of the private endpoint connection.
+
+---
+
+A `private_link_configuration` block exports the following:
+
+* `id` - The ID of the private link configuration.
 
 ---
 
@@ -807,18 +844,6 @@ A `redirect_configuration` block exports the following:
 A `rewrite_rule_set` block exports the following:
 
 * `id` - The ID of the Rewrite Rule Set
-
----
-
-A `ip_configuration` block supports the following:
-
-* `name` - (Required) The name of the Private Link IP Configuration on the Application Gateway.
-
-* `subnet_id` - (Required) The resource ID of the Subnet for the Private Link IP Configuration.
-
-* `is_primary` - (Optional) Is the Private Link IP Configuration primary?
-
--> **NOTE:** It doesn't support to directly update `is_primary`. It can be updated by removing and re-adding `ip_configuration` or `private_link_configuration`.
 
 ## Timeouts
 

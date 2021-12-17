@@ -74,6 +74,16 @@ func resourceNetAppPool() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(4, 500),
 			},
 
+			"qos_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(netapp.QosTypeAuto),
+					string(netapp.QosTypeManual),
+				}, false),
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -113,7 +123,12 @@ func resourceNetAppPoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if qosType, ok := d.GetOk("qos_type"); ok {
+		capacityPoolParameters.PoolProperties.QosType = netapp.QosType(qosType.(string))
+	}
+
 	future, err := client.CreateOrUpdate(ctx, capacityPoolParameters, id.ResourceGroup, id.NetAppAccountName, id.Name)
+
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -161,6 +176,7 @@ func resourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			sizeInTB = sizeInMB / 1024 / 1024
 		}
 		d.Set("size_in_tb", int(sizeInTB))
+		d.Set("qos_type", string(poolProperties.QosType))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

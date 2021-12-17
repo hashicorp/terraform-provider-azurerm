@@ -100,7 +100,7 @@ func resourceArmUserAssignedIdentityCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	identity := managedidentity.Identity{
-		Name:     utils.String(resourceId.UserAssignedIdentityName),
+		Name:     utils.String(resourceId.ResourceName),
 		Location: location,
 		Tags:     expandTags(t),
 	}
@@ -132,8 +132,8 @@ func resourceArmUserAssignedIdentityRead(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.UserAssignedIdentityName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ResourceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))

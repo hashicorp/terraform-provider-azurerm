@@ -45,7 +45,7 @@ resource "azurerm_eventgrid_system_topic" "example" {
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "example" {
   name                = "example-event-subscription"
-  system_topic        = azurerm_system_topic.example.name
+  system_topic        = azurerm_eventgrid_system_topic.example.name
   resource_group_name = azurerm_resource_group.example.name
 
   storage_queue_endpoint {

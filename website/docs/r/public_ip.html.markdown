@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `ip_version` - (Optional) The IP Version to use, IPv6 or IPv4.
 
--> **Note** Only `dynamic` IP address allocation is supported for IPv6.
+-> **Note** Only `static` IP address allocation is supported for IPv6.
 
 * `idle_timeout_in_minutes` - (Optional) Specifies the timeout for the TCP idle connection. The value can be set between 4 and 30 minutes.
 

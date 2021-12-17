@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type StorageSyncCloudEndpointId struct {
@@ -45,7 +45,7 @@ func (id StorageSyncCloudEndpointId) ID() string {
 
 // StorageSyncCloudEndpointID parses a StorageSyncCloudEndpoint ID into an StorageSyncCloudEndpointId struct
 func StorageSyncCloudEndpointID(input string) (*StorageSyncCloudEndpointId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

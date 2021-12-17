@@ -11,6 +11,7 @@ const (
 	// used when the generic Consumption Budget functions require a resource name.
 	consumptionBudgetResourceGroupName           = "azurerm_consumption_budget_resource_group"
 	consumptionBudgetSubscriptionName            = "azurerm_consumption_budget_subscription"
+	consumptionBudgetManagementGroupName         = "azurerm_consumption_budget_management_group"
 	consumptionBudgetResourceGroupDataSourceName = "azurerm_consumption_budget_resource_group"
 	consumptionBudgetSubscriptionDataSourceName  = "azurerm_consumption_budget_subscription"
 )
@@ -40,7 +41,8 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		consumptionBudgetResourceGroupName: resourceArmConsumptionBudgetResourceGroup(),
-		consumptionBudgetSubscriptionName:  resourceArmConsumptionBudgetSubscription(),
+		consumptionBudgetResourceGroupName:   resourceArmConsumptionBudgetResourceGroup(),
+		consumptionBudgetSubscriptionName:    resourceArmConsumptionBudgetSubscription(),
+		consumptionBudgetManagementGroupName: resourceArmConsumptionBudgetManagementGroup(),
 	}
 }

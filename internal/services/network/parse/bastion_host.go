@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type BastionHostId struct {
@@ -39,7 +39,7 @@ func (id BastionHostId) ID() string {
 
 // BastionHostID parses a BastionHost ID into an BastionHostId struct
 func BastionHostID(input string) (*BastionHostId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type BgpConnectionId struct {
@@ -42,7 +42,7 @@ func (id BgpConnectionId) ID() string {
 
 // BgpConnectionID parses a BgpConnection ID into an BgpConnectionId struct
 func BgpConnectionID(input string) (*BgpConnectionId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
