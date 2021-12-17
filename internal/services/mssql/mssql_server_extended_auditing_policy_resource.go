@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/gofrs/uuid"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -48,7 +50,6 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: validation.IsURLWithHTTPS,
 			},
-
 			"storage_account_access_key": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -73,6 +74,17 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+			"state": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+			"storage_account_subscription_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.IsUUID,
 			},
 		},
 	}
@@ -106,12 +118,25 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 
 	params := sql.ExtendedServerBlobAuditingPolicy{
 		ExtendedServerBlobAuditingPolicyProperties: &sql.ExtendedServerBlobAuditingPolicyProperties{
-			State:                       sql.BlobAuditingPolicyStateEnabled,
 			StorageEndpoint:             utils.String(d.Get("storage_endpoint").(string)),
 			IsStorageSecondaryKeyInUse:  utils.Bool(d.Get("storage_account_access_key_is_secondary").(bool)),
 			RetentionDays:               utils.Int32(int32(d.Get("retention_in_days").(int))),
 			IsAzureMonitorTargetEnabled: utils.Bool(d.Get("log_monitoring_enabled").(bool)),
 		},
+	}
+
+	state := sql.BlobAuditingPolicyStateEnabled
+	if v, ok := d.GetOk("state"); ok && !v.(bool) {
+		state = sql.BlobAuditingPolicyStateDisabled
+	}
+	params.ExtendedServerBlobAuditingPolicyProperties.State = state
+
+	if v, ok := d.GetOk("storage_account_subscription_id"); ok {
+		u, err := uuid.FromString(v.(string))
+		if err != nil {
+			return fmt.Errorf("while parsing storage_account_subscrption_id value %q as UUID: %+v", v.(string), err)
+		}
+		params.ExtendedServerBlobAuditingPolicyProperties.StorageAccountSubscriptionID = &u
 	}
 
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
@@ -173,6 +198,13 @@ func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, me
 		d.Set("storage_account_access_key_is_secondary", props.IsStorageSecondaryKeyInUse)
 		d.Set("retention_in_days", props.RetentionDays)
 		d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
+		d.Set("storage_account_subscription_id", props.StorageAccountSubscriptionID.String())
+
+		state := true
+		if props.State != sql.BlobAuditingPolicyStateEnabled {
+			state = false
+		}
+		d.Set("state", state)
 	}
 
 	return nil

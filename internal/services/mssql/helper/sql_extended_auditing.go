@@ -1,7 +1,10 @@
 package helper
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -46,21 +49,31 @@ func ExtendedAuditingSchema() *pluginsdk.Schema {
 					Optional: true,
 					Default:  true,
 				},
+				"state": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
+				"storage_account_subscription_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.IsUUID,
+				},
 			},
 		},
 	}
 }
 
-func ExpandSqlServerBlobAuditingPolicies(input []interface{}) *sql.ExtendedServerBlobAuditingPolicyProperties {
+func ExpandSqlServerBlobAuditingPolicies(input []interface{}) (*sql.ExtendedServerBlobAuditingPolicyProperties, error) {
 	if len(input) == 0 || input[0] == nil {
 		return &sql.ExtendedServerBlobAuditingPolicyProperties{
 			State: sql.BlobAuditingPolicyStateDisabled,
-		}
+		}, nil
 	}
 	serverBlobAuditingPolicies := input[0].(map[string]interface{})
 
 	ExtendedServerBlobAuditingPolicyProperties := sql.ExtendedServerBlobAuditingPolicyProperties{
-		State:                       sql.BlobAuditingPolicyStateEnabled,
 		StorageAccountAccessKey:     utils.String(serverBlobAuditingPolicies["storage_account_access_key"].(string)),
 		StorageEndpoint:             utils.String(serverBlobAuditingPolicies["storage_endpoint"].(string)),
 		IsAzureMonitorTargetEnabled: utils.Bool(serverBlobAuditingPolicies["log_monitoring_enabled"].(bool)),
@@ -71,8 +84,21 @@ func ExpandSqlServerBlobAuditingPolicies(input []interface{}) *sql.ExtendedServe
 	if v, ok := serverBlobAuditingPolicies["retention_in_days"]; ok {
 		ExtendedServerBlobAuditingPolicyProperties.RetentionDays = utils.Int32(int32(v.(int)))
 	}
+	if v, ok := serverBlobAuditingPolicies["storage_account_subscription_id"]; ok {
+		u, err := uuid.FromString(v.(string))
+		if err != nil {
+			return nil, fmt.Errorf("while parsing storage_account_subscrption_id value %q as UUID: %+v", v.(string), err)
+		}
+		ExtendedServerBlobAuditingPolicyProperties.StorageAccountSubscriptionID = &u
+	}
 
-	return &ExtendedServerBlobAuditingPolicyProperties
+	state := sql.BlobAuditingPolicyStateEnabled
+	if v, ok := serverBlobAuditingPolicies["state"]; ok && !v.(bool) {
+		state = sql.BlobAuditingPolicyStateDisabled
+	}
+	ExtendedServerBlobAuditingPolicyProperties.State = state
+
+	return &ExtendedServerBlobAuditingPolicyProperties, nil
 }
 
 func FlattenSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolicy *sql.ExtendedServerBlobAuditingPolicy, d *pluginsdk.ResourceData) []interface{} {
@@ -100,7 +126,14 @@ func FlattenSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolicy *sql.
 	if extendedServerBlobAuditingPolicy.IsAzureMonitorTargetEnabled != nil {
 		monitor = *extendedServerBlobAuditingPolicy.IsAzureMonitorTargetEnabled
 	}
-
+	var state bool
+	if extendedServerBlobAuditingPolicy.State == sql.BlobAuditingPolicyStateEnabled {
+		state = true
+	}
+	var storageAccountSubscriptionId string
+	if extendedServerBlobAuditingPolicy.ExtendedServerBlobAuditingPolicyProperties.StorageAccountSubscriptionID != nil {
+		storageAccountSubscriptionId = extendedServerBlobAuditingPolicy.StorageAccountSubscriptionID.String()
+	}
 	return []interface{}{
 		map[string]interface{}{
 			"storage_account_access_key":              storageAccessKey,
@@ -108,6 +141,8 @@ func FlattenSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolicy *sql.
 			"storage_account_access_key_is_secondary": secondKeyInUse,
 			"retention_in_days":                       retentionDays,
 			"log_monitoring_enabled":                  monitor,
+			"state":                                   state,
+			"storage_account_subscription_id":         storageAccountSubscriptionId,
 		},
 	}
 }
