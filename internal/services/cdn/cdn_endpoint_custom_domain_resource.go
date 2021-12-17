@@ -221,57 +221,92 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
-	switch {
-	case d.HasChange("cdn_managed_https") && d.HasChange("user_managed_https"):
-		// One is turned on, and the other is turned off
-		return fmt.Errorf("in-place update on enabled HTTPS settings is not supported on %q", *id)
-	case d.HasChange("cdn_managed_https"):
+	const (
+		turnOn = iota
+		turnOff
+		update
+		noChange
+	)
+
+	var (
+		cdnManagedHTTPSStatus = noChange
+		cdnManagedHTTPSParams cdn.BasicCustomDomainHTTPSParameters
+
+		userManagedHTTPSStatus = noChange
+		userManagedHTTPSParams cdn.BasicCustomDomainHTTPSParameters
+	)
+
+	if d.HasChange("cdn_managed_https") {
 		props := resp.CustomDomainProperties
 		if props == nil {
 			return fmt.Errorf("unexpected nil of `CustomDomainProperties` in response")
 		}
 		if props.CustomHTTPSParameters == nil {
-			// disabled -> enabled
-			if err := enableArmCdnEndpointCustomDomainHttps(ctx, client, *id,
-				expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(d.Get("cdn_managed_https").([]interface{}))); err != nil {
-				return fmt.Errorf("enable HTTPS on %q: %+v", *id, err)
-			}
+			cdnManagedHTTPSStatus = turnOn
 		} else {
-			params := expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(d.Get("cdn_managed_https").([]interface{}))
-			if params == nil {
-				// enabled -> disabled
-				if err := disableArmCdnEndpointCustomDomainHttps(ctx, client, *id); err != nil {
-					return fmt.Errorf("disable HTTPS on %q: %+v", *id, err)
-				}
+			cdnManagedHTTPSParams = expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(d.Get("cdn_managed_https").([]interface{}))
+			if cdnManagedHTTPSParams == nil {
+				cdnManagedHTTPSStatus = turnOff
 			} else {
-				return fmt.Errorf("in-place update on enabled HTTPS settings is not supported on %q", *id)
-			}
-		}
-	case d.HasChange("user_managed_https"):
-		props := resp.CustomDomainProperties
-		if props == nil {
-			return fmt.Errorf("unexpected nil of `CustomDomainProperties` in response")
-		}
-		param, err := expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx, d.Get("user_managed_https").([]interface{}), keyVaultsClient, resourcesClient)
-		if err != nil {
-			return err
-		}
-		if props.CustomHTTPSParameters == nil {
-			// disabled -> enabled
-			if err := enableArmCdnEndpointCustomDomainHttps(ctx, client, *id, param); err != nil {
-				return fmt.Errorf("enable HTTPS on %q: %+v", *id, err)
-			}
-		} else {
-			if param == nil {
-				// enabled -> disabled
-				if err := disableArmCdnEndpointCustomDomainHttps(ctx, client, *id); err != nil {
-					return fmt.Errorf("disable HTTPS on %q: %+v", *id, err)
-				}
-			} else {
-				return fmt.Errorf("in-place update on enabled HTTPS settings is not supported on %q", *id)
+				cdnManagedHTTPSStatus = update
 			}
 		}
 	}
+
+	if d.HasChange("user_managed_https") {
+		props := resp.CustomDomainProperties
+		if props == nil {
+			return fmt.Errorf("unexpected nil of `CustomDomainProperties` in response")
+		}
+		if props.CustomHTTPSParameters == nil {
+			userManagedHTTPSStatus = turnOn
+		} else {
+			var err error
+			userManagedHTTPSParams, err = expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx, d.Get("user_managed_https").([]interface{}), keyVaultsClient, resourcesClient)
+			if err != nil {
+				return err
+			}
+			if userManagedHTTPSParams == nil {
+				userManagedHTTPSStatus = turnOff
+			} else {
+				userManagedHTTPSStatus = update
+			}
+		}
+	}
+
+	// There are theoretically 16 (4x4) combinations of the cdn/user managed https status combinations.
+	// While actually there are only following 8 combinations due to the exclusive nature of both settings.
+	// +-----------------------------------+
+	// |     	| n/a | on | off | update  |
+	// |--------|--------------------------|
+	// | n/a 	|     |  x |  x  |    x    |
+	// | on  	|  x  |    |  x  |         |
+	// | off    |  x  |  x |     |         |
+	// | update |  x  |    |     |         |
+	// +-----------------------------------+
+
+	switch {
+	case cdnManagedHTTPSStatus == turnOff || cdnManagedHTTPSStatus == update:
+		if err := disableArmCdnEndpointCustomDomainHttps(ctx, client, *id); err != nil {
+			return fmt.Errorf("disable CDN Managed HTTPS on %q: %+v", *id, err)
+		}
+	case userManagedHTTPSStatus == turnOff || userManagedHTTPSStatus == update:
+		if err := disableArmCdnEndpointCustomDomainHttps(ctx, client, *id); err != nil {
+			return fmt.Errorf("disable User Managed HTTPS on %q: %+v", *id, err)
+		}
+	}
+
+	switch {
+	case cdnManagedHTTPSStatus == turnOn || cdnManagedHTTPSStatus == update:
+		if err := enableArmCdnEndpointCustomDomainHttps(ctx, client, *id, cdnManagedHTTPSParams); err != nil {
+			return fmt.Errorf("enable CDN Managed HTTPS on %q: %+v", *id, err)
+		}
+	case userManagedHTTPSStatus == turnOn || userManagedHTTPSStatus == update:
+		if err := enableArmCdnEndpointCustomDomainHttps(ctx, client, *id, userManagedHTTPSParams); err != nil {
+			return fmt.Errorf("enable User Managed HTTPS on %q: %+v", *id, err)
+		}
+	}
+
 	return resourceArmCdnEndpointCustomDomainRead(d, meta)
 }
 

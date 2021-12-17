@@ -81,8 +81,6 @@ The following arguments are supported:
 
 ~> **NOTE** Only one of `cdn_managed_https` and `user_managed_https` can be specified.
 
-!> **Warning** Due to the way the Azure API handles in-place updates on HTTPS settings for the Custom Domain of a CDN Endpoint, it is only possible to toggle these settings between disabled and enabled individually.
-
 ---
 
 A `cdn_managed_https` block supports the following:
