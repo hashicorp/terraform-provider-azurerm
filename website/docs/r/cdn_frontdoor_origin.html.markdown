@@ -72,8 +72,6 @@ The following arguments are supported:
 
 The `private_link` block supports the following:
 
-* `alias` -  The Alias of the Private Link resource. Populating this optional field indicates that this origin is 'Private'
-
 * `approval_message` - A custom message to be included in the approval request to connect to the Private Link.
 
 * `location` - The location of the Private Link resource. Required only if `resource_id` is populated.

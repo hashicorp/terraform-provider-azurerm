@@ -108,32 +108,23 @@ func resourceAfdOrigin() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"alias": { //  The Alias of the Private Link resource. Populating this optional field indicates that this origin is 'Private'
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Default:      string(cdn.AfdCertificateTypeCustomerCertificate),
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
 
 						"approval_message": { //   A custom message to be included in the approval request to connect to the Private Link.
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Default:      string(cdn.AfdCertificateTypeCustomerCertificate),
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"location": { // The location of the Private Link resource. Required only if 'privateLinkResourceId' is populated
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Default:      string(cdn.AfdCertificateTypeCustomerCertificate),
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"resource_id": { // The Resource Id of the Private Link resource. Populating this optional field indicates that this backend is 'Private'
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Default:      string(cdn.AfdCertificateTypeCustomerCertificate),
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
 				},
@@ -217,21 +208,17 @@ func expandPrivateLinkSettings(input []interface{}) interface{} {
 
 	config := input[0].(map[string]interface{})
 
-	// privateLinkResource := make(map[string]interface{})
 	resourceId := config["resource_id"].(string)
 	location := config["location"].(string)
+	approvalMessage := config["approval_message"].(string)
 
 	privateLinkResource := cdn.SharedPrivateLinkResourceProperties{
 		PrivateLink: &cdn.ResourceReference{
 			ID: &resourceId,
 		},
 		PrivateLinkLocation: &location,
+		RequestMessage:      &approvalMessage,
 	}
-
-	// privateLinkResource["PrivateLinkAlias"] = config["alias"].(string)
-	// privateLinkResource["PrivateLinkResourceID"] = config["resource_id"].(string)
-	// privateLinkResource["PrivateLinkLocation"] = config["location"].(string)
-	// privateLinkResource["PrivateLinkApprovalMessage"] = config["approval_message"].(string)
 
 	return privateLinkResource
 }
@@ -315,10 +302,10 @@ func resourceAfdOriginsUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		originUpdateProperties.Priority = &priority
 	}
 
-	// if d.HasChange("private_link") {
-	// 	privateLink := d.Get("private_link").([]interface{})
-	// 	originUpdateProperties.SharedPrivateLinkResource = expandPrivateLinkSettings(privateLink)
-	// }
+	if d.HasChange("private_link") {
+		privateLink := d.Get("private_link").([]interface{})
+		originUpdateProperties.SharedPrivateLinkResource = expandPrivateLinkSettings(privateLink)
+	}
 
 	if d.HasChange("weight") {
 		weight := int32(d.Get("weight").(int))

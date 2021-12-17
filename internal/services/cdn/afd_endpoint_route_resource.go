@@ -243,17 +243,15 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	// parse custom_domains (TypeList)
 	customDomains := d.Get("custom_domains").([]interface{})
-	customDomainsArray := make([]cdn.ResourceReference, 0)
-	for _, v := range customDomains {
-		resourceId := v.(string)
-		resourceReference := cdn.ResourceReference{
-			ID: &resourceId,
+	if customDomains != nil {
+		customDomainsArray := make([]cdn.ResourceReference, 0)
+		for _, v := range customDomains {
+			resourceId := v.(string)
+			resourceReference := cdn.ResourceReference{
+				ID: &resourceId,
+			}
+			customDomainsArray = append(customDomainsArray, resourceReference)
 		}
-		customDomainsArray = append(customDomainsArray, resourceReference)
-	}
-
-	// custom domains can only be set when link_to_default_domain is false
-	if !linkToDefaultDomain {
 		routeProperties.CustomDomains = &customDomainsArray
 	}
 
@@ -467,7 +465,7 @@ func resourceAfdEndpointRouteUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	// linkToDefaultDomain
-	if d.HasChange("link_to_default_domain") || d.HasChange("custom_domains") {
+	if d.HasChange("custom_domains") {
 		log.Printf("[DEBUG] Updating link_to_default_domain configuration for route %s on endpoint %s", id.RouteName, id.AfdEndpointName)
 
 		customDomainsArray := make([]cdn.ResourceReference, 0)
@@ -478,13 +476,15 @@ func resourceAfdEndpointRouteUpdate(d *pluginsdk.ResourceData, meta interface{})
 			}
 			customDomainsArray = append(customDomainsArray, resourceReference)
 		}
+		routeUpdateProperties.CustomDomains = &customDomainsArray
 
+	}
+
+	if d.HasChange("link_to_default_domain") {
 		if linkToDefaultDomain {
 			routeUpdateProperties.LinkToDefaultDomain = cdn.LinkToDefaultDomainEnabled
-			routeUpdateProperties.CustomDomains = nil
 		} else {
 			routeUpdateProperties.LinkToDefaultDomain = cdn.LinkToDefaultDomainDisabled
-			routeUpdateProperties.CustomDomains = &customDomainsArray
 		}
 	}
 
@@ -504,15 +504,16 @@ func resourceAfdEndpointRouteUpdate(d *pluginsdk.ResourceData, meta interface{})
 			routeUpdateProperties.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorNotSet
 		}
 
-		routeUpdateProperties.CompressionSettings = cdn.CompressionSettings{
+		compressionSettings := cdn.CompressionSettings{
 			IsCompressionEnabled:   &cachingEnabled,
 			ContentTypesToCompress: &contentTypesToCompressArray,
 		}
 
+		routeUpdateProperties.CompressionSettings = compressionSettings
+
 	}
 
 	if !cachingEnabled {
-		routeUpdateProperties.CompressionSettings = nil
 		routeUpdateProperties.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorNotSet
 	}
 
