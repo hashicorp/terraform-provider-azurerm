@@ -113,7 +113,6 @@ func TestAccLinuxVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"custom_data",
 		),
 		{
 			Config: r.otherCustomData(data, "/bin/zsh"),
@@ -123,7 +122,6 @@ func TestAccLinuxVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"custom_data",
 		),
 		{
 			// removed
@@ -134,7 +132,6 @@ func TestAccLinuxVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"custom_data",
 		),
 	})
 }

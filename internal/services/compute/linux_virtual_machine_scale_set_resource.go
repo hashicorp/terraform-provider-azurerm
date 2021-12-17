@@ -1114,6 +1114,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 		d.Set("vtpm_enabled", vtpmEnabled)
 		d.Set("secure_boot_enabled", secureBootEnabled)
+		d.Set("user_data", profile.UserData)
 	}
 
 	if policy := props.UpgradePolicy; policy != nil {
@@ -1129,8 +1130,6 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 			return fmt.Errorf("setting `rolling_upgrade_policy`: %+v", err)
 		}
 	}
-
-	d.Set("user_data", props.VirtualMachineProfile.UserData)
 
 	if err := d.Set("zones", resp.Zones); err != nil {
 		return fmt.Errorf("setting `zones`: %+v", err)
