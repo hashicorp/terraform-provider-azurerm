@@ -40,7 +40,6 @@ BUG FIXES:
 * `azurerm_postgresql_configuration` - now locks during write operations to prevent conflicts ([#14619](https://github.com/hashicorp/terraform-provider-azurerm/issues/14619))
 * `azurerm_postgresql_flexible_server_configuration` - now locks during write operations to prevent conflicts ([#14607](https://github.com/hashicorp/terraform-provider-azurerm/issues/14607))
 
-
 ## 2.89.0 (December 10, 2021)
 
 FEATURES:
