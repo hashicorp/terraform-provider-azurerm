@@ -1345,7 +1345,7 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 	// disks have actually been deleted.
 
 	log.Printf("[INFO] verifying Linux Virtual Machine %q has been deleted", id.Name)
-	virtualMachine, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
+	virtualMachine, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil && !utils.ResponseWasNotFound(virtualMachine.Response) {
 		return fmt.Errorf("verifying Linux Virtual Machine %q (Resource Group %q) has been deleted: %+v", id.Name, id.ResourceGroup, err)
 	}
