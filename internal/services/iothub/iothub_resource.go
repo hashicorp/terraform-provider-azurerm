@@ -15,9 +15,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
+	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -25,6 +27,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+type iothubIdentity = identity.SystemAssignedUserAssigned
 
 // TODO: outside of this pr make this private
 
@@ -538,6 +542,8 @@ func resourceIotHub() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"identity": iothubIdentity{}.Schema(),
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -608,6 +614,12 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		cloudToDeviceProperties = expandIoTHubCloudToDevice(d)
 	}
 
+	identityRaw := d.Get("identity").([]interface{})
+	identity, err := expandIotHubIdentity(identityRaw)
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	props := devices.IotHubDescription{
 		Name:     utils.String(id.Name),
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
@@ -620,7 +632,8 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			EnableFileUploadNotifications: &enableFileUploadNotifications,
 			CloudToDevice:                 cloudToDeviceProperties,
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Identity: identity,
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	// nolint staticcheck
@@ -765,6 +778,14 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		d.Set("min_tls_version", properties.MinTLSVersion)
+	}
+
+	identity, err := flattenIotHubIdentity(hub.Identity)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	d.Set("name", id.Name)
@@ -1420,6 +1441,60 @@ func flattenIPFilterRules(in *[]devices.IPFilterRule) []interface{} {
 		rules = append(rules, rawRule)
 	}
 	return rules
+}
+
+func expandIotHubIdentity(input []interface{}) (*devices.ArmIdentity, error) {
+	config, err := iothubIdentity{}.Expand(input)
+	if err != nil {
+		return nil, err
+	}
+
+	identity := devices.ArmIdentity{
+		Type: devices.ResourceIdentityType(config.Type),
+	}
+
+	if len(config.UserAssignedIdentityIds) != 0 {
+		identityIds := make(map[string]*devices.ArmUserIdentity, len(config.UserAssignedIdentityIds))
+		for _, id := range config.UserAssignedIdentityIds {
+			identityIds[id] = &devices.ArmUserIdentity{}
+		}
+		identity.UserAssignedIdentities = identityIds
+	}
+
+	return &identity, nil
+}
+
+func flattenIotHubIdentity(input *devices.ArmIdentity) ([]interface{}, error) {
+	var config *identity.ExpandedConfig
+
+	if input != nil {
+		var identityIds []string
+		for id := range input.UserAssignedIdentities {
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(id)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
+		}
+
+		principalId := ""
+		if input.PrincipalID != nil {
+			principalId = *input.PrincipalID
+		}
+
+		tenantId := ""
+		if input.TenantID != nil {
+			tenantId = *input.TenantID
+		}
+
+		config = &identity.ExpandedConfig{
+			Type:                    identity.Type(string(input.Type)),
+			PrincipalId:             principalId,
+			TenantId:                tenantId,
+			UserAssignedIdentityIds: identityIds,
+		}
+	}
+	return iothubIdentity{}.Flatten(config), nil
 }
 
 func fileUploadConnectionStringDiffSuppress(k, old, new string, d *pluginsdk.ResourceData) bool {
