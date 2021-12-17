@@ -4,8 +4,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `azurerm_application_gateway` - support for the `key_vault_secret_id` and `force_firewall_policy_association` property [GH-14413]
 * `azurerm_managed_disk` - support for the `gallery_image_reference_id` property [GH-14121]
-
 
 BUG FIXES:
 
