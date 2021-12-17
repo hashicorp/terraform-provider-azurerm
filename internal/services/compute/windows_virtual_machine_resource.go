@@ -601,7 +601,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("waiting for creation of Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name, compute.InstanceViewTypesUserData)
+	read, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		return fmt.Errorf("retrieving Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -1283,7 +1283,7 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
 
 	log.Printf("[DEBUG] Retrieving Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(existing.Response) {
 			return nil
@@ -1374,7 +1374,7 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 	// disks have actually been deleted.
 
 	log.Printf("[INFO] verifying Windows Virtual Machine %q has been deleted", id.Name)
-	virtualMachine, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
+	virtualMachine, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil && !utils.ResponseWasNotFound(virtualMachine.Response) {
 		return fmt.Errorf("verifying Windows Virtual Machine %q (Resource Group %q) has been deleted: %+v", id.Name, id.ResourceGroup, err)
 	}
@@ -1389,7 +1389,7 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 			Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 			Refresh: func() (interface{}, string, error) {
 				log.Printf("[INFO] checking on state of Windows Virtual Machine %q", id.Name)
-				resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
+				resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 				if err != nil {
 					if utils.ResponseWasNotFound(resp.Response) {
 						return resp, strconv.Itoa(resp.StatusCode), nil

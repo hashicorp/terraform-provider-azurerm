@@ -358,12 +358,19 @@ func TestAccWindowsVirtualMachine_otherUserData(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherUserData(data),
+			Config: r.otherUserData(data, "Hello World"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "user_data"),
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherUserData(data, "Goodbye World"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -1371,7 +1378,7 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data))
 }
 
-func (r WindowsVirtualMachineResource) otherUserData(data acceptance.TestData) string {
+func (r WindowsVirtualMachineResource) otherUserData(data acceptance.TestData, userData string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1382,7 +1389,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   size                = "Standard_F2"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
-  user_data           = base64encode("Hello World")
+  user_data           = base64encode(%q)
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1399,7 +1406,7 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, r.template(data))
+`, r.template(data), userData)
 }
 
 func (r WindowsVirtualMachineResource) otherEnableAutomaticUpdatesDefault(data acceptance.TestData) string {
