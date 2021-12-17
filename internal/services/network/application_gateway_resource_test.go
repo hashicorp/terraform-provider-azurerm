@@ -2059,18 +2059,18 @@ resource "azurerm_application_gateway" "test" {
   }
 
   http_listener {
-    name                           = "${local.listener_name}"
-    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
-    frontend_port_name             = "${local.frontend_port_name}"
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
     protocol                       = "Http"
   }
 
   request_routing_rule {
-    name                       = "${local.request_routing_rule_name}"
+    name                       = local.request_routing_rule_name
     rule_type                  = "Basic"
-    http_listener_name         = "${local.listener_name}"
-    backend_address_pool_name  = "${local.backend_address_pool_name}"
-    backend_http_settings_name = "${local.http_setting_name}"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -2094,37 +2094,37 @@ locals {
 data "azurerm_client_config" "test" {}
 
 resource "azurerm_user_assigned_identity" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   name                = "acctest%[2]d"
 }
 
 resource "azurerm_public_ip" "testStd" {
   name                = "acctest-PubIpStd-%[2]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
 }
 
 resource "azurerm_key_vault" "test" {
   name                = "acct%[2]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.test.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.test.tenant_id
   sku_name            = "standard"
   soft_delete_enabled = true
 
   access_policy {
-    tenant_id               = "${data.azurerm_client_config.test.tenant_id}"
-    object_id               = "${data.azurerm_client_config.test.object_id}"
+    tenant_id               = data.azurerm_client_config.test.tenant_id
+    object_id               = data.azurerm_client_config.test.object_id
     secret_permissions      = ["delete", "get", "set"]
     certificate_permissions = ["create", "delete", "get", "import", "purge"]
   }
 
   access_policy {
-    tenant_id               = "${data.azurerm_client_config.test.tenant_id}"
-    object_id               = "${azurerm_user_assigned_identity.test.principal_id}"
+    tenant_id               = data.azurerm_client_config.test.tenant_id
+    object_id               = azurerm_user_assigned_identity.test.principal_id
     secret_permissions      = ["get"]
     certificate_permissions = ["get"]
   }
@@ -2132,7 +2132,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_certificate" "test" {
   name         = "acctest%[2]d"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = azurerm_key_vault.test.id
 
   certificate {
     contents = filebase64("testdata/app_service_certificate.pfx")
@@ -2159,7 +2159,7 @@ resource "azurerm_key_vault_certificate" "test" {
 
 resource "azurerm_key_vault_certificate" "test2" {
   name         = "acctestkvc%[2]d"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = azurerm_key_vault.test.id
 
   certificate {
     contents = filebase64("testdata/app_service_certificate.pfx")
@@ -2186,8 +2186,8 @@ resource "azurerm_key_vault_certificate" "test2" {
 
 resource "azurerm_application_gateway" "test" {
   name                = "acctestag-%[2]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   sku {
     name     = "WAF_v2"
@@ -2197,29 +2197,29 @@ resource "azurerm_application_gateway" "test" {
 
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
-    subnet_id = "${azurerm_subnet.test.id}"
+    subnet_id = azurerm_subnet.test.id
   }
 
   identity {
-    identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
   frontend_port {
-    name = "${local.frontend_port_name}"
+    name = local.frontend_port_name
     port = 80
   }
 
   frontend_ip_configuration {
-    name                 = "${local.frontend_ip_configuration_name}"
-    public_ip_address_id = "${azurerm_public_ip.testStd.id}"
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.testStd.id
   }
 
   backend_address_pool {
-    name = "${local.backend_address_pool_name}"
+    name = local.backend_address_pool_name
   }
 
   backend_http_settings {
-    name                  = "${local.http_setting_name}"
+    name                  = local.http_setting_name
     cookie_based_affinity = "Disabled"
     port                  = 443
     protocol              = "Https"
@@ -2227,23 +2227,23 @@ resource "azurerm_application_gateway" "test" {
   }
 
   trusted_root_certificate {
-    name                = "${local.auth_cert_name}"
-    key_vault_secret_id = "${azurerm_key_vault_certificate.test2.secret_id}"
+    name                = local.auth_cert_name
+    key_vault_secret_id = azurerm_key_vault_certificate.test2.secret_id
   }
 
   http_listener {
-    name                           = "${local.listener_name}"
-    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
-    frontend_port_name             = "${local.frontend_port_name}"
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
     protocol                       = "Http"
   }
 
   request_routing_rule {
-    name                       = "${local.request_routing_rule_name}"
+    name                       = local.request_routing_rule_name
     rule_type                  = "Basic"
-    http_listener_name         = "${local.listener_name}"
-    backend_address_pool_name  = "${local.backend_address_pool_name}"
-    backend_http_settings_name = "${local.http_setting_name}"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
   }
 }
 `, r.template(data), data.RandomInteger)
