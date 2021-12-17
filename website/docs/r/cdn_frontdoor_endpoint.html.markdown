@@ -41,3 +41,11 @@ The following arguments are supported:
 * `enabled` - (Required) Enabled state can be set to `true` or `false`.
 
 * `origin_response_timeout_in_seconds` - Send and receive timeout on forwarding request to the origin. When timeout is reached, the request fails and returns. Must between `16` and `240`. Defaults to `60`.
+
+---
+
+The following attributes are exported:
+
+* `id` - The ID of the FrontDoor.
+
+* `fqdn` - Returns the Front Door Endpoint FQDN i.e. `afdendpoint1.z01.azurefd.net`.

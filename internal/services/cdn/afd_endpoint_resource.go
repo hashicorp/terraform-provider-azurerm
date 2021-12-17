@@ -48,6 +48,11 @@ func resourceAfdEndpoints() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"fqdn": { // returns the endpoint fqdn
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -151,6 +156,8 @@ func resourceAfdEndpointsRead(d *pluginsdk.ResourceData, meta interface{}) error
 	} else {
 		d.Set("enabled", false)
 	}
+
+	d.Set("fqdn", resp.HostName)
 	d.Set("name", id.AfdEndpointName)
 
 	return nil
