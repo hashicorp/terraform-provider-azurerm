@@ -2,7 +2,6 @@ package cdn
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -184,7 +183,7 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 				id.ResourceGroup, id.ProfileName, err)
 		}
 		if cdnEndpointResp.Sku != nil && (cdnEndpointResp.Sku.Name != cdn.SkuNameStandardMicrosoft && cdnEndpointResp.Sku.Name != cdn.SkuNameStandardVerizon) {
-			return errors.New("user managed HTTPS certificate is only available for Azure CDN from Microsoft or Azure CDN from Verizon profiles")
+			return fmt.Errorf("user managed HTTPS certificate is only available for Azure CDN from Microsoft or Azure CDN from Verizon profiles")
 		}
 		params, err = expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx, v.([]interface{}), keyVaultsClient, resourcesClient)
 		if err != nil {
@@ -229,7 +228,7 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta in
 	case d.HasChange("cdn_managed_https"):
 		props := resp.CustomDomainProperties
 		if props == nil {
-			return errors.New("unexpected nil of `CustomDomainProperties` in response")
+			return fmt.Errorf("unexpected nil of `CustomDomainProperties` in response")
 		}
 		if props.CustomHTTPSParameters == nil {
 			// disabled -> enabled
@@ -251,7 +250,7 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta in
 	case d.HasChange("user_managed_https"):
 		props := resp.CustomDomainProperties
 		if props == nil {
-			return errors.New("unexpected nil of `CustomDomainProperties` in response")
+			return fmt.Errorf("unexpected nil of `CustomDomainProperties` in response")
 		}
 		param, err := expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx, d.Get("user_managed_https").([]interface{}), keyVaultsClient, resourcesClient)
 		if err != nil {
@@ -304,6 +303,7 @@ func resourceArmCdnEndpointCustomDomainRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("cdn_endpoint_id", cdnEndpointId.ID())
 	if props := resp.CustomDomainProperties; props != nil {
 		d.Set("host_name", props.HostName)
+
 		switch params := props.CustomHTTPSParameters.(type) {
 		case cdn.ManagedHTTPSParameters:
 			if err := d.Set("cdn_managed_https", flattenArmCdnEndpointCustomDomainCdnManagedHttpsSettings(params)); err != nil {
@@ -327,6 +327,9 @@ func resourceArmCdnEndpointCustomDomainRead(d *pluginsdk.ResourceData, meta inte
 			if err := d.Set("user_managed_https", settings); err != nil {
 				return fmt.Errorf("setting `user_managed_https`: %+v", err)
 			}
+		default:
+			d.Set("cdn_managed_https", nil)
+			d.Set("user_managed_https", nil)
 		}
 	}
 
@@ -431,29 +434,34 @@ func flattenArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input cdn.ManagedH
 }
 
 func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Context, input cdn.UserManagedHTTPSParameters, keyVaultsClient *keyvaultClient.Client, isVersioned bool) ([]interface{}, error) {
-	var (
-		subscriptionId    string
-		resourceGroupName string
-		vaultName         string
-		secretName        string
-		secretVersion     string
-	)
-	if params := input.CertificateSourceParameters; params != nil {
-		if params.SubscriptionID != nil {
-			subscriptionId = *params.SubscriptionID
-		}
-		if params.ResourceGroupName != nil {
-			resourceGroupName = *params.ResourceGroupName
-		}
-		if params.VaultName != nil {
-			vaultName = *params.VaultName
-		}
-		if params.SecretName != nil {
-			secretName = *params.SecretName
-		}
-		if params.SecretVersion != nil {
-			secretVersion = *params.SecretVersion
-		}
+	params := input.CertificateSourceParameters
+	if params == nil {
+		return nil, fmt.Errorf("unexpected nil Certificate Source Parameters from API")
+	}
+
+	if params.SubscriptionID == nil {
+		return nil, fmt.Errorf("unexpected nil `subscriptionId` in the Certificate Source Parameters from API")
+	}
+	subscriptionId := *params.SubscriptionID
+
+	if params.ResourceGroupName == nil {
+		return nil, fmt.Errorf("unexpected nil `resourceGroupName` in the Certificate Source Parameters from API")
+	}
+	resourceGroupName := *params.ResourceGroupName
+
+	if params.VaultName == nil {
+		return nil, fmt.Errorf("unexpected nil `vaultName` in the Certificate Source Parameters from API")
+	}
+	vaultName := *params.VaultName
+
+	if params.SecretName == nil {
+		return nil, fmt.Errorf("unexpected nil `secretName` in the Certificate Source Parameters from API")
+	}
+	secretName := *params.SecretName
+
+	var secretVersion string
+	if params.SecretVersion != nil {
+		secretVersion = *params.SecretVersion
 	}
 
 	keyVaultId := keyvaultParse.NewVaultID(subscriptionId, resourceGroupName, vaultName)
@@ -495,21 +503,14 @@ func enableArmCdnEndpointCustomDomainHttps(ctx context.Context, client *cdn.Cust
 	deadline, _ := ctx.Deadline()
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{string(cdn.CustomHTTPSProvisioningStateEnabling)},
-		Target:     []string{string(cdn.CustomHTTPSProvisioningStateEnabled), string(cdn.CustomHTTPSProvisioningStateFailed), string(cdn.CustomHTTPSProvisioningStateDisabled)},
+		Target:     []string{string(cdn.CustomHTTPSProvisioningStateEnabled)},
 		Refresh:    cdnEndpointCustomDomainHttpsRefreshFunc(ctx, client, id),
 		MinTimeout: 10 * time.Second,
 		Timeout:    time.Until(deadline),
 	}
 
-	state, err := stateConf.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for HTTPS provision state: %+v", err)
-	}
-	if state == cdn.CustomHTTPSProvisioningStateFailed {
-		return errors.New("HTTPS provision state is Failed")
-	}
-	if state == cdn.CustomHTTPSProvisioningStateDisabled {
-		return errors.New("HTTPS provision state is back to Disabled")
 	}
 
 	return nil
@@ -525,21 +526,14 @@ func disableArmCdnEndpointCustomDomainHttps(ctx context.Context, client *cdn.Cus
 	deadline, _ := ctx.Deadline()
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{string(cdn.CustomHTTPSProvisioningStateDisabling)},
-		Target:     []string{string(cdn.CustomHTTPSProvisioningStateDisabled), string(cdn.CustomHTTPSProvisioningStateFailed), string(cdn.CustomHTTPSProvisioningStateEnabled)},
+		Target:     []string{string(cdn.CustomHTTPSProvisioningStateDisabled)},
 		Refresh:    cdnEndpointCustomDomainHttpsRefreshFunc(ctx, client, id),
 		MinTimeout: 10 * time.Second,
 		Timeout:    time.Until(deadline),
 	}
 
-	state, err := stateConf.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for HTTPS provision state: %+v", err)
-	}
-	if state == cdn.CustomHTTPSProvisioningStateFailed {
-		return errors.New("HTTPS provision state is Failed")
-	}
-	if state == cdn.CustomHTTPSProvisioningStateEnabled {
-		return errors.New("HTTPS provision state is back to Enabled")
 	}
 
 	return nil
@@ -554,7 +548,7 @@ func cdnEndpointCustomDomainHttpsRefreshFunc(ctx context.Context, client *cdn.Cu
 
 		props := res.CustomDomainProperties
 		if props == nil {
-			return nil, "", errors.New("unexpected nil of `CustomDomainProperties` in response")
+			return nil, "", fmt.Errorf("unexpected nil of `CustomDomainProperties` in response")
 		}
 
 		return props.CustomHTTPSProvisioningState, string(props.CustomHTTPSProvisioningState), nil
