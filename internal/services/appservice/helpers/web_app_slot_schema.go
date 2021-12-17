@@ -1016,10 +1016,12 @@ func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentS
 	if siteConfig.WindowsFxVersion != "" {
 		// Decode the string to docker values
 		parts := strings.Split(strings.TrimPrefix(siteConfig.WindowsFxVersion, "DOCKER|"), ":")
-		winAppStack.DockerContainerTag = parts[1]
-		path := strings.Split(parts[0], "/")
-		winAppStack.DockerContainerRegistry = path[0]
-		winAppStack.DockerContainerName = strings.TrimPrefix(parts[0], fmt.Sprintf("%s/", path[0]))
+		if len(parts) == 2 {
+			winAppStack.DockerContainerTag = parts[1]
+			path := strings.Split(parts[0], "/")
+			winAppStack.DockerContainerRegistry = path[0]
+			winAppStack.DockerContainerName = strings.TrimPrefix(parts[0], fmt.Sprintf("%s/", path[0]))
+		}
 	}
 	winAppStack.CurrentStack = currentStack
 

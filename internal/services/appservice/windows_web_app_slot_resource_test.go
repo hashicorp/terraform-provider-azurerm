@@ -1632,7 +1632,6 @@ resource "azurerm_windows_web_app_slot" "test" {
     "DOCKER_REGISTRY_SERVER_USERNAME"     = ""
     "DOCKER_REGISTRY_SERVER_PASSWORD"     = ""
     "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
-
   }
 
   site_config {
@@ -1643,8 +1642,7 @@ resource "azurerm_windows_web_app_slot" "test" {
     }
   }
 }
-
-`, r.baseTemplate(data), data.RandomInteger, "mcr.microsoft.com", "azure-app-service/samples/aspnethelloworld", "latest")
+`, r.premiumV3PlanContainerTemplate(data), data.RandomInteger, "mcr.microsoft.com", "azure-app-service/samples/aspnethelloworld", "latest")
 }
 
 // Templates
@@ -1737,4 +1735,31 @@ data "azurerm_storage_account_sas" "test" {
   }
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomString)
+}
+
+func (WindowsWebAppSlotResource) premiumV3PlanContainerTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "P1v3"
+  os_type             = "WindowsContainer"
+}
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
