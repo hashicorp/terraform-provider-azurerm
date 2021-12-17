@@ -28,6 +28,7 @@ ENHANCEMENTS:
 * `azurerm_data_factory_pipeline`- deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory resources [GH-14610]
 * `azurerm_iothub` - support for the `cloud_to_device` block [GH-14546]
 * `azurerm_iothub_endpoint_eventhub` - the `iothub_name` property has been deprecated in favour of the `iothub_id` property [GH-14632]
+* `azurerm_logic_app_workflow` - support for the `open_authentication_policy` block [GH-14007]
 * `azurerm_signalr` - support for the `live_trace_enabled` property [GH-14646]
 * `azurerm_xyz_policy_assignment` add support for `non_compliance_message` [GH-14518]
 
