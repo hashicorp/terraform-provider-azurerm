@@ -1950,7 +1950,7 @@ resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 
-  name = "acctest%s"
+  name = "acctest%[2]d"
 }
 
 resource "azurerm_public_ip" "testStd" {
