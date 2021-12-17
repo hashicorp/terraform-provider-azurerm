@@ -1193,7 +1193,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 		d.Set("vtpm_enabled", vtpmEnabled)
 		d.Set("secure_boot_enabled", secureBootEnabled)
-		d.Set("user_daa", profile.UserData)
+		d.Set("user_data", profile.UserData)
 	}
 
 	if err := d.Set("zones", resp.Zones); err != nil {
