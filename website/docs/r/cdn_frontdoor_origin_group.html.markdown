@@ -37,3 +37,35 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
   }
 }
 ```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `name` - (Required)
+
+* `profile_id` - (Required)
+
+* `session_affinity_state` - Can be set to `true` or `false`.
+
+---
+
+The `load_balancing` block supports the following:
+
+* `sample_size`
+
+* `successful_samples_required`
+
+* `additional_latency_in_ms`
+
+---
+
+The `health_probe` block supports the following:
+
+* `path` - The path relative to the origin that is used to determine the health of the origin.
+
+* `request_type` - The type of health probe request that is made. Can be set to `GET`, `HEAD` or `NotSet`. Defaults to `NotSet`.
+
+* `protocol` - Protocol to use for health probe. Can be set to `Http` or `Https`. Defaults to `Http`.
+
+* `interval_in_seconds` - The number of seconds between health probes. Defaults to `240` seconds.

@@ -57,11 +57,7 @@ func resourceAfdOriginGroups() *pluginsdk.Resource {
 			"session_affinity_state": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  cdn.EnabledStateDisabled,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.EnabledStateEnabled),
-					string(cdn.EnabledStateDisabled),
-				}, false),
+				Default:  false,
 			},
 
 			"load_balancing": {
@@ -102,12 +98,21 @@ func resourceAfdOriginGroups() *pluginsdk.Resource {
 						"request_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  "HEAD",
+							Default:  string(cdn.HealthProbeRequestTypeNotSet),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cdn.HealthProbeRequestTypeGET),
+								string(cdn.HealthProbeRequestTypeHEAD),
+								string(cdn.HealthProbeRequestTypeNotSet),
+							}, true),
 						},
 						"protocol": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  "Https",
+							Default:  string(cdn.ProbeProtocolHTTP),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cdn.ProbeProtocolHTTP),
+								string(cdn.ProbeProtocolHTTPS),
+							}, true),
 						},
 						"interval_in_seconds": {
 							Type:     pluginsdk.TypeInt,
@@ -127,7 +132,7 @@ func resourceAfdOriginGroupsCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	defer cancel()
 
 	name := d.Get("name").(string) // OriginGroupName
-	sessionAffinityState := d.Get("session_affinity_state").(string)
+	sessionAffinityState := d.Get("session_affinity_state").(bool)
 
 	// parse profile_id
 	profileId := d.Get("profile_id").(string)
@@ -149,8 +154,10 @@ func resourceAfdOriginGroupsCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		},
 	}
 
-	if sessionAffinityState != "" {
-		originGroup.SessionAffinityState = cdn.EnabledState(sessionAffinityState)
+	if sessionAffinityState {
+		originGroup.SessionAffinityState = cdn.EnabledStateEnabled
+	} else {
+		originGroup.SessionAffinityState = cdn.EnabledStateDisabled
 	}
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, originGroup)
@@ -242,7 +249,7 @@ func resourceAfdOriginGroupsUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	loadbalancing := d.Get("load_balancing").([]interface{})
 	healthprobes := d.Get("health_probe").([]interface{})
-	sessionAffinityState := d.Get("session_affinity_state").(string)
+	sessionAffinityState := d.Get("session_affinity_state").(bool)
 
 	properties := cdn.AFDOriginGroupUpdateParameters{
 		AFDOriginGroupUpdatePropertiesParameters: &cdn.AFDOriginGroupUpdatePropertiesParameters{
@@ -252,7 +259,11 @@ func resourceAfdOriginGroupsUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if d.HasChange("session_affinity_state") {
-		properties.SessionAffinityState = cdn.EnabledState(sessionAffinityState)
+		if sessionAffinityState {
+			properties.SessionAffinityState = cdn.EnabledStateEnabled
+		} else {
+			properties.SessionAffinityState = cdn.EnabledStateDisabled
+		}
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, properties)
@@ -289,7 +300,12 @@ func resourceAfdOriginGroupsRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	d.Set("name", id.OriginGroupName)
-	d.Set("session_affinity_state", resp.SessionAffinityState)
+
+	if resp.SessionAffinityState == cdn.EnabledStateEnabled {
+		d.Set("session_affinity_state", true)
+	} else {
+		d.Set("session_affinity_state", false)
+	}
 
 	return nil
 }
