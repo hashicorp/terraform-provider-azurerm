@@ -136,6 +136,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 `public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`.
 
+-> **Note:** When `public_network_access_enabled` is set to `true`, `0.0.0.0/32` must be added to `api_server_authorized_ip_ranges`.
+
 ```
 resource "azurerm_resource_group" "example" {
   name     = "example"
