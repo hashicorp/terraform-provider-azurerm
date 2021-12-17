@@ -201,17 +201,6 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 	route := cdn.Route{}
 	routeProperties := cdn.RouteProperties{}
 
-	//route := cdn.Route{
-	//	RouteProperties: &cdn.RouteProperties{
-	//		OriginGroup:         originGroupRef,
-	//		SupportedProtocols:  &supportedProtocolsArray,
-	//		ForwardingProtocol:  cdn.ForwardingProtocol(forwardingProtocol),
-	//		LinkToDefaultDomain: linkToDefault,
-	//		RuleSets:            &ruleSetsArray,
-	//		PatternsToMatch:     &patternsToMatchArray,
-	//	},
-	//}
-
 	// caching
 	cachingEnabled := d.Get("enable_caching").(bool)
 	contentTypesToCompress := d.Get("content_types_to_compress").([]interface{})
@@ -344,7 +333,7 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	// use route.CompressionSettings only when caching is enabled
-	if cachingEnabled == true {
+	if cachingEnabled {
 		routeProperties.CompressionSettings = compressionSettings
 	} else {
 		routeProperties.CompressionSettings = nil
@@ -490,7 +479,7 @@ func resourceAfdEndpointRouteUpdate(d *pluginsdk.ResourceData, meta interface{})
 			customDomainsArray = append(customDomainsArray, resourceReference)
 		}
 
-		if linkToDefaultDomain == true {
+		if linkToDefaultDomain {
 			routeUpdateProperties.LinkToDefaultDomain = cdn.LinkToDefaultDomainEnabled
 			routeUpdateProperties.CustomDomains = nil
 		} else {
@@ -522,7 +511,7 @@ func resourceAfdEndpointRouteUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	}
 
-	if cachingEnabled == false {
+	if !cachingEnabled {
 		routeUpdateProperties.CompressionSettings = nil
 		routeUpdateProperties.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorNotSet
 	}
