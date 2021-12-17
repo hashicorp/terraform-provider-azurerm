@@ -1,44 +1,44 @@
-## 2.90.0 (Unreleased)
+## 2.90.0 (December 17, 2021)
 
 FEATURES:
 
-* **New Datasource:** `azurerm_app_configuration_key` [GH-14484]
-* **New Resource:** `azurerm_container_registry_task` [GH-14533]
-* **New Resource:** `azurerm_maps_creator` [GH-14566]
-* **New Resource:** `azurerm_netapp_snapshot_policy` [GH-14230]
-* **New Resource:** `azurerm_synapse_sql_pool_workload_classifier` [GH-14412]
-* **New Resource:** `azurerm_synapse_workspace_sql_aad_admin` [GH-14341]
-* **New Resource:** `azurerm_vpn_gateway_nat_rule` [GH-14527]
+* **New Datasource:** `azurerm_app_configuration_key` ([#14484](https://github.com/hashicorp/terraform-provider-azurerm/issues/14484))
+* **New Resource:** `azurerm_container_registry_task` ([#14533](https://github.com/hashicorp/terraform-provider-azurerm/issues/14533))
+* **New Resource:** `azurerm_maps_creator` ([#14566](https://github.com/hashicorp/terraform-provider-azurerm/issues/14566))
+* **New Resource:** `azurerm_netapp_snapshot_policy` ([#14230](https://github.com/hashicorp/terraform-provider-azurerm/issues/14230))
+* **New Resource:** `azurerm_synapse_sql_pool_workload_classifier` ([#14412](https://github.com/hashicorp/terraform-provider-azurerm/issues/14412))
+* **New Resource:** `azurerm_synapse_workspace_sql_aad_admin` ([#14341](https://github.com/hashicorp/terraform-provider-azurerm/issues/14341))
+* **New Resource:** `azurerm_vpn_gateway_nat_rule` ([#14527](https://github.com/hashicorp/terraform-provider-azurerm/issues/14527))
 
 ENHANCEMENTS:
 
-* dependencies: updating `apimanagement` to API Version `2021-08-01` [GH-14312]
-* dependencies: updating `managementgroups` to API Version `2020-05-01` [GH-14635]
-* dependencies: updating `redisenterprise` to use an Embedded SDK [GH-14502]
-* dependencies: updating to `v0.19.1` of `github.com/hashicorp/go-azure-helpers` [GH-14627]
-* dependencies: updating to `v2.10.0` of `github.com/hashicorp/terraform-plugin-sdk` [GH-14596]
-* Data Source: `azurerm_function_app_host_keys` - support for `signalr_extension_key` and `durabletask_extension_key` [GH-13648]
-* `azurerm_application_gateway ` - support for private link configurations [GH-14583]
-* `azurerm_blueprint_assignment` - support for the `lock_exclude_actions` property [GH-14648]
-* `azurerm_container_group` - support for `ip_address_type = None` [GH-14460]
-* `azurerm_cosmosdb_account` - support for the `create_mode` property and `restore` block [GH-14362]
-* `azurerm_data_factory_dataset_*` - deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory dataset resources [GH-14610]
-* `azurerm_data_factory_integration_runtime_*`- deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory integration runtime resources [GH-14610]
-* `azurerm_data_factory_trigger_*`- deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory trigger resources [GH-14610]
-* `azurerm_data_factory_pipeline`- deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory resources [GH-14610]
-* `azurerm_iothub` - support for the `cloud_to_device` block [GH-14546]
-* `azurerm_iothub_endpoint_eventhub` - the `iothub_name` property has been deprecated in favour of the `iothub_id` property [GH-14632]
-* `azurerm_logic_app_workflow` - support for the `open_authentication_policy` block [GH-14007]
-* `azurerm_signalr` - support for the `live_trace_enabled` property [GH-14646]
-* `azurerm_xyz_policy_assignment` add support for `non_compliance_message` [GH-14518]
+* dependencies: updating `apimanagement` to API Version `2021-08-01` ([#14312](https://github.com/hashicorp/terraform-provider-azurerm/issues/14312))
+* dependencies: updating `managementgroups` to API Version `2020-05-01` ([#14635](https://github.com/hashicorp/terraform-provider-azurerm/issues/14635))
+* dependencies: updating `redisenterprise` to use an Embedded SDK ([#14502](https://github.com/hashicorp/terraform-provider-azurerm/issues/14502))
+* dependencies: updating to `v0.19.1` of `github.com/hashicorp/go-azure-helpers` ([#14627](https://github.com/hashicorp/terraform-provider-azurerm/issues/14627))
+* dependencies: updating to `v2.10.0` of `github.com/hashicorp/terraform-plugin-sdk` ([#14596](https://github.com/hashicorp/terraform-provider-azurerm/issues/14596))
+* Data Source: `azurerm_function_app_host_keys` - support for `signalr_extension_key` and `durabletask_extension_key` ([#13648](https://github.com/hashicorp/terraform-provider-azurerm/issues/13648))
+* `azurerm_application_gateway ` - support for private link configurations ([#14583](https://github.com/hashicorp/terraform-provider-azurerm/issues/14583))
+* `azurerm_blueprint_assignment` - support for the `lock_exclude_actions` property ([#14648](https://github.com/hashicorp/terraform-provider-azurerm/issues/14648))
+* `azurerm_container_group` - support for `ip_address_type = None` ([#14460](https://github.com/hashicorp/terraform-provider-azurerm/issues/14460))
+* `azurerm_cosmosdb_account` - support for the `create_mode` property and `restore` block ([#14362](https://github.com/hashicorp/terraform-provider-azurerm/issues/14362))
+* `azurerm_data_factory_dataset_*` - deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory dataset resources ([#14610](https://github.com/hashicorp/terraform-provider-azurerm/issues/14610))
+* `azurerm_data_factory_integration_runtime_*`- deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory integration runtime resources ([#14610](https://github.com/hashicorp/terraform-provider-azurerm/issues/14610))
+* `azurerm_data_factory_trigger_*`- deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory trigger resources ([#14610](https://github.com/hashicorp/terraform-provider-azurerm/issues/14610))
+* `azurerm_data_factory_pipeline`- deprecate `data_factory_name` in favour of `data_factory_id` for consistency across all data factory resources ([#14610](https://github.com/hashicorp/terraform-provider-azurerm/issues/14610))
+* `azurerm_iothub` - support for the `cloud_to_device` block ([#14546](https://github.com/hashicorp/terraform-provider-azurerm/issues/14546))
+* `azurerm_iothub_endpoint_eventhub` - the `iothub_name` property has been deprecated in favour of the `iothub_id` property ([#14632](https://github.com/hashicorp/terraform-provider-azurerm/issues/14632))
+* `azurerm_logic_app_workflow` - support for the `open_authentication_policy` block ([#14007](https://github.com/hashicorp/terraform-provider-azurerm/issues/14007))
+* `azurerm_signalr` - support for the `live_trace_enabled` property ([#14646](https://github.com/hashicorp/terraform-provider-azurerm/issues/14646))
+* `azurerm_xyz_policy_assignment` add support for `non_compliance_message` ([#14518](https://github.com/hashicorp/terraform-provider-azurerm/issues/14518))
 
 BUG FIXES:
 
-* `azurerm_cosmosdb_account` - will now set a default value for `default_identity_type` when the API return a nil value [GH-14643]
-* `azurerm_function_app` - address `app_settings` during creation rather than just updates [GH-14638]
-* `azurerm_marketplace_agreement` - fix crash when the import check triggers [GH-14614]
-* `azurerm_postgresql_configuration` - now locks during write operations to prevent conflicts [GH-14619]
-* `azurerm_postgresql_flexible_server_configuration` - now locks during write operations to prevent conflicts [GH-14607]
+* `azurerm_cosmosdb_account` - will now set a default value for `default_identity_type` when the API return a nil value ([#14643](https://github.com/hashicorp/terraform-provider-azurerm/issues/14643))
+* `azurerm_function_app` - address `app_settings` during creation rather than just updates ([#14638](https://github.com/hashicorp/terraform-provider-azurerm/issues/14638))
+* `azurerm_marketplace_agreement` - fix crash when the import check triggers ([#14614](https://github.com/hashicorp/terraform-provider-azurerm/issues/14614))
+* `azurerm_postgresql_configuration` - now locks during write operations to prevent conflicts ([#14619](https://github.com/hashicorp/terraform-provider-azurerm/issues/14619))
+* `azurerm_postgresql_flexible_server_configuration` - now locks during write operations to prevent conflicts ([#14607](https://github.com/hashicorp/terraform-provider-azurerm/issues/14607))
 
 
 ## 2.89.0 (December 10, 2021)
