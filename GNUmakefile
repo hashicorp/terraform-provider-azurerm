@@ -134,4 +134,4 @@ validate-examples:
 
 pr-check: generate build test lint tflint website-lint
 
-.PHONY: build test testacc vet fmt fmtcheck errcheck scaffold-website test-compile website website-test validate-examples
+.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples
