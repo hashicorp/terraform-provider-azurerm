@@ -42,21 +42,21 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required)
+* `name` - (Required) Name of the Origin Group.
 
-* `profile_id` - (Required)
+* `profile_id` - (Required) Azure Front Door Profile ID.
 
-* `session_affinity_state` - Can be set to `true` or `false`.
+* `session_affinity_state` - Whether to allow session affinity on this host. Can be set to `true` or `false`.
 
 ---
 
 The `load_balancing` block supports the following:
 
-* `sample_size`
+* `sample_size` - The number of samples to consider for load balancing decisions.
 
-* `successful_samples_required`
+* `successful_samples_required` - The number of samples within the sample period that must succeed.
 
-* `additional_latency_in_ms`
+* `additional_latency_in_ms` - The additional latency in milliseconds for probes to fall into the lowest latency bucket.
 
 ---
 

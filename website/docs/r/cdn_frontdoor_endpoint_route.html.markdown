@@ -74,11 +74,11 @@ The following arguments are supported:
 
 * `origin_path` - A directory path on the origin that AzureFrontDoor can use to retrieve content from, e.g. `contoso.cloudapp.net/originpath`.
 
-* `rule_sets`
+* `rule_sets` - List of rule sets referenced by this endpoint.
 
 * `supported_protocols` - List of supported protocols. Can be set to `Http` and/or `Https`.
 
-* `patterns_to_match`
+* `patterns_to_match` - The route patterns of the rule.
 
 * `forwarding_protocol` - Protocol this rule will use when forwarding traffic to backends. Can be set to `HttpsOnly`, `HttpOnly` or `MatchRequest`. Defaults to `MatchRequest`.
 

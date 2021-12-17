@@ -55,7 +55,7 @@ func resourceAfdOriginGroups() *pluginsdk.Resource {
 			},
 
 			"session_affinity_state": {
-				Type:     pluginsdk.TypeString,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},

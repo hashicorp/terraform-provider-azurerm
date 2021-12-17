@@ -169,7 +169,7 @@ func resourceAfdEndpointRoutes() *pluginsdk.Resource {
 			"link_to_default_domain": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				ForceNew: true,
+				Default:  true,
 			},
 
 			// HTTPSRedirect - Whether to automatically redirect HTTP traffic to HTTPS traffic. Note that this is a easy way to set up this rule and it will be the first rule that gets executed.
@@ -196,11 +196,21 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	// parse origin_group_id
-	originGroupId := d.Get("origin_group_id").(string)
-	originGroupRef := &cdn.ResourceReference{
-		ID: &originGroupId,
-	}
+	id := parse.NewAfdEndpointRouteID(endpoint.SubscriptionId, endpoint.ResourceGroup, endpoint.ProfileName, endpoint.AfdEndpointName, routeName)
+
+	route := cdn.Route{}
+	routeProperties := cdn.RouteProperties{}
+
+	//route := cdn.Route{
+	//	RouteProperties: &cdn.RouteProperties{
+	//		OriginGroup:         originGroupRef,
+	//		SupportedProtocols:  &supportedProtocolsArray,
+	//		ForwardingProtocol:  cdn.ForwardingProtocol(forwardingProtocol),
+	//		LinkToDefaultDomain: linkToDefault,
+	//		RuleSets:            &ruleSetsArray,
+	//		PatternsToMatch:     &patternsToMatchArray,
+	//	},
+	//}
 
 	// caching
 	cachingEnabled := d.Get("enable_caching").(bool)
@@ -217,15 +227,33 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 		compressionSettings.IsCompressionEnabled = &cachingEnabled
 		compressionSettings.ContentTypesToCompress = &contentTypesToCompressArray
 	}
+	routeProperties.CompressionSettings = compressionSettings
 
 	// endpoint route enabled state
 	enabledState := d.Get("enabled").(bool)
+	if enabledState {
+		routeProperties.EnabledState = cdn.EnabledStateEnabled
+	} else {
+		routeProperties.EnabledState = cdn.EnabledStateDisabled
+	}
 
-	id := parse.NewAfdEndpointRouteID(endpoint.SubscriptionId, endpoint.ResourceGroup, endpoint.ProfileName, endpoint.AfdEndpointName, routeName)
+	// parse origin_group_id
+	originGroupId := d.Get("origin_group_id").(string)
+	originGroupRef := &cdn.ResourceReference{
+		ID: &originGroupId,
+	}
+	routeProperties.OriginGroup = originGroupRef
+
+	// link to default domain
+	linkToDefaultDomain := d.Get("link_to_default_domain").(bool)
+	if linkToDefaultDomain {
+		routeProperties.LinkToDefaultDomain = cdn.LinkToDefaultDomainEnabled
+	} else {
+		routeProperties.LinkToDefaultDomain = cdn.LinkToDefaultDomainDisabled
+	}
 
 	// parse custom_domains (TypeList)
 	customDomains := d.Get("custom_domains").([]interface{})
-	// create an Array of ResourceReferences per custom domain
 	customDomainsArray := make([]cdn.ResourceReference, 0)
 	for _, v := range customDomains {
 		resourceId := v.(string)
@@ -235,18 +263,13 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 		customDomainsArray = append(customDomainsArray, resourceReference)
 	}
 
-	// link to default domain
-	var linkToDefault cdn.LinkToDefaultDomain
-	linkToDefaultDomain := d.Get("link_to_default_domain").(bool)
-	if linkToDefaultDomain {
-		linkToDefault = cdn.LinkToDefaultDomainEnabled
-	} else {
-		linkToDefault = cdn.LinkToDefaultDomainDisabled
+	// custom domains can only be set when link_to_default_domain is false
+	if !linkToDefaultDomain {
+		routeProperties.CustomDomains = &customDomainsArray
 	}
 
 	// parse rule_sets (TypeList)
 	ruleSets := d.Get("rule_sets").([]interface{})
-	// create an Array of ResourceReferences per custom domain
 	ruleSetsArray := make([]cdn.ResourceReference, 0)
 	for _, r := range ruleSets {
 		ruleSetId := r.(string)
@@ -255,19 +278,18 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 		ruleSetsArray = append(ruleSetsArray, resourceReference)
 	}
+	routeProperties.RuleSets = &ruleSetsArray
 
 	// forwarding protocol
 	forwardingProtocol := d.Get("forwarding_protocol").(string)
+	if forwardingProtocol != "" {
+		routeProperties.ForwardingProtocol = cdn.ForwardingProtocol(forwardingProtocol)
+	}
 
 	// supported protocols
 	supportedProtocols := d.Get("supported_protocols").([]interface{})
-	if len(supportedProtocols) == 0 || supportedProtocols[0] == nil {
-		return nil
-	}
-	// create an Array of ResourceReferences for supported protocols
 	supportedProtocolsArray := make([]cdn.AFDEndpointProtocols, 0)
 	for _, v := range supportedProtocols {
-
 		protocol := v.(string)
 		var supportedProtocol cdn.AFDEndpointProtocols
 		switch protocol {
@@ -276,77 +298,59 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 		case "Https":
 			supportedProtocol = cdn.AFDEndpointProtocolsHTTPS
 		}
-
 		supportedProtocolsArray = append(supportedProtocolsArray, supportedProtocol)
 	}
+	routeProperties.SupportedProtocols = &supportedProtocolsArray
 
 	// patterns_to_match
 	patternsToMatch := d.Get("patterns_to_match").([]interface{})
-	// create an Array of ResourceReferences per custom domain
 	patternsToMatchArray := make([]string, 0)
 	for _, p := range patternsToMatch {
 		pattern := p.(string)
 		patternsToMatchArray = append(patternsToMatchArray, pattern)
 	}
-
-	route := cdn.Route{
-		RouteProperties: &cdn.RouteProperties{
-			OriginGroup:         originGroupRef,
-			SupportedProtocols:  &supportedProtocolsArray,
-			ForwardingProtocol:  cdn.ForwardingProtocol(forwardingProtocol),
-			LinkToDefaultDomain: linkToDefault,
-			RuleSets:            &ruleSetsArray,
-			PatternsToMatch:     &patternsToMatchArray,
-		},
-	}
+	routeProperties.PatternsToMatch = &patternsToMatchArray
 
 	// HTTPSRedirect
 	httpsRedirect := d.Get("https_redirect").(bool)
 	if httpsRedirect {
-		route.HTTPSRedirect = cdn.HTTPSRedirectEnabled
+		routeProperties.HTTPSRedirect = cdn.HTTPSRedirectEnabled
 	} else {
-		route.HTTPSRedirect = cdn.HTTPSRedirectDisabled
+		routeProperties.HTTPSRedirect = cdn.HTTPSRedirectDisabled
 	}
 
 	// enabledState
 	if enabledState {
-		route.EnabledState = cdn.EnabledStateEnabled
+		routeProperties.EnabledState = cdn.EnabledStateEnabled
 	} else {
-		route.EnabledState = cdn.EnabledStateDisabled
+		routeProperties.EnabledState = cdn.EnabledStateDisabled
 	}
 
 	// originPath
 	originPath := d.Get("origin_path").(string)
 	if originPath != "" {
-		route.OriginPath = &originPath
+		routeProperties.OriginPath = &originPath
 	}
 
 	// query_string_caching_behavior
 	queryStringCachingBehavior := d.Get("query_string_caching_behavior").(string)
 	switch queryStringCachingBehavior {
 	case "IgnoreQueryString":
-		route.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorIgnoreQueryString
+		routeProperties.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorIgnoreQueryString
 	case "NotSet":
-		route.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorNotSet
+		routeProperties.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorNotSet
 	case "UseQueryString":
-		route.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorUseQueryString
-	default:
-		route.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorNotSet
+		routeProperties.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorUseQueryString
 	}
 
 	// use route.CompressionSettings only when caching is enabled
 	if cachingEnabled == true {
-		route.CompressionSettings = compressionSettings
+		routeProperties.CompressionSettings = compressionSettings
 	} else {
-		route.CompressionSettings = nil
+		routeProperties.CompressionSettings = nil
 	}
 
-	// custom domains can only be set when link_to_default_domain is false
-	if linkToDefaultDomain == true {
-		route.CustomDomains = nil
-	} else {
-		route.CustomDomains = &customDomainsArray
-	}
+	route.RouteProperties = &routeProperties
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, routeName, route)
 	if err != nil {

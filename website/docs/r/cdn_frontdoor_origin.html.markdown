@@ -50,9 +50,9 @@ resource "azurerm_cdn_frontdoor_origin" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required)
+* `name` - (Required) Name of the origin.
 
-* `origin_group_id` - (Required)
+* `origin_group_id` - (Required) Resource ID of the origin group.
 
 * `enabled` - Can be set to `true` or `false`.
 
