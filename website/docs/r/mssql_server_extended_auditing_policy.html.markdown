@@ -85,7 +85,7 @@ resource "azurerm_subnet" "example" {
 resource "azurerm_role_assignment" "example" {
   scope                = data.azurerm_subscription.primary.id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         =  azurerm_mssql_server.example.identity.0.principal_id
+  principal_id         = azurerm_mssql_server.example.identity.0.principal_id
 }
 
 resource "azurerm_mssql_server" "example" {
@@ -127,10 +127,10 @@ resource "azurerm_storage_account" "example" {
   account_replication_type = "LRS"
   account_kind             = "StorageV2"
   allow_blob_public_access = false
-  
+
   network_rules {
     default_action             = "Deny"
-    ip_rules                   = ["1.2.3.4"]
+    ip_rules                   = ["127.0.0.1"]
     virtual_network_subnet_ids = [azurerm_subnet.example.id]
     bypass                     = ["AzureServices"]
   }
@@ -142,10 +142,10 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_mssql_server_extended_auditing_policy" "example" {
-  storage_endpoint = azurerm_storage_account.example.primary_blob_endpoint
-  server_id                  = azurerm_mssql_server.example.id
-  retention_in_days          = 6
-  log_monitoring_enabled     = false
+  storage_endpoint       = azurerm_storage_account.example.primary_blob_endpoint
+  server_id              = azurerm_mssql_server.example.id
+  retention_in_days      = 6
+  log_monitoring_enabled = false
 
   storage_account_subscription_id = "1a6092a6-137e-4025-9a7c-ef77f76f2c02"
 
