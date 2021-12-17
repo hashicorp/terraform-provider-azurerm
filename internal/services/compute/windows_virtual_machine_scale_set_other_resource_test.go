@@ -170,7 +170,6 @@ func TestAccWindowsVirtualMachineScaleSet_otherUserData(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"user_data",
 		),
 		{
 			Config: r.otherUserData(data, "Goodbye World"),
@@ -180,7 +179,6 @@ func TestAccWindowsVirtualMachineScaleSet_otherUserData(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"user_data",
 		),
 		{
 			// removed
@@ -191,7 +189,6 @@ func TestAccWindowsVirtualMachineScaleSet_otherUserData(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"user_data",
 		),
 	})
 }
