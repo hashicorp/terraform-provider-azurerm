@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_virtual_desktop_scaling_plan` [GH-14188]
+
 ENHANCEMENTS:
 
 * `azurerm_application_gateway` - support for the `key_vault_secret_id` and `force_firewall_policy_association` property [GH-14413]
@@ -12,9 +14,6 @@ ENHANCEMENTS:
 * `azurerm_windows_virtual_machine_scale_set` - support for the `user_data` property [GH-13888]
 
 BUG FIXES:
-
-
-compute: Add user_data to VM & VMSS resources #13888
 
 ## 2.90.0 (December 17, 2021)
 
