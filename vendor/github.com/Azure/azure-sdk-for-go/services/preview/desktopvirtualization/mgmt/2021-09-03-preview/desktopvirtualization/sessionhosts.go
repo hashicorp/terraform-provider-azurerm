@@ -53,8 +53,7 @@ func (client SessionHostsClient) Delete(ctx context.Context, resourceGroupName s
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: hostPoolName,
 			Constraints: []validation.Constraint{{Target: "hostPoolName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "hostPoolName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
@@ -95,7 +94,7 @@ func (client SessionHostsClient) DeletePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-02-preview"
+	const APIVersion = "2021-09-03-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -149,8 +148,7 @@ func (client SessionHostsClient) Get(ctx context.Context, resourceGroupName stri
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: hostPoolName,
 			Constraints: []validation.Constraint{{Target: "hostPoolName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "hostPoolName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
@@ -191,7 +189,7 @@ func (client SessionHostsClient) GetPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-02-preview"
+	const APIVersion = "2021-09-03-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -242,8 +240,7 @@ func (client SessionHostsClient) List(ctx context.Context, resourceGroupName str
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: hostPoolName,
 			Constraints: []validation.Constraint{{Target: "hostPoolName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "hostPoolName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
@@ -285,7 +282,7 @@ func (client SessionHostsClient) ListPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-02-preview"
+	const APIVersion = "2021-09-03-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -359,7 +356,8 @@ func (client SessionHostsClient) ListComplete(ctx context.Context, resourceGroup
 // hostPoolName - the name of the host pool within the specified resource group
 // sessionHostName - the name of the session host within the specified host pool
 // sessionHost - object containing SessionHost definitions.
-func (client SessionHostsClient) Update(ctx context.Context, resourceGroupName string, hostPoolName string, sessionHostName string, sessionHost *SessionHostPatch) (result SessionHost, err error) {
+// force - force flag to update assign, unassign or reassign personal desktop.
+func (client SessionHostsClient) Update(ctx context.Context, resourceGroupName string, hostPoolName string, sessionHostName string, sessionHost *SessionHostPatch, force *bool) (result SessionHost, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SessionHostsClient.Update")
 		defer func() {
@@ -375,8 +373,7 @@ func (client SessionHostsClient) Update(ctx context.Context, resourceGroupName s
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: hostPoolName,
 			Constraints: []validation.Constraint{{Target: "hostPoolName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "hostPoolName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
@@ -386,7 +383,7 @@ func (client SessionHostsClient) Update(ctx context.Context, resourceGroupName s
 		return result, validation.NewError("desktopvirtualization.SessionHostsClient", "Update", err.Error())
 	}
 
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, hostPoolName, sessionHostName, sessionHost)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, hostPoolName, sessionHostName, sessionHost, force)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.SessionHostsClient", "Update", nil, "Failure preparing request")
 		return
@@ -409,7 +406,7 @@ func (client SessionHostsClient) Update(ctx context.Context, resourceGroupName s
 }
 
 // UpdatePreparer prepares the Update request.
-func (client SessionHostsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, hostPoolName string, sessionHostName string, sessionHost *SessionHostPatch) (*http.Request, error) {
+func (client SessionHostsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, hostPoolName string, sessionHostName string, sessionHost *SessionHostPatch, force *bool) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"hostPoolName":      autorest.Encode("path", hostPoolName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -417,9 +414,12 @@ func (client SessionHostsClient) UpdatePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-02-preview"
+	const APIVersion = "2021-09-03-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if force != nil {
+		queryParameters["force"] = autorest.Encode("query", *force)
 	}
 
 	preparer := autorest.CreatePreparer(

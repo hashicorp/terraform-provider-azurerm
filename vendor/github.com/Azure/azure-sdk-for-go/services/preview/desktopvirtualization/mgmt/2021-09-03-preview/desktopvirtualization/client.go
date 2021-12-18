@@ -1,4 +1,4 @@
-// Package desktopvirtualization implements the Azure ARM Desktopvirtualization service API version 2020-11-02-preview.
+// Package desktopvirtualization implements the Azure ARM Desktopvirtualization service API version 2021-09-03-preview.
 //
 //
 package desktopvirtualization
