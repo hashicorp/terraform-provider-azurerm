@@ -322,6 +322,9 @@ func resourceAfdOriginGroupsDelete(d *pluginsdk.ResourceData, meta interface{}) 
 
 	originsClient := meta.(*clients.Client).Cdn.AFDOriginsClient
 	origins, err := originsClient.ListByOriginGroup(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName)
+	if err != nil {
+		return err
+	}
 
 	for _, o := range origins.Values() {
 		future, err := originsClient.Delete(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, *o.Name)

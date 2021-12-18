@@ -137,7 +137,7 @@ func resourceAfdCustomDomainCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		AFDDomainProperties: &cdn.AFDDomainProperties{
 			HostName:    utils.String(d.Get("host_name").(string)),
 			TLSSettings: expandTlsSettings(tlsSettings),
-			//AzureDNSZone
+			// AzureDNSZone
 		},
 	}
 

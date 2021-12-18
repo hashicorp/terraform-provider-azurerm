@@ -36,7 +36,7 @@ func resourceAfdEndpointRoutes() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.EndpointID(id)
+			_, err := parse.AfdEndpointsID(id)
 			return err
 		}),
 
@@ -66,7 +66,7 @@ func resourceAfdEndpointRoutes() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: validate.AfdCustomDomainID,
 				},
 			},
 
@@ -205,17 +205,17 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 	cachingEnabled := d.Get("enable_caching").(bool)
 	contentTypesToCompress := d.Get("content_types_to_compress").([]interface{})
 	// create an array of content types
-	var compressionSettings cdn.CompressionSettings
 	contentTypesToCompressArray := make([]string, 0)
 	for _, contentType := range contentTypesToCompress {
 		pattern := contentType.(string)
 		contentTypesToCompressArray = append(contentTypesToCompressArray, pattern)
 	}
 
-	if cachingEnabled {
-		compressionSettings.IsCompressionEnabled = &cachingEnabled
-		compressionSettings.ContentTypesToCompress = &contentTypesToCompressArray
+	compressionSettings := cdn.CompressionSettings{
+		IsCompressionEnabled:   utils.Bool(cachingEnabled),
+		ContentTypesToCompress: &contentTypesToCompressArray,
 	}
+
 	routeProperties.CompressionSettings = compressionSettings
 
 	// endpoint route enabled state
@@ -257,15 +257,17 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	// parse rule_sets (TypeList)
 	ruleSets := d.Get("rule_sets").([]interface{})
-	ruleSetsArray := make([]cdn.ResourceReference, 0)
-	for _, r := range ruleSets {
-		ruleSetId := r.(string)
-		resourceReference := cdn.ResourceReference{
-			ID: &ruleSetId,
+	if ruleSets != nil {
+		ruleSetsArray := make([]cdn.ResourceReference, 0)
+		for _, r := range ruleSets {
+			ruleSetId := r.(string)
+			resourceReference := cdn.ResourceReference{
+				ID: &ruleSetId,
+			}
+			ruleSetsArray = append(ruleSetsArray, resourceReference)
 		}
-		ruleSetsArray = append(ruleSetsArray, resourceReference)
+		routeProperties.RuleSets = &ruleSetsArray
 	}
-	routeProperties.RuleSets = &ruleSetsArray
 
 	// forwarding protocol
 	forwardingProtocol := d.Get("forwarding_protocol").(string)
@@ -275,19 +277,21 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	// supported protocols
 	supportedProtocols := d.Get("supported_protocols").([]interface{})
-	supportedProtocolsArray := make([]cdn.AFDEndpointProtocols, 0)
-	for _, v := range supportedProtocols {
-		protocol := v.(string)
-		var supportedProtocol cdn.AFDEndpointProtocols
-		switch protocol {
-		case "Http":
-			supportedProtocol = cdn.AFDEndpointProtocolsHTTP
-		case "Https":
-			supportedProtocol = cdn.AFDEndpointProtocolsHTTPS
+	if supportedProtocols != nil {
+		supportedProtocolsArray := make([]cdn.AFDEndpointProtocols, 0)
+		for _, v := range supportedProtocols {
+			protocol := v.(string)
+			var supportedProtocol cdn.AFDEndpointProtocols
+			switch protocol {
+			case "Http":
+				supportedProtocol = cdn.AFDEndpointProtocolsHTTP
+			case "Https":
+				supportedProtocol = cdn.AFDEndpointProtocolsHTTPS
+			}
+			supportedProtocolsArray = append(supportedProtocolsArray, supportedProtocol)
 		}
-		supportedProtocolsArray = append(supportedProtocolsArray, supportedProtocol)
+		routeProperties.SupportedProtocols = &supportedProtocolsArray
 	}
-	routeProperties.SupportedProtocols = &supportedProtocolsArray
 
 	// patterns_to_match
 	patternsToMatch := d.Get("patterns_to_match").([]interface{})
