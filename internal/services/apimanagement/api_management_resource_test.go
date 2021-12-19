@@ -290,8 +290,12 @@ func TestAccApiManagement_virtualNetworkInternalAdditionalLocation(t *testing.T)
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_type").HasValue("Internal"),
+				check.That(data.ResourceName).Key("public_ip_address_id").Exists(),
 				check.That(data.ResourceName).Key("private_ip_addresses.#").Exists(),
 				check.That(data.ResourceName).Key("additional_location.0.private_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("additional_location.0.public_ip_address_id").Exists(),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("2"),
+				check.That(data.ResourceName).Key("additional_location.0.capacity").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -1103,8 +1107,6 @@ resource "azurerm_api_management" "test" {
     capacity = 2
   }
 
-  zones = [1, 2]
-
   tags = {
     "Acceptance" = "Test"
   }
@@ -1446,6 +1448,19 @@ resource "azurerm_network_security_rule" "authenticate2" {
   network_security_group_name = azurerm_network_security_group.test2.name
 }
 
+resource "azurerm_public_ip" "test1" {
+  name                = "acctest-IP1-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allocation_method   = "Dynamic"
+}
+
+resource "azurerm_public_ip" "test2" {
+  name                = "acctest-IP2-%[2]d"
+  resource_group_name = azurerm_resource_group.test2.name
+  location            = azurerm_resource_group.test2.location
+  allocation_method   = "Dynamic"
+}
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%[2]d"
@@ -1456,20 +1471,30 @@ resource "azurerm_api_management" "test" {
 
   sku {
     name     = "Premium"
-    capacity = 1
+    capacity = 2
   }
+  zones = [1, 2]
 
   additional_location {
     location = azurerm_resource_group.test2.location
+    capacity = 1
+
+    public_ip_address_id = azurerm_public_ip.test2.id
     virtual_network_configuration {
       subnet_id = azurerm_subnet.test2.id
     }
   }
 
   virtual_network_type = "Internal"
+  public_ip_address_id = azurerm_public_ip.test1.id
   virtual_network_configuration {
     subnet_id = azurerm_subnet.test.id
   }
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_network_security_group_association.test2,
+  ]
 }
 `, r.virtualNetworkTemplate(data), data.RandomInteger, data.Locations.Secondary)
 }
@@ -1750,7 +1775,7 @@ resource "azurerm_api_management" "test" {
   hostname_configuration {
     proxy {
       host_name                    = "api.pluginsdk.io"
-      key_vault_id                 = "${azurerm_key_vault.test.vault_uri}secrets/${azurerm_key_vault_certificate.test.name}"
+      key_vault_id                 = azurerm_key_vault_certificate.test.versionless_secret_id
       default_ssl_binding          = true
       negotiate_client_certificate = false
     }
