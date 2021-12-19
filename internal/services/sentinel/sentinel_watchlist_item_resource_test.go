@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -16,16 +15,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type WatchlistItemResource struct {
-	Name string
-}
+type WatchlistItemResource struct{}
 
 func TestAccWatchlistItem_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_watchlist_item", "test")
-	name, _ := uuid.GenerateUUID()
-	r := WatchlistItemResource{
-		Name: name,
-	}
+	r := WatchlistItemResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -40,10 +34,7 @@ func TestAccWatchlistItem_basic(t *testing.T) {
 
 func TestAccWatchlistItem_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_watchlist_item", "test")
-	name, _ := uuid.GenerateUUID()
-	r := WatchlistItemResource{
-		Name: name,
-	}
+	r := WatchlistItemResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -72,10 +63,7 @@ func TestAccWatchlistItem_update(t *testing.T) {
 
 func TestAccWatchlistItem_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_watchlist_item", "test")
-	name, _ := uuid.GenerateUUID()
-	r := WatchlistItemResource{
-		Name: name,
-	}
+	r := WatchlistItemResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -112,13 +100,12 @@ func (r WatchlistItemResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_sentinel_watchlist_item" "test" {
-  name         = %q
   watchlist_id = azurerm_sentinel_watchlist.test.id
-  fields = {
+  properties = {
     k1 = "v1"
   }
 }
-`, template, r.Name)
+`, template)
 }
 
 func (r WatchlistItemResource) multipleFields(data acceptance.TestData) string {
@@ -127,14 +114,13 @@ func (r WatchlistItemResource) multipleFields(data acceptance.TestData) string {
 %s
 
 resource "azurerm_sentinel_watchlist_item" "test" {
-  name         = %q
   watchlist_id = azurerm_sentinel_watchlist.test.id
-  fields = {
+  properties = {
     k1 = "v1"
     k2 = "v2"
   }
 }
-`, template, r.Name)
+`, template)
 }
 
 func (r WatchlistItemResource) requiresImport(data acceptance.TestData) string {
@@ -145,7 +131,7 @@ func (r WatchlistItemResource) requiresImport(data acceptance.TestData) string {
 resource "azurerm_sentinel_watchlist_item" "import" {
   name         = azurerm_sentinel_watchlist_item.test.name
   watchlist_id = azurerm_sentinel_watchlist_item.test.watchlist_id
-  fields       = azurerm_sentinel_watchlist_item.test.fields
+  properties   = azurerm_sentinel_watchlist_item.test.properties
 }
 `, template)
 }

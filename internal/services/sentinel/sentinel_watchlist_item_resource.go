@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
@@ -21,14 +22,15 @@ var _ sdk.ResourceWithUpdate = WatchlistItemResource{}
 type WatchlistItemModel struct {
 	Name        string                 `tfschema:"name"`
 	WatchlistID string                 `tfschema:"watchlist_id"`
-	Fields      map[string]interface{} `tfschema:"fields"`
+	Properties  map[string]interface{} `tfschema:"properties"`
 }
 
 func (r WatchlistItemResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
+			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
@@ -38,7 +40,7 @@ func (r WatchlistItemResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validate.WatchlistID,
 		},
-		"fields": {
+		"properties": {
 			Type:     pluginsdk.TypeMap,
 			Required: true,
 			Elem: &pluginsdk.Schema{
@@ -75,10 +77,16 @@ func (r WatchlistItemResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
+			// Generate a random UUID as the resource name if the user doesn't specify it.
+			if model.Name == "" {
+				model.Name = uuid.New().String()
+			}
+
 			watchlistId, err := parse.WatchlistID(model.WatchlistID)
 			if err != nil {
 				return err
 			}
+
 			id := parse.NewWatchlistItemID(watchlistId.SubscriptionId, watchlistId.ResourceGroup, watchlistId.WorkspaceName, watchlistId.Name, model.Name)
 
 			existing, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.WatchlistName, id.Name)
@@ -93,7 +101,7 @@ func (r WatchlistItemResource) Create() sdk.ResourceFunc {
 
 			params := securityinsight.WatchlistItem{
 				WatchlistItemProperties: &securityinsight.WatchlistItemProperties{
-					ItemsKeyValue: model.Fields,
+					ItemsKeyValue: model.Properties,
 				},
 			}
 
@@ -128,16 +136,16 @@ func (r WatchlistItemResource) Read() sdk.ResourceFunc {
 
 			watchlistId := parse.NewWatchlistID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.WatchlistName)
 
-			var fields map[string]interface{}
+			var properties map[string]interface{}
 			if props := resp.WatchlistItemProperties; props != nil {
 				if itemsKV := props.ItemsKeyValue; itemsKV != nil {
-					fields = itemsKV.(map[string]interface{})
+					properties = itemsKV.(map[string]interface{})
 				}
 			}
 			model := WatchlistItemModel{
 				WatchlistID: watchlistId.ID(),
 				Name:        id.Name,
-				Fields:      fields,
+				Properties:  properties,
 			}
 
 			return metadata.Encode(&model)
@@ -191,11 +199,11 @@ func (r WatchlistItemResource) Update() sdk.ResourceFunc {
 				WatchlistItemProperties: existing.WatchlistItemProperties,
 			}
 
-			if metadata.ResourceData.HasChange("fields") {
+			if metadata.ResourceData.HasChange("properties") {
 				if update.WatchlistItemProperties == nil {
 					update.WatchlistItemProperties = &securityinsight.WatchlistItemProperties{}
 				}
-				update.WatchlistItemProperties.ItemsKeyValue = model.Fields
+				update.WatchlistItemProperties.ItemsKeyValue = model.Properties
 			}
 
 			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.WatchlistName, id.Name, update); err != nil {

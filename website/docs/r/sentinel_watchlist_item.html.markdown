@@ -50,7 +50,7 @@ resource "azurerm_sentinel_watchlist" "example" {
 resource "azurerm_sentinel_watchlist_item" "example" {
   name         = "0aac6fa5-223e-49cf-9bfd-3554dc9d2b76"
   watchlist_id = azurerm_sentinel_watchlist.example.id
-  fields = {
+  properties = {
     k1 = "v1"
     k2 = "v2"
   }
@@ -61,11 +61,13 @@ resource "azurerm_sentinel_watchlist_item" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Sentinel Watchlist Item. Changing this forces a new Sentinel Watchlist Item to be created.
-
 * `watchlist_id` - (Required) The ID of the Sentinel Watchlist that this Item resides in. Changing this forces a new Sentinel Watchlist Item to be created.
 
-* `fields` - (Required) The key value pairs of the Sentinel Watchlist Item.
+* `properties` - (Required) The key value pairs of the Sentinel Watchlist Item.
+
+---
+
+* `name` - (Optional) The name in UUID format which should be used for this Sentinel Watchlist Item. Changing this forces a new Sentinel Watchlist Item to be created.
 
 ## Attributes Reference
 
