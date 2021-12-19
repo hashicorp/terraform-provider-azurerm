@@ -405,7 +405,7 @@ func TestAccApiManagement_clientCertificate(t *testing.T) {
 	})
 }
 
-func TestAccApiManagement_gatewayDiabled(t *testing.T) {
+func TestAccApiManagement_gatewayDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
@@ -418,7 +418,7 @@ func TestAccApiManagement_gatewayDiabled(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.gatewayDiabled(data),
+			Config: r.gatewayDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2036,7 +2036,7 @@ resource "azurerm_api_management" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
 }
 
-func (ApiManagementResource) gatewayDiabled(data acceptance.TestData) string {
+func (ApiManagementResource) gatewayDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
