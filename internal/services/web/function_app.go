@@ -666,3 +666,18 @@ func flattenFunctionAppIdentity(input *web.ManagedServiceIdentity) []interface{}
 		},
 	}
 }
+
+func appSettingsMapToNameValuePair(input map[string]*string) *[]web.NameValuePair {
+	if len(input) == 0 {
+		return nil
+	}
+	result := make([]web.NameValuePair, 0)
+	for k, v := range input {
+		result = append(result, web.NameValuePair{
+			Name:  utils.String(k),
+			Value: v,
+		})
+	}
+
+	return &result
+}

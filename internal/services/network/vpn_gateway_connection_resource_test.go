@@ -185,6 +185,42 @@ func TestAccVpnGatewayConnection_updateTrafficSelectorPolicy(t *testing.T) {
 	})
 }
 
+func TestAccVpnGatewayConnection_natRuleIds(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway_connection", "test")
+	r := VPNGatewayConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.natRuleIds(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateNatRuleIds(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t VPNGatewayConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VpnConnectionID(state.ID)
 	if err != nil {
@@ -409,6 +445,122 @@ resource "azurerm_vpn_gateway_connection" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, localAddressRange, remoteAddressRange)
+}
+
+func (r VPNGatewayConnectionResource) natRuleIds(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_vpn_gateway_nat_rule" "test" {
+  name                            = "acctest-vpngwnatrule-%[2]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  vpn_gateway_id                  = azurerm_vpn_gateway.test.id
+  external_address_space_mappings = ["192.168.21.0/26"]
+  internal_address_space_mappings = ["10.4.0.0/26"]
+  mode                            = "EgressSnat"
+  type                            = "Static"
+}
+
+resource "azurerm_vpn_gateway_nat_rule" "test2" {
+  name                            = "acctest-vpngwnatrule2-%[2]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  vpn_gateway_id                  = azurerm_vpn_gateway.test.id
+  external_address_space_mappings = ["192.168.22.0/26"]
+  internal_address_space_mappings = ["10.5.0.0/26"]
+  mode                            = "IngressSnat"
+  type                            = "Static"
+}
+
+resource "azurerm_vpn_gateway_nat_rule" "test3" {
+  name                            = "acctest-vpngwnatrule3-%[2]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  vpn_gateway_id                  = azurerm_vpn_gateway.test.id
+  external_address_space_mappings = ["192.168.23.0/26"]
+  internal_address_space_mappings = ["10.6.0.0/26"]
+  mode                            = "EgressSnat"
+  type                            = "Static"
+}
+
+resource "azurerm_vpn_gateway_nat_rule" "test4" {
+  name                            = "acctest-vpngwnatrule4-%[2]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  vpn_gateway_id                  = azurerm_vpn_gateway.test.id
+  external_address_space_mappings = ["192.168.24.0/26"]
+  internal_address_space_mappings = ["10.7.0.0/26"]
+  mode                            = "IngressSnat"
+  type                            = "Static"
+}
+
+resource "azurerm_vpn_gateway_connection" "test" {
+  name               = "acctest-VpnGwConn-%[2]d"
+  vpn_gateway_id     = azurerm_vpn_gateway.test.id
+  remote_vpn_site_id = azurerm_vpn_site.test.id
+
+  vpn_link {
+    name                = "link1"
+    vpn_site_link_id    = azurerm_vpn_site.test.link[0].id
+    egress_nat_rule_ids = [azurerm_vpn_gateway_nat_rule.test.id, azurerm_vpn_gateway_nat_rule.test3.id]
+  }
+
+  vpn_link {
+    name                 = "link2"
+    vpn_site_link_id     = azurerm_vpn_site.test.link[1].id
+    ingress_nat_rule_ids = [azurerm_vpn_gateway_nat_rule.test2.id, azurerm_vpn_gateway_nat_rule.test4.id]
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r VPNGatewayConnectionResource) updateNatRuleIds(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_vpn_gateway_nat_rule" "test" {
+  name                            = "acctest-vpngwnatrule-%[2]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  vpn_gateway_id                  = azurerm_vpn_gateway.test.id
+  external_address_space_mappings = ["192.168.21.0/26"]
+  internal_address_space_mappings = ["10.4.0.0/26"]
+  mode                            = "EgressSnat"
+  type                            = "Static"
+}
+
+resource "azurerm_vpn_gateway_nat_rule" "test2" {
+  name                            = "acctest-vpngwnatrule2-%[2]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  vpn_gateway_id                  = azurerm_vpn_gateway.test.id
+  external_address_space_mappings = ["192.168.22.0/26"]
+  internal_address_space_mappings = ["10.5.0.0/26"]
+  mode                            = "IngressSnat"
+  type                            = "Static"
+}
+
+resource "azurerm_vpn_gateway_connection" "test" {
+  name               = "acctest-VpnGwConn-%[2]d"
+  vpn_gateway_id     = azurerm_vpn_gateway.test.id
+  remote_vpn_site_id = azurerm_vpn_site.test.id
+
+  vpn_link {
+    name                = "link1"
+    vpn_site_link_id    = azurerm_vpn_site.test.link[0].id
+    egress_nat_rule_ids = [azurerm_vpn_gateway_nat_rule.test.id]
+  }
+
+  vpn_link {
+    name                 = "link2"
+    vpn_site_link_id     = azurerm_vpn_site.test.link[1].id
+    ingress_nat_rule_ids = [azurerm_vpn_gateway_nat_rule.test2.id]
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (VPNGatewayConnectionResource) template(data acceptance.TestData) string {

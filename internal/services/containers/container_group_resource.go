@@ -8,9 +8,7 @@ import (
 	"strings"
 	"time"
 
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-
-	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2019-12-01/containerinstance"
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2021-03-01/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -19,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
+	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -64,22 +63,18 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(containerinstance.Public),
-					string(containerinstance.Private),
+					string(containerinstance.ContainerGroupIPAddressTypePublic),
+					string(containerinstance.ContainerGroupIPAddressTypePrivate),
+					"None",
 				}, true),
 			},
 
 			"network_profile_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-				/* Container groups deployed to a virtual network don't currently support exposing containers directly to the internet with a public IP address or a fully qualified domain name.
-				 * Name resolution for Azure resources in the virtual network via the internal Azure DNS is not supported
-				 * You cannot use a managed identity in a container group deployed to a virtual network.
-				 * https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#virtual-network-deployment-limitations
-				 * https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#preview-limitations */
-				ConflictsWith: []string{"dns_name_label", "identity"},
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				ConflictsWith: []string{"dns_name_label"},
 			},
 
 			"os_type": {
@@ -88,8 +83,8 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(containerinstance.Windows),
-					string(containerinstance.Linux),
+					string(containerinstance.OperatingSystemTypesWindows),
+					string(containerinstance.OperatingSystemTypesLinux),
 				}, true),
 			},
 
@@ -164,12 +159,12 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          string(containerinstance.Always),
+				Default:          string(containerinstance.ContainerGroupRestartPolicyAlways),
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(containerinstance.Always),
-					string(containerinstance.Never),
-					string(containerinstance.OnFailure),
+					string(containerinstance.ContainerGroupRestartPolicyAlways),
+					string(containerinstance.ContainerGroupRestartPolicyNever),
+					string(containerinstance.ContainerGroupRestartPolicyOnFailure),
 				}, true),
 			},
 
@@ -199,10 +194,10 @@ func resourceContainerGroup() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ForceNew: true,
-							Default:  string(containerinstance.TCP),
+							Default:  string(containerinstance.ContainerGroupNetworkProtocolTCP),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(containerinstance.TCP),
-								string(containerinstance.UDP),
+								string(containerinstance.ContainerGroupNetworkProtocolTCP),
+								string(containerinstance.ContainerGroupNetworkProtocolUDP),
 							}, false),
 						},
 					},
@@ -241,7 +236,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 							ForceNew: true,
 						},
 
-						//lintignore:XS003
+						// lintignore:XS003
 						"gpu": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -292,10 +287,10 @@ func resourceContainerGroup() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ForceNew: true,
-										Default:  string(containerinstance.TCP),
+										Default:  string(containerinstance.ContainerGroupNetworkProtocolTCP),
 										ValidateFunc: validation.StringInSlice([]string{
-											string(containerinstance.TCP),
-											string(containerinstance.UDP),
+											string(containerinstance.ContainerGroupNetworkProtocolTCP),
+											string(containerinstance.ContainerNetworkProtocolUDP),
 										}, false),
 									},
 								},
@@ -470,8 +465,8 @@ func resourceContainerGroup() *pluginsdk.Resource {
 										Optional: true,
 										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(containerinstance.ContainerInsights),
-											string(containerinstance.ContainerInstanceLogs),
+											string(containerinstance.LogAnalyticsLogTypeContainerInsights),
+											string(containerinstance.LogAnalyticsLogTypeContainerInstanceLogs),
 										}, false),
 									},
 
@@ -578,13 +573,9 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Tags:     tags.Expand(t),
 		Identity: expandContainerGroupIdentity(d),
 		ContainerGroupProperties: &containerinstance.ContainerGroupProperties{
-			Containers:    containers,
-			Diagnostics:   diagnostics,
-			RestartPolicy: containerinstance.ContainerGroupRestartPolicy(restartPolicy),
-			IPAddress: &containerinstance.IPAddress{
-				Type:  containerinstance.ContainerGroupIPAddressType(IPAddressType),
-				Ports: containerGroupPorts,
-			},
+			Containers:               containers,
+			Diagnostics:              diagnostics,
+			RestartPolicy:            containerinstance.ContainerGroupRestartPolicy(restartPolicy),
 			OsType:                   containerinstance.OperatingSystemTypes(OSType),
 			Volumes:                  containerGroupVolumes,
 			ImageRegistryCredentials: expandContainerImageRegistryCredentials(d),
@@ -592,8 +583,15 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		},
 	}
 
-	if dnsNameLabel := d.Get("dns_name_label").(string); dnsNameLabel != "" {
-		containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
+	if IPAddressType != "None" {
+		containerGroup.ContainerGroupProperties.IPAddress = &containerinstance.IPAddress{
+			Ports: containerGroupPorts,
+			Type:  containerinstance.ContainerGroupIPAddressType(IPAddressType),
+		}
+
+		if dnsNameLabel := d.Get("dns_name_label").(string); dnsNameLabel != "" {
+			containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
+		}
 	}
 
 	// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#virtual-network-deployment-limitations
@@ -1053,7 +1051,7 @@ func expandContainerGroupIdentity(d *pluginsdk.ResourceData) *containerinstance.
 		Type: identityType,
 	}
 
-	if cgIdentity.Type == containerinstance.UserAssigned || cgIdentity.Type == containerinstance.SystemAssignedUserAssigned {
+	if cgIdentity.Type == containerinstance.ResourceIdentityTypeUserAssigned || cgIdentity.Type == containerinstance.ResourceIdentityTypeSystemAssignedUserAssigned {
 		cgIdentity.UserAssignedIdentities = identityIds
 	}
 

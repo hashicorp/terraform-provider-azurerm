@@ -1,6 +1,7 @@
 package containers
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -40,5 +41,15 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_container_registry_scope_map": resourceContainerRegistryScopeMap(),
 		"azurerm_kubernetes_cluster":           resourceKubernetesCluster(),
 		"azurerm_kubernetes_cluster_node_pool": resourceKubernetesClusterNodePool(),
+	}
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		ContainerRegistryTaskResource{},
 	}
 }

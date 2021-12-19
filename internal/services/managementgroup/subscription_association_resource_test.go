@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-05-01/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"

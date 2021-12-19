@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -63,10 +63,11 @@ func resourceApiManagementGroup() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(apimanagement.Custom),
+				Default:  string(apimanagement.GroupTypeCustom),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.Custom),
-					string(apimanagement.External),
+					string(apimanagement.GroupTypeCustom),
+					string(apimanagement.GroupTypeExternal),
+					string(apimanagement.GroupTypeSystem),
 				}, false),
 			},
 		},

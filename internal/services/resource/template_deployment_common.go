@@ -174,7 +174,10 @@ func deleteItemsProvisionedByTemplate(ctx context.Context, client *client.Client
 
 		resourceProviderApiVersion, ok := (*resourceProviderApiVersions)[parsedId.Provider]
 		if !ok {
-			return fmt.Errorf("API version information for RP %q was not found", parsedId.Provider)
+			resourceProviderApiVersion, ok = (*resourceProviderApiVersions)[parsedId.SecondaryProvider]
+			if !ok {
+				return fmt.Errorf("API version information for RP %q was not found", parsedId.Provider)
+			}
 		}
 
 		log.Printf("[DEBUG] Deleting Nested Resource %q..", *nestedResource.ID)

@@ -1,22 +1,26 @@
 package consumption
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-const (
-	// The Consumption Budget resource names are extracted into their own variables
-	// as the core logic for the Consumption Budget resources is generic and has been
-	// extracted out of the specific Consumption Budget resources. These constants are
-	// used when the generic Consumption Budget functions require a resource name.
-	consumptionBudgetResourceGroupName           = "azurerm_consumption_budget_resource_group"
-	consumptionBudgetSubscriptionName            = "azurerm_consumption_budget_subscription"
-	consumptionBudgetManagementGroupName         = "azurerm_consumption_budget_management_group"
-	consumptionBudgetResourceGroupDataSourceName = "azurerm_consumption_budget_resource_group"
-	consumptionBudgetSubscriptionDataSourceName  = "azurerm_consumption_budget_subscription"
-)
-
 type Registration struct{}
+
+var _ sdk.TypedServiceRegistration = Registration{}
+var _ sdk.UntypedServiceRegistration = Registration{}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		ManagementGroupConsumptionBudget{},
+		ResourceGroupConsumptionBudget{},
+		SubscriptionConsumptionBudget{},
+	}
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -33,16 +37,12 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		consumptionBudgetResourceGroupDataSourceName: resourceArmConsumptionBudgetResourceGroupDataSource(),
-		consumptionBudgetSubscriptionDataSourceName:  resourceArmConsumptionBudgetSubscriptionDataSource(),
+		"azurerm_consumption_budget_resource_group": resourceArmConsumptionBudgetResourceGroupDataSource(),
+		"azurerm_consumption_budget_subscription":   resourceArmConsumptionBudgetSubscriptionDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
-		consumptionBudgetResourceGroupName:   resourceArmConsumptionBudgetResourceGroup(),
-		consumptionBudgetSubscriptionName:    resourceArmConsumptionBudgetSubscription(),
-		consumptionBudgetManagementGroupName: resourceArmConsumptionBudgetManagementGroup(),
-	}
+	return map[string]*pluginsdk.Resource{}
 }

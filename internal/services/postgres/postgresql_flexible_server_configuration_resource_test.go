@@ -113,6 +113,21 @@ func (r PostgresqlFlexibleServerConfigurationResource) checkReset(configurationN
 	}
 }
 
+func TestAccFlexibleServerConfiguration_multiplePostgresqlFlexibleServerConfigurations(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_configuration", "test")
+	r := PostgresqlFlexibleServerConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multiplePostgresqlFlexibleServerConfigurations(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // Helper functions for verification
 func (r PostgresqlFlexibleServerConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FlexibleServerConfigurationID(state.ID)
@@ -142,4 +157,40 @@ resource "azurerm_postgresql_flexible_server_configuration" "test" {
   value     = "%s"
 }
 `, r.template(data), name, value)
+}
+
+func (PostgresqlFlexibleServerConfigurationResource) multiplePostgresqlFlexibleServerConfigurations(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server_configuration" "test" {
+  name      = "idle_in_transaction_session_timeout"
+  server_id = azurerm_postgresql_flexible_server.test.id
+  value     = "60"
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "test2" {
+  name      = "log_autovacuum_min_duration"
+  server_id = azurerm_postgresql_flexible_server.test.id
+  value     = "10"
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "test3" {
+  name      = "log_lock_waits"
+  server_id = azurerm_postgresql_flexible_server.test.id
+  value     = "on"
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "test4" {
+  name      = "log_min_duration_statement"
+  server_id = azurerm_postgresql_flexible_server.test.id
+  value     = "10"
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "test5" {
+  name      = "log_statement"
+  server_id = azurerm_postgresql_flexible_server.test.id
+  value     = "ddl"
+}
+`, PostgresqlFlexibleServerResource{}.complete(data))
 }

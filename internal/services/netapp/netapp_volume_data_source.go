@@ -26,7 +26,7 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.PoolName,
+				ValidateFunc: validate.VolumeName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -101,6 +101,7 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 							Computed: true,
 						},
 
+						// todo remove this in version 3.0 of the provider
 						"replication_schedule": {
 							Type:       pluginsdk.TypeString,
 							Computed:   true,

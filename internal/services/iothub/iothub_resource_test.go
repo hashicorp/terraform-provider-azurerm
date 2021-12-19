@@ -97,6 +97,10 @@ func TestAccIotHub_customRoutes(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("endpoint.#").HasValue("2"),
 				check.That(data.ResourceName).Key("endpoint.0.type").HasValue("AzureIotHub.StorageContainer"),
+				check.That(data.ResourceName).Key("endpoint.0.batch_frequency_in_seconds").HasValue("300"),
+				check.That(data.ResourceName).Key("endpoint.0.max_chunk_size_in_bytes").HasValue("314572800"),
+				check.That(data.ResourceName).Key("endpoint.0.encoding").HasValue("Avro"),
+				check.That(data.ResourceName).Key("endpoint.0.file_name_format").HasValue("{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}"),
 				check.That(data.ResourceName).Key("endpoint.1.type").HasValue("AzureIotHub.EventHub"),
 				check.That(data.ResourceName).Key("route.#").HasValue("2"),
 			),
@@ -241,6 +245,37 @@ func TestAccIotHub_minTLSVersion(t *testing.T) {
 			Config: r.minTLSVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccIotHub_cloudToDevice(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	r := IotHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cloudToDevice(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cloud_to_device.0.max_delivery_count").HasValue("20"),
+				check.That(data.ResourceName).Key("cloud_to_device.0.default_ttl").HasValue("PT1H30M"),
+				check.That(data.ResourceName).Key("cloud_to_device.0.feedback.0.time_to_live").HasValue("PT1H15M"),
+				check.That(data.ResourceName).Key("cloud_to_device.0.feedback.0.max_delivery_count").HasValue("25"),
+				check.That(data.ResourceName).Key("cloud_to_device.0.feedback.0.lock_duration").HasValue("PT55S"),
+			),
+		},
+		{
+			Config: r.cloudToDeviceUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cloud_to_device.0.max_delivery_count").HasValue("30"),
+				check.That(data.ResourceName).Key("cloud_to_device.0.default_ttl").HasValue("PT1H"),
+				check.That(data.ResourceName).Key("cloud_to_device.0.feedback.0.time_to_live").HasValue("PT1H10M"),
+				check.That(data.ResourceName).Key("cloud_to_device.0.feedback.0.max_delivery_count").HasValue("15"),
+				check.That(data.ResourceName).Key("cloud_to_device.0.feedback.0.lock_duration").HasValue("PT30S"),
 			),
 		},
 		data.ImportStep(),
@@ -498,15 +533,11 @@ resource "azurerm_iothub" "test" {
   event_hub_partition_count   = 77
 
   endpoint {
-    type                       = "AzureIotHub.StorageContainer"
-    connection_string          = azurerm_storage_account.test.primary_blob_connection_string
-    name                       = "export"
-    batch_frequency_in_seconds = 60
-    max_chunk_size_in_bytes    = 10485760
-    container_name             = azurerm_storage_container.test.name
-    encoding                   = "Avro"
-    file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
-    resource_group_name        = azurerm_resource_group.test.name
+    type                = "AzureIotHub.StorageContainer"
+    connection_string   = azurerm_storage_account.test.primary_blob_connection_string
+    name                = "export"
+    container_name      = azurerm_storage_container.test.name
+    resource_group_name = azurerm_resource_group.test.name
   }
 
   endpoint {
@@ -976,4 +1007,80 @@ resource "azurerm_iothub" "test" {
   }
 }
 `, data.RandomInteger, "eastus", data.RandomInteger)
+}
+
+func (IotHubResource) cloudToDevice(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-iothub-%d"
+  location = "%s"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "B1"
+    capacity = "1"
+  }
+
+  cloud_to_device {
+    max_delivery_count = 20
+    default_ttl        = "PT1H30M"
+    feedback {
+      time_to_live       = "PT1H15M"
+      max_delivery_count = 25
+      lock_duration      = "PT55S"
+    }
+  }
+
+  tags = {
+    purpose = "testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (IotHubResource) cloudToDeviceUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-iothub-%d"
+  location = "%s"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "B1"
+    capacity = "1"
+  }
+
+  cloud_to_device {
+    max_delivery_count = 30
+    default_ttl        = "PT1H"
+    feedback {
+      time_to_live       = "PT1H10M"
+      max_delivery_count = 15
+      lock_duration      = "PT30S"
+    }
+  }
+
+  tags = {
+    purpose = "testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

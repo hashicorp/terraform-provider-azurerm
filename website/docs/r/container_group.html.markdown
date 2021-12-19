@@ -65,8 +65,6 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-~> **Note:** managed identities are not supported for containers in virtual networks.
-
 * `container` - (Required) The definition of a container that is part of the group as documented in the `container` block below. Changing this forces a new resource to be created.
 
 * `os_type` - (Required) The OS for the container group. Allowed values are `Linux` and `Windows`. Changing this forces a new resource to be created.
@@ -86,9 +84,9 @@ The following arguments are supported:
 
 ~> **Note:** The `exposed_port` can only contain ports that are also exposed on one or more containers in the group. 
 
-* `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` or `Private`. Changing this forces a new resource to be created. If set to `Private`, `network_profile_id` also needs to be set.
+* `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public`, `Private` or `None`. Changing this forces a new resource to be created. If set to `Private`, `network_profile_id` also needs to be set.
 
-~> **Note:** `dns_name_label`, `identity` and `os_type` set to `windows` are not compatible with `Private` `ip_address_type`
+~> **Note:** `dns_name_label` and `os_type` set to `windows` are not compatible with `Private` `ip_address_type`
 
 * `network_profile_id` - (Optional) Network profile ID for deploying to virtual network.
 
