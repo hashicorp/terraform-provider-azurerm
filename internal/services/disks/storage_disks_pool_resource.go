@@ -23,6 +23,7 @@ import (
 
 type StorageDisksPoolResource struct{}
 
+var _ sdk.ResourceWithDeprecationReplacedBy = StorageDisksPoolResource{}
 var _ sdk.ResourceWithUpdate = StorageDisksPoolResource{}
 
 type StorageDisksPoolJobModel struct {
@@ -35,7 +36,11 @@ type StorageDisksPoolJobModel struct {
 	Tags              map[string]interface{} `tfschema:"tags"`
 }
 
-func (d StorageDisksPoolResource) Arguments() map[string]*pluginsdk.Schema {
+func (StorageDisksPoolResource) DeprecatedInFavourOfResource() string {
+	return "azurerm_disk_pool"
+}
+
+func (StorageDisksPoolResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -70,11 +75,11 @@ func (d StorageDisksPoolResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d StorageDisksPoolResource) Attributes() map[string]*pluginsdk.Schema {
+func (StorageDisksPoolResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (d StorageDisksPoolResource) Create() sdk.ResourceFunc {
+func (r StorageDisksPoolResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -93,7 +98,7 @@ func (d StorageDisksPoolResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("checking for presence of existing %q: %+v", id, err)
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(d.ResourceType(), id)
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			createParameter := diskpools.DiskPoolCreate{
@@ -115,7 +120,7 @@ func (d StorageDisksPoolResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (d StorageDisksPoolResource) Read() sdk.ResourceFunc {
+func (StorageDisksPoolResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -152,7 +157,7 @@ func (d StorageDisksPoolResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (d StorageDisksPoolResource) Delete() sdk.ResourceFunc {
+func (StorageDisksPoolResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -174,11 +179,11 @@ func (d StorageDisksPoolResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (d StorageDisksPoolResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (StorageDisksPoolResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.StorageDisksPoolID
 }
 
-func (d StorageDisksPoolResource) Update() sdk.ResourceFunc {
+func (StorageDisksPoolResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -214,11 +219,11 @@ func (d StorageDisksPoolResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (d StorageDisksPoolResource) ModelObject() interface{} {
+func (StorageDisksPoolResource) ModelObject() interface{} {
 	return &StorageDisksPoolJobModel{}
 }
 
-func (d StorageDisksPoolResource) ResourceType() string {
+func (StorageDisksPoolResource) ResourceType() string {
 	return "azurerm_storage_disks_pool"
 }
 
@@ -228,17 +233,4 @@ func expandDisksPoolSku(sku string) diskpools.Sku {
 		Name: sku,
 		Tier: &parts[0],
 	}
-}
-
-func flattenTags(input *map[string]string) map[string]interface{} {
-	output := make(map[string]interface{})
-
-	if input != nil {
-		for k, v := range *input {
-			val := v
-			output[k] = val
-		}
-	}
-
-	return output
 }
