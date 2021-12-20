@@ -2,6 +2,7 @@ package provider
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/advisor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement"
@@ -106,6 +107,7 @@ import (
 
 func SupportedTypedServices() []sdk.TypedServiceRegistration {
 	return []sdk.TypedServiceRegistration{
+		aadb2c.Registration{},
 		apimanagement.Registration{},
 		appconfiguration.Registration{},
 		appservice.Registration{},
