@@ -128,7 +128,7 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.Resource
 	ipRule := expandServiceBusNamespaceIPRules(d.Get("ip_rules").(*pluginsdk.Set).List())
 
 	// API doesn't accept "Deny" to be set for "default_action" if no "ip_rules" or "network_rules" is defined and returns no error message to the user
-	// The check won't be needed when 2021-11-01 API is released since service team will fail the update with bad request in that version
+	// TODO: The check won't be needed when 2021-11-01 API is released since service team will fail the update with bad request in that version
 	if defaultAction == servicebus.DefaultActionDeny && vnetRule == nil && ipRule == nil {
 		return fmt.Errorf(" The default action of %s can only be set to `Allow` if no `ip_rules` or `network_rules` is set", resourceId)
 	}
