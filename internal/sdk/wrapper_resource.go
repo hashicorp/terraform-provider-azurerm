@@ -139,13 +139,30 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 		}
 	}
 
-	if v, ok := rw.resource.(ResourceWithDeprecation); ok {
+	if v, ok := rw.resource.(ResourceWithDeprecationAndNoReplacement); ok {
 		message := v.DeprecationMessage()
 		if message == "" {
-			return nil, fmt.Errorf("Resource %q must return a non-empty DeprecationMessage if implementing ResourceWithDeprecation", rw.resource.ResourceType())
+			return nil, fmt.Errorf("Resource %q must return a non-empty DeprecationMessage if implementing ResourceWithDeprecationAndNoReplacement", rw.resource.ResourceType())
 		}
 
 		resource.DeprecationMessage = message
+	}
+	if v, ok := rw.resource.(ResourceWithDeprecationReplacedBy); ok {
+		if resource.DeprecationMessage != "" {
+			return nil, fmt.Errorf("Resource %q can implement either ResourceWithDeprecationAndNoReplacement or ResourceWithDeprecationReplacedBy but not both", rw.resource.ResourceType())
+		}
+
+		replacementResourceType := v.DeprecatedInFavourOfResource()
+		if replacementResourceType == "" {
+			return nil, fmt.Errorf("Resource %q must return a non-empty DeprecatedInFavourOfResource if implementing ResourceWithDeprecationReplacedBy", rw.resource.ResourceType())
+		}
+
+		resource.DeprecationMessage = fmt.Sprintf(`The %[1]q resource has been deprecated and replaced by the %[2]q resource.
+
+The existing %[1]q resource will remain available until the next
+major version of the Azure Provider however the existing resource is feature-frozen
+and we recommend using the %[2]q resource instead.
+`, rw.resource.ResourceType(), replacementResourceType)
 	}
 
 	if v, ok := rw.resource.(ResourceWithStateMigration); ok {
