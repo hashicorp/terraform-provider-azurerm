@@ -42,3 +42,6 @@ linters-settings:
       - exportfs
   nakedret:
     max-func-lines: 40
+
+output:
+  format: line-number
