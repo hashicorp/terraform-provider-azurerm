@@ -49,11 +49,6 @@ func ExtendedAuditingSchema() *pluginsdk.Schema {
 					Optional: true,
 					Default:  true,
 				},
-				"state": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
-				},
 				"storage_account_subscription_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
@@ -74,6 +69,7 @@ func ExpandSqlServerBlobAuditingPolicies(input []interface{}) (*sql.ExtendedServ
 	serverBlobAuditingPolicies := input[0].(map[string]interface{})
 
 	ExtendedServerBlobAuditingPolicyProperties := sql.ExtendedServerBlobAuditingPolicyProperties{
+		State:                       sql.BlobAuditingPolicyStateEnabled,
 		StorageAccountAccessKey:     utils.String(serverBlobAuditingPolicies["storage_account_access_key"].(string)),
 		StorageEndpoint:             utils.String(serverBlobAuditingPolicies["storage_endpoint"].(string)),
 		IsAzureMonitorTargetEnabled: utils.Bool(serverBlobAuditingPolicies["log_monitoring_enabled"].(bool)),
@@ -84,19 +80,13 @@ func ExpandSqlServerBlobAuditingPolicies(input []interface{}) (*sql.ExtendedServ
 	if v, ok := serverBlobAuditingPolicies["retention_in_days"]; ok {
 		ExtendedServerBlobAuditingPolicyProperties.RetentionDays = utils.Int32(int32(v.(int)))
 	}
-	if v, ok := serverBlobAuditingPolicies["storage_account_subscription_id"]; ok {
+	if v, ok := serverBlobAuditingPolicies["storage_account_subscription_id"]; ok && v.(string) != "" {
 		u, err := uuid.FromString(v.(string))
 		if err != nil {
 			return nil, fmt.Errorf("while parsing storage_account_subscrption_id value %q as UUID: %+v", v.(string), err)
 		}
 		ExtendedServerBlobAuditingPolicyProperties.StorageAccountSubscriptionID = &u
 	}
-
-	state := sql.BlobAuditingPolicyStateEnabled
-	if v, ok := serverBlobAuditingPolicies["state"]; ok && !v.(bool) {
-		state = sql.BlobAuditingPolicyStateDisabled
-	}
-	ExtendedServerBlobAuditingPolicyProperties.State = state
 
 	return &ExtendedServerBlobAuditingPolicyProperties, nil
 }
@@ -126,14 +116,12 @@ func FlattenSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolicy *sql.
 	if extendedServerBlobAuditingPolicy.IsAzureMonitorTargetEnabled != nil {
 		monitor = *extendedServerBlobAuditingPolicy.IsAzureMonitorTargetEnabled
 	}
-	var state bool
-	if extendedServerBlobAuditingPolicy.State == sql.BlobAuditingPolicyStateEnabled {
-		state = true
-	}
+
 	var storageAccountSubscriptionId string
 	if extendedServerBlobAuditingPolicy.ExtendedServerBlobAuditingPolicyProperties.StorageAccountSubscriptionID != nil {
 		storageAccountSubscriptionId = extendedServerBlobAuditingPolicy.StorageAccountSubscriptionID.String()
 	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"storage_account_access_key":              storageAccessKey,
@@ -141,7 +129,6 @@ func FlattenSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolicy *sql.
 			"storage_account_access_key_is_secondary": secondKeyInUse,
 			"retention_in_days":                       retentionDays,
 			"log_monitoring_enabled":                  monitor,
-			"state":                                   state,
 			"storage_account_subscription_id":         storageAccountSubscriptionId,
 		},
 	}
@@ -175,6 +162,7 @@ func FlattenMsSqlDBBlobAuditingPolicies(extendedDatabaseBlobAuditingPolicy *sql.
 	if extendedDatabaseBlobAuditingPolicy == nil || extendedDatabaseBlobAuditingPolicy.State == sql.BlobAuditingPolicyStateDisabled {
 		return []interface{}{}
 	}
+
 	var storageAccessKey, storageEndpoint string
 	// storage_account_access_key will not be returned, so we transfer the schema value
 	if v, ok := d.GetOk("extended_auditing_policy.0.storage_account_access_key"); ok {

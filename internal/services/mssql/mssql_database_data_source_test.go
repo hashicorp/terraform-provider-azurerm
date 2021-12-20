@@ -50,7 +50,7 @@ func (MsSqlDatabaseDataSource) basic(data acceptance.TestData) string {
 
 data "azurerm_mssql_database" "test" {
   name      = azurerm_mssql_database.test.name
-  server_id = azurerm_sql_server.test.id
+  server_id = azurerm_mssql_server.test.id
 }
 `, MsSqlDatabaseResource{}.basic(data))
 }
