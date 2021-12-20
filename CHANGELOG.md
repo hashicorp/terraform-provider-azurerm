@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * dependencies: upgrading `network` to API Version `2021-05-01` [GH-14164]
 * dependencies: upgrading to `v2.10.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-14666]
 * `azurerm_application_gateway` - support for the `key_vault_secret_id` and `force_firewall_policy_association` property [GH-14413]
+* `azurerm_iothub` - support for `identity` [GH-14354]
 * `azurerm_linux_virtual_machine` - support for the `user_data` property [GH-13888]
 * `azurerm_linux_virtual_machine_scale_set` - support for the `user_data` property [GH-13888]
 * `azurerm_managed_disk` - support for the `gallery_image_reference_id` property [GH-14121]
@@ -21,7 +22,7 @@ BUG FIXES:
 
 FEATURES:
 
-* **New Datasource:** `azurerm_app_configuration_key` ([#14484](https://github.com/hashicorp/terraform-provider-azurerm/issues/14484))
+* **New Data Source:** `azurerm_app_configuration_key` ([#14484](https://github.com/hashicorp/terraform-provider-azurerm/issues/14484))
 * **New Resource:** `azurerm_container_registry_task` ([#14533](https://github.com/hashicorp/terraform-provider-azurerm/issues/14533))
 * **New Resource:** `azurerm_maps_creator` ([#14566](https://github.com/hashicorp/terraform-provider-azurerm/issues/14566))
 * **New Resource:** `azurerm_netapp_snapshot_policy` ([#14230](https://github.com/hashicorp/terraform-provider-azurerm/issues/14230))
