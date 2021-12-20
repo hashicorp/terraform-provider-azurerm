@@ -1227,8 +1227,6 @@ resource "azurerm_api_management" "test" {
     capacity = 2
   }
 
-  zones = [1, 2]
-
   tags = {
     "Acceptance" = "Test"
   }
