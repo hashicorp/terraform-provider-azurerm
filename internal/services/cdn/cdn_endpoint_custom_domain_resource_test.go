@@ -25,8 +25,8 @@ type CdnEndpointCustomDomainResource struct {
 	// Subdomain Name, this needs to be the same value as set to "CN" in the certificate.
 	SubDomainName string
 
-	// PFX File
-	Certificate string
+	// PFX File (with base64 encoded)
+	CertificateP12 string
 }
 
 func NewCdnEndpointCustomDomainResource(dnsZoneRg, dnsZoneName string) *CdnEndpointCustomDomainResource {
@@ -123,7 +123,7 @@ func TestAccCdnEndpointCustomDomain_httpsUserManagedBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
 	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
-	r.Certificate = os.Getenv("ARM_TEST_DNS_CERTIFICATE")
+	r.CertificateP12 = os.Getenv("ARM_TEST_DNS_CERTIFICATE")
 	r.SubDomainName = os.Getenv("ARM_TEST_DNS_SUBDOMAIN_NAME")
 	r.preCheckUserManagedCertificate(t)
 
@@ -152,7 +152,7 @@ func (r CdnEndpointCustomDomainResource) preCheckUserManagedCertificate(t *testi
 	if r.SubDomainName == "" {
 		t.Skipf("`ARM_TEST_DNS_SUBDOMAIN_NAME` must be set for acceptance tests!")
 	}
-	if r.Certificate == "" {
+	if r.CertificateP12 == "" {
 		t.Skipf("`ARM_TEST_DNS_CERTIFICATE` must be set for acceptance tests!")
 	}
 }
@@ -285,7 +285,7 @@ resource "azurerm_key_vault_certificate" "test" {
   name         = "testkeyvaultcert-%[2]d"
   key_vault_id = azurerm_key_vault.test.id
   certificate {
-    contents = filebase64("%[3]s")
+    contents = file("%[3]s")
     password = ""
   }
   certificate_policy {
@@ -311,7 +311,7 @@ resource "azurerm_cdn_endpoint_custom_domain" "test" {
     key_vault_certificate_id = azurerm_key_vault_certificate.test.id
   }
 }
-`, template, data.RandomIntOfLength(8), r.Certificate)
+`, template, data.RandomIntOfLength(8), r.CertificateP12)
 }
 
 func (r CdnEndpointCustomDomainResource) template(data acceptance.TestData) string {

@@ -6,8 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 
 	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
@@ -529,63 +527,23 @@ func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Conte
 }
 
 func enableArmCdnEndpointCustomDomainHttps(ctx context.Context, client *cdn.CustomDomainsClient, id parse.CustomDomainId, params cdn.BasicCustomDomainHTTPSParameters) error {
-	_, err := client.EnableCustomHTTPS(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name, &params)
+	future, err := client.EnableCustomHTTPS(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name, &params)
 	if err != nil {
 		return fmt.Errorf("sending enable request: %+v", err)
 	}
-
-	log.Printf("[DEBUG] Waiting for HTTPS to enable on %q", id)
-	deadline, _ := ctx.Deadline()
-	stateConf := &resource.StateChangeConf{
-		Pending:    []string{string(cdn.CustomHTTPSProvisioningStateEnabling)},
-		Target:     []string{string(cdn.CustomHTTPSProvisioningStateEnabled)},
-		Refresh:    cdnEndpointCustomDomainHttpsRefreshFunc(ctx, client, id),
-		MinTimeout: 10 * time.Second,
-		Timeout:    time.Until(deadline),
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for enabling HTTPS: %+v", err)
 	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for HTTPS provision state: %+v", err)
-	}
-
 	return nil
 }
 
 func disableArmCdnEndpointCustomDomainHttps(ctx context.Context, client *cdn.CustomDomainsClient, id parse.CustomDomainId) error {
-	_, err := client.DisableCustomHTTPS(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
+	future, err := client.DisableCustomHTTPS(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
 	if err != nil {
 		return fmt.Errorf("sending disable request: %+v", err)
 	}
-
-	log.Printf("[DEBUG] Waiting for HTTPS to disable on %q", id)
-	deadline, _ := ctx.Deadline()
-	stateConf := &resource.StateChangeConf{
-		Pending:    []string{string(cdn.CustomHTTPSProvisioningStateDisabling)},
-		Target:     []string{string(cdn.CustomHTTPSProvisioningStateDisabled)},
-		Refresh:    cdnEndpointCustomDomainHttpsRefreshFunc(ctx, client, id),
-		MinTimeout: 10 * time.Second,
-		Timeout:    time.Until(deadline),
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for disabling HTTPS: %+v", err)
 	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for HTTPS provision state: %+v", err)
-	}
-
 	return nil
-}
-
-func cdnEndpointCustomDomainHttpsRefreshFunc(ctx context.Context, client *cdn.CustomDomainsClient, id parse.CustomDomainId) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
-		if err != nil {
-			return nil, "", fmt.Errorf("retrieving HTTPS provisioning state: %+v", err)
-		}
-
-		props := res.CustomDomainProperties
-		if props == nil {
-			return nil, "", fmt.Errorf("unexpected nil of `CustomDomainProperties` in response")
-		}
-
-		return props.CustomHTTPSProvisioningState, string(props.CustomHTTPSProvisioningState), nil
-	}
 }
