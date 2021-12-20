@@ -1,6 +1,8 @@
 package disks
 
-import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
 
 var _ sdk.TypedServiceRegistration = Registration{}
 
@@ -15,7 +17,9 @@ func (r Registration) DataSources() []sdk.DataSource {
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{}
+	return []sdk.Resource{
+		StorageDisksPoolResource{},
+	}
 }
 
 func (r Registration) WebsiteCategories() []string {

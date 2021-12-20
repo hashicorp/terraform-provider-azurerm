@@ -1,4 +1,4 @@
-package storage_test
+package disks_test
 
 import (
 	"context"

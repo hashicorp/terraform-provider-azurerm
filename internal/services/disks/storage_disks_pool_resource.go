@@ -1,4 +1,4 @@
-package storage
+package disks
 
 import (
 	"context"
@@ -21,11 +21,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DisksPoolResource struct{}
+type StorageDisksPoolResource struct{}
 
-var _ sdk.ResourceWithUpdate = DisksPoolResource{}
+var _ sdk.ResourceWithUpdate = StorageDisksPoolResource{}
 
-type DisksPoolJobModel struct {
+type StorageDisksPoolJobModel struct {
 	Name              string                 `tfschema:"name"`
 	ResourceGroupName string                 `tfschema:"resource_group_name"`
 	Location          string                 `tfschema:"location"`
@@ -35,7 +35,7 @@ type DisksPoolJobModel struct {
 	Tags              map[string]interface{} `tfschema:"tags"`
 }
 
-func (d DisksPoolResource) Arguments() map[string]*pluginsdk.Schema {
+func (d StorageDisksPoolResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -70,18 +70,18 @@ func (d DisksPoolResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d DisksPoolResource) Attributes() map[string]*pluginsdk.Schema {
+func (d StorageDisksPoolResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (d DisksPoolResource) Create() sdk.ResourceFunc {
+func (d StorageDisksPoolResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			client := metadata.Client.Disks.DiskPoolsClient
 
-			m := DisksPoolJobModel{}
+			m := StorageDisksPoolJobModel{}
 			err := metadata.Decode(&m)
 			if err != nil {
 				return err
@@ -115,7 +115,7 @@ func (d DisksPoolResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (d DisksPoolResource) Read() sdk.ResourceFunc {
+func (d StorageDisksPoolResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -132,7 +132,7 @@ func (d DisksPoolResource) Read() sdk.ResourceFunc {
 
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-			m := DisksPoolJobModel{
+			m := StorageDisksPoolJobModel{
 				Name:              id.DiskPoolName,
 				ResourceGroupName: id.ResourceGroupName,
 			}
@@ -152,7 +152,7 @@ func (d DisksPoolResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (d DisksPoolResource) Delete() sdk.ResourceFunc {
+func (d StorageDisksPoolResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -174,11 +174,11 @@ func (d DisksPoolResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (d DisksPoolResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (d StorageDisksPoolResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.StorageDisksPoolID
 }
 
-func (d DisksPoolResource) Update() sdk.ResourceFunc {
+func (d StorageDisksPoolResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -192,7 +192,7 @@ func (d DisksPoolResource) Update() sdk.ResourceFunc {
 			defer locks.UnlockByID(metadata.ResourceData.Id())
 
 			patch := diskpools.DiskPoolUpdate{}
-			var m DisksPoolJobModel
+			var m StorageDisksPoolJobModel
 			if err = metadata.Decode(&m); err != nil {
 				return fmt.Errorf("decoding model: %+v", err)
 			}
@@ -214,11 +214,11 @@ func (d DisksPoolResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (d DisksPoolResource) ModelObject() interface{} {
-	return &DisksPoolJobModel{}
+func (d StorageDisksPoolResource) ModelObject() interface{} {
+	return &StorageDisksPoolJobModel{}
 }
 
-func (d DisksPoolResource) ResourceType() string {
+func (d StorageDisksPoolResource) ResourceType() string {
 	return "azurerm_storage_disks_pool"
 }
 
