@@ -152,6 +152,8 @@ The following arguments are supported:
 
 * `file_upload` - (Optional) A `file_upload` block as defined below.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `ip_filter_rule` - (Optional) One or more `ip_filter_rule` blocks as defined below.
 
 * `route` - (Optional) A `route` block as defined below.
@@ -197,6 +199,14 @@ An `endpoint` block supports the following:
 * `file_name_format` - (Optional) File name format for the blob. Default format is ``{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}``. All parameters are mandatory but can be reordered. This attribute is applicable for endpoint type `AzureIotHub.StorageContainer`.
 
 * `resource_group_name` - (Optional) The resource group in which the endpoint will be created.
+
+---
+
+A `identity` block supports the following:
+
+* `type` - (Required) The type of Managed Identity which should be assigned to the Iot Hub. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+
+* `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Iot Hub.
 
 ---
 
@@ -297,7 +307,17 @@ The following attributes are exported:
 
 * `hostname` - The hostname of the IotHub Resource.
 
+* `identity` - An `identity` block as documented below.
+
 * `shared_access_policy` - One or more `shared_access_policy` blocks as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The ID of the System Managed Service Principal.
+
+* `tenant_id` - The ID of the Tenant the System Managed Service Principal is assigned in.
 
 ---
 
