@@ -88,7 +88,26 @@ func TestAccCdnEndpointCustomDomain_httpsCdn(t *testing.T) {
 	})
 }
 
-func TestAccCdnEndpointCustomDomain_httpsCdnUpdate(t *testing.T) {
+func TestAccCdnEndpointCustomDomain_httpsUserManaged(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
+
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r.CertificateP12 = os.Getenv("ARM_TEST_DNS_CERTIFICATE")
+	r.SubDomainName = os.Getenv("ARM_TEST_DNS_SUBDOMAIN_NAME")
+	r.preCheckUserManagedCertificate(t)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.httpsUserManaged(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnEndpointCustomDomain_httpsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
 	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
@@ -110,27 +129,15 @@ func TestAccCdnEndpointCustomDomain_httpsCdnUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.httpsUserManaged(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccCdnEndpointCustomDomain_httpsUserManagedBasic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
-
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
-	r.CertificateP12 = os.Getenv("ARM_TEST_DNS_CERTIFICATE")
-	r.SubDomainName = os.Getenv("ARM_TEST_DNS_SUBDOMAIN_NAME")
-	r.preCheckUserManagedCertificate(t)
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.httpsUserManaged(data),
-			Check: resource.ComposeTestCheckFunc(
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -221,7 +228,7 @@ func (r CdnEndpointCustomDomainResource) httpsCdn(data acceptance.TestData) stri
 	return fmt.Sprintf(`
 %s
 resource "azurerm_cdn_endpoint_custom_domain" "test" {
-  name            = "acctest-customdomain"
+  name            = "testcustomdomain-%[2]d"
   cdn_endpoint_id = azurerm_cdn_endpoint.test.id
   host_name       = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
   cdn_managed_https {
@@ -229,7 +236,7 @@ resource "azurerm_cdn_endpoint_custom_domain" "test" {
     protocol_type    = "ServerNameIndication"
   }
 }
-`, template)
+`, template, data.RandomIntOfLength(8))
 }
 
 func (r CdnEndpointCustomDomainResource) httpsUserManaged(data acceptance.TestData) string {
