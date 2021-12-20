@@ -465,6 +465,7 @@ func flattenArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input cdn.ManagedH
 		map[string]interface{}{
 			"certificate_type": certificateType,
 			"protocol_type":    string(input.ProtocolType),
+			"tls_version":      string(input.MinimumTLSVersion),
 		},
 	}
 }
@@ -525,6 +526,7 @@ func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Conte
 	return []interface{}{
 		map[string]interface{}{
 			"key_vault_certificate_id": certIdLiteral,
+			"tls_version":              string(input.MinimumTLSVersion),
 		},
 	}, nil
 }
