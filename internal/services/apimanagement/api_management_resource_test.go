@@ -1452,6 +1452,7 @@ resource "azurerm_public_ip" "test1" {
   name                = "acctest-IP1-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
   allocation_method   = "Dynamic"
 }
 
@@ -1459,6 +1460,7 @@ resource "azurerm_public_ip" "test2" {
   name                = "acctest-IP2-%[2]d"
   resource_group_name = azurerm_resource_group.test2.name
   location            = azurerm_resource_group.test2.location
+  sku                 = "Standard"
   allocation_method   = "Dynamic"
 }
 
