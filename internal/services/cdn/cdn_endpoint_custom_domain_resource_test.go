@@ -226,7 +226,7 @@ resource "azurerm_cdn_endpoint_custom_domain" "test" {
   host_name       = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
   cdn_managed_https {
     certificate_type = "Dedicated"
-    protocol_type    = "IPBased"
+    protocol_type    = "ServerNameIndication"
   }
 }
 `, template)

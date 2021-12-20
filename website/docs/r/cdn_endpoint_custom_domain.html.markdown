@@ -110,10 +110,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to
 specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 20 hours) Used when creating the Custom Domain for this CDN Endpoint.
+* `create` - (Defaults to 12 hours) Used when creating the Custom Domain for this CDN Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the CDN Endpoint Custom Domain.
-* `update` - (Defaults to 20 hours) Used when updating the CDN Endpoint Custom Domain.
-* `delete` - (Defaults to 20 hours) Used when deleting the CDN Endpoint Custom Domain.
+* `update` - (Defaults to 24 hours) Used when updating the CDN Endpoint Custom Domain.
+* `delete` - (Defaults to 12 hours) Used when deleting the CDN Endpoint Custom Domain.
 
 ## Import
 

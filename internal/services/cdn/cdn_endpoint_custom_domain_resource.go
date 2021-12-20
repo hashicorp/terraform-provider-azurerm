@@ -37,10 +37,10 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(20 * time.Hour),
+			Create: pluginsdk.DefaultTimeout(12 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(20 * time.Hour),
-			Delete: pluginsdk.DefaultTimeout(20 * time.Hour),
+			Update: pluginsdk.DefaultTimeout(24 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(12 * time.Hour),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
