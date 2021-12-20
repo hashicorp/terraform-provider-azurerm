@@ -190,6 +190,7 @@ resource "azurerm_recovery_services_vault" "test" {
   sku                 = "Standard"
 
   soft_delete_enabled = false
+  storage_mode_type   = "LocallyRedundant"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
