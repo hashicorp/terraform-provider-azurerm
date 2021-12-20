@@ -94,32 +94,32 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 }
 
 resource "azurerm_cdn_frontdoor_origin_group" "test" {
-	name       = "acctestcdnorigingroup%[1]d"
-  
-	profile_id = azurerm_cdn_frontdoor_profile.test.id
-  
-	health_probe {
-	  protocol = "Http"
-	  path = "/*"
-	  request_type = "GET"
-	  interval_in_seconds = 240
-	}
-  
-	load_balancing {
-	  sample_size                 = 6
-	  successful_samples_required = 3
-	  additional_latency_in_ms    = 10
-	}
+  name = "acctestcdnorigingroup%[1]d"
+
+  profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  health_probe {
+    protocol            = "Http"
+    path                = "/*"
+    request_type        = "GET"
+    interval_in_seconds = 240
   }
 
-  resource "azurerm_cdn_frontdoor_origin" "test" {
-	name            = "acctestcdnorigin%[1]d"
-	origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
-	host_name       = "new.xyz.com"
-	weight          = 10
-	priority        = 1
-  
-	enabled = true
+  load_balancing {
+    sample_size                 = 6
+    successful_samples_required = 3
+    additional_latency_in_ms    = 10
   }
+}
+
+resource "azurerm_cdn_frontdoor_origin" "test" {
+  name            = "acctestcdnorigin%[1]d"
+  origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  host_name       = "new.xyz.com"
+  weight          = 10
+  priority        = 1
+
+  enabled = true
+}
 `, data.RandomInteger, data.Locations.Primary)
 }

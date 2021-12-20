@@ -116,8 +116,8 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 }
 
 resource "azurerm_cdn_frontdoor_endpoint" "test" {
-  name                = "acctestcdnend%[1]d"
-  profile_id          = azurerm_cdn_frontdoor_profile.test.id
+  name       = "acctestcdnend%[1]d"
+  profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   origin_response_timeout_in_seconds = 60
 }
@@ -143,8 +143,8 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 }
 
 resource "azurerm_cdn_frontdoor_endpoint" "test" {
-  name                = "acctestcdnend%[1]d"
-  profile_id          = azurerm_cdn_frontdoor_profile.test.id
+  name       = "acctestcdnend%[1]d"
+  profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   tags = {
     environment = "Production"
@@ -173,8 +173,8 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 }
 
 resource "azurerm_cdn_frontdoor_endpoint" "test" {
-  name                = "acctestcdnend%[1]d"
-  profile_id          = azurerm_cdn_frontdoor_profile.test.id
+  name       = "acctestcdnend%[1]d"
+  profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   tags = {
     environment = "staging"

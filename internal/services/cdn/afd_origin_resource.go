@@ -32,7 +32,7 @@ func resourceAfdOrigin() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AfdOriginGroupsID(id)
+			_, err := parse.AfdOriginsID(id)
 			return err
 		}),
 
