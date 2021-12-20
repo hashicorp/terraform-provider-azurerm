@@ -33,7 +33,6 @@ type Client struct {
 	BlobServicesClient          *storage.BlobServicesClient
 	BlobInventoryPoliciesClient *legacystorage.BlobInventoryPoliciesClient
 	CloudEndpointsClient        *storagesync.CloudEndpointsClient
-	DisksPoolsClient            *storagepool.DiskPoolsClient
 	EncryptionScopesClient      *storage.EncryptionScopesClient
 	Environment                 az.Environment
 	FileServicesClient          *storage.FileServicesClient
@@ -96,7 +95,6 @@ func NewClient(options *common.ClientOptions) *Client {
 		BlobServicesClient:          &blobServicesClient,
 		BlobInventoryPoliciesClient: &blobInventoryPoliciesClient,
 		CloudEndpointsClient:        &cloudEndpointsClient,
-		DisksPoolsClient:            &disksPoolsClient,
 		EncryptionScopesClient:      &encryptionScopesClient,
 		Environment:                 options.Environment,
 		FileServicesClient:          &fileServicesClient,

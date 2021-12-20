@@ -6,16 +6,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storagepool/mgmt/2021-08-01/storagepool"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/sdk/2021-08-01/diskpools"
 	disksValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -43,8 +43,8 @@ func (d DisksPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: disksValidate.DiskPoolName(),
 		},
-		"resource_group_name": azure.SchemaResourceGroupName(),
-		"location":            location.Schema(),
+		"resource_group_name": commonschema.ResourceGroupName(),
+		"location":            commonschema.Location(),
 		"availability_zones": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -66,7 +66,7 @@ func (d DisksPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: networkValidate.SubnetID,
 		},
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -78,43 +78,37 @@ func (d DisksPoolResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := metadata.Client.Disks.DiskPoolsClient
+
 			m := DisksPoolJobModel{}
 			err := metadata.Decode(&m)
 			if err != nil {
 				return err
 			}
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := parse.NewStorageDisksPoolID(subscriptionId, m.ResourceGroupName, m.Name)
 
-			client := metadata.Client.Storage.DisksPoolsClient
-
-			existing, err := client.Get(ctx, m.ResourceGroupName, m.Name)
-			notExistingResp := utils.ResponseWasNotFound(existing.Response)
-			if err != nil && !notExistingResp {
+			id := diskpools.NewDiskPoolID(subscriptionId, m.ResourceGroupName, m.Name)
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %q: %+v", id, err)
 			}
-			if !notExistingResp {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(d.ResourceType(), id)
 			}
 
-			createParameter := storagepool.DiskPoolCreate{
-				DiskPoolCreateProperties: &storagepool.DiskPoolCreateProperties{
-					AvailabilityZones: &m.AvailabilityZones,
-					SubnetID:          &m.SubnetId,
-				},
-				Location: utils.String(m.Location),
+			createParameter := diskpools.DiskPoolCreate{
 				Name:     utils.String(m.Name),
-				Sku:      expandDisksPoolSku(m.Sku),
-				Tags:     tags.Expand(m.Tags),
+				Location: location.Normalize(m.Location),
+				Properties: diskpools.DiskPoolCreateProperties{
+					AvailabilityZones: &m.AvailabilityZones,
+					SubnetId:          m.SubnetId,
+				},
+				Sku:  expandDisksPoolSku(m.Sku),
+				Tags: tags.Expand(m.Tags),
 			}
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, m.Name, createParameter)
-			if err != nil {
-				return fmt.Errorf("creation of %q: %+v", id, err)
+			if err := client.CreateOrUpdateThenPoll(ctx, id, createParameter); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of %q: %+v", id, err)
-			}
-
 			metadata.SetID(id)
 			return nil
 		},
@@ -125,35 +119,34 @@ func (d DisksPoolResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.StorageDisksPoolID(metadata.ResourceData.Id())
+			client := metadata.Client.Disks.DiskPoolsClient
+			id, err := diskpools.ParseDiskPoolID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-			client := metadata.Client.Storage.DisksPoolsClient
-			resp, err := client.Get(ctx, id.ResourceGroup, id.DiskPoolName)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving %q: %+v", id, err)
+
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 			m := DisksPoolJobModel{
 				Name:              id.DiskPoolName,
-				ResourceGroupName: id.ResourceGroup,
-				Tags:              tags.Flatten(resp.Tags),
+				ResourceGroupName: id.ResourceGroupName,
 			}
-			if resp.AvailabilityZones != nil {
-				m.AvailabilityZones = *resp.AvailabilityZones
+			if model := resp.Model; model != nil {
+				if model.Sku != nil {
+					m.Sku = model.Sku.Name
+				}
+				m.Tags = flattenTags(model.Tags)
+
+				m.AvailabilityZones = model.Properties.AvailabilityZones
+				m.Location = location.Normalize(model.Location)
+				m.SubnetId = model.Properties.SubnetId
 			}
-			if resp.Location != nil {
-				m.Location = location.Normalize(*resp.Location)
-			}
-			if resp.Sku != nil && resp.Sku.Name != nil {
-				m.Sku = *resp.Sku.Name
-			}
-			if resp.SubnetID != nil {
-				m.SubnetId = *resp.SubnetID
-			}
+
 			return metadata.Encode(&m)
 		},
 	}
@@ -163,7 +156,8 @@ func (d DisksPoolResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.StorageDisksPoolID(metadata.ResourceData.Id())
+			client := metadata.Client.Disks.DiskPoolsClient
+			id, err := diskpools.ParseDiskPoolID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -171,14 +165,10 @@ func (d DisksPoolResource) Delete() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			client := metadata.Client.Storage.DisksPoolsClient
-			future, err := client.Delete(ctx, id.ResourceGroup, id.DiskPoolName)
-			if err != nil {
-				return fmt.Errorf("deletion of %q: %+v", id, err)
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for deletion of %q : %+v", id, err)
-			}
+
 			return nil
 		},
 	}
@@ -192,37 +182,33 @@ func (d DisksPoolResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r := metadata.ResourceData
-			id, err := parse.StorageDisksPoolID(r.Id())
+			client := metadata.Client.Disks.DiskPoolsClient
+			id, err := diskpools.ParseDiskPoolID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			locks.ByID(r.Id())
-			defer locks.UnlockByID(r.Id())
+			locks.ByID(metadata.ResourceData.Id())
+			defer locks.UnlockByID(metadata.ResourceData.Id())
 
-			client := metadata.Client.Storage.DisksPoolsClient
-			patch := storagepool.DiskPoolUpdate{}
-			m := DisksPoolJobModel{}
-			err = metadata.Decode(&m)
-			if err != nil {
-				return err
+			patch := diskpools.DiskPoolUpdate{}
+			var m DisksPoolJobModel
+			if err = metadata.Decode(&m); err != nil {
+				return fmt.Errorf("decoding model: %+v", err)
 			}
 
-			if r.HasChange("sku") {
-				patch.Sku = expandDisksPoolSku(m.Sku)
+			if metadata.ResourceData.HasChange("sku") {
+				sku := expandDisksPoolSku(m.Sku)
+				patch.Sku = &sku
 			}
-			if r.HasChange("tags") {
+			if metadata.ResourceData.HasChange("tags") {
 				patch.Tags = tags.Expand(m.Tags)
 			}
 
-			future, err := client.Update(ctx, id.ResourceGroup, id.DiskPoolName, patch)
-			if err != nil {
-				return fmt.Errorf("update of %q: %+v", id, err)
+			if err := client.UpdateThenPoll(ctx, *id, patch); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for update of %q : %+v", id, err)
-			}
+
 			return nil
 		},
 	}
@@ -236,10 +222,23 @@ func (d DisksPoolResource) ResourceType() string {
 	return "azurerm_storage_disks_pool"
 }
 
-func expandDisksPoolSku(sku string) *storagepool.Sku {
+func expandDisksPoolSku(sku string) diskpools.Sku {
 	parts := strings.Split(sku, "_")
-	return &storagepool.Sku{
-		Name: &sku,
+	return diskpools.Sku{
+		Name: sku,
 		Tier: &parts[0],
 	}
+}
+
+func flattenTags(input *map[string]string) map[string]interface{} {
+	output := make(map[string]interface{})
+
+	if input != nil {
+		for k, v := range *input {
+			val := v
+			output[k] = val
+		}
+	}
+
+	return output
 }
