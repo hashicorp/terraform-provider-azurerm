@@ -10,6 +10,8 @@ description: |-
 
 Manages a Disks Pool.
 
+!> **Note:** This resource has been deprecated in favour of `azurerm_disk_pool` and will be removed in version 3.0 of the Azure Provider.
+
 ## Example Usage
 
 ```hcl
