@@ -111,7 +111,9 @@ func TestAccCdnEndpointCustomDomain_httpsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
 	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
-	r.preCheck(t)
+	r.CertificateP12 = os.Getenv("ARM_TEST_DNS_CERTIFICATE")
+	r.SubDomainName = os.Getenv("ARM_TEST_DNS_SUBDOMAIN_NAME")
+	r.preCheckUserManagedCertificate(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
