@@ -31,7 +31,7 @@ func (r Registration) Resources() []sdk.Resource {
 
 func (r Registration) WebsiteCategories() []string {
 	return []string{
-		// TODO: introduce "Disks"
+		"Disks",
 		"Storage",
 	}
 }
