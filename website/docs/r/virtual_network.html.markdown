@@ -17,7 +17,7 @@ At this time you cannot use a Virtual Network with in-line Subnets in conjunctio
 ~> **NOTE on Virtual Networks and DNS Servers:** Terraform currently provides both a standalone [virtual network DNS Servers resource](virtual_network_dns_servers.html), and allows for DNS servers to be defined in-line within the [Virtual Network resource](virtual_network.html).
 At this time you cannot use a Virtual Network with in-line DNS servers in conjunction with any Virtual Network DNS Servers resources. Doing so will cause a conflict of Virtual Network DNS Servers configurations and will overwrite virtual networks DNS servers.
 
-~> **NOTE on Virtual Networks DDoS Protection Plan:** The ddos_protection_plan is a [high cost service](https://azure.microsoft.com/en-us/pricing/details/ddos-protection/#pricing). Please keep this in mind while testing and learning.
+~> **NOTE on Virtual Networks DDoS Protection Plan:** The ddos_protection_plan is a [high-cost service](https://azure.microsoft.com/en-us/pricing/details/ddos-protection/#pricing). Please keep this in mind while testing and learning.
 
 ## Example Usage
 
