@@ -88,9 +88,9 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 				Type:       pluginsdk.TypeSet,
 				Optional:   true,
 				Computed:   true,
-				Deprecated: "Deprecated in favour of `connectivity_logs_enabled`, `messaging_logs_enabled` and `service_mode`",
+				Deprecated: "Deprecated in favour of `connectivity_logs_enabled`, `messaging_logs_enabled`, `live_trace_enabled` and `service_mode`",
 				ConflictsWith: []string{
-					"connectivity_logs_enabled", "messaging_logs_enabled", "service_mode",
+					"connectivity_logs_enabled", "messaging_logs_enabled", "live_trace_enabled", "service_mode",
 				},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -101,6 +101,7 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 								string(signalr.FeatureFlagsEnableConnectivityLogs),
 								string(signalr.FeatureFlagsEnableMessagingLogs),
 								string(signalr.FeatureFlagsServiceMode),
+								"EnableLiveTrace",
 							}, false),
 						},
 
@@ -122,6 +123,15 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 			},
 
 			"messaging_logs_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: true, // TODO remove in 3.0
+				ConflictsWith: []string{
+					"features",
+				},
+			},
+
+			"live_trace_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Computed: true, // TODO remove in 3.0
@@ -275,6 +285,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	featureFlags := d.Get("features").(*pluginsdk.Set).List()
 	connectivityLogsEnabled := d.Get("connectivity_logs_enabled").(bool)
 	messagingLogsEnabled := d.Get("messaging_logs_enabled").(bool)
+	liveTraceEnabled := d.Get("live_trace_enabled").(bool)
 	serviceMode := d.Get("service_mode").(string)
 
 	cors := d.Get("cors").([]interface{})
@@ -286,7 +297,13 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	} else {
 		expandedFeatures = append(expandedFeatures, signalRFeature(signalr.FeatureFlagsEnableConnectivityLogs, strconv.FormatBool(connectivityLogsEnabled)))
 		expandedFeatures = append(expandedFeatures, signalRFeature(signalr.FeatureFlagsEnableMessagingLogs, strconv.FormatBool(messagingLogsEnabled)))
+		expandedFeatures = append(expandedFeatures, signalRFeature("EnableLiveTrace", strconv.FormatBool(liveTraceEnabled)))
+
+		if serviceMode == "" {
+			serviceMode = "Default"
+		}
 		expandedFeatures = append(expandedFeatures, signalRFeature(signalr.FeatureFlagsServiceMode, serviceMode))
+
 	}
 
 	// Upstream configurations are only allowed when the SignalR service is in `Serverless` mode
@@ -361,6 +378,7 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			connectivityLogsEnabled := false
 			messagingLogsEnabled := false
+			liveTraceEnabled := false
 			serviceMode := "Default"
 			for _, feature := range *props.Features {
 				if feature.Flag == signalr.FeatureFlagsEnableConnectivityLogs {
@@ -369,12 +387,16 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 				if feature.Flag == signalr.FeatureFlagsEnableMessagingLogs {
 					messagingLogsEnabled = strings.EqualFold(feature.Value, "True")
 				}
+				if feature.Flag == "EnableLiveTrace" {
+					liveTraceEnabled = strings.EqualFold(feature.Value, "True")
+				}
 				if feature.Flag == signalr.FeatureFlagsServiceMode {
 					serviceMode = feature.Value
 				}
 			}
 			d.Set("connectivity_logs_enabled", connectivityLogsEnabled)
 			d.Set("messaging_logs_enabled", messagingLogsEnabled)
+			d.Set("live_trace_enabled", liveTraceEnabled)
 			d.Set("service_mode", serviceMode)
 
 			if err := d.Set("cors", flattenSignalRCors(props.Cors)); err != nil {
@@ -413,7 +435,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	resourceType := signalr.SignalRResource{}
 
-	if d.HasChanges("cors", "features", "upstream_endpoint", "connectivity_logs_enabled", "messaging_logs_enabled", "service_mode") {
+	if d.HasChanges("cors", "features", "upstream_endpoint", "connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled") {
 		resourceType.Properties = &signalr.SignalRProperties{}
 
 		if d.HasChange("cors") {
@@ -426,7 +448,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 			resourceType.Properties.Features = expandSignalRFeatures(featuresRaw)
 		}
 
-		if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "service_mode") {
+		if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled") {
 			features := make([]signalr.SignalRFeature, 0)
 			if d.HasChange("connectivity_logs_enabled") {
 				connectivityLogsEnabled := d.Get("connectivity_logs_enabled").(bool)
@@ -436,6 +458,11 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 			if d.HasChange("messaging_logs_enabled") {
 				messagingLogsEnabled := d.Get("messaging_logs_enabled").(bool)
 				features = append(features, signalRFeature(signalr.FeatureFlagsEnableMessagingLogs, strconv.FormatBool(messagingLogsEnabled)))
+			}
+
+			if d.HasChange("live_trace_enabled") {
+				liveTraceEnabled := d.Get("live_trace_enabled").(bool)
+				features = append(features, signalRFeature("EnableLiveTrace", strconv.FormatBool(liveTraceEnabled)))
 			}
 
 			if d.HasChange("service_mode") {

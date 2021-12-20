@@ -1,78 +1,70 @@
 package consumption
 
 import (
-	"time"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
-	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
+	validateResourceGroup "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func resourceArmConsumptionBudgetResourceGroup() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceArmConsumptionBudgetResourceGroupCreateUpdate,
-		Read:   resourceArmConsumptionBudgetResourceGroupRead,
-		Update: resourceArmConsumptionBudgetResourceGroupCreateUpdate,
-		Delete: resourceArmConsumptionBudgetResourceGroupDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ConsumptionBudgetResourceGroupID(id)
-			return err
-		}),
+type ResourceGroupConsumptionBudget struct {
+	base consumptionBudgetBaseResource
+}
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+var _ sdk.Resource = ResourceGroupConsumptionBudget{}
+var _ sdk.ResourceWithCustomImporter = ResourceGroupConsumptionBudget{}
+
+func (r ResourceGroupConsumptionBudget) Arguments() map[string]*pluginsdk.Schema {
+	schema := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},
-
-		Schema: SchemaConsumptionBudgetResourceGroupResource(),
+		"resource_group_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validateResourceGroup.ResourceGroupID,
+		},
 	}
+	return r.base.arguments(schema)
 }
 
-func resourceArmConsumptionBudgetResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	name := d.Get("name").(string)
-	resourceGroupId, err := resourceParse.ResourceGroupID(d.Get("resource_group_id").(string))
-	if err != nil {
-		return err
-	}
-
-	err = resourceArmConsumptionBudgetCreateUpdate(d, meta, consumptionBudgetResourceGroupName, resourceGroupId.ID())
-	if err != nil {
-		return err
-	}
-
-	d.SetId(parse.NewConsumptionBudgetResourceGroupID(resourceGroupId.SubscriptionId, resourceGroupId.ResourceGroup, name).ID())
-
-	return resourceArmConsumptionBudgetResourceGroupRead(d, meta)
+func (r ResourceGroupConsumptionBudget) Attributes() map[string]*pluginsdk.Schema {
+	return r.base.attributes()
 }
 
-func resourceArmConsumptionBudgetResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	consumptionBudgetId, err := parse.ConsumptionBudgetResourceGroupID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	resourceGroupId := resourceParse.NewResourceGroupID(consumptionBudgetId.SubscriptionId, consumptionBudgetId.ResourceGroup)
-
-	err = resourceArmConsumptionBudgetRead(d, meta, resourceGroupId.ID(), consumptionBudgetId.BudgetName, SchemaConsumptionBudgetNotificationElement, FlattenConsumptionBudgetNotifications)
-	if err != nil {
-		return err
-	}
-
-	// The scope of a Resource Group consumption budget is the Resource Group ID
-	d.Set("resource_group_id", resourceGroupId.ID())
-
+func (r ResourceGroupConsumptionBudget) ModelObject() interface{} {
 	return nil
 }
 
-func resourceArmConsumptionBudgetResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	consumptionBudgetId, err := parse.ConsumptionBudgetResourceGroupID(d.Id())
-	if err != nil {
-		return err
-	}
+func (r ResourceGroupConsumptionBudget) ResourceType() string {
+	return "azurerm_consumption_budget_resource_group"
+}
 
-	resourceGroupId := resourceParse.NewResourceGroupID(consumptionBudgetId.SubscriptionId, consumptionBudgetId.ResourceGroup)
+func (r ResourceGroupConsumptionBudget) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return validate.ConsumptionBudgetResourceGroupID
+}
 
-	return resourceArmConsumptionBudgetDelete(d, meta, resourceGroupId.ID())
+func (r ResourceGroupConsumptionBudget) Create() sdk.ResourceFunc {
+	return r.base.createFunc(r.ResourceType(), "resource_group_id")
+}
+
+func (r ResourceGroupConsumptionBudget) Read() sdk.ResourceFunc {
+	return r.base.readFunc("resource_group_id")
+}
+
+func (r ResourceGroupConsumptionBudget) Delete() sdk.ResourceFunc {
+	return r.base.deleteFunc()
+}
+
+func (r ResourceGroupConsumptionBudget) Update() sdk.ResourceFunc {
+	return r.base.updateFunc()
+}
+
+func (r ResourceGroupConsumptionBudget) CustomImporter() sdk.ResourceRunFunc {
+	return r.base.importerFunc("resource_group")
 }

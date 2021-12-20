@@ -995,7 +995,11 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("enable_free_tier", props.EnableFreeTier)
 		d.Set("analytical_storage_enabled", props.EnableAnalyticalStorage)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == documentdb.PublicNetworkAccessEnabled)
-		d.Set("default_identity_type", props.DefaultIdentity)
+		defaultIdentity := props.DefaultIdentity
+		if defaultIdentity == nil {
+			defaultIdentity = utils.String("FirstPartyIdentity")
+		}
+		d.Set("default_identity_type", defaultIdentity)
 		d.Set("create_mode", props.CreateMode)
 
 		if v := resp.IsVirtualNetworkFilterEnabled; v != nil {

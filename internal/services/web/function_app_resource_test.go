@@ -145,6 +145,21 @@ func TestAccFunctionApp_appSettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.appSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFunctionApp_appSettingsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -1478,7 +1493,10 @@ resource "azurerm_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   app_settings = {
-    "hello" = "world"
+    "hello"                   = "world"
+    "WEBSITE_VNET_ROUTE_ALL"  = "true"
+    "WEBSITE_CONTENTOVERVNET" = "true"
+    "WEBSITE_DNS_SERVER"      = "1.1.1.1"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -1573,9 +1591,9 @@ resource "azurerm_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   app_settings = {
-    "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_storage_account.test.primary_connection_string
-    "AzureWebJobsDashboard"          = azurerm_storage_account.test.primary_connection_string
-    "AzureWebJobsStorage"            = azurerm_storage_account.test.primary_connection_string
+    "WEBSITE_VNET_ROUTE_ALL"  = "true"
+    "WEBSITE_CONTENTOVERVNET" = "true"
+    "WEBSITE_DNS_SERVER"      = "1.1.1.1"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

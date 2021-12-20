@@ -18,7 +18,7 @@ func importVirtualMachine(osType compute.OperatingSystemTypes, resourceType stri
 		}
 
 		client := meta.(*clients.Client).Compute.VMClient
-		vm, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+		vm, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}

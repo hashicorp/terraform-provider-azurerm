@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
@@ -225,13 +223,9 @@ func resourceArmConsumptionBudgetSubscriptionDataSourceRead(d *pluginsdk.Resourc
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	subscriptionId, err := commonids.ParseSubscriptionID(d.Get("subscription_id").(string))
-	if err != nil {
-		return err
-	}
+	id := parse.NewConsumptionBudgetId(d.Get("subscription_id").(string), d.Get("name").(string))
 
-	id := parse.NewConsumptionBudgetSubscriptionID(subscriptionId.SubscriptionId, d.Get("name").(string))
-	resp, err := client.Get(ctx, subscriptionId.ID(), id.BudgetName)
+	resp, err := client.Get(ctx, id.Scope, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s was not found", id)
@@ -240,18 +234,16 @@ func resourceArmConsumptionBudgetSubscriptionDataSourceRead(d *pluginsdk.Resourc
 	}
 
 	d.SetId(id.ID())
-	d.Set("name", id.BudgetName)
+	d.Set("name", id.Name)
+	d.Set("subscription_id", id.Scope)
 	if resp.Amount != nil {
 		amount, _ := resp.Amount.Float64()
 		d.Set("amount", amount)
 	}
 	d.Set("time_grain", string(resp.TimeGrain))
-	d.Set("time_period", FlattenConsumptionBudgetTimePeriod(resp.TimePeriod))
-	d.Set("notification", FlattenConsumptionBudgetNotifications(resp.Notifications))
-	d.Set("filter", FlattenConsumptionBudgetFilter(resp.Filter))
-
-	// The scope of a Subscription budget resource is the Subscription budget ID
-	d.Set("subscription_id", d.Get("subscription_id").(string))
+	d.Set("time_period", flattenConsumptionBudgetTimePeriod(resp.TimePeriod))
+	d.Set("notification", flattenConsumptionBudgetNotifications(resp.Notifications, id.Scope))
+	d.Set("filter", flattenConsumptionBudgetFilter(resp.Filter))
 
 	return nil
 }

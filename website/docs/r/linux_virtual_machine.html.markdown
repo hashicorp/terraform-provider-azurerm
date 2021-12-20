@@ -182,6 +182,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine.
 
+* `user_data` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine.
+
 * `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled on the virtual machine. Changing this forces a new resource to be created.
 
 * `virtual_machine_scale_set_id` - (Optional) Specifies the Orchestrated Virtual Machine Scale Set that this Virtual Machine should be created within. Changing this forces a new resource to be created.
