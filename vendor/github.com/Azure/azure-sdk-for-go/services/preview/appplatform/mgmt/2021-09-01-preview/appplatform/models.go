@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2021-06-01-preview/appplatform"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2021-09-01-preview/appplatform"
 
 // ApplicationInsightsAgentVersions application Insights agent versions properties payload
 type ApplicationInsightsAgentVersions struct {
@@ -244,8 +244,12 @@ type AppResourceProperties struct {
 	TemporaryDisk *TemporaryDisk `json:"temporaryDisk,omitempty"`
 	// PersistentDisk - Persistent disk settings
 	PersistentDisk *PersistentDisk `json:"persistentDisk,omitempty"`
+	// CustomPersistentDisks - List of custom persistent disks
+	CustomPersistentDisks *[]CustomPersistentDiskResource `json:"customPersistentDisks,omitempty"`
 	// EnableEndToEndTLS - Indicate if end to end TLS is enabled.
 	EnableEndToEndTLS *bool `json:"enableEndToEndTLS,omitempty"`
+	// LoadedCertificates - Collection of loaded certificates
+	LoadedCertificates *[]LoadedCertificate `json:"loadedCertificates,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AppResourceProperties.
@@ -269,8 +273,14 @@ func (arp AppResourceProperties) MarshalJSON() ([]byte, error) {
 	if arp.PersistentDisk != nil {
 		objectMap["persistentDisk"] = arp.PersistentDisk
 	}
+	if arp.CustomPersistentDisks != nil {
+		objectMap["customPersistentDisks"] = arp.CustomPersistentDisks
+	}
 	if arp.EnableEndToEndTLS != nil {
 		objectMap["enableEndToEndTLS"] = arp.EnableEndToEndTLS
+	}
+	if arp.LoadedCertificates != nil {
+		objectMap["loadedCertificates"] = arp.LoadedCertificates
 	}
 	return json.Marshal(objectMap)
 }
@@ -567,6 +577,57 @@ type AvailableRuntimeVersions struct {
 func (arv AvailableRuntimeVersions) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
+}
+
+// AzureFileVolume the properties of the Azure File volume. Azure File shares are mounted as volumes.
+type AzureFileVolume struct {
+	// ShareName - The share name of the Azure File share.
+	ShareName *string `json:"shareName,omitempty"`
+	// MountPath - The mount path of the persistent disk.
+	MountPath *string `json:"mountPath,omitempty"`
+	// ReadOnly - Indicates whether the persistent disk is a readOnly one.
+	ReadOnly *bool `json:"readOnly,omitempty"`
+	// MountOptions - These are the mount options for a persistent disk.
+	MountOptions *[]string `json:"mountOptions,omitempty"`
+	// Type - Possible values include: 'TypeCustomPersistentDiskProperties', 'TypeAzureFileVolume'
+	Type Type `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AzureFileVolume.
+func (afv AzureFileVolume) MarshalJSON() ([]byte, error) {
+	afv.Type = TypeAzureFileVolume
+	objectMap := make(map[string]interface{})
+	if afv.ShareName != nil {
+		objectMap["shareName"] = afv.ShareName
+	}
+	if afv.MountPath != nil {
+		objectMap["mountPath"] = afv.MountPath
+	}
+	if afv.ReadOnly != nil {
+		objectMap["readOnly"] = afv.ReadOnly
+	}
+	if afv.MountOptions != nil {
+		objectMap["mountOptions"] = afv.MountOptions
+	}
+	if afv.Type != "" {
+		objectMap["type"] = afv.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAzureFileVolume is the BasicCustomPersistentDiskProperties implementation for AzureFileVolume.
+func (afv AzureFileVolume) AsAzureFileVolume() (*AzureFileVolume, bool) {
+	return &afv, true
+}
+
+// AsCustomPersistentDiskProperties is the BasicCustomPersistentDiskProperties implementation for AzureFileVolume.
+func (afv AzureFileVolume) AsCustomPersistentDiskProperties() (*CustomPersistentDiskProperties, bool) {
+	return nil, false
+}
+
+// AsBasicCustomPersistentDiskProperties is the BasicCustomPersistentDiskProperties implementation for AzureFileVolume.
+func (afv AzureFileVolume) AsBasicCustomPersistentDiskProperties() (BasicCustomPersistentDiskProperties, bool) {
+	return &afv, true
 }
 
 // BindingResource binding resource payload
@@ -910,16 +971,17 @@ func (future *BindingsUpdateFuture) result(client BindingsClient) (br BindingRes
 	return
 }
 
+// BasicCertificateProperties certificate resource payload.
+type BasicCertificateProperties interface {
+	AsKeyVaultCertificateProperties() (*KeyVaultCertificateProperties, bool)
+	AsContentCertificateProperties() (*ContentCertificateProperties, bool)
+	AsCertificateProperties() (*CertificateProperties, bool)
+}
+
 // CertificateProperties certificate resource payload.
 type CertificateProperties struct {
 	// Thumbprint - READ-ONLY; The thumbprint of certificate.
 	Thumbprint *string `json:"thumbprint,omitempty"`
-	// VaultURI - The vault uri of user key vault.
-	VaultURI *string `json:"vaultUri,omitempty"`
-	// KeyVaultCertName - The certificate name of key vault.
-	KeyVaultCertName *string `json:"keyVaultCertName,omitempty"`
-	// CertVersion - The certificate version of key vault.
-	CertVersion *string `json:"certVersion,omitempty"`
 	// Issuer - READ-ONLY; The issuer of certificate.
 	Issuer *string `json:"issuer,omitempty"`
 	// IssuedDate - READ-ONLY; The issue date of certificate.
@@ -932,28 +994,86 @@ type CertificateProperties struct {
 	SubjectName *string `json:"subjectName,omitempty"`
 	// DNSNames - READ-ONLY; The domain list of certificate.
 	DNSNames *[]string `json:"dnsNames,omitempty"`
+	// Type - Possible values include: 'TypeBasicCertificatePropertiesTypeCertificateProperties', 'TypeBasicCertificatePropertiesTypeKeyVaultCertificate', 'TypeBasicCertificatePropertiesTypeContentCertificate'
+	Type TypeBasicCertificateProperties `json:"type,omitempty"`
+}
+
+func unmarshalBasicCertificateProperties(body []byte) (BasicCertificateProperties, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["type"] {
+	case string(TypeBasicCertificatePropertiesTypeKeyVaultCertificate):
+		var kvcp KeyVaultCertificateProperties
+		err := json.Unmarshal(body, &kvcp)
+		return kvcp, err
+	case string(TypeBasicCertificatePropertiesTypeContentCertificate):
+		var ccp ContentCertificateProperties
+		err := json.Unmarshal(body, &ccp)
+		return ccp, err
+	default:
+		var cp CertificateProperties
+		err := json.Unmarshal(body, &cp)
+		return cp, err
+	}
+}
+func unmarshalBasicCertificatePropertiesArray(body []byte) ([]BasicCertificateProperties, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	cpArray := make([]BasicCertificateProperties, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		cp, err := unmarshalBasicCertificateProperties(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		cpArray[index] = cp
+	}
+	return cpArray, nil
 }
 
 // MarshalJSON is the custom marshaler for CertificateProperties.
 func (cp CertificateProperties) MarshalJSON() ([]byte, error) {
+	cp.Type = TypeBasicCertificatePropertiesTypeCertificateProperties
 	objectMap := make(map[string]interface{})
-	if cp.VaultURI != nil {
-		objectMap["vaultUri"] = cp.VaultURI
-	}
-	if cp.KeyVaultCertName != nil {
-		objectMap["keyVaultCertName"] = cp.KeyVaultCertName
-	}
-	if cp.CertVersion != nil {
-		objectMap["certVersion"] = cp.CertVersion
+	if cp.Type != "" {
+		objectMap["type"] = cp.Type
 	}
 	return json.Marshal(objectMap)
+}
+
+// AsKeyVaultCertificateProperties is the BasicCertificateProperties implementation for CertificateProperties.
+func (cp CertificateProperties) AsKeyVaultCertificateProperties() (*KeyVaultCertificateProperties, bool) {
+	return nil, false
+}
+
+// AsContentCertificateProperties is the BasicCertificateProperties implementation for CertificateProperties.
+func (cp CertificateProperties) AsContentCertificateProperties() (*ContentCertificateProperties, bool) {
+	return nil, false
+}
+
+// AsCertificateProperties is the BasicCertificateProperties implementation for CertificateProperties.
+func (cp CertificateProperties) AsCertificateProperties() (*CertificateProperties, bool) {
+	return &cp, true
+}
+
+// AsBasicCertificateProperties is the BasicCertificateProperties implementation for CertificateProperties.
+func (cp CertificateProperties) AsBasicCertificateProperties() (BasicCertificateProperties, bool) {
+	return &cp, true
 }
 
 // CertificateResource certificate resource payload.
 type CertificateResource struct {
 	autorest.Response `json:"-"`
 	// Properties - Properties of the certificate resource payload.
-	Properties *CertificateProperties `json:"properties,omitempty"`
+	Properties BasicCertificateProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource Id for the resource.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource.
@@ -965,10 +1085,58 @@ type CertificateResource struct {
 // MarshalJSON is the custom marshaler for CertificateResource.
 func (cr CertificateResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if cr.Properties != nil {
-		objectMap["properties"] = cr.Properties
-	}
+	objectMap["properties"] = cr.Properties
 	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for CertificateResource struct.
+func (cr *CertificateResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				properties, err := unmarshalBasicCertificateProperties(*v)
+				if err != nil {
+					return err
+				}
+				cr.Properties = properties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				cr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				cr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				cr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
 }
 
 // CertificateResourceCollection collection compose of certificate resources list and a possible link for
@@ -1240,6 +1408,8 @@ type ClusterResourceProperties struct {
 	Version *int32 `json:"version,omitempty"`
 	// ServiceID - READ-ONLY; ServiceInstanceEntity GUID which uniquely identifies a created resource
 	ServiceID *string `json:"serviceId,omitempty"`
+	// PowerState - READ-ONLY; Power state of the Service. Possible values include: 'PowerStateRunning', 'PowerStateStopped'
+	PowerState PowerState `json:"powerState,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ClusterResourceProperties.
@@ -1471,6 +1641,61 @@ func (future *ConfigServersValidateFuture) result(client ConfigServersClient) (c
 		}
 	}
 	return
+}
+
+// ContentCertificateProperties properties of certificate imported from key vault.
+type ContentCertificateProperties struct {
+	// Content - The content of uploaded certificate.
+	Content *string `json:"content,omitempty"`
+	// Thumbprint - READ-ONLY; The thumbprint of certificate.
+	Thumbprint *string `json:"thumbprint,omitempty"`
+	// Issuer - READ-ONLY; The issuer of certificate.
+	Issuer *string `json:"issuer,omitempty"`
+	// IssuedDate - READ-ONLY; The issue date of certificate.
+	IssuedDate *string `json:"issuedDate,omitempty"`
+	// ExpirationDate - READ-ONLY; The expiration date of certificate.
+	ExpirationDate *string `json:"expirationDate,omitempty"`
+	// ActivateDate - READ-ONLY; The activate date of certificate.
+	ActivateDate *string `json:"activateDate,omitempty"`
+	// SubjectName - READ-ONLY; The subject name of certificate.
+	SubjectName *string `json:"subjectName,omitempty"`
+	// DNSNames - READ-ONLY; The domain list of certificate.
+	DNSNames *[]string `json:"dnsNames,omitempty"`
+	// Type - Possible values include: 'TypeBasicCertificatePropertiesTypeCertificateProperties', 'TypeBasicCertificatePropertiesTypeKeyVaultCertificate', 'TypeBasicCertificatePropertiesTypeContentCertificate'
+	Type TypeBasicCertificateProperties `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ContentCertificateProperties.
+func (ccp ContentCertificateProperties) MarshalJSON() ([]byte, error) {
+	ccp.Type = TypeBasicCertificatePropertiesTypeContentCertificate
+	objectMap := make(map[string]interface{})
+	if ccp.Content != nil {
+		objectMap["content"] = ccp.Content
+	}
+	if ccp.Type != "" {
+		objectMap["type"] = ccp.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsKeyVaultCertificateProperties is the BasicCertificateProperties implementation for ContentCertificateProperties.
+func (ccp ContentCertificateProperties) AsKeyVaultCertificateProperties() (*KeyVaultCertificateProperties, bool) {
+	return nil, false
+}
+
+// AsContentCertificateProperties is the BasicCertificateProperties implementation for ContentCertificateProperties.
+func (ccp ContentCertificateProperties) AsContentCertificateProperties() (*ContentCertificateProperties, bool) {
+	return &ccp, true
+}
+
+// AsCertificateProperties is the BasicCertificateProperties implementation for ContentCertificateProperties.
+func (ccp ContentCertificateProperties) AsCertificateProperties() (*CertificateProperties, bool) {
+	return nil, false
+}
+
+// AsBasicCertificateProperties is the BasicCertificateProperties implementation for ContentCertificateProperties.
+func (ccp ContentCertificateProperties) AsBasicCertificateProperties() (BasicCertificateProperties, bool) {
+	return &ccp, true
 }
 
 // CustomContainer custom container payload
@@ -1830,6 +2055,135 @@ type CustomDomainValidateResult struct {
 	Message *string `json:"message,omitempty"`
 }
 
+// BasicCustomPersistentDiskProperties custom persistent disk resource payload.
+type BasicCustomPersistentDiskProperties interface {
+	AsAzureFileVolume() (*AzureFileVolume, bool)
+	AsCustomPersistentDiskProperties() (*CustomPersistentDiskProperties, bool)
+}
+
+// CustomPersistentDiskProperties custom persistent disk resource payload.
+type CustomPersistentDiskProperties struct {
+	// MountPath - The mount path of the persistent disk.
+	MountPath *string `json:"mountPath,omitempty"`
+	// ReadOnly - Indicates whether the persistent disk is a readOnly one.
+	ReadOnly *bool `json:"readOnly,omitempty"`
+	// MountOptions - These are the mount options for a persistent disk.
+	MountOptions *[]string `json:"mountOptions,omitempty"`
+	// Type - Possible values include: 'TypeCustomPersistentDiskProperties', 'TypeAzureFileVolume'
+	Type Type `json:"type,omitempty"`
+}
+
+func unmarshalBasicCustomPersistentDiskProperties(body []byte) (BasicCustomPersistentDiskProperties, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["type"] {
+	case string(TypeAzureFileVolume):
+		var afv AzureFileVolume
+		err := json.Unmarshal(body, &afv)
+		return afv, err
+	default:
+		var cpdp CustomPersistentDiskProperties
+		err := json.Unmarshal(body, &cpdp)
+		return cpdp, err
+	}
+}
+func unmarshalBasicCustomPersistentDiskPropertiesArray(body []byte) ([]BasicCustomPersistentDiskProperties, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	cpdpArray := make([]BasicCustomPersistentDiskProperties, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		cpdp, err := unmarshalBasicCustomPersistentDiskProperties(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		cpdpArray[index] = cpdp
+	}
+	return cpdpArray, nil
+}
+
+// MarshalJSON is the custom marshaler for CustomPersistentDiskProperties.
+func (cpdp CustomPersistentDiskProperties) MarshalJSON() ([]byte, error) {
+	cpdp.Type = TypeCustomPersistentDiskProperties
+	objectMap := make(map[string]interface{})
+	if cpdp.MountPath != nil {
+		objectMap["mountPath"] = cpdp.MountPath
+	}
+	if cpdp.ReadOnly != nil {
+		objectMap["readOnly"] = cpdp.ReadOnly
+	}
+	if cpdp.MountOptions != nil {
+		objectMap["mountOptions"] = cpdp.MountOptions
+	}
+	if cpdp.Type != "" {
+		objectMap["type"] = cpdp.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAzureFileVolume is the BasicCustomPersistentDiskProperties implementation for CustomPersistentDiskProperties.
+func (cpdp CustomPersistentDiskProperties) AsAzureFileVolume() (*AzureFileVolume, bool) {
+	return nil, false
+}
+
+// AsCustomPersistentDiskProperties is the BasicCustomPersistentDiskProperties implementation for CustomPersistentDiskProperties.
+func (cpdp CustomPersistentDiskProperties) AsCustomPersistentDiskProperties() (*CustomPersistentDiskProperties, bool) {
+	return &cpdp, true
+}
+
+// AsBasicCustomPersistentDiskProperties is the BasicCustomPersistentDiskProperties implementation for CustomPersistentDiskProperties.
+func (cpdp CustomPersistentDiskProperties) AsBasicCustomPersistentDiskProperties() (BasicCustomPersistentDiskProperties, bool) {
+	return &cpdp, true
+}
+
+// CustomPersistentDiskResource custom persistent disk resource payload.
+type CustomPersistentDiskResource struct {
+	// CustomPersistentDiskProperties - Properties of the custom persistent disk resource payload.
+	CustomPersistentDiskProperties BasicCustomPersistentDiskProperties `json:"customPersistentDiskProperties,omitempty"`
+	// StorageID - The resource id of Azure Spring Cloud Storage resource.
+	StorageID *string `json:"storageId,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for CustomPersistentDiskResource struct.
+func (cpdr *CustomPersistentDiskResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "customPersistentDiskProperties":
+			if v != nil {
+				customPersistentDiskProperties, err := unmarshalBasicCustomPersistentDiskProperties(*v)
+				if err != nil {
+					return err
+				}
+				cpdr.CustomPersistentDiskProperties = customPersistentDiskProperties
+			}
+		case "storageId":
+			if v != nil {
+				var storageID string
+				err = json.Unmarshal(*v, &storageID)
+				if err != nil {
+					return err
+				}
+				cpdr.StorageID = &storageID
+			}
+		}
+	}
+
+	return nil
+}
+
 // DeploymentInstance deployment instance payload
 type DeploymentInstance struct {
 	// Name - READ-ONLY; Name of the deployment instance
@@ -2152,9 +2506,9 @@ func (future *DeploymentsDeleteFuture) result(client DeploymentsClient) (ar auto
 
 // DeploymentSettings deployment settings payload
 type DeploymentSettings struct {
-	// CPU - Required CPU. This should be 1 for Basic tier, and in range [1, 4] for Standard tier. This is deprecated starting from API version 2021-06-01-preview. Please use the resourceRequests field to set the CPU size.
+	// CPU - Required CPU. This should be 1 for Basic tier, and in range [1, 4] for Standard tier. This is deprecated starting from API version 2021-09-01-preview. Please use the resourceRequests field to set the CPU size.
 	CPU *int32 `json:"cpu,omitempty"`
-	// MemoryInGB - Required Memory size in GB. This should be in range [1, 2] for Basic tier, and in range [1, 8] for Standard tier. This is deprecated starting from API version 2021-06-01-preview. Please use the resourceRequests field to set the the memory size.
+	// MemoryInGB - Required Memory size in GB. This should be in range [1, 2] for Basic tier, and in range [1, 8] for Standard tier. This is deprecated starting from API version 2021-09-01-preview. Please use the resourceRequests field to set the the memory size.
 	MemoryInGB *int32 `json:"memoryInGB,omitempty"`
 	// ResourceRequests - The requested resource quantity for required CPU and Memory. It is recommended that using this field to represent the required CPU and Memory, the old field cpu and memoryInGB will be deprecated later.
 	ResourceRequests *ResourceRequests `json:"resourceRequests,omitempty"`
@@ -2166,6 +2520,8 @@ type DeploymentSettings struct {
 	EnvironmentVariables map[string]*string `json:"environmentVariables"`
 	// RuntimeVersion - Runtime version. Possible values include: 'RuntimeVersionJava8', 'RuntimeVersionJava11', 'RuntimeVersionNetCore31'
 	RuntimeVersion RuntimeVersion `json:"runtimeVersion,omitempty"`
+	// ContainerProbeSettings - Container liveness and readiness probe settings
+	ContainerProbeSettings *DeploymentSettingsContainerProbeSettings `json:"containerProbeSettings,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for DeploymentSettings.
@@ -2192,7 +2548,90 @@ func (ds DeploymentSettings) MarshalJSON() ([]byte, error) {
 	if ds.RuntimeVersion != "" {
 		objectMap["runtimeVersion"] = ds.RuntimeVersion
 	}
+	if ds.ContainerProbeSettings != nil {
+		objectMap["containerProbeSettings"] = ds.ContainerProbeSettings
+	}
 	return json.Marshal(objectMap)
+}
+
+// DeploymentSettingsContainerProbeSettings container liveness and readiness probe settings
+type DeploymentSettingsContainerProbeSettings struct {
+	// DisableProbe - Indicates whether disable the liveness and readiness probe
+	DisableProbe *bool `json:"disableProbe,omitempty"`
+}
+
+// DeploymentsGenerateHeapDumpFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type DeploymentsGenerateHeapDumpFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DeploymentsClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *DeploymentsGenerateHeapDumpFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for DeploymentsGenerateHeapDumpFuture.Result.
+func (future *DeploymentsGenerateHeapDumpFuture) result(client DeploymentsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsGenerateHeapDumpFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.DeploymentsGenerateHeapDumpFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// DeploymentsGenerateThreadDumpFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type DeploymentsGenerateThreadDumpFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DeploymentsClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *DeploymentsGenerateThreadDumpFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for DeploymentsGenerateThreadDumpFuture.Result.
+func (future *DeploymentsGenerateThreadDumpFuture) result(client DeploymentsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsGenerateThreadDumpFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.DeploymentsGenerateThreadDumpFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
 }
 
 // DeploymentsRestartFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -2263,6 +2702,43 @@ func (future *DeploymentsStartFuture) result(client DeploymentsClient) (ar autor
 	if !done {
 		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appplatform.DeploymentsStartFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// DeploymentsStartJFRFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type DeploymentsStartJFRFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DeploymentsClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *DeploymentsStartJFRFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for DeploymentsStartJFRFuture.Result.
+func (future *DeploymentsStartJFRFuture) result(client DeploymentsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsStartJFRFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.DeploymentsStartJFRFuture")
 		return
 	}
 	ar.Response = future.Response()
@@ -2349,6 +2825,16 @@ func (future *DeploymentsUpdateFuture) result(client DeploymentsClient) (dr Depl
 	return
 }
 
+// DiagnosticParameters diagnostic parameters of diagnostic operations
+type DiagnosticParameters struct {
+	// AppInstance - App instance name
+	AppInstance *string `json:"appInstance,omitempty"`
+	// FilePath - Your target file path in your own BYOS
+	FilePath *string `json:"filePath,omitempty"`
+	// Duration - Duration of your JFR. 1 min can be represented by 1m or 60s.
+	Duration *string `json:"duration,omitempty"`
+}
+
 // Error the error code compose of code and message.
 type Error struct {
 	// Code - The code of error.
@@ -2389,6 +2875,84 @@ type ImageRegistryCredential struct {
 	Username *string `json:"username,omitempty"`
 	// Password - The password of the image registry credential
 	Password *string `json:"password,omitempty"`
+}
+
+// KeyVaultCertificateProperties properties of certificate imported from key vault.
+type KeyVaultCertificateProperties struct {
+	// VaultURI - The vault uri of user key vault.
+	VaultURI *string `json:"vaultUri,omitempty"`
+	// KeyVaultCertName - The certificate name of key vault.
+	KeyVaultCertName *string `json:"keyVaultCertName,omitempty"`
+	// CertVersion - The certificate version of key vault.
+	CertVersion *string `json:"certVersion,omitempty"`
+	// ExcludePrivateKey - Optional. If set to true, it will not import private key from key vault.
+	ExcludePrivateKey *bool `json:"excludePrivateKey,omitempty"`
+	// Thumbprint - READ-ONLY; The thumbprint of certificate.
+	Thumbprint *string `json:"thumbprint,omitempty"`
+	// Issuer - READ-ONLY; The issuer of certificate.
+	Issuer *string `json:"issuer,omitempty"`
+	// IssuedDate - READ-ONLY; The issue date of certificate.
+	IssuedDate *string `json:"issuedDate,omitempty"`
+	// ExpirationDate - READ-ONLY; The expiration date of certificate.
+	ExpirationDate *string `json:"expirationDate,omitempty"`
+	// ActivateDate - READ-ONLY; The activate date of certificate.
+	ActivateDate *string `json:"activateDate,omitempty"`
+	// SubjectName - READ-ONLY; The subject name of certificate.
+	SubjectName *string `json:"subjectName,omitempty"`
+	// DNSNames - READ-ONLY; The domain list of certificate.
+	DNSNames *[]string `json:"dnsNames,omitempty"`
+	// Type - Possible values include: 'TypeBasicCertificatePropertiesTypeCertificateProperties', 'TypeBasicCertificatePropertiesTypeKeyVaultCertificate', 'TypeBasicCertificatePropertiesTypeContentCertificate'
+	Type TypeBasicCertificateProperties `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for KeyVaultCertificateProperties.
+func (kvcp KeyVaultCertificateProperties) MarshalJSON() ([]byte, error) {
+	kvcp.Type = TypeBasicCertificatePropertiesTypeKeyVaultCertificate
+	objectMap := make(map[string]interface{})
+	if kvcp.VaultURI != nil {
+		objectMap["vaultUri"] = kvcp.VaultURI
+	}
+	if kvcp.KeyVaultCertName != nil {
+		objectMap["keyVaultCertName"] = kvcp.KeyVaultCertName
+	}
+	if kvcp.CertVersion != nil {
+		objectMap["certVersion"] = kvcp.CertVersion
+	}
+	if kvcp.ExcludePrivateKey != nil {
+		objectMap["excludePrivateKey"] = kvcp.ExcludePrivateKey
+	}
+	if kvcp.Type != "" {
+		objectMap["type"] = kvcp.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsKeyVaultCertificateProperties is the BasicCertificateProperties implementation for KeyVaultCertificateProperties.
+func (kvcp KeyVaultCertificateProperties) AsKeyVaultCertificateProperties() (*KeyVaultCertificateProperties, bool) {
+	return &kvcp, true
+}
+
+// AsContentCertificateProperties is the BasicCertificateProperties implementation for KeyVaultCertificateProperties.
+func (kvcp KeyVaultCertificateProperties) AsContentCertificateProperties() (*ContentCertificateProperties, bool) {
+	return nil, false
+}
+
+// AsCertificateProperties is the BasicCertificateProperties implementation for KeyVaultCertificateProperties.
+func (kvcp KeyVaultCertificateProperties) AsCertificateProperties() (*CertificateProperties, bool) {
+	return nil, false
+}
+
+// AsBasicCertificateProperties is the BasicCertificateProperties implementation for KeyVaultCertificateProperties.
+func (kvcp KeyVaultCertificateProperties) AsBasicCertificateProperties() (BasicCertificateProperties, bool) {
+	return &kvcp, true
+}
+
+// LoadedCertificate loaded certificate payload
+type LoadedCertificate struct {
+	// ResourceID - Resource Id of loaded certificate
+	ResourceID *string `json:"resourceId,omitempty"`
+	// LoadTrustStore - Indicate whether the certificate will be loaded into default trust store, only work for Java runtime.
+	LoadTrustStore *bool `json:"loadTrustStore,omitempty"`
 }
 
 // LogFileURLResponse log file URL payload
@@ -2450,6 +3014,8 @@ type MetricSpecification struct {
 	FillGapWithZero *bool `json:"fillGapWithZero,omitempty"`
 	// Dimensions - Dimensions of the metric
 	Dimensions *[]MetricDimension `json:"dimensions,omitempty"`
+	// SourceMdmNamespace - Name of the MDM namespace. Optional.
+	SourceMdmNamespace *string `json:"sourceMdmNamespace,omitempty"`
 }
 
 // MonitoringSettingProperties monitoring Setting properties payload
@@ -3311,6 +3877,79 @@ type ServiceSpecification struct {
 	MetricSpecifications *[]MetricSpecification `json:"metricSpecifications,omitempty"`
 }
 
+// ServicesStartFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ServicesStartFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ServicesClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ServicesStartFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ServicesStartFuture.Result.
+func (future *ServicesStartFuture) result(client ServicesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.ServicesStartFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.ServicesStartFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// ServicesStopFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+type ServicesStopFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ServicesClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ServicesStopFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ServicesStopFuture.Result.
+func (future *ServicesStopFuture) result(client ServicesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.ServicesStopFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.ServicesStopFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // ServicesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ServicesUpdateFuture struct {
@@ -3376,6 +4015,442 @@ type SkuCapacity struct {
 	ScaleType SkuScaleType `json:"scaleType,omitempty"`
 }
 
+// StorageAccount storage resource of type Azure Storage Account.
+type StorageAccount struct {
+	// AccountName - The account name of the Azure Storage Account.
+	AccountName *string `json:"accountName,omitempty"`
+	// AccountKey - The account key of the Azure Storage Account.
+	AccountKey *string `json:"accountKey,omitempty"`
+	// StorageType - Possible values include: 'StorageTypeStorageProperties', 'StorageTypeStorageAccount'
+	StorageType StorageType `json:"storageType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StorageAccount.
+func (sa StorageAccount) MarshalJSON() ([]byte, error) {
+	sa.StorageType = StorageTypeStorageAccount
+	objectMap := make(map[string]interface{})
+	if sa.AccountName != nil {
+		objectMap["accountName"] = sa.AccountName
+	}
+	if sa.AccountKey != nil {
+		objectMap["accountKey"] = sa.AccountKey
+	}
+	if sa.StorageType != "" {
+		objectMap["storageType"] = sa.StorageType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsStorageAccount is the BasicStorageProperties implementation for StorageAccount.
+func (sa StorageAccount) AsStorageAccount() (*StorageAccount, bool) {
+	return &sa, true
+}
+
+// AsStorageProperties is the BasicStorageProperties implementation for StorageAccount.
+func (sa StorageAccount) AsStorageProperties() (*StorageProperties, bool) {
+	return nil, false
+}
+
+// AsBasicStorageProperties is the BasicStorageProperties implementation for StorageAccount.
+func (sa StorageAccount) AsBasicStorageProperties() (BasicStorageProperties, bool) {
+	return &sa, true
+}
+
+// BasicStorageProperties storage resource payload.
+type BasicStorageProperties interface {
+	AsStorageAccount() (*StorageAccount, bool)
+	AsStorageProperties() (*StorageProperties, bool)
+}
+
+// StorageProperties storage resource payload.
+type StorageProperties struct {
+	// StorageType - Possible values include: 'StorageTypeStorageProperties', 'StorageTypeStorageAccount'
+	StorageType StorageType `json:"storageType,omitempty"`
+}
+
+func unmarshalBasicStorageProperties(body []byte) (BasicStorageProperties, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["storageType"] {
+	case string(StorageTypeStorageAccount):
+		var sa StorageAccount
+		err := json.Unmarshal(body, &sa)
+		return sa, err
+	default:
+		var sp StorageProperties
+		err := json.Unmarshal(body, &sp)
+		return sp, err
+	}
+}
+func unmarshalBasicStoragePropertiesArray(body []byte) ([]BasicStorageProperties, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	spArray := make([]BasicStorageProperties, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		sp, err := unmarshalBasicStorageProperties(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		spArray[index] = sp
+	}
+	return spArray, nil
+}
+
+// MarshalJSON is the custom marshaler for StorageProperties.
+func (sp StorageProperties) MarshalJSON() ([]byte, error) {
+	sp.StorageType = StorageTypeStorageProperties
+	objectMap := make(map[string]interface{})
+	if sp.StorageType != "" {
+		objectMap["storageType"] = sp.StorageType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsStorageAccount is the BasicStorageProperties implementation for StorageProperties.
+func (sp StorageProperties) AsStorageAccount() (*StorageAccount, bool) {
+	return nil, false
+}
+
+// AsStorageProperties is the BasicStorageProperties implementation for StorageProperties.
+func (sp StorageProperties) AsStorageProperties() (*StorageProperties, bool) {
+	return &sp, true
+}
+
+// AsBasicStorageProperties is the BasicStorageProperties implementation for StorageProperties.
+func (sp StorageProperties) AsBasicStorageProperties() (BasicStorageProperties, bool) {
+	return &sp, true
+}
+
+// StorageResource storage resource payload.
+type StorageResource struct {
+	autorest.Response `json:"-"`
+	// Properties - Properties of the storage resource payload.
+	Properties BasicStorageProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StorageResource.
+func (sr StorageResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	objectMap["properties"] = sr.Properties
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for StorageResource struct.
+func (sr *StorageResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				properties, err := unmarshalBasicStorageProperties(*v)
+				if err != nil {
+					return err
+				}
+				sr.Properties = properties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				sr.SystemData = &systemData
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				sr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// StorageResourceCollection collection compose of storage resources list and a possible link for next
+// page.
+type StorageResourceCollection struct {
+	autorest.Response `json:"-"`
+	// Value - The storage resources list.
+	Value *[]StorageResource `json:"value,omitempty"`
+	// NextLink - The link to next page of storage list.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// StorageResourceCollectionIterator provides access to a complete listing of StorageResource values.
+type StorageResourceCollectionIterator struct {
+	i    int
+	page StorageResourceCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *StorageResourceCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/StorageResourceCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *StorageResourceCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter StorageResourceCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter StorageResourceCollectionIterator) Response() StorageResourceCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter StorageResourceCollectionIterator) Value() StorageResource {
+	if !iter.page.NotDone() {
+		return StorageResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the StorageResourceCollectionIterator type.
+func NewStorageResourceCollectionIterator(page StorageResourceCollectionPage) StorageResourceCollectionIterator {
+	return StorageResourceCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (src StorageResourceCollection) IsEmpty() bool {
+	return src.Value == nil || len(*src.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (src StorageResourceCollection) hasNextLink() bool {
+	return src.NextLink != nil && len(*src.NextLink) != 0
+}
+
+// storageResourceCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (src StorageResourceCollection) storageResourceCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if !src.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(src.NextLink)))
+}
+
+// StorageResourceCollectionPage contains a page of StorageResource values.
+type StorageResourceCollectionPage struct {
+	fn  func(context.Context, StorageResourceCollection) (StorageResourceCollection, error)
+	src StorageResourceCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *StorageResourceCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/StorageResourceCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.src)
+		if err != nil {
+			return err
+		}
+		page.src = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *StorageResourceCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page StorageResourceCollectionPage) NotDone() bool {
+	return !page.src.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page StorageResourceCollectionPage) Response() StorageResourceCollection {
+	return page.src
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page StorageResourceCollectionPage) Values() []StorageResource {
+	if page.src.IsEmpty() {
+		return nil
+	}
+	return *page.src.Value
+}
+
+// Creates a new instance of the StorageResourceCollectionPage type.
+func NewStorageResourceCollectionPage(cur StorageResourceCollection, getNextPage func(context.Context, StorageResourceCollection) (StorageResourceCollection, error)) StorageResourceCollectionPage {
+	return StorageResourceCollectionPage{
+		fn:  getNextPage,
+		src: cur,
+	}
+}
+
+// StoragesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type StoragesCreateOrUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StoragesClient) (StorageResource, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *StoragesCreateOrUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for StoragesCreateOrUpdateFuture.Result.
+func (future *StoragesCreateOrUpdateFuture) result(client StoragesClient) (sr StorageResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.StoragesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		sr.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.StoragesCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if sr.Response.Response, err = future.GetResult(sender); err == nil && sr.Response.Response.StatusCode != http.StatusNoContent {
+		sr, err = client.CreateOrUpdateResponder(sr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.StoragesCreateOrUpdateFuture", "Result", sr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// StoragesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type StoragesDeleteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StoragesClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *StoragesDeleteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for StoragesDeleteFuture.Result.
+func (future *StoragesDeleteFuture) result(client StoragesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.StoragesDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.StoragesDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // SupportedRuntimeVersion supported deployment runtime version descriptor.
 type SupportedRuntimeVersion struct {
 	// Value - The raw value which could be passed to deployment CRUD operations. Possible values include: 'SupportedRuntimeValueJava8', 'SupportedRuntimeValueJava11', 'SupportedRuntimeValueNetCore31'
@@ -3384,6 +4459,22 @@ type SupportedRuntimeVersion struct {
 	Platform SupportedRuntimePlatform `json:"platform,omitempty"`
 	// Version - The detailed version (major.minor) of the platform.
 	Version *string `json:"version,omitempty"`
+}
+
+// SystemData metadata pertaining to creation and last modification of the resource.
+type SystemData struct {
+	// CreatedBy - The identity that created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	CreatedByType CreatedByType `json:"createdByType,omitempty"`
+	// CreatedAt - The timestamp of resource creation (UTC).
+	CreatedAt *date.Time `json:"createdAt,omitempty"`
+	// LastModifiedBy - The identity that last modified the resource.
+	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
+	// LastModifiedAt - The timestamp of resource last modification (UTC)
+	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
 }
 
 // TemporaryDisk temporary disk payload
