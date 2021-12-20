@@ -30,10 +30,10 @@ resource "azurerm_subnet" "example" {
   resource_group_name  = azurerm_virtual_network.example.resource_group_name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.0.0/24"]
-  
+
   delegation {
     name = "diskspool"
-    
+
     service_delegation {
       actions = ["Microsoft.Network/virtualNetworks/read"]
       name    = "Microsoft.StoragePool/diskPools"
@@ -47,7 +47,7 @@ resource "azurerm_storage_disks_pool" "example" {
   location            = azurerm_resource_group.example.location
   sku_name            = "Basic_B1"
   subnet_id           = azurerm_subnet.example.id
-  zones  = ["1"]
+  zones               = ["1"]
 }
 ```
 
