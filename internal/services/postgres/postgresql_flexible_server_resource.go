@@ -614,8 +614,7 @@ func expandArmServerBackup(d *pluginsdk.ResourceData) *postgresqlflexibleservers
 		backup.BackupRetentionDays = utils.Int32(int32(v.(int)))
 	}
 
-	geoRedundantBackupEnabled := d.Get("geo_redundant_backup_enabled").(bool)
-	if geoRedundantBackupEnabled {
+	if geoRedundantBackupEnabled := d.Get("geo_redundant_backup_enabled").(bool); geoRedundantBackupEnabled {
 		backup.GeoRedundantBackup = postgresqlflexibleservers.GeoRedundantBackupEnumEnabled
 	} else {
 		backup.GeoRedundantBackup = postgresqlflexibleservers.GeoRedundantBackupEnumDisabled
