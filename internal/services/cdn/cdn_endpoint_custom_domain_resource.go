@@ -8,12 +8,10 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyvaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	resourceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
-
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"
@@ -89,6 +87,15 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 								string(cdn.ProtocolTypeIPBased),
 							}, false),
 						},
+						"tls_version": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cdn.MinimumTLSVersionTLS10),
+								string(cdn.MinimumTLSVersionTLS12),
+							}, false),
+							Default: string(cdn.MinimumTLSVersionTLS12),
+						},
 					},
 				},
 				ConflictsWith: []string{"user_managed_https"},
@@ -106,31 +113,25 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: keyvaultValidate.NestedItemIdWithOptionalVersion,
 						},
+						"tls_version": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cdn.MinimumTLSVersionTLS10),
+								string(cdn.MinimumTLSVersionTLS12),
+							}, false),
+							Default: string(cdn.MinimumTLSVersionTLS12),
+						},
 					},
 				},
 				ConflictsWith: []string{"cdn_managed_https"},
 			},
-		},
-		CustomizeDiff: func(ctx context.Context, diff *pluginsdk.ResourceDiff, _ interface{}) error {
-			if settings, ok := diff.GetOk("cdn_managed_https"); ok {
-				settings := settings.([]interface{})[0].(map[string]interface{})
-				cert, protocol := settings["certificate_type"].(string), settings["protocol_type"].(string)
-				if cert == string(cdn.CertificateTypeShared) && protocol != string(cdn.ProtocolTypeServerNameIndication) {
-					return fmt.Errorf("`certificate_type = Shared` has to be used together with `protocol_type = ServerNameIndication`")
-				}
-				if cert == string(cdn.CertificateTypeDedicated) && protocol != string(cdn.ProtocolTypeIPBased) {
-					return fmt.Errorf("`certificate_type = Dedicated` has to be used together with `protocol_type = IPBased`")
-				}
-			}
-			return nil
 		},
 	}
 }
 
 func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.CustomDomainsClient
-	keyVaultsClient := meta.(*clients.Client).KeyVault
-	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -183,7 +184,7 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 		if cdnEndpointResp.Sku != nil && (cdnEndpointResp.Sku.Name != cdn.SkuNameStandardMicrosoft && cdnEndpointResp.Sku.Name != cdn.SkuNameStandardVerizon) {
 			return fmt.Errorf("user managed HTTPS certificate is only available for Azure CDN from Microsoft or Azure CDN from Verizon profiles")
 		}
-		params, err = expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx, v.([]interface{}), keyVaultsClient, resourcesClient)
+		params, err = expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx, v.([]interface{}), meta.(*clients.Client))
 		if err != nil {
 			return err
 		}
@@ -204,8 +205,6 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 
 func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.CustomDomainsClient
-	keyVaultsClient := meta.(*clients.Client).KeyVault
-	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -239,10 +238,12 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta in
 		if props == nil {
 			return fmt.Errorf("unexpected nil of `CustomDomainProperties` in response")
 		}
+
+		cdnManagedHTTPSParams = expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(d.Get("cdn_managed_https").([]interface{}))
+
 		if props.CustomHTTPSParameters == nil {
 			cdnManagedHTTPSStatus = turnOn
 		} else {
-			cdnManagedHTTPSParams = expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(d.Get("cdn_managed_https").([]interface{}))
 			if cdnManagedHTTPSParams == nil {
 				cdnManagedHTTPSStatus = turnOff
 			} else {
@@ -256,14 +257,16 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta in
 		if props == nil {
 			return fmt.Errorf("unexpected nil of `CustomDomainProperties` in response")
 		}
+
+		var err error
+		userManagedHTTPSParams, err = expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx, d.Get("user_managed_https").([]interface{}), meta.(*clients.Client))
+		if err != nil {
+			return err
+		}
+
 		if props.CustomHTTPSParameters == nil {
 			userManagedHTTPSStatus = turnOn
 		} else {
-			var err error
-			userManagedHTTPSParams, err = expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx, d.Get("user_managed_https").([]interface{}), keyVaultsClient, resourcesClient)
-			if err != nil {
-				return err
-			}
 			if userManagedHTTPSParams == nil {
 				userManagedHTTPSStatus = turnOff
 			} else {
@@ -403,13 +406,13 @@ func expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input []interface{}
 		},
 		CertificateSource: cdn.CertificateSourceCdn,
 		ProtocolType:      cdn.ProtocolType(raw["protocol_type"].(string)),
-		MinimumTLSVersion: cdn.MinimumTLSVersionNone,
+		MinimumTLSVersion: cdn.MinimumTLSVersion(raw["tls_version"].(string)),
 	}
 
 	return output
 }
 
-func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Context, input []interface{}, keyVaultClient *keyvaultClient.Client, resourceClient *resourceClient.Client) (cdn.BasicCustomDomainHTTPSParameters, error) {
+func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Context, input []interface{}, clients *clients.Client) (cdn.BasicCustomDomainHTTPSParameters, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
@@ -421,7 +424,7 @@ func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Contex
 		return nil, err
 	}
 
-	keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, resourceClient, keyVaultCertId.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := clients.KeyVault.KeyVaultIDFromBaseUrl(ctx, clients.Resource, keyVaultCertId.KeyVaultBaseUrl)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultCertId.KeyVaultBaseUrl, err)
 	}
@@ -446,7 +449,7 @@ func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Contex
 		},
 		CertificateSource: cdn.CertificateSourceAzureKeyVault,
 		ProtocolType:      cdn.ProtocolTypeServerNameIndication,
-		MinimumTLSVersion: cdn.MinimumTLSVersionNone,
+		MinimumTLSVersion: cdn.MinimumTLSVersion(raw["tls_version"].(string)),
 	}
 
 	return output, nil
