@@ -98,7 +98,6 @@ func resourceMapsCreatorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	if _, err := client.CreateOrUpdate(ctx, id, props); err != nil {
-
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 

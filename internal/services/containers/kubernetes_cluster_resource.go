@@ -1476,7 +1476,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			existing.ManagedClusterProperties.NetworkProfile.LoadBalancerProfile = &loadBalancerProfile
-
 		}
 
 		if networkProfile.NatGatewayProfile != nil {
@@ -2859,5 +2858,4 @@ func flattenKubernetesClusterHttpProxyConfig(props *containerservice.ManagedClus
 		"no_proxy":    noProxyList,
 		"trusted_ca":  trustedCa,
 	})
-
 }

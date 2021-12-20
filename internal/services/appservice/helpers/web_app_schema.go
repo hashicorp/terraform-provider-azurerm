@@ -2912,7 +2912,6 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 			}
 		}
 		expanded.Cors = cors
-
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal_enabled") {

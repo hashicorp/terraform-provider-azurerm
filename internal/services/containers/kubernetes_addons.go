@@ -416,7 +416,6 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 			Enabled: utils.Bool(enabled),
 			Config:  nil,
 		}
-
 	}
 
 	azureKeyvaultSecretsProvider := profile["azure_keyvault_secrets_provider"].([]interface{})
@@ -436,7 +435,6 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 			Enabled: utils.Bool(enabled),
 			Config:  config,
 		}
-
 	}
 
 	return filterUnsupportedKubernetesAddOns(addonProfiles, env)
@@ -635,7 +633,6 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			"secret_rotation_interval": rotationPollInterval,
 			"secret_identity":          azureKeyvaultSecretsProviderIdentity,
 		})
-
 	}
 
 	// this is a UX hack, since if the top level block isn't defined everything should be turned off

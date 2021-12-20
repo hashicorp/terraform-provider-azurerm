@@ -451,7 +451,6 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-
 				existing.Tags = tags.FromTypedObject(state.Tags)
 			}
 

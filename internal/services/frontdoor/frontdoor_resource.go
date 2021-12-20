@@ -2022,7 +2022,6 @@ func flattenSingleFrontDoorRoutingRule(input frontdoors.RoutingRule, oldBlocks i
 		acceptedProtocols = flattenFrontDoorAcceptedProtocol(props.AcceptedProtocols)
 		if props.EnabledState != nil {
 			enabled = *props.EnabledState == frontdoors.RoutingRuleEnabledStateEnabled
-
 		}
 		forwardConfiguration, err := flattenRoutingRuleForwardingConfiguration(props.RouteConfiguration, oldBlocks)
 		if err != nil {
