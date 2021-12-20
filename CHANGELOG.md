@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: upgrading `appplatform` to API version `2021-09-01-preview` [GH-14365]
 * dependencies: upgrading `network` to API Version `2021-05-01` [GH-14164]
 * dependencies: upgrading to `v60.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-14667]
 * dependencies: upgrading to `v2.10.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-14666]
