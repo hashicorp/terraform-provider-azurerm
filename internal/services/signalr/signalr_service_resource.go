@@ -303,7 +303,6 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 			serviceMode = "Default"
 		}
 		expandedFeatures = append(expandedFeatures, signalRFeature(signalr.FeatureFlagsServiceMode, serviceMode))
-
 	}
 
 	// Upstream configurations are only allowed when the SignalR service is in `Serverless` mode

@@ -220,7 +220,6 @@ func resourceVirtualDesktopApplicationGroupRead(d *pluginsdk.ResourceData, meta 
 					d.Set("default_desktop_display_name", desktopProps.FriendlyName)
 				}
 			}
-
 		}
 
 		hostPoolIdStr := ""
@@ -234,7 +233,6 @@ func resourceVirtualDesktopApplicationGroupRead(d *pluginsdk.ResourceData, meta 
 			hostPoolIdStr = hostPoolId.ID()
 		}
 		d.Set("host_pool_id", hostPoolIdStr)
-
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

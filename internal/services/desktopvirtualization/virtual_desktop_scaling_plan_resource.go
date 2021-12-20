@@ -447,7 +447,6 @@ func expandScalingPlanScheduleTime(input string) *desktopvirtualization.Time {
 		Hour:   utils.Int32(int32(hour)),
 		Minute: utils.Int32(int32(minute)),
 	}
-
 }
 
 func expandScalingPlanHostpoolReference(input []interface{}) *[]desktopvirtualization.ScalingHostPoolReference {
@@ -471,7 +470,6 @@ func expandScalingPlanHostpoolReference(input []interface{}) *[]desktopvirtualiz
 		})
 	}
 	return &results
-
 }
 
 func flattenScalingPlanSchedule(input *[]desktopvirtualization.ScalingSchedule) []interface{} {
@@ -551,7 +549,6 @@ func flattenScalingPlanSchedule(input *[]desktopvirtualization.ScalingSchedule) 
 		})
 	}
 	return results
-
 }
 
 func flattenScalingHostpoolReference(input *[]desktopvirtualization.ScalingHostPoolReference) []interface{} {
@@ -575,5 +572,4 @@ func flattenScalingHostpoolReference(input *[]desktopvirtualization.ScalingHostP
 		})
 	}
 	return results
-
 }
