@@ -176,7 +176,6 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"fqdns": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MinItems: 1,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.NoZeroValues,
