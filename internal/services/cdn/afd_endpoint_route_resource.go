@@ -7,7 +7,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,9 +23,6 @@ func resourceAfdEndpointRoutes() *pluginsdk.Resource {
 		Delete: resourceAfdEndpointRouteDelete,
 
 		SchemaVersion: 1,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.CdnEndpointV0ToV1{},
-		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -36,7 +32,7 @@ func resourceAfdEndpointRoutes() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AfdEndpointsID(id)
+			_, err := parse.AfdEndpointRouteID(id)
 			return err
 		}),
 

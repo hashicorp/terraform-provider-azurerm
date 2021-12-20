@@ -7,9 +7,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -24,9 +24,6 @@ func resourceAfdEndpoints() *pluginsdk.Resource {
 		Delete: resourceAfdEndpointsDelete,
 
 		SchemaVersion: 1,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.CdnEndpointV0ToV1{},
-		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -72,6 +69,8 @@ func resourceAfdEndpoints() *pluginsdk.Resource {
 				Default:      60,
 				ValidateFunc: validation.IntBetween(16, 240),
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -84,6 +83,7 @@ func resourceAfdEndpointsCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	location := "global" // location is always global (required)
 	enabledState := d.Get("enabled").(bool)
 	originResponseTimeoutInSeconds := int32(d.Get("origin_response_timeout_in_seconds").(int))
+	resourceTags := d.Get("tags").(map[string]interface{})
 
 	// parse profile_id
 	profileId := d.Get("profile_id").(string)
@@ -109,6 +109,7 @@ func resourceAfdEndpointsCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		AFDEndpointProperties: &cdn.AFDEndpointProperties{
 			OriginResponseTimeoutSeconds: &originResponseTimeoutInSeconds,
 		},
+		Tags: tags.Expand(resourceTags),
 	}
 
 	if enabledState {
@@ -146,7 +147,7 @@ func resourceAfdEndpointsRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Azure CDN Endpoint %q (Resource Group %q): %+v", id.AfdEndpointName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on Azure CDN Front Door Endpoint %q (Resource Group %q): %+v", id.AfdEndpointName, id.ResourceGroup, err)
 	}
 
 	d.Set("origin_response_timeout_in_seconds", resp.OriginResponseTimeoutSeconds)
@@ -157,10 +158,11 @@ func resourceAfdEndpointsRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("enabled", false)
 	}
 
+	d.Set("profile_id", parse.NewProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 	d.Set("fqdn", resp.HostName)
 	d.Set("name", id.AfdEndpointName)
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceAfdEndpointsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -175,6 +177,9 @@ func resourceAfdEndpointsUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	endpointUpdate := cdn.AFDEndpointUpdateParameters{}
 	endpointUpdateParameters := cdn.AFDEndpointPropertiesUpdateParameters{}
+
+	resourceTags := d.Get("tags").(map[string]interface{})
+	endpointUpdate.Tags = tags.Expand(resourceTags)
 
 	if d.HasChange("enabled") {
 		enabledState := d.Get("enabled").(bool)

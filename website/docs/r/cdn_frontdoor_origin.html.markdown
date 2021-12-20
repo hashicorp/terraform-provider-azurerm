@@ -68,6 +68,8 @@ The following arguments are supported:
 
 * `https_port` - The value of the HTTPS port. Must be between 1 and 65535. Defaults to `443`.
 
+* `azure_origin`
+
 ---
 
 The `private_link` block supports the following:

@@ -27,6 +27,10 @@ resource "azurerm_cdn_frontdoor_endpoint" "example" {
   name       = "afdendpoint1"
   profile_id = azurerm_cdn_frontdoor_profile.example.id
   enabled    = true
+
+  tags = {
+    Environment = "Production"
+  }
 }
 ```
 
@@ -42,6 +46,7 @@ The following arguments are supported:
 
 * `origin_response_timeout_in_seconds` - Send and receive timeout on forwarding request to the origin. When timeout is reached, the request fails and returns. Must between `16` and `240`. Defaults to `60`.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 ---
 
 The following attributes are exported:

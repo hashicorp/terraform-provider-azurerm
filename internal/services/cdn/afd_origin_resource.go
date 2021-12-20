@@ -251,6 +251,8 @@ func resourceAfdOriginsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("host_name", resp.HostName)
 	d.Set("origin_host_header", resp.OriginHostHeader)
 
+	d.Set("origin_group_id", parse.NewAfdOriginGroupsID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.OriginGroupName).ID())
+
 	if resp.EnabledState == cdn.EnabledStateEnabled {
 		d.Set("enabled", true)
 	} else {
@@ -338,7 +340,10 @@ func resourceAfdOriginsDelete(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 
+	// TODO - Cannot delete the last origin when the origin group is still associated with a route under an endpoint. Please disassociate the origin group and try again.
+
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName)
+
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
