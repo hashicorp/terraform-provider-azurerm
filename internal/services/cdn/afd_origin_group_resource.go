@@ -304,7 +304,6 @@ func resourceAfdOriginGroupsRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 	if loadSet := resp.LoadBalancingSettings; loadSet != nil {
 		d.Set("load_balancing", flattenLoadBalancingSettings(resp.LoadBalancingSettings))
-
 	}
 
 	d.Set("name", id.OriginGroupName)
@@ -365,19 +364,19 @@ func flattenHealthProbeSettings(input *cdn.HealthProbeParameters) []interface{} 
 			probePath = *i.ProbePath
 		}
 
-		if i.ProbeProtocol == cdn.ProbeProtocolHTTP {
+		switch i.ProbeProtocol {
+		case cdn.ProbeProtocolHTTP:
 			probeProtocol = "Http"
-		} else if i.ProbeProtocol == cdn.ProbeProtocolHTTPS {
+		case cdn.ProbeProtocolHTTPS:
 			probeProtocol = "Https"
-		} else {
-			probeProtocol = "NotSet"
 		}
 
-		if i.ProbeRequestType == cdn.HealthProbeRequestTypeGET {
+		switch i.ProbeRequestType {
+		case cdn.HealthProbeRequestTypeGET:
 			probeRequestType = "GET"
-		} else if i.ProbeRequestType == "HEAD" {
+		case cdn.HealthProbeRequestTypeHEAD:
 			probeRequestType = "HEAD"
-		} else {
+		case cdn.HealthProbeRequestTypeNotSet:
 			probeRequestType = "NotSet"
 		}
 	}

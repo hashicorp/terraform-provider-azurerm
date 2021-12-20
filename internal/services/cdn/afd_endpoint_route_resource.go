@@ -94,11 +94,12 @@ func resourceAfdEndpointRoutes() *pluginsdk.Resource {
 			// SupportedProtocols - List of supported protocols for this route.
 			"supported_protocols": {
 				Type:     pluginsdk.TypeList,
-				Required: true,
+				Optional: true,
 				MinItems: 1,
 				MaxItems: 2,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+					Type:    pluginsdk.TypeString,
+					Default: string(cdn.AFDEndpointProtocolsHTTP),
 					ValidateFunc: validation.StringInSlice([]string{
 						string(cdn.AFDEndpointProtocolsHTTP),
 						string(cdn.AFDEndpointProtocolsHTTPS),

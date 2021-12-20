@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -26,9 +25,6 @@ func resourceAfdCustomDomains() *pluginsdk.Resource {
 		Delete: resourceAfdCustomDomainDelete,
 
 		SchemaVersion: 1,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.CdnEndpointV0ToV1{},
-		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -198,6 +194,44 @@ func expandTlsSettings(input []interface{}) *cdn.AFDDomainHTTPSParameters {
 	return &parameters
 }
 
+func flattenTlsSettings(input *cdn.AFDDomainHTTPSParameters) []interface{} {
+	results := make([]interface{}, 0)
+
+	var certificateType, minimumTLSVersion, secret string
+
+	if i := input; i != nil {
+
+		switch i.CertificateType {
+		case cdn.AfdCertificateTypeCustomerCertificate:
+			certificateType = "CustomerManaged"
+		case cdn.AfdCertificateTypeManagedCertificate:
+			certificateType = "ManagedCertificate"
+		}
+
+		switch i.MinimumTLSVersion {
+		case cdn.AfdMinimumTLSVersionTLS10:
+			minimumTLSVersion = "TLS10"
+		case cdn.AfdMinimumTLSVersionTLS12:
+			minimumTLSVersion = "TLS12"
+		}
+
+		if i.Secret != nil && i.CertificateType == cdn.AfdCertificateTypeCustomerCertificate {
+			secret = *i.Secret.ID
+		} else {
+			secret = ""
+		}
+
+	}
+
+	results = append(results, map[string]interface{}{
+		"certificate_type":    certificateType,
+		"minimum_tls_version": minimumTLSVersion,
+		"secret_id":           secret,
+	})
+
+	return results
+}
+
 func resourceAfdCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -219,6 +253,11 @@ func resourceAfdCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
+	if tlsSet := resp.TLSSettings; tlsSet != nil {
+		d.Set("tls", flattenTlsSettings(resp.TLSSettings))
+	}
+
+	d.Set("profile_id", parse.NewProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 	d.Set("name", resp.Name)
 	d.Set("host_name", resp.HostName)
 	d.Set("validation_token", resp.ValidationProperties.ValidationToken)
@@ -227,9 +266,31 @@ func resourceAfdCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 }
 
 func resourceAfdCustomDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
 	id, err := parse.AfdCustomDomainID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	tlsSettings := d.Get("tls").([]interface{})
+
+	domain := cdn.AFDDomainUpdateParameters{}
+	domainUpdate := cdn.AFDDomainUpdatePropertiesParameters{
+		TLSSettings: expandTlsSettings(tlsSettings),
+		// AzureDNSZone
+	}
+
+	domain.AFDDomainUpdatePropertiesParameters = &domainUpdate
+
+	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName, domain)
+	if err != nil {
+		return fmt.Errorf("updating %q: %+v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
