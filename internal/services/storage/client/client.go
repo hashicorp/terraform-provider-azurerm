@@ -6,7 +6,6 @@ import (
 
 	legacystorage "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
-	"github.com/Azure/azure-sdk-for-go/services/storagepool/mgmt/2021-08-01/storagepool"
 	"github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync"
 	"github.com/Azure/go-autorest/autorest"
 	az "github.com/Azure/go-autorest/autorest/azure"
@@ -69,9 +68,6 @@ func NewClient(options *common.ClientOptions) *Client {
 
 	encryptionScopesClient := storage.NewEncryptionScopesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&encryptionScopesClient.Client, options.ResourceManagerAuthorizer)
-
-	disksPoolsClient := storagepool.NewDiskPoolsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&disksPoolsClient.Client, options.ResourceManagerAuthorizer)
 
 	fileServicesClient := storage.NewFileServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&fileServicesClient.Client, options.ResourceManagerAuthorizer)
