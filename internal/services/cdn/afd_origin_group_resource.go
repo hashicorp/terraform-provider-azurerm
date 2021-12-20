@@ -299,7 +299,16 @@ func resourceAfdOriginGroupsRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("making Read request on Azure CDN OriginGroups %q (Resource Group %q): %+v", id.OriginGroupName, id.ResourceGroup, err)
 	}
 
+	if healthSet := resp.HealthProbeSettings; healthSet != nil {
+		d.Set("health_probe", flattenHealthProbeSettings(resp.HealthProbeSettings))
+	}
+	if loadSet := resp.LoadBalancingSettings; loadSet != nil {
+		d.Set("load_balancing", flattenLoadBalancingSettings(resp.LoadBalancingSettings))
+
+	}
+
 	d.Set("name", id.OriginGroupName)
+	d.Set("profile_id", parse.NewProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	if resp.SessionAffinityState == cdn.EnabledStateEnabled {
 		d.Set("session_affinity_state", true)
@@ -308,6 +317,79 @@ func resourceAfdOriginGroupsRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	return nil
+}
+
+func flattenLoadBalancingSettings(input *cdn.LoadBalancingSettingsParameters) []interface{} {
+	results := make([]interface{}, 0)
+
+	var sampleSize, additionalLatencyInMilliseconds, successfulSamplesRequired int
+
+	if i := input; i != nil {
+
+		if i.SampleSize != nil {
+			sampleSize = int(*i.SampleSize)
+		}
+
+		if i.AdditionalLatencyInMilliseconds != nil {
+			additionalLatencyInMilliseconds = int(*i.AdditionalLatencyInMilliseconds)
+		}
+
+		if i.SuccessfulSamplesRequired != nil {
+			successfulSamplesRequired = int(*i.SuccessfulSamplesRequired)
+		}
+
+	}
+
+	results = append(results, map[string]interface{}{
+		"sample_size":                 sampleSize,
+		"successful_samples_required": successfulSamplesRequired,
+		"additional_latency_in_ms":    additionalLatencyInMilliseconds,
+	})
+
+	return results
+}
+
+func flattenHealthProbeSettings(input *cdn.HealthProbeParameters) []interface{} {
+	results := make([]interface{}, 0)
+
+	var probeIntervalInSeconds int32
+	var probePath, probeProtocol, probeRequestType string
+
+	if i := input; i != nil {
+
+		if i.ProbeIntervalInSeconds != nil {
+			probeIntervalInSeconds = *i.ProbeIntervalInSeconds
+		}
+
+		if i.ProbePath != nil {
+			probePath = *i.ProbePath
+		}
+
+		if i.ProbeProtocol == cdn.ProbeProtocolHTTP {
+			probeProtocol = "Http"
+		} else if i.ProbeProtocol == cdn.ProbeProtocolHTTPS {
+			probeProtocol = "Https"
+		} else {
+			probeProtocol = "NotSet"
+		}
+
+		if i.ProbeRequestType == cdn.HealthProbeRequestTypeGET {
+			probeRequestType = "GET"
+		} else if i.ProbeRequestType == "HEAD" {
+			probeRequestType = "HEAD"
+		} else {
+			probeRequestType = "NotSet"
+		}
+	}
+
+	results = append(results, map[string]interface{}{
+		"path":                probePath,
+		"request_type":        probeRequestType,
+		"protocol":            probeProtocol,
+		"interval_in_seconds": probeIntervalInSeconds,
+	})
+
+	return results
 }
 
 func resourceAfdOriginGroupsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
