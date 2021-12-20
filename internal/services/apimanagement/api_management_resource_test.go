@@ -1451,7 +1451,7 @@ resource "azurerm_public_ip" "test1" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Standard"
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_public_ip" "test2" {
@@ -1459,7 +1459,7 @@ resource "azurerm_public_ip" "test2" {
   resource_group_name = azurerm_resource_group.test2.name
   location            = azurerm_resource_group.test2.location
   sku                 = "Standard"
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_api_management" "test" {
