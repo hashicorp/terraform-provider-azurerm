@@ -189,6 +189,7 @@ func flattenAzureRmAdvisorRecommendations(recommends []advisor.ResourceRecommend
 	}
 
 	return result
+	return nil
 }
 
 func expandAzureRmAdvisorRecommendationsMapString(t string, input []interface{}) string {
