@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * `azurerm_linux_virtual_machine` - support for the `user_data` property [GH-13888]
 * `azurerm_linux_virtual_machine_scale_set` - support for the `user_data` property [GH-13888]
 * `azurerm_managed_disk` - support for the `gallery_image_reference_id` property [GH-14121]
+* `azurerm_postgresql_flexible_server` - support for the `geo_redundant_backup_enabled` property [GH-14661]
 * `azurerm_recovery_services_vault` - support for the `storage_mode_type` property [GH-14659]
 * `azurerm_windows_virtual_machine` - support for the `user_data` property [GH-13888]
 * `azurerm_windows_virtual_machine_scale_set` - support for the `user_data` property [GH-13888]
