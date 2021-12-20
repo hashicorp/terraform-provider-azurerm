@@ -123,11 +123,20 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.Resource
 		}
 	}
 
+	defaultAction := servicebus.DefaultAction(d.Get("default_action").(string))
+	vnetRule := expandServiceBusNamespaceVirtualNetworkRules(d.Get("network_rules").(*pluginsdk.Set).List())
+	ipRule := expandServiceBusNamespaceIPRules(d.Get("ip_rules").(*pluginsdk.Set).List())
+
+	// API doesn't accept "Deny" to be set for "default_action" if no "ip_rules" or "network_rules" is defined and returns no error message to the user
+	if defaultAction == servicebus.DefaultActionDeny && vnetRule == nil && ipRule == nil {
+		return fmt.Errorf(" The default action of %s can only be set to `Allow` if no `ip_rules` or `network_rules` is set", resourceId)
+	}
+
 	parameters := servicebus.NetworkRuleSet{
 		NetworkRuleSetProperties: &servicebus.NetworkRuleSetProperties{
-			DefaultAction:               servicebus.DefaultAction(d.Get("default_action").(string)),
-			VirtualNetworkRules:         expandServiceBusNamespaceVirtualNetworkRules(d.Get("network_rules").(*pluginsdk.Set).List()),
-			IPRules:                     expandServiceBusNamespaceIPRules(d.Get("ip_rules").(*pluginsdk.Set).List()),
+			DefaultAction:               defaultAction,
+			VirtualNetworkRules:         vnetRule,
+			IPRules:                     ipRule,
 			TrustedServiceAccessEnabled: utils.Bool(d.Get("trusted_services_allowed").(bool)),
 		},
 	}
