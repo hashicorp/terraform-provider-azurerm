@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/sdk/2021-08-01/diskpools"
 	disksValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -180,7 +179,7 @@ func (StorageDisksPoolResource) Delete() sdk.ResourceFunc {
 }
 
 func (StorageDisksPoolResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.StorageDisksPoolID
+	return diskpools.ValidateDiskPoolID
 }
 
 func (StorageDisksPoolResource) Update() sdk.ResourceFunc {
