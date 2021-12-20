@@ -3,7 +3,6 @@ package disks
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -224,12 +223,4 @@ func (StorageDisksPoolResource) ModelObject() interface{} {
 
 func (StorageDisksPoolResource) ResourceType() string {
 	return "azurerm_storage_disks_pool"
-}
-
-func expandDisksPoolSku(sku string) diskpools.Sku {
-	parts := strings.Split(sku, "_")
-	return diskpools.Sku{
-		Name: sku,
-		Tier: &parts[0],
-	}
 }
