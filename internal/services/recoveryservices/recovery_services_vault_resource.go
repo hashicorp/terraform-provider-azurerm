@@ -198,8 +198,7 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 		},
 	}
 
-	_, err = storageCfgsClient.Update(ctx, id.Name, id.ResourceGroup, storageCfg)
-	if err != nil {
+	if _, err = storageCfgsClient.Update(ctx, id.Name, id.ResourceGroup, storageCfg); err != nil {
 		return fmt.Errorf("updating Recovery Service Storage Cfg %s: %+v", id.String(), err)
 	}
 
