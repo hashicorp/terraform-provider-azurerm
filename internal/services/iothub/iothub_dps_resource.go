@@ -106,9 +106,7 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 						"apply_allocation_policy": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default: func() bool {
-								return features.ThreePointOh()
-							}(),
+							Default:  features.ThreePointOh(),
 						},
 						"allocation_weight": {
 							Type:         pluginsdk.TypeInt,
