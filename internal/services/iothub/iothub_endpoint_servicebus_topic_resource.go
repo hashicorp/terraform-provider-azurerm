@@ -47,11 +47,25 @@ func resourceIotHubEndpointServiceBusTopic() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			// TODO remove in 3.0
 			"iothub_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.IoTHubName,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				Computed:      true,
+				ValidateFunc:  validate.IoTHubName,
+				Deprecated:    "Deprecated in favour of `iothub_id`",
+				ConflictsWith: []string{"iothub_id"},
+			},
+
+			"iothub_id": {
+				Type: pluginsdk.TypeString,
+				// TODO add Required: true in 3.0
+				Optional:      true,
+				ForceNew:      true,
+				Computed:      true,
+				ValidateFunc:  validate.IotHubID,
+				ConflictsWith: []string{"iothub_name"},
 			},
 
 			"connection_string": {
@@ -78,25 +92,38 @@ func resourceIotHubEndpointServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData
 	defer cancel()
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 
-	id := parse.NewEndpointServiceBusTopicID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_name").(string), d.Get("name").(string))
+	endpointRG := d.Get("resource_group_name").(string)
+	iotHubName := d.Get("iothub_name").(string)
+	iotHubRG := endpointRG
 
-	locks.ByName(id.IotHubName, IothubResourceName)
-	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
+	if iotHubName == "" {
+		id, err := parse.IotHubID(d.Get("iothub_id").(string))
+		if err != nil {
+			return err
+		}
+		iotHubName = id.Name
+		iotHubRG = id.ResourceGroup
+	}
 
-	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
+	id := parse.NewEndpointServiceBusTopicID(subscriptionId, iotHubRG, iotHubName, d.Get("name").(string))
+
+	locks.ByName(iotHubName, IothubResourceName)
+	defer locks.UnlockByName(iotHubName, IothubResourceName)
+
+	iothub, err := client.Get(ctx, iotHubRG, iotHubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(iothub.Response) {
-			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
+			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iotHubName, iotHubRG)
 		}
 
-		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iotHubName, iotHubRG, err)
 	}
 
 	topicEndpoint := devices.RoutingServiceBusTopicEndpointProperties{
 		ConnectionString: utils.String(d.Get("connection_string").(string)),
 		Name:             utils.String(id.EndpointName),
 		SubscriptionID:   utils.String(subscriptionID),
-		ResourceGroup:    utils.String(id.ResourceGroup),
+		ResourceGroup:    utils.String(endpointRG),
 	}
 
 	routing := iothub.Properties.Routing
@@ -136,7 +163,7 @@ func resourceIotHubEndpointServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData
 	}
 	routing.Endpoints.ServiceBusTopics = &endpoints
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, iothub, "")
+	future, err := client.CreateOrUpdate(ctx, iotHubRG, iotHubName, iothub, "")
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -167,7 +194,9 @@ func resourceIotHubEndpointServiceBusTopicRead(d *pluginsdk.ResourceData, meta i
 
 	d.Set("name", id.EndpointName)
 	d.Set("iothub_name", id.IotHubName)
-	d.Set("resource_group_name", id.ResourceGroup)
+
+	iotHubId := parse.NewIotHubID(id.SubscriptionId, id.ResourceGroup, id.IotHubName)
+	d.Set("iothub_id", iotHubId.ID())
 
 	if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.Endpoints == nil {
 		return nil
@@ -178,6 +207,7 @@ func resourceIotHubEndpointServiceBusTopicRead(d *pluginsdk.ResourceData, meta i
 			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
 				if strings.EqualFold(*existingEndpointName, id.EndpointName) {
 					d.Set("connection_string", endpoint.ConnectionString)
+					d.Set("resource_group_name", endpoint.ResourceGroup)
 				}
 			}
 		}
