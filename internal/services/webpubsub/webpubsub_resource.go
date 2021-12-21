@@ -133,8 +133,7 @@ func resourceWebPubSub() *pluginsdk.Resource {
 					},
 				},
 			},
-			// Enable or disable public network access. Default to "Enabled". When it's Enabled, network ACLs still apply.
-			// When it's Disabled, public network access is always disabled no matter what you set in network ACLs.
+
 			"public_network_access": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,

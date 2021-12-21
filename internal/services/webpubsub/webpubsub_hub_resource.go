@@ -45,7 +45,6 @@ func resourceWebPubsubHub() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
-				// TODO name restriction - regex
 				ValidateFunc: validate.ValidateWebPubsbHubName(),
 			},
 
@@ -68,10 +67,6 @@ func resourceWebPubsubHub() *pluginsdk.Resource {
 							Required: true,
 						},
 
-						// There are 3 kind of patterns supported:
-						// 1. \"*\", it to matches any event name
-						// 2. Combine multiple events with \",\", for example \"event1,event2\", it matches event \"event1\" and \"event2\"\r\n
-						// 3. The single event name, for example, \"event1\", it matches \"event1\"",
 						"user_event_pattern": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
