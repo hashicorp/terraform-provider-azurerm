@@ -339,14 +339,14 @@ func expandAuth(input []interface{}) (*webpubsub.UpstreamAuthSettings, error) {
 			return nil, fmt.Errorf("managed_identity_resource is required when the auth_type is set to `managedIdentity")
 		} else if authType == string(webpubsub.UpstreamAuthTypeNone) && authId != "" {
 			return nil, fmt.Errorf("managed_identity_type is set to None, no auth_id is needed")
-		} else {
-			return &webpubsub.UpstreamAuthSettings{
-				Type: webpubsub.UpstreamAuthType(authType),
-				ManagedIdentity: &webpubsub.ManagedIdentitySettings{
-					Resource: &authId,
-				},
-			}, nil
 		}
+
+		return &webpubsub.UpstreamAuthSettings{
+			Type: webpubsub.UpstreamAuthType(authType),
+			ManagedIdentity: &webpubsub.ManagedIdentitySettings{
+				Resource: &authId,
+			},
+		}, nil
 	}
 
 	return nil, nil
