@@ -1,9 +1,10 @@
 package validate
 
 import (
+	"regexp"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"regexp"
 )
 
 func ValidateWebpubsubName() pluginsdk.SchemaValidateFunc {
