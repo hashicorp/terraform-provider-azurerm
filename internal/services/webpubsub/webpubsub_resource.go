@@ -309,7 +309,7 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retriving Web Pubsub (%q): %+v", id, err)
+		return fmt.Errorf("retrieving Web Pubsub (%q): %+v", id, err)
 	}
 
 	keys, err := client.ListKeys(ctx, id.ResourceGroupId, id.Name)
