@@ -182,6 +182,7 @@ jobs:
         with:
           go-version: '%[2]s'
       - run: bash scripts/gogetcookie.sh
+      - run: make tools
       - run: bash scripts/service-package.sh %[1]q
 `, name, golangVersion)
 }
@@ -214,6 +215,7 @@ jobs:
         with:
           go-version: '%[2]s'
       - run: bash scripts/gogetcookie.sh
+      - run: make tools
       - run: bash scripts/run-new-service-packages.sh
 `, strings.Join(paths, "\n"), golangVersion)
 }
