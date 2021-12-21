@@ -147,7 +147,7 @@ resource "azurerm_mssql_server_extended_auditing_policy" "example" {
   retention_in_days      = 6
   log_monitoring_enabled = false
 
-  storage_account_subscription_id = "1a6092a6-137e-4025-9a7c-ef77f76f2c02"
+  storage_account_subscription_id = "00000000-0000-0000-0000-000000000000"
 
   depends_on = [
     azurerm_role_assignment.example,
