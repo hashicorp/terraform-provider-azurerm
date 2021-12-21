@@ -100,7 +100,10 @@ func TestAccCdnEndpointCustomDomain_httpsUserManaged(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		// The "key_vault_certificate_id" is skipped here since during import, there is no knowledge about whether users want
+		// versioned or versionless certificate id. That means the imported "key_vault_certificate_id" is what it is at the
+		// remote API representation, which might be different than it as defined in the configuration.
+		data.ImportStep("user_managed_https.0.key_vault_certificate_id"),
 	})
 }
 
@@ -133,7 +136,7 @@ func TestAccCdnEndpointCustomDomain_httpsUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("user_managed_https.0.key_vault_certificate_id"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
