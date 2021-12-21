@@ -341,6 +341,28 @@ func TestAccPostgreSQLServer_updateReplicaToDefault(t *testing.T) {
 	})
 }
 
+// Update Admin Password in a separate call when Replication is stopped: https://github.com/Azure/azure-rest-api-specs/issues/16898
+func TestAccPostgreSQLServer_updateReplicaToDefaultAndSetPassword(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "replica")
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.createReplica(data, "GP_Gen5_2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateReplicaToDefaultSetPassword(data, "GP_Gen5_2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("creation_source_server_id", "administrator_login_password"),
+	})
+}
+
 func TestAccPostgreSQLServer_scaleReplicas(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
@@ -807,6 +829,32 @@ resource "azurerm_postgresql_server" "replica" {
   name                = "acctest-psql-server-%[2]d-replica"
   location            = "%[3]s"
   resource_group_name = azurerm_resource_group.replica.name
+
+  sku_name    = "%[4]s"
+  version     = "11"
+  create_mode = "Default"
+
+  public_network_access_enabled = false
+  ssl_enforcement_enabled       = true
+}
+`, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku)
+}
+
+func (r PostgreSQLServerResource) updateReplicaToDefaultSetPassword(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_resource_group" "replica" {
+  name     = "acctestRG-psql-%[2]d-replica"
+  location = "%[3]s"
+}
+
+resource "azurerm_postgresql_server" "replica" {
+  name                = "acctest-psql-server-%[2]d-replica"
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.replica.name
+
+  administrator_login_password = "H@Sh1CoR3!updated"
 
   sku_name    = "%[4]s"
   version     = "11"

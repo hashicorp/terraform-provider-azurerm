@@ -242,6 +242,10 @@ resource "azurerm_blueprint_assignment" "test" {
     data.azurerm_client_config.current.object_id,
   ]
 
+  lock_exclude_actions = [
+    "Microsoft.Resources/subscriptions/resourceGroups/write"
+  ]
+
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]

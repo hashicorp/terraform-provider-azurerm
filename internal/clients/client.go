@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
 	advisor "github.com/hashicorp/terraform-provider-azurerm/internal/services/advisor/client"
 	analysisServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/client"
 	apiManagement "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/client"
@@ -40,6 +41,7 @@ import (
 	devspace "github.com/hashicorp/terraform-provider-azurerm/internal/services/devspace/client"
 	devtestlabs "github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/client"
 	digitaltwins "github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/client"
+	disks "github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/client"
 	dns "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/client"
 	domainservices "github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/client"
 	eventgrid "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/client"
@@ -113,6 +115,7 @@ type Client struct {
 	Account  *ResourceManagerAccount
 	Features features.UserFeatures
 
+	AadB2c                *aadb2c.Client
 	Advisor               *advisor.Client
 	AnalysisServices      *analysisServices.Client
 	ApiManagement         *apiManagement.Client
@@ -147,6 +150,7 @@ type Client struct {
 	DevSpace              *devspace.Client
 	DevTestLabs           *devtestlabs.Client
 	DigitalTwins          *digitaltwins.Client
+	Disks                 *disks.Client
 	Dns                   *dns.Client
 	DomainServices        *domainservices.Client
 	EventGrid             *eventgrid.Client
@@ -222,6 +226,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Features = o.Features
 	client.StopContext = ctx
 
+	client.AadB2c = aadb2c.NewClient(o)
 	client.Advisor = advisor.NewClient(o)
 	client.AnalysisServices = analysisServices.NewClient(o)
 	client.ApiManagement = apiManagement.NewClient(o)
@@ -256,6 +261,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DevSpace = devspace.NewClient(o)
 	client.DevTestLabs = devtestlabs.NewClient(o)
 	client.DigitalTwins = digitaltwins.NewClient(o)
+	client.Disks = disks.NewClient(o)
 	client.Dns = dns.NewClient(o)
 	client.DomainServices = domainservices.NewClient(o)
 	client.EventGrid = eventgrid.NewClient(o)

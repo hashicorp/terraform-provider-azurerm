@@ -220,8 +220,6 @@ A `addon_profile` block supports the following:
 
 * `azure_policy` - (Optional) A `azure_policy` block as defined below. For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
 
--> **NOTE:** At this time Azure Policy is not supported in Azure US Government.
-
 * `http_application_routing` - (Optional) A `http_application_routing` block as defined below.
 
 -> **NOTE:** At this time HTTP Application Routing is not supported in Azure China or Azure US Government.
@@ -237,6 +235,10 @@ A `addon_profile` block supports the following:
 -> **NOTE.** At this time Open Service Mesh is not supported in Azure US government or Azure China.
 
 -> **NOTE.** Open Service Mesh is available on an opt-in preview basis. For more details about how to opt-in, please visit [Open Service Mesh for AKS](https://docs.microsoft.com/azure/aks/open-service-mesh-deploy-add-on#register-the-aks-openservicemesh-preview-feature)
+
+* `azure_keyvault_secrets_provider` - (Optional) An `azure_keyvault_secrets_provider` block as defined below. For more details, please visit [Azure Keyvault Secrets Provider for AKS](https://docs.microsoft.com/en-us/azure/aks/csi-secrets-store-driver).
+
+~> **NOTE.** At this time the Azure KeyVault Secrets Provider is not supported in Azure China/Azure US Government.
 
 ---
 
@@ -589,6 +591,17 @@ An `open_service_mesh` block supports the following:
 
 ---
 
+An `azure_keyvault_secrets_provider` block supports the following:
+
+* `enabled` - Is the Azure Keyvault Secrets Providerenabled?
+
+* `secret_rotation_enabled` - (Optional) Is secret rotation enabled?
+
+* `secret_rotation_interval` - (Optional) The interval to poll for secret rotation. This attribute is only set when `secret_rotation` is true and defaults to `2m`.
+
+---
+
+
 A `role_based_access_control` block supports the following:
 
 * `azure_active_directory` - (Optional) An `azure_active_directory` block.
@@ -796,6 +809,8 @@ provider "kubernetes" {
 
 The `addon_profile` block exports the following:
 
+* `azure_keyvault_secrets_provider` - An `azure_keyvault_secrets_provider` block as defined below.
+
 * `ingress_application_gateway` - An `ingress_application_gateway` block as defined below.
 
 * `oms_agent` - An `oms_agent` block as defined below.
@@ -833,6 +848,25 @@ The `oms_agent_identity` block exports the following:
 * `object_id` - The Object ID of the user-defined Managed Identity used by the OMS Agents.
 
 * `user_assigned_identity_id` - The ID of the User Assigned Identity used by the OMS Agents.
+
+---
+
+The `azure_keyvault_secrets_provider` block exports the following:
+
+* `secret_identity` - An `secret_identity` block is exported. The exported attributes are defined below.  
+
+---
+
+The `secret_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used by the Secret Provider.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used by the Secret Provider.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the Secret Provider.
+
+---
+
 
 ## Timeouts
 

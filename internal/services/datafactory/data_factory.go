@@ -12,6 +12,17 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+// @tombuildsstuff: these have been ported over from the Azure SDK for Go since the service team has removed them
+// but the casing differs in the API, so we need to ensure these are normalized on our side.
+const (
+	TypeBasicDatasetCompressionTypeBZip2      string = "BZip2"
+	TypeBasicDatasetCompressionTypeDeflate    string = "Deflate"
+	TypeBasicDatasetCompressionTypeGZip       string = "GZip"
+	TypeBasicDatasetCompressionTypeTar        string = "Tar"
+	TypeBasicDatasetCompressionTypeTarGZip    string = "TarGZip"
+	TypeBasicDatasetCompressionTypeZipDeflate string = "ZipDeflate"
+)
+
 func expandDataFactoryLinkedServiceIntegrationRuntime(integrationRuntimeName string) *datafactory.IntegrationRuntimeReference {
 	typeString := "IntegrationRuntimeReference"
 
@@ -520,79 +531,52 @@ func flattenDataFactoryDatasetSFTPLocation(input *datafactory.SftpLocation) []in
 	return []interface{}{result}
 }
 
-func flattenDataFactoryDatasetCompression(input datafactory.BasicDatasetCompression) []interface{} {
+func flattenDataFactoryDatasetCompression(input *datafactory.DatasetCompression) []interface{} {
 	if input == nil {
-		return nil
-	}
-	result := make(map[string]interface{})
-
-	if compression, ok := input.AsDatasetBZip2Compression(); ok {
-		result["type"] = compression.Type
-	}
-	if compression, ok := input.AsDatasetDeflateCompression(); ok {
-		result["type"] = compression.Type
-	}
-	if compression, ok := input.AsDatasetGZipCompression(); ok {
-		result["type"] = compression.Type
-		result["level"] = compression.Level
-	}
-	if compression, ok := input.AsDatasetTarCompression(); ok {
-		result["type"] = compression.Type
-	}
-	if compression, ok := input.AsDatasetTarGZipCompression(); ok {
-		result["type"] = compression.Type
-		result["level"] = compression.Level
-	}
-	if compression, ok := input.AsDatasetZipDeflateCompression(); ok {
-		result["type"] = compression.Type
-		result["level"] = compression.Level
+		return []interface{}{}
 	}
 
-	return []interface{}{result}
+	// the Azure API returns these in a different case to what we're expecting, so we need to convert these
+	compressionTypes := []string{
+		TypeBasicDatasetCompressionTypeBZip2,
+		TypeBasicDatasetCompressionTypeDeflate,
+		TypeBasicDatasetCompressionTypeGZip,
+		TypeBasicDatasetCompressionTypeTar,
+		TypeBasicDatasetCompressionTypeTarGZip,
+		TypeBasicDatasetCompressionTypeZipDeflate,
+	}
+
+	compressionType := ""
+	if t, ok := input.Type.(string); ok {
+		for _, v := range compressionTypes {
+			if strings.EqualFold(v, t) {
+				compressionType = v
+			}
+		}
+	}
+
+	level := ""
+	if v, ok := input.Level.(string); ok {
+		level = v
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":  compressionType,
+			"level": level,
+		},
+	}
 }
 
-func expandDataFactoryDatasetCompression(d *pluginsdk.ResourceData) datafactory.BasicDatasetCompression {
+func expandDataFactoryDatasetCompression(d *pluginsdk.ResourceData) *datafactory.DatasetCompression {
 	compression := d.Get("compression").([]interface{})
 	if len(compression) == 0 || compression[0] == nil {
 		return nil
 	}
+
 	props := compression[0].(map[string]interface{})
-	level := props["level"].(string)
-	compressionType := props["type"].(string)
-
-	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeBZip2 {
-		return datafactory.DatasetBZip2Compression{
-			Type: datafactory.TypeBasicDatasetCompression(compressionType),
-		}
+	return &datafactory.DatasetCompression{
+		Type:  props["type"].(string),
+		Level: props["level"].(string),
 	}
-	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeDeflate {
-		return datafactory.DatasetDeflateCompression{
-			Type: datafactory.TypeBasicDatasetCompression(compressionType),
-		}
-	}
-	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeGZip {
-		return datafactory.DatasetGZipCompression{
-			Type:  datafactory.TypeBasicDatasetCompression(compressionType),
-			Level: level,
-		}
-	}
-	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeTar {
-		return datafactory.DatasetTarCompression{
-			Type: datafactory.TypeBasicDatasetCompression(compressionType),
-		}
-	}
-	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeTarGZip {
-		return datafactory.DatasetTarGZipCompression{
-			Type:  datafactory.TypeBasicDatasetCompression(compressionType),
-			Level: level,
-		}
-	}
-	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeZipDeflate {
-		return datafactory.DatasetZipDeflateCompression{
-			Type:  datafactory.TypeBasicDatasetCompression(compressionType),
-			Level: level,
-		}
-	}
-
-	return nil
 }

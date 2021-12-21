@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2021-06-01-preview/appplatform"
+	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2021-09-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -94,7 +94,7 @@ func resourceSpringCloudCertificateCreate(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 	cert := appplatform.CertificateResource{
-		Properties: &appplatform.CertificateProperties{
+		Properties: &appplatform.KeyVaultCertificateProperties{
 			VaultURI:         &keyVaultCertificateId.KeyVaultBaseUrl,
 			KeyVaultCertName: &keyVaultCertificateId.Name,
 		},
@@ -131,7 +131,7 @@ func resourceSpringCloudCertificateRead(d *pluginsdk.ResourceData, meta interfac
 	d.Set("service_name", id.SpringName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if props := resp.Properties; props != nil {
+	if props, ok := resp.Properties.AsKeyVaultCertificateProperties(); ok && props != nil {
 		d.Set("thumbprint", props.Thumbprint)
 	}
 

@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
-	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -221,19 +220,13 @@ func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
 
 func resourceArmConsumptionBudgetResourceGroupDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Consumption.BudgetsClient
-	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroupId, err := resourceParse.ResourceGroupID(d.Get("resource_group_id").(string))
-	if err != nil {
-		return err
-	}
-
-	id := parse.NewConsumptionBudgetResourceGroupID(subscriptionID, resourceGroupId.ResourceGroup, d.Get("name").(string))
+	id := parse.NewConsumptionBudgetId(d.Get("resource_group_id").(string), d.Get("name").(string))
 	d.SetId(id.ID())
 
-	resp, err := client.Get(ctx, resourceGroupId.ID(), id.BudgetName)
+	resp, err := client.Get(ctx, id.Scope, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -247,11 +240,11 @@ func resourceArmConsumptionBudgetResourceGroupDataSourceRead(d *pluginsdk.Resour
 		amount, _ := resp.Amount.Float64()
 		d.Set("amount", amount)
 	}
-
+	d.Set("resource_group_id", id.Scope)
 	d.Set("time_grain", string(resp.TimeGrain))
-	d.Set("time_period", FlattenConsumptionBudgetTimePeriod(resp.TimePeriod))
-	d.Set("notification", FlattenConsumptionBudgetNotifications(resp.Notifications))
-	d.Set("filter", FlattenConsumptionBudgetFilter(resp.Filter))
+	d.Set("time_period", flattenConsumptionBudgetTimePeriod(resp.TimePeriod))
+	d.Set("notification", flattenConsumptionBudgetNotifications(resp.Notifications, id.Scope))
+	d.Set("filter", flattenConsumptionBudgetFilter(resp.Filter))
 
 	return nil
 }

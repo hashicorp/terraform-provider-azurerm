@@ -303,7 +303,6 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 				if v, ok := keyVaultRaw["purge_soft_deleted_keys_on_destroy"]; ok {
 					featuresMap.KeyVault.PurgeSoftDeletedKeysOnDestroy = v.(bool)
 				}
-
 			}
 		}
 	}

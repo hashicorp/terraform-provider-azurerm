@@ -170,6 +170,35 @@ func TestAccLogicAppWorkflow_accessControl(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppWorkflow_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
+	r := LogicAppWorkflowResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.empty(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (LogicAppWorkflowResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.WorkflowID(state.ID)
 	if err != nil {
@@ -412,6 +441,20 @@ resource "azurerm_logic_app_workflow" "test" {
 
     trigger {
       allowed_caller_ip_address_range = ["10.0.7.0-10.0.7.10"]
+
+      open_authentication_policy {
+        name = "testpolicy1"
+
+        claim {
+          name  = "iss"
+          value = "https://sts.windows.net/"
+        }
+
+        claim {
+          name  = "aud"
+          value = "https://management.core.windows.net/"
+        }
+      }
     }
 
     workflow_management {
@@ -450,6 +493,20 @@ resource "azurerm_logic_app_workflow" "test" {
 
     trigger {
       allowed_caller_ip_address_range = ["10.10.5.0/24"]
+
+      open_authentication_policy {
+        name = "testpolicy4"
+
+        claim {
+          name  = "iss"
+          value = "https://sts.windows.net/"
+        }
+
+        claim {
+          name  = "testclaimname"
+          value = "testclaimvalue"
+        }
+      }
     }
 
     workflow_management {
@@ -458,4 +515,65 @@ resource "azurerm_logic_app_workflow" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (LogicAppWorkflowResource) systemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-logic-%d"
+  location = "%s"
+}
+
+resource "azurerm_logic_app_workflow" "test" {
+  name                = "acctestlaw-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (LogicAppWorkflowResource) userAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-logic-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-user-%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_resource_group.test.id
+  role_definition_name = "Logic App Operator"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_logic_app_workflow" "test" {
+  name                = "acctestlaw-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  depends_on = [azurerm_role_assignment.test]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }

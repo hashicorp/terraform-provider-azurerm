@@ -180,6 +180,46 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 								},
 							},
 						},
+						"azure_keyvault_secrets_provider": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Computed: true,
+									},
+									"secret_rotation_enabled": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"secret_rotation_interval": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"secret_identity": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"client_id": {
+													Type:     pluginsdk.TypeString,
+													Computed: true,
+												},
+												"object_id": {
+													Type:     pluginsdk.TypeString,
+													Computed: true,
+												},
+												"user_assigned_identity_id": {
+													Type:     pluginsdk.TypeString,
+													Computed: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -951,6 +991,38 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 		openServiceMeshes = append(openServiceMeshes, output)
 	}
 	values["open_service_mesh"] = openServiceMeshes
+
+	azureKeyvaultSecretsProviders := make([]interface{}, 0)
+	if azureKeyvaultSecretsProvider := kubernetesAddonProfileLocate(profile, azureKeyvaultSecretsProviderKey); azureKeyvaultSecretsProvider != nil {
+		enabled := false
+		if enabledVal := azureKeyvaultSecretsProvider.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		enableSecretRotation := "false"
+		if v := kubernetesAddonProfilelocateInConfig(azureKeyvaultSecretsProvider.Config, "enableSecretRotation"); v == utils.String("true") {
+			enableSecretRotation = *v
+		}
+
+		rotationPollInterval := ""
+		if v := kubernetesAddonProfilelocateInConfig(azureKeyvaultSecretsProvider.Config, "rotationPollInterval"); v != nil {
+			rotationPollInterval = *v
+		}
+
+		azureKeyvaultSecretsProviderIdentity, err := flattenKubernetesClusterDataSourceAddOnIdentityProfile(azureKeyvaultSecretsProvider.Identity)
+		if err != nil {
+			return err
+		}
+
+		output := map[string]interface{}{
+			"enabled":                  enabled,
+			"secret_rotation_enabled":  enableSecretRotation,
+			"secret_rotation_interval": rotationPollInterval,
+			"secret_identity":          azureKeyvaultSecretsProviderIdentity,
+		}
+		azureKeyvaultSecretsProviders = append(azureKeyvaultSecretsProviders, output)
+	}
+	values["azure_keyvault_secrets_provider"] = azureKeyvaultSecretsProviders
 
 	return []interface{}{values}
 }

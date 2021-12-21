@@ -78,6 +78,12 @@ The following arguments are supported:
 
 * `connection_string` - (Required) The connection string for the endpoint.
 
+* `iothub_name` - (Optional) The IoTHub name for the endpoint.
+
+~> **NOTE:** The `iothub_name` property is deprecated, use `iothub_id` instead.
+
+* `iothub_id` - (Optional) The IoTHub ID for the endpoint.
+
 ## Attributes Reference
 
 The following attributes are exported:

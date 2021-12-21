@@ -91,6 +91,16 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 				}, true),
 			},
 
+			"storage_mode_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  backup.StorageTypeGeoRedundant,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(backup.StorageTypeGeoRedundant),
+					string(backup.StorageTypeLocallyRedundant),
+				}, false),
+			},
+
 			"soft_delete_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -103,6 +113,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.VaultsClient
 	cfgsClient := meta.(*clients.Client).RecoveryServices.VaultsConfigsClient
+	storageCfgsClient := meta.(*clients.Client).RecoveryServices.StorageConfigsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,6 +192,16 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("waiting for on update for Recovery Service  %s: %+v", id.String(), err)
 	}
 
+	storageCfg := backup.ResourceConfigResource{
+		Properties: &backup.ResourceConfig{
+			StorageModelType: backup.StorageType(d.Get("storage_mode_type").(string)),
+		},
+	}
+
+	if _, err = storageCfgsClient.Update(ctx, id.Name, id.ResourceGroup, storageCfg); err != nil {
+		return fmt.Errorf("updating Recovery Service Storage Cfg %s: %+v", id.String(), err)
+	}
+
 	d.SetId(id.ID())
 	return resourceRecoveryServicesVaultRead(d, meta)
 }
@@ -188,6 +209,7 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.VaultsClient
 	cfgsClient := meta.(*clients.Client).RecoveryServices.VaultsConfigsClient
+	storageCfgsClient := meta.(*clients.Client).RecoveryServices.StorageConfigsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -226,6 +248,15 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 
 	if props := cfg.Properties; props != nil {
 		d.Set("soft_delete_enabled", props.SoftDeleteFeatureState == backup.SoftDeleteFeatureStateEnabled)
+	}
+
+	storageCfg, err := storageCfgsClient.Get(ctx, id.Name, id.ResourceGroup)
+	if err != nil {
+		return fmt.Errorf("reading Recovery Service storage Cfg %s: %+v", id.String(), err)
+	}
+
+	if props := storageCfg.Properties; props != nil {
+		d.Set("storage_mode_type", string(props.StorageModelType))
 	}
 
 	if err := d.Set("identity", flattenVaultIdentity(resp.Identity)); err != nil {
