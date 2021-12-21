@@ -3,16 +3,15 @@ package storage
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storagepool/mgmt/2021-08-01/storagepool"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	disksValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -36,20 +35,13 @@ type DisksPoolJobModel struct {
 	Tags              map[string]interface{} `tfschema:"tags"`
 }
 
-func (d DisksPoolResource) Arguments() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func (d DisksPoolResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.All(
-				validation.StringIsNotEmpty,
-				validation.StringLenBetween(7, 30),
-				validation.StringMatch(
-					regexp.MustCompile(`^[A-Za-z\d][A-Za-z\d.\-_]*[A-Za-z\d_]$`),
-					"The name must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens.",
-				),
-			),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: disksValidate.DiskPoolName(),
 		},
 		"resource_group_name": azure.SchemaResourceGroupName(),
 		"location":            location.Schema(),
@@ -64,15 +56,9 @@ func (d DisksPoolResource) Arguments() map[string]*schema.Schema {
 			},
 		},
 		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice(
-				[]string{
-					"Basic_B1",
-					"Standard_S1",
-					"Premium_P1",
-				}, false,
-			),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: disksValidate.DiskPoolSku(),
 		},
 		"subnet_id": {
 			Type:         pluginsdk.TypeString,
@@ -84,8 +70,8 @@ func (d DisksPoolResource) Arguments() map[string]*schema.Schema {
 	}
 }
 
-func (d DisksPoolResource) Attributes() map[string]*schema.Schema {
-	return map[string]*schema.Schema{}
+func (d DisksPoolResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (d DisksPoolResource) Create() sdk.ResourceFunc {
