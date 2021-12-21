@@ -10,7 +10,7 @@ ENHANCEMENTS:
 
 * dependencies: upgrading `appplatform` to API version `2021-09-01-preview` [GH-14365]
 * dependencies: upgrading `network` to API Version `2021-05-01` [GH-14164]
-* dependencies: upgrading to `v60.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-14667]
+* dependencies: upgrading to `v60.2.0` of `github.com/Azure/azure-sdk-for-go` [GH-14688] and [GH-14667]
 * dependencies: upgrading to `v2.10.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-14666]
 * `azurerm_application_gateway` - support for the `key_vault_secret_id` and `force_firewall_policy_association` property [GH-14413]
 * `azurerm_iothub` - support for `identity` [GH-14354]
