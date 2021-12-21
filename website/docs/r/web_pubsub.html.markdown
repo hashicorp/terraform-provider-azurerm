@@ -27,7 +27,7 @@ resource "azurerm_web_pubsub" "example" {
     name     = "Standard_S1"
     capactiy = 1
   }
-  
+
   public_network_access = "Disabled"
 
   live_trace_configuration {
