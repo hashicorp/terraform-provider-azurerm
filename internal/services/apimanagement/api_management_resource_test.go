@@ -1447,19 +1447,21 @@ resource "azurerm_network_security_rule" "authenticate2" {
 }
 
 resource "azurerm_public_ip" "test1" {
-  name                = "acctest-IP1-%[2]d"
+  name                = "acctest-IP1-%[4]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Standard"
   allocation_method   = "Static"
+  domain_name_label   = "acctest-ip1-%[4]s"
 }
 
 resource "azurerm_public_ip" "test2" {
-  name                = "acctest-IP2-%[2]d"
+  name                = "acctest-IP2-%[4]s"
   resource_group_name = azurerm_resource_group.test2.name
   location            = azurerm_resource_group.test2.location
   sku                 = "Standard"
   allocation_method   = "Static"
+  domain_name_label   = "acctest-ip2-%[4]s"
 }
 
 resource "azurerm_api_management" "test" {
@@ -1496,7 +1498,7 @@ resource "azurerm_api_management" "test" {
     azurerm_subnet_network_security_group_association.test2,
   ]
 }
-`, r.virtualNetworkTemplate(data), data.RandomInteger, data.Locations.Secondary)
+`, r.virtualNetworkTemplate(data), data.RandomInteger, data.Locations.Secondary, data.RandomString)
 }
 
 func (ApiManagementResource) identityUserAssigned(data acceptance.TestData) string {
