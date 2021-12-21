@@ -443,7 +443,7 @@ resource "azurerm_mssql_server_extended_auditing_policy" "test" {
   retention_in_days      = 6
   log_monitoring_enabled = false
 
-  storage_account_subscription_id = "1a6092a6-137e-4025-9a7c-ef77f76f2c02"
+  storage_account_subscription_id = "%s"
 
   depends_on = [
     azurerm_role_assignment.test,
@@ -452,7 +452,7 @@ resource "azurerm_mssql_server_extended_auditing_policy" "test" {
 }
 
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Client().SubscriptionID)
 }
 
 func (r MsSqlDatabaseExtendedAuditingPolicyResource) monitorTemplate(data acceptance.TestData) string {
