@@ -97,5 +97,6 @@ var services = mapOf(
         "trafficmanager" to "Traffic Manager",
         "vmware" to "VMware",
         "videoanalyzer" to "Video Analyzer",
-        "web" to "Web"
+        "web" to "Web",
+        "webpubsub" to "Webpubsub"
 )

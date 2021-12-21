@@ -101,6 +101,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/webpubsub"
 )
 
 //go:generate go run ../tools/generator-services/main.go -path=../../
@@ -227,5 +228,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		videoanalyzer.Registration{},
 		vmware.Registration{},
 		web.Registration{},
+		webpubsub.Registration{},
 	}
 }
