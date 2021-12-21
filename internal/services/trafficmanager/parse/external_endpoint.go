@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ExternalEndpointId struct {
@@ -42,7 +42,7 @@ func (id ExternalEndpointId) ID() string {
 
 // ExternalEndpointID parses a ExternalEndpoint ID into an ExternalEndpointId struct
 func ExternalEndpointID(input string) (*ExternalEndpointId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

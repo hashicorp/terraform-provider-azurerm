@@ -1,6 +1,7 @@
 package recoveryservices
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -26,6 +27,7 @@ func resourceSiteRecoveryReplicationPolicy() *pluginsdk.Resource {
 			_, err := parse.ReplicationPolicyID(id)
 			return err
 		}),
+		CustomizeDiff: resourceSiteRecoveryReplicationPolicyCustomDiff,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -53,13 +55,13 @@ func resourceSiteRecoveryReplicationPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ForceNew:     false,
-				ValidateFunc: validation.IntBetween(1, 365*24*60),
+				ValidateFunc: validation.IntBetween(0, 365*24*60),
 			},
 			"application_consistent_snapshot_frequency_in_minutes": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ForceNew:     false,
-				ValidateFunc: validation.IntBetween(1, 365*24*60),
+				ValidateFunc: validation.IntBetween(0, 365*24*60),
 			},
 		},
 	}
@@ -202,6 +204,17 @@ func resourceSiteRecoveryReplicationPolicyDelete(d *pluginsdk.ResourceData, meta
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for deletion of site recovery replication policy %s : %+v", id.String(), err)
+	}
+
+	return nil
+}
+
+func resourceSiteRecoveryReplicationPolicyCustomDiff(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+	retention := d.Get("recovery_point_retention_in_minutes").(int)
+	frequency := d.Get("application_consistent_snapshot_frequency_in_minutes").(int)
+
+	if retention == 0 && frequency > 0 {
+		return fmt.Errorf("application_consistent_snapshot_frequency_in_minutes cannot be greater than zero when recovery_point_retention_in_minutes is set to zero")
 	}
 
 	return nil

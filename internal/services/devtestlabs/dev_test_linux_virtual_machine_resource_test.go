@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -131,16 +131,14 @@ func TestAccDevTestLinuxVirtualMachine_updateStorage(t *testing.T) {
 }
 
 func (DevTestLinuxVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.DevTestVirtualMachineID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	labName := id.Path["labs"]
-	name := id.Path["virtualmachines"]
 
-	resp, err := clients.DevTestLabs.VirtualMachinesClient.Get(ctx, id.ResourceGroup, labName, name, "")
+	resp, err := clients.DevTestLabs.VirtualMachinesClient.Get(ctx, id.ResourceGroup, id.LabName, id.VirtualMachineName, "")
 	if err != nil {
-		return nil, fmt.Errorf("retrieving DevTest Linux Virtual Machine %q (Lab %q / Resource Group: %q): %v", name, labName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
 	return utils.Bool(resp.LabVirtualMachineProperties != nil), nil

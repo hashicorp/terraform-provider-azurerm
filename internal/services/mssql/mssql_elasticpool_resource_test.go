@@ -151,6 +151,51 @@ func TestAccMsSqlElasticPool_resizeVCore(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlElasticPool_fsv2FamilyVCore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	r := MsSqlElasticPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.fsv2VCore(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("max_size_gb"),
+	})
+}
+
+func TestAccMsSqlElasticPool_dcFamilyVCore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	r := MsSqlElasticPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dcVCore(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("max_size_gb"),
+	})
+}
+
+func TestAccMsSqlElasticPool_dcFamilyBcTierVCore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	r := MsSqlElasticPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dcVCoreBc(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("max_size_gb"),
+	})
+}
+
 func TestAccMsSqlElasticPool_licenseType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 	r := MsSqlElasticPoolResource{}
@@ -235,6 +280,18 @@ func (r MsSqlElasticPoolResource) resizeDTU(data acceptance.TestData) string {
 
 func (r MsSqlElasticPoolResource) basicVCore(data acceptance.TestData) string {
 	return r.templateVCore(data, "GP_Gen5", "GeneralPurpose", 4, "Gen5", 0.25, 4)
+}
+
+func (r MsSqlElasticPoolResource) fsv2VCore(data acceptance.TestData) string {
+	return r.templateVCore(data, "GP_Fsv2", "GeneralPurpose", 8, "Fsv2", 0, 8)
+}
+
+func (r MsSqlElasticPoolResource) dcVCore(data acceptance.TestData) string {
+	return r.templateVCore(data, "GP_DC", "GeneralPurpose", 2, "DC", 2, 2)
+}
+
+func (r MsSqlElasticPoolResource) dcVCoreBc(data acceptance.TestData) string {
+	return r.templateVCore(data, "BC_DC", "BusinessCritical", 2, "DC", 2, 2)
 }
 
 func (r MsSqlElasticPoolResource) basicVCoreMaxSizeBytes(data acceptance.TestData) string {

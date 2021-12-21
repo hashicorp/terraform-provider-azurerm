@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type StaticSiteId struct {
@@ -39,7 +39,7 @@ func (id StaticSiteId) ID() string {
 
 // StaticSiteID parses a StaticSite ID into an StaticSiteId struct
 func StaticSiteID(input string) (*StaticSiteId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

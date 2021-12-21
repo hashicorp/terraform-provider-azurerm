@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type LoadBalancerBackendAddressPoolId struct {
@@ -42,7 +42,7 @@ func (id LoadBalancerBackendAddressPoolId) ID() string {
 
 // LoadBalancerBackendAddressPoolID parses a LoadBalancerBackendAddressPool ID into an LoadBalancerBackendAddressPoolId struct
 func LoadBalancerBackendAddressPoolID(input string) (*LoadBalancerBackendAddressPoolId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

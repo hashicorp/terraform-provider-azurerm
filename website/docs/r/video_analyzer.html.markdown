@@ -82,9 +82,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `storage_account` - (Required) An `storage_account` blocks is defined below.
+* `storage_account` - (Required) A `storage_account` block as defined below.
 
-* `identity` - (Required) An `identity` block is defined below.
+* `identity` - (Required) An `identity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource.
 

@@ -20,7 +20,7 @@ func (r WindowsVirtualMachineScaleSetResource) Exists(ctx context.Context, clien
 		return nil, err
 	}
 
-	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Windows Virtual Machine Scale Set %q", id)
 	}

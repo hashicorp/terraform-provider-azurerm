@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type NestedEndpointId struct {
@@ -42,7 +42,7 @@ func (id NestedEndpointId) ID() string {
 
 // NestedEndpointID parses a NestedEndpoint ID into an NestedEndpointId struct
 func NestedEndpointID(input string) (*NestedEndpointId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

@@ -137,6 +137,7 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("checking for presence of existing Synapse Role Assignment (workspace %q): %+v", workspaceName, err)
 		}
 	}
+	// TODO: unpick this/refactor to use ID Formatters
 	if listResp.Value != nil && len(*listResp.Value) != 0 {
 		existing := (*listResp.Value)[0]
 		if existing.ID != nil && *existing.ID != "" {

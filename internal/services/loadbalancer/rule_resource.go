@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -206,7 +206,7 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	future, err := client.CreateOrUpdate(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, loadBalancer)
 	if err != nil {
-		return fmt.Errorf("updating Loadbalancer %q (rsource group %q) for Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.Name, err)
+		return fmt.Errorf("updating Loadbalancer %q (resource group %q) for Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.Name, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {

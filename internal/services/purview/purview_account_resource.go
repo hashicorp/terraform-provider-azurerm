@@ -65,6 +65,14 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"managed_resource_group_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceGroupName,
+			},
+
 			"identity": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -156,6 +164,10 @@ func resourcePurviewAccountCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		account.AccountProperties.PublicNetworkAccess = purview.PublicNetworkAccessDisabled
 	}
 
+	if v, ok := d.GetOk("managed_resource_group_name"); ok {
+		account.AccountProperties.ManagedResourceGroupName = utils.String(v.(string))
+	}
+
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, account)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
@@ -199,6 +211,12 @@ func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if props := resp.AccountProperties; props != nil {
 		d.Set("public_network_enabled", props.PublicNetworkAccess == purview.PublicNetworkAccessEnabled)
+
+		managedResourceGroupName := ""
+		if props.ManagedResourceGroupName != nil {
+			managedResourceGroupName = *props.ManagedResourceGroupName
+		}
+		d.Set("managed_resource_group_name", managedResourceGroupName)
 
 		if endpoints := resp.Endpoints; endpoints != nil {
 			d.Set("catalog_endpoint", endpoints.Catalog)

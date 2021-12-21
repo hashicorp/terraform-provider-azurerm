@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -69,17 +69,14 @@ func TestAccDevTestPolicy_complete(t *testing.T) {
 }
 
 func (DevTestPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.DevTestLabPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	labName := id.Path["labs"]
-	policySetName := id.Path["policysets"]
-	name := id.Path["policies"]
 
-	resp, err := clients.DevTestLabs.PoliciesClient.Get(ctx, id.ResourceGroup, labName, policySetName, name, "")
+	resp, err := clients.DevTestLabs.PoliciesClient.Get(ctx, id.ResourceGroup, id.LabName, id.PolicySetName, id.PolicyName, "")
 	if err != nil {
-		return nil, fmt.Errorf("retrieving DevTest Policy %q (Policy Set %q / Lab %q / Resource Group: %q): %v", name, policySetName, labName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
 	return utils.Bool(resp.PolicyProperties != nil), nil

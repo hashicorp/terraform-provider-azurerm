@@ -45,7 +45,7 @@ resource "azurerm_eventgrid_system_topic" "example" {
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "example" {
   name                = "example-event-subscription"
-  system_topic        = azurerm_system_topic.example.name
+  system_topic        = azurerm_eventgrid_system_topic.example.name
   resource_group_name = azurerm_resource_group.example.name
 
   storage_queue_endpoint {
@@ -112,6 +112,8 @@ A `storage_queue_endpoint` supports the following:
 * `storage_account_id` - (Required) Specifies the id of the storage account id where the storage queue is located.
 
 * `queue_name` - (Required) Specifies the name of the storage queue where the Event Subscription will receive events.
+
+* `queue_message_time_to_live_in_seconds` - (Optional) Storage queue message time to live in seconds.
 
 ---
 
@@ -189,13 +191,17 @@ Each nested block consists of a key and a value(s) element.
 
 A `delivery_identity` supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that is used for event delivery. Allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that is used for event delivery. Allowed value is `SystemAssigned`, `UserAssigned`.
+
+* `userAssignedIdentity` - (Optional) The user identity associated with the resource.
 
 ---
 
 A `dead_letter_identity` supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that is used for dead lettering. Allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that is used for dead lettering. Allowed value is `SystemAssigned`, `UserAssigned`.
+
+* `userAssignedIdentity` - (Optional) The user identity associated with the resource.
 
 ---
 
@@ -233,5 +239,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 EventGrid System Topic Event Subscriptions can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_eventgrid_system_topic_event_subscription.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/systemTopics/topic1/eventSubscriptions/subscription1
+terraform import azurerm_eventgrid_system_topic_event_subscription.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventGrid/systemTopics/topic1/eventSubscriptions/subscription1
 ```

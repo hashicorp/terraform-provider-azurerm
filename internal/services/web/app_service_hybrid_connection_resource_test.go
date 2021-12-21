@@ -142,7 +142,6 @@ resource "azurerm_relay_hybrid_connection" "test" {
   relay_namespace_name = azurerm_relay_namespace.test.name
   user_metadata        = "metadatatest"
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 

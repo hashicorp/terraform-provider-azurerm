@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type WebApplicationFirewallPolicyId struct {
@@ -39,7 +39,7 @@ func (id WebApplicationFirewallPolicyId) ID() string {
 
 // WebApplicationFirewallPolicyID parses a WebApplicationFirewallPolicy ID into an WebApplicationFirewallPolicyId struct
 func WebApplicationFirewallPolicyID(input string) (*WebApplicationFirewallPolicyId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func WebApplicationFirewallPolicyID(input string) (*WebApplicationFirewallPolicy
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
 func WebApplicationFirewallPolicyIDInsensitively(input string) (*WebApplicationFirewallPolicyId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

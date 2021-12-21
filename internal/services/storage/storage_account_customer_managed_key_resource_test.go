@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -384,7 +384,6 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
   key_name           = azurerm_key_vault_key.remote.name
   key_version        = azurerm_key_vault_key.remote.version
 }
-
 `, clientData.SubscriptionIDAlt, clientData.TenantID, data.RandomInteger, data.Locations.Primary, data.RandomString, clientData.TenantID, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 

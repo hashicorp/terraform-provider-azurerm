@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-11-01/subscriptions"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	subscriptionAlias "github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -110,13 +111,7 @@ func resourceSubscription() *pluginsdk.Resource {
 				Computed:    true,
 			},
 
-			"tags": {
-				Type:     pluginsdk.TypeMap,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -226,7 +221,21 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	createDeadline := time.Until(deadline)
 
 	if err := waitForSubscriptionStateToSettle(ctx, meta.(*clients.Client), *alias.Properties.SubscriptionID, "Active", createDeadline); err != nil {
-		return fmt.Errorf("failed waiting for Subscription %q (Alias %q) to enter %q state: %+v", subscriptionId, id.Name, "Active", err)
+		return fmt.Errorf("failed waiting for Subscription %q (Alias %q) to enter %q state: %+v", *alias.Properties.SubscriptionID, id.Name, "Active", err)
+	}
+
+	if d.HasChange("tags") {
+		tagsClient := meta.(*clients.Client).Resource.TagsClientForSubscription(*alias.Properties.SubscriptionID)
+		t := tags.Expand(d.Get("tags").(map[string]interface{}))
+		scope := fmt.Sprintf("subscriptions/%s", *alias.Properties.SubscriptionID)
+		tagsResource := resources.TagsResource{
+			Properties: &resources.Tags{
+				Tags: t,
+			},
+		}
+		if _, err = tagsClient.CreateOrUpdateAtScope(ctx, scope, tagsResource); err != nil {
+			return fmt.Errorf("setting tags on %s: %+v", id, err)
+		}
 	}
 
 	d.SetId(id.ID())
@@ -266,6 +275,20 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		if _, err := subscriptionClient.Rename(ctx, *subscriptionId, displayName); err != nil {
 			return fmt.Errorf("could not update Display Name of Subscription %q: %+v", *subscriptionId, err)
+		}
+	}
+
+	if d.HasChange("tags") {
+		tagsClient := meta.(*clients.Client).Resource.TagsClientForSubscription(*subscriptionId)
+		t := tags.Expand(d.Get("tags").(map[string]interface{}))
+		scope := fmt.Sprintf("subscriptions/%s", *subscriptionId)
+		tagsResource := resources.TagsResource{
+			Properties: &resources.Tags{
+				Tags: t,
+			},
+		}
+		if _, err = tagsClient.CreateOrUpdateAtScope(ctx, scope, tagsResource); err != nil {
+			return fmt.Errorf("setting tags on %s: %+v", *id, err)
 		}
 	}
 

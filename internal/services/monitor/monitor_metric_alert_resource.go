@@ -10,7 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -217,6 +217,7 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 										ValidateFunc: validation.StringInSlice([]string{
 											"Include",
 											"Exclude",
+											"StartsWith",
 										}, false),
 									},
 									"values": {

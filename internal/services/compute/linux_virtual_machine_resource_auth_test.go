@@ -19,9 +19,7 @@ func TestAccLinuxVirtualMachine_authPassword(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -36,9 +34,7 @@ func TestAccLinuxVirtualMachine_authPasswordAndSSH(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -244,7 +240,6 @@ resource "azurerm_linux_virtual_machine" "test" {
   location            = azurerm_resource_group.test.location
   size                = "Standard_F2"
   admin_username      = "adminuser"
-  admin_password      = "password1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -263,7 +258,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "20.04-LTS"
+    sku       = "16.04-LTS"
     version   = "latest"
   }
 }

@@ -6,7 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -199,7 +200,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		Sku: configurationstores.Sku{
 			Name: d.Get("sku").(string),
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	identity, err := expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
@@ -231,7 +232,7 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Sku: &configurationstores.Sku{
 			Name: d.Get("sku").(string),
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if d.HasChange("identity") {
@@ -274,8 +275,8 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving access keys for %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ConfigStoreName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
@@ -295,7 +296,7 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		return tags.FlattenAndSet(d, flattenTags(model.Tags))
+		return tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags))
 	}
 
 	return nil

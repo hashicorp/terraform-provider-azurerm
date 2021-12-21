@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type MariaDBConfigurationId struct {
@@ -42,7 +42,7 @@ func (id MariaDBConfigurationId) ID() string {
 
 // MariaDBConfigurationID parses a MariaDBConfiguration ID into an MariaDBConfigurationId struct
 func MariaDBConfigurationID(input string) (*MariaDBConfigurationId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

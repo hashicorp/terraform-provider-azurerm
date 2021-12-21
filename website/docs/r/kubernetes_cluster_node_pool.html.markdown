@@ -16,7 +16,7 @@ Manages a Node Pool within a Kubernetes Cluster
 
 ## Example Usage
 
-This example provisions a basic Kubernetes Node Pool. Other examples of the `azurerm_kubernetes_cluster_node_pool` resource can be found in [the `./examples/kubernetes` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/kubernetes)
+This example provisions a basic Kubernetes Node Pool. Other examples of the `azurerm_kubernetes_cluster_node_pool` resource can be found in [the `./examples/kubernetes` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/kubernetes)
 
 
 ```hcl
@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `eviction_policy` - (Optional) The Eviction Policy which should be used for Virtual Machines within the Virtual Machine Scale Set powering this Node Pool. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 
--> **Note:** An Eviction Policy can only be configured when `priority` is set to `Spot`.
+~> **Note:** An Eviction Policy can only be configured when `priority` is set to `Spot` and will default to `Delete` unless otherwise specified. 
 
 * `kubelet_config` - (Optional) A `kubelet_config` block as defined below.
 
@@ -91,7 +91,7 @@ The following arguments are supported:
 
 * `fips_enabled` - (Optional) Should the nodes in this Node Pool have Federal Information Processing Standard enabled? Changing this forces a new resource to be created.
 
-~> NOTE: FIPS support is in Public Preview - more information and details on how to opt into the Preview can be found in [this article](https://docs.microsoft.com/en-us/azure/aks/use-multiple-node-pools#add-a-fips-enabled-node-pool-preview).
+~> **Note:** FIPS support is in Public Preview - more information and details on how to opt into the Preview can be found in [this article](https://docs.microsoft.com/en-us/azure/aks/use-multiple-node-pools#add-a-fips-enabled-node-pool-preview).
 
 * `kubelet_disk_type` - (Optional) The type of disk used by kubelet. Possible Values are `OS`.
 
@@ -113,7 +113,7 @@ The following arguments are supported:
 
 * `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. Changing this forces a new resource to be created.
 
-* `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist. Changing this forces a new resource to be created.
+* `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the Node Pool should exist. Changing this forces a new resource to be created.
 
 -> **NOTE:** This requires that the Preview Feature `Microsoft.ContainerService/PodSubnetPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni#register-the-podsubnetpreview-preview-feature) for more information.
 
@@ -183,7 +183,7 @@ A `kubelet_config` block supports the following:
 
 * `image_gc_low_threshold` - (Optional) Specifies the percent of disk usage lower than which image garbage collection is never run. Must be between `0` and `100`. Changing this forces a new resource to be created.
 
-* `pod_max_pids` - (Optional) Specifies the maximum number of processes per pod. Changing this forces a new resource to be created.
+* `pod_max_pid` - (Optional) Specifies the maximum number of processes per pod. Changing this forces a new resource to be created.
 
 * `topology_manager_policy` - (Optional) Specifies the Topology Manager policy to use. Possible values are `none`, `best-effort`, `restricted` or `single-numa-node`. Changing this forces a new resource to be created.
 

@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-04-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -108,17 +108,17 @@ func TestAccFrontDoorFirewallPolicy_complete(t *testing.T) {
 }
 
 func (FrontDoorFirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.WebApplicationFirewallPolicyIDInsensitively(state.ID)
+	id, err := webapplicationfirewallpolicies.ParseFrontDoorWebApplicationFirewallPoliciesIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Frontdoor.FrontDoorsPolicyClient.Get(ctx, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
+	resp, err := clients.Frontdoor.FrontDoorsPolicyClient.PoliciesGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Front Door Firewall Policy %q (Resource Group %q): %v", id.FrontDoorWebApplicationFirewallPolicyName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.WebApplicationFirewallPolicyProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (FrontDoorFirewallPolicyResource) basic(data acceptance.TestData) string {

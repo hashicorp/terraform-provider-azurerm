@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2020-05-01/signalr"
-
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2020-05-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -107,8 +107,8 @@ func dataSourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.SignalRName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ResourceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
@@ -120,7 +120,7 @@ func dataSourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("server_port", props.ServerPort)
 		}
 
-		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err := tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags)); err != nil {
 			return err
 		}
 	}

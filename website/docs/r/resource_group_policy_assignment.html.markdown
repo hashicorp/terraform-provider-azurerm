@@ -42,6 +42,15 @@ resource "azurerm_resource_group_policy_assignment" "example" {
   name                 = "example"
   resource_group_id    = azurerm_resource_group.example.id
   policy_definition_id = azurerm_policy_definition.example.id
+
+  parameters = <<PARAMS
+      "tagName": {
+        "value": "Business Unit"
+      },
+      "tagValue": {
+        "value": "BU"
+      }
+PARAMS
 }
 ```
 
@@ -63,13 +72,15 @@ The following arguments are supported:
 
 * `enforce` - (Optional) Specifies if this Policy should be enforced or not?
 
-* `identity` - (Optional) A `identity` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 -> **Note:** The `location` field must also be specified when `identity` is specified.
 
 * `location` - (Optional) The Azure Region where the Policy Assignment should exist. Changing this forces a new Policy Assignment to be created.
 
 * `metadata` - (Optional) A JSON mapping of any Metadata for this Policy.
+
+* `non_compliance_message` - (Optional) One or more `non_compliance_message` blocks as defined below.
 
 * `not_scopes` - (Optional) Specifies a list of Resource Scopes (for example a Subscription, or a Resource Group) within this Management Group which are excluded from this Policy.
 
@@ -81,9 +92,17 @@ A `identity` block supports the following:
 
 * `type` - (Optional) The Type of Managed Identity which should be added to this Policy Definition. The only possible value is `SystemAssigned`.
 
+---
+
+A `non_compliance_message` block supports the following:
+
+* `content` - (Required) The non-compliance message text. When assigning policy sets (initiatives), unless `policy_definition_reference_id` is specified then this message will be the default for all policies.
+
+* `policy_definition_reference_id` - (Optional) When assigning policy sets (initiatives), this is the ID of the policy definition that the non-compliance message applies to.
+
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Resource Group Policy Assignment.
 

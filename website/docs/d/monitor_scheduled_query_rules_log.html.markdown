@@ -19,7 +19,7 @@ data "azurerm_monitor_scheduled_query_rules_log" "example" {
 }
 
 output "query_rule_id" {
-  value = "${data.azurerm_monitor_scheduled_query_rules_log.example.id}"
+  value = data.azurerm_monitor_scheduled_query_rules_log.example.id
 }
 ```
 

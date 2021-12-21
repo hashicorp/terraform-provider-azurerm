@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -257,11 +258,22 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("minimum_tls_version", string(props.MinimumTLSVersion))
 		d.Set("port", props.Port)
 		d.Set("enable_non_ssl_port", props.EnableNonSslPort)
+		shardCount := 0
 		if props.ShardCount != nil {
-			d.Set("shard_count", props.ShardCount)
+			shardCount = int(*props.ShardCount)
 		}
+		d.Set("shard_count", shardCount)
 		d.Set("private_static_ip_address", props.StaticIP)
-		d.Set("subnet_id", props.SubnetID)
+		subnetId := ""
+		if props.SubnetID != nil {
+			parsed, err := networkParse.SubnetIDInsensitively(*props.SubnetID)
+			if err != nil {
+				return err
+			}
+
+			subnetId = parsed.ID()
+		}
+		d.Set("subnet_id", subnetId)
 	}
 
 	redisConfiguration, err := flattenRedisConfiguration(resp.RedisConfiguration)

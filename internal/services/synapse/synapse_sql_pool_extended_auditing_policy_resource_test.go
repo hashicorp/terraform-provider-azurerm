@@ -372,7 +372,6 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   send                = true
   manage              = true
 }
-
 `, r.template(data), data.RandomInteger)
 }
 

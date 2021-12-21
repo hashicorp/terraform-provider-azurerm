@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-05-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
@@ -176,6 +176,46 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 									"enabled": {
 										Type:     pluginsdk.TypeBool,
 										Computed: true,
+									},
+								},
+							},
+						},
+						"azure_keyvault_secrets_provider": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Computed: true,
+									},
+									"secret_rotation_enabled": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"secret_rotation_interval": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"secret_identity": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"client_id": {
+													Type:     pluginsdk.TypeString,
+													Computed: true,
+												},
+												"object_id": {
+													Type:     pluginsdk.TypeString,
+													Computed: true,
+												},
+												"user_assigned_identity_id": {
+													Type:     pluginsdk.TypeString,
+													Computed: true,
+												},
+											},
+										},
 									},
 								},
 							},
@@ -952,6 +992,38 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 	}
 	values["open_service_mesh"] = openServiceMeshes
 
+	azureKeyvaultSecretsProviders := make([]interface{}, 0)
+	if azureKeyvaultSecretsProvider := kubernetesAddonProfileLocate(profile, azureKeyvaultSecretsProviderKey); azureKeyvaultSecretsProvider != nil {
+		enabled := false
+		if enabledVal := azureKeyvaultSecretsProvider.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		enableSecretRotation := "false"
+		if v := kubernetesAddonProfilelocateInConfig(azureKeyvaultSecretsProvider.Config, "enableSecretRotation"); v == utils.String("true") {
+			enableSecretRotation = *v
+		}
+
+		rotationPollInterval := ""
+		if v := kubernetesAddonProfilelocateInConfig(azureKeyvaultSecretsProvider.Config, "rotationPollInterval"); v != nil {
+			rotationPollInterval = *v
+		}
+
+		azureKeyvaultSecretsProviderIdentity, err := flattenKubernetesClusterDataSourceAddOnIdentityProfile(azureKeyvaultSecretsProvider.Identity)
+		if err != nil {
+			return err
+		}
+
+		output := map[string]interface{}{
+			"enabled":                  enabled,
+			"secret_rotation_enabled":  enableSecretRotation,
+			"secret_rotation_interval": rotationPollInterval,
+			"secret_identity":          azureKeyvaultSecretsProviderIdentity,
+		}
+		azureKeyvaultSecretsProviders = append(azureKeyvaultSecretsProviders, output)
+	}
+	values["azure_keyvault_secrets_provider"] = azureKeyvaultSecretsProviders
+
 	return []interface{}{values}
 }
 
@@ -973,7 +1045,7 @@ func flattenKubernetesClusterDataSourceAddOnIdentityProfile(profile *containerse
 
 	userAssignedIdentityID := ""
 	if resourceid := profile.ResourceID; resourceid != nil {
-		parsedId, err := msiparse.UserAssignedIdentityID(*resourceid)
+		parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(*resourceid)
 		if err != nil {
 			return nil, err
 		}
@@ -1099,7 +1171,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 	return agentPoolProfiles
 }
 
-func flattenKubernetesClusterDataSourceIdentityProfile(profile map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue) ([]interface{}, error) {
+func flattenKubernetesClusterDataSourceIdentityProfile(profile map[string]*containerservice.UserAssignedIdentity) ([]interface{}, error) {
 	if profile == nil {
 		return []interface{}{}, nil
 	}
@@ -1118,7 +1190,7 @@ func flattenKubernetesClusterDataSourceIdentityProfile(profile map[string]*conta
 
 		userAssignedIdentityId := ""
 		if resourceid := kubeletidentity.ResourceID; resourceid != nil {
-			parsedId, err := msiparse.UserAssignedIdentityID(*resourceid)
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(*resourceid)
 			if err != nil {
 				return nil, err
 			}
@@ -1281,7 +1353,7 @@ func flattenKubernetesClusterDataSourceManagedClusterIdentity(input *containerse
 			keys = append(keys, key)
 		}
 		if len(keys) > 0 {
-			parsedId, err := msiparse.UserAssignedIdentityID(keys[0])
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(keys[0])
 			if err != nil {
 				return nil, err
 			}

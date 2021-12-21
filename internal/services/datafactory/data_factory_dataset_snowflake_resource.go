@@ -44,12 +44,24 @@ func resourceDataFactoryDatasetSnowflake() *pluginsdk.Resource {
 				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
-			// TODO: replace with `data_factory_id` in 3.0
+			// TODO remove in 3.0
 			"data_factory_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryName(),
+				Deprecated:   "`data_factory_name` is deprecated in favour of `data_factory_id` and will be removed in version 3.0 of the AzureRM provider",
+				ExactlyOneOf: []string{"data_factory_id"},
+			},
+
+			"data_factory_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true, // TODO set to Required in 3.0
+				Computed:     true, // TODO remove in 3.0
+				ForceNew:     true,
+				ValidateFunc: validate.DataFactoryID,
+				ExactlyOneOf: []string{"data_factory_name"},
 			},
 
 			// There's a bug in the Azure API where this is returned in lower-case
@@ -228,13 +240,27 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewDataSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("data_factory_name").(string), d.Get("name").(string))
+	// TODO remove/simplify this after deprecation in 3.0
+	var err error
+	var dataFactoryId *parse.DataFactoryId
+	if v := d.Get("data_factory_name").(string); v != "" {
+		newDataFactoryId := parse.NewDataFactoryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("data_factory_name").(string))
+		dataFactoryId = &newDataFactoryId
+	}
+	if v := d.Get("data_factory_id").(string); v != "" {
+		dataFactoryId, err = parse.DataFactoryID(v)
+		if err != nil {
+			return err
+		}
+	}
+
+	id := parse.NewDataSetID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Dataset Snowflake %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
@@ -297,7 +323,7 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataset, ""); err != nil {
-		return fmt.Errorf("creating/updating Data Factory Dataset Snowflake %s: %+v", id, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -315,6 +341,8 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
+	dataFactoryId := parse.NewDataFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
+
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -327,7 +355,9 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
+	// TODO remove in 3.0
 	d.Set("data_factory_name", id.FactoryName)
+	d.Set("data_factory_id", dataFactoryId.ID())
 
 	snowflakeTable, ok := resp.Properties.AsSnowflakeDataset()
 	if !ok {
@@ -403,7 +433,7 @@ func resourceDataFactoryDatasetSnowflakeDelete(d *pluginsdk.ResourceData, meta i
 	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting Data Factory Dataset Snowflake %s: %+v", *id, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

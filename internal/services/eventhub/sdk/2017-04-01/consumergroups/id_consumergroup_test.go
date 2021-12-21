@@ -6,118 +6,133 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = ConsumergroupId{}
+var _ resourceids.ResourceId = ConsumerGroupId{}
 
-func TestConsumergroupIDFormatter(t *testing.T) {
-	actual := NewConsumergroupID("{subscriptionId}", "{resourceGroupName}", "{namespaceName}", "{eventHubName}", "{consumerGroupName}").ID()
-	expected := "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/{namespaceName}/eventhubs/{eventHubName}/consumergroups/{consumerGroupName}"
+func TestNewConsumerGroupID(t *testing.T) {
+	id := NewConsumerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "eventHubValue", "consumerGroupValue")
+
+	if id.SubscriptionId != "12345678-1234-9876-4563-123456789012" {
+		t.Fatalf("Expected %q but got %q for Segment 'SubscriptionId'", id.SubscriptionId, "12345678-1234-9876-4563-123456789012")
+	}
+
+	if id.ResourceGroupName != "example-resource-group" {
+		t.Fatalf("Expected %q but got %q for Segment 'ResourceGroupName'", id.ResourceGroupName, "example-resource-group")
+	}
+
+	if id.NamespaceName != "namespaceValue" {
+		t.Fatalf("Expected %q but got %q for Segment 'NamespaceName'", id.NamespaceName, "namespaceValue")
+	}
+
+	if id.EventHubName != "eventHubValue" {
+		t.Fatalf("Expected %q but got %q for Segment 'EventHubName'", id.EventHubName, "eventHubValue")
+	}
+
+	if id.ConsumerGroupName != "consumerGroupValue" {
+		t.Fatalf("Expected %q but got %q for Segment 'ConsumerGroupName'", id.ConsumerGroupName, "consumerGroupValue")
+	}
+}
+
+func TestFormatConsumerGroupID(t *testing.T) {
+	actual := NewConsumerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "eventHubValue", "consumerGroupValue").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.EventHub/namespaces/namespaceValue/eventhubs/eventHubValue/consumerGroups/consumerGroupValue"
 	if actual != expected {
-		t.Fatalf("Expected %q but got %q", expected, actual)
+		t.Fatalf("Expected the Formatted ID to be %q but got %q", actual, expected)
 	}
 }
 
-func TestParseConsumergroupID(t *testing.T) {
+func TestParseConsumerGroupID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *ConsumergroupId
+		Expected *ConsumerGroupId
 	}{
-
 		{
-			// empty
+			// Incomplete URI
 			Input: "",
 			Error: true,
 		},
-
 		{
-			// missing SubscriptionId
-			Input: "/",
+			// Incomplete URI
+			Input: "/subscriptions",
 			Error: true,
 		},
-
 		{
-			// missing value for SubscriptionId
-			Input: "/subscriptions/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012",
 			Error: true,
 		},
-
 		{
-			// missing ResourceGroup
-			Input: "/subscriptions/{subscriptionId}/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups",
 			Error: true,
 		},
-
 		{
-			// missing value for ResourceGroup
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group",
 			Error: true,
 		},
-
 		{
-			// missing NamespaceName
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers",
 			Error: true,
 		},
-
 		{
-			// missing value for NamespaceName
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.EventHub",
 			Error: true,
 		},
-
 		{
-			// missing EventhubName
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/{namespaceName}/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.EventHub/namespaces",
 			Error: true,
 		},
-
 		{
-			// missing value for EventhubName
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/{namespaceName}/eventhubs/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.EventHub/namespaces/namespaceValue",
 			Error: true,
 		},
-
 		{
-			// missing Name
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/{namespaceName}/eventhubs/{eventHubName}/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.EventHub/namespaces/namespaceValue/eventhubs",
 			Error: true,
 		},
-
 		{
-			// missing value for Name
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/{namespaceName}/eventhubs/{eventHubName}/consumergroups/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.EventHub/namespaces/namespaceValue/eventhubs/eventHubValue",
 			Error: true,
 		},
-
 		{
-			// valid
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/{namespaceName}/eventhubs/{eventHubName}/consumergroups/{consumerGroupName}",
-			Expected: &ConsumergroupId{
-				SubscriptionId: "{subscriptionId}",
-				ResourceGroup:  "{resourceGroupName}",
-				NamespaceName:  "{namespaceName}",
-				EventhubName:   "{eventHubName}",
-				Name:           "{consumerGroupName}",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.EventHub/namespaces/namespaceValue/eventhubs/eventHubValue/consumerGroups",
+			Error: true,
+		},
+		{
+			// Valid URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.EventHub/namespaces/namespaceValue/eventhubs/eventHubValue/consumerGroups/consumerGroupValue",
+			Expected: &ConsumerGroupId{
+				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
+				ResourceGroupName: "example-resource-group",
+				NamespaceName:     "namespaceValue",
+				EventHubName:      "eventHubValue",
+				ConsumerGroupName: "consumerGroupValue",
 			},
 		},
-
 		{
-			// upper-cased
-			Input: "/SUBSCRIPTIONS/{SUBSCRIPTIONID}/RESOURCEGROUPS/{RESOURCEGROUPNAME}/PROVIDERS/MICROSOFT.EVENTHUB/NAMESPACES/{NAMESPACENAME}/EVENTHUBS/{EVENTHUBNAME}/CONSUMERGROUPS/{CONSUMERGROUPNAME}",
+			// Invalid (Valid Uri with Extra segment)
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.EventHub/namespaces/namespaceValue/eventhubs/eventHubValue/consumerGroups/consumerGroupValue/extra",
 			Error: true,
 		},
 	}
-
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseConsumergroupID(v.Input)
+		actual, err := ParseConsumerGroupID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
 			}
 
-			t.Fatalf("Expect a value but got an error: %s", err)
+			t.Fatalf("Expect a value but got an error: %+v", err)
 		}
 		if v.Error {
 			t.Fatal("Expect an error but didn't get one")
@@ -126,153 +141,190 @@ func TestParseConsumergroupID(t *testing.T) {
 		if actual.SubscriptionId != v.Expected.SubscriptionId {
 			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-		if actual.ResourceGroup != v.Expected.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+
+		if actual.ResourceGroupName != v.Expected.ResourceGroupName {
+			t.Fatalf("Expected %q but got %q for ResourceGroupName", v.Expected.ResourceGroupName, actual.ResourceGroupName)
 		}
+
 		if actual.NamespaceName != v.Expected.NamespaceName {
 			t.Fatalf("Expected %q but got %q for NamespaceName", v.Expected.NamespaceName, actual.NamespaceName)
 		}
-		if actual.EventhubName != v.Expected.EventhubName {
-			t.Fatalf("Expected %q but got %q for EventhubName", v.Expected.EventhubName, actual.EventhubName)
+
+		if actual.EventHubName != v.Expected.EventHubName {
+			t.Fatalf("Expected %q but got %q for EventHubName", v.Expected.EventHubName, actual.EventHubName)
 		}
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+
+		if actual.ConsumerGroupName != v.Expected.ConsumerGroupName {
+			t.Fatalf("Expected %q but got %q for ConsumerGroupName", v.Expected.ConsumerGroupName, actual.ConsumerGroupName)
 		}
+
 	}
 }
 
-func TestParseConsumergroupIDInsensitively(t *testing.T) {
+func TestParseConsumerGroupIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *ConsumergroupId
+		Expected *ConsumerGroupId
 	}{
-
 		{
-			// empty
+			// Incomplete URI
 			Input: "",
 			Error: true,
 		},
-
 		{
-			// missing SubscriptionId
-			Input: "/",
+			// Incomplete URI
+			Input: "/subscriptions",
 			Error: true,
 		},
-
 		{
-			// missing value for SubscriptionId
-			Input: "/subscriptions/",
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs",
 			Error: true,
 		},
-
 		{
-			// missing ResourceGroup
-			Input: "/subscriptions/{subscriptionId}/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012",
 			Error: true,
 		},
-
 		{
-			// missing value for ResourceGroup
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/",
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012",
 			Error: true,
 		},
-
 		{
-			// missing NamespaceName
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups",
 			Error: true,
 		},
-
 		{
-			// missing value for NamespaceName
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/",
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS",
 			Error: true,
 		},
-
 		{
-			// missing EventhubName
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/{namespaceName}/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group",
 			Error: true,
 		},
-
 		{
-			// missing value for EventhubName
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/{namespaceName}/eventhubs/",
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP",
 			Error: true,
 		},
-
 		{
-			// missing Name
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/{namespaceName}/eventhubs/{eventHubName}/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers",
 			Error: true,
 		},
-
 		{
-			// missing value for Name
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/{namespaceName}/eventhubs/{eventHubName}/consumergroups/",
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs",
 			Error: true,
 		},
-
 		{
-			// valid
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/{namespaceName}/eventhubs/{eventHubName}/consumergroups/{consumerGroupName}",
-			Expected: &ConsumergroupId{
-				SubscriptionId: "{subscriptionId}",
-				ResourceGroup:  "{resourceGroupName}",
-				NamespaceName:  "{namespaceName}",
-				EventhubName:   "{eventHubName}",
-				Name:           "{consumerGroupName}",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.EventHub",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.eVeNtHuB",
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.EventHub/namespaces",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.eVeNtHuB/nAmEsPaCeS",
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.EventHub/namespaces/namespaceValue",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.eVeNtHuB/nAmEsPaCeS/nAmEsPaCeVaLuE",
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.EventHub/namespaces/namespaceValue/eventhubs",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.eVeNtHuB/nAmEsPaCeS/nAmEsPaCeVaLuE/eVeNtHuBs",
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.EventHub/namespaces/namespaceValue/eventhubs/eventHubValue",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.eVeNtHuB/nAmEsPaCeS/nAmEsPaCeVaLuE/eVeNtHuBs/eVeNtHuBvAlUe",
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.EventHub/namespaces/namespaceValue/eventhubs/eventHubValue/consumerGroups",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.eVeNtHuB/nAmEsPaCeS/nAmEsPaCeVaLuE/eVeNtHuBs/eVeNtHuBvAlUe/cOnSuMeRgRoUpS",
+			Error: true,
+		},
+		{
+			// Valid URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.EventHub/namespaces/namespaceValue/eventhubs/eventHubValue/consumerGroups/consumerGroupValue",
+			Expected: &ConsumerGroupId{
+				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
+				ResourceGroupName: "example-resource-group",
+				NamespaceName:     "namespaceValue",
+				EventHubName:      "eventHubValue",
+				ConsumerGroupName: "consumerGroupValue",
 			},
 		},
-
 		{
-			// lower-cased segment names
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/{namespaceName}/eventhubs/{eventHubName}/consumergroups/{consumerGroupName}",
-			Expected: &ConsumergroupId{
-				SubscriptionId: "{subscriptionId}",
-				ResourceGroup:  "{resourceGroupName}",
-				NamespaceName:  "{namespaceName}",
-				EventhubName:   "{eventHubName}",
-				Name:           "{consumerGroupName}",
+			// Invalid (Valid Uri with Extra segment)
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.EventHub/namespaces/namespaceValue/eventhubs/eventHubValue/consumerGroups/consumerGroupValue/extra",
+			Error: true,
+		},
+		{
+			// Valid URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.eVeNtHuB/nAmEsPaCeS/nAmEsPaCeVaLuE/eVeNtHuBs/eVeNtHuBvAlUe/cOnSuMeRgRoUpS/cOnSuMeRgRoUpVaLuE",
+			Expected: &ConsumerGroupId{
+				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
+				ResourceGroupName: "eXaMpLe-rEsOuRcE-GrOuP",
+				NamespaceName:     "nAmEsPaCeVaLuE",
+				EventHubName:      "eVeNtHuBvAlUe",
+				ConsumerGroupName: "cOnSuMeRgRoUpVaLuE",
 			},
 		},
-
 		{
-			// upper-cased segment names
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/NAMESPACES/{namespaceName}/EVENTHUBS/{eventHubName}/CONSUMERGROUPS/{consumerGroupName}",
-			Expected: &ConsumergroupId{
-				SubscriptionId: "{subscriptionId}",
-				ResourceGroup:  "{resourceGroupName}",
-				NamespaceName:  "{namespaceName}",
-				EventhubName:   "{eventHubName}",
-				Name:           "{consumerGroupName}",
-			},
-		},
-
-		{
-			// mixed-cased segment names
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/NaMeSpAcEs/{namespaceName}/EvEnThUbS/{eventHubName}/CoNsUmErGrOuPs/{consumerGroupName}",
-			Expected: &ConsumergroupId{
-				SubscriptionId: "{subscriptionId}",
-				ResourceGroup:  "{resourceGroupName}",
-				NamespaceName:  "{namespaceName}",
-				EventhubName:   "{eventHubName}",
-				Name:           "{consumerGroupName}",
-			},
+			// Invalid (Valid Uri with Extra segment - mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.eVeNtHuB/nAmEsPaCeS/nAmEsPaCeVaLuE/eVeNtHuBs/eVeNtHuBvAlUe/cOnSuMeRgRoUpS/cOnSuMeRgRoUpVaLuE/extra",
+			Error: true,
 		},
 	}
-
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseConsumergroupIDInsensitively(v.Input)
+		actual, err := ParseConsumerGroupIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
 			}
 
-			t.Fatalf("Expect a value but got an error: %s", err)
+			t.Fatalf("Expect a value but got an error: %+v", err)
 		}
 		if v.Error {
 			t.Fatal("Expect an error but didn't get one")
@@ -281,17 +333,37 @@ func TestParseConsumergroupIDInsensitively(t *testing.T) {
 		if actual.SubscriptionId != v.Expected.SubscriptionId {
 			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-		if actual.ResourceGroup != v.Expected.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+
+		if actual.ResourceGroupName != v.Expected.ResourceGroupName {
+			t.Fatalf("Expected %q but got %q for ResourceGroupName", v.Expected.ResourceGroupName, actual.ResourceGroupName)
 		}
+
 		if actual.NamespaceName != v.Expected.NamespaceName {
 			t.Fatalf("Expected %q but got %q for NamespaceName", v.Expected.NamespaceName, actual.NamespaceName)
 		}
-		if actual.EventhubName != v.Expected.EventhubName {
-			t.Fatalf("Expected %q but got %q for EventhubName", v.Expected.EventhubName, actual.EventhubName)
+
+		if actual.EventHubName != v.Expected.EventHubName {
+			t.Fatalf("Expected %q but got %q for EventHubName", v.Expected.EventHubName, actual.EventHubName)
 		}
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+
+		if actual.ConsumerGroupName != v.Expected.ConsumerGroupName {
+			t.Fatalf("Expected %q but got %q for ConsumerGroupName", v.Expected.ConsumerGroupName, actual.ConsumerGroupName)
 		}
+
+	}
+}
+
+func TestSegmentsForConsumerGroupId(t *testing.T) {
+	segments := ConsumerGroupId{}.Segments()
+	if len(segments) == 0 {
+		t.Fatalf("ConsumerGroupId has no segments")
+	}
+
+	uniqueNames := make(map[string]struct{}, 0)
+	for _, segment := range segments {
+		uniqueNames[segment.Name] = struct{}{}
+	}
+	if len(uniqueNames) != len(segments) {
+		t.Fatalf("Expected the Segments to be unique but got %q unique segments and %d total segments", len(uniqueNames), len(segments))
 	}
 }

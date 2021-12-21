@@ -42,6 +42,9 @@ func dataSourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
+	// @tombuildsstuff: intentionally leaving this for now, since this'll need
+	// details in the upgrade notes given how the Resource Group ID is cased incorrectly
+	// but needs to be fixed (resourcegroups -> resourceGroups)
 	d.SetId(*resp.ID)
 
 	return resourceResourceGroupRead(d, meta)

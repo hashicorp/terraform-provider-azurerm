@@ -195,5 +195,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Scheduled Query Rule Alerts can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_monitor_scheduled_query_rules_alert.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/scheduledQueryRules/myrulename
+terraform import azurerm_monitor_scheduled_query_rules_alert.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/scheduledqueryrules/myrulename
 ```

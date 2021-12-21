@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -23,8 +23,10 @@ func resourceApiManagementApiOperationPolicy() *pluginsdk.Resource {
 		Read:   resourceApiManagementAPIOperationPolicyRead,
 		Update: resourceApiManagementAPIOperationPolicyCreateUpdate,
 		Delete: resourceApiManagementAPIOperationPolicyDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ApiOperationPolicyID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -89,14 +91,14 @@ func resourceApiManagementAPIOperationPolicyCreateUpdate(d *pluginsdk.ResourceDa
 
 	if xmlContent != "" {
 		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			Format: apimanagement.Rawxml,
+			Format: apimanagement.PolicyContentFormatRawxml,
 			Value:  utils.String(xmlContent),
 		}
 	}
 
 	if xmlLink != "" {
 		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			Format: apimanagement.RawxmlLink,
+			Format: apimanagement.PolicyContentFormatRawxmlLink,
 			Value:  utils.String(xmlLink),
 		}
 	}

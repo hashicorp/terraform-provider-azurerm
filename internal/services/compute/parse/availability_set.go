@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type AvailabilitySetId struct {
@@ -39,7 +39,7 @@ func (id AvailabilitySetId) ID() string {
 
 // AvailabilitySetID parses a AvailabilitySet ID into an AvailabilitySetId struct
 func AvailabilitySetID(input string) (*AvailabilitySetId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

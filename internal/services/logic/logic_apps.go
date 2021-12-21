@@ -91,13 +91,22 @@ func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}
 	vs[name] = vals
 	definition[propertyName] = vs
 
+	if read.Identity != nil && read.Identity.UserAssignedIdentities != nil {
+		for k := range read.Identity.UserAssignedIdentities {
+			read.Identity.UserAssignedIdentities[k] = &logic.UserAssignedIdentity{
+				// this has to be an empty object due to the API design
+			}
+		}
+	}
+
 	properties := logic.Workflow{
 		Location: read.Location,
 		WorkflowProperties: &logic.WorkflowProperties{
 			Definition: definition,
 			Parameters: read.WorkflowProperties.Parameters,
 		},
-		Tags: read.Tags,
+		Identity: read.Identity,
+		Tags:     read.Tags,
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, workflowId.ResourceGroup, workflowId.Name, properties); err != nil {

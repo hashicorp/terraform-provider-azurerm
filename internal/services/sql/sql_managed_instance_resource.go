@@ -7,12 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2018-06-01-preview/sql"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -21,6 +22,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+type managedInstanceIdentity = identity.SystemAssigned
 
 func resourceArmSqlMiServer() *schema.Resource {
 	return &schema.Resource{
@@ -169,13 +172,29 @@ func resourceArmSqlMiServer() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"identity": managedInstanceIdentity{}.Schema(),
+
+			"storage_account_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(sql.StorageAccountTypeGRS),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(sql.StorageAccountTypeGRS),
+					string(sql.StorageAccountTypeLRS),
+					string(sql.StorageAccountTypeZRS),
+				}, false),
+			},
+
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: pluginsdk.ForceNewIfChange("dns_zone_partner_id", func(ctx context.Context, old, new, _ interface{}) bool {
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			// dns_zone_partner_id can only be set on init
-			return old.(string) == "" && new.(string) != ""
-		}),
+			pluginsdk.ForceNewIfChange("dns_zone_partner_id", func(ctx context.Context, old, new, _ interface{}) bool {
+				return old.(string) == "" && new.(string) != ""
+			}),
+		),
 	}
 }
 
@@ -190,7 +209,7 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 	id := parse.NewManagedInstanceID(subscriptionId, resGroup, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing Managed Instance %q: %s", id.ID(), err)
@@ -224,8 +243,15 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 			ProxyOverride:              sql.ManagedInstanceProxyOverride(d.Get("proxy_override").(string)),
 			TimezoneID:                 utils.String(d.Get("timezone_id").(string)),
 			DNSZonePartner:             utils.String(d.Get("dns_zone_partner_id").(string)),
+			StorageAccountType:         sql.StorageAccountType(d.Get("storage_account_type").(string)),
 		},
 	}
+
+	identity, err := expandManagedInstanceIdentity(d.Get("identity").([]interface{}), d.IsNewResource())
+	if err != nil {
+		return fmt.Errorf(`expanding "identity": %v`, err)
+	}
+	parameters.Identity = identity
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
 	if err != nil {
@@ -255,7 +281,7 @@ func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading SQL Managed Instance %q - removing from state", d.Id())
@@ -277,6 +303,10 @@ func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("sku_name", sku.Name)
 	}
 
+	if err := d.Set("identity", flattenManagedInstanceIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
 	if props := resp.ManagedInstanceProperties; props != nil {
 		d.Set("license_type", props.LicenseType)
 		d.Set("administrator_login", props.AdministratorLogin)
@@ -289,6 +319,7 @@ func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("minimum_tls_version", props.MinimalTLSVersion)
 		d.Set("proxy_override", props.ProxyOverride)
 		d.Set("timezone_id", props.TimezoneID)
+		d.Set("storage_account_type", props.StorageAccountType)
 		// This value is not returned from the api so we'll just set whatever is in the config
 		d.Set("administrator_login_password", d.Get("administrator_login_password").(string))
 	}
@@ -335,4 +366,45 @@ func expandManagedInstanceSkuName(skuName string) (*sql.Sku, error) {
 		Tier:   utils.String(tier),
 		Family: utils.String(parts[1]),
 	}, nil
+}
+
+func expandManagedInstanceIdentity(input []interface{}, isNewResource bool) (*sql.ResourceIdentity, error) {
+	config, err := managedInstanceIdentity{}.Expand(input)
+	if err != nil {
+		return nil, err
+	}
+
+	// Workaround for issue https://github.com/Azure/azure-rest-api-specs/issues/16838
+	if config.Type == identity.Type("None") && isNewResource {
+		return nil, nil
+	}
+
+	return &sql.ResourceIdentity{
+		Type: sql.IdentityType(config.Type),
+	}, nil
+}
+
+func flattenManagedInstanceIdentity(input *sql.ResourceIdentity) []interface{} {
+	var config *identity.ExpandedConfig
+
+	if input == nil {
+		return []interface{}{}
+	}
+
+	principalId := ""
+	if input.PrincipalID != nil {
+		principalId = input.PrincipalID.String()
+	}
+
+	tenantId := ""
+	if input.TenantID != nil {
+		tenantId = input.TenantID.String()
+	}
+
+	config = &identity.ExpandedConfig{
+		Type:        identity.Type(string(input.Type)),
+		PrincipalId: principalId,
+		TenantId:    tenantId,
+	}
+	return managedInstanceIdentity{}.Flatten(config)
 }
