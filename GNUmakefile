@@ -47,6 +47,7 @@ terrafmt:
 generate:
 	go generate ./internal/services/...
 	go generate ./internal/provider/
+	go run ./internal/tools/generator-github-actions/main.go
 
 goimports:
 	@echo "==> Fixing imports code with goimports..."
