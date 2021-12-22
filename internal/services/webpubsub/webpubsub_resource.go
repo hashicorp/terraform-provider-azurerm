@@ -239,7 +239,7 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		existing, err := client.Get(ctx, id.ResourceGroup, id.WebPubSubName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing Web Pubsub (%q):%+v", id, err)
+				return fmt.Errorf("checking for existing %q: %+v", id, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {

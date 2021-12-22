@@ -111,8 +111,8 @@ func dataSourceWebPubsubRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewWebPubSubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroupId, id.Name)
+	id := parse.NewWebPubsubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Web Pubsub %q does not exists - removing from state", d.Id())
@@ -122,15 +122,15 @@ func dataSourceWebPubsubRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("retrieving Web Pubsub (%q): %+v", id, err)
 	}
 
-	keys, err := client.ListKeys(ctx, id.ResourceGroupId, id.Name)
+	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroupId)
+	d.Set("name", id.WebPubSubName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.Properties; props != nil {
