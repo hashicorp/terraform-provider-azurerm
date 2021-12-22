@@ -1511,8 +1511,6 @@ func expandAzureRmApiManagementSku(d *pluginsdk.ResourceData) (*apimanagement.Se
 	} else {
 		return expandAzureRmApiManagementSkuName(d), nil
 	}
-
-	return nil, nil
 }
 
 func expandAzureRmApiManagementSkuName(d *pluginsdk.ResourceData) *apimanagement.ServiceSkuProperties {
