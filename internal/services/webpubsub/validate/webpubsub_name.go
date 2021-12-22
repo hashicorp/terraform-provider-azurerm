@@ -17,6 +17,6 @@ func ValidateWebpubsubName() pluginsdk.SchemaValidateFunc {
 func ValidateWebPubsbHubName() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[A-Za-z][A-Za-z0-9_`,.\\[\\]]{0,127}$"),
-		"The web pubsub hub name can contain only letters, numbers and special characters including `,` , `_` , `.` , `[` ,` . The first character must be a letter. The value must be between 0 and 127 characters long.",
+		"The web pubsub hub name can contain only letters, numbers and special characters including `,` , `_` , `.` , `[` ,` . The first character must be a letter. The value must be between 1 and 128 characters long.",
 	)
 }

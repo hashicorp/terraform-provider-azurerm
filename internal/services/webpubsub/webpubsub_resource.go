@@ -251,40 +251,24 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &webpubsub.Properties{
 			LiveTraceConfiguration: expandLiveTraceConfig(liveTraceConfig),
+			PublicNetworkAccess:    utils.String(d.Get("public_network_access").(string)),
+			DisableAadAuth:         utils.Bool(d.Get("disable_aad_auth").(bool)),
+			DisableLocalAuth:       utils.Bool(d.Get("disable_local_auth").(bool)),
+			TLS: &webpubsub.TLSSettings{
+				ClientCertEnabled: utils.Bool(d.Get("tls_client_cert_enabled").(bool)),
+			},
 		},
 		Sku:  expandWebPubsubSku(sku),
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	publicNetworkAccess := d.Get("public_network_access").(string)
-	if publicNetworkAccess != "" {
-		parameters.Properties.PublicNetworkAccess = utils.String(publicNetworkAccess)
-	}
-
-	disableAADAuth := d.Get("disable_aad_auth").(bool)
-	if disableAADAuth {
-		parameters.Properties.DisableAadAuth = utils.Bool(disableAADAuth)
-	}
-
-	disableLocalAuth := d.Get("disable_local_auth").(bool)
-	if disableLocalAuth {
-		parameters.Properties.DisableLocalAuth = utils.Bool(disableLocalAuth)
-	}
-
-	tlsCertEnabled := d.Get("tls_client_cert_enabled").(bool)
-
-	tlsSetting := webpubsub.TLSSettings{
-		ClientCertEnabled: utils.Bool(tlsCertEnabled),
-	}
-	parameters.Properties.TLS = &tlsSetting
-
 	future, err := client.CreateOrUpdate(ctx, parameters, id.ResourceGroupId, id.Name)
 	if err != nil {
-		return fmt.Errorf("creating Web Pubsub (%q): %+v", id, err)
+		return fmt.Errorf("creating/updating %q: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of the Web Pubsub (%q):%+v", id, err)
+		return fmt.Errorf("waiting for creation/update %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -304,11 +288,11 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	resp, err := client.Get(ctx, id.ResourceGroupId, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Web Pubsub %q does not exists - removing from state", d.Id())
+			log.Printf("[INFO] %q does not exists - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Web Pubsub (%q): %+v", id, err)
+		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
 	keys, err := client.ListKeys(ctx, id.ResourceGroupId, id.Name)
