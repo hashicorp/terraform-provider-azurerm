@@ -101,10 +101,10 @@ func dataSourceWebPubsubHubRead(d *pluginsdk.ResourceData, meta interface{}) err
 	resp, err := client.Get(ctx, id.HubName, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("%s was not found", id)
+			return fmt.Errorf("%q was not found", id)
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

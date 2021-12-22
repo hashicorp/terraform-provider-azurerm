@@ -154,7 +154,7 @@ func resourceWebPubsubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	eventHandler, err := expandEventHandler(eventHandlerData)
 	if err != nil {
-		return fmt.Errorf("setting event handler for hub %s: %+v", id, err)
+		return fmt.Errorf("setting event handler for hub %q: %+v", id, err)
 	}
 
 	parameters := webpubsub.Hub{
@@ -187,9 +187,9 @@ func resourceWebPubSubHubRead(d *pluginsdk.ResourceData, meta interface{}) error
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
-			return fmt.Errorf("%s was not found", id)
+			return fmt.Errorf("%q was not found", id)
 		}
-		return fmt.Errorf("making request on %s: %+v", id, err)
+		return fmt.Errorf("making request on %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -225,7 +225,7 @@ func resourceWebPubsubHubDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	resp, err := client.Delete(ctx, id.HubName, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if !response.WasNotFound(resp.Response()) {
-			return fmt.Errorf("deleting web pubsub hub %q (web pubsub %q / Resource Group %q): %+v", id.HubName, id.WebPubSubName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting %q: %+v", id, err)
 		}
 	}
 	return nil

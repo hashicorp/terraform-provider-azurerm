@@ -152,7 +152,7 @@ func resourceWebPubsubNetworkACLCreateUpdate(d *pluginsdk.ResourceData, meta int
 	existing, err := client.Get(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Web pubsub %q (Resource Group %q/ Web pubsub %q): %+v", id.WebPubSubName, id.ResourceGroup, id.WebPubSubName, err)
+			return fmt.Errorf("checking for present of existing %q: %+v", id, err)
 		}
 	}
 
@@ -193,9 +193,9 @@ func resourceWebPubsubNetworkACLCreateUpdate(d *pluginsdk.ResourceData, meta int
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		if _, err := client.CreateOrUpdate(ctx, existing, id.ResourceGroup, id.WebPubSubName); err != nil {
 			if strings.Contains(err.Error(), "Resource cannot be updated in current state") {
-				return pluginsdk.RetryableError(fmt.Errorf("waiting for the resource %s to be ready", id))
+				return pluginsdk.RetryableError(fmt.Errorf("waiting for the resource %q to be ready", id))
 			}
-			return pluginsdk.NonRetryableError(fmt.Errorf("getting %s error %+v", id, err))
+			return pluginsdk.NonRetryableError(fmt.Errorf("getting %q error %+v", id, err))
 		}
 		return nil
 	})
@@ -221,11 +221,11 @@ func resourceWebPubsubNetworkACLRead(d *pluginsdk.ResourceData, meta interface{}
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Web Pubsub %q does not exists - removing from state", d.Id())
+			log.Printf("[INFO] %q does not exists - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
 	d.Set("web_pubsub_id", id.ID())
@@ -265,10 +265,10 @@ func resourceWebpubsubNetworkACLDelete(d *pluginsdk.ResourceData, meta interface
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 	if utils.ResponseWasNotFound(resp.Response) {
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
 	defaultAction := webpubsub.ACLActionDeny
@@ -302,10 +302,10 @@ func resourceWebpubsubNetworkACLDelete(d *pluginsdk.ResourceData, meta interface
 
 	future, err := client.Update(ctx, resp, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
-		return fmt.Errorf("resetting the default Network ACL configuration for %s: %+v", *id, err)
+		return fmt.Errorf("resetting the default Network ACL configuration for %q: %+v", id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of network ACL of %s：%+v", id, err)
+		return fmt.Errorf("waiting for update of network ACL of %q：%+v", id, err)
 	}
 
 	return nil

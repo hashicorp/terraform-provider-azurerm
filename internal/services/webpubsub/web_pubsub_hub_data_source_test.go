@@ -49,6 +49,7 @@ func (r WebPubsubHubDataSource) Exists(ctx context.Context, client *clients.Clie
 func (r WebPubsubHubDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 provider "azurerm" {
   features {}
 }
@@ -68,9 +69,7 @@ resource "azurerm_web_pubsub" "test" {
   name                = "acctest-wps-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku {
-    name = "Standard_S1"
-  }
+  sku                 = "Standard_S1"
 }
 
 resource "azurerm_web_pubsub_hub" "test" {
@@ -94,6 +93,7 @@ data "azurerm_web_pubsub_hub" "test" {
   web_pubsub_name     = azurerm_web_pubsub.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
+
 
 `, data.RandomInteger, data.Locations.Primary)
 }

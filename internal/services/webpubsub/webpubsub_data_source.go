@@ -87,17 +87,17 @@ func dataSourceWebPubsub() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"disable_aad_auth": {
+			"local_auth_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
-			"disable_local_auth": {
+			"aad_auth_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
-			"public_network_access": {
+			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -115,16 +115,16 @@ func dataSourceWebPubsubRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Web Pubsub %q does not exists - removing from state", d.Id())
+			log.Printf("[INFO] Web Pubsub %s does not exists - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Web Pubsub (%q): %+v", id, err)
+		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
 	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
-		return fmt.Errorf("listing keys for %s: %+v", id, err)
+		return fmt.Errorf("listing keys for %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -138,10 +138,9 @@ func dataSourceWebPubsubRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("ip_address", props.ExternalIP)
 		d.Set("public_port", props.PublicPort)
 		d.Set("server_port", props.ServerPort)
-		d.Set("disable_aad_auth", props.DisableAadAuth)
-		d.Set("disable_local_auth", props.DisableLocalAuth)
-		d.Set("public_network_access", props.PublicNetworkAccess)
-
+		d.Set("local_auth_enabled", props.DisableAadAuth)
+		d.Set("aad_auth_enabled", props.DisableLocalAuth)
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess)
 	}
 
 	d.Set("primary_access_key", keys.PrimaryKey)

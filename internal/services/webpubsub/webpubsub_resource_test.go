@@ -30,6 +30,21 @@ func TestAccWebpubsub_basic(t *testing.T) {
 	})
 }
 
+func TestAccWebpubsub_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
+	r := WebpubsubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccWebpubsub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
 	r := WebpubsubResource{}
@@ -90,30 +105,68 @@ resource "azurerm_web_pubsub" "test" {
   name                = "acctestWebPubsub-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard_S1"
+  capacity            = 1
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
 
-  sku {
-    name     = "Standard_S1"
-    capacity = 1
+func (r WebpubsubResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-wps-%d"
+  location = "%s"
+}
+
+resource "azurerm_web_pubsub" "test" {
+  name                = "acctestWebPubsub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku      = "Standard_S1"
+  capacity = 1
+
+  public_network_access_enabled = false
+
+  live_trace_configuration {
+    enabled = false
+    categories {
+      name    = "MessagingLogs"
+      enabled = true
+    }
   }
+
+  disable_local_auth = true
+  disable_aad_auth   = true
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (r WebpubsubResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-wps-%d"
+  location = "%s"
+}
 
 resource "azurerm_web_pubsub" "import" {
   name                = azurerm_web_pubsub.test.name
   location            = azurerm_web_pubsub.test.location
   resource_group_name = azurerm_web_pubsub.test.resource_group_name
 
-  sku {
-    name     = "Standard_S1"
-    capacity = 1
-  }
+  sku      = "Standard_S1"
+  capacity = 1
 }
-`, r.basic(data))
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r WebpubsubResource) FreeWithCapacity(data acceptance.TestData, capacity int) string {
@@ -123,7 +176,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eh-%d"
   location = "%s"
 }
 
@@ -132,10 +185,8 @@ resource "azurerm_web_pubsub" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  sku {
-    name     = "Free_F1"
-    capacity = %d
-  }
+  sku      = "Free_F1"
+  capacity = %d
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, capacity)
 }

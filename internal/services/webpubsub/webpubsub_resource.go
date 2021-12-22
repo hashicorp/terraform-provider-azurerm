@@ -3,6 +3,7 @@ package webpubsub
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/webpubsub/mgmt/2021-10-01/webpubsub"
@@ -52,57 +53,31 @@ func resourceWebPubSub() *pluginsdk.Resource {
 			"location": azure.SchemaLocation(),
 
 			"sku": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeString,
 				Required: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Standard_S1",
-								"Free_F1",
-							}, false),
-						},
+				ValidateFunc: validation.StringInSlice([]string{
+					"Standard_S1",
+					"Free_F1",
+				}, false),
+			},
 
-						"tier": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Standard",
-								"Free",
-							}, false),
-						},
-
-						"capacity": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							Default:      1,
-							ValidateFunc: validation.IntInSlice([]int{1, 2, 5, 10, 20, 50, 100}),
-						},
-
-						"size": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
+			"capacity": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ValidateFunc: validation.IntInSlice([]int{1, 2, 5, 10, 20, 50, 100}),
 			},
 
 			"live_trace_configuration": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
-							Type:     pluginsdk.TypeString,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  "true",
-							ValidateFunc: validation.StringInSlice([]string{
-								"true",
-								"false",
-							}, false),
+							Default:  true,
 						},
 						"categories": {
 							Type:     pluginsdk.TypeSet,
@@ -119,13 +94,9 @@ func resourceWebPubSub() *pluginsdk.Resource {
 										}, false),
 									},
 									"enabled": {
-										Type:     pluginsdk.TypeString,
+										Type:     pluginsdk.TypeBool,
 										Optional: true,
-										Default:  "true",
-										ValidateFunc: validation.StringInSlice([]string{
-											"true",
-											"false",
-										}, false),
+										Default:  true,
 									},
 								},
 							},
@@ -134,23 +105,19 @@ func resourceWebPubSub() *pluginsdk.Resource {
 				},
 			},
 
-			"public_network_access": {
-				Type:     pluginsdk.TypeString,
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  "Enabled",
-				ValidateFunc: validation.StringInSlice([]string{
-					"Enabled",
-					"Disabled",
-				}, false),
+				Default:  true,
 			},
 
-			"disable_local_auth": {
+			"local_auth_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
-			"disable_aad_auth": {
+			"aad_auth_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -184,12 +151,6 @@ func resourceWebPubSub() *pluginsdk.Resource {
 
 			"version": {
 				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"host_name_prefix": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 
@@ -232,8 +193,7 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	id := parse.NewWebPubsubID(subscriptionId, resourceGroup, name)
-	sku := d.Get("sku").([]interface{})
-	liveTraceConfig := d.Get("live_trace_configuration").(*pluginsdk.Set).List()
+	liveTraceConfig := d.Get("live_trace_configuration").([]interface{})
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.WebPubSubName)
@@ -251,15 +211,22 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &webpubsub.Properties{
 			LiveTraceConfiguration: expandLiveTraceConfig(liveTraceConfig),
-			PublicNetworkAccess:    utils.String(d.Get("public_network_access").(string)),
-			DisableAadAuth:         utils.Bool(d.Get("disable_aad_auth").(bool)),
-			DisableLocalAuth:       utils.Bool(d.Get("disable_local_auth").(bool)),
+			PublicNetworkAccess:    utils.String("Enabled"),
+			DisableAadAuth:         utils.Bool(d.Get("aad_auth_enabled").(bool)),
+			DisableLocalAuth:       utils.Bool(d.Get("local_auth_enabled").(bool)),
 			TLS: &webpubsub.TLSSettings{
 				ClientCertEnabled: utils.Bool(d.Get("tls_client_cert_enabled").(bool)),
 			},
 		},
-		Sku:  expandWebPubsubSku(sku),
+		Sku: &webpubsub.ResourceSku{
+			Name:     utils.String(d.Get("sku").(string)),
+			Capacity: utils.Int32(int32(d.Get("capacity").(int))),
+		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
+		parameters.Properties.PublicNetworkAccess = utils.String("Disabled")
 	}
 
 	future, err := client.CreateOrUpdate(ctx, parameters, id.ResourceGroup, id.WebPubSubName)
@@ -308,10 +275,8 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("name", id.WebPubSubName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-
-	if err = d.Set("sku", flattenWebPubsubSku(resp.Sku)); err != nil {
-		return fmt.Errorf("setting `sku`: %+v", err)
-	}
+	d.Set("sku", resp.Sku.Name)
+	d.Set("capacity", resp.Sku.Capacity)
 
 	if props := resp.Properties; props != nil {
 		d.Set("external_ip", props.ExternalIP)
@@ -319,9 +284,9 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("public_port", props.PublicPort)
 		d.Set("server_port", props.ServerPort)
 		d.Set("version", props.Version)
-		d.Set("disable_aad_auth", props.DisableAadAuth)
-		d.Set("disable_local_auth", props.DisableLocalAuth)
-		d.Set("public_network_access", props.PublicNetworkAccess)
+		d.Set("aad_auth_enabled", props.DisableAadAuth)
+		d.Set("local_auth_enabled", props.DisableLocalAuth)
+		d.Set("public_network_access_enabled", strings.EqualFold(*props.PublicNetworkAccess, "Enabled"))
 		d.Set("tls_client_cert_enabled", props.TLS.ClientCertEnabled)
 
 		if err := d.Set("live_trace_configuration", flattenLiveTraceConfig(props.LiveTraceConfiguration)); err != nil {
@@ -344,12 +309,12 @@ func resourceWebPubSubDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+		return fmt.Errorf("deleting %q: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
+			return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
 		}
 	}
 
@@ -361,14 +326,21 @@ func expandLiveTraceConfig(input []interface{}) *webpubsub.LiveTraceConfiguratio
 
 	if len(input) != 0 && input[0] != nil {
 		v := input[0].(map[string]interface{})
-		enabled := v["enabled"].(string)
+		enabled := "true"
+		if !v["enabled"].(bool) {
+			enabled = "false"
+		}
+
 		for _, item := range v["categories"].(*pluginsdk.Set).List() {
 			setting := item.(map[string]interface{})
-			resourceCategory := webpubsub.LiveTraceCategory{
+			liveTraceCategory := webpubsub.LiveTraceCategory{
 				Name:    utils.String(setting["name"].(string)),
-				Enabled: utils.String(setting["enabled"].(string)),
+				Enabled: utils.String("true"),
 			}
-			resourceCategories = append(resourceCategories, resourceCategory)
+			if !setting["enabled"].(bool) {
+				liveTraceCategory.Enabled = utils.String("false")
+			}
+			resourceCategories = append(resourceCategories, liveTraceCategory)
 		}
 		return &webpubsub.LiveTraceConfiguration{
 			Enabled:    &enabled,
@@ -385,10 +357,7 @@ func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface
 		return result
 	}
 
-	enabled := "false"
-	if input.Enabled != nil {
-		enabled = *input.Enabled
-	}
+	enabled := strings.EqualFold(*input.Enabled, "true")
 
 	resourceCategories := make([]interface{}, 0)
 	if input.Categories != nil {
@@ -399,11 +368,10 @@ func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface
 			if item.Name != nil {
 				name = *item.Name
 			}
-			block["name"] = name
 
-			if v := item.Enabled; v != nil {
-				block["enabled"] = *v
-			}
+			block["name"] = name
+			block["enabled"] = strings.EqualFold(*item.Enabled, "true")
+
 			resourceCategories = append(resourceCategories, block)
 		}
 	}
@@ -411,30 +379,4 @@ func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface
 		"enabled":    enabled,
 		"categories": resourceCategories,
 	}}
-}
-
-func expandWebPubsubSku(input []interface{}) *webpubsub.ResourceSku {
-	v := input[0].(map[string]interface{})
-	return &webpubsub.ResourceSku{
-		Name:     utils.String(v["name"].(string)),
-		Capacity: utils.Int32(int32(v["capacity"].(int))),
-	}
-}
-
-func flattenWebPubsubSku(input *webpubsub.ResourceSku) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	capacity := 1
-	if input.Capacity != nil {
-		capacity = int(*input.Capacity)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"capacity": capacity,
-			"name":     input.Name,
-		},
-	}
 }

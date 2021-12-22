@@ -47,9 +47,7 @@ resource "azurerm_web_pubsub" "test" {
   name                = "acctest-wps-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku {
-    name = "Standard_S1"
-  }
+  sku                 = "Standard_S1"
 }
 
 data "azurerm_web_pubsub" "test" {
