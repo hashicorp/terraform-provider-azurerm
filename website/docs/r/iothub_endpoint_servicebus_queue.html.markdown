@@ -6,7 +6,7 @@ description: |-
   Manages an IotHub ServiceBus Queue Endpoint
 ---
 
-# azurerm_iothub_endpoint_eventhub
+# azurerm_iothub_endpoint_servicebus_queue
 
 Manages an IotHub ServiceBus Queue Endpoint
 
