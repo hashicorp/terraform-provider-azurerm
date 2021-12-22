@@ -3,7 +3,7 @@ subcategory: "Web Pubsub"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_pubsub"
 description: |-
-Gets information about an existing Azure Web Pubsub service.
+  Gets information about an existing Azure Web Pubsub service.
 ---
 
 # Data Source: azurerm_web_pubsub
