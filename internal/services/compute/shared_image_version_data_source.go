@@ -3,9 +3,11 @@ package compute
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -61,6 +63,11 @@ func dataSourceSharedImageVersion() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"sort_versions_by_semver": {
+				Type:    pluginsdk.TypeBool,
+				Default: false,
+			},
+
 			"target_region": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -103,8 +110,9 @@ func dataSourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{
 	imageName := d.Get("image_name").(string)
 	galleryName := d.Get("gallery_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	sortBySemVer := d.Get("sort_versions_by_semver").(bool)
 
-	image, err := obtainImage(client, ctx, resourceGroup, galleryName, imageName, imageVersion)
+	image, err := obtainImage(client, ctx, resourceGroup, galleryName, imageName, imageVersion, sortBySemVer)
 	if err != nil {
 		return err
 	}
@@ -114,6 +122,7 @@ func dataSourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("image_name", imageName)
 	d.Set("gallery_name", galleryName)
 	d.Set("resource_group_name", resourceGroup)
+	d.Set("sort_version_by_semver", sortBySemVer)
 
 	if location := image.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -150,7 +159,7 @@ func dataSourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{
 	return tags.FlattenAndSet(d, image.Tags)
 }
 
-func obtainImage(client *compute.GalleryImageVersionsClient, ctx context.Context, resourceGroup string, galleryName string, galleryImageName string, galleryImageVersionName string) (*compute.GalleryImageVersion, error) {
+func obtainImage(client *compute.GalleryImageVersionsClient, ctx context.Context, resourceGroup string, galleryName string, galleryImageName string, galleryImageVersionName string, sortBySemVer bool) (*compute.GalleryImageVersion, error) {
 	notFoundError := fmt.Errorf("A Version was not found for Shared Image %q / Gallery %q / Resource Group %q", galleryImageName, galleryName, resourceGroup)
 
 	switch galleryImageVersionName {
@@ -165,7 +174,11 @@ func obtainImage(client *compute.GalleryImageVersionsClient, ctx context.Context
 
 		// the last image in the list is the latest version
 		if len(images.Values()) > 0 {
-			image := images.Values()[len(images.Values())-1]
+			values := images.Values()
+			if sortBySemVer {
+				values = sortVersions(values)
+			}
+			image := values[len(values)-1]
 			return &image, nil
 		}
 
@@ -232,4 +245,13 @@ func flattenSharedImageVersionDataSourceTargetRegions(input *[]compute.TargetReg
 	}
 
 	return results
+}
+
+func sortVersions(values []compute.GalleryImageVersion) []compute.GalleryImageVersion {
+	sort.Slice(values, func(i, j int) bool {
+		verA, _ := version.NewVersion(*values[i].Name)
+		verB, _ := version.NewVersion(*values[j].Name)
+		return verA.LessThan(verB)
+	})
+	return values
 }
