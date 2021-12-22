@@ -8,6 +8,10 @@ description: |-
 
 # azurerm_cdn_frontdoor_origin
 
+Origins are the application servers where Front Door will route your client requests. Utilize any publically accessible application server, including App Service, Traffic Manager, Private Link, and many others. See [Origin and Origin group in Azure Front Door Standard/Premium](https://docs.microsoft.com/azure/frontdoor/standard-premium/concept-origin) for more.
+
+!> Azure Front Door requires that an origin group (`azurerm_cdn_frontdoor_origin_group`) associated to an endpoint route (`azurerm_cdn_frontdoor_endpoint_route`) always must contain at least one enabled origin (`azurerm_cdn_frontdoor_origin`). To make sure that the re-creation of an origin does not cause errors, it's recommended to use the `lifecycle` `create_before_destroy = true` attribute.
+
 ## Example Usage
 
 ```hcl
@@ -68,7 +72,7 @@ The following arguments are supported:
 
 * `https_port` - The value of the HTTPS port. Must be between 1 and 65535. Defaults to `443`.
 
-* `azure_origin`
+* `azure_origin` - Resource reference to the Azure origin resource.
 
 ---
 

@@ -69,16 +69,18 @@ func resourceAfdOriginGroups() *pluginsdk.Resource {
 						"sample_size": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
+							Default:  4,
 						},
 						"successful_samples_required": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Default:      1,
+							Default:      3,
 							ValidateFunc: validation.IntBetween(1, 255),
 						},
 						"additional_latency_in_ms": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
+							Default:  50,
 						},
 					},
 				},
@@ -117,7 +119,7 @@ func resourceAfdOriginGroups() *pluginsdk.Resource {
 						"interval_in_seconds": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
-							Default:  240,
+							Default:  100,
 						},
 					},
 				},
@@ -198,19 +200,18 @@ func expandHealthProbeSettings(input []interface{}) *cdn.HealthProbeParameters {
 		return nil
 	}
 
-	healthProbeParameters := cdn.HealthProbeParameters{}
-
 	config := input[0].(map[string]interface{})
 
 	probeinterval := int32(config["interval_in_seconds"].(int))
-
 	probepath := config["path"].(string)
+	proberequesttype := config["request_type"].(string)
+	probeprotocol := config["protocol"].(string)
 
+	healthProbeParameters := cdn.HealthProbeParameters{}
 	healthProbeParameters.ProbeIntervalInSeconds = &probeinterval
 	healthProbeParameters.ProbePath = &probepath
 
 	// ProbeRequestType
-	proberequesttype := config["request_type"].(string)
 	switch proberequesttype {
 	case "GET":
 		healthProbeParameters.ProbeRequestType = cdn.HealthProbeRequestTypeGET
@@ -223,7 +224,6 @@ func expandHealthProbeSettings(input []interface{}) *cdn.HealthProbeParameters {
 	}
 
 	// ProbeProtocol
-	probeprotocol := config["protocol"].(string)
 	switch probeprotocol {
 	case "Http":
 		healthProbeParameters.ProbeProtocol = cdn.ProbeProtocolHTTP
@@ -240,7 +240,7 @@ func expandHealthProbeSettings(input []interface{}) *cdn.HealthProbeParameters {
 
 func resourceAfdOriginGroupsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.AFDOriginGroupsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	id, err := parse.AfdOriginGroupsID(d.Id())
 	if err != nil {
@@ -282,7 +282,7 @@ func resourceAfdOriginGroupsUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 func resourceAfdOriginGroupsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.AFDOriginGroupsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.AfdOriginGroupsID(d.Id())
@@ -393,7 +393,7 @@ func flattenHealthProbeSettings(input *cdn.HealthProbeParameters) []interface{} 
 
 func resourceAfdOriginGroupsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.AFDOriginGroupsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.AfdOriginGroupsID(d.Id())

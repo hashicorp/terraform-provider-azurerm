@@ -52,11 +52,11 @@ The following arguments are supported:
 
 The `load_balancing` block supports the following:
 
-* `sample_size` - The number of samples to consider for load balancing decisions.
+* `sample_size` - The number of samples to consider for load balancing decisions. Defaults to `4`.
 
-* `successful_samples_required` - The number of samples within the sample period that must succeed.
+* `successful_samples_required` - The number of samples within the sample period that must succeed. Defaults to `3`.
 
-* `additional_latency_in_ms` - The additional latency in milliseconds for probes to fall into the lowest latency bucket.
+* `additional_latency_in_ms` - The additional latency in milliseconds for probes to fall into the lowest latency bucket. Defaults to `50` ms.
 
 ---
 
@@ -68,4 +68,4 @@ The `health_probe` block supports the following:
 
 * `protocol` - Protocol to use for health probe. Can be set to `Http` or `Https`. Defaults to `Http`.
 
-* `interval_in_seconds` - The number of seconds between health probes. Defaults to `240` seconds.
+* `interval_in_seconds` - The number of seconds between health probes. Defaults to `100` seconds.

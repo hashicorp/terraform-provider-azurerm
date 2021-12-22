@@ -54,7 +54,6 @@ func resourceAfdOrigin() *pluginsdk.Resource {
 			"host_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -135,7 +134,7 @@ func resourceAfdOrigin() *pluginsdk.Resource {
 
 func resourceAfdOriginsCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.AFDOriginsClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	// parse origin_group_id
@@ -264,7 +263,7 @@ func resourceAfdOriginsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 func resourceAfdOriginsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.AFDOriginsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.AfdOriginsID(d.Id())
@@ -292,6 +291,11 @@ func resourceAfdOriginsUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	if d.HasChange("http_port") {
 		httpPort := int32(d.Get("http_port").(int))
 		originUpdateProperties.HTTPPort = &httpPort
+	}
+
+	if d.HasChange("host_name") {
+		hostName := d.Get("host_name").(string)
+		originUpdateProperties.HostName = &hostName
 	}
 
 	if d.HasChange("https_port") {
@@ -332,7 +336,7 @@ func resourceAfdOriginsUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 func resourceAfdOriginsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.AFDOriginsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.AfdOriginsID(d.Id())
@@ -341,6 +345,7 @@ func resourceAfdOriginsDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	// TODO - Cannot delete the last origin when the origin group is still associated with a route under an endpoint. Please disassociate the origin group and try again.
+	// Not sure if there's a technical solution. This can be covered using depends_on (in azurerm_cdn_frontdoor_endpoint_route) on one of the origins.
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName)
 

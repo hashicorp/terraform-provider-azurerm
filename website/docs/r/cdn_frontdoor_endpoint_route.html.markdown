@@ -45,6 +45,10 @@ resource "azurerm_cdn_frontdoor_endpoint_route" "example" {
 
   forwarding_protocol = "MatchRequest"
 
+  patterns_to_match = [
+    "/*"
+  ]
+
   supported_protocols = [
     "Https",
     "Http"
@@ -68,17 +72,17 @@ The following arguments are supported:
 
 * `endpoint_id` - (Required) Refers to the Front Door endpoint.
 
-* `custom_domains` - List of custom domains (resource id).
-
 * `origin_group_id` - (Required) Refers to the Front Door origin group (resource id).
 
+* `patterns_to_match` - (Required) The route patterns of the rule.
+
 * `origin_path` - A directory path on the origin that AzureFrontDoor can use to retrieve content from, e.g. `contoso.cloudapp.net/originpath`.
+
+* `custom_domains` - List of custom domains (resource id). Domains must be in state `Approved`.
 
 * `rule_sets` - List of rule sets referenced by this endpoint.
 
 * `supported_protocols` - List of supported protocols. Can be set to `Http` and/or `Https`.
-
-* `patterns_to_match` - The route patterns of the rule.
 
 * `forwarding_protocol` - Protocol this rule will use when forwarding traffic to backends. Can be set to `HttpsOnly`, `HttpOnly` or `MatchRequest`. Defaults to `MatchRequest`.
 
@@ -90,4 +94,4 @@ The following arguments are supported:
 
 * `content_types_to_compress` - List of MIME content types to compress. I.e. `application/json`.
 
-* `query_string_caching_behavior` - Can be set to `NotSet`, `UseQueryString` or `IgnoreQueryString`. Defaults to `NotSet`.
+* `query_string_caching_behavior` - Can be set to `NotSet`, `UseQueryString` or `IgnoreQueryString`. Defaults to `NotSet`. Needs to be set when `enable_caching` is set to `true`.

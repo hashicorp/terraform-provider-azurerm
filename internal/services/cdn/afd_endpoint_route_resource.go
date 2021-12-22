@@ -110,7 +110,7 @@ func resourceAfdEndpointRoutes() *pluginsdk.Resource {
 			// PatternsToMatch - The route patterns of the rule.
 			"patterns_to_match": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Required: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -244,6 +244,24 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 		customDomainsArray := make([]cdn.ResourceReference, 0)
 		for _, v := range customDomains {
 			resourceId := v.(string)
+
+			// -- domain validation -- //
+			domainClient := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
+			domainId, err := parse.AfdCustomDomainID(resourceId)
+			if err != nil {
+				return err
+			}
+
+			domain, err := domainClient.Get(ctx, domainId.ResourceGroup, domainId.ProfileName, domainId.CustomDomainName)
+			if err != nil {
+				return err
+			}
+
+			if domain.DomainValidationState != cdn.DomainValidationStateApproved {
+				return fmt.Errorf("custom domain %s (%s) cannot be associated. Validation state is %s", domainId.CustomDomainName, *domain.HostName, domain.DomainValidationState)
+			}
+			// -- end of domain validation -- //
+
 			resourceReference := cdn.ResourceReference{
 				ID: &resourceId,
 			}
@@ -292,6 +310,7 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	// patterns_to_match
 	patternsToMatch := d.Get("patterns_to_match").([]interface{})
+
 	patternsToMatchArray := make([]string, 0)
 	for _, p := range patternsToMatch {
 		pattern := p.(string)
@@ -336,6 +355,10 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 		routeProperties.CompressionSettings = compressionSettings
 	} else {
 		routeProperties.CompressionSettings = nil
+	}
+
+	if cachingEnabled && queryStringCachingBehavior == string(cdn.QueryStringCachingBehaviorNotSet) {
+		return fmt.Errorf("query_string_caching_behavior cannot be NotSet when enable_caching is set to true.")
 	}
 
 	route.RouteProperties = &routeProperties
@@ -396,9 +419,10 @@ func resourceAfdEndpointRouteRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	return nil
 }
+
 func resourceAfdEndpointRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.AFDEndpointRouteClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.AfdEndpointRouteID(d.Id())
@@ -413,6 +437,11 @@ func resourceAfdEndpointRouteUpdate(d *pluginsdk.ResourceData, meta interface{})
 	forwardingProtocol := d.Get("forwarding_protocol").(string)
 	patternsToMatch := d.Get("patterns_to_match").([]interface{})
 	customDomains := d.Get("custom_domains").([]interface{})
+	supportedProtocols := d.Get("supported_protocols").([]interface{})
+
+	if cachingEnabled && queryStringCachingBehavior == string(cdn.QueryStringCachingBehaviorNotSet) {
+		return fmt.Errorf("query_string_caching_behavior cannot be NotSet when enable_caching is set to true.")
+	}
 
 	// create an array of content types
 	contentTypesToCompressArray := make([]string, 0)
@@ -459,6 +488,22 @@ func resourceAfdEndpointRouteUpdate(d *pluginsdk.ResourceData, meta interface{})
 		routeUpdateProperties.PatternsToMatch = &patternsToMatchArray
 	}
 
+	// supported_protocols
+	if d.HasChange("supported_protocols") {
+		log.Printf("[DEBUG] Updating supported_protocols for route %s on endpoint %s", id.RouteName, id.AfdEndpointName)
+
+		supportedProtocolsArray := make([]cdn.AFDEndpointProtocols, 0)
+		for _, sp := range supportedProtocols {
+			switch sp.(string) {
+			case "Http":
+				supportedProtocolsArray = append(supportedProtocolsArray, cdn.AFDEndpointProtocolsHTTP)
+			case "Https":
+				supportedProtocolsArray = append(supportedProtocolsArray, cdn.AFDEndpointProtocolsHTTPS)
+			}
+		}
+		routeUpdateProperties.SupportedProtocols = &supportedProtocolsArray
+	}
+
 	// forwarding_protocol
 	if d.HasChange("forwarding_protocol") {
 		log.Printf("[DEBUG] Updating forwarding_protocol for route %s on endpoint %s", id.RouteName, id.AfdEndpointName)
@@ -471,7 +516,26 @@ func resourceAfdEndpointRouteUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 		customDomainsArray := make([]cdn.ResourceReference, 0)
 		for _, v := range customDomains {
+
 			resourceId := v.(string)
+
+			// -- domain validation -- //
+			domainClient := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
+			domainId, err := parse.AfdCustomDomainID(resourceId)
+			if err != nil {
+				return err
+			}
+
+			domain, err := domainClient.Get(ctx, domainId.ResourceGroup, domainId.ProfileName, domainId.CustomDomainName)
+			if err != nil {
+				return err
+			}
+
+			if domain.DomainValidationState != cdn.DomainValidationStateApproved {
+				return fmt.Errorf("custom domain %s (%s) cannot be associated. Validation state is %s", domainId.CustomDomainName, *domain.HostName, domain.DomainValidationState)
+			}
+			// -- end of domain validation -- //
+
 			resourceReference := cdn.ResourceReference{
 				ID: &resourceId,
 			}
@@ -489,11 +553,7 @@ func resourceAfdEndpointRouteUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	// update caching & compression settings
-	if cachingEnabled && (d.HasChange("query_string_caching_behavior") || d.HasChange("content_types_to_compress")) {
-
-		log.Printf("[DEBUG] Updating query_string_caching_behavior configuration for route %s on endpoint %s", id.RouteName, id.AfdEndpointName)
-
+	if d.HasChange("query_string_caching_behavior") {
 		switch queryStringCachingBehavior {
 		case "IgnoreQueryString":
 			routeUpdateProperties.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorIgnoreQueryString
@@ -504,6 +564,12 @@ func resourceAfdEndpointRouteUpdate(d *pluginsdk.ResourceData, meta interface{})
 		default:
 			routeUpdateProperties.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorNotSet
 		}
+	}
+
+	// update caching & compression settings
+	if cachingEnabled && d.HasChange("content_types_to_compress") {
+
+		log.Printf("[DEBUG] Updating compression settings for route %s on endpoint %s", id.RouteName, id.AfdEndpointName)
 
 		compressionSettings := cdn.CompressionSettings{
 			IsCompressionEnabled:   &cachingEnabled,
@@ -512,10 +578,6 @@ func resourceAfdEndpointRouteUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 		routeUpdateProperties.CompressionSettings = compressionSettings
 
-	}
-
-	if !cachingEnabled {
-		routeUpdateProperties.QueryStringCachingBehavior = cdn.AfdQueryStringCachingBehaviorNotSet
 	}
 
 	routeUpdate.RouteUpdatePropertiesParameters = &routeUpdateProperties
@@ -536,7 +598,7 @@ func resourceAfdEndpointRouteUpdate(d *pluginsdk.ResourceData, meta interface{})
 }
 func resourceAfdEndpointRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.AFDEndpointRouteClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.AfdEndpointRouteID(d.Id())
