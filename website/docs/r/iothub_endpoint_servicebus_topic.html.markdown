@@ -6,7 +6,7 @@ description: |-
   Manages an IotHub ServiceBus Topic Endpoint
 ---
 
-# azurerm_iothub_endpoint_eventhub
+# azurerm_iothub_endpoint_servicebus_topic
 
 Manages an IotHub ServiceBus Topic Endpoint
 
