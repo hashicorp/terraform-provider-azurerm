@@ -194,7 +194,7 @@ An `endpoint` block supports the following:
 
 ~> **NOTE:** System Assigned Managed Identity can only be used in an update because access to the endpoint cannot be granted before the creation is done. The extracted resources `azurerm_iothub_endpoint_*` can be used to create endpoints with System Assigned Managed Identity without the need of an update. 
 
-* `endpoint_uri` - (Optional) URI of the Service Bus or Event Hub Namespace endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `identityBased` for endpoint type `AzureIotHub.ServiceBusQueue`, `AzureIotHub.ServiceBusTopic` or `AzureIotHub.EventHub`.
+* `endpoint_uri` - (Optional) URI of the Service Bus or Event Hubs Namespace endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `identityBased` for endpoint type `AzureIotHub.ServiceBusQueue`, `AzureIotHub.ServiceBusTopic` or `AzureIotHub.EventHub`.
 
 * `entity_path` - (Optional) Name of the Service Bus Queue/Topic or Event Hub. This attribute can only be specified and is mandatory when `authentication_type` is `identityBased` for endpoint type `AzureIotHub.ServiceBusQueue`, `AzureIotHub.ServiceBusTopic` or `AzureIotHub.EventHub`.
 
