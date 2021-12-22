@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"log"
 	"sort"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
@@ -37,11 +38,24 @@ func flattenSubResourcesToIDs(input *[]compute.SubResource) []interface{} {
 	return ids
 }
 
-func sortSharedImageVersions(values []compute.GalleryImageVersion) []compute.GalleryImageVersion {
+func sortSharedImageVersions(values []compute.GalleryImageVersion) ([]compute.GalleryImageVersion, []error) {
+	errors := make([]error, 0)
 	sort.Slice(values, func(i, j int) bool {
-		verA, _ := version.NewVersion(*values[i].Name)
-		verB, _ := version.NewVersion(*values[j].Name)
+		defer func() {
+			if err := recover(); err != nil {
+				log.Println("panic occurred:", err)
+				errors = append(errors, err.(error))
+			}
+		}()
+		verA, err := version.NewVersion(*values[i].Name)
+		verA = version.Must(verA, err)
+		verB, err := version.NewVersion(*values[j].Name)
+		verB = version.Must(verB, err)
 		return verA.LessThan(verB)
 	})
-	return values
+
+	if len(errors) > 0 {
+		return values, errors
+	}
+	return values, nil
 }

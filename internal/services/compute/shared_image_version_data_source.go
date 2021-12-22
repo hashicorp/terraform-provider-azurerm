@@ -174,8 +174,12 @@ func obtainImage(client *compute.GalleryImageVersionsClient, ctx context.Context
 		// the last image in the list is the latest version
 		if len(images.Values()) > 0 {
 			values := images.Values()
+			var errs []error
 			if sortBySemVer {
-				values = sortSharedImageVersions(values)
+				values, errs = sortSharedImageVersions(values)
+				if len(errs) > 0 {
+					fmt.Errorf("Unable to parse version(s): %v", errs)
+				}
 			}
 			image := values[len(values)-1]
 			return &image, nil
