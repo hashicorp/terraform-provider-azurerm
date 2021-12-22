@@ -188,7 +188,10 @@ func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, me
 		d.Set("storage_account_access_key_is_secondary", props.IsStorageSecondaryKeyInUse)
 		d.Set("retention_in_days", props.RetentionDays)
 		d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
-		d.Set("storage_account_subscription_id", props.StorageAccountSubscriptionID.String())
+
+		if props.StorageAccountSubscriptionID.String() != "00000000-0000-0000-0000-000000000000" {
+			d.Set("storage_account_subscription_id", props.StorageAccountSubscriptionID.String())
+		}
 
 	}
 
