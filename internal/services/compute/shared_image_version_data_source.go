@@ -3,11 +3,9 @@ package compute
 import (
 	"context"
 	"fmt"
-	"sort"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
-	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -176,7 +174,7 @@ func obtainImage(client *compute.GalleryImageVersionsClient, ctx context.Context
 		if len(images.Values()) > 0 {
 			values := images.Values()
 			if sortBySemVer {
-				values = sortVersions(values)
+				values = sortSharedImageVersions(values)
 			}
 			image := values[len(values)-1]
 			return &image, nil
@@ -245,13 +243,4 @@ func flattenSharedImageVersionDataSourceTargetRegions(input *[]compute.TargetReg
 	}
 
 	return results
-}
-
-func sortVersions(values []compute.GalleryImageVersion) []compute.GalleryImageVersion {
-	sort.Slice(values, func(i, j int) bool {
-		verA, _ := version.NewVersion(*values[i].Name)
-		verB, _ := version.NewVersion(*values[j].Name)
-		return verA.LessThan(verB)
-	})
-	return values
 }

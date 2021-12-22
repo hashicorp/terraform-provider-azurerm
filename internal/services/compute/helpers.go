@@ -1,7 +1,10 @@
 package compute
 
 import (
+	"sort"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -32,4 +35,13 @@ func flattenSubResourcesToIDs(input *[]compute.SubResource) []interface{} {
 	}
 
 	return ids
+}
+
+func sortSharedImageVersions(values []compute.GalleryImageVersion) []compute.GalleryImageVersion {
+	sort.Slice(values, func(i, j int) bool {
+		verA, _ := version.NewVersion(*values[i].Name)
+		verB, _ := version.NewVersion(*values[j].Name)
+		return verA.LessThan(verB)
+	})
+	return values
 }
