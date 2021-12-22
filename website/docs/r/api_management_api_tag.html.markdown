@@ -1,28 +1,43 @@
 ---
 subcategory: "API Management"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_api_management_api_operation_tag"
+page_title: "Azure Resource Manager: azurerm_api_management_api_tag"
 description: |-
   Manages an API Management API Tag.
 ---
 
 # azurerm_api_management_api_tag
 
-Manages an API Management API Tag.
+Manages the Assignment of an API Management API Tag to an API.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_api_management_api" "example" {
-  name                = "search-api"
-  api_management_name = "search-api-management"
-  resource_group_name = "search-service"
-  revision            = "2"
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
 }
 
-resource "azurerm_api_management_api_operation_tag" "example" {
+data "azurerm_api_management" "example" {
+  name                = "example-apim"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_api_management_api" "example" {
+  name                = "example-api"
+  resource_group_name = azurerm_resource_group.example.name
+  api_management_name = azurerm_api_management.example.name
+  revision            = "1"
+}
+
+resource "azurerm_api_management_tag" "example" {
+  api_management_id = data.azurerm_api_management.example.id
+  name              = "example-tag"
+}
+
+resource "azurerm_api_management_api_tag" "example" {
   api_id = azurerm_api_management_api.example.id
-  name             = "example-Tag"
+  tag_name             = "example-tag"
 }
 ```
 
@@ -32,11 +47,7 @@ The following arguments are supported:
 
 * `api_id` - (Required) The ID of the API Management API. Changing this forces a new API Management API Tag to be created.
 
-* `name` - (Required) The name which should be used for this API Management API Tag. Changing this forces a new API Management API Tag to be created.
-
----
-
-* `display_name` - (Optional) The display name of the API Management API Tag.
+* `tag_name` - (Required) The name of the tag. It must be known in the API Management instance. Changing this forces a new API Management API Tag to be created.
 
 ## Attributes Reference
 
@@ -50,7 +61,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management API Tag.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management API Tag.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management API Tag.
 * `delete` - (Defaults to 30 minutes) Used when deleting the API Management API Tag.
 
 ## Import
