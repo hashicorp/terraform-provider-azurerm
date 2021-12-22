@@ -62,8 +62,9 @@ func dataSourceSharedImageVersion() *pluginsdk.Resource {
 			},
 
 			"sort_versions_by_semver": {
-				Type:    pluginsdk.TypeBool,
-				Default: false,
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"target_region": {
