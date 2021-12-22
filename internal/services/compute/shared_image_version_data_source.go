@@ -178,7 +178,7 @@ func obtainImage(client *compute.GalleryImageVersionsClient, ctx context.Context
 			if sortBySemVer {
 				values, errs = sortSharedImageVersions(values)
 				if len(errs) > 0 {
-					fmt.Errorf("Unable to parse version(s): %v", errs)
+					return nil, fmt.Errorf("parsing version(s): %v", errs)
 				}
 			}
 			image := values[len(values)-1]
