@@ -98,12 +98,12 @@ func TestAccWebPubsubNetworkACL_updateMultiplePrivateEndpoints(t *testing.T) {
 }
 
 func (r WebPubsubNetworkACLResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.WebPubSubID(state.ID)
+	id, err := parse.WebPubsubID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Webpubsub.WebPubsubClient.Get(ctx, id.ResourceGroupId, id.Name)
+	resp, err := clients.Webpubsub.WebPubsubClient.Get(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

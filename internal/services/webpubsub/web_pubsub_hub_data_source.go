@@ -98,7 +98,7 @@ func dataSourceWebPubsubHubRead(d *pluginsdk.ResourceData, meta interface{}) err
 	defer cancel()
 
 	id := parse.NewWebPubsubHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("web_pubsub_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.HubName, id.ResourceGroup, id.WebPubsubName)
+	resp, err := client.Get(ctx, id.HubName, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s was not found", id)
@@ -110,7 +110,7 @@ func dataSourceWebPubsubHubRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.SetId(id.ID())
 
 	d.Set("name", id.HubName)
-	d.Set("web_pubsub_name", id.WebPubsubName)
+	d.Set("web_pubsub_name", id.WebPubSubName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.Properties; props != nil && props.EventHandlers != nil {

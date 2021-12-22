@@ -138,7 +138,7 @@ func resourceWebPubsubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	id := parse.NewWebPubsubHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("web_pubsub_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.HubName, id.ResourceGroup, id.WebPubsubName)
+		existing, err := client.Get(ctx, id.HubName, id.ResourceGroup, id.WebPubSubName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing %q: %+v", id, err)
@@ -164,7 +164,7 @@ func resourceWebPubsubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.HubName, parameters, id.ResourceGroup, id.WebPubsubName); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id.HubName, parameters, id.ResourceGroup, id.WebPubSubName); err != nil {
 		return err
 	}
 
@@ -183,7 +183,7 @@ func resourceWebPubSubHubRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.HubName, id.ResourceGroup, id.WebPubsubName)
+	resp, err := client.Get(ctx, id.HubName, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -195,7 +195,7 @@ func resourceWebPubSubHubRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.SetId(id.ID())
 
 	d.Set("name", id.HubName)
-	d.Set("web_pubsub_name", id.WebPubsubName)
+	d.Set("web_pubsub_name", id.WebPubSubName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.Properties; props != nil && props.EventHandlers != nil {
@@ -219,13 +219,13 @@ func resourceWebPubsubHubDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	locks.ByName(id.WebPubsubName, "azurerm_web_pubsub")
-	defer locks.UnlockByName(id.WebPubsubName, "azurerm_web_pubsub")
+	locks.ByName(id.WebPubSubName, "azurerm_web_pubsub")
+	defer locks.UnlockByName(id.WebPubSubName, "azurerm_web_pubsub")
 
-	resp, err := client.Delete(ctx, id.HubName, id.ResourceGroup, id.WebPubsubName)
+	resp, err := client.Delete(ctx, id.HubName, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if !response.WasNotFound(resp.Response()) {
-			return fmt.Errorf("deleting web pubsub hub %q (web pubsub %q / Resource Group %q): %+v", id.HubName, id.WebPubsubName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting web pubsub hub %q (web pubsub %q / Resource Group %q): %+v", id.HubName, id.WebPubSubName, id.ResourceGroup, err)
 		}
 	}
 	return nil

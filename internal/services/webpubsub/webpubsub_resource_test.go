@@ -61,11 +61,11 @@ func TestAccWebpubsub_free(t *testing.T) {
 }
 
 func (r WebpubsubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.WebPubSubID(state.ID)
+	id, err := parse.WebPubsubID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Webpubsub.WebPubsubClient.Get(ctx, id.ResourceGroupId, id.Name)
+	resp, err := client.Webpubsub.WebPubsubClient.Get(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil

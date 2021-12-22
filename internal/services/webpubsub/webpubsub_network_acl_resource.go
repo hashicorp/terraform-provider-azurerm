@@ -39,7 +39,7 @@ func resourceWebpubsubNetworkACL() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ServiceID,
+				ValidateFunc: validate.WebPubsubID,
 			},
 
 			"default_action": {
@@ -141,18 +141,18 @@ func resourceWebPubsubNetworkACLCreateUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WebPubSubID(d.Get("web_pubsub_id").(string))
+	id, err := parse.WebPubsubID(d.Get("web_pubsub_id").(string))
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(id.Name, "azurerm_web_pubsub")
-	defer locks.UnlockByName(id.Name, "azurerm_web_pubsub")
+	locks.ByName(id.WebPubSubName, "azurerm_web_pubsub")
+	defer locks.UnlockByName(id.WebPubSubName, "azurerm_web_pubsub")
 
-	existing, err := client.Get(ctx, id.ResourceGroupId, id.Name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Web pubsub %q (Resource Group %q/ Web pubsub %q): %+v", id.Name, id.ResourceGroupId, id.Name, err)
+			return fmt.Errorf("checking for present of existing Web pubsub %q (Resource Group %q/ Web pubsub %q): %+v", id.WebPubSubName, id.ResourceGroup, id.WebPubSubName, err)
 		}
 	}
 
@@ -191,7 +191,7 @@ func resourceWebPubsubNetworkACLCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		if _, err := client.CreateOrUpdate(ctx, existing, id.ResourceGroupId, id.Name); err != nil {
+		if _, err := client.CreateOrUpdate(ctx, existing, id.ResourceGroup, id.WebPubSubName); err != nil {
 			if strings.Contains(err.Error(), "Resource cannot be updated in current state") {
 				return pluginsdk.RetryableError(fmt.Errorf("waiting for the resource %s to be ready", id))
 			}
@@ -213,12 +213,12 @@ func resourceWebPubsubNetworkACLRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WebPubSubID(d.Id())
+	id, err := parse.WebPubsubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroupId, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Web Pubsub %q does not exists - removing from state", d.Id())
@@ -255,15 +255,15 @@ func resourceWebpubsubNetworkACLDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WebPubSubID(d.Id())
+	id, err := parse.WebPubsubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(id.Name, "azurerm_web_pubsub")
-	defer locks.UnlockByName(id.Name, "azurerm_web_pubsub")
+	locks.ByName(id.WebPubSubName, "azurerm_web_pubsub")
+	defer locks.UnlockByName(id.WebPubSubName, "azurerm_web_pubsub")
 
-	resp, err := client.Get(ctx, id.ResourceGroupId, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
@@ -300,7 +300,7 @@ func resourceWebpubsubNetworkACLDelete(d *pluginsdk.ResourceData, meta interface
 		resp.Properties.NetworkACLs = networkACL
 	}
 
-	future, err := client.Update(ctx, resp, id.ResourceGroupId, id.Name)
+	future, err := client.Update(ctx, resp, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		return fmt.Errorf("resetting the default Network ACL configuration for %s: %+v", *id, err)
 	}

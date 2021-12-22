@@ -36,7 +36,7 @@ func resourceWebPubSub() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.WebPubSubID(id)
+			_, err := parse.WebPubsubID(id)
 			return err
 		}),
 
@@ -231,12 +231,12 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewWebPubSubID(subscriptionId, resourceGroup, name)
+	id := parse.NewWebPubsubID(subscriptionId, resourceGroup, name)
 	sku := d.Get("sku").([]interface{})
 	liveTraceConfig := d.Get("live_trace_configuration").(*pluginsdk.Set).List()
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroupId, id.Name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.WebPubSubName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing Web Pubsub (%q):%+v", id, err)
@@ -262,7 +262,7 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, parameters, id.ResourceGroupId, id.Name)
+	future, err := client.CreateOrUpdate(ctx, parameters, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		return fmt.Errorf("creating/updating %q: %+v", id, err)
 	}
@@ -280,12 +280,12 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WebPubSubID(d.Id())
+	id, err := parse.WebPubsubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroupId, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] %q does not exists - removing from state", d.Id())
@@ -295,7 +295,7 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
-	keys, err := client.ListKeys(ctx, id.ResourceGroupId, id.Name)
+	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", *id, err)
 	}
@@ -305,8 +305,8 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("secondary_access_key", keys.SecondaryKey)
 	d.Set("secondary_connection_string", keys.SecondaryConnectionString)
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroupId)
+	d.Set("name", id.WebPubSubName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if err = d.Set("sku", flattenWebPubsubSku(resp.Sku)); err != nil {
@@ -337,12 +337,12 @@ func resourceWebPubSubDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WebPubSubID(d.Id())
+	id, err := parse.WebPubsubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroupId, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}

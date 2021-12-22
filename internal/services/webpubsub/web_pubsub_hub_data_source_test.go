@@ -35,7 +35,7 @@ func (r WebPubsubHubDataSource) Exists(ctx context.Context, client *clients.Clie
 		return nil, err
 	}
 
-	resp, err := client.Webpubsub.WebPubsubHubsClient.Get(ctx, id.HubName, id.ResourceGroup, id.WebPubsubName)
+	resp, err := client.Webpubsub.WebPubsubHubsClient.Get(ctx, id.HubName, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil

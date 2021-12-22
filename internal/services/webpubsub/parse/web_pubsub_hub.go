@@ -1,32 +1,34 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type WebPubsubHubId struct {
 	SubscriptionId string
 	ResourceGroup  string
-	WebPubsubName  string
+	WebPubSubName  string
 	HubName        string
 }
 
-func NewWebPubsubHubID(subscriptionId, resourceGroup, webPubsubName, hubname string) WebPubsubHubId {
+func NewWebPubsubHubID(subscriptionId, resourceGroup, webPubSubName, hubName string) WebPubsubHubId {
 	return WebPubsubHubId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
-		WebPubsubName:  webPubsubName,
-		HubName:        hubname,
+		WebPubSubName:  webPubSubName,
+		HubName:        hubName,
 	}
 }
 
 func (id WebPubsubHubId) String() string {
 	segments := []string{
-		fmt.Sprintf("HubName %q", id.HubName),
-		fmt.Sprintf("WebPubsub Name %q", id.WebPubsubName),
+		fmt.Sprintf("Hub Name %q", id.HubName),
+		fmt.Sprintf("Web Pub Sub Name %q", id.WebPubSubName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
@@ -34,12 +36,13 @@ func (id WebPubsubHubId) String() string {
 }
 
 func (id WebPubsubHubId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.SignalRService/webPubSub/%s/hubs/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WebPubsubName, id.HubName)
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.SignalRService/WebPubSub/%s/hubs/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WebPubSubName, id.HubName)
 }
 
+// WebPubsubHubID parses a WebPubsubHub ID into an WebPubsubHubId struct
 func WebPubsubHubID(input string) (*WebPubsubHubId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -54,10 +57,10 @@ func WebPubsubHubID(input string) (*WebPubsubHubId, error) {
 	}
 
 	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missiong the 'resourceGroups' element")
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.WebPubsubName, err = id.PopSegment("webPubSub"); err != nil {
+	if resourceId.WebPubSubName, err = id.PopSegment("WebPubSub"); err != nil {
 		return nil, err
 	}
 	if resourceId.HubName, err = id.PopSegment("hubs"); err != nil {
