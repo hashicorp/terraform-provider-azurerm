@@ -16,7 +16,6 @@ import (
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StorageDisksPoolResource struct{}
@@ -100,7 +99,6 @@ func (r StorageDisksPoolResource) Create() sdk.ResourceFunc {
 			}
 
 			createParameter := diskpools.DiskPoolCreate{
-				Name:     utils.String(m.Name),
 				Location: location.Normalize(m.Location),
 				Properties: diskpools.DiskPoolCreateProperties{
 					AvailabilityZones: &m.AvailabilityZones,

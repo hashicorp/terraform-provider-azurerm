@@ -119,14 +119,14 @@ provider "azurerm" {
 %s
 
 resource "azurerm_disk_pool" "test" {
-  name                = "acctest-%d"
+  name                = "acctest-diskspool-%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "Basic_B1"
   subnet_id           = azurerm_subnet.test.id
   zones               = ["1"]
 }
-`, template, data.RandomInteger)
+`, template, data.RandomString)
 }
 
 func (r DiskPoolResourceTest) requiresImport(data acceptance.TestData) string {
