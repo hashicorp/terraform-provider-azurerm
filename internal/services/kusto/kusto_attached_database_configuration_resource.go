@@ -2,8 +2,9 @@ package kusto
 
 import (
 	"fmt"
-	"log"
 	"time"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -24,8 +25,10 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 		Update: resourceKustoAttachedDatabaseConfigurationCreateUpdate,
 		Delete: resourceKustoAttachedDatabaseConfigurationDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.AttachedDatabaseConfigurationID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -148,53 +151,39 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 
 func resourceKustoAttachedDatabaseConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.AttachedDatabaseConfigurationsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Kusto Attached Database Configuration creation.")
-
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	clusterName := d.Get("cluster_name").(string)
-
+	id := parse.NewAttachedDatabaseConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, resourceGroup, clusterName, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for presence of existing Kusto Attached Database Configuration %q (Resource Group %q, Cluster %q): %s", name, resourceGroup, clusterName, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if resp.ID != nil && *resp.ID != "" {
-			return tf.ImportAsExistsError("azurerm_kusto_attached_database_configuration", *resp.ID)
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return tf.ImportAsExistsError("azurerm_kusto_attached_database_configuration", id.ID())
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-
 	configurationProperties := expandKustoAttachedDatabaseConfigurationProperties(d)
-
 	configurationRequest := kusto.AttachedDatabaseConfiguration{
-		Location:                                &location,
+		Location:                                utils.String(location.Normalize(d.Get("location").(string))),
 		AttachedDatabaseConfigurationProperties: configurationProperties,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, clusterName, name, configurationRequest)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.Name, configurationRequest)
 	if err != nil {
-		return fmt.Errorf("creating or updating Kusto Attached Database Configuration %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
-
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Kusto Attached Database Configuration %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	configuration, err := client.Get(ctx, resourceGroup, clusterName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Kusto Attached Database Configuration %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
-	}
-
-	d.SetId(*configuration.ID)
-
+	d.SetId(id.ID())
 	return resourceKustoAttachedDatabaseConfigurationRead(d, meta)
 }
 
@@ -208,24 +197,23 @@ func resourceKustoAttachedDatabaseConfigurationRead(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	configuration, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(configuration.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Kusto Attached Database Configuration %q (Resource Group %q, Cluster %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
+
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("cluster_name", id.ClusterName)
 
-	if location := configuration.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if props := configuration.AttachedDatabaseConfigurationProperties; props != nil {
+	if props := resp.AttachedDatabaseConfigurationProperties; props != nil {
 		d.Set("cluster_resource_id", props.ClusterResourceID)
 		d.Set("database_name", props.DatabaseName)
 		d.Set("default_principal_modification_kind", props.DefaultPrincipalsModificationKind)
@@ -248,11 +236,11 @@ func resourceKustoAttachedDatabaseConfigurationDelete(d *pluginsdk.ResourceData,
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Kusto Attached Database Configuration %q (Resource Group %q, Cluster %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Kusto Attached Database Configuration %q (Resource Group %q, Cluster %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 
 	return nil

@@ -2,7 +2,6 @@ package kusto
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto"
@@ -100,25 +99,21 @@ func resourceKustoClusterPrincipalAssignment() *pluginsdk.Resource {
 
 func resourceKustoClusterPrincipalAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClusterPrincipalAssignmentsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Kusto Cluster Principal Assignment creation.")
-
-	resourceGroup := d.Get("resource_group_name").(string)
-	clusterName := d.Get("cluster_name").(string)
-	name := d.Get("name").(string)
-
+	id := parse.NewClusterPrincipalAssignmentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		principalAssignment, err := client.Get(ctx, resourceGroup, clusterName, name)
+		principalAssignment, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.PrincipalAssignmentName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(principalAssignment.Response) {
-				return fmt.Errorf("checking for presence of existing Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if principalAssignment.ID != nil && *principalAssignment.ID != "" {
-			return tf.ImportAsExistsError("azurerm_kusto_cluster_principal_assignment", *principalAssignment.ID)
+		if !utils.ResponseWasNotFound(principalAssignment.Response) {
+			return tf.ImportAsExistsError("azurerm_kusto_cluster_principal_assignment", id.ID())
 		}
 	}
 
@@ -136,26 +131,16 @@ func resourceKustoClusterPrincipalAssignmentCreateUpdate(d *pluginsdk.ResourceDa
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, clusterName, name, principalAssignment)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.PrincipalAssignmentName, principalAssignment)
 	if err != nil {
-		return fmt.Errorf("creating or updating Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, clusterName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q)", name, resourceGroup, clusterName)
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceKustoClusterPrincipalAssignmentRead(d, meta)
 }
 
@@ -175,42 +160,39 @@ func resourceKustoClusterPrincipalAssignmentRead(d *pluginsdk.ResourceData, meta
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("cluster_name", id.ClusterName)
 	d.Set("name", id.PrincipalAssignmentName)
-
-	tenantID := ""
-	if resp.TenantID != nil {
-		tenantID = *resp.TenantID
-	}
-
-	tenantName := ""
-	if resp.TenantName != nil {
-		tenantName = *resp.TenantName
-	}
+	d.Set("cluster_name", id.ClusterName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	principalID := ""
 	if resp.PrincipalID != nil {
 		principalID = *resp.PrincipalID
 	}
+	d.Set("principal_id", principalID)
 
 	principalName := ""
 	if resp.PrincipalName != nil {
 		principalName = *resp.PrincipalName
 	}
-
-	principalType := string(resp.PrincipalType)
-	role := string(resp.Role)
-
-	d.Set("tenant_id", tenantID)
-	d.Set("tenant_name", tenantName)
-	d.Set("principal_id", principalID)
 	d.Set("principal_name", principalName)
-	d.Set("principal_type", principalType)
-	d.Set("role", role)
+
+	d.Set("principal_type", string(resp.PrincipalType))
+	d.Set("role", string(resp.Role))
+
+	tenantID := ""
+	if resp.TenantID != nil {
+		tenantID = *resp.TenantID
+	}
+	d.Set("tenant_id", tenantID)
+
+	tenantName := ""
+	if resp.TenantName != nil {
+		tenantName = *resp.TenantName
+	}
+	d.Set("tenant_name", tenantName)
 
 	return nil
 }
@@ -227,11 +209,11 @@ func resourceKustoClusterPrincipalAssignmentDelete(d *pluginsdk.ResourceData, me
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.PrincipalAssignmentName)
 	if err != nil {
-		return fmt.Errorf("deleting Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

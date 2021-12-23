@@ -29,6 +29,7 @@ func dataSourceArmLoadBalancerRule() *pluginsdk.Resource {
 				ValidateFunc: validate.RuleName,
 			},
 
+			// TODO: deprecate and remove for 3.0
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"loadbalancer_id": {
@@ -121,17 +122,17 @@ func dataSourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel = timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	id := parse.NewLoadBalancingRuleID(loadBalancerId.SubscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, name)
 	resp, err := lbRuleClient.Get(ctx, resourceGroup, *loadBalancer.Name, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Load Balancer Rule %q was not found in Load Balancer %q (Resource Group: %q)", name, loadBalancerId.Name, loadBalancerId.ResourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("retrieving Load Balancer %s (resource group %q) for Rule %q: %s", loadBalancerId.Name, loadBalancerId.ResourceGroup, name, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	if props := resp.LoadBalancingRulePropertiesFormat; props != nil {
 		frontendIPConfigurationName, err := parse.LoadBalancerFrontendIpConfigurationID(*props.FrontendIPConfiguration.ID)
 		if err != nil {

@@ -2,7 +2,6 @@ package kusto
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto"
@@ -23,8 +22,10 @@ func resourceKustoDatabasePrincipalAssignment() *pluginsdk.Resource {
 		Read:   resourceKustoDatabasePrincipalAssignmentRead,
 		Delete: resourceKustoDatabasePrincipalAssignmentDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.DatabasePrincipalAssignmentID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -110,61 +111,41 @@ func resourceKustoDatabasePrincipalAssignment() *pluginsdk.Resource {
 
 func resourceKustoDatabasePrincipalAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasePrincipalAssignmentsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Kusto Database Principal Assignment creation.")
-
-	resourceGroup := d.Get("resource_group_name").(string)
-	clusterName := d.Get("cluster_name").(string)
-	databaseName := d.Get("database_name").(string)
-	name := d.Get("name").(string)
-
-	existing, err := client.Get(ctx, resourceGroup, clusterName, databaseName, name)
+	id := parse.NewDatabasePrincipalAssignmentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("database_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.PrincipalAssignmentName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", name, resourceGroup, clusterName, databaseName, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_kusto_database_principal_assignment", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_kusto_database_principal_assignment", id.ID())
 	}
-
-	tenantID := d.Get("tenant_id").(string)
-	principalID := d.Get("principal_id").(string)
-	principalType := d.Get("principal_type").(string)
-	role := d.Get("role").(string)
 
 	principalAssignment := kusto.DatabasePrincipalAssignment{
 		DatabasePrincipalProperties: &kusto.DatabasePrincipalProperties{
-			TenantID:      utils.String(tenantID),
-			PrincipalID:   utils.String(principalID),
-			PrincipalType: kusto.PrincipalType(principalType),
-			Role:          kusto.DatabasePrincipalRole(role),
+			TenantID:      utils.String(d.Get("tenant_id").(string)),
+			PrincipalID:   utils.String(d.Get("principal_id").(string)),
+			PrincipalType: kusto.PrincipalType(d.Get("principal_type").(string)),
+			Role:          kusto.DatabasePrincipalRole(d.Get("role").(string)),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, clusterName, databaseName, name, principalAssignment)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.PrincipalAssignmentName, principalAssignment)
 	if err != nil {
-		return fmt.Errorf("failed creating Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", name, resourceGroup, clusterName, databaseName, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("failed waiting for completion of Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", name, resourceGroup, clusterName, databaseName, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, clusterName, databaseName, name)
-	if err != nil {
-		return fmt.Errorf("failed to retrieve Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", name, resourceGroup, clusterName, databaseName, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read ID for Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q)", name, resourceGroup, clusterName, databaseName)
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceKustoDatabasePrincipalAssignmentRead(d, meta)
 }
 
@@ -184,7 +165,7 @@ func resourceKustoDatabasePrincipalAssignmentRead(d *pluginsdk.ResourceData, met
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("failed to retrieve Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
@@ -192,35 +173,31 @@ func resourceKustoDatabasePrincipalAssignmentRead(d *pluginsdk.ResourceData, met
 	d.Set("database_name", id.DatabaseName)
 	d.Set("name", id.PrincipalAssignmentName)
 
-	tenantID := ""
-	if resp.TenantID != nil {
-		tenantID = *resp.TenantID
-	}
-
-	tenantName := ""
-	if resp.TenantName != nil {
-		tenantName = *resp.TenantName
-	}
-
 	principalID := ""
 	if resp.PrincipalID != nil {
 		principalID = *resp.PrincipalID
 	}
+	d.Set("principal_id", principalID)
 
 	principalName := ""
 	if resp.PrincipalName != nil {
 		principalName = *resp.PrincipalName
 	}
-
-	principalType := string(resp.PrincipalType)
-	role := string(resp.Role)
-
-	d.Set("tenant_id", tenantID)
-	d.Set("tenant_name", tenantName)
-	d.Set("principal_id", principalID)
 	d.Set("principal_name", principalName)
-	d.Set("principal_type", principalType)
-	d.Set("role", role)
+	d.Set("principal_type", string(resp.PrincipalType))
+	d.Set("role", string(resp.Role))
+
+	tenantID := ""
+	if resp.TenantID != nil {
+		tenantID = *resp.TenantID
+	}
+	d.Set("tenant_id", tenantID)
+
+	tenantName := ""
+	if resp.TenantName != nil {
+		tenantName = *resp.TenantName
+	}
+	d.Set("tenant_name", tenantName)
 
 	return nil
 }
@@ -237,11 +214,11 @@ func resourceKustoDatabasePrincipalAssignmentDelete(d *pluginsdk.ResourceData, m
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.PrincipalAssignmentName)
 	if err != nil {
-		return fmt.Errorf("deleting Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

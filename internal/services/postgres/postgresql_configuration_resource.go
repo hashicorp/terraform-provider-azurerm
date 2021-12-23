@@ -60,47 +60,32 @@ func resourcePostgreSQLConfiguration() *pluginsdk.Resource {
 
 func resourcePostgreSQLConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ConfigurationsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Configuration creation.")
+	id := parse.NewConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
+	// TODO: support RequiresImport - this is possible to tell if it's the non-default value from the API (see Delete)
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-	serverName := d.Get("server_name").(string)
-	value := d.Get("value").(string)
-
-	locks.ByName(serverName, postgreSQLServerResourceName)
-	defer locks.UnlockByName(serverName, postgreSQLServerResourceName)
+	locks.ByName(id.ServerName, postgreSQLServerResourceName)
+	defer locks.UnlockByName(id.ServerName, postgreSQLServerResourceName)
 
 	properties := postgresql.Configuration{
 		ConfigurationProperties: &postgresql.ConfigurationProperties{
-			Value: utils.String(value),
+			Value: utils.String(d.Get("value").(string)),
 		},
 	}
 
-	// NOTE: this resource intentionally doesn't support Requires Import
-	//       since a fallback route is created by default
-
-	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, name, properties)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, serverName, name)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read PostgreSQL Configuration %s (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourcePostgreSQLConfigurationRead(d, meta)
 }
 
@@ -117,12 +102,12 @@ func resourcePostgreSQLConfigurationRead(d *pluginsdk.ResourceData, meta interfa
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] PostgreSQL Configuration '%s' was not found (resource group '%s')", id.Name, id.ResourceGroup)
+			log.Printf("[WARN] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure PostgreSQL Configuration %s: %+v", id.Name, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -164,11 +149,11 @@ func resourcePostgreSQLConfigurationDelete(d *pluginsdk.ResourceData, meta inter
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("resetting %s to it's default value: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("waiting for %s to reset to it's default value: %+v", *id, err)
 	}
 
 	return nil
