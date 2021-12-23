@@ -114,13 +114,13 @@ func resourceWebPubSub() *pluginsdk.Resource {
 			"local_auth_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 			},
 
 			"aad_auth_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 			},
 
 			"tls_client_cert_enabled": {
@@ -207,13 +207,28 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
+	publicNetworkAcc := "Enabled"
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAcc = "Disabled"
+	}
+
+	aadAuthDisabled := false
+	if !d.Get("aad_auth_enabled").(bool) {
+		aadAuthDisabled = true
+	}
+
+	localAuthDisabled := false
+	if !d.Get("local_auth_enabled").(bool) {
+		localAuthDisabled = true
+	}
+
 	parameters := webpubsub.ResourceType{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &webpubsub.Properties{
 			LiveTraceConfiguration: expandLiveTraceConfig(liveTraceConfig),
-			PublicNetworkAccess:    utils.String("Enabled"),
-			DisableAadAuth:         utils.Bool(d.Get("aad_auth_enabled").(bool)),
-			DisableLocalAuth:       utils.Bool(d.Get("local_auth_enabled").(bool)),
+			PublicNetworkAccess:    utils.String(publicNetworkAcc),
+			DisableAadAuth:         utils.Bool(aadAuthDisabled),
+			DisableLocalAuth:       utils.Bool(localAuthDisabled),
 			TLS: &webpubsub.TLSSettings{
 				ClientCertEnabled: utils.Bool(d.Get("tls_client_cert_enabled").(bool)),
 			},
@@ -275,8 +290,11 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("name", id.WebPubSubName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("sku", resp.Sku.Name)
-	d.Set("capacity", resp.Sku.Capacity)
+
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku", sku.Name)
+		d.Set("capacity", sku.Capacity)
+	}
 
 	if props := resp.Properties; props != nil {
 		d.Set("external_ip", props.ExternalIP)
@@ -284,8 +302,8 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("public_port", props.PublicPort)
 		d.Set("server_port", props.ServerPort)
 		d.Set("version", props.Version)
-		d.Set("aad_auth_enabled", props.DisableAadAuth)
-		d.Set("local_auth_enabled", props.DisableLocalAuth)
+		d.Set("aad_auth_enabled", !(*props.DisableAadAuth))
+		d.Set("local_auth_enabled", !(*props.DisableLocalAuth))
 		d.Set("public_network_access_enabled", strings.EqualFold(*props.PublicNetworkAccess, "Enabled"))
 		d.Set("tls_client_cert_enabled", props.TLS.ClientCertEnabled)
 
@@ -324,31 +342,38 @@ func resourceWebPubSubDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 func expandLiveTraceConfig(input []interface{}) *webpubsub.LiveTraceConfiguration {
 	resourceCategories := make([]webpubsub.LiveTraceCategory, 0)
 
-	if len(input) != 0 && input[0] != nil {
-		v := input[0].(map[string]interface{})
-		enabled := "true"
-		if !v["enabled"].(bool) {
-			enabled = "false"
-		}
-
-		for _, item := range v["categories"].(*pluginsdk.Set).List() {
-			setting := item.(map[string]interface{})
-			liveTraceCategory := webpubsub.LiveTraceCategory{
-				Name:    utils.String(setting["name"].(string)),
-				Enabled: utils.String("true"),
-			}
-			if !setting["enabled"].(bool) {
-				liveTraceCategory.Enabled = utils.String("false")
-			}
-			resourceCategories = append(resourceCategories, liveTraceCategory)
-		}
-		return &webpubsub.LiveTraceConfiguration{
-			Enabled:    &enabled,
-			Categories: &resourceCategories,
-		}
+	if len(input) == 0 || input[0] == nil {
+		return nil
 	}
 
-	return nil
+	v := input[0].(map[string]interface{})
+
+	enabled := ""
+	if v["enabled"].(bool) {
+		enabled = "true"
+	} else {
+		enabled = "false"
+	}
+
+	for _, item := range v["categories"].(*pluginsdk.Set).List() {
+		setting := item.(map[string]interface{})
+		settingEnabled := ""
+		if setting["enabled"].(bool) {
+			settingEnabled = "true"
+		} else {
+			settingEnabled = "false"
+		}
+		liveTraceCategory := webpubsub.LiveTraceCategory{
+			Name:    utils.String(setting["name"].(string)),
+			Enabled: utils.String(settingEnabled),
+		}
+
+		resourceCategories = append(resourceCategories, liveTraceCategory)
+	}
+	return &webpubsub.LiveTraceConfiguration{
+		Enabled:    &enabled,
+		Categories: &resourceCategories,
+	}
 }
 
 func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface{} {
@@ -357,7 +382,12 @@ func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface
 		return result
 	}
 
-	enabled := strings.EqualFold(*input.Enabled, "true")
+	traceEnabled := *input.Enabled
+	if traceEnabled == "" {
+		traceEnabled = "true"
+	}
+
+	enabled := strings.EqualFold(traceEnabled, "true")
 
 	resourceCategories := make([]interface{}, 0)
 	if input.Categories != nil {
@@ -369,8 +399,13 @@ func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface
 				name = *item.Name
 			}
 
+			cateEnabled := *item.Enabled
+			if cateEnabled == "" {
+				cateEnabled = "true"
+			}
+
 			block["name"] = name
-			block["enabled"] = strings.EqualFold(*item.Enabled, "true")
+			block["enabled"] = strings.EqualFold(cateEnabled, "true")
 
 			resourceCategories = append(resourceCategories, block)
 		}

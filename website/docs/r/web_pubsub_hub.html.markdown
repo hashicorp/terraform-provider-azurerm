@@ -29,10 +29,8 @@ resource "azurerm_web_pubsub" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
-  sku {
-    name     = "Standard_S1"
-    capacity = 1
-  }
+  sku      = "Standard_S1"
+  capacity = 1
 }
 
 resource "azurerm_web_pubsub_hub" "test" {

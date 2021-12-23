@@ -140,8 +140,8 @@ resource "azurerm_web_pubsub" "test" {
     }
   }
 
-  disable_local_auth = true
-  disable_aad_auth   = true
+  local_auth_enabled  = true
+  aad_auth_enabled = true
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

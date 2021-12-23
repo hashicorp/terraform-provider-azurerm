@@ -23,18 +23,16 @@ resource "azurerm_web_pubsub" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
-  sku {
-    name     = "Standard_S1"
-    capactiy = 1
-  }
+  sku      = "Standard_S1"
+  capactiy = 1
 
-  public_network_access = "Disabled"
+  public_network_access_enabled = false
 
   live_trace_configuration {
-    enabled = "false"
+    enabled = true
     categories {
       name    = "MessagingLogs"
-      enabled = "true"
+      enabled = true
     }
   }
 }
@@ -50,25 +48,19 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the Web Pubsub service exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) A `sku` block as documented below.
+* `sku` - (Required) Specifies which sku to use. Valid values are `Free_F1` and `Standard_S1`.
+
+* `capacity` - (Optional) Specifies the number of units associated with this Web Pubsub resource. Valid values are `1`, `2`, `5`, `10`, `20`, `50` and `100`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `live_trace_configuration` - (Optional) A `live_trace_configuration` block as documented below
 
-* `disable_local_auth` - (Optional) A `boolean` type. Specifies whether to disable local auth, defaults to `false`
+* `local_auth_enabled` - (Optional) A `boolean` type. Specifies whether to disable local auth, defaults to `false`
 
-* `disable_aad_auth` - (Optional) A `boolean` type. Specifies whether to disable AAD auth, defaults to `false`
+* `aad_auth_enabled` - (Optional) A `boolean` type. Specifies whether to disable AAD auth, defaults to `false`
 
 * `tls_client_cert_enabled` - (Optional)  Specifies whether to request client certificate during TLS handshake if enabled
-
----
-
-A `sku` block supports the following:
-
-* `name` - (Required) Specifies which tier to use. Valid values are `Free_F1` and `Standard_S1`.
-
-* `capacity` - (Required) Specifies the number of units associated with this Web Pubsub resource. Valid values are `1`, `2`, `5`, `10`, `20`, `50` and `100`.
 
 ---
 
