@@ -13,11 +13,13 @@ func (r Registration) PackagePath() string {
 }
 
 func (r Registration) WebsiteCategories() []string {
-	return nil
+	return []string{
+		"Load Test",
+	}
 }
 
 func (r Registration) Name() string {
-	return "LoadTestService"
+	return "Load Test"
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
