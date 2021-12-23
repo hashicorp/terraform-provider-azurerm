@@ -37,5 +37,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_cdn_frontdoor_origin_group":   resourceAfdOriginGroups(),
 		"azurerm_cdn_frontdoor_origin":         resourceAfdOrigin(),
 		"azurerm_cdn_frontdoor_custom_domain":  resourceAfdCustomDomains(),
+		"azurerm_cdn_frontdoor_rule_set":       resourceAfdRuleSet(),
+		"azurerm_cdn_frontdoor_rule_set_rule":  resourceAfdRuleSetRule(),
 	}
 }

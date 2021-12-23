@@ -14,6 +14,8 @@ type Client struct {
 	AFDOriginsClient       *cdn.AFDOriginsClient
 	AFDCustomDomainsClient *cdn.AFDCustomDomainsClient
 	AFDEndpointRouteClient *cdn.RoutesClient
+	AFDRuleSetsClient      *cdn.RuleSetsClient
+	AFDRuleSetRulesClient  *cdn.RulesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -41,6 +43,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	afdEndpointRouteClient := cdn.NewRoutesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&afdEndpointRouteClient.Client, o.ResourceManagerAuthorizer)
 
+	afdRuleSetsClient := cdn.NewRuleSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&afdRuleSetsClient.Client, o.ResourceManagerAuthorizer)
+
+	afdRuleSetRulesClient := cdn.NewRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&afdRuleSetRulesClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		CustomDomainsClient:    &customDomainsClient,
 		EndpointsClient:        &endpointsClient,
@@ -50,5 +58,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		AFDOriginsClient:       &afdOriginsClient,
 		AFDCustomDomainsClient: &afdCustomDomainsClient,
 		AFDEndpointRouteClient: &afdEndpointRouteClient,
+		AFDRuleSetsClient:      &afdRuleSetsClient,
+		AFDRuleSetRulesClient:  &afdRuleSetRulesClient,
 	}
 }

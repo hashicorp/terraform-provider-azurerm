@@ -307,7 +307,10 @@ func resourceAfdOriginGroupsRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	d.Set("name", id.OriginGroupName)
-	d.Set("profile_id", parse.NewProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
+
+	// profile id
+	profileId := parse.NewProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID()
+	d.Set("profile_id", string(profileId))
 
 	if resp.SessionAffinityState == cdn.EnabledStateEnabled {
 		d.Set("session_affinity_state", true)

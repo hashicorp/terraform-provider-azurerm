@@ -45,7 +45,7 @@ func resourceAfdEndpoints() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"fqdn": { // returns the endpoint fqdn
+			"fqdn": { // computed - returns the endpoint fqdn
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -158,7 +158,10 @@ func resourceAfdEndpointsRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("enabled", false)
 	}
 
-	d.Set("profile_id", parse.NewProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
+	// profile id
+	profileId := parse.NewProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID()
+	d.Set("profile_id", string(profileId))
+
 	d.Set("fqdn", resp.HostName)
 	d.Set("name", id.AfdEndpointName)
 

@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnProfileResource struct{}
+type AfdProfileResource struct{}
 
-func TestAccCdnProfile_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	r := CdnProfileResource{}
+func TestAccCdnAfdProfile_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := AfdProfileResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -30,24 +30,9 @@ func TestAccCdnProfile_basic(t *testing.T) {
 	})
 }
 
-func TestAccCdnProfile_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	r := CdnProfileResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.RequiresImportErrorStep(r.requiresImport),
-	})
-}
-
-func TestAccCdnProfile_withTags(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	r := CdnProfileResource{}
+func TestAccCdnAfdProfile_withTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := AfdProfileResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -67,9 +52,9 @@ func TestAccCdnProfile_withTags(t *testing.T) {
 	})
 }
 
-func TestAccCdnProfile_NonStandardCasing(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	r := CdnProfileResource{}
+func TestAccCdnAfdProfile_NonStandardCasing(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := AfdProfileResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -86,20 +71,20 @@ func TestAccCdnProfile_NonStandardCasing(t *testing.T) {
 	})
 }
 
-func TestAccCdnProfile_basicToStandardAkamai(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	r := CdnProfileResource{}
+func TestAccCdnAfdProfile_standardToPremiumFrontDoor(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := AfdProfileResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.standardFrontDoor(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.standardAkamai(data),
+			Config: r.premiumFrontDoor(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -108,39 +93,39 @@ func TestAccCdnProfile_basicToStandardAkamai(t *testing.T) {
 	})
 }
 
-func TestAccCdnProfile_standardAkamai(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	r := CdnProfileResource{}
+func TestAccCdnAfdProfile_standardFrontDoor(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := AfdProfileResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standardAkamai(data),
+			Config: r.standardFrontDoor(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				acceptance.TestCheckResourceAttr(data.ResourceName, "sku", "Standard_Akamai"),
+				acceptance.TestCheckResourceAttr(data.ResourceName, "sku", "Standard_AzureFrontDoor"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccCdnProfile_standardMicrosoft(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	r := CdnProfileResource{}
+func TestAccCdnAfdProfile_premiumFrontDoor(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := AfdProfileResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standardMicrosoft(data),
+			Config: r.premiumFrontDoor(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				acceptance.TestCheckResourceAttr(data.ResourceName, "sku", "Standard_Microsoft"),
+				acceptance.TestCheckResourceAttr(data.ResourceName, "sku", "Premium_AzureFrontDoor"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func (r CdnProfileResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r AfdProfileResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ProfileID(state.ID)
 	if err != nil {
 		return nil, err
@@ -156,7 +141,7 @@ func (r CdnProfileResource) Exists(ctx context.Context, client *clients.Client, 
 	return utils.Bool(true), nil
 }
 
-func (r CdnProfileResource) basic(data acceptance.TestData) string {
+func (r AfdProfileResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -167,30 +152,16 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_cdn_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnprof%[1]d"
-  location            = azurerm_resource_group.test.location
+  location            = "global"
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Verizon"
+  sku                 = "Standard_AzureFrontDoor"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CdnProfileResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_cdn_profile" "import" {
-  name                = azurerm_cdn_profile.test.name
-  location            = azurerm_cdn_profile.test.location
-  resource_group_name = azurerm_cdn_profile.test.resource_group_name
-  sku                 = azurerm_cdn_profile.test.sku
-}
-`, template)
-}
-
-func (r CdnProfileResource) withTags(data acceptance.TestData) string {
+func (r AfdProfileResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -201,11 +172,11 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_cdn_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnprof%[1]d"
-  location            = azurerm_resource_group.test.location
+  location            = "global"
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Verizon"
+  sku                 = "Standard_AzureFrontDoor"
 
   tags = {
     environment = "Production"
@@ -215,7 +186,7 @@ resource "azurerm_cdn_profile" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CdnProfileResource) withTagsUpdate(data acceptance.TestData) string {
+func (r AfdProfileResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -226,11 +197,11 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_cdn_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnprof%[1]d"
-  location            = azurerm_resource_group.test.location
+  location            = "global"
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Verizon"
+  sku                 = "Standard_AzureFrontDoor"
 
   tags = {
     environment = "staging"
@@ -239,7 +210,7 @@ resource "azurerm_cdn_profile" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CdnProfileResource) nonStandardCasing(data acceptance.TestData) string {
+func (r AfdProfileResource) nonStandardCasing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -250,16 +221,16 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_cdn_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnprof%[1]d"
-  location            = azurerm_resource_group.test.location
+  location            = "global"
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "standard_verizon"
+  sku                 = "standard_azurefrontdoor"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CdnProfileResource) standardAkamai(data acceptance.TestData) string {
+func (r AfdProfileResource) standardFrontDoor(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -270,16 +241,16 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_cdn_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnprof%[1]d"
-  location            = azurerm_resource_group.test.location
+  location            = "global"
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Akamai"
+  sku                 = "Standard_AzureFrontDoor"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CdnProfileResource) standardMicrosoft(data acceptance.TestData) string {
+func (r AfdProfileResource) premiumFrontDoor(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -290,11 +261,11 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_cdn_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnprof%[1]d"
-  location            = azurerm_resource_group.test.location
+  location            = "global"
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Microsoft"
+  sku                 = "Premium_AzureFrontDoor"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

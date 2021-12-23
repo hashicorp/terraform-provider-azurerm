@@ -272,17 +272,7 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	// parse rule_sets (TypeList)
 	ruleSets := d.Get("rule_sets").([]interface{})
-	if ruleSets != nil {
-		ruleSetsArray := make([]cdn.ResourceReference, 0)
-		for _, r := range ruleSets {
-			ruleSetId := r.(string)
-			resourceReference := cdn.ResourceReference{
-				ID: &ruleSetId,
-			}
-			ruleSetsArray = append(ruleSetsArray, resourceReference)
-		}
-		routeProperties.RuleSets = &ruleSetsArray
-	}
+	routeProperties.RuleSets = expandRuleSets(ruleSets)
 
 	// forwarding protocol
 	forwardingProtocol := d.Get("forwarding_protocol").(string)
@@ -358,7 +348,7 @@ func resourceAfdEndpointRouteCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if cachingEnabled && queryStringCachingBehavior == string(cdn.QueryStringCachingBehaviorNotSet) {
-		return fmt.Errorf("query_string_caching_behavior cannot be NotSet when enable_caching is set to true.")
+		return fmt.Errorf("query_string_caching_behavior cannot be NotSet when enable_caching is set to true")
 	}
 
 	route.RouteProperties = &routeProperties
@@ -403,7 +393,8 @@ func resourceAfdEndpointRouteRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("supported_protocols", resp.SupportedProtocols)
 	d.Set("patterns_to_match", resp.PatternsToMatch)
 	d.Set("forwarding_protocol", resp.ForwardingProtocol)
-	d.Set("custom_domains", resp.CustomDomains)
+	d.Set("rule_sets", resp.RuleSets)
+	d.Set("custom_domains", flattenCustomDomains(resp.CustomDomains))
 
 	if resp.HTTPSRedirect == cdn.HTTPSRedirectEnabled {
 		d.Set("https_redirect", true)
@@ -418,6 +409,18 @@ func resourceAfdEndpointRouteRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	return nil
+}
+
+func flattenCustomDomains(customDomains *[]cdn.ResourceReference) []string {
+
+	domains := make([]string, 0)
+
+	for _, domain := range *customDomains {
+		domainId := domain.ID
+		domains = append(domains, *domainId)
+	}
+
+	return domains
 }
 
 func resourceAfdEndpointRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -440,7 +443,7 @@ func resourceAfdEndpointRouteUpdate(d *pluginsdk.ResourceData, meta interface{})
 	supportedProtocols := d.Get("supported_protocols").([]interface{})
 
 	if cachingEnabled && queryStringCachingBehavior == string(cdn.QueryStringCachingBehaviorNotSet) {
-		return fmt.Errorf("query_string_caching_behavior cannot be NotSet when enable_caching is set to true.")
+		return fmt.Errorf("query_string_caching_behavior cannot be NotSet when enable_caching is set to true")
 	}
 
 	// create an array of content types
@@ -473,6 +476,12 @@ func resourceAfdEndpointRouteUpdate(d *pluginsdk.ResourceData, meta interface{})
 		} else {
 			routeUpdateProperties.HTTPSRedirect = cdn.HTTPSRedirectDisabled
 		}
+	}
+
+	// parse rule_sets
+	if d.HasChange("rule_sets") {
+		ruleSets := d.Get("rule_sets").([]interface{})
+		routeUpdateProperties.RuleSets = expandRuleSets(ruleSets)
 	}
 
 	// patterns_to_match
@@ -596,6 +605,23 @@ func resourceAfdEndpointRouteUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	return resourceAfdEndpointRouteRead(d, meta)
 }
+
+func expandRuleSets(input []interface{}) *[]cdn.ResourceReference {
+
+	ruleSetRefArray := make([]cdn.ResourceReference, 0)
+
+	for _, ruleSet := range input {
+		ruleSetId := ruleSet.(string)
+		ruleSetRef := cdn.ResourceReference{
+			ID: utils.String(ruleSetId),
+		}
+
+		ruleSetRefArray = append(ruleSetRefArray, ruleSetRef)
+	}
+
+	return &ruleSetRefArray
+}
+
 func resourceAfdEndpointRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.AFDEndpointRouteClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
