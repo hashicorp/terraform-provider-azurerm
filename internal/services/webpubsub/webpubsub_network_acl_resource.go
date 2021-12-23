@@ -315,16 +315,18 @@ func expandWebpubsubPublicNetwork(input []interface{}) *webpubsub.NetworkACL {
 	allowRTs := make([]webpubsub.RequestType, 0)
 	deniedRTs := make([]webpubsub.RequestType, 0)
 
-	if len(input) != 0 && input[0] != nil {
-		v := input[0].(map[string]interface{})
+	if len(input) == 0 || input[0] == nil {
+		return &webpubsub.NetworkACL{}
+	}
 
-		for _, item := range *(utils.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List())) {
-			allowRTs = append(allowRTs, webpubsub.RequestType(item))
-		}
+	v := input[0].(map[string]interface{})
 
-		for _, item := range *(utils.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List())) {
-			deniedRTs = append(deniedRTs, webpubsub.RequestType(item))
-		}
+	for _, item := range *(utils.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List())) {
+		allowRTs = append(allowRTs, webpubsub.RequestType(item))
+	}
+
+	for _, item := range *(utils.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List())) {
+		deniedRTs = append(deniedRTs, webpubsub.RequestType(item))
 	}
 
 	return &webpubsub.NetworkACL{

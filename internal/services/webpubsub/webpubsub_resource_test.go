@@ -140,8 +140,8 @@ resource "azurerm_web_pubsub" "test" {
     }
   }
 
-  local_auth_enabled  = true
-  aad_auth_enabled = true
+  local_auth_enabled = true
+  aad_auth_enabled   = true
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -149,14 +149,7 @@ resource "azurerm_web_pubsub" "test" {
 
 func (r WebpubsubResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-wps-%d"
-  location = "%s"
-}
+%s
 
 resource "azurerm_web_pubsub" "import" {
   name                = azurerm_web_pubsub.test.name
@@ -166,7 +159,7 @@ resource "azurerm_web_pubsub" "import" {
   sku      = "Standard_S1"
   capacity = 1
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, r.basic(data))
 }
 
 func (r WebpubsubResource) FreeWithCapacity(data acceptance.TestData, capacity int) string {

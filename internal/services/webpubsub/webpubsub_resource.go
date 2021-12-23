@@ -212,23 +212,13 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		publicNetworkAcc = "Disabled"
 	}
 
-	aadAuthDisabled := false
-	if !d.Get("aad_auth_enabled").(bool) {
-		aadAuthDisabled = true
-	}
-
-	localAuthDisabled := false
-	if !d.Get("local_auth_enabled").(bool) {
-		localAuthDisabled = true
-	}
-
 	parameters := webpubsub.ResourceType{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &webpubsub.Properties{
 			LiveTraceConfiguration: expandLiveTraceConfig(liveTraceConfig),
 			PublicNetworkAccess:    utils.String(publicNetworkAcc),
-			DisableAadAuth:         utils.Bool(aadAuthDisabled),
-			DisableLocalAuth:       utils.Bool(localAuthDisabled),
+			DisableAadAuth:         utils.Bool(!d.Get("aad_auth_enabled").(bool)),
+			DisableLocalAuth:       utils.Bool(!d.Get("local_auth_enabled").(bool)),
 			TLS: &webpubsub.TLSSettings{
 				ClientCertEnabled: utils.Bool(d.Get("tls_client_cert_enabled").(bool)),
 			},
@@ -238,10 +228,6 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			Capacity: utils.Int32(int32(d.Get("capacity").(int))),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
-		parameters.Properties.PublicNetworkAccess = utils.String("Disabled")
 	}
 
 	future, err := client.CreateOrUpdate(ctx, parameters, id.ResourceGroup, id.WebPubSubName)
@@ -302,10 +288,20 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("public_port", props.PublicPort)
 		d.Set("server_port", props.ServerPort)
 		d.Set("version", props.Version)
-		d.Set("aad_auth_enabled", !(*props.DisableAadAuth))
-		d.Set("local_auth_enabled", !(*props.DisableLocalAuth))
-		d.Set("public_network_access_enabled", strings.EqualFold(*props.PublicNetworkAccess, "Enabled"))
-		d.Set("tls_client_cert_enabled", props.TLS.ClientCertEnabled)
+		if props.DisableAadAuth != nil {
+			d.Set("aad_auth_enabled", !(*props.DisableAadAuth))
+		}
+		if props.DisableLocalAuth != nil {
+			d.Set("local_auth_enabled", !(*props.DisableLocalAuth))
+		}
+		if props.PublicNetworkAccess != nil {
+			d.Set("public_network_access_enabled", strings.EqualFold(*props.PublicNetworkAccess, "Enabled"))
+		}
+		if TLS := props.TLS; TLS != nil {
+			if TLS.ClientCertEnabled != nil {
+				d.Set("tls_client_cert_enabled", *TLS.ClientCertEnabled)
+			}
+		}
 
 		if err := d.Set("live_trace_configuration", flattenLiveTraceConfig(props.LiveTraceConfiguration)); err != nil {
 			return fmt.Errorf("setting `live_trace_configuration`:%+v", err)
@@ -348,21 +344,19 @@ func expandLiveTraceConfig(input []interface{}) *webpubsub.LiveTraceConfiguratio
 
 	v := input[0].(map[string]interface{})
 
-	enabled := ""
+	enabled := "false"
 	if v["enabled"].(bool) {
 		enabled = "true"
-	} else {
-		enabled = "false"
 	}
 
 	for _, item := range v["categories"].(*pluginsdk.Set).List() {
 		setting := item.(map[string]interface{})
-		settingEnabled := ""
+
+		settingEnabled := "false"
 		if setting["enabled"].(bool) {
 			settingEnabled = "true"
-		} else {
-			settingEnabled = "false"
 		}
+
 		liveTraceCategory := webpubsub.LiveTraceCategory{
 			Name:    utils.String(setting["name"].(string)),
 			Enabled: utils.String(settingEnabled),
@@ -382,12 +376,10 @@ func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface
 		return result
 	}
 
-	traceEnabled := *input.Enabled
-	if traceEnabled == "" {
-		traceEnabled = "true"
+	var enabled bool
+	if input.Enabled != nil {
+		enabled = strings.EqualFold(*input.Enabled, "true")
 	}
-
-	enabled := strings.EqualFold(traceEnabled, "true")
 
 	resourceCategories := make([]interface{}, 0)
 	if input.Categories != nil {
@@ -399,9 +391,9 @@ func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface
 				name = *item.Name
 			}
 
-			cateEnabled := *item.Enabled
-			if cateEnabled == "" {
-				cateEnabled = "true"
+			var cateEnabled string
+			if item.Enabled != nil {
+				cateEnabled = *item.Enabled
 			}
 
 			block["name"] = name
