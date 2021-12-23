@@ -75,7 +75,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 						},
 						// We must use system assigned identity for now since recovery vault only support system assigned for now.
 						// We can remove this property, but in that way when we enable user assigned identity in the future
-						// , many users might be suprised at update in place. So we use an anonymous function to restrict this value to `true`
+						// , many users might be surprised at update in place. So we use an anonymous function to restrict this value to `true`
 						"use_system_assigned_identity": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
