@@ -269,7 +269,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 						"file_upload_limit_in_mb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 750),
+							ValidateFunc: validation.IntBetween(1, 4000),
 							Default:      100,
 						},
 						"max_request_body_size_in_kb": {
