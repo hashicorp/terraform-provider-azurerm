@@ -41,15 +41,20 @@ func flattenSubResourcesToIDs(input *[]compute.SubResource) []interface{} {
 func sortSharedImageVersions(values []compute.GalleryImageVersion) ([]compute.GalleryImageVersion, []error) {
 	errors := make([]error, 0)
 	sort.Slice(values, func(i, j int) bool {
-		defer func() {
-			if err := recover(); err != nil {
-				log.Println("panic occurred:", err)
-				errors = append(errors, err.(error))
-			}
-		}()
+		if values[i].Name == nil || values[j].Name == nil {
+			return false, nil
+		}
+
 		verA, err := version.NewVersion(*values[i].Name)
+		if err != nil {
+			return false, nil
+		}
 		verA = version.Must(verA, err)
+		
 		verB, err := version.NewVersion(*values[j].Name)
+		if err != nil {
+			return false, nil
+		}
 		verB = version.Must(verB, err)
 		return verA.LessThan(verB)
 	})
