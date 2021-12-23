@@ -50,7 +50,7 @@ func sortSharedImageVersions(values []compute.GalleryImageVersion) ([]compute.Ga
 			return false, nil
 		}
 		verA = version.Must(verA, err)
-		
+
 		verB, err := version.NewVersion(*values[j].Name)
 		if err != nil {
 			return false, nil
