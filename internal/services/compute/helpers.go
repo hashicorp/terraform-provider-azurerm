@@ -41,7 +41,7 @@ func sortSharedImageVersions(values []compute.GalleryImageVersion) ([]compute.Ga
 	errors := make([]error, 0)
 	sort.Slice(values, func(i, j int) bool {
 		if values[i].Name == nil || values[j].Name == nil {
-			return false, nil
+			return false
 		}
 
 		verA, err := version.NewVersion(*values[i].Name)
