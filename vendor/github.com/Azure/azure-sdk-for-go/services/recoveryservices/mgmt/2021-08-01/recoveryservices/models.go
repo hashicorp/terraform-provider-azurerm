@@ -10,6 +10,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
@@ -17,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-08-01/recoveryservices"
 
 // CertificateRequest details of the certificate to be uploaded to the vault.
 type CertificateRequest struct {
@@ -250,14 +251,69 @@ type ClientDiscoveryValueForSingleAPI struct {
 	Properties *ClientDiscoveryForProperties `json:"properties,omitempty"`
 }
 
+// CloudError an error response from Azure Backup.
+type CloudError struct {
+	Error *Error `json:"error,omitempty"`
+}
+
+// CmkKekIdentity the details of the identity used for CMK
+type CmkKekIdentity struct {
+	// UseSystemAssignedIdentity - Indicate that system assigned identity should be used. Mutually exclusive with 'userAssignedIdentity' field
+	UseSystemAssignedIdentity *bool `json:"useSystemAssignedIdentity,omitempty"`
+	// UserAssignedIdentity - The user assigned identity to be used to grant permissions in case the type of identity used is UserAssigned
+	UserAssignedIdentity *string `json:"userAssignedIdentity,omitempty"`
+}
+
+// CmkKeyVaultProperties the properties of the Key Vault which hosts CMK
+type CmkKeyVaultProperties struct {
+	// KeyURI - The key uri of the Customer Managed Key
+	KeyURI *string `json:"keyUri,omitempty"`
+}
+
+// Error the resource management error response.
+type Error struct {
+	// AdditionalInfo - READ-ONLY; The error additional info.
+	AdditionalInfo *[]ErrorAdditionalInfo `json:"additionalInfo,omitempty"`
+	// Code - READ-ONLY; The error code.
+	Code *string `json:"code,omitempty"`
+	// Details - READ-ONLY; The error details.
+	Details *[]Error `json:"details,omitempty"`
+	// Message - READ-ONLY; The error message.
+	Message *string `json:"message,omitempty"`
+	// Target - READ-ONLY; The error target.
+	Target *string `json:"target,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Error.
+func (e Error) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// ErrorAdditionalInfo the resource management error additional info.
+type ErrorAdditionalInfo struct {
+	// Info - READ-ONLY; The additional info.
+	Info interface{} `json:"info,omitempty"`
+	// Type - READ-ONLY; The additional info type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorAdditionalInfo.
+func (eai ErrorAdditionalInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // IdentityData identity for the resource.
 type IdentityData struct {
 	// PrincipalID - READ-ONLY; The principal ID of resource identity.
 	PrincipalID *string `json:"principalId,omitempty"`
 	// TenantID - READ-ONLY; The tenant ID of resource.
 	TenantID *string `json:"tenantId,omitempty"`
-	// Type - The identity type. Possible values include: 'SystemAssigned', 'None'
+	// Type - The type of managed identity used. The type 'SystemAssigned, UserAssigned' includes both an implicitly created identity and a set of user-assigned identities. The type 'None' will remove any identities. Possible values include: 'ResourceIdentityTypeSystemAssigned', 'ResourceIdentityTypeNone', 'ResourceIdentityTypeUserAssigned', 'ResourceIdentityTypeSystemAssignedUserAssigned'
 	Type ResourceIdentityType `json:"type,omitempty"`
+	// UserAssignedIdentities - The list of user-assigned identities associated with the resource. The user-assigned identity dictionary keys will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'.
+	UserAssignedIdentities map[string]*UserIdentity `json:"userAssignedIdentities"`
 }
 
 // MarshalJSON is the custom marshaler for IdentityData.
@@ -265,6 +321,9 @@ func (ID IdentityData) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ID.Type != "" {
 		objectMap["type"] = ID.Type
+	}
+	if ID.UserAssignedIdentities != nil {
+		objectMap["userAssignedIdentities"] = ID.UserAssignedIdentities
 	}
 	return json.Marshal(objectMap)
 }
@@ -303,6 +362,23 @@ type NameInfo struct {
 	LocalizedValue *string `json:"localizedValue,omitempty"`
 }
 
+// OperationResource operation Resource
+type OperationResource struct {
+	autorest.Response `json:"-"`
+	// EndTime - End time of the operation
+	EndTime *date.Time `json:"endTime,omitempty"`
+	// Error - Required if status == failed or status == canceled. This is the OData v4 error format, used by the RPC and will go into the v2.2 Azure REST API guidelines.
+	Error *Error `json:"error,omitempty"`
+	// ID - It should match what is used to GET the operation result
+	ID *string `json:"id,omitempty"`
+	// Name - It must match the last segment of the "id" field, and will typically be a GUID / system generated value
+	Name *string `json:"name,omitempty"`
+	// Status - The status of the operation. (InProgress/Success/Failed/Cancelled)
+	Status *string `json:"status,omitempty"`
+	// StartTime - Start time of the operation
+	StartTime *date.Time `json:"startTime,omitempty"`
+}
+
 // PatchTrackedResource tracked resource with location.
 type PatchTrackedResource struct {
 	// Location - Resource location.
@@ -315,8 +391,8 @@ type PatchTrackedResource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
 	Type *string `json:"type,omitempty"`
-	// ETag - Optional ETag.
-	ETag *string `json:"eTag,omitempty"`
+	// Etag - Optional ETag.
+	Etag *string `json:"etag,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for PatchTrackedResource.
@@ -328,8 +404,8 @@ func (ptr PatchTrackedResource) MarshalJSON() ([]byte, error) {
 	if ptr.Tags != nil {
 		objectMap["tags"] = ptr.Tags
 	}
-	if ptr.ETag != nil {
-		objectMap["eTag"] = ptr.ETag
+	if ptr.Etag != nil {
+		objectMap["etag"] = ptr.Etag
 	}
 	return json.Marshal(objectMap)
 }
@@ -349,8 +425,8 @@ type PatchVault struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
 	Type *string `json:"type,omitempty"`
-	// ETag - Optional ETag.
-	ETag *string `json:"eTag,omitempty"`
+	// Etag - Optional ETag.
+	Etag *string `json:"etag,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for PatchVault.
@@ -371,8 +447,8 @@ func (pv PatchVault) MarshalJSON() ([]byte, error) {
 	if pv.Tags != nil {
 		objectMap["tags"] = pv.Tags
 	}
-	if pv.ETag != nil {
-		objectMap["eTag"] = pv.ETag
+	if pv.Etag != nil {
+		objectMap["etag"] = pv.Etag
 	}
 	return json.Marshal(objectMap)
 }
@@ -415,6 +491,12 @@ type PrivateEndpointConnectionVaultProperties struct {
 	// ID - READ-ONLY; Format of id subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.[Service]/{resource}/{resourceName}/privateEndpointConnections/{connectionName}.
 	ID         *string                    `json:"id,omitempty"`
 	Properties *PrivateEndpointConnection `json:"properties,omitempty"`
+	// Name - READ-ONLY; The name of the private Endpoint Connection
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type, which will be of the format, Microsoft.RecoveryServices/vaults/privateEndpointConnections
+	Type *string `json:"type,omitempty"`
+	// Location - READ-ONLY; The location of the private Endpoint connection
+	Location *string `json:"location,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for PrivateEndpointConnectionVaultProperties.
@@ -676,7 +758,7 @@ func NewPrivateLinkResourcesPage(cur PrivateLinkResources, getNextPage func(cont
 
 // PrivateLinkServiceConnectionState gets or sets private link service connection state.
 type PrivateLinkServiceConnectionState struct {
-	// Status - READ-ONLY; Gets or sets the status. Possible values include: 'Pending', 'Approved', 'Rejected', 'Disconnected'
+	// Status - READ-ONLY; Gets or sets the status. Possible values include: 'PrivateEndpointConnectionStatusPending', 'PrivateEndpointConnectionStatusApproved', 'PrivateEndpointConnectionStatusRejected', 'PrivateEndpointConnectionStatusDisconnected'
 	Status PrivateEndpointConnectionStatus `json:"status,omitempty"`
 	// Description - READ-ONLY; Gets or sets description.
 	Description *string `json:"description,omitempty"`
@@ -692,7 +774,7 @@ func (plscs PrivateLinkServiceConnectionState) MarshalJSON() ([]byte, error) {
 
 // RawCertificateData raw certificate data.
 type RawCertificateData struct {
-	// AuthType - Specifies the authentication type. Possible values include: 'Invalid', 'ACS', 'AAD', 'AccessControlService', 'AzureActiveDirectory'
+	// AuthType - Specifies the authentication type. Possible values include: 'AuthTypeInvalid', 'AuthTypeACS', 'AuthTypeAAD', 'AuthTypeAccessControlService', 'AuthTypeAzureActiveDirectory'
 	AuthType AuthType `json:"authType,omitempty"`
 	// Certificate - The base64 encoded certificate raw data string
 	Certificate *[]byte `json:"certificate,omitempty"`
@@ -729,15 +811,15 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
 	Type *string `json:"type,omitempty"`
-	// ETag - Optional ETag.
-	ETag *string `json:"eTag,omitempty"`
+	// Etag - Optional ETag.
+	Etag *string `json:"etag,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Resource.
 func (r Resource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if r.ETag != nil {
-		objectMap["eTag"] = r.ETag
+	if r.Etag != nil {
+		objectMap["etag"] = r.Etag
 	}
 	return json.Marshal(objectMap)
 }
@@ -754,6 +836,8 @@ type ResourceCertificateAndAadDetails struct {
 	ServicePrincipalObjectID *string `json:"servicePrincipalObjectId,omitempty"`
 	// AzureManagementEndpointAudience - Azure Management Endpoint Audience.
 	AzureManagementEndpointAudience *string `json:"azureManagementEndpointAudience,omitempty"`
+	// ServiceResourceID - Service Resource Id.
+	ServiceResourceID *string `json:"serviceResourceId,omitempty"`
 	// Certificate - The base64 encoded certificate raw data string.
 	Certificate *[]byte `json:"certificate,omitempty"`
 	// FriendlyName - Certificate friendly name.
@@ -770,13 +854,13 @@ type ResourceCertificateAndAadDetails struct {
 	ValidFrom *date.Time `json:"validFrom,omitempty"`
 	// ValidTo - Certificate Validity End Date time.
 	ValidTo *date.Time `json:"validTo,omitempty"`
-	// AuthType - Possible values include: 'AuthTypeResourceCertificateDetails', 'AuthTypeAzureActiveDirectory', 'AuthTypeAccessControlService'
+	// AuthType - Possible values include: 'AuthTypeBasicResourceCertificateDetailsAuthTypeResourceCertificateDetails', 'AuthTypeBasicResourceCertificateDetailsAuthTypeAzureActiveDirectory', 'AuthTypeBasicResourceCertificateDetailsAuthTypeAccessControlService'
 	AuthType AuthTypeBasicResourceCertificateDetails `json:"authType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ResourceCertificateAndAadDetails.
 func (rcaad ResourceCertificateAndAadDetails) MarshalJSON() ([]byte, error) {
-	rcaad.AuthType = AuthTypeAzureActiveDirectory
+	rcaad.AuthType = AuthTypeBasicResourceCertificateDetailsAuthTypeAzureActiveDirectory
 	objectMap := make(map[string]interface{})
 	if rcaad.AadAuthority != nil {
 		objectMap["aadAuthority"] = rcaad.AadAuthority
@@ -792,6 +876,9 @@ func (rcaad ResourceCertificateAndAadDetails) MarshalJSON() ([]byte, error) {
 	}
 	if rcaad.AzureManagementEndpointAudience != nil {
 		objectMap["azureManagementEndpointAudience"] = rcaad.AzureManagementEndpointAudience
+	}
+	if rcaad.ServiceResourceID != nil {
+		objectMap["serviceResourceId"] = rcaad.ServiceResourceID
 	}
 	if rcaad.Certificate != nil {
 		objectMap["certificate"] = rcaad.Certificate
@@ -867,13 +954,13 @@ type ResourceCertificateAndAcsDetails struct {
 	ValidFrom *date.Time `json:"validFrom,omitempty"`
 	// ValidTo - Certificate Validity End Date time.
 	ValidTo *date.Time `json:"validTo,omitempty"`
-	// AuthType - Possible values include: 'AuthTypeResourceCertificateDetails', 'AuthTypeAzureActiveDirectory', 'AuthTypeAccessControlService'
+	// AuthType - Possible values include: 'AuthTypeBasicResourceCertificateDetailsAuthTypeResourceCertificateDetails', 'AuthTypeBasicResourceCertificateDetailsAuthTypeAzureActiveDirectory', 'AuthTypeBasicResourceCertificateDetailsAuthTypeAccessControlService'
 	AuthType AuthTypeBasicResourceCertificateDetails `json:"authType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ResourceCertificateAndAcsDetails.
 func (rcaad ResourceCertificateAndAcsDetails) MarshalJSON() ([]byte, error) {
-	rcaad.AuthType = AuthTypeAccessControlService
+	rcaad.AuthType = AuthTypeBasicResourceCertificateDetailsAuthTypeAccessControlService
 	objectMap := make(map[string]interface{})
 	if rcaad.GlobalAcsNamespace != nil {
 		objectMap["globalAcsNamespace"] = rcaad.GlobalAcsNamespace
@@ -959,7 +1046,7 @@ type ResourceCertificateDetails struct {
 	ValidFrom *date.Time `json:"validFrom,omitempty"`
 	// ValidTo - Certificate Validity End Date time.
 	ValidTo *date.Time `json:"validTo,omitempty"`
-	// AuthType - Possible values include: 'AuthTypeResourceCertificateDetails', 'AuthTypeAzureActiveDirectory', 'AuthTypeAccessControlService'
+	// AuthType - Possible values include: 'AuthTypeBasicResourceCertificateDetailsAuthTypeResourceCertificateDetails', 'AuthTypeBasicResourceCertificateDetailsAuthTypeAzureActiveDirectory', 'AuthTypeBasicResourceCertificateDetailsAuthTypeAccessControlService'
 	AuthType AuthTypeBasicResourceCertificateDetails `json:"authType,omitempty"`
 }
 
@@ -971,11 +1058,11 @@ func unmarshalBasicResourceCertificateDetails(body []byte) (BasicResourceCertifi
 	}
 
 	switch m["authType"] {
-	case string(AuthTypeAzureActiveDirectory):
+	case string(AuthTypeBasicResourceCertificateDetailsAuthTypeAzureActiveDirectory):
 		var rcaad ResourceCertificateAndAadDetails
 		err := json.Unmarshal(body, &rcaad)
 		return rcaad, err
-	case string(AuthTypeAccessControlService):
+	case string(AuthTypeBasicResourceCertificateDetailsAuthTypeAccessControlService):
 		var rcaad ResourceCertificateAndAcsDetails
 		err := json.Unmarshal(body, &rcaad)
 		return rcaad, err
@@ -1006,7 +1093,7 @@ func unmarshalBasicResourceCertificateDetailsArray(body []byte) ([]BasicResource
 
 // MarshalJSON is the custom marshaler for ResourceCertificateDetails.
 func (rcd ResourceCertificateDetails) MarshalJSON() ([]byte, error) {
-	rcd.AuthType = AuthTypeResourceCertificateDetails
+	rcd.AuthType = AuthTypeBasicResourceCertificateDetailsAuthTypeResourceCertificateDetails
 	objectMap := make(map[string]interface{})
 	if rcd.Certificate != nil {
 		objectMap["certificate"] = rcd.Certificate
@@ -1060,8 +1147,32 @@ func (rcd ResourceCertificateDetails) AsBasicResourceCertificateDetails() (Basic
 
 // Sku identifies the unique system identifier for each Azure resource.
 type Sku struct {
-	// Name - The Sku name. Possible values include: 'Standard', 'RS0'
+	// Name - The Sku name. Possible values include: 'SkuNameStandard', 'SkuNameRS0'
 	Name SkuName `json:"name,omitempty"`
+	// Tier - The Sku tier.
+	Tier *string `json:"tier,omitempty"`
+	// Family - The sku family
+	Family *string `json:"family,omitempty"`
+	// Size - The sku size
+	Size *string `json:"size,omitempty"`
+	// Capacity - The sku capacity
+	Capacity *string `json:"capacity,omitempty"`
+}
+
+// SystemData metadata pertaining to creation and last modification of the resource.
+type SystemData struct {
+	// CreatedBy - The identity that created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	CreatedByType CreatedByType `json:"createdByType,omitempty"`
+	// CreatedAt - The timestamp of resource creation (UTC).
+	CreatedAt *date.Time `json:"createdAt,omitempty"`
+	// LastModifiedBy - The identity that last modified the resource.
+	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
+	// LastModifiedAt - The type of identity that last modified the resource.
+	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
 }
 
 // TrackedResource tracked resource with location.
@@ -1076,8 +1187,8 @@ type TrackedResource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
 	Type *string `json:"type,omitempty"`
-	// ETag - Optional ETag.
-	ETag *string `json:"eTag,omitempty"`
+	// Etag - Optional ETag.
+	Etag *string `json:"etag,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for TrackedResource.
@@ -1089,8 +1200,8 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 	if tr.Tags != nil {
 		objectMap["tags"] = tr.Tags
 	}
-	if tr.ETag != nil {
-		objectMap["eTag"] = tr.ETag
+	if tr.Etag != nil {
+		objectMap["etag"] = tr.Etag
 	}
 	return json.Marshal(objectMap)
 }
@@ -1105,11 +1216,11 @@ type UpgradeDetails struct {
 	LastUpdatedTimeUtc *date.Time `json:"lastUpdatedTimeUtc,omitempty"`
 	// EndTimeUtc - READ-ONLY; UTC time at which the upgrade operation has ended.
 	EndTimeUtc *date.Time `json:"endTimeUtc,omitempty"`
-	// Status - READ-ONLY; Status of the vault upgrade operation. Possible values include: 'Unknown', 'InProgress', 'Upgraded', 'Failed'
+	// Status - READ-ONLY; Status of the vault upgrade operation. Possible values include: 'VaultUpgradeStateUnknown', 'VaultUpgradeStateInProgress', 'VaultUpgradeStateUpgraded', 'VaultUpgradeStateFailed'
 	Status VaultUpgradeState `json:"status,omitempty"`
 	// Message - READ-ONLY; Message to the user containing information about the upgrade operation.
 	Message *string `json:"message,omitempty"`
-	// TriggerType - READ-ONLY; The way the vault upgrade was triggered. Possible values include: 'UserTriggered', 'ForcedUpgrade'
+	// TriggerType - READ-ONLY; The way the vault upgrade was triggered. Possible values include: 'TriggerTypeUserTriggered', 'TriggerTypeForcedUpgrade'
 	TriggerType TriggerType `json:"triggerType,omitempty"`
 	// UpgradedResourceID - READ-ONLY; Resource ID of the upgraded vault.
 	UpgradedResourceID *string `json:"upgradedResourceId,omitempty"`
@@ -1123,12 +1234,27 @@ func (ud UpgradeDetails) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// UserIdentity a resource identity that is managed by the user of the service.
+type UserIdentity struct {
+	// PrincipalID - READ-ONLY; The principal ID of the user-assigned identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// ClientID - READ-ONLY; The client ID of the user-assigned identity.
+	ClientID *string `json:"clientId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for UserIdentity.
+func (UI UserIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // Vault resource information, as returned by the resource provider.
 type Vault struct {
 	autorest.Response `json:"-"`
 	Identity          *IdentityData    `json:"identity,omitempty"`
 	Properties        *VaultProperties `json:"properties,omitempty"`
 	Sku               *Sku             `json:"sku,omitempty"`
+	SystemData        *SystemData      `json:"systemData,omitempty"`
 	// Location - Resource location.
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags.
@@ -1139,8 +1265,8 @@ type Vault struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
 	Type *string `json:"type,omitempty"`
-	// ETag - Optional ETag.
-	ETag *string `json:"eTag,omitempty"`
+	// Etag - Optional ETag.
+	Etag *string `json:"etag,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Vault.
@@ -1155,14 +1281,17 @@ func (vVar Vault) MarshalJSON() ([]byte, error) {
 	if vVar.Sku != nil {
 		objectMap["sku"] = vVar.Sku
 	}
+	if vVar.SystemData != nil {
+		objectMap["systemData"] = vVar.SystemData
+	}
 	if vVar.Location != nil {
 		objectMap["location"] = vVar.Location
 	}
 	if vVar.Tags != nil {
 		objectMap["tags"] = vVar.Tags
 	}
-	if vVar.ETag != nil {
-		objectMap["eTag"] = vVar.ETag
+	if vVar.Etag != nil {
+		objectMap["etag"] = vVar.Etag
 	}
 	return json.Marshal(objectMap)
 }
@@ -1259,8 +1388,8 @@ type VaultExtendedInfoResource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
 	Type *string `json:"type,omitempty"`
-	// ETag - Optional ETag.
-	ETag *string `json:"eTag,omitempty"`
+	// Etag - Optional ETag.
+	Etag *string `json:"etag,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for VaultExtendedInfoResource.
@@ -1269,8 +1398,8 @@ func (veir VaultExtendedInfoResource) MarshalJSON() ([]byte, error) {
 	if veir.VaultExtendedInfo != nil {
 		objectMap["properties"] = veir.VaultExtendedInfo
 	}
-	if veir.ETag != nil {
-		objectMap["eTag"] = veir.ETag
+	if veir.Etag != nil {
+		objectMap["etag"] = veir.Etag
 	}
 	return json.Marshal(objectMap)
 }
@@ -1320,14 +1449,14 @@ func (veir *VaultExtendedInfoResource) UnmarshalJSON(body []byte) error {
 				}
 				veir.Type = &typeVar
 			}
-		case "eTag":
+		case "etag":
 			if v != nil {
-				var eTag string
-				err = json.Unmarshal(*v, &eTag)
+				var etag string
+				err = json.Unmarshal(*v, &etag)
 				if err != nil {
 					return err
 				}
-				veir.ETag = &eTag
+				veir.Etag = &etag
 			}
 		}
 	}
@@ -1513,6 +1642,12 @@ type VaultProperties struct {
 	PrivateEndpointStateForBackup VaultPrivateEndpointState `json:"privateEndpointStateForBackup,omitempty"`
 	// PrivateEndpointStateForSiteRecovery - READ-ONLY; Private endpoint state for site recovery. Possible values include: 'VaultPrivateEndpointStateNone', 'VaultPrivateEndpointStateEnabled'
 	PrivateEndpointStateForSiteRecovery VaultPrivateEndpointState `json:"privateEndpointStateForSiteRecovery,omitempty"`
+	// Encryption - Customer Managed Key details of the resource.
+	Encryption *VaultPropertiesEncryption `json:"encryption,omitempty"`
+	// MoveDetails - The details of the latest move operation performed on the Azure Resource
+	MoveDetails *VaultPropertiesMoveDetails `json:"moveDetails,omitempty"`
+	// MoveState - READ-ONLY; The State of the Resource after the move operation. Possible values include: 'ResourceMoveStateUnknown', 'ResourceMoveStateInProgress', 'ResourceMoveStatePrepareFailed', 'ResourceMoveStateCommitFailed', 'ResourceMoveStatePrepareTimedout', 'ResourceMoveStateCommitTimedout', 'ResourceMoveStateMoveSucceeded', 'ResourceMoveStateFailure', 'ResourceMoveStateCriticalFailure', 'ResourceMoveStatePartialSuccess'
+	MoveState ResourceMoveState `json:"moveState,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for VaultProperties.
@@ -1521,12 +1656,131 @@ func (vp VaultProperties) MarshalJSON() ([]byte, error) {
 	if vp.UpgradeDetails != nil {
 		objectMap["upgradeDetails"] = vp.UpgradeDetails
 	}
+	if vp.Encryption != nil {
+		objectMap["encryption"] = vp.Encryption
+	}
+	if vp.MoveDetails != nil {
+		objectMap["moveDetails"] = vp.MoveDetails
+	}
 	return json.Marshal(objectMap)
+}
+
+// VaultPropertiesEncryption customer Managed Key details of the resource.
+type VaultPropertiesEncryption struct {
+	KeyVaultProperties *CmkKeyVaultProperties `json:"keyVaultProperties,omitempty"`
+	KekIdentity        *CmkKekIdentity        `json:"kekIdentity,omitempty"`
+	// InfrastructureEncryption - Enabling/Disabling the Double Encryption state. Possible values include: 'InfrastructureEncryptionStateEnabled', 'InfrastructureEncryptionStateDisabled'
+	InfrastructureEncryption InfrastructureEncryptionState `json:"infrastructureEncryption,omitempty"`
+}
+
+// VaultPropertiesMoveDetails the details of the latest move operation performed on the Azure Resource
+type VaultPropertiesMoveDetails struct {
+	// OperationID - READ-ONLY; OperationId of the Resource Move Operation
+	OperationID *string `json:"operationId,omitempty"`
+	// StartTimeUtc - READ-ONLY; Start Time of the Resource Move Operation
+	StartTimeUtc *date.Time `json:"startTimeUtc,omitempty"`
+	// CompletionTimeUtc - READ-ONLY; End Time of the Resource Move Operation
+	CompletionTimeUtc *date.Time `json:"completionTimeUtc,omitempty"`
+	// SourceResourceID - READ-ONLY; Source Resource of the Resource Move Operation
+	SourceResourceID *string `json:"sourceResourceId,omitempty"`
+	// TargetResourceID - READ-ONLY; Target Resource of the Resource Move Operation
+	TargetResourceID *string `json:"targetResourceId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VaultPropertiesMoveDetails.
+func (vpD VaultPropertiesMoveDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// VaultsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type VaultsCreateOrUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VaultsClient) (Vault, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *VaultsCreateOrUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for VaultsCreateOrUpdateFuture.Result.
+func (future *VaultsCreateOrUpdateFuture) result(client VaultsClient) (vVar Vault, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		vVar.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("recoveryservices.VaultsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if vVar.Response.Response, err = future.GetResult(sender); err == nil && vVar.Response.Response.StatusCode != http.StatusNoContent {
+		vVar, err = client.CreateOrUpdateResponder(vVar.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "recoveryservices.VaultsCreateOrUpdateFuture", "Result", vVar.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// VaultsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+type VaultsUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VaultsClient) (Vault, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *VaultsUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for VaultsUpdateFuture.Result.
+func (future *VaultsUpdateFuture) result(client VaultsClient) (vVar Vault, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		vVar.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("recoveryservices.VaultsUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if vVar.Response.Response, err = future.GetResult(sender); err == nil && vVar.Response.Response.StatusCode != http.StatusNoContent {
+		vVar, err = client.UpdateResponder(vVar.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "recoveryservices.VaultsUpdateFuture", "Result", vVar.Response.Response, "Failure responding to request")
+		}
+	}
+	return
 }
 
 // VaultUsage usages of a vault.
 type VaultUsage struct {
-	// Unit - Unit of the usage. Possible values include: 'Count', 'Bytes', 'Seconds', 'Percent', 'CountPerSecond', 'BytesPerSecond'
+	// Unit - Unit of the usage. Possible values include: 'UsagesUnitCount', 'UsagesUnitBytes', 'UsagesUnitSeconds', 'UsagesUnitPercent', 'UsagesUnitCountPerSecond', 'UsagesUnitBytesPerSecond'
 	Unit UsagesUnit `json:"unit,omitempty"`
 	// QuotaPeriod - Quota period of usage.
 	QuotaPeriod *string `json:"quotaPeriod,omitempty"`

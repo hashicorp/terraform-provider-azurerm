@@ -35,13 +35,13 @@ func NewVaultsClientWithBaseURI(baseURI string, subscriptionID string) VaultsCli
 // resourceGroupName - the name of the resource group where the recovery services vault is present.
 // vaultName - the name of the recovery services vault.
 // vault - recovery Services Vault to be created.
-func (client VaultsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, vaultName string, vault Vault) (result Vault, err error) {
+func (client VaultsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, vaultName string, vault Vault) (result VaultsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/VaultsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -52,16 +52,9 @@ func (client VaultsClient) CreateOrUpdate(ctx context.Context, resourceGroupName
 		return
 	}
 
-	resp, err := client.CreateOrUpdateSender(req)
+	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsClient", "CreateOrUpdate", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.CreateOrUpdateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -76,7 +69,7 @@ func (client VaultsClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2021-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -93,8 +86,18 @@ func (client VaultsClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client VaultsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client VaultsClient) CreateOrUpdateSender(req *http.Request) (future VaultsCreateOrUpdateFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -154,7 +157,7 @@ func (client VaultsClient) DeletePreparer(ctx context.Context, resourceGroupName
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2021-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -229,7 +232,7 @@ func (client VaultsClient) GetPreparer(ctx context.Context, resourceGroupName st
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2021-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -308,7 +311,7 @@ func (client VaultsClient) ListByResourceGroupPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2021-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -421,7 +424,7 @@ func (client VaultsClient) ListBySubscriptionIDPreparer(ctx context.Context) (*h
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2021-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -494,13 +497,13 @@ func (client VaultsClient) ListBySubscriptionIDComplete(ctx context.Context) (re
 // resourceGroupName - the name of the resource group where the recovery services vault is present.
 // vaultName - the name of the recovery services vault.
 // vault - recovery Services Vault to be created.
-func (client VaultsClient) Update(ctx context.Context, resourceGroupName string, vaultName string, vault PatchVault) (result Vault, err error) {
+func (client VaultsClient) Update(ctx context.Context, resourceGroupName string, vaultName string, vault PatchVault) (result VaultsUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/VaultsClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -511,16 +514,9 @@ func (client VaultsClient) Update(ctx context.Context, resourceGroupName string,
 		return
 	}
 
-	resp, err := client.UpdateSender(req)
+	result, err = client.UpdateSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsClient", "Update", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.UpdateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsClient", "Update", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -535,7 +531,7 @@ func (client VaultsClient) UpdatePreparer(ctx context.Context, resourceGroupName
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2021-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -552,8 +548,18 @@ func (client VaultsClient) UpdatePreparer(ctx context.Context, resourceGroupName
 
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
-func (client VaultsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client VaultsClient) UpdateSender(req *http.Request) (future VaultsUpdateFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -561,7 +567,7 @@ func (client VaultsClient) UpdateSender(req *http.Request) (*http.Response, erro
 func (client VaultsClient) UpdateResponder(resp *http.Response) (result Vault, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
