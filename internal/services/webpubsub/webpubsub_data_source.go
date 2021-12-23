@@ -2,7 +2,9 @@ package webpubsub
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -31,19 +33,48 @@ func dataSourceWebPubsub() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"hostname": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
 			"location": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"sku": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"capacity": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"live_trace_configuration": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"category": {
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 
 			"public_port": {
@@ -53,6 +84,11 @@ func dataSourceWebPubsub() *pluginsdk.Resource {
 
 			"server_port": {
 				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"hostname": {
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -80,13 +116,6 @@ func dataSourceWebPubsub() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
-
-			"sku": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
 			"local_auth_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -98,9 +127,26 @@ func dataSourceWebPubsub() *pluginsdk.Resource {
 			},
 
 			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"tls_client_cert_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"external_ip": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
@@ -127,26 +173,51 @@ func dataSourceWebPubsubRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("listing keys for %q: %+v", id, err)
 	}
 
+	d.Set("primary_access_key", keys.PrimaryKey)
+	d.Set("primary_connection_string", keys.PrimaryConnectionString)
+	d.Set("secondary_access_key", keys.SecondaryKey)
+	d.Set("secondary_connection_string", keys.SecondaryConnectionString)
+
 	d.SetId(id.ID())
 
 	d.Set("name", id.WebPubSubName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if props := resp.Properties; props != nil {
-		d.Set("hostname", props.HostName)
-		d.Set("ip_address", props.ExternalIP)
-		d.Set("public_port", props.PublicPort)
-		d.Set("server_port", props.ServerPort)
-		d.Set("local_auth_enabled", props.DisableAadAuth)
-		d.Set("aad_auth_enabled", props.DisableLocalAuth)
-		d.Set("public_network_access_enabled", props.PublicNetworkAccess)
+	if sku := resp.Sku; sku != nil {
+		if sku.Name != nil {
+			d.Set("sku", sku.Name)
+		}
+		if sku.Capacity != nil {
+			d.Set("capacity", sku.Capacity)
+		}
 	}
 
-	d.Set("primary_access_key", keys.PrimaryKey)
-	d.Set("primary_connection_string", keys.PrimaryConnectionString)
-	d.Set("secondary_access_key", keys.SecondaryKey)
-	d.Set("secondary_connection_string", keys.SecondaryConnectionString)
+	if props := resp.Properties; props != nil {
+		d.Set("external_ip", props.ExternalIP)
+		d.Set("hostname", props.HostName)
+		d.Set("public_port", props.PublicPort)
+		d.Set("server_port", props.ServerPort)
+		d.Set("version", props.Version)
+		if props.DisableAadAuth != nil {
+			d.Set("aad_auth_enabled", !(*props.DisableAadAuth))
+		}
+		if props.DisableLocalAuth != nil {
+			d.Set("local_auth_enabled", !(*props.DisableLocalAuth))
+		}
+		if props.PublicNetworkAccess != nil {
+			d.Set("public_network_access_enabled", strings.EqualFold(*props.PublicNetworkAccess, "Enabled"))
+		}
+		if TLS := props.TLS; TLS != nil {
+			if TLS.ClientCertEnabled != nil {
+				d.Set("tls_client_cert_enabled", *TLS.ClientCertEnabled)
+			}
+		}
+
+		if err := d.Set("live_trace_configuration", flattenLiveTraceConfig(props.LiveTraceConfiguration)); err != nil {
+			return fmt.Errorf("setting `live_trace_configuration`:%+v", err)
+		}
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

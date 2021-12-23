@@ -24,6 +24,13 @@ func TestAccWebpubsub_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -39,6 +46,13 @@ func TestAccWebpubsub_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -66,9 +80,122 @@ func TestAccWebpubsub_free(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.FreeWithCapacity(data, 1),
+			Config: r.freeWithCapacity(data, 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.freeWithCapacity(data, 2),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWebpubsub_skuUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
+	r := WebpubsubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("Standard_S1"),
+				check.That(data.ResourceName).Key("capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.freeWithCapacity(data, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("Free_F1"),
+				check.That(data.ResourceName).Key("capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("Standard_S1"),
+				check.That(data.ResourceName).Key("capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWebpubsub_withPropertyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
+	r := WebpubsubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.propertyUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -92,14 +219,7 @@ func (r WebpubsubResource) Exists(ctx context.Context, client *clients.Client, s
 
 func (r WebpubsubResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
+%s
 
 resource "azurerm_web_pubsub" "test" {
   name                = "acctestWebPubsub-%d"
@@ -108,19 +228,12 @@ resource "azurerm_web_pubsub" "test" {
   sku                 = "Standard_S1"
   capacity            = 1
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r WebpubsubResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-wps-%d"
-  location = "%s"
-}
+%s
 
 resource "azurerm_web_pubsub" "test" {
   name                = "acctestWebPubsub-%d"
@@ -130,11 +243,11 @@ resource "azurerm_web_pubsub" "test" {
   sku      = "Standard_S1"
   capacity = 1
 
-  public_network_access_enabled = false
+  public_network_access_enabled = true
 
   live_trace_configuration {
-    enabled = false
-    categories {
+    enabled = true
+    category {
       name    = "MessagingLogs"
       enabled = true
     }
@@ -144,7 +257,7 @@ resource "azurerm_web_pubsub" "test" {
   aad_auth_enabled   = true
 
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r WebpubsubResource) requiresImport(data acceptance.TestData) string {
@@ -162,16 +275,9 @@ resource "azurerm_web_pubsub" "import" {
 `, r.basic(data))
 }
 
-func (r WebpubsubResource) FreeWithCapacity(data acceptance.TestData, capacity int) string {
+func (r WebpubsubResource) freeWithCapacity(data acceptance.TestData, capacity int) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eh-%d"
-  location = "%s"
-}
+%s
 
 resource "azurerm_web_pubsub" "test" {
   name                = "acctestWebPubsub-%d"
@@ -181,5 +287,54 @@ resource "azurerm_web_pubsub" "test" {
   sku      = "Free_F1"
   capacity = %d
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, capacity)
+`, r.template(data), data.RandomInteger, capacity)
+}
+
+func (r WebpubsubResource) propertyUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_web_pubsub" "test" {
+  name                = "acctestWebPubsub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku      = "Standard_S1"
+  capacity = 1
+
+  public_network_access_enabled = false
+
+  live_trace_configuration {
+    enabled = false
+    category {
+      name    = "MessagingLogs"
+      enabled = false
+    }
+    category {
+      name    = "ConnectivityLogs"
+      enabled = true
+    }
+    category {
+      name = "HttpRequestLogs"
+    }
+  }
+
+  local_auth_enabled      = false
+  aad_auth_enabled        = false
+  tls_client_cert_enabled = true
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r WebpubsubResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-wps-%d"
+  location = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

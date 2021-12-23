@@ -37,7 +37,7 @@ The following attributes are exported:
 
 * `ip_address` - The publicly accessible IP of the Web Pubsub service.
 
-* `location` - Specifies the supported Azure location where the Web Pubsub service exists.
+* `location` - The Azure location where the Web Pubsub service exists.
 
 * `public_port` - The publicly accessible port of the Web Pubsub service which is designed for browser/client use.
 

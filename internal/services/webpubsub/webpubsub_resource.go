@@ -79,7 +79,7 @@ func resourceWebPubSub() *pluginsdk.Resource {
 							Optional: true,
 							Default:  true,
 						},
-						"categories": {
+						"category": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Resource{
@@ -256,7 +256,7 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] %q does not exists - removing from state", d.Id())
+			log.Printf("[INFO] Web Pubsub %s does not exists - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
@@ -278,8 +278,12 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if sku := resp.Sku; sku != nil {
-		d.Set("sku", sku.Name)
-		d.Set("capacity", sku.Capacity)
+		if sku.Name != nil {
+			d.Set("sku", sku.Name)
+		}
+		if sku.Capacity != nil {
+			d.Set("capacity", sku.Capacity)
+		}
 	}
 
 	if props := resp.Properties; props != nil {
@@ -297,9 +301,9 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if props.PublicNetworkAccess != nil {
 			d.Set("public_network_access_enabled", strings.EqualFold(*props.PublicNetworkAccess, "Enabled"))
 		}
-		if TLS := props.TLS; TLS != nil {
-			if TLS.ClientCertEnabled != nil {
-				d.Set("tls_client_cert_enabled", *TLS.ClientCertEnabled)
+		if tls := props.TLS; tls != nil {
+			if tls.ClientCertEnabled != nil {
+				d.Set("tls_client_cert_enabled", *tls.ClientCertEnabled)
 			}
 		}
 
@@ -349,7 +353,7 @@ func expandLiveTraceConfig(input []interface{}) *webpubsub.LiveTraceConfiguratio
 		enabled = "true"
 	}
 
-	for _, item := range v["categories"].(*pluginsdk.Set).List() {
+	for _, item := range v["category"].(*pluginsdk.Set).List() {
 		setting := item.(map[string]interface{})
 
 		settingEnabled := "false"
@@ -403,7 +407,7 @@ func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface
 		}
 	}
 	return []interface{}{map[string]interface{}{
-		"enabled":    enabled,
-		"categories": resourceCategories,
+		"enabled":  enabled,
+		"category": resourceCategories,
 	}}
 }

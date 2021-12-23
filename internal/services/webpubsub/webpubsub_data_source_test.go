@@ -20,7 +20,6 @@ func TestAccDataSourceWebPubsub_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").Exists(),
 				check.That(data.ResourceName).Key("hostname").Exists(),
-				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("public_port").Exists(),
 				check.That(data.ResourceName).Key("server_port").Exists(),
 				check.That(data.ResourceName).Key("primary_access_key").Exists(),

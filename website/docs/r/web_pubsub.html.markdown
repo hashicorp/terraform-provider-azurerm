@@ -48,37 +48,35 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the Web Pubsub service exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Specifies which sku to use. Valid values are `Free_F1` and `Standard_S1`.
+* `sku` - (Required) Specifies which sku to use. Possible values are `Free_F1` and `Standard_S1`.
 
 * `capacity` - (Optional) Specifies the number of units associated with this Web Pubsub resource. Valid values are `1`, `2`, `5`, `10`, `20`, `50` and `100`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `live_trace_configuration` - (Optional) A `live_trace_configuration` block as documented below
+* `live_trace_configuration` - (Optional) A `live_trace_configuration` block as documented below,
 
-* `local_auth_enabled` - (Optional) A `boolean` type. Specifies whether to disable local auth, defaults to `false`
+* `local_auth_enabled` - (Optional) Whether to enable local auth? Defaults to `true`.
 
-* `aad_auth_enabled` - (Optional) A `boolean` type. Specifies whether to disable AAD auth, defaults to `false`
+* `aad_auth_enabled` - (Optional) Whether to enable AAD auth? defaults to `true`.
 
-* `tls_client_cert_enabled` - (Optional)  Specifies whether to request client certificate during TLS handshake if enabled
+* `tls_client_cert_enabled` - (Optional)  Whether to request client certificate during TLS handshake? Defaults to `false`.
 
 ---
 
 A `live_trace_configuration` block supports the following:
 
-* `enabled` - (Optional) Is this live trace enabled? Defaults to `true`. Possible values are `true`, `false`.
+* `enabled` - (Optional) Whether the live trace is enabled? Defaults to `true`.
 
--> **NOTE:** Indicates whether or not enable live trace. When it's set to true, live trace client can connect to the service. Otherwise, live trace client can't connect to the service, so that you are unable to receive any log, no matter what you configure in `categories`.
-
-* `categories` - (Optional) block as documented below.
+* `category` - (Optional) A `category` block as documented below.
 
 ---
 
-A `categories` block supports the following:
+A `category` block supports the following:
 
 * `name` - (Required) The name of the Log Category for this Resource. Possible values are `ConnectivityLogs`, `MessagingLogs` and `HttpRequestLogs`.
 
-* `enabled` - (Optional) Is this log category enabled? Defaults to `true`. Possible values are `true`, `false`.
+* `enabled` - (Optional) Whether this log category is enabled? Defaults to `true`.
 
 
 ## Attributes Reference
@@ -117,6 +115,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Web Pubsub services can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_web_pubsub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/terraform-wps/providers/Microsoft.SignalRService/webPubSub/tfex-webpubsub
+terraform import azurerm_web_pubsub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubSub/pubsub1
 ```
 
