@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = DpsSharedAccessPolicyId{}
+var _ resourceids.Id = DpsSharedAccessPolicyId{}
 
 func TestDpsSharedAccessPolicyIDFormatter(t *testing.T) {
 	actual := NewDpsSharedAccessPolicyID("12345678-1234-9876-4563-123456789012", "resGroup1", "provisioningService1", "sharedAccessPolicy1").ID()
