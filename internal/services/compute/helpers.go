@@ -1,7 +1,6 @@
 package compute
 
 import (
-	"log"
 	"sort"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
@@ -47,13 +46,13 @@ func sortSharedImageVersions(values []compute.GalleryImageVersion) ([]compute.Ga
 
 		verA, err := version.NewVersion(*values[i].Name)
 		if err != nil {
-			return false, nil
+			return false
 		}
 		verA = version.Must(verA, err)
 
 		verB, err := version.NewVersion(*values[j].Name)
 		if err != nil {
-			return false, nil
+			return false
 		}
 		verB = version.Must(verB, err)
 		return verA.LessThan(verB)
