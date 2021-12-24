@@ -159,7 +159,6 @@ func resourceAfdOriginsCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	afdOrigin := cdn.AFDOrigin{
 		AFDOriginProperties: &cdn.AFDOriginProperties{
-			HostName:  &hostname,
 			Priority:  &priority,
 			Weight:    &weight,
 			HTTPPort:  &httpPort,
@@ -171,6 +170,10 @@ func resourceAfdOriginsCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		afdOrigin.EnabledState = cdn.EnabledStateEnabled
 	} else {
 		afdOrigin.EnabledState = cdn.EnabledStateDisabled
+	}
+
+	if hostname != "" {
+		afdOrigin.HostName = &hostname
 	}
 
 	if azureOrigin != "" {
