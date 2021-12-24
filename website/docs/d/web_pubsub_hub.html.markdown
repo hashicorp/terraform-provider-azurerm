@@ -14,9 +14,8 @@ Use this data source to access information about an existing Azure Web Pubsub Hu
 
 ```hcl
 data "azurerm_web_pubsub_hub" "test" {
-  name                = "exampleWpsHub"
-  web_pubsub_name     = "example-wps"
-  resource_group_name = "example-RG"
+  name          = "exampleWpsHub"
+  web_pubsub_id = "example-wps"
 }
 
 output "web_pubsub_hub_id" {
@@ -30,19 +29,13 @@ The following arguments are supported:
 
 * `name` - (Required) The name of this Web Pubsub Hub.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Web Pubsub Hub exists.
-
-* `web_pubsub_name` - (Required) The name of the Web Pubsub where the Web Pubsub Hub exists.
+* `web_pubsub_id` - (Required) Specify the id of the Web Pubsub. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
 * `id` - The ID of the Resource.
 
 * `name` -  The Name of the Resource.
-
-* `event_handler` - A list of the event handler configured for this Resource.
-
-* `anonymous_connect_policy` - The anonymous connections configured for this Resource.
 
 ## Timeouts
 

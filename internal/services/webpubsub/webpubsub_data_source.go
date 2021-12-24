@@ -2,11 +2,11 @@ package webpubsub
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
@@ -214,7 +214,8 @@ func dataSourceWebPubsubRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			}
 		}
 
-		if err := d.Set("live_trace_configuration", flattenLiveTraceConfig(props.LiveTraceConfiguration)); err != nil {
+		err := d.Set("live_trace_configuration", flattenLiveTraceConfig(props.LiveTraceConfiguration))
+		if err != nil {
 			return fmt.Errorf("setting `live_trace_configuration`:%+v", err)
 		}
 	}

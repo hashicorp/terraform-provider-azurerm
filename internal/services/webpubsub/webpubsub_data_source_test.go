@@ -18,6 +18,13 @@ func TestAccDataSourceWebPubsub_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("sku").HasValue("Standard_S1"),
+				check.That(data.ResourceName).Key("capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("aad_auth_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("live_trace_configuration.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("id").Exists(),
 				check.That(data.ResourceName).Key("hostname").Exists(),
 				check.That(data.ResourceName).Key("public_port").Exists(),
@@ -43,10 +50,26 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_web_pubsub" "test" {
-  name                = "acctest-wps-%[1]d"
+  name                = "acctestWebPubsub-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_S1"
+
+  sku      = "Standard_S1"
+  capacity = 1
+
+  public_network_access_enabled = true
+
+  live_trace_configuration {
+    enabled = true
+    category {
+      name    = "MessagingLogs"
+      enabled = true
+    }
+  }
+
+  local_auth_enabled = true
+  aad_auth_enabled   = true
+
 }
 
 data "azurerm_web_pubsub" "test" {

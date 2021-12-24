@@ -29,6 +29,21 @@ func TestAccWebPubsubHub_basic(t *testing.T) {
 	})
 }
 
+func TestAccWebpubsubHub_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
+	r := WebPubsubHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func TestAccWebPubsubHub_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
 	r := WebPubsubHubResource{}
@@ -36,6 +51,70 @@ func TestAccWebPubsubHub_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWebpubsubHub_withAuthUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
+	r := WebPubsubHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWebpubsubHub_withPropertyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
+	r := WebPubsubHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withPropertyUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWebPubsubHub_withMultipleEventhandlerSettingsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
+	r := WebPubsubHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withMultipleEventhandlerSettingsAndNoAuth(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withMultipleEventhandlerSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r)),
 		},
@@ -64,14 +143,16 @@ func (r WebPubsubHubResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_web_pubsub_hub" "test" {
-  name                = "acctestwpsh%d"
-  web_pubsub_name     = azurerm_web_pubsub.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name          = "acctestwpsh%d"
+  web_pubsub_id = azurerm_web_pubsub.test.id
 
   event_handler {
-    url_template       = "https://test.com/api/{hub}/{event}"
-    user_event_pattern = "event1, event2"
-    system_events      = ["connect", "connected"]
+
+    setting {
+      url_template       = "https://test.com/api/{hub}/{event}"
+      user_event_pattern = "*"
+      system_events      = ["connect", "connected"]
+    }
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -86,20 +167,141 @@ resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
+resource "azurerm_web_pubsub_hub" "test" {
+  name          = "acctestwpsh%d"
+  web_pubsub_id = azurerm_web_pubsub.test.id
+  event_handler {
+    setting {
+      url_template       = "https://test.com/api/{hub}/{event}"
+      user_event_pattern = "*"
+      system_events      = ["connect", "connected"]
 
+      auth {
+        managed_identity_id = azurerm_user_assigned_identity.test.id
+      }
+    }
+  }
+  anonymous_connect_enabled = true
+
+  depends_on = [
+    azurerm_web_pubsub.test
+  ]
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r WebPubsubHubResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_web_pubsub_hub" "test" {
-  name                = "acctestwpsh%d"
-  web_pubsub_name     = azurerm_web_pubsub.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name          = azurerm_web_pubsub_hub.test.name
+  web_pubsub_id = azurerm_web_pubsub.test.id
 
   event_handler {
-    url_template       = "https://test.com/api/{hub}/{event}"
-    user_event_pattern = "event1, event2"
-    system_events      = ["connect", "connected"]
-    auth {
-      type                      = "ManagedIdentity"
-      managed_identity_resource = azurerm_user_assigned_identity.test.id
+
+    setting {
+      url_template       = "https://test.com/api/{hub}/{event}"
+      user_event_pattern = "*"
+      system_events      = ["connect", "connected"]
+    }
+  }
+}
+`, r.basic(data))
+}
+
+func (r WebPubsubHubResource) withMultipleEventhandlerSettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test1" {
+  name                = "acctest-uai1-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+resource "azurerm_user_assigned_identity" "test2" {
+  name                = "acctest-uai2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+resource "azurerm_web_pubsub_hub" "test" {
+  name          = "acctestwpsh%d"
+  web_pubsub_id = azurerm_web_pubsub.test.id
+  event_handler {
+    setting {
+      url_template       = "https://test.com/api/{hub1}/{event2}"
+      user_event_pattern = "*"
+      system_events      = ["connect", "connected"]
+      auth {
+        managed_identity_id = azurerm_user_assigned_identity.test1.id
+      }
+    }
+    setting {
+      url_template      = "https://test.com/api/{hub2}/{event1}"
+      user_event_patter = "event1, event2"
+      system_events     = ["connected"]
+      auth {
+        managed_identity_id = azurerm_user_assigned_identity.test2.id
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r WebPubsubHubResource) withMultipleEventhandlerSettingsAndNoAuth(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test1" {
+  name                = "acctest-uai1-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_web_pubsub_hub" "test" {
+  name          = "acctestwpsh%d"
+  web_pubsub_id = azurerm_web_pubsub.test.id
+  event_handler {
+    setting {
+      url_template       = "https://test.com/api/{hub1}/{event2}"
+      user_event_pattern = "*"
+      system_events      = ["connect", "connected"]
+    }
+    setting {
+      url_template      = "https://test.com/api/{hub2}/{event1}"
+      user_event_patter = "event1, event2"
+      system_events     = ["connected"]
+      auth {
+        managed_identity_id = azurerm_user_assigned_identity.test1.id
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r WebPubsubHubResource) withPropertyUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test1" {
+  name                = "acctest-uai1-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_web_pubsub_hub" "test" {
+  name          = "acctestwpsh%d"
+  web_pubsub_id = azurerm_web_pubsub.test.id
+  event_handler {
+    setting {
+      url_template       = "https://test.com/api/{testhub}/{testevent1}"
+      user_event_pattern = "event1, event2"
+      system_events      = ["Disconnected", "connect", "connected"]
+      auth {
+        managed_identity_id = azurerm_user_assigned_identity.test1.id
+      }
     }
   }
 }

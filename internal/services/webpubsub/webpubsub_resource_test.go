@@ -80,7 +80,7 @@ func TestAccWebpubsub_free(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.freeWithCapacity(data, 1),
+			Config: r.freeWithCapacity(data, 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("hostname").Exists(),
@@ -94,7 +94,7 @@ func TestAccWebpubsub_free(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.freeWithCapacity(data, 2),
+			Config: r.freeWithCapacity(data, 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("hostname").Exists(),

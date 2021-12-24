@@ -1,17 +1,14 @@
 package webpubsub
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/webpubsub/mgmt/2021-10-01/webpubsub"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	identityValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/webpubsub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/webpubsub/validate"
@@ -48,64 +45,63 @@ func resourceWebPubsubHub() *pluginsdk.Resource {
 				ValidateFunc: validate.ValidateWebPubsbHubName(),
 			},
 
-			"web_pubsub_name": {
+			"web_pubsub_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ValidateWebpubsubName(),
+				ValidateFunc: validate.WebPubsubID,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
 			"event_handler": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Required: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"url_template": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
-
-						"user_event_pattern": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"system_events": {
+						"setting": {
 							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									"connect",
-									"connected",
-									"disconnected",
-								}, false),
-							},
-						},
-
-						"auth": {
-							Type:     pluginsdk.TypeList,
-							MaxItems: 1,
-							MinItems: 1,
-							Optional: true,
+							Required: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"type": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(webpubsub.UpstreamAuthTypeNone),
-											string(webpubsub.UpstreamAuthTypeManagedIdentity),
-										}, false),
+									"url_template": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
-									"managed_identity_resource": {
+									"user_event_pattern": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: identityValidate.UserAssignedIdentityID,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"system_events": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"connect",
+												"connected",
+												"disconnected",
+											}, false),
+										},
+									},
+
+									"auth": {
+										Type:     pluginsdk.TypeList,
+										MaxItems: 1,
+										MinItems: 1,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"managed_identity_id": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: identityValidate.UserAssignedIdentityID,
+												},
+											},
+										},
 									},
 								},
 							},
@@ -114,14 +110,10 @@ func resourceWebPubsubHub() *pluginsdk.Resource {
 				},
 			},
 
-			"anonymous_connect_policy": {
-				Type:     pluginsdk.TypeString,
+			"anonymous_connect_enabled": {
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  "Deny",
-				ValidateFunc: validation.StringInSlice([]string{
-					"Allow",
-					"Deny",
-				}, false),
+				Default:  false,
 			},
 		},
 	}
@@ -133,9 +125,11 @@ func resourceWebPubsubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM WebPubsub Hub creation.")
-
-	id := parse.NewWebPubsubHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("web_pubsub_name").(string), d.Get("name").(string))
+	webPubsubID, err := parse.WebPubsubID(d.Get("web_pubsub_id").(string))
+	if err != nil {
+		return fmt.Errorf("parsing ID of %q: %+v", webPubsubID, err)
+	}
+	id := parse.NewWebPubsubHubID(subscriptionId, webPubsubID.ResourceGroup, webPubsubID.WebPubSubName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.HubName, id.ResourceGroup, id.WebPubSubName)
@@ -149,18 +143,20 @@ func resourceWebPubsubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	anonymousPolicy := d.Get("anonymous_connect_policy").(string)
-	eventHandlerData := d.Get("event_handler").(*pluginsdk.Set).List()
+	anonymousPolicyEnabled := "Deny"
+	if d.Get("anonymous_connect_enabled").(bool) {
+		anonymousPolicyEnabled = "Allow"
+	}
 
-	eventHandler, err := expandEventHandler(eventHandlerData)
+	eventHandler, err := expandEventHandler(d.Get("event_handler").([]interface{}))
 	if err != nil {
-		return fmt.Errorf("setting event handler for hub %q: %+v", id, err)
+		return fmt.Errorf("expanding event handler for %q: %+v", id, err)
 	}
 
 	parameters := webpubsub.Hub{
 		Properties: &webpubsub.HubProperties{
 			EventHandlers:          eventHandler,
-			AnonymousConnectPolicy: &anonymousPolicy,
+			AnonymousConnectPolicy: &anonymousPolicyEnabled,
 		},
 	}
 
@@ -192,18 +188,15 @@ func resourceWebPubSubHubRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("making request on %q: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
-
 	d.Set("name", id.HubName)
-	d.Set("web_pubsub_name", id.WebPubSubName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("web_pubsub_id", parse.NewWebPubsubID(id.SubscriptionId, id.ResourceGroup, id.WebPubSubName))
 
-	if props := resp.Properties; props != nil && props.EventHandlers != nil {
+	if props := resp.Properties; props != nil {
 
 		if err := d.Set("event_handler", flattenEventHandler(props.EventHandlers)); err != nil {
 			return fmt.Errorf("setting `event_handler`: %+v", err)
 		}
-		d.Set("anonymous_connect_policy", props.AnonymousConnectPolicy)
+		d.Set("anonymous_connect_enabled", strings.EqualFold(*props.AnonymousConnectPolicy, "Allow"))
 	}
 
 	return nil
@@ -219,9 +212,6 @@ func resourceWebPubsubHubDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	locks.ByName(id.WebPubSubName, "azurerm_web_pubsub")
-	defer locks.UnlockByName(id.WebPubSubName, "azurerm_web_pubsub")
-
 	resp, err := client.Delete(ctx, id.HubName, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if !response.WasNotFound(resp.Response()) {
@@ -232,39 +222,30 @@ func resourceWebPubsubHubDelete(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func expandEventHandler(input []interface{}) (*[]webpubsub.EventHandler, error) {
-	results := make([]webpubsub.EventHandler, 0)
-	systemEvents := make([]string, 0)
-
-	if input == nil {
-		return &results, nil
+	if len(input) == 0 {
+		return nil, nil
 	}
 
-	for _, item := range input {
-		v := item.(map[string]interface{})
+	results := make([]webpubsub.EventHandler, 0)
+	block := input[0].(map[string]interface{})
 
-		urlTemplate := v["url_template"].(string)
-		userEventPattern := v["user_event_pattern"].(string)
-		systemEventsRaw := v["system_events"].(*pluginsdk.Set).List()
+	setting := block["setting"].(*pluginsdk.Set).List()
+	for _, r := range setting {
+		rblock := r.(map[string]interface{})
+		systemEvents := make([]string, 0)
 
+		urlTemplate := rblock["url_template"].(string)
+		userEventPattern := rblock["user_event_pattern"].(string)
+		systemEventsRaw := rblock["system_events"].(*pluginsdk.Set).List()
 		for _, item := range systemEventsRaw {
 			systemEvents = append(systemEvents, item.(string))
 		}
-
-		if userEventPattern == "" && len(systemEvents) == 0 {
-			return nil, fmt.Errorf("`user_event_pattern` and `system_events` cannot be null at the same time")
-		}
-
-		authRaws := v["auth"].([]interface{})
+		authRaws := rblock["auth"].([]interface{})
 
 		authSetting, err := expandAuth(authRaws)
-
-		js, _ := json.Marshal(authSetting)
-		log.Printf("DDDSetting%s", js)
-
 		if err != nil {
 			return nil, err
 		}
-
 		results = append(results, webpubsub.EventHandler{
 			URLTemplate:      &urlTemplate,
 			SystemEvents:     &systemEvents,
@@ -272,82 +253,71 @@ func expandEventHandler(input []interface{}) (*[]webpubsub.EventHandler, error) 
 			Auth:             authSetting,
 		})
 	}
-
 	return &results, nil
 }
 
 func flattenEventHandler(input *[]webpubsub.EventHandler) []interface{} {
-	results := make([]interface{}, 0)
+	eventHandlerBlock := make([]interface{}, 0)
 	if input == nil {
-		return results
+		return eventHandlerBlock
 	}
 
-	systemEvent := make([]string, 0)
-	userEventPatten := ""
-
+	setting := make([]interface{}, 0)
 	for _, item := range *input {
-		urlTemplate := *item.URLTemplate
+		settingBlock := make(map[string]interface{}, 0)
 
-		if item.UserEventPattern != nil {
-			userEventPatten = *item.UserEventPattern
+		urlTemplate := ""
+		if item.URLTemplate != nil {
+			urlTemplate = *item.URLTemplate
+		}
+		settingBlock["url_template"] = urlTemplate
+
+		if userEventPatten := item.UserEventPattern; userEventPatten != nil {
+			settingBlock["user_event_pattern"] = userEventPatten
 		}
 
-		if item.SystemEvents != nil {
-			systemEvent = append(systemEvent, *item.SystemEvents...)
+		settingBlock["system_events"] = utils.FlattenStringSlice(item.SystemEvents)
+
+		if auth := item.Auth; auth != nil {
+			settingBlock["auth"] = flattenAuth(auth)
 		}
-		systemEventPatten := utils.FlattenStringSlice(&systemEvent)
 
-		results = append(results, map[string]interface{}{
-			"url_template":       urlTemplate,
-			"user_event_pattern": userEventPatten,
-			"system_events":      systemEventPatten,
-			"auth":               flattenAuth(item.Auth),
-		})
+		setting = append(setting, settingBlock)
 	}
-
-	return results
-}
-
-func flattenAuth(input *webpubsub.UpstreamAuthSettings) []interface{} {
-
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	authType := input.Type
-	authId := input.ManagedIdentity.Resource
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":                      authType,
-			"managed_identity_resource": authId,
-		},
-	}
+	eventHandlerBlock = append(eventHandlerBlock, map[string]interface{}{
+		"setting": setting,
+	})
+	return eventHandlerBlock
 }
 
 func expandAuth(input []interface{}) (*webpubsub.UpstreamAuthSettings, error) {
 	if len(input) == 0 {
-		return nil, nil
-	}
-
-	authRaw := input[0].(map[string]interface{})
-
-	if authType, ok := authRaw["type"].(string); ok {
-		authId := authRaw["managed_identity_resource"].(string)
-
-		if authType == string(webpubsub.UpstreamAuthTypeManagedIdentity) && authId == "" {
-			return nil, fmt.Errorf("managed_identity_resource is required when the auth_type is set to `managedIdentity")
-		} else if authType == string(webpubsub.UpstreamAuthTypeNone) && authId != "" {
-			return nil, fmt.Errorf("managed_identity_type is set to None, no auth_id is needed")
-		}
-
 		return &webpubsub.UpstreamAuthSettings{
-			Type: webpubsub.UpstreamAuthType(authType),
-			ManagedIdentity: &webpubsub.ManagedIdentitySettings{
-				Resource: &authId,
-			},
+			Type: webpubsub.UpstreamAuthTypeNone,
 		}, nil
 	}
 
-	return nil, nil
+	authRaw := input[0].(map[string]interface{})
+	authId := authRaw["managed_identity_id"].(string)
+
+	return &webpubsub.UpstreamAuthSettings{
+		Type: webpubsub.UpstreamAuthTypeManagedIdentity,
+		ManagedIdentity: &webpubsub.ManagedIdentitySettings{
+			Resource: &authId,
+		},
+	}, nil
+}
+
+func flattenAuth(input *webpubsub.UpstreamAuthSettings) []interface{} {
+	if input == nil || input.Type == webpubsub.UpstreamAuthTypeNone {
+		return make([]interface{}, 0)
+	}
+
+	authId := input.ManagedIdentity.Resource
+
+	return []interface{}{
+		map[string]interface{}{
+			"managed_identity_id": authId,
+		},
+	}
 }

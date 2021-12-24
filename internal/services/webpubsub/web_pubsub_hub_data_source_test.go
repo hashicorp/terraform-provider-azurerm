@@ -73,9 +73,8 @@ resource "azurerm_web_pubsub" "test" {
 }
 
 resource "azurerm_web_pubsub_hub" "test" {
-  name                = "acctestwpshub%[1]d"
-  web_pubsub_name     = azurerm_web_pubsub.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name          = "acctestwpshub%[1]d"
+  web_pubsub_id = azurerm_web_pubsub.test.id
   event_handler {
     url_template       = "https://test.com/api/{hub}/{event}"
     user_event_pattern = "event1, event2"
@@ -89,9 +88,8 @@ resource "azurerm_web_pubsub_hub" "test" {
 }
 
 data "azurerm_web_pubsub_hub" "test" {
-  name                = azurerm_web_pubsub_hub.test.name
-  web_pubsub_name     = azurerm_web_pubsub.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name          = azurerm_web_pubsub_hub.test.name
+  web_pubsub_id = azurerm_web_pubsub.test.id
 }
 
 
