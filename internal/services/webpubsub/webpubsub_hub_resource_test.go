@@ -29,7 +29,7 @@ func TestAccWebPubsubHub_basic(t *testing.T) {
 	})
 }
 
-func TestAccWebpubsubHub_requiresImport(t *testing.T) {
+func TestAccWebPubsubHub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
 	r := WebPubsubHubResource{}
 
@@ -58,7 +58,7 @@ func TestAccWebPubsubHub_complete(t *testing.T) {
 	})
 }
 
-func TestAccWebpubsubHub_withAuthUpdate(t *testing.T) {
+func TestAccWebPubsubHub_withAuthUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
 	r := WebPubsubHubResource{}
 
@@ -80,7 +80,7 @@ func TestAccWebpubsubHub_withAuthUpdate(t *testing.T) {
 	})
 }
 
-func TestAccWebpubsubHub_withPropertyUpdate(t *testing.T) {
+func TestAccWebPubsubHub_withPropertyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
 	r := WebPubsubHubResource{}
 
@@ -237,9 +237,9 @@ resource "azurerm_web_pubsub_hub" "test" {
       }
     }
     setting {
-      url_template      = "https://test.com/api/{hub2}/{event1}"
+      url_template       = "https://test.com/api/{hub2}/{event1}"
       user_event_pattern = "event1, event2"
-      system_events     = ["connected"]
+      system_events      = ["connected"]
       auth {
         managed_identity_id = azurerm_user_assigned_identity.test2.id
       }
@@ -269,9 +269,9 @@ resource "azurerm_web_pubsub_hub" "test" {
       system_events      = ["connect", "connected"]
     }
     setting {
-      url_template      = "https://test.com/api/{hub2}/{event1}"
+      url_template       = "https://test.com/api/{hub2}/{event1}"
       user_event_pattern = "event1, event2"
-      system_events     = ["connected"]
+      system_events      = ["connected"]
       auth {
         managed_identity_id = azurerm_user_assigned_identity.test1.id
       }

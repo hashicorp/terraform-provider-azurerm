@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
@@ -46,35 +45,6 @@ func dataSourceWebPubsub() *pluginsdk.Resource {
 			"capacity": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
-			},
-
-			"live_trace_configuration": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*schema.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
-						"category": {
-							Type:     pluginsdk.TypeSet,
-							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Computed: true,
-									},
-								},
-							},
-						},
-					},
-				},
 			},
 
 			"public_port": {
@@ -212,10 +182,6 @@ func dataSourceWebPubsubRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("tls_client_cert_enabled", props.TLS.ClientCertEnabled)
 		}
 
-		err := d.Set("live_trace_configuration", flattenLiveTraceConfig(props.LiveTraceConfiguration))
-		if err != nil {
-			return fmt.Errorf("setting `live_trace_configuration`:%+v", err)
-		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

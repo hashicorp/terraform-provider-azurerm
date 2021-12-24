@@ -76,15 +76,12 @@ resource "azurerm_web_pubsub_hub" "test" {
   name          = "acctestwpshub%[1]d"
   web_pubsub_id = azurerm_web_pubsub.test.id
   event_handler {
-    url_template       = "https://test.com/api/{hub}/{event}"
-    user_event_pattern = "event1, event2"
-    system_events      = ["connect", "connected"]
-    auth {
-      type                      = "ManagedIdentity"
-      managed_identity_resource = azurerm_user_assigned_identity.test.id
+    setting {
+      url_template       = "https://test.com/api/{hub}/{event}"
+      user_event_pattern = "event1, event2"
+      system_events      = ["connected"]
     }
   }
-  depends_on = [azurerm_web_pubsub.test]
 }
 
 data "azurerm_web_pubsub_hub" "test" {

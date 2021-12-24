@@ -74,13 +74,13 @@ func TestAccWebpubsub_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccWebpubsub_free(t *testing.T) {
+func TestAccWebpubsub_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
 	r := WebpubsubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.freeWithCapacity(data, 0),
+			Config: r.standardWithCapacity(data, 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("hostname").Exists(),
@@ -94,7 +94,7 @@ func TestAccWebpubsub_free(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.freeWithCapacity(data, 1),
+			Config: r.standardWithCapacity(data, 5),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("hostname").Exists(),
@@ -132,7 +132,7 @@ func TestAccWebpubsub_skuUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.freeWithCapacity(data, 1),
+			Config: r.standardWithCapacity(data, 5),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue("Free_F1"),
@@ -275,7 +275,7 @@ resource "azurerm_web_pubsub" "import" {
 `, r.basic(data))
 }
 
-func (r WebpubsubResource) freeWithCapacity(data acceptance.TestData, capacity int) string {
+func (r WebpubsubResource) standardWithCapacity(data acceptance.TestData, capacity int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -284,7 +284,7 @@ resource "azurerm_web_pubsub" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  sku      = "Free_F1"
+  sku      = "Standard_S1"
   capacity = %d
 }
 `, r.template(data), data.RandomInteger, capacity)

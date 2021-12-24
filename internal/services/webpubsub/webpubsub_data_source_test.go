@@ -24,7 +24,6 @@ func TestAccDataSourceWebPubsub_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("aad_auth_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("live_trace_configuration.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("id").Exists(),
 				check.That(data.ResourceName).Key("hostname").Exists(),
 				check.That(data.ResourceName).Key("public_port").Exists(),
