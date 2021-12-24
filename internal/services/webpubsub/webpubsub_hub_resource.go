@@ -148,14 +148,9 @@ func resourceWebPubsubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		anonymousPolicyEnabled = "Allow"
 	}
 
-	eventHandler, err := expandEventHandler(d.Get("event_handler").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding event handler for %q: %+v", id, err)
-	}
-
 	parameters := webpubsub.Hub{
 		Properties: &webpubsub.HubProperties{
-			EventHandlers:          eventHandler,
+			EventHandlers:          expandEventHandler(d.Get("event_handler").([]interface{})),
 			AnonymousConnectPolicy: &anonymousPolicyEnabled,
 		},
 	}
@@ -221,9 +216,9 @@ func resourceWebPubsubHubDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func expandEventHandler(input []interface{}) (*[]webpubsub.EventHandler, error) {
+func expandEventHandler(input []interface{}) *[]webpubsub.EventHandler {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	results := make([]webpubsub.EventHandler, 0)
@@ -249,7 +244,7 @@ func expandEventHandler(input []interface{}) (*[]webpubsub.EventHandler, error) 
 			Auth:             expandAuth(authRaws),
 		})
 	}
-	return &results, nil
+	return &results
 }
 
 func flattenEventHandler(input *[]webpubsub.EventHandler) []interface{} {

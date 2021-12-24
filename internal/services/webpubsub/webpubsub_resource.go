@@ -301,10 +301,8 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if props.PublicNetworkAccess != nil {
 			d.Set("public_network_access_enabled", strings.EqualFold(*props.PublicNetworkAccess, "Enabled"))
 		}
-		if tls := props.TLS; tls != nil {
-			if tls.ClientCertEnabled != nil {
-				d.Set("tls_client_cert_enabled", *tls.ClientCertEnabled)
-			}
+		if props.TLS != nil {
+			d.Set("tls_client_cert_enabled", props.TLS.ClientCertEnabled)
 		}
 
 		if err := d.Set("live_trace_configuration", flattenLiveTraceConfig(props.LiveTraceConfiguration)); err != nil {
