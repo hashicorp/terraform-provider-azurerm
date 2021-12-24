@@ -50,15 +50,15 @@ The following arguments are supported:
 
 * `sku` - (Required) Specifies which sku to use. Possible values are `Free_F1` and `Standard_S1`.
 
-* `capacity` - (Optional) Specifies the number of units associated with this Web Pubsub resource. Valid values are `1`, `2`, `5`, `10`, `20`, `50` and `100`.
+* `capacity` - (Optional) Specifies the number of units associated with this Web Pubsub resource. Valid values are: Free: 1, Standard: 1, 2, 5, 10, 20, 50, 100.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `live_trace_configuration` - (Optional) A `live_trace_configuration` block as documented below,
+* `live_trace_configuration` - (Optional) A `live_trace_configuration` block as documented below.
 
 * `local_auth_enabled` - (Optional) Whether to enable local auth? Defaults to `true`.
 
-* `aad_auth_enabled` - (Optional) Whether to enable AAD auth? defaults to `true`.
+* `aad_auth_enabled` - (Optional) Whether to enable AAD auth? Defaults to `true`.
 
 * `tls_client_cert_enabled` - (Optional)  Whether to request client certificate during TLS handshake? Defaults to `false`.
 

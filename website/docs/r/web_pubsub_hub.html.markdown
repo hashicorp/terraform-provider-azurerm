@@ -61,7 +61,7 @@ resource "azurerm_web_pubsub_hub" "test" {
 }
 ```
 
-##Argument Reference
+## Argument Reference
 
 The following arguments are supported:
 
