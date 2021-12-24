@@ -161,7 +161,6 @@ resource "azurerm_web_pubsub_hub" "test" {
 func (r WebPubsubHubResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctest-uai-%d"
   resource_group_name = azurerm_resource_group.test.name

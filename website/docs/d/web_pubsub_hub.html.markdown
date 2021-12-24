@@ -27,7 +27,7 @@ output "web_pubsub_hub_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of this Web Pubsub Hub.
+* `name` - (Required) Specify the name of this Web Pubsub Hub.
 
 * `web_pubsub_id` - (Required) Specify the id of the Web Pubsub. Changing this forces a new resource to be created.
 
