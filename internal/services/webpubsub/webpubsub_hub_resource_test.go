@@ -238,7 +238,7 @@ resource "azurerm_web_pubsub_hub" "test" {
     }
     setting {
       url_template      = "https://test.com/api/{hub2}/{event1}"
-      user_event_patter = "event1, event2"
+      user_event_pattern = "event1, event2"
       system_events     = ["connected"]
       auth {
         managed_identity_id = azurerm_user_assigned_identity.test2.id

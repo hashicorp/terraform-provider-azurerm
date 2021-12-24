@@ -62,7 +62,7 @@ func dataSourceWebPubsubHubRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.SetId(id.ID())
 
 	d.Set("name", id.HubName)
-	d.Set("web_pubsub_id", webPubsubID)
+	d.Set("web_pubsub_id", parse.NewWebPubsubID(id.SubscriptionId, id.ResourceGroup, id.WebPubSubName).ID())
 
 	return nil
 }

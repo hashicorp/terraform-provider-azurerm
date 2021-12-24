@@ -189,7 +189,7 @@ func resourceWebPubSubHubRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	d.Set("name", id.HubName)
-	d.Set("web_pubsub_id", parse.NewWebPubsubID(id.SubscriptionId, id.ResourceGroup, id.WebPubSubName))
+	d.Set("web_pubsub_id", parse.NewWebPubsubID(id.SubscriptionId, id.ResourceGroup, id.WebPubSubName).ID())
 
 	if props := resp.Properties; props != nil {
 
@@ -242,15 +242,11 @@ func expandEventHandler(input []interface{}) (*[]webpubsub.EventHandler, error) 
 		}
 		authRaws := rblock["auth"].([]interface{})
 
-		authSetting, err := expandAuth(authRaws)
-		if err != nil {
-			return nil, err
-		}
 		results = append(results, webpubsub.EventHandler{
 			URLTemplate:      &urlTemplate,
 			SystemEvents:     &systemEvents,
 			UserEventPattern: &userEventPattern,
-			Auth:             authSetting,
+			Auth:             expandAuth(authRaws),
 		})
 	}
 	return &results, nil
@@ -264,7 +260,7 @@ func flattenEventHandler(input *[]webpubsub.EventHandler) []interface{} {
 
 	setting := make([]interface{}, 0)
 	for _, item := range *input {
-		settingBlock := make(map[string]interface{}, 0)
+		settingBlock := make(map[string]interface{})
 
 		urlTemplate := ""
 		if item.URLTemplate != nil {
@@ -290,11 +286,11 @@ func flattenEventHandler(input *[]webpubsub.EventHandler) []interface{} {
 	return eventHandlerBlock
 }
 
-func expandAuth(input []interface{}) (*webpubsub.UpstreamAuthSettings, error) {
-	if len(input) == 0 {
+func expandAuth(input []interface{}) *webpubsub.UpstreamAuthSettings {
+	if len(input) == 0 || input[0] == nil {
 		return &webpubsub.UpstreamAuthSettings{
 			Type: webpubsub.UpstreamAuthTypeNone,
-		}, nil
+		}
 	}
 
 	authRaw := input[0].(map[string]interface{})
@@ -305,7 +301,7 @@ func expandAuth(input []interface{}) (*webpubsub.UpstreamAuthSettings, error) {
 		ManagedIdentity: &webpubsub.ManagedIdentitySettings{
 			Resource: &authId,
 		},
-	}, nil
+	}
 }
 
 func flattenAuth(input *webpubsub.UpstreamAuthSettings) []interface{} {
