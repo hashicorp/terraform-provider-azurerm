@@ -2,8 +2,9 @@ package kusto
 
 import (
 	"fmt"
-	"log"
 	"time"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -24,8 +25,10 @@ func resourceKustoDatabase() *pluginsdk.Resource {
 		Update: resourceKustoDatabaseCreateUpdate,
 		Delete: resourceKustoDatabaseDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.DatabaseID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -75,72 +78,42 @@ func resourceKustoDatabase() *pluginsdk.Resource {
 
 func resourceKustoDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Kusto Database creation.")
-
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	clusterName := d.Get("cluster_name").(string)
-
+	id := parse.NewDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, clusterName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Kusto Database %q (Resource Group %q, Cluster %q): %s", name, resourceGroup, clusterName, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.Value != nil {
-			database, ok := existing.Value.AsReadWriteDatabase()
-			if !ok {
-				return fmt.Errorf("Exisiting Resource is not a Kusto Read/Write Database %q (Resource Group %q, Cluster %q)", name, resourceGroup, clusterName)
-			}
-
-			if database.ID != nil && *database.ID != "" {
-				return tf.ImportAsExistsError("azurerm_kusto_database", *database.ID)
-			}
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_kusto_database", id.ID())
 		}
 	}
-
-	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	databaseProperties := expandKustoDatabaseProperties(d)
 
 	readWriteDatabase := kusto.ReadWriteDatabase{
-		Name:                        &name,
-		Location:                    &location,
+		Name:                        utils.String(id.Name),
+		Location:                    utils.String(location.Normalize(d.Get("location").(string))),
 		ReadWriteDatabaseProperties: databaseProperties,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, clusterName, name, readWriteDatabase)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.Name, readWriteDatabase)
 	if err != nil {
-		return fmt.Errorf("creating or updating Kusto Database %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Kusto Database %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, clusterName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Kusto Database %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
-	}
-	if resp.Value == nil {
-		return fmt.Errorf("retrieving Kusto Database %q (Resource Group %q, Cluster %q): Invalid resource response", name, resourceGroup, clusterName)
-	}
-
-	database, ok := resp.Value.AsReadWriteDatabase()
-	if !ok {
-		return fmt.Errorf("Resource is not a Read/Write Database %q (Resource Group %q, Cluster %q)", name, resourceGroup, clusterName)
-	}
-	if database.ID == nil || *database.ID == "" {
-		return fmt.Errorf("Cannot read ID for Kusto Database %q (Resource Group %q, Cluster %q)", name, resourceGroup, clusterName)
-	}
-
-	d.SetId(*database.ID)
-
+	d.SetId(id.ID())
 	return resourceKustoDatabaseRead(d, meta)
 }
 
@@ -160,25 +133,23 @@ func resourceKustoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Kusto Database %q (Resource Group %q, Cluster %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	if resp.Value == nil {
-		return fmt.Errorf("retrieving Kusto Database %q (Resource Group %q, Cluster %q): Invalid resource response", id.Name, id.ResourceGroup, id.ClusterName)
+		return fmt.Errorf("retrieving %s: response was nil", *id)
 	}
 
 	database, ok := resp.Value.AsReadWriteDatabase()
 	if !ok {
-		return fmt.Errorf("Existing resource is not a Read/Write Database (Resource Group %q, Cluster %q): %q", id.ResourceGroup, id.ClusterName, id.Name)
+		return fmt.Errorf("%s was not a Read/Write Database", *id)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("cluster_name", id.ClusterName)
 
-	if location := database.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(database.Location))
 
 	if props := database.ReadWriteDatabaseProperties; props != nil {
 		d.Set("hot_cache_period", props.HotCachePeriod)

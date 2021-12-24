@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -225,28 +227,25 @@ func resourceKustoCluster() *pluginsdk.Resource {
 
 func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Kusto Cluster creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
+	id := parse.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		server, err := client.Get(ctx, resourceGroup, name)
+		server, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(server.Response) {
-				return fmt.Errorf("checking for presence of existing Kusto Cluster %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if server.ID != nil && *server.ID != "" {
-			return tf.ImportAsExistsError("azurerm_kusto_cluster", *server.ID)
+		if !utils.ResponseWasNotFound(server.Response) {
+			return tf.ImportAsExistsError("azurerm_kusto_cluster", id.ID())
 		}
 	}
-
-	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	sku, err := expandKustoClusterSku(d.Get("sku").([]interface{}))
 	if err != nil {
@@ -304,8 +303,8 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	t := d.Get("tags").(map[string]interface{})
 
 	kustoCluster := kusto.Cluster{
-		Name:              &name,
-		Location:          &location,
+		Name:              utils.String(id.Name),
+		Location:          utils.String(location.Normalize(d.Get("location").(string))),
 		Sku:               sku,
 		Zones:             zones,
 		ClusterProperties: &clusterProperties,
@@ -323,32 +322,22 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	ifMatch := ""
 	ifNoneMatch := ""
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, kustoCluster, ifMatch, ifNoneMatch)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, kustoCluster, ifMatch, ifNoneMatch)
 	if err != nil {
-		return fmt.Errorf("creating or updating Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
-
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
-	resp, getDetailsErr := client.Get(ctx, resourceGroup, name)
-	if getDetailsErr != nil {
-		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Kusto Cluster %q (Resource Group %q)", name, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	if v, ok := d.GetOk("language_extensions"); ok {
 		languageExtensions := expandKustoClusterLanguageExtensions(v.([]interface{}))
 
-		currentLanguageExtensions, err := client.ListLanguageExtensions(ctx, resourceGroup, name)
+		currentLanguageExtensions, err := client.ListLanguageExtensions(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("reading current added language extensions from Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("retrieving the language extensions on %s: %+v", id, err)
 		}
 
 		languageExtensionsToAdd := diffLanguageExtensions(*languageExtensions.Value, *currentLanguageExtensions.Value)
@@ -357,13 +346,12 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 				Value: &languageExtensionsToAdd,
 			}
 
-			addLanguageExtensionsFuture, err := client.AddLanguageExtensions(ctx, resourceGroup, name, languageExtensionsListToAdd)
+			future, err := client.AddLanguageExtensions(ctx, id.ResourceGroup, id.Name, languageExtensionsListToAdd)
 			if err != nil {
-				return fmt.Errorf("adding language extensions to Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("adding language extensions to %s: %+v", id, err)
 			}
-
-			if err = addLanguageExtensionsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for completion of adding language extensions to Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for the addition of language extensions on %s: %+v", id, err)
 			}
 		}
 
@@ -373,12 +361,12 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 				Value: &languageExtensionsToRemove,
 			}
 
-			removeLanguageExtensionsFuture, err := client.RemoveLanguageExtensions(ctx, resourceGroup, name, languageExtensionsListToRemove)
+			removeLanguageExtensionsFuture, err := client.RemoveLanguageExtensions(ctx, id.ResourceGroup, id.Name, languageExtensionsListToRemove)
 			if err != nil {
-				return fmt.Errorf("removing language extensions from Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("removing language extensions from %s: %+v", id, err)
 			}
 			if err = removeLanguageExtensionsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for completion of removing language extensions from Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("waiting for the removal of language extensions from %s: %+v", id, err)
 			}
 		}
 	}
@@ -396,23 +384,21 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 
-	clusterResponse, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(clusterResponse.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if location := clusterResponse.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	identity, err := flattenIdentity(clusterResponse.Identity)
+	identity, err := flattenIdentity(resp.Identity)
 	if err != nil {
 		return err
 	}
@@ -420,31 +406,31 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("setting `identity`: %s", err)
 	}
 
-	if err := d.Set("sku", flattenKustoClusterSku(clusterResponse.Sku)); err != nil {
+	if err := d.Set("sku", flattenKustoClusterSku(resp.Sku)); err != nil {
 		return fmt.Errorf("setting `sku`: %+v", err)
 	}
 
-	if err := d.Set("zones", azure.FlattenZones(clusterResponse.Zones)); err != nil {
+	if err := d.Set("zones", azure.FlattenZones(resp.Zones)); err != nil {
 		return fmt.Errorf("setting `zones`: %+v", err)
 	}
-	if err := d.Set("optimized_auto_scale", flattenOptimizedAutoScale(clusterResponse.OptimizedAutoscale)); err != nil {
+	if err := d.Set("optimized_auto_scale", flattenOptimizedAutoScale(resp.OptimizedAutoscale)); err != nil {
 		return fmt.Errorf("setting `optimized_auto_scale`: %+v", err)
 	}
 
-	if clusterProperties := clusterResponse.ClusterProperties; clusterProperties != nil {
-		d.Set("double_encryption_enabled", clusterProperties.EnableDoubleEncryption)
-		d.Set("trusted_external_tenants", flattenTrustedExternalTenants(clusterProperties.TrustedExternalTenants))
-		d.Set("enable_disk_encryption", clusterProperties.EnableDiskEncryption)
-		d.Set("enable_streaming_ingest", clusterProperties.EnableStreamingIngest)
-		d.Set("enable_purge", clusterProperties.EnablePurge)
-		d.Set("virtual_network_configuration", flatteKustoClusterVNET(clusterProperties.VirtualNetworkConfiguration))
-		d.Set("language_extensions", flattenKustoClusterLanguageExtensions(clusterProperties.LanguageExtensions))
-		d.Set("uri", clusterProperties.URI)
-		d.Set("data_ingestion_uri", clusterProperties.DataIngestionURI)
-		d.Set("engine", clusterProperties.EngineType)
+	if props := resp.ClusterProperties; props != nil {
+		d.Set("double_encryption_enabled", props.EnableDoubleEncryption)
+		d.Set("trusted_external_tenants", flattenTrustedExternalTenants(props.TrustedExternalTenants))
+		d.Set("enable_disk_encryption", props.EnableDiskEncryption)
+		d.Set("enable_streaming_ingest", props.EnableStreamingIngest)
+		d.Set("enable_purge", props.EnablePurge)
+		d.Set("virtual_network_configuration", flatteKustoClusterVNET(props.VirtualNetworkConfiguration))
+		d.Set("language_extensions", flattenKustoClusterLanguageExtensions(props.LanguageExtensions))
+		d.Set("uri", props.URI)
+		d.Set("data_ingestion_uri", props.DataIngestionURI)
+		d.Set("engine", props.EngineType)
 	}
 
-	return tags.FlattenAndSet(d, clusterResponse.Tags)
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceKustoClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -459,11 +445,11 @@ func resourceKustoClusterDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Kusto Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Kusto Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil
