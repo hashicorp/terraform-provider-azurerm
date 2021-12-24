@@ -141,7 +141,8 @@ resource "azurerm_web_pubsub_network_acl" "test" {
   }
 
   depends_on = [azurerm_web_pubsub.test]
-}`, r.template(data))
+}
+`, r.template(data))
 }
 
 func (r WebPubsubNetworkACLResource) complete(data acceptance.TestData) string {

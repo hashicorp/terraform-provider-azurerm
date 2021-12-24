@@ -146,9 +146,6 @@ func resourceWebPubsubNetworkACLCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	locks.ByName(id.WebPubSubName, "azurerm_web_pubsub")
-	defer locks.UnlockByName(id.WebPubSubName, "azurerm_web_pubsub")
-
 	existing, err := client.Get(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
