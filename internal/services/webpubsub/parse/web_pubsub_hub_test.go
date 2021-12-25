@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = WebPubsubHubId{}
+var _ resourceids.Id = WebPubsubHubId{}
 
 func TestWebPubsubHubIDFormatter(t *testing.T) {
 	actual := NewWebPubsubHubID("12345678-1234-9876-4563-123456789012", "resGroup1", "Webpubsub1", "Webpubsubhub1").ID()
