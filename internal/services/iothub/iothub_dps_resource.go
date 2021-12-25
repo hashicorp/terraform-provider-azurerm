@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -88,7 +89,6 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							ForceNew:     true,
 							// Azure returns the key as ****. We'll suppress that here.
 							DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 								secretKeyRegex := regexp.MustCompile("(SharedAccessKey)=[^;]+")
@@ -102,12 +102,11 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 							StateFunc:    azure.NormalizeLocation,
-							ForceNew:     true,
 						},
 						"apply_allocation_policy": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  false,
+							Default:  features.ThreePointOh(),
 						},
 						"allocation_weight": {
 							Type:         pluginsdk.TypeInt,
