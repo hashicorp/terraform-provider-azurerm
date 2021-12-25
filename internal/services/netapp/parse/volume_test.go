@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = VolumeId{}
+var _ resourceids.Id = VolumeId{}
 
 func TestVolumeIDFormatter(t *testing.T) {
 	actual := NewVolumeID("12345678-1234-9876-4563-123456789012", "resGroup1", "account1", "pool1", "volume1").ID()
