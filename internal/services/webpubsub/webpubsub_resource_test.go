@@ -135,8 +135,8 @@ func TestAccWebpubsub_skuUpdate(t *testing.T) {
 			Config: r.standardWithCapacity(data, 5),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku").HasValue("Free_F1"),
-				check.That(data.ResourceName).Key("capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("sku").HasValue("Standard_S1"),
+				check.That(data.ResourceName).Key("capacity").HasValue("5"),
 				check.That(data.ResourceName).Key("hostname").Exists(),
 				check.That(data.ResourceName).Key("public_port").Exists(),
 				check.That(data.ResourceName).Key("server_port").Exists(),
