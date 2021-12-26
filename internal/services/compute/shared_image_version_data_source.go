@@ -121,7 +121,7 @@ func dataSourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("image_name", imageName)
 	d.Set("gallery_name", galleryName)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("sort_version_by_semver", sortBySemVer)
+	d.Set("sort_versions_by_semver", sortBySemVer)
 
 	if location := image.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
