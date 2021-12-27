@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * `azurerm_postgresql_flexible_server` - support for the `geo_redundant_backup_enabled` property [GH-14661]
 * `azurerm_recovery_services_vault` - support for the `storage_mode_type` property [GH-14659]
 * `azurerm_spring_cloud_certificate` - support for the `certificate_content` property [GH-14689]
+* `azurerm_shared_image_version` - images can now be sorted by semver [GH-14708]
 * `azurerm_web_application_firewall_policy` - `file_upload_limit_in_mb` within the `policy_settings` block can now be set to 4000 [GH-14715]
 * `azurerm_windows_virtual_machine` - support for the `user_data` property [GH-13888]
 * `azurerm_windows_virtual_machine_scale_set` - support for the `user_data` property [GH-13888]
