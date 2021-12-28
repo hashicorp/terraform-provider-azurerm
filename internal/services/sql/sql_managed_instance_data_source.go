@@ -45,11 +45,6 @@ func dataSourceArmSqlMiServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"administrator_login_password": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"vcores": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -166,8 +161,6 @@ func dataSourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("proxy_override", props.ProxyOverride)
 		d.Set("timezone_id", props.TimezoneID)
 		d.Set("storage_account_type", props.StorageAccountType)
-		// This value is not returned from the api so we'll just set whatever is in the config
-		d.Set("administrator_login_password", d.Get("administrator_login_password").(string))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

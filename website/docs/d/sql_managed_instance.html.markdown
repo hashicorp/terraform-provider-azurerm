@@ -50,8 +50,6 @@ The following arguments are supported:
 
 * `administrator_login` - The administrator login name for the new server.
 
-* `administrator_login_password` - The password associated with the `administrator_login` user.
-
 * `subnet_id` - The subnet resource id that the SQL Managed Instance is associated with.
 
 * `collation` - Specifies how the SQL Managed Instance is collated.
