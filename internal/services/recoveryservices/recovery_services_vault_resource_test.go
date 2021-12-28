@@ -331,8 +331,8 @@ resource "azurerm_recovery_services_vault" "test" {
   soft_delete_enabled = true
 
   encryption {
-    key_id                          = azurerm_key_vault_key.test[%[5]d].id
-    use_system_assigned_identity    = true
+    key_id                            = azurerm_key_vault_key.test[%[5]d].id
+    use_system_assigned_identity      = true
     infrastructure_encryption_enabled = %[4]t
   }
 }
