@@ -10,7 +10,7 @@ import (
 
 type SqlManagedInstanceDataSource struct{}
 
-func TestAccDataSourceSqlManagedInstancee_basic(t *testing.T) {
+func TestAccDataSourceSqlManagedInstance_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_sql_database", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
