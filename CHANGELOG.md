@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_aadb2c_directory` [GH-14671]
 * **New Resource:** `azurerm_aadb2c_directory` [GH-14671]
+* **New Resource:** `azurerm_load_test` [GH-14724]
 * **New Resource:** `azurerm_virtual_desktop_scaling_plan` [GH-14188]
 
 ENHANCEMENTS:
@@ -19,6 +20,9 @@ ENHANCEMENTS:
 * `azurerm_managed_disk` - support for the `gallery_image_reference_id` property [GH-14121]
 * `azurerm_postgresql_flexible_server` - support for the `geo_redundant_backup_enabled` property [GH-14661]
 * `azurerm_recovery_services_vault` - support for the `storage_mode_type` property [GH-14659]
+* `azurerm_spring_cloud_certificate` - support for the `certificate_content` property [GH-14689]
+* `azurerm_shared_image_version` - images can now be sorted by semver [GH-14708]
+* `azurerm_web_application_firewall_policy` - `file_upload_limit_in_mb` within the `policy_settings` block can now be set to 4000 [GH-14715]
 * `azurerm_windows_virtual_machine` - support for the `user_data` property [GH-13888]
 * `azurerm_windows_virtual_machine_scale_set` - support for the `user_data` property [GH-13888]
 * `iothub_endpoint_servicebus_queue_resource`, `iothub_endpoint_servicebus_queue_resource`, `iothub_endpoint_storage_container_resource` - depracating `iothub_name` in favour of `iothub_id` [GH-14690]
