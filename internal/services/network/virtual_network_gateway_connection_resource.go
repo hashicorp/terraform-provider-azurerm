@@ -149,6 +149,19 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"connection_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.VirtualNetworkGatewayConnectionModeInitiatorOnly),
+					string(network.VirtualNetworkGatewayConnectionModeResponderOnly),
+					string(network.VirtualNetworkGatewayConnectionModeDefault),
+				}, false),
+				Default: string(network.VirtualNetworkGatewayConnectionModeDefault),
+			},
+
 			"traffic_selector_policy": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -443,6 +456,8 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 
 	d.Set("connection_protocol", string(conn.ConnectionProtocol))
 
+	d.Set("connection_mode", string(conn.ConnectionMode))
+
 	if conn.ExpressRouteGatewayBypass != nil {
 		d.Set("express_route_gateway_bypass", conn.ExpressRouteGatewayBypass)
 	}
@@ -487,9 +502,11 @@ func resourceVirtualNetworkGatewayConnectionDelete(d *pluginsdk.ResourceData, me
 
 func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData) (*network.VirtualNetworkGatewayConnectionPropertiesFormat, error) {
 	connectionType := network.VirtualNetworkGatewayConnectionType(d.Get("type").(string))
+	connectionMode := network.VirtualNetworkGatewayConnectionMode(d.Get("connection_mode").(string))
 
 	props := &network.VirtualNetworkGatewayConnectionPropertiesFormat{
 		ConnectionType:                 connectionType,
+		ConnectionMode:                 connectionMode,
 		EnableBgp:                      utils.Bool(d.Get("enable_bgp").(bool)),
 		ExpressRouteGatewayBypass:      utils.Bool(d.Get("express_route_gateway_bypass").(bool)),
 		UsePolicyBasedTrafficSelectors: utils.Bool(d.Get("use_policy_based_traffic_selectors").(bool)),
