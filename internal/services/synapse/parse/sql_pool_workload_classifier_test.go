@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = SqlPoolWorkloadClassifierId{}
+var _ resourceids.Id = SqlPoolWorkloadClassifierId{}
 
 func TestSqlPoolWorkloadClassifierIDFormatter(t *testing.T) {
 	actual := NewSqlPoolWorkloadClassifierID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "sqlPool1", "workloadGroup1", "workloadClassifier1").ID()

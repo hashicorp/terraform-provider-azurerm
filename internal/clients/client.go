@@ -59,6 +59,7 @@ import (
 	kusto "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/client"
 	lighthouse "github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/client"
 	loadbalancers "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/client"
+	loadtest "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtest/client"
 	loganalytics "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/client"
 	logic "github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/client"
 	logz "github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/client"
@@ -168,6 +169,7 @@ type Client struct {
 	Kusto                 *kusto.Client
 	Lighthouse            *lighthouse.Client
 	LoadBalancers         *loadbalancers.Client
+	LoadTest              *loadtest.Client
 	LogAnalytics          *loganalytics.Client
 	Logic                 *logic.Client
 	Logz                  *logz.Client
@@ -280,6 +282,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Lighthouse = lighthouse.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)
 	client.LoadBalancers = loadbalancers.NewClient(o)
+	client.LoadTest = loadtest.NewClient(o)
 	client.Logic = logic.NewClient(o)
 	client.Logz = logz.NewClient(o)
 	client.MachineLearning = machinelearning.NewClient(o)

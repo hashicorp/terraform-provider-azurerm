@@ -2,7 +2,6 @@ package sql
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
@@ -25,8 +24,10 @@ func resourceSqlElasticPool() *pluginsdk.Resource {
 		Update: resourceSqlElasticPoolCreateUpdate,
 		Delete: resourceSqlElasticPoolDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ElasticPoolID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -99,56 +100,43 @@ func resourceSqlElasticPool() *pluginsdk.Resource {
 
 func resourceSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ElasticPoolsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for SQL ElasticPool creation.")
-
-	name := d.Get("name").(string)
-	serverName := d.Get("server_name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	resGroup := d.Get("resource_group_name").(string)
-	t := d.Get("tags").(map[string]interface{})
-
+	id := parse.NewElasticPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, serverName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing SQL ElasticPool %q (resource group %q, server %q) ID", name, serverName, resGroup)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_sql_elasticpool", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_sql_elasticpool", id.ID())
 		}
 	}
 
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	t := d.Get("tags").(map[string]interface{})
 	elasticPool := sql.ElasticPool{
-		Name:                  &name,
+		Name:                  utils.String(id.Name),
 		Location:              &location,
 		ElasticPoolProperties: getArmSqlElasticPoolProperties(d),
 		Tags:                  tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, name, elasticPool)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, elasticPool)
 	if err != nil {
-		return fmt.Errorf("creating/updating ElasticPool %q (Server %q / Resource Group %q): %+v", name, serverName, resGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of ElasticPool %q (Server %q / Resource Group %q): %+v", name, serverName, resGroup, err)
+		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, serverName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving ElasticPool %q (Server %q / Resource Group %q): %+v", name, serverName, resGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read SQL ElasticPool %q (resource group %q, server %q) ID", name, serverName, resGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceSqlElasticPoolRead(d, meta)
 }
 

@@ -54,6 +54,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtest"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz"
@@ -118,6 +119,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		costmanagement.Registration{},
 		eventhub.Registration{},
 		loadbalancer.Registration{},
+		loadtest.Registration{},
 		mssql.Registration{},
 		policy.Registration{},
 		resource.Registration{},
