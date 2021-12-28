@@ -37,7 +37,7 @@ resource "azurerm_api_management_tag" "example" {
 
 resource "azurerm_api_management_api_tag" "example" {
   api_id = azurerm_api_management_api.example.id
-  name             = "example-tag"
+  name   = "example-tag"
 }
 ```
 
