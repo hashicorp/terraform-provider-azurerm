@@ -152,7 +152,6 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 			"connection_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.VirtualNetworkGatewayConnectionModeInitiatorOnly),
