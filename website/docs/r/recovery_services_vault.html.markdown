@@ -64,11 +64,11 @@ An `encryption` block supports the following:
 
 * `key_id` - (Required) The Key Vault key id used to encrypt this vault. Key managed by Vault Managed Hardware Security Module is also supported.
 
-* `infrastructure_encryption_state` - (Required) Enabling/Disabling the Double Encryption state. Possible values include: `Disabled`, `Enabled`. Defaults to `Disabled`.
+* `infrastructure_encryption_enabled` - (Required) Enabling/Disabling the Double Encryption state.
 
 * `use_system_assigned_identity` - (Optional) Indicate that system assigned identity should be used or not. At this time the only possible value is `true`. Defaults to `true`.
 
-!> **Note:** Once `infrastructure_encryption_state` has been set it's not possible to change it.
+!> **Note:** Once `infrastructure_encryption_enabled` has been set it's not possible to change it.
 
 ---
 

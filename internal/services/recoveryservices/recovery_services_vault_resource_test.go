@@ -304,10 +304,6 @@ resource "azurerm_recovery_services_vault" "import" {
 }
 
 func (r RecoveryServicesVaultResource) cmkEncryptionWithKeyVaultKey(data acceptance.TestData, enableInfraEncryptionState bool, keyIndex int) string {
-	var infraEncryptionState = "Disabled"
-	if enableInfraEncryptionState {
-		infraEncryptionState = "Enabled"
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -337,7 +333,7 @@ resource "azurerm_recovery_services_vault" "test" {
   encryption {
     key_id                          = azurerm_key_vault_key.test[%[5]d].id
     use_system_assigned_identity    = true
-    infrastructure_encryption_state = "%[4]s"
+    infrastructure_encryption_enabled = %[4]t
   }
 }
 
@@ -395,5 +391,5 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, infraEncryptionState, keyIndex)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, enableInfraEncryptionState, keyIndex)
 }

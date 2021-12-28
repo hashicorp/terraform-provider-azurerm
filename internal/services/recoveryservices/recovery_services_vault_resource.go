@@ -65,13 +65,9 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: keyvaultValidate.NestedItemIdWithOptionalVersion,
 						},
-						"infrastructure_encryption_state": {
-							Type:     pluginsdk.TypeString,
+						"infrastructure_encryption_enabled": {
+							Type:     pluginsdk.TypeBool,
 							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(recoveryservices.InfrastructureEncryptionStateDisabled),
-								string(recoveryservices.InfrastructureEncryptionStateEnabled),
-							}, false),
 						},
 						// We must use system assigned identity for now since recovery vault only support system assigned for now.
 						// We can remove this property, but in that way when we enable user assigned identity in the future
@@ -186,7 +182,7 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 				return fmt.Errorf("once encryption with your own key has been enabled it's not possible to disable it")
 			}
 			if encryption.InfrastructureEncryption != existing.Properties.Encryption.InfrastructureEncryption {
-				return fmt.Errorf("once `infrastructure_encryption_state` has been set it's not possible to change it")
+				return fmt.Errorf("once `infrastructure_encryption_enabled` has been set it's not possible to change it")
 			}
 		}
 	}
@@ -407,6 +403,11 @@ func expandEncryption(d *pluginsdk.ResourceData) *recoveryservices.VaultProperti
 	}
 	encryptionMap := settings[0].(map[string]interface{})
 	keyUri := encryptionMap["key_id"].(string)
+	enabledInfraEncryption := encryptionMap["infrastructure_encryption_enabled"].(bool)
+	infraEncryptionState := recoveryservices.InfrastructureEncryptionStateEnabled
+	if !enabledInfraEncryption {
+		infraEncryptionState = recoveryservices.InfrastructureEncryptionStateDisabled
+	}
 	encryption := &recoveryservices.VaultPropertiesEncryption{
 		KeyVaultProperties: &recoveryservices.CmkKeyVaultProperties{
 			KeyURI: utils.String(keyUri),
@@ -414,7 +415,7 @@ func expandEncryption(d *pluginsdk.ResourceData) *recoveryservices.VaultProperti
 		KekIdentity: &recoveryservices.CmkKekIdentity{
 			UseSystemAssignedIdentity: utils.Bool(encryptionMap["use_system_assigned_identity"].(bool)),
 		},
-		InfrastructureEncryption: recoveryservices.InfrastructureEncryptionState(encryptionMap["infrastructure_encryption_state"].(string)),
+		InfrastructureEncryption: infraEncryptionState,
 	}
 	return encryption
 }
@@ -434,6 +435,6 @@ func flattenVaultEncryption(resp recoveryservices.Vault) interface{} {
 
 	encryptionMap["key_id"] = encryption.KeyVaultProperties.KeyURI
 	encryptionMap["use_system_assigned_identity"] = *encryption.KekIdentity.UseSystemAssignedIdentity
-	encryptionMap["infrastructure_encryption_state"] = string(encryption.InfrastructureEncryption)
+	encryptionMap["infrastructure_encryption_enabled"] = encryption.InfrastructureEncryption == recoveryservices.InfrastructureEncryptionStateEnabled
 	return encryptionMap
 }
