@@ -2,6 +2,7 @@ package apimanagement
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -467,6 +468,11 @@ func resourceApiManagementService() *pluginsdk.Resource {
 				},
 			},
 
+			"public_ip_address_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+
 			"sign_in": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -730,6 +736,12 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		properties.Zones = azure.ExpandZones(v)
 	}
 
+	if v, ok := d.GetOk("public_ip_address_id"); ok {
+		properties.ServiceProperties.PublicIPAddressID = utils.String(v.(string))
+	}
+
+	js, _ := json.Marshal(properties)
+	log.Printf("DDDD %s", js)
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, properties)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
@@ -867,6 +879,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("virtual_network_type", props.VirtualNetworkType)
 		d.Set("client_certificate_enabled", props.EnableClientCertificate)
 		d.Set("gateway_disabled", props.DisableGateway)
+		d.Set("public_ip_address_id", props.PublicIPAddressID)
 
 		d.Set("certificate", flattenAPIManagementCertificates(d, props.Certificates))
 

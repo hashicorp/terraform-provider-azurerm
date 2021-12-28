@@ -241,6 +241,21 @@ func TestAccApiManagement_policy(t *testing.T) {
 	})
 }
 
+func TestAccApiManagement_publicIpAddress(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.publicIpAddress(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApiManagement_virtualNetworkInternal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
@@ -882,6 +897,95 @@ resource "azurerm_api_management" "test" {
   policy = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementResource) publicIpAddress(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-api1-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestPIP-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  domain_name_label   = "acctest-%[1]d"
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestVNet-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestSubnet-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acctestNSG-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  security_rule {
+    name                       = "test234"
+    priority                   = 101
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3443"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_subnet_network_security_group_association" "test" {
+  subnet_id                 = azurerm_subnet.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+
+resource "azurerm_api_management" "test" {
+  name                      = "acctestAM-%[1]d"
+  publisher_name            = "pub1"
+  publisher_email           = "pub1@email.com"
+  notification_sender_email = "notification@email.com"
+  sku_name                  = "Premium_2"
+  public_ip_address_id      = azurerm_public_ip.test.id
+  virtual_network_type      = "Internal"
+  virtual_network_configuration {
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  zones = [1, 2]
+
+  tags = {
+    "Acceptance" = "Test"
+  }
+
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ApiManagementResource) requiresImport(data acceptance.TestData) string {
