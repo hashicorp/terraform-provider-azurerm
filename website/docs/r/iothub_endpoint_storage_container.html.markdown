@@ -66,9 +66,13 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the endpoint. The name must be unique across endpoint types. The following names are reserved:  `events`, `operationsMonitoringEvents`, `fileNotifications` and `$default`.
 
-* `resource_group_name` - (Required) The name of the resource group under which the IotHub Storage Container Endpoint resource has to be created. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group under which the Storage Container has been created. Changing this forces a new resource to be created.
 
-* `iothub_name` - (Required) The name of the IoTHub to which this Storage Container Endpoint belongs. Changing this forces a new resource to be created.
+* `iothub_name` - (Optional) The IoTHub name for the endpoint.
+
+~> **NOTE:** The `iothub_name` property is deprecated, use `iothub_id` instead.
+
+* `iothub_id` - (Optional) The IoTHub ID for the endpoint.
 
 * `connection_string` - (Required) The connection string for the endpoint.
 
