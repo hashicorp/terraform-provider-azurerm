@@ -65,7 +65,7 @@ func (r ApiManagementApiTagResource) basic(data acceptance.TestData) string {
 %s
 resource "azurerm_api_management_api_tag" "test" {
   api_id = azurerm_api_management_api.test.id
-  name             = "acctest-Api-Tag-%d"
+  name   = "acctest-Api-Tag-%d"
 }
 `, ApiManagementApiResource{}.basic(data), data.RandomInteger)
 }
@@ -75,7 +75,7 @@ func (r ApiManagementApiTagResource) requiresImport(data acceptance.TestData) st
 %s
 resource "azurerm_api_management_api_tag" "import" {
   api_id = azurerm_api_management_api_tag.test.id
-  name             = azurerm_api_management_api_tag.test.name
+  name   = azurerm_api_management_api_tag.test.name
 }
 `, r.basic(data))
 }
