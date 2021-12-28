@@ -37,7 +37,7 @@ resource "azurerm_api_management_tag" "example" {
 
 resource "azurerm_api_management_api_tag" "example" {
   api_id = azurerm_api_management_api.example.id
-  tag_name             = "example-tag"
+  name             = "example-tag"
 }
 ```
 
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `api_id` - (Required) The ID of the API Management API. Changing this forces a new API Management API Tag to be created.
 
-* `tag_name` - (Required) The name of the tag. It must be known in the API Management instance. Changing this forces a new API Management API Tag to be created.
+* `name` - (Required) The name of the tag. It must be known in the API Management instance. Changing this forces a new API Management API Tag to be created.
 
 ## Attributes Reference
 

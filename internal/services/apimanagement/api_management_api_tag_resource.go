@@ -39,7 +39,7 @@ func resourceApiManagementApiTag() *pluginsdk.Resource {
 				ValidateFunc: validate.ApiID,
 			},
 
-			"tag_name": {
+			"name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -59,7 +59,7 @@ func resourceApiManagementApiTagCreate(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	tagName := d.Get("tag_name").(string)
+	tagName := d.Get("name").(string)
 	tagId := parse.NewTagID(subscriptionId, apiId.ResourceGroup, apiId.ServiceName, tagName)
 	if err != nil {
 		return err

@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApiManagementApiTagResource struct {
@@ -47,12 +47,12 @@ func TestAccApiManagementApiTag_requiresImport(t *testing.T) {
 }
 
 func (ApiManagementApiTagResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.TagID(state.ID)
+	id, err := parse.ApiTagID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ApiManagement.TagClient.GetByAPI(ctx, id.ResourceGroup, id.ServiceName, id.TagName)
+	resp, err := clients.ApiManagement.TagClient.GetByAPI(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.TagName)
 	if err != nil {
 		return nil, fmt.Errorf("reading %q: %+v", id, err)
 	}
@@ -65,7 +65,7 @@ func (r ApiManagementApiTagResource) basic(data acceptance.TestData) string {
 %s
 resource "azurerm_api_management_api_tag" "test" {
   api_id = azurerm_api_management_api.test.id
-  tag_name             = "acctest-test-Tag-%d"
+  name             = "acctest-Api-Tag-%d"
 }
 `, ApiManagementApiResource{}.basic(data), data.RandomInteger)
 }
@@ -74,8 +74,8 @@ func (r ApiManagementApiTagResource) requiresImport(data acceptance.TestData) st
 	return fmt.Sprintf(`
 %s
 resource "azurerm_api_management_api_tag" "import" {
-  api_id = azurerm_api_management_api_tag.test.api_id
-  tag_name             = azurerm_api_management_api_tag.test.name
+  api_id = azurerm_api_management_api_tag.test.id
+  name             = azurerm_api_management_api_tag.test.name
 }
 `, r.basic(data))
 }
