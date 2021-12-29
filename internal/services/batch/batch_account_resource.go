@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -118,12 +119,29 @@ func resourceBatchAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+			"encryption": {
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				MaxItems:   1,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyVaultValidate.NestedItemId,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	log.Printf("[DEBUG] ADAM resourceBatchAccountCreate")
 	client := meta.(*clients.Client).Batch.AccountClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,11 +173,15 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
 
+	encryptionRaw := d.Get("encryption").([]interface{})
+	encryption := expandEncryption(encryptionRaw)
+
 	parameters := batch.AccountCreateParameters{
 		Location: &location,
 		AccountCreateProperties: &batch.AccountCreateProperties{
 			PoolAllocationMode:  batch.PoolAllocationMode(poolAllocationMode),
 			PublicNetworkAccess: batch.PublicNetworkAccessTypeEnabled,
+			Encryption:          encryption,
 		},
 		Identity: identity,
 		Tags:     tags.Expand(t),
@@ -252,6 +274,10 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 		d.Set("pool_allocation_mode", props.PoolAllocationMode)
 
+		if err := d.Set("encryption", flattenEncryption(props.Encryption)); err != nil {
+			return fmt.Errorf("setting ADAM `encryption`: %+v", err)
+		}
+
 		identity, err := flattenBatchAccountIdentity(resp.Identity)
 		if err != nil {
 			return err
@@ -294,11 +320,15 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
 
+	encryptionRaw := d.Get("encryption").([]interface{})
+	encryption := expandEncryption(encryptionRaw)
+
 	parameters := batch.AccountUpdateParameters{
 		AccountUpdateProperties: &batch.AccountUpdateProperties{
 			AutoStorage: &batch.AutoStorageBaseProperties{
 				StorageAccountID: &storageAccountId,
 			},
+			Encryption: encryption,
 		},
 		Identity: identity,
 		Tags:     tags.Expand(t),
@@ -401,4 +431,37 @@ func flattenBatchAccountIdentity(input *batch.AccountIdentity) ([]interface{}, e
 		UserAssignedIdentityIds: identityIds,
 	}
 	return batchAccountIdentity{}.Flatten(config), nil
+}
+
+func expandEncryption(e []interface{}) *batch.EncryptionProperties {
+	defaultEnc := batch.EncryptionProperties{
+		KeySource: batch.KeySourceMicrosoftBatch,
+	}
+
+	if e == nil || len(e) == 0 || e[0] == nil {
+		return &defaultEnc
+	}
+
+	v := e[0].(map[string]interface{})
+	keyId := v["key_vault_key_id"].(string)
+	encryptionProperty := batch.EncryptionProperties{
+		KeySource: batch.KeySourceMicrosoftKeyVault,
+		KeyVaultProperties: &batch.KeyVaultProperties{
+			KeyIdentifier: &keyId,
+		},
+	}
+
+	return &encryptionProperty
+}
+
+func flattenEncryption(encryptionProperties *batch.EncryptionProperties) []interface{} {
+	if encryptionProperties == nil || encryptionProperties.KeySource == batch.KeySourceMicrosoftBatch {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"key_vault_key_id": *encryptionProperties.KeyVaultProperties.KeyIdentifier,
+		},
+	}
 }
