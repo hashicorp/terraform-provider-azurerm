@@ -25,7 +25,7 @@ func TestStorageAccountNetworkRuleID(t *testing.T) {
 
 		{
 			// missing value for StorageAccountID
-			Input: "ipRule/127.0.0.1",
+			Input: "ipAddressOrRange/127.0.0.1",
 			Error: true,
 		},
 
@@ -36,8 +36,8 @@ func TestStorageAccountNetworkRuleID(t *testing.T) {
 		},
 
 		{
-			// valid ipRule
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1;ipRule/127.0.0.1",
+			// valid IPRule
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1;ipAddressOrRange/127.0.0.1",
 			Expected: &StorageAccountNetworkRuleId{
 				StorageAccountId: &StorageAccountId{
 					SubscriptionId: "12345678-1234-9876-4563-123456789012",
@@ -51,8 +51,8 @@ func TestStorageAccountNetworkRuleID(t *testing.T) {
 		},
 
 		{
-			// valid virtualNetworkRule
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1;virtualNetworkRule/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualNetworks/network1/subnets/subnet1",
+			// valid VirtualNetworkRule
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1;subnetId/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualNetworks/network1/subnets/subnet1",
 			Expected: &StorageAccountNetworkRuleId{
 				StorageAccountId: &StorageAccountId{
 					SubscriptionId: "12345678-1234-9876-4563-123456789012",
@@ -66,8 +66,8 @@ func TestStorageAccountNetworkRuleID(t *testing.T) {
 		},
 
 		{
-			// valid resourceAccessRule
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1;resourceAccessRule/12345678-1234-9876-4563-123456789012/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup2/providers/Microsoft.Storage/storageAccounts/storageAccount2",
+			// valid ResourceAccessRule
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1;tenantId/12345678-1234-9876-4563-123456789012/resourceId/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup2/providers/Microsoft.Storage/storageAccounts/storageAccount2",
 			Expected: &StorageAccountNetworkRuleId{
 				StorageAccountId: &StorageAccountId{
 					SubscriptionId: "12345678-1234-9876-4563-123456789012",
@@ -108,19 +108,15 @@ func TestStorageAccountNetworkRuleID(t *testing.T) {
 			}
 		}
 
-		if actual.IPRule != v.Expected.IPRule {
-			if !strings.EqualFold(*actual.IPRule.IPAddressOrRange, *v.Expected.IPRule.IPAddressOrRange) {
-				t.Fatalf("Expected %+v but got %+v for IPRule.IPAddressOrRange", *v.Expected.IPRule.IPAddressOrRange, *actual.IPRule.IPAddressOrRange)
-			}
+		if actual.IPRule != nil && v.Expected.IPRule != nil && !strings.EqualFold(*actual.IPRule.IPAddressOrRange, *v.Expected.IPRule.IPAddressOrRange) {
+			t.Fatalf("Expected %+v but got %+v for IPRule.IPAddressOrRange", *v.Expected.IPRule.IPAddressOrRange, *actual.IPRule.IPAddressOrRange)
 		}
 
-		if actual.VirtualNetworkRule != v.Expected.VirtualNetworkRule {
-			if !strings.EqualFold(*actual.VirtualNetworkRule.VirtualNetworkResourceID, *v.Expected.VirtualNetworkRule.VirtualNetworkResourceID) {
-				t.Fatalf("Expected %+v but got %+v for VirtualNetworkRule.VirtualNetworkResourceID", *v.Expected.VirtualNetworkRule.VirtualNetworkResourceID, *actual.VirtualNetworkRule.VirtualNetworkResourceID)
-			}
+		if actual.VirtualNetworkRule != nil && v.Expected.VirtualNetworkRule != nil && !strings.EqualFold(*actual.VirtualNetworkRule.VirtualNetworkResourceID, *v.Expected.VirtualNetworkRule.VirtualNetworkResourceID) {
+			t.Fatalf("Expected %+v but got %+v for VirtualNetworkRule.VirtualNetworkResourceID", *v.Expected.VirtualNetworkRule.VirtualNetworkResourceID, *actual.VirtualNetworkRule.VirtualNetworkResourceID)
 		}
 
-		if actual.ResourceAccessRule != v.Expected.ResourceAccessRule {
+		if actual.ResourceAccessRule != nil && v.Expected.ResourceAccessRule != nil {
 			if !strings.EqualFold(*actual.ResourceAccessRule.ResourceID, *v.Expected.ResourceAccessRule.ResourceID) {
 				t.Fatalf("Expected %+v but got %+v for ResourceAccessRule.ResourceID", *v.Expected.ResourceAccessRule.ResourceID, *actual.ResourceAccessRule.ResourceID)
 			}

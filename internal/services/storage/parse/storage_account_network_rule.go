@@ -124,5 +124,9 @@ func StorageAccountNetworkRuleID(input string) (*StorageAccountNetworkRuleId, er
 		}
 	}
 
+	if id.IPRule == nil && id.VirtualNetworkRule == nil && id.ResourceAccessRule == nil {
+		return nil, fmt.Errorf("ID was missing the 'networkRuleId' element")
+	}
+
 	return &id, nil
 }
