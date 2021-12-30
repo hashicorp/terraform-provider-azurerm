@@ -199,7 +199,6 @@ func TestAccMachineLearningWorkspace_identityUpdate(t *testing.T) {
 	})
 }
 
-// TODO SPN need directory.read permission (SPN - "Azure Cosmos DB")
 func TestAccMachineLearningWorkspace_userAssignedAndCustomManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 	r := WorkspaceResource{}
@@ -209,10 +208,10 @@ func TestAccMachineLearningWorkspace_userAssignedAndCustomManagedKey(t *testing.
 			Config: r.userAssignedAndCustomManagedKey(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("encryption.0.user_assigned_identity_id").Exists(),
 				check.That(data.ResourceName).Key("encryption.0.key_vault_id").Exists(),
-				check.That(data.ResourceName).Key("encryption.0.identifier").Exists(),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.type").Exists(),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -632,8 +631,8 @@ func (r WorkspaceResource) userAssignedAndCustomManagedKey(data acceptance.TestD
 data "azuread_service_principal" "test" {
   display_name = "Azure Cosmos DB"
 }
-resource "azurerm_key_vault_access_policy" "example-cosmosdb" {
-  key_vault_id = azurerm_key_vault.example.id
+resource "azurerm_key_vault_access_policy" "test-policy1" {
+  key_vault_id = azurerm_key_vault.test.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azuread_service_principal.test.object_id
 
@@ -645,7 +644,7 @@ resource "azurerm_key_vault_access_policy" "example-cosmosdb" {
   ]
 }
 
-resource "azurerm_key_vault_key" "example" {
+resource "azurerm_key_vault_key" "test" {
   name         = "accKVKey-%[2]d"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
@@ -666,6 +665,29 @@ resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestUAI-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_key_vault_access_policy" "test-policy2" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.test.principal_id
+
+  key_permissions = [
+    "wrapKey",
+    "unwrapKey",
+    "get",
+    "recover",
+  ]
+
+  secret_permissions = [
+    "get",
+    "list",
+    "set",
+    "delete",
+    "recover",
+    "backup",
+    "restore"
+  ]
 }
 
 resource "azurerm_role_assignment" "test_kv" {
@@ -701,6 +723,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   key_vault_id                   = azurerm_key_vault.test.id
   storage_account_id             = azurerm_storage_account.test.id
   primary_user_assigned_identity = azurerm_user_assigned_identity.test.id
+  high_business_impact           = true
 
   identity {
     type = "UserAssigned"
@@ -714,8 +737,11 @@ resource "azurerm_machine_learning_workspace" "test" {
     key_vault_id              = azurerm_key_vault.test.id
     key_id                    = azurerm_key_vault_key.test.id
   }
-
-  depends_on = [azurerm_role_assignment.test]
+  depends_on = [
+    azurerm_role_assignment.test_ai, azurerm_role_assignment.test_kv, azurerm_role_assignment.test_sa1,
+    azurerm_role_assignment.test_sa1,
+    azurerm_key_vault_access_policy.test-policy1,
+  ]
 }
 `, r.template(data), data.RandomInteger)
 }

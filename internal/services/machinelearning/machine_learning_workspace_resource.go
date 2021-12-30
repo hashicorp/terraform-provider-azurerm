@@ -133,11 +133,6 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"user_assigned_identity_id": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
 						"key_vault_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
@@ -147,6 +142,11 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+						},
+						"user_assigned_identity_id": {
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
