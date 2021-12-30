@@ -114,13 +114,11 @@ func dataSourceArmSqlMiServer() *schema.Resource {
 
 func dataSourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ManagedInstancesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ManagedInstanceID(d.Id())
-	if err != nil {
-		return err
-	}
+	id := parse.NewManagedInstanceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
