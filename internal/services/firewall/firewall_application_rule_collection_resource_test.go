@@ -465,7 +465,7 @@ resource "azurerm_firewall_application_rule_collection" "test" {
   rule {
     name = "rule1"
 	
-	description = "something test"
+	description = "something"
     source_addresses = [
       "10.0.0.0/16",
     ]
