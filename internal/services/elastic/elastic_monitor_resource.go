@@ -1,0 +1,428 @@
+package elastic
+
+import (
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/Azure/azure-sdk-for-go/services/elastic/mgmt/2020-07-01/elastic"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
+)
+
+func resourceElasticMonitor() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceElasticMonitorCreate,
+		Read:   resourceElasticMonitorRead,
+		Update: resourceElasticMonitorUpdate,
+		Delete: resourceElasticMonitorDelete,
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		},
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ElasticMonitorID(id)
+			return err
+		}),
+
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ElasticMonitorName,
+			},
+
+			"resource_group_name": azure.SchemaResourceGroupName(),
+
+			"location": azure.SchemaLocation(),
+
+			"elastic_properties": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"elastic_cloud_user": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"email_address": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"elastic_cloud_sso_default_url": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+
+						"elastic_cloud_deployment": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"deployment_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"azure_subscription_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"elasticsearch_region": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"elasticsearch_service_url": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"kibana_service_url": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"kibana_sso_url": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
+			"sku": {
+				Type:     pluginsdk.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			"user_info": {
+				Type:     pluginsdk.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"email_address": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ElasticEmailAddress,
+						},
+					},
+				},
+			},
+
+			"monitoring_status": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"provisioning_state": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+
+			"liftr_resource_category": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"liftr_resource_preference": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"tags": tags.Schema(),
+		},
+	}
+}
+
+func resourceElasticMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).Elastic.MonitorClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+
+	id := parse.NewElasticMonitorID(subscriptionId, resourceGroup, name).ID()
+
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for existing Elastic Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_elastic_monitor", id)
+	}
+
+	monitoringStatus := elastic.MonitoringStatusDisabled
+	if d.Get("monitoring_status").(bool) {
+		monitoringStatus = elastic.MonitoringStatusEnabled
+	}
+
+	body := elastic.MonitorResource{
+		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Sku:      expandMonitorResourceSku(d.Get("sku").([]interface{})),
+		Properties: &elastic.MonitorProperties{
+			UserInfo:         expandMonitorUserInfo(d.Get("user_info").([]interface{})),
+			MonitoringStatus: monitoringStatus,
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+	future, err := client.Create(ctx, resourceGroup, name, &body)
+	if err != nil {
+		return fmt.Errorf("creating Elastic Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation of the Elastic Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	d.SetId(id)
+	return resourceElasticMonitorRead(d, meta)
+}
+
+func resourceElasticMonitorRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Elastic.MonitorClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.ElasticMonitorID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, id.ResourceGroup, id.MonitorName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] Elastic monitor %q does not exist - removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("retrieving Elastic Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+	}
+	d.Set("name", id.MonitorName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
+
+	if props := resp.Properties; props != nil {
+		if err := d.Set("elastic_properties", flattenElasticProperties(props.ElasticProperties)); err != nil {
+			return fmt.Errorf("setting `elastic_properties`: %+v", err)
+		}
+		d.Set("monitoring_status", props.MonitoringStatus == elastic.MonitoringStatusEnabled)
+		d.Set("liftr_resource_category", props.LiftrResourceCategory)
+		d.Set("liftr_resource_preference", props.LiftrResourcePreference)
+	}
+	if err := d.Set("sku", flattenMonitorResourceSku(resp.Sku)); err != nil {
+		return fmt.Errorf("setting `sku`: %+v", err)
+	}
+	d.Set("type", resp.Type)
+	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func resourceElasticMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Elastic.MonitorClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.ElasticMonitorID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	body := elastic.MonitorResourceUpdateParameters{
+		Properties: &elastic.MonitorUpdateProperties{},
+	}
+	if d.HasChange("monitoring_status") {
+		monitoringStatus := elastic.MonitoringStatusDisabled
+		if d.Get("monitoring_status").(bool) {
+			monitoringStatus = elastic.MonitoringStatusEnabled
+		}
+		body.Properties.MonitoringStatus = monitoringStatus
+	}
+	if d.HasChange("tags") {
+		body.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if _, err := client.Update(ctx, id.ResourceGroup, id.MonitorName, &body); err != nil {
+		return fmt.Errorf("updating Elastic Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+	}
+	return resourceElasticMonitorRead(d, meta)
+}
+
+func resourceElasticMonitorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Elastic.MonitorClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.ElasticMonitorID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	future, err := client.Delete(ctx, id.ResourceGroup, id.MonitorName)
+	if err != nil {
+		return fmt.Errorf("deleting Elastic Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of the Elastic Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+	}
+	return nil
+}
+
+func expandMonitorResourceSku(input []interface{}) *elastic.ResourceSku {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	return &elastic.ResourceSku{
+		Name: utils.String(v["name"].(string)),
+	}
+}
+
+func expandMonitorUserInfo(input []interface{}) *elastic.UserInfo {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+
+	return &elastic.UserInfo{
+		EmailAddress: utils.String(v["email_address"].(string)),
+	}
+}
+
+func flattenElasticProperties(input *elastic.ElasticProperties) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	var elastic_cloud_user map[string]interface{}
+
+	if input.ElasticCloudUser != nil {
+		var email_address string
+		if input.ElasticCloudUser.EmailAddress != nil {
+			email_address = *input.ElasticCloudUser.EmailAddress
+		}
+		var id string
+		if input.ElasticCloudUser.Id != nil {
+			id = *input.ElasticCloudUser.Id
+		}
+		var elastic_cloud_sso_default_url string
+		if input.ElasticCloudUser.ElasticCloudSsoDefaultUrl != nil {
+			elastic_cloud_sso_default_url = *input.ElasticCloudUser.ElasticCloudSsoDefaultUrl
+		}
+		elastic_cloud_user["email_address"] = email_address
+		elastic_cloud_user["id"] = id
+		elastic_cloud_user["elastic_cloud_sso_default_url"] = elastic_cloud_sso_default_url
+	} else {
+		elastic_cloud_user = make([]interface{}, 0)
+	}
+
+	var elastic_cloud_deployment map[string]interface{}
+
+	if input.ElasticCloudDeployment != nil {
+		var name string
+		if input.ElasticCloudDeployment.Name != nil {
+			name = *input.ElasticCloudDeployment.Name
+		}
+		var deployment_id string
+		if input.ElasticCloudDeployment.DeploymentId != nil {
+			deployment_id = *input.ElasticCloudDeployment.DeploymentId
+		}
+		var azure_subscription_id string
+		if input.ElasticCloudDeployment.AzureSubscriptionId != nil {
+			azure_subscription_id = *input.ElasticCloudDeployment.AzureSubscriptionId
+		}
+		var elasticsearch_region string
+		if input.ElasticCloudDeployment.ElasticsearchRegion != nil {
+			elasticsearch_region = *input.ElasticCloudDeployment.ElasticsearchRegion
+		}
+		var elasticsearch_service_url string
+		if input.ElasticCloudDeployment.ElasticsearchServiceUrl != nil {
+			elasticsearch_service_url = *input.ElasticCloudDeployment.ElasticsearchServiceUrl
+		}
+		var kibana_service_url string
+		if input.ElasticCloudDeployment.KibanaServiceUrl != nil {
+			kibana_service_url = *input.ElasticCloudDeployment.KibanaServiceUrl
+		}
+		var kibana_sso_url string
+		if input.ElasticCloudDeployment.KibanaSsoUrl != nil {
+			kibana_sso_url = *input.ElasticCloudDeployment.KibanaSsoUrl
+		}
+		elastic_cloud_deployment["name"] = name
+		elastic_cloud_deployment["deployment_id"] = deployment_id
+		elastic_cloud_deployment["azure_subscription_id"] = azure_subscription_id
+		elastic_cloud_deployment["elasticsearch_region"] = elasticsearch_region
+		elastic_cloud_deployment["elasticsearch_service_url"] = elasticsearch_service_url
+		elastic_cloud_deployment["kibana_service_url"] = kibana_service_url
+		elastic_cloud_deployment["kibana_sso_url"] = kibana_sso_url
+	} else {
+		elastic_cloud_deployment = make([]interface{}, 0)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"elastic_cloud_user":       elastic_cloud_user,
+			"elastic_cloud_deployment": elastic_cloud_deployment,
+		},
+	}
+}
+
+func flattenMonitorResourceSku(input *elastic.ResourceSku) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	var name string
+	if input.Name != nil {
+		name = *input.Name
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"name": name,
+		},
+	}
+}
