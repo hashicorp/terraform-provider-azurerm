@@ -318,7 +318,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
   rule {
     name = "rule1"
-
+	description = "this is description"
     source_addresses = [
       "10.0.0.0/16",
     ]
