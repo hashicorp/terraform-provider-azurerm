@@ -75,7 +75,7 @@ func resourceElasticTagRule() *pluginsdk.Resource {
 							Optional: true,
 						},
 
-						"send_resource_logs": {
+						"send_activity_logs": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
@@ -188,13 +188,13 @@ func resourceElasticTagRuleDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ElasticTagRulesID(d.Id())
-	if err != nil {
-		return err
+	id, err1 := parse.ElasticTagRuleID(d.Id())
+	if err1 != nil {
+		return err1
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
-	if err != nil {
+	resp, err2 := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
+	if err2 != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Elastic %q does not exist - removing from state", d.Id())
 			d.SetId("")
@@ -227,7 +227,7 @@ func expandLogRules(input []interface{}) *elastic.LogRules {
 	return &elastic.LogRules{
 		SendAadLogs:          utils.Bool(v["send_aad_logs"].(bool)),
 		SendSubscriptionLogs: utils.Bool(v["send_subscription_logs"].(bool)),
-		SendResourceLogs:     utils.Bool(v["send_resource_logs"].(bool)),
+		SendActivityLogs:     utils.Bool(v["send_activity_logs"].(bool)),
 		FilteringTags:        expandFilteringTag(filteringTag),
 	}
 }
@@ -270,8 +270,8 @@ func flattenLogRules(input *elastic.LogRules) []interface{} {
 		result["send_subscription_logs"] = *input.SendSubscriptionLogs
 	}
 
-	if input.SendResourceLogs != nil {
-		result["send_resource_logs"] = *input.SendResourceLogs
+	if input.SendActivityLogs != nil {
+		result["send_activity_logs"] = *input.SendActivityLogs
 	}
 
 	result["filtering_tag"] = flattenFilteringTags(input.FilteringTags)

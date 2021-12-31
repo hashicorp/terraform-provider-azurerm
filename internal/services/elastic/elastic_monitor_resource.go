@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -53,11 +52,13 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 			"elastic_properties": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"elastic_cloud_user": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
+							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"email_address": {
@@ -79,6 +80,7 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 						"elastic_cloud_deployment": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
+							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
@@ -272,16 +274,8 @@ func resourceElasticMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	body := elastic.MonitorResourceUpdateParameters{
-		Properties: &elastic.MonitorUpdateProperties{},
-	}
-	if d.HasChange("monitoring_status") {
-		monitoringStatus := elastic.MonitoringStatusDisabled
-		if d.Get("monitoring_status").(bool) {
-			monitoringStatus = elastic.MonitoringStatusEnabled
-		}
-		body.Properties.MonitoringStatus = monitoringStatus
-	}
+	body := elastic.MonitorResourceUpdateParameters{}
+
 	if d.HasChange("tags") {
 		body.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
@@ -334,12 +328,12 @@ func expandMonitorUserInfo(input []interface{}) *elastic.UserInfo {
 	}
 }
 
-func flattenElasticProperties(input *elastic.ElasticProperties) []interface{} {
+func flattenElasticProperties(input *elastic.Properties) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 
-	var elastic_cloud_user map[string]interface{}
+	var elastic_cloud_user []interface{}
 
 	if input.ElasticCloudUser != nil {
 		var email_address string
@@ -347,21 +341,26 @@ func flattenElasticProperties(input *elastic.ElasticProperties) []interface{} {
 			email_address = *input.ElasticCloudUser.EmailAddress
 		}
 		var id string
-		if input.ElasticCloudUser.Id != nil {
-			id = *input.ElasticCloudUser.Id
+		if input.ElasticCloudUser.ID != nil {
+			id = *input.ElasticCloudUser.ID
 		}
 		var elastic_cloud_sso_default_url string
-		if input.ElasticCloudUser.ElasticCloudSsoDefaultUrl != nil {
-			elastic_cloud_sso_default_url = *input.ElasticCloudUser.ElasticCloudSsoDefaultUrl
+		if input.ElasticCloudUser.ElasticCloudSsoDefaultURL != nil {
+			elastic_cloud_sso_default_url = *input.ElasticCloudUser.ElasticCloudSsoDefaultURL
 		}
-		elastic_cloud_user["email_address"] = email_address
-		elastic_cloud_user["id"] = id
-		elastic_cloud_user["elastic_cloud_sso_default_url"] = elastic_cloud_sso_default_url
+		elastic_cloud_user = []interface{}{
+			map[string]interface{}{
+				"email_address":                 email_address,
+				"id":                            id,
+				"elastic_cloud_sso_default_url": elastic_cloud_sso_default_url,
+			},
+		}
+
 	} else {
 		elastic_cloud_user = make([]interface{}, 0)
 	}
 
-	var elastic_cloud_deployment map[string]interface{}
+	var elastic_cloud_deployment []interface{}
 
 	if input.ElasticCloudDeployment != nil {
 		var name string
@@ -369,36 +368,41 @@ func flattenElasticProperties(input *elastic.ElasticProperties) []interface{} {
 			name = *input.ElasticCloudDeployment.Name
 		}
 		var deployment_id string
-		if input.ElasticCloudDeployment.DeploymentId != nil {
-			deployment_id = *input.ElasticCloudDeployment.DeploymentId
+		if input.ElasticCloudDeployment.DeploymentID != nil {
+			deployment_id = *input.ElasticCloudDeployment.DeploymentID
 		}
 		var azure_subscription_id string
-		if input.ElasticCloudDeployment.AzureSubscriptionId != nil {
-			azure_subscription_id = *input.ElasticCloudDeployment.AzureSubscriptionId
+		if input.ElasticCloudDeployment.AzureSubscriptionID != nil {
+			azure_subscription_id = *input.ElasticCloudDeployment.AzureSubscriptionID
 		}
 		var elasticsearch_region string
 		if input.ElasticCloudDeployment.ElasticsearchRegion != nil {
 			elasticsearch_region = *input.ElasticCloudDeployment.ElasticsearchRegion
 		}
 		var elasticsearch_service_url string
-		if input.ElasticCloudDeployment.ElasticsearchServiceUrl != nil {
-			elasticsearch_service_url = *input.ElasticCloudDeployment.ElasticsearchServiceUrl
+		if input.ElasticCloudDeployment.ElasticsearchServiceURL != nil {
+			elasticsearch_service_url = *input.ElasticCloudDeployment.ElasticsearchServiceURL
 		}
 		var kibana_service_url string
-		if input.ElasticCloudDeployment.KibanaServiceUrl != nil {
-			kibana_service_url = *input.ElasticCloudDeployment.KibanaServiceUrl
+		if input.ElasticCloudDeployment.KibanaServiceURL != nil {
+			kibana_service_url = *input.ElasticCloudDeployment.KibanaServiceURL
 		}
 		var kibana_sso_url string
-		if input.ElasticCloudDeployment.KibanaSsoUrl != nil {
-			kibana_sso_url = *input.ElasticCloudDeployment.KibanaSsoUrl
+		if input.ElasticCloudDeployment.KibanaSsoURL != nil {
+			kibana_sso_url = *input.ElasticCloudDeployment.KibanaSsoURL
 		}
-		elastic_cloud_deployment["name"] = name
-		elastic_cloud_deployment["deployment_id"] = deployment_id
-		elastic_cloud_deployment["azure_subscription_id"] = azure_subscription_id
-		elastic_cloud_deployment["elasticsearch_region"] = elasticsearch_region
-		elastic_cloud_deployment["elasticsearch_service_url"] = elasticsearch_service_url
-		elastic_cloud_deployment["kibana_service_url"] = kibana_service_url
-		elastic_cloud_deployment["kibana_sso_url"] = kibana_sso_url
+		elastic_cloud_deployment = []interface{}{
+			map[string]interface{}{
+				"name":                      name,
+				"deployment_id":             deployment_id,
+				"azure_subscription_id":     azure_subscription_id,
+				"elasticsearch_region":      elasticsearch_region,
+				"elasticsearch_service_url": elasticsearch_service_url,
+				"kibana_service_url":        kibana_service_url,
+				"kibana_sso_url":            kibana_sso_url,
+			},
+		}
+
 	} else {
 		elastic_cloud_deployment = make([]interface{}, 0)
 	}

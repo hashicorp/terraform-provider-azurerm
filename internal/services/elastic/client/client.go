@@ -12,13 +12,13 @@ type Client struct {
 
 func NewClient(o *common.ClientOptions) *Client {
 	monitorClient := elastic.NewMonitorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&monitorsClient.Client, o.ResourceManagerAuthorizer)
+	o.ConfigureClient(&monitorClient.Client, o.ResourceManagerAuthorizer)
 
 	tagRuleClient := elastic.NewTagRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&tagRulesClient.Client, o.ResourceManagerAuthorizer)
+	o.ConfigureClient(&tagRuleClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		MonitorClient: &monitorsClient,
-		TagRuleClient: &tagRulesClient,
+		MonitorClient: &monitorClient,
+		TagRuleClient: &tagRuleClient,
 	}
 }
