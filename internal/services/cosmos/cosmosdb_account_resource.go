@@ -42,6 +42,48 @@ var connStringPropertyMap = map[string]string{
 	"Secondary Read-Only SQL Connection String": "secondary_readonly_sql_connection_string",
 }
 
+type databaseAccountCapabilities string
+
+const (
+	databaseAccountCapabilitiesEnableAggregationPipeline      databaseAccountCapabilities = "EnableAggregationPipeline"
+	databaseAccountCapabilitiesEnableCassandra                databaseAccountCapabilities = "EnableCassandra"
+	databaseAccountCapabilitiesEnableGremlin                  databaseAccountCapabilities = "EnableGremlin"
+	databaseAccountCapabilitiesEnableTable                    databaseAccountCapabilities = "EnableTable"
+	databaseAccountCapabilitiesEnableServerless               databaseAccountCapabilities = "EnableServerless"
+	databaseAccountCapabilitiesEnableMongo                    databaseAccountCapabilities = "EnableMongo"
+	databaseAccountCapabilitiesEnableMongo16MBDocumentSupport databaseAccountCapabilities = "EnableMongo16MBDocumentSupport"
+	databaseAccountCapabilitiesMongoDBv34                     databaseAccountCapabilities = "MongoDBv3.4"
+	databaseAccountCapabilitiesMongoEnableDocLevelTTL         databaseAccountCapabilities = "mongoEnableDocLevelTTL"
+	databaseAccountCapabilitiesDisableRateLimitingResponses   databaseAccountCapabilities = "DisableRateLimitingResponses"
+	databaseAccountCapabilitiesAllowSelfServeUpgradeToMongo36 databaseAccountCapabilities = "AllowSelfServeUpgradeToMongo36"
+)
+
+/* The mapping of capabilities and kinds of cosmosdb account confirmed by service team is as follows:
+EnableMongo :                    MongoDB
+EnableCassandra :                GlobalDocumentDB, Parse
+EnableGremlin :                  GlobalDocumentDB, Parse
+EnableTable :                    GlobalDocumentDB, Parse
+EnableAggregationPipeline :      GlobalDocumentDB, MongoDB, Parse
+EnableServerless :               GlobalDocumentDB, MongoDB, Parse
+MongoDBv3.4 :                    GlobalDocumentDB, MongoDB, Parse
+mongoEnableDocLevelTTL :         GlobalDocumentDB, MongoDB, Parse
+DisableRateLimitingResponses :   GlobalDocumentDB, MongoDB, Parse
+AllowSelfServeUpgradeToMongo36 : GlobalDocumentDB, MongoDB, Parse
+*/
+var capabilitiesToKindMap = map[string]interface{}{
+	strings.ToLower(string(databaseAccountCapabilitiesEnableMongo)):                    []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableMongo16MBDocumentSupport)): []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableCassandra)):                []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableGremlin)):                  []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableTable)):                    []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableServerless)):               []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableAggregationPipeline)):      []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesMongoDBv34)):                     []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesMongoEnableDocLevelTTL)):         []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesDisableRateLimitingResponses)):   []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesAllowSelfServeUpgradeToMongo36)): []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+}
+
 // If the consistency policy of the Cosmos DB Database Account is not bounded staleness,
 // any changes to the configuration for bounded staleness should be suppressed.
 func suppressConsistencyPolicyStalenessConfiguration(_, _, _ string, d *pluginsdk.ResourceData) bool {
@@ -328,24 +370,23 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"EnableAggregationPipeline",
-								"EnableCassandra",
-								"EnableGremlin",
-								"EnableTable",
-								"EnableServerless",
-								"EnableMongo",
-								"EnableMongo16MBDocumentSupport",
-								"MongoDBv3.4",
-								"mongoEnableDocLevelTTL",
-								"DisableRateLimitingResponses",
-								"AllowSelfServeUpgradeToMongo36",
+								string(databaseAccountCapabilitiesEnableAggregationPipeline),
+								string(databaseAccountCapabilitiesEnableCassandra),
+								string(databaseAccountCapabilitiesEnableGremlin),
+								string(databaseAccountCapabilitiesEnableTable),
+								string(databaseAccountCapabilitiesEnableServerless),
+								string(databaseAccountCapabilitiesEnableMongo),
+								string(databaseAccountCapabilitiesEnableMongo16MBDocumentSupport),
+								string(databaseAccountCapabilitiesMongoDBv34),
+								string(databaseAccountCapabilitiesMongoEnableDocLevelTTL),
+								string(databaseAccountCapabilitiesDisableRateLimitingResponses),
+								string(databaseAccountCapabilitiesAllowSelfServeUpgradeToMongo36),
 							}, false),
 						},
 					},
@@ -676,6 +717,8 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
+	capabilities := expandAzureRmCosmosDBAccountCapabilities(d)
+
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
@@ -688,7 +731,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			EnableAutomaticFailover:            utils.Bool(enableAutomaticFailover),
 			ConsistencyPolicy:                  expandAzureRmCosmosDBAccountConsistencyPolicy(d),
 			Locations:                          &geoLocations,
-			Capabilities:                       expandAzureRmCosmosDBAccountCapabilities(d),
+			Capabilities:                       capabilities,
 			VirtualNetworkRules:                expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:       utils.Bool(enableMultipleWriteLocations),
 			PublicNetworkAccess:                publicNetworkAccess,
@@ -803,6 +846,51 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("making Read request on %s: %s", id, err)
 	}
 
+	capabilities := make([]documentdb.Capability, 0)
+	for _, v := range *resp.Capabilities {
+		c := documentdb.Capability{
+			Name: v.Name,
+		}
+		capabilities = append(capabilities, c)
+	}
+
+	if d.HasChange("capabilities") {
+
+		newCapabilities := expandAzureRmCosmosDBAccountCapabilities(d)
+
+		err := checkCapabilitiesCanBeUpdated(kind, &capabilities, newCapabilities)
+		if err != nil {
+			return fmt.Errorf("updating CosmosDB Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+
+		updateParameters := documentdb.DatabaseAccountUpdateParameters{
+			DatabaseAccountUpdateProperties: &documentdb.DatabaseAccountUpdateProperties{
+				Capabilities: newCapabilities,
+			},
+		}
+
+		future, err := client.Update(ctx, id.ResourceGroup, id.Name, updateParameters)
+		if err != nil {
+			return fmt.Errorf("updating CosmosDB Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for the CosmosDB Account %q (Resource Group %q) to finish updating: %+v", id.Name, id.ResourceGroup, err)
+		}
+
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("re-retrieving %s after update: %+v", id.ID(), err)
+		}
+
+		capabilities = make([]documentdb.Capability, 0)
+		for _, v := range *resp.Capabilities {
+			c := documentdb.Capability{
+				Name: v.Name,
+			}
+			capabilities = append(capabilities, c)
+		}
+	}
+
 	oldLocations := make([]documentdb.Location, 0)
 	oldLocationsMap := map[string]documentdb.Location{}
 	for _, l := range *resp.Locations {
@@ -844,7 +932,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			IsVirtualNetworkFilterEnabled:      utils.Bool(isVirtualNetworkFilterEnabled),
 			EnableFreeTier:                     utils.Bool(enableFreeTier),
 			EnableAutomaticFailover:            utils.Bool(enableAutomaticFailover),
-			Capabilities:                       expandAzureRmCosmosDBAccountCapabilities(d),
+			Capabilities:                       &capabilities,
 			ConsistencyPolicy:                  expandAzureRmCosmosDBAccountConsistencyPolicy(d),
 			Locations:                          &oldLocations,
 			VirtualNetworkRules:                expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
@@ -1756,4 +1844,73 @@ func flattenCosmosdbAccountDatabasesToRestore(input *[]documentdb.DatabaseRestor
 	}
 
 	return results
+}
+
+func checkCapabilitiesCanBeUpdated(kind string, oldCapabilities *[]documentdb.Capability, newCapabilities *[]documentdb.Capability) error {
+	// The feedback from service team : "DisableRateLimitingResponses", "AllowSelfServeUpgradeToMongo36","EnableAggregationPipeline","MongoDBv3.4"
+	// , "mongoEnableDocLevelTTL" and "EnableMongo16MBDocumentSupport" of capabilities can be added to an existing account, others can not.
+	canBeAddedCaps := []string{
+		strings.ToLower(string(databaseAccountCapabilitiesDisableRateLimitingResponses)),
+		strings.ToLower(string(databaseAccountCapabilitiesAllowSelfServeUpgradeToMongo36)),
+		strings.ToLower(string(databaseAccountCapabilitiesEnableAggregationPipeline)),
+		strings.ToLower(string(databaseAccountCapabilitiesMongoDBv34)),
+		strings.ToLower(string(databaseAccountCapabilitiesMongoEnableDocLevelTTL)),
+		strings.ToLower(string(databaseAccountCapabilitiesEnableMongo16MBDocumentSupport))}
+
+	// The feedback from service team : only "DisableRateLimitingResponses" of capabilities can be removed to an existing account.
+	canBeRemovedCaps := []string{
+		strings.ToLower(string(databaseAccountCapabilitiesDisableRateLimitingResponses)),
+	}
+
+	// first check the new capabilities can be added
+	for _, capability := range *newCapabilities {
+		if capability.Name == nil {
+			continue
+		}
+		existedPreviously := false
+		for _, existing := range *oldCapabilities {
+			if existing.Name != nil && strings.EqualFold(*existing.Name, *capability.Name) {
+				existedPreviously = true
+				break
+			}
+		}
+		if existedPreviously {
+			continue
+		}
+
+		// retrieve a list of capabilities for this DB type
+		supportedKindsForCapability, ok := capabilitiesToKindMap[strings.ToLower(*capability.Name)]
+		if !ok {
+			return fmt.Errorf("internal-error: missing mapping between Kind %q and Capabilities for %q", kind, *capability.Name)
+		}
+
+		// first check if this is supported
+		if isSupported := utils.SliceContainsValue(supportedKindsForCapability.([]string), strings.ToLower(kind)); !isSupported {
+			return fmt.Errorf("the Capability %q was not supported for the Kind %q - only the following Kinds support updating this Capability: %+v", *capability.Name, kind, strings.Join(supportedKindsForCapability.([]string), " / "))
+		}
+
+		// then check if it can be added via an update
+		if !utils.SliceContainsValue(canBeAddedCaps, strings.ToLower(*capability.Name)) {
+			return fmt.Errorf("the Capability %q for the Kind %q cannot be updated it must be set at creation", *capability.Name, kind)
+		}
+	}
+	// then check if we're removing any that they can be removed
+	for _, capability := range *oldCapabilities {
+		existsNow := false
+		for _, new := range *newCapabilities {
+			if new.Name != nil && strings.EqualFold(*new.Name, *capability.Name) {
+				existsNow = true
+				break
+			}
+		}
+		if existsNow {
+			continue
+		}
+
+		if !utils.SliceContainsValue(canBeRemovedCaps, strings.ToLower(*capability.Name)) {
+			return fmt.Errorf("the Capability %q for the Kind %q cannot be removed it must be omitted at creation", *capability.Name, kind)
+		}
+	}
+
+	return nil
 }
