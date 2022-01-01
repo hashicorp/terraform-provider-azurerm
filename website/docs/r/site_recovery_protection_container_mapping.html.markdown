@@ -88,6 +88,7 @@ The following arguments are supported:
 * `recovery_vault_name` - (Required) The name of the vault that should be updated.
 
 * `recovery_fabric_name` - (Required) Name of fabric that should contains the protection container to map.
+* 
 * `recovery_source_protection_container_name` - (Required) Name of the source protection container to map.
 
 * `recovery_target_protection_container_id` - (Required) Id of target protection container to map to.
