@@ -52,6 +52,7 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 			"elastic_properties": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -80,6 +81,7 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 						"elastic_cloud_deployment": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
+							Computed: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
