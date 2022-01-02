@@ -21,7 +21,7 @@ func resourceApiManagementApiTag() *pluginsdk.Resource {
 		Delete: resourceApiManagementApiTagDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.TagID(id)
+			_, err := parse.ApiTagID(id)
 			return err
 		}),
 
