@@ -137,6 +137,7 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 			"user_info": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
+				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -255,6 +256,7 @@ func resourceElasticMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err := d.Set("elastic_properties", flattenElasticProperties(props.ElasticProperties)); err != nil {
 			return fmt.Errorf("setting `elastic_properties`: %+v", err)
 		}
+		d.Set("user_info", flattenUserInfo(props.ElasticProperties))
 		d.Set("monitoring_status", props.MonitoringStatus == elastic.MonitoringStatusEnabled)
 		d.Set("liftr_resource_category", props.LiftrResourceCategory)
 		d.Set("liftr_resource_preference", props.LiftrResourcePreference)
@@ -330,6 +332,23 @@ func expandMonitorUserInfo(input []interface{}) *elastic.UserInfo {
 	}
 }
 
+func flattenUserInfo(input *elastic.Properties) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	var email_address string
+	if input.ElasticCloudUser != nil {
+		if input.ElasticCloudUser.EmailAddress != nil {
+			email_address = *input.ElasticCloudUser.EmailAddress
+		}
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"email_address": email_address,
+		},
+	}
+}
 func flattenElasticProperties(input *elastic.Properties) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)

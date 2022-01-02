@@ -109,7 +109,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctest-elastic-%d"
   location = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger%1000, data.Locations.Primary)
 }
 
 func (r ElasticMonitorResource) basic(data acceptance.TestData) string {
@@ -117,17 +117,17 @@ func (r ElasticMonitorResource) basic(data acceptance.TestData) string {
 	%s
 	
 	resource "azurerm_elastic_monitor" "test" {
-		name = "test-tf-elastic-basic-20220101"
+		name = "test-tf-elastic-basic-%d"
 		resource_group_name = azurerm_resource_group.test.name
 		location = azurerm_resource_group.test.location
 		user_info {
-			email_address = "testtf@mpliftrelastic20210901outlo.onmicrosoft.com"
+			email_address = "utkarshjain@microsoft.com"
 		}
 		sku {
 			name = "staging_Monthly"
 		}
 	}
-`, r.template(data))
+`, r.template(data), data.RandomInteger%1000)
 }
 
 func (r ElasticMonitorResource) requiresImport(data acceptance.TestData) string {
@@ -141,31 +141,30 @@ func (r ElasticMonitorResource) requiresImport(data acceptance.TestData) string 
 		name = "staging_Monthly"
 	}
 	user_info {
-		email_address = "testtf@mpliftrelastic20210901outlo.onmicrosoft.com"
+		email_address = "utkarshjain@microsoft.com"
 	}
 	}
-`, r.template(data))
+`, r.basic(data))
 }
 
 func (r ElasticMonitorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
 	resource "azurerm_elastic_monitor" "test" {
-	name                = azurerm_elastic_monitor.test.name
+	name                = "test-tf-elastic-basic-%d"
 	resource_group_name = azurerm_resource_group.test.name
 	location            = azurerm_resource_group.test.location
 	sku {
 		name = "staging_Monthly"
 	}
 	user_info {
-		email_address = "testtf@mpliftrelastic20210901outlo.onmicrosoft.com"
+		email_address = "utkarshjain@microsoft.com"
 	}
-	monitoring_status = false
 	tags = {
 		ENV = "Test"
 	}
 	}
-`, r.template(data))
+`, r.template(data), data.RandomInteger%1000)
 }
 
 func (r ElasticMonitorResource) complete(data acceptance.TestData) string {
@@ -179,12 +178,12 @@ func (r ElasticMonitorResource) complete(data acceptance.TestData) string {
 		name = "staging_Monthly"
 	}
 	user_info {
-		email_address = "testtf@mpliftrelastic20210901outlo.onmicrosoft.com"
+		email_address = "utkarshjain@microsoft.com"
 	}
 	monitoring_status = false
 	tags = {
 		ENV = "Test"
 	}
 	}
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger%1000)
 }

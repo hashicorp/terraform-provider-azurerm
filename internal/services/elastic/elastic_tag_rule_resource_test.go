@@ -29,7 +29,7 @@ func TestAccElasticMonitorTagRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccElasticMonitorTagRules_update(t *testing.T) {
+func TestAccElasticMonitorTagRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_tag_rule", "test")
 	r := TagRuleElasticMonitorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -85,22 +85,23 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_elastic_monitor" "test" {
-	name = "test-tf-elastic-tagrule-20220101"
+	name = "test-tf-elastic-tagrule-%d"
 	resource_group_name = azurerm_resource_group.test.name
 	location = azurerm_resource_group.test.location
 	user_info {
-		email_address = "testtf@mpliftrelastic20210901outlo.onmicrosoft.com"
+		email_address = "utkarshjain@microsoft.com"
 	}
 	sku {
 		name = "staging_Monthly"
 	}
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger%1000, data.Locations.Primary, data.RandomInteger%1000)
 }
 
 func (r TagRuleElasticMonitorResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-	
+	%s
 	resource "azurerm_elastic_tag_rule" "test" {
 		name = azurerm_elastic_monitor.test.name
 		resource_group_name = azurerm_elastic_monitor.test.resource_group_name
@@ -113,13 +114,13 @@ func (r TagRuleElasticMonitorResource) basic(data acceptance.TestData) string {
 				action = "Include"
 			}
 		}
-	}`,
-		r.template)
+	}`, template)
 }
 
 func (r TagRuleElasticMonitorResource) update(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-
+	%s
 	resource "azurerm_elastic_tag_rule" "test" {
 		name = azurerm_elastic_monitor.test.name
 		resource_group_name = azurerm_elastic_monitor.test.resource_group_name
@@ -132,6 +133,5 @@ func (r TagRuleElasticMonitorResource) update(data acceptance.TestData) string {
 				action = "Exclude"
 			}
 		}
-	}`,
-		r.template)
+	}`, template)
 }
