@@ -63,11 +63,16 @@ func (ApiManagementApiTagResource) Exists(ctx context.Context, clients *clients.
 func (r ApiManagementApiTagResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+resource "azurerm_api_management_tag" "test" {
+  api_management_id = azurerm_api_management.test.id
+  name              = "acctest-Tag-%d"
+}
+
 resource "azurerm_api_management_api_tag" "test" {
   api_id = azurerm_api_management_api.test.id
-  name   = "acctest-Api-Tag-%d"
+  name   = "acctest-Tag-%d"
 }
-`, ApiManagementApiResource{}.basic(data), data.RandomInteger)
+`, ApiManagementApiResource{}.basic(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r ApiManagementApiTagResource) requiresImport(data acceptance.TestData) string {

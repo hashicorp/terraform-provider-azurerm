@@ -120,7 +120,7 @@ func resourceApiManagementApiTagRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.Set("api_id", apiId.ID())
-	d.Set("tag_id", tagId.ID())
+	d.Set("name", tagId.Name)
 
 	return nil
 }
