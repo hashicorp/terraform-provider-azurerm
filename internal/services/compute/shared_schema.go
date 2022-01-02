@@ -96,7 +96,7 @@ func flattenAdditionalUnattendContent(input *[]compute.AdditionalUnattendContent
 }
 
 func bootDiagnosticsSchema() *pluginsdk.Schema {
-	//lintignore:XS003
+	// lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -293,7 +293,7 @@ func planSchema() *pluginsdk.Schema {
 }
 
 func expandPlan(input []interface{}) *compute.Plan {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
