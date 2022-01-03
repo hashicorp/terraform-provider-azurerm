@@ -97,17 +97,17 @@ func resourceVirtualDesktopHostPoolRegistrationInfoCreateUpdate(d *pluginsdk.Res
 		return fmt.Errorf("reading %s: %s", hostpoolId, err)
 	}
 
-	if hostpool.HostPoolProperties.RegistrationInfo == nil {
-		hostpool.HostPoolProperties.RegistrationInfo = &desktopvirtualization.RegistrationInfo{}
-	}
+	hostpoolPatch := &desktopvirtualization.HostPoolPatch{}
+	hostpoolPatch.HostPoolPatchProperties = &desktopvirtualization.HostPoolPatchProperties{}
+	hostpoolPatch.HostPoolPatchProperties.RegistrationInfo = &desktopvirtualization.RegistrationInfoPatch{}
 
 	expdt, _ := date.ParseTime(time.RFC3339, d.Get("expiration_date").(string))
-	hostpool.HostPoolProperties.RegistrationInfo.ExpirationTime = &date.Time{
+	hostpoolPatch.HostPoolPatchProperties.RegistrationInfo.ExpirationTime = &date.Time{
 		Time: expdt,
 	}
-	hostpool.HostPoolProperties.RegistrationInfo.RegistrationTokenOperation = desktopvirtualization.RegistrationTokenOperationUpdate
+	hostpoolPatch.HostPoolPatchProperties.RegistrationInfo.RegistrationTokenOperation = desktopvirtualization.RegistrationTokenOperationUpdate
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.HostPoolName, hostpool); err != nil {
+	if _, err := client.Update(ctx, id.ResourceGroup, id.HostPoolName, hostpoolPatch); err != nil {
 		return fmt.Errorf("Creating Virtual Desktop Host Pool Registration Info %q (Resource Group %q): %+v", id.HostPoolName, id.ResourceGroup, err)
 	}
 
@@ -126,7 +126,7 @@ func resourceVirtualDesktopHostPoolRegistrationInfoRead(d *pluginsdk.ResourceDat
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.HostPoolName)
+	resp, err := client.RetrieveRegistrationToken(ctx, id.ResourceGroup, id.HostPoolName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Virtual Desktop Host Pool %q was not found in Resource Group %q - removing from state!", id.HostPoolName, id.ResourceGroup)
@@ -137,11 +137,11 @@ func resourceVirtualDesktopHostPoolRegistrationInfoRead(d *pluginsdk.ResourceDat
 		return fmt.Errorf("Making Read request on Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.HostPoolName, id.ResourceGroup, err)
 	}
 
-	if regInfo := resp.HostPoolProperties.RegistrationInfo; regInfo != nil {
+	if resp.Token != nil && resp.ExpirationTime != nil {
 		hostpoolId := parse.NewHostPoolID(id.SubscriptionId, id.ResourceGroup, id.HostPoolName)
 		d.Set("hostpool_id", hostpoolId.ID())
-		d.Set("expiration_date", regInfo.ExpirationTime.Format(time.RFC3339))
-		d.Set("token", regInfo.Token)
+		d.Set("expiration_date", resp.ExpirationTime.Format(time.RFC3339))
+		d.Set("token", resp.Token)
 	}
 
 	return nil
@@ -173,19 +173,27 @@ func resourceVirtualDesktopHostPoolRegistrationInfoDelete(d *pluginsdk.ResourceD
 		return fmt.Errorf("Making Read request on Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.HostPoolName, id.ResourceGroup, err)
 	}
 
-	if resp.HostPoolProperties == nil {
-		return fmt.Errorf("%s was returned without any properties", hostpoolId)
+	regInfo, err := client.RetrieveRegistrationToken(ctx, id.ResourceGroup, id.HostPoolName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] Virtual Desktop Host Pool %q Registration Info was not found in Resource Group %q - removing from state!", id.HostPoolName, id.ResourceGroup)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Making Read request on Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.HostPoolName, id.ResourceGroup, err)
 	}
-	if resp.HostPoolProperties.RegistrationInfo == nil {
+	if &regInfo.ExpirationTime == nil {
 		log.Printf("[INFO] RegistrationInfo for %s was nil, registrationInfo already deleted - removing %s from state", hostpoolId.ID(), id)
 		return nil
 	}
 
-	if regInfo := resp.HostPoolProperties.RegistrationInfo; regInfo != nil {
-		regInfo.RegistrationTokenOperation = desktopvirtualization.RegistrationTokenOperationDelete
-	}
+	hostpoolPatch := &desktopvirtualization.HostPoolPatch{}
+	hostpoolPatch.HostPoolPatchProperties = &desktopvirtualization.HostPoolPatchProperties{}
+	hostpoolPatch.HostPoolPatchProperties.RegistrationInfo = &desktopvirtualization.RegistrationInfoPatch{}
+	hostpoolPatch.HostPoolPatchProperties.RegistrationInfo.RegistrationTokenOperation = desktopvirtualization.RegistrationTokenOperationDelete
 
-	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.HostPoolName, resp); err != nil {
+	if _, err := client.Update(ctx, id.ResourceGroup, id.HostPoolName, hostpoolPatch); err != nil {
 		return fmt.Errorf("deleting Virtual Desktop Host Pool Registration Info %q (Resource Group %q): %+v", id.HostPoolName, id.ResourceGroup, err)
 	}
 
