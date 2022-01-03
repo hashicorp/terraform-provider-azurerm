@@ -24,7 +24,7 @@ func TestAccVirtualDesktopHostPoolRegInfo_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("token").Exists(),
 			),
 			// a non-empty plan is expected as the expiration_date value is relative to execution so a continual change is expected in this case
 			ExpectNonEmptyPlan: true,
@@ -40,7 +40,7 @@ func TestAccVirtualDesktopHostPoolRegInfo_update(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("token").Exists(),
 			),
 			// a non-empty plan is expected as the expiration_date value is relative to execution so a continual change is expected in this case
 			ExpectNonEmptyPlan: true,
@@ -48,7 +48,7 @@ func TestAccVirtualDesktopHostPoolRegInfo_update(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("token").Exists(),
 			),
 			// a non-empty plan is expected as the expiration_date value is relative to execution so a continual change is expected in this case
 			ExpectNonEmptyPlan: true,
@@ -56,7 +56,7 @@ func TestAccVirtualDesktopHostPoolRegInfo_update(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("token").Exists(),
 			),
 			// a non-empty plan is expected as the expiration_date value is relative to execution so a continual change is expected in this case
 			ExpectNonEmptyPlan: true,
