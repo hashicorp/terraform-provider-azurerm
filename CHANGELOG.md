@@ -31,6 +31,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_consumption_budget_subscription` - fix the string conversion in the state migration for the `subscription_id` [GH-14687]
+
 ## 2.90.0 (December 17, 2021)
 
 FEATURES:
