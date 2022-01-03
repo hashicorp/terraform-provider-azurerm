@@ -2,6 +2,7 @@ package migration
 
 import (
 	"context"
+	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -15,8 +16,12 @@ func (SubscriptionConsumptionBudgetV0ToV1) UpgradeFunc() pluginsdk.StateUpgrader
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		// The previous validation behaviour of subscription_id meant that we were only accepting this format 00000000-0000-0000-0000-000000000000,
 		// but we should be accepting /subscriptions/00000000-0000-0000-0000-000000000000
-		rawState["subscription_id"] = commonids.NewSubscriptionID(rawState["subscription_id"].(string))
 
+		subscription_id := rawState["subscription_id"].(string)
+		newID := commonids.NewSubscriptionID(subscription_id).ID()
+		log.Printf("[DEBUG] Updating subscription_id from %q to %q", subscription_id, newID)
+
+		rawState["subscription_id"] = newID
 		return rawState, nil
 	}
 }

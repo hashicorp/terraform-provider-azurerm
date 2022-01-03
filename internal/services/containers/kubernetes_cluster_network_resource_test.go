@@ -599,6 +599,28 @@ func TestAccKubernetesCluster_httpProxyConfigWithSubnet(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_publicNetworkAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.publicNetworkAccess(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccess(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (KubernetesClusterResource) advancedNetworkingConfig(data acceptance.TestData, networkPlugin string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2523,4 +2545,36 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) publicNetworkAccess(data acceptance.TestData, enabled bool) string {
+	authorizedIPConfig := ""
+	if !enabled {
+		authorizedIPConfig = `api_server_authorized_ip_ranges = ["0.0.0.0/32"]`
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  public_network_access_enabled = %t
+  %s
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled, authorizedIPConfig)
 }
