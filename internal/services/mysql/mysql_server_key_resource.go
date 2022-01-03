@@ -101,7 +101,7 @@ func resourceMySQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			if len(keys) > 1 {
 				return fmt.Errorf("expecting at most one MySQL Server Key, but got %q", len(keys))
 			}
-			if keys[0].ID == nil || *keys[0].ID != "" {
+			if keys[0].ID == nil || *keys[0].ID == "" {
 				return fmt.Errorf("missing ID for existing MySQL Server Key")
 			}
 
