@@ -97,7 +97,7 @@ func (r ApiManagementCustomDomainResource) basic(data acceptance.TestData) strin
 resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
 
-  proxy {
+  gateway {
     host_name    = "api.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
