@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * dependencies: upgrading to `v2.10.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-14666]
 * `azurerm_application_gateway` - support for the `key_vault_secret_id` and `force_firewall_policy_association` property [GH-14413]
 * `azurerm_iothub` - support for `identity` [GH-14354]
+* `azurerm_kubernetes_cluster` - support for `public_network_access_enabled`, `scale_down_mode` and `workload_runtime` properties [GH-14386]
 * `azurerm_linux_virtual_machine` - support for the `user_data` property [GH-13888]
 * `azurerm_linux_virtual_machine_scale_set` - support for the `user_data` property [GH-13888]
 * `azurerm_managed_disk` - support for the `gallery_image_reference_id` property [GH-14121]
