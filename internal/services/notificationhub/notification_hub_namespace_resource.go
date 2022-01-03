@@ -63,9 +63,9 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(notificationhubs.Basic),
-					string(notificationhubs.Free),
-					string(notificationhubs.Standard),
+					string(notificationhubs.SkuNameBasic),
+					string(notificationhubs.SkuNameFree),
+					string(notificationhubs.SkuNameStandard),
 				}, false),
 			},
 
@@ -79,8 +79,8 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(notificationhubs.Messaging),
-					string(notificationhubs.NotificationHub),
+					string(notificationhubs.NamespaceTypeMessaging),
+					string(notificationhubs.NamespaceTypeNotificationHub),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
