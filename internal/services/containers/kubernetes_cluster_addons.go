@@ -2,6 +2,7 @@ package containers
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
@@ -51,6 +52,196 @@ var unsupportedAddonsForEnvironment = map[string][]string{
 }
 
 func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
+	if features.ThreePointOh() {
+		return &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"aci_connector_linux": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"subnet_name": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+							},
+						},
+					},
+
+					"azure_policy_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"kube_dashboard_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"http_application_routing": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"http_application_routing_zone_name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+
+					"oms_agent": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"log_analytics_workspace_id": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
+								},
+								"oms_agent_identity": {
+									Type:     pluginsdk.TypeList,
+									Computed: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"client_id": {
+												Type:     pluginsdk.TypeString,
+												Computed: true,
+											},
+											"object_id": {
+												Type:     pluginsdk.TypeString,
+												Computed: true,
+											},
+											"user_assigned_identity_id": {
+												Type:     pluginsdk.TypeString,
+												Computed: true,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+
+					"ingress_application_gateway": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"gateway_id": {
+									Type:          pluginsdk.TypeString,
+									Optional:      true,
+									ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.subnet_cidr", "addon_profile.0.ingress_application_gateway.0.subnet_id"},
+									ValidateFunc:  applicationGatewayValidate.ApplicationGatewayID,
+								},
+								"gateway_name": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"subnet_cidr": {
+									Type:          pluginsdk.TypeString,
+									Optional:      true,
+									ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.gateway_id", "addon_profile.0.ingress_application_gateway.0.subnet_id"},
+									ValidateFunc:  commonValidate.CIDR,
+								},
+								"subnet_id": {
+									Type:          pluginsdk.TypeString,
+									Optional:      true,
+									ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.gateway_id", "addon_profile.0.ingress_application_gateway.0.subnet_cidr"},
+									ValidateFunc:  subnetValidate.SubnetID,
+								},
+								"effective_gateway_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"ingress_application_gateway_identity": {
+									Type:     pluginsdk.TypeList,
+									Computed: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"client_id": {
+												Type:     pluginsdk.TypeString,
+												Computed: true,
+											},
+											"object_id": {
+												Type:     pluginsdk.TypeString,
+												Computed: true,
+											},
+											"user_assigned_identity_id": {
+												Type:     pluginsdk.TypeString,
+												Computed: true,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+
+					"open_service_mesh_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default: false,
+					},
+					"azure_keyvault_secrets_provider": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"secret_rotation_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Default:  false,
+									Optional: true,
+								},
+								"secret_rotation_interval": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      "2m",
+									ValidateFunc: containerValidate.Duration,
+								},
+								"secret_identity": {
+									Type:     pluginsdk.TypeList,
+									Computed: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"client_id": {
+												Type:     pluginsdk.TypeString,
+												Computed: true,
+											},
+											"object_id": {
+												Type:     pluginsdk.TypeString,
+												Computed: true,
+											},
+											"user_assigned_identity_id": {
+												Type:     pluginsdk.TypeString,
+												Computed: true,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+	}
 	//lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -708,3 +899,4 @@ func kubernetesAddonProfilelocateInConfig(config map[string]*string, key string)
 
 	return nil
 }
+
