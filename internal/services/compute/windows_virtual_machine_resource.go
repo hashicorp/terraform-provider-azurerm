@@ -200,7 +200,6 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: validation.FloatAtLeast(-1.0),
 			},
 
-			// This is a preview feature: `az feature register -n InGuestAutoPatchVMPreview --namespace Microsoft.Compute`
 			"patch_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -210,6 +209,11 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 					string(compute.WindowsVMGuestPatchModeAutomaticByPlatform),
 					string(compute.WindowsVMGuestPatchModeManual),
 				}, false),
+			},
+
+			"hot_patching_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
 			},
 
 			"plan": planSchema(),
@@ -481,6 +485,13 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	if d.Get("hot_patching_enabled").(bool) {
+		if patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) {
+			return fmt.Errorf("`hot_patching_enabled` can only be set to `true` when `patch_mode` is `AutomaticByPlatform`")
+		}
+		params.OsProfile.WindowsConfiguration.PatchSettings.EnableHotpatching = utils.Bool(true)
+	}
+
 	if v, ok := d.GetOk("availability_set_id"); ok {
 		params.AvailabilitySet = &compute.SubResource{
 			ID: utils.String(v.(string)),
@@ -733,6 +744,12 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 
 			if patchSettings := config.PatchSettings; patchSettings != nil {
 				d.Set("patch_mode", patchSettings.PatchMode)
+
+				hotPatchingEnabled := false
+				if patchSettings.EnableHotpatching != nil {
+					hotPatchingEnabled = *patchSettings.EnableHotpatching
+				}
+				d.Set("hot_patching_enabled", hotPatchingEnabled)
 			}
 
 			d.Set("timezone", config.TimeZone)
@@ -920,6 +937,30 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
 			PatchMode: compute.WindowsVMGuestPatchMode(d.Get("patch_mode").(string)),
 		}
+	}
+
+	if d.HasChange("hot_patching_enabled") {
+		hotPatchingEnabled := d.Get("hot_patching_enabled").(bool)
+		patchMode := d.Get("patch_mode").(string)
+		if hotPatchingEnabled && patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) {
+			return fmt.Errorf("`hot_patching_enabled` can only be set to `true` when `patch_mode` is `AutomaticByPlatform`")
+		}
+
+		shouldUpdate = true
+
+		if update.OsProfile == nil {
+			update.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.OsProfile.WindowsConfiguration == nil {
+			update.OsProfile.WindowsConfiguration = &compute.WindowsConfiguration{}
+		}
+
+		if update.OsProfile.WindowsConfiguration.PatchSettings == nil {
+			update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{}
+		}
+
+		update.OsProfile.WindowsConfiguration.PatchSettings.EnableHotpatching = utils.Bool(hotPatchingEnabled)
 	}
 
 	if d.HasChange("identity") {
