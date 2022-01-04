@@ -95,6 +95,7 @@ resource "azurerm_iot_time_series_insights_reference_data_set" "test" {
   name                                = "accTEsttsd%d"
   time_series_insights_environment_id = azurerm_iot_time_series_insights_standard_environment.test.id
   location                            = azurerm_resource_group.test.location
+  data_string_comparison_behavior     = "OrdinalIgnoreCase"
 
   key_property {
     name = "keyProperty1"
