@@ -681,7 +681,6 @@ func TestAccWindowsWebAppSlot_withDocker(t *testing.T) {
 			Config: r.docker(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|mcr.microsoft.com/azure-app-service/samples/aspnethelloworld:latest"),
 			),
 		},
 		data.ImportStep(),
@@ -1628,7 +1627,7 @@ resource "azurerm_windows_web_app_slot" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   app_settings = {
-    "DOCKER_REGISTRY_SERVER_URL"          = "https://mcr.microsoft.com"
+    "DOCKER_REGISTRY_SERVER_URL"          = "https://index.docker.io"
     "DOCKER_REGISTRY_SERVER_USERNAME"     = ""
     "DOCKER_REGISTRY_SERVER_PASSWORD"     = ""
     "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
@@ -1636,13 +1635,12 @@ resource "azurerm_windows_web_app_slot" "test" {
 
   site_config {
     application_stack {
-      docker_container_registry = "%s"
       docker_container_name     = "%s"
       docker_container_tag      = "%s"
     }
   }
 }
-`, r.premiumV3PlanContainerTemplate(data), data.RandomInteger, "mcr.microsoft.com", "azure-app-service/samples/aspnethelloworld", "latest")
+`, r.premiumV3PlanContainerTemplate(data), data.RandomInteger, "hello-world", "latest")
 }
 
 // Templates

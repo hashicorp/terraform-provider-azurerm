@@ -921,7 +921,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"java_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					// Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"1.8",
 						"11",
@@ -930,7 +929,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 
 				"java_container": {Type: pluginsdk.TypeString,
 					Optional: true,
-					// Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"JAVA",
 						"JETTY",
@@ -944,7 +942,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"java_container_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					// Computed: true,
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.java_container",
 					},
@@ -955,7 +952,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					RequiredWith: []string{
-						"site_config.0.application_stack.0.docker_container_registry",
 						"site_config.0.application_stack.0.docker_container_tag",
 					},
 				},
@@ -964,10 +960,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					RequiredWith: []string{
-						"site_config.0.application_stack.0.docker_container_name",
-						"site_config.0.application_stack.0.docker_container_tag",
-					},
 				},
 
 				"docker_container_tag": {
@@ -976,7 +968,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.docker_container_name",
-						"site_config.0.application_stack.0.docker_container_registry",
 					},
 				},
 
@@ -2778,7 +2769,10 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.JavaContainer = utils.String(winAppStack.JavaContainer)
 		expanded.JavaContainerVersion = utils.String(winAppStack.JavaContainerVersion)
 		if winAppStack.DockerContainerName != "" {
-			expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+			if winAppStack.DockerContainerRegistry != "" {
+				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+			}
+			expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
 		}
 		currentStack = winAppStack.CurrentStack
 	}
@@ -2881,7 +2875,6 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 			}
 		}
 		expanded.Cors = cors
-
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal_enabled") {
@@ -3485,8 +3478,11 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		if len(parts) == 2 {
 			winAppStack.DockerContainerTag = parts[1]
 			path := strings.Split(parts[0], "/")
-			winAppStack.DockerContainerRegistry = path[0]
-			winAppStack.DockerContainerName = strings.TrimPrefix(parts[0], fmt.Sprintf("%s/", path[0]))
+			if len(path) > 2 {
+				winAppStack.DockerContainerRegistry = path[0]
+				winAppStack.DockerContainerName = strings.TrimPrefix(parts[0], fmt.Sprintf("%s/", path[0]))
+			}
+			winAppStack.DockerContainerName = path[0]
 		}
 	}
 	winAppStack.CurrentStack = currentStack
@@ -3630,7 +3626,7 @@ func FlattenConnectionStrings(appConnectionStrings web.ConnectionStringDictionar
 	return connectionStrings
 }
 
-func ExpandAppSettings(settings map[string]string) *web.StringDictionary {
+func ExpandAppSettingsForUpdate(settings map[string]string) *web.StringDictionary {
 	appSettings := make(map[string]*string)
 	for k, v := range settings {
 		appSettings[k] = utils.String(v)
@@ -3639,6 +3635,20 @@ func ExpandAppSettings(settings map[string]string) *web.StringDictionary {
 	return &web.StringDictionary{
 		Properties: appSettings,
 	}
+}
+
+func ExpandAppSettingsForCreate(settings map[string]string) *[]web.NameValuePair {
+	if len(settings) > 0 {
+		result := make([]web.NameValuePair, 0)
+		for k, v := range settings {
+			result = append(result, web.NameValuePair{
+				Name:  utils.String(k),
+				Value: utils.String(v),
+			})
+		}
+		return &result
+	}
+	return nil
 }
 
 func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {
