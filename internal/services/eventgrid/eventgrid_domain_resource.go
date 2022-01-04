@@ -142,6 +142,18 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 
 			"local_auth_enabled": localAuthEnabled(),
 
+			"auto_create_topic_with_first_subscription": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"auto_delete_topic_with_last_subscription": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"inbound_ip_rule": eventSubscriptionInboundIPRule(),
 
 			"endpoint": {
@@ -191,11 +203,13 @@ func resourceEventGridDomainCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	t := d.Get("tags").(map[string]interface{})
 
 	domainProperties := &eventgrid.DomainProperties{
-		InputSchemaMapping:  expandAzureRmEventgridDomainInputMapping(d),
-		InputSchema:         eventgrid.InputSchema(d.Get("input_schema").(string)),
-		PublicNetworkAccess: expandPublicNetworkAccess(d),
-		InboundIPRules:      expandInboundIPRules(d),
-		DisableLocalAuth:    utils.Bool(!d.Get("local_auth_enabled").(bool)),
+		InputSchemaMapping:                   expandAzureRmEventgridDomainInputMapping(d),
+		InputSchema:                          eventgrid.InputSchema(d.Get("input_schema").(string)),
+		PublicNetworkAccess:                  expandPublicNetworkAccess(d),
+		InboundIPRules:                       expandInboundIPRules(d),
+		DisableLocalAuth:                     utils.Bool(!d.Get("local_auth_enabled").(bool)),
+		AutoCreateTopicWithFirstSubscription: utils.Bool(d.Get("auto_create_topic_with_first_subscription").(bool)),
+		AutoDeleteTopicWithLastSubscription:  utils.Bool(d.Get("auto_delete_topic_with_last_subscription").(bool)),
 	}
 
 	domain := eventgrid.Domain{
@@ -301,6 +315,20 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 
 		d.Set("local_auth_enabled", localAuthEnabled)
+
+		autoCreateTopicWithFirstSubscription := true
+		if props.AutoCreateTopicWithFirstSubscription != nil {
+			autoCreateTopicWithFirstSubscription = *props.AutoCreateTopicWithFirstSubscription
+		}
+
+		d.Set("auto_create_topic_with_first_subscription", autoCreateTopicWithFirstSubscription)
+
+		autoDeleteTopicWithLastSubscription := true
+		if props.AutoDeleteTopicWithLastSubscription != nil {
+			autoDeleteTopicWithLastSubscription = *props.AutoDeleteTopicWithLastSubscription
+		}
+
+		d.Set("auto_delete_topic_with_last_subscription", autoDeleteTopicWithLastSubscription)
 	}
 
 	keys, err := client.ListSharedAccessKeys(ctx, id.ResourceGroup, id.Name)

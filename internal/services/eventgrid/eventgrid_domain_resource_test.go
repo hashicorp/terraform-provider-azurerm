@@ -47,6 +47,8 @@ func TestAccEventGridDomain_update(t *testing.T) {
 				check.That(data.ResourceName).Key("primary_access_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
 				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auto_create_topic_with_first_subscription").HasValue("true"),
+				check.That(data.ResourceName).Key("auto_delete_topic_with_last_subscription").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -58,6 +60,8 @@ func TestAccEventGridDomain_update(t *testing.T) {
 				check.That(data.ResourceName).Key("primary_access_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
 				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("auto_create_topic_with_first_subscription").HasValue("false"),
+				check.That(data.ResourceName).Key("auto_delete_topic_with_last_subscription").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -223,10 +227,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_eventgrid_domain" "test" {
-  name                = "acctesteg-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  local_auth_enabled  = false
+  name                                      = "acctesteg-%d"
+  location                                  = azurerm_resource_group.test.location
+  resource_group_name                       = azurerm_resource_group.test.name
+  local_auth_enabled                        = false
+  auto_create_topic_with_first_subscription = false
+  auto_delete_topic_with_last_subscription  = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
