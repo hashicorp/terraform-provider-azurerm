@@ -147,6 +147,9 @@ resource "azurerm_iot_time_series_insights_event_source_eventhub" "test" {
   shared_access_key_name   = azurerm_eventhub_authorization_rule.test.name
   consumer_group_name      = azurerm_eventhub_consumer_group.test.name
   event_source_resource_id = azurerm_eventhub.test.id
+  tags = {
+    ENV = "Test"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
