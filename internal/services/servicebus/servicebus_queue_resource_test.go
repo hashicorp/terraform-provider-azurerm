@@ -387,9 +387,8 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctestservicebusqueue-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.test.name
+  name         = "acctestservicebusqueue-%d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -399,9 +398,8 @@ func (r ServiceBusQueueResource) requiresImport(data acceptance.TestData) string
 %s
 
 resource "azurerm_servicebus_queue" "import" {
-  name                = azurerm_servicebus_queue.test.name
-  resource_group_name = azurerm_servicebus_queue.test.resource_group_name
-  namespace_name      = azurerm_servicebus_queue.test.namespace_name
+  name         = azurerm_servicebus_queue.test.name
+  namespace_id = azurerm_servicebus_queue.test.namespace_id
 }
 `, r.basic(data))
 }
@@ -427,8 +425,7 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_queue" "test" {
   name                = "acctestservicebusqueue-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.test.name
+  namespace_id        = azurerm_servicebus_namespace.test.id
   enable_partitioning = false
   enable_express      = false
 
@@ -457,8 +454,7 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_queue" "test" {
   name                      = "acctestservicebusqueue-%d"
-  resource_group_name       = azurerm_resource_group.test.name
-  namespace_name            = azurerm_servicebus_namespace.test.name
+  namespace_id              = azurerm_servicebus_namespace.test.id
   enable_express            = true
   max_size_in_megabytes     = 2048
   enable_batched_operations = false
@@ -486,8 +482,7 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_queue" "test" {
   name                  = "acctestservicebusqueue-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  namespace_name        = azurerm_servicebus_namespace.test.name
+  namespace_id          = azurerm_servicebus_namespace.test.id
   enable_partitioning   = true
   max_size_in_megabytes = 5120
 }
@@ -514,8 +509,7 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_queue" "test" {
   name                         = "acctestservicebusqueue-%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  namespace_name               = azurerm_servicebus_namespace.test.name
+  namespace_id                 = azurerm_servicebus_namespace.test.id
   requires_duplicate_detection = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -541,10 +535,9 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctestservicebusqueue-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  requires_session    = true
+  name             = "acctestservicebusqueue-%d"
+  namespace_id     = azurerm_servicebus_namespace.test.id
+  requires_session = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -570,8 +563,7 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_queue" "test" {
   name                                 = "acctestservicebusqueue-%d"
-  resource_group_name                  = azurerm_resource_group.test.name
-  namespace_name                       = azurerm_servicebus_namespace.test.name
+  namespace_id                         = azurerm_servicebus_namespace.test.id
   dead_lettering_on_message_expiration = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -596,10 +588,9 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctestservicebusqueue-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  lock_duration       = "PT40S"
+  name          = "acctestservicebusqueue-%d"
+  namespace_id  = azurerm_servicebus_namespace.test.id
+  lock_duration = "PT40S"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -623,10 +614,9 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctestservicebusqueue-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  lock_duration       = "PT2M"
+  name          = "acctestservicebusqueue-%d"
+  namespace_id  = azurerm_servicebus_namespace.test.id
+  lock_duration = "PT2M"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -651,8 +641,7 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_queue" "test" {
   name                                    = "acctestservicebusqueue-%d"
-  resource_group_name                     = azurerm_resource_group.test.name
-  namespace_name                          = azurerm_servicebus_namespace.test.name
+  namespace_id                            = azurerm_servicebus_namespace.test.id
   auto_delete_on_idle                     = "PT10M"
   default_message_ttl                     = "PT30M"
   requires_duplicate_detection            = true
@@ -680,10 +669,9 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctestservicebusqueue-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  max_delivery_count  = 20
+  name               = "acctestservicebusqueue-%d"
+  namespace_id       = azurerm_servicebus_namespace.test.id
+  max_delivery_count = 20
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -707,16 +695,14 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_queue" "forward_to" {
-  name                = "acctestservicebusqueue-forward_to-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.test.name
+  name         = "acctestservicebusqueue-forward_to-%d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctestservicebusqueue-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  forward_to          = azurerm_servicebus_queue.forward_to.name
+  name         = "acctestservicebusqueue-%d"
+  namespace_id = azurerm_servicebus_namespace.test.id
+  forward_to   = azurerm_servicebus_queue.forward_to.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -740,15 +726,13 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_queue" "forward_dl_messages_to" {
-  name                = "acctestservicebusqueue-forward_dl_messages_to-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.test.name
+  name         = "acctestservicebusqueue-forward_dl_messages_to-%d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                              = "acctestservicebusqueue-%d"
-  resource_group_name               = azurerm_resource_group.test.name
-  namespace_name                    = azurerm_servicebus_namespace.test.name
+  namespace_id                      = azurerm_servicebus_namespace.test.id
   forward_dead_lettered_messages_to = azurerm_servicebus_queue.forward_dl_messages_to.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -773,10 +757,9 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctestservicebusqueue-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  status              = "%s"
+  name         = "acctestservicebusqueue-%d"
+  namespace_id = azurerm_servicebus_namespace.test.id
+  status       = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, status)
 }

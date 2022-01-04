@@ -30,9 +30,8 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_queue" "example" {
-  name                = "tfex_servicebus_queue"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  name         = "tfex_servicebus_queue"
+  namespace_id = azurerm_servicebus_namespace.example.id
 
   enable_partitioning = true
 }
@@ -44,9 +43,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the ServiceBus Queue resource. Changing this forces a new resource to be created.
 
-* `namespace_name` - (Required) The name of the ServiceBus Namespace to create this queue in. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the resource group in which to create the namespace. Changing this forces a new resource to be created.
+* `namespace_id` - (Required) The ID of the ServiceBus Namespace to create this queue in. Changing this forces a new resource to be created.
 
 * `lock_duration` - (Optional) The ISO 8601 timespan duration of a peek-lock; that is, the amount of time that the message is locked for other receivers. Maximum value is 5 minutes. Defaults to 1 minute (`PT1M`).
 
