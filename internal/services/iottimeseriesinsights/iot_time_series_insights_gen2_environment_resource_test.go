@@ -116,6 +116,9 @@ resource "azurerm_iot_time_series_insights_gen2_environment" "test" {
     name = azurerm_storage_account.storage.name
     key  = azurerm_storage_account.storage.primary_access_key
   }
+  tags = {
+    ENV = "Test"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
