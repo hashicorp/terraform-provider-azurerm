@@ -16,7 +16,7 @@ import (
 type LinkedServiceOdbcResource struct {
 }
 
-func TestAccDataFactoryLinkedServiceOdbc_anon_auth(t *testing.T) {
+func TestAccDataFactoryLinkedServiceODBC_anon_auth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_odbc", "test")
 	r := LinkedServiceOdbcResource{}
 
@@ -31,7 +31,7 @@ func TestAccDataFactoryLinkedServiceOdbc_anon_auth(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryLinkedServiceOdbc_basic_auth(t *testing.T) {
+func TestAccDataFactoryLinkedServiceODBC_basic_auth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_odbc", "test")
 	r := LinkedServiceOdbcResource{}
 
@@ -46,7 +46,7 @@ func TestAccDataFactoryLinkedServiceOdbc_basic_auth(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryLinkedServiceOdbc_basic_update(t *testing.T) {
+func TestAccDataFactoryLinkedServiceODBC_basic_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_odbc", "test")
 	r := LinkedServiceOdbcResource{}
 
@@ -76,7 +76,7 @@ func (t LinkedServiceOdbcResource) Exists(ctx context.Context, clients *clients.
 
 	resp, err := clients.DataFactory.LinkedServiceClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Data Factory Odbc (%s): %+v", *id, err)
+		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

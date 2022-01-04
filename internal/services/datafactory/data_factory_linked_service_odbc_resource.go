@@ -237,7 +237,7 @@ func resourceDataFactoryLinkedServiceOdbcRead(d *pluginsdk.ResourceData, meta in
 
 	props := odbc.OdbcLinkedServiceTypeProperties
 	d.Set("connection_string", props.ConnectionString)
-	if props.AuthenticationType == datafactory.AuthenticationTypeBasic {
+	if datafactory.AuthenticationType(props.AuthenticationType.(string)) == datafactory.AuthenticationTypeBasic {
 		if err := d.Set("basic_authentication", []interface{}{map[string]interface{}{
 			"username": props.UserName,
 			// `password` isn't returned from the api so we'll set it to `*****` here to be able to check for diffs during plan
