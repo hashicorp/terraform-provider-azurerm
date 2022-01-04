@@ -68,7 +68,7 @@ func resourceWebPubSub() *pluginsdk.Resource {
 				ValidateFunc: validation.IntInSlice([]int{1, 2, 5, 10, 20, 50, 100}),
 			},
 
-			"live_trace_configuration": {
+			"live_trace": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -193,7 +193,7 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	id := parse.NewWebPubsubID(subscriptionId, resourceGroup, name)
-	liveTraceConfig := d.Get("live_trace_configuration").([]interface{})
+	liveTraceConfig := d.Get("live_trace").([]interface{})
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.WebPubSubName)
@@ -305,8 +305,8 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("tls_client_cert_enabled", props.TLS.ClientCertEnabled)
 		}
 
-		if err := d.Set("live_trace_configuration", flattenLiveTraceConfig(props.LiveTraceConfiguration)); err != nil {
-			return fmt.Errorf("setting `live_trace_configuration`:%+v", err)
+		if err := d.Set("live_trace", flattenLiveTraceConfig(props.LiveTraceConfiguration)); err != nil {
+			return fmt.Errorf("setting `live_trace`:%+v", err)
 		}
 	}
 

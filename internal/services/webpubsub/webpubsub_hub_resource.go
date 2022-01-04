@@ -110,7 +110,7 @@ func resourceWebPubsubHub() *pluginsdk.Resource {
 				},
 			},
 
-			"anonymous_connect_enabled": {
+			"anonymous_connections_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -144,7 +144,7 @@ func resourceWebPubsubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	anonymousPolicyEnabled := "Deny"
-	if d.Get("anonymous_connect_enabled").(bool) {
+	if d.Get("anonymous_connections_enabled").(bool) {
 		anonymousPolicyEnabled = "Allow"
 	}
 
@@ -191,7 +191,7 @@ func resourceWebPubSubHubRead(d *pluginsdk.ResourceData, meta interface{}) error
 		if err := d.Set("event_handler", flattenEventHandler(props.EventHandlers)); err != nil {
 			return fmt.Errorf("setting `event_handler`: %+v", err)
 		}
-		d.Set("anonymous_connect_enabled", strings.EqualFold(*props.AnonymousConnectPolicy, "Allow"))
+		d.Set("anonymous_connections_enabled", strings.EqualFold(*props.AnonymousConnectPolicy, "Allow"))
 	}
 
 	return nil

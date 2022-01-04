@@ -1,5 +1,5 @@
 ---
-subcategory: "Web Pubsub"
+subcategory: "Web Publishing Subscription"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_pubsub"
 description: |-
@@ -28,7 +28,7 @@ resource "azurerm_web_pubsub" "example" {
 
   public_network_access_enabled = false
 
-  live_trace_configuration {
+  live_trace {
     enabled = true
     categories {
       name    = "MessagingLogs"
@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `live_trace_configuration` - (Optional) A `live_trace_configuration` block as documented below.
+* `live_trace` - (Optional) A `live_trace` block as documented below.
 
 * `local_auth_enabled` - (Optional) Whether to enable local auth? Defaults to `true`.
 
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 ---
 
-A `live_trace_configuration` block supports the following:
+A `live_trace` block supports the following:
 
 * `enabled` - (Optional) Whether the live trace is enabled? Defaults to `true`.
 

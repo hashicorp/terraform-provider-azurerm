@@ -1,5 +1,5 @@
 ---
-subcategory: "Web Pubsub"
+subcategory: "Web Publishing Subscription"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_pubsub"
 description: |-

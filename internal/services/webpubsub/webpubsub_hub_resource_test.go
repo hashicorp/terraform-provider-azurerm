@@ -180,7 +180,7 @@ resource "azurerm_web_pubsub_hub" "test" {
       }
     }
   }
-  anonymous_connect_enabled = true
+  anonymous_connections_enabled = true
 
   depends_on = [
     azurerm_web_pubsub.test

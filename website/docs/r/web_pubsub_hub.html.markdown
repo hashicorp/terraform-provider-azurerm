@@ -1,5 +1,5 @@
 ---
-subcategory: "Web Pubsub"
+subcategory: "Web Publishing Subscription"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_pubsub_hub"
 description: |-
@@ -53,7 +53,7 @@ resource "azurerm_web_pubsub_hub" "test" {
       }
     }
   }
-  anonymous_connect_enabled = true
+  anonymous_connections_enabled = true
 
   depends_on = [
     azurerm_web_pubsub.test
@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `event_handler` - (Required) An `event_handler` block as defined below.
 
-* `anonymous_connect_enabled` - (Optional) Is anonymous connections are allowed for this hub? Defaults to `false`. Possible value are `true`, `false`
+* `anonymous_connections_enabled` - (Optional) Is anonymous connections are allowed for this hub? Defaults to `false`. Possible value are `true`, `false`
 
 ---
 
