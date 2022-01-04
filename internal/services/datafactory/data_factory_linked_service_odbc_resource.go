@@ -16,12 +16,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceOdbc() *pluginsdk.Resource {
+func resourceDataFactoryLinkedServiceOdbc() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmDataFactoryLinkedServiceOdbcCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceOdbcRead,
-		Update: resourceArmDataFactoryLinkedServiceOdbcCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceOdbcDelete,
+		Create: resourceDataFactoryLinkedServiceOdbcCreateUpdate,
+		Read:   resourceDataFactoryLinkedServiceOdbcRead,
+		Update: resourceDataFactoryLinkedServiceOdbcCreateUpdate,
+		Delete: resourceDataFactoryLinkedServiceOdbcDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)
@@ -43,24 +43,11 @@ func resourceArmDataFactoryLinkedServiceOdbc() *pluginsdk.Resource {
 				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
-			// TODO remove in 3.0
-			"data_factory_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.DataFactoryName(),
-				Deprecated:   "`data_factory_name` is deprecated in favour of `data_factory_id` and will be removed in version 3.0 of the AzureRM provider",
-				ExactlyOneOf: []string{"data_factory_id"},
-			},
-
 			"data_factory_id": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true, // TODO set to Required in 3.0
-				Computed:     true, // TODO remove in 3.0
+				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryID,
-				ExactlyOneOf: []string{"data_factory_name"},
 			},
 
 			// There's a bug in the Azure API where this is returned in lower-case
@@ -137,24 +124,15 @@ func resourceArmDataFactoryLinkedServiceOdbc() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceOdbcCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceOdbcCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// TODO 3.0: remove/simplify this after deprecation
-	var err error
-	var dataFactoryId *parse.DataFactoryId
-	if v := d.Get("data_factory_name").(string); v != "" {
-		newDataFactoryId := parse.NewDataFactoryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("data_factory_name").(string))
-		dataFactoryId = &newDataFactoryId
-	}
-	if v := d.Get("data_factory_id").(string); v != "" {
-		dataFactoryId, err = parse.DataFactoryID(v)
-		if err != nil {
-			return err
-		}
+	dataFactoryId, err := parse.DataFactoryID(d.Get("data_factory_id").(string))
+	if err != nil {
+		return err
 	}
 
 	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
@@ -163,7 +141,7 @@ func resourceArmDataFactoryLinkedServiceOdbcCreateUpdate(d *pluginsdk.ResourceDa
 		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory ODbc Anonymous %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
@@ -218,15 +196,15 @@ func resourceArmDataFactoryLinkedServiceOdbcCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, linkedService, ""); err != nil {
-		return fmt.Errorf("creating/updating Data Factory Odbc Anonymous %s: %+v", id, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	return resourceArmDataFactoryLinkedServiceOdbcRead(d, meta)
+	return resourceDataFactoryLinkedServiceOdbcRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceOdbcRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceOdbcRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -245,18 +223,16 @@ func resourceArmDataFactoryLinkedServiceOdbcRead(d *pluginsdk.ResourceData, meta
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Data Factory Odbc %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	// TODO 3.0: remove
-	d.Set("data_factory_name", id.FactoryName)
 	d.Set("data_factory_id", dataFactoryId.ID())
 
 	odbc, ok := resp.Properties.AsOdbcLinkedService()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Odbc %s: Expected: %q Received: %q", *id, datafactory.TypeBasicLinkedServiceTypeOdbc, *resp.Type)
+		return fmt.Errorf("classifying Data Factory ODBC %s: Expected: %q Received: %q", *id, datafactory.TypeBasicLinkedServiceTypeOdbc, *resp.Type)
 	}
 
 	props := odbc.OdbcLinkedServiceTypeProperties
@@ -293,7 +269,7 @@ func resourceArmDataFactoryLinkedServiceOdbcRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceOdbcDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceOdbcDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -306,7 +282,7 @@ func resourceArmDataFactoryLinkedServiceOdbcDelete(d *pluginsdk.ResourceData, me
 	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting Data Factory Odbc %s: %+v", *id, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

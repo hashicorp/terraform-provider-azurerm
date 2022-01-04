@@ -3,12 +3,12 @@ subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_linked_service_odbc"
 description: |-
-  Manages a Linked Service (connection) between a Database and Azure Data Factory through Odbc protocol.
+  Manages a Linked Service (connection) between a Database and Azure Data Factory through ODBC protocol.
 ---
 
 # azurerm_data_factory_linked_service_odbc
 
-Manages a Linked Service (connection) between a Database and Azure Data Factory through Odbc protocol.
+Manages a Linked Service (connection) between a Database and Azure Data Factory through ODBC protocol.
 
 ~> **Note:** All arguments including the connection_string will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
@@ -29,7 +29,7 @@ resource "azurerm_data_factory" "example" {
 resource "azurerm_data_factory_linked_service_odbc" "anonymous" {
   name                = "anonymous"
   resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
+  data_factory_id     = azurerm_data_factory.example.id
   connection_string   = "Driver={SQL Server};Server=test;Database=test;Uid=test;Pwd=test;"
 }
 
@@ -49,58 +49,52 @@ resource "azurerm_data_factory_linked_service_odbc" "basic_auth" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Data Factory Linked Service Odbc. Changing this forces a new resource to be created. Must be unique within a data factory. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Linked Service ODBC. Changing this forces a new resource to be created. Must be unique within a data factory. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Linked Service Odbc. Changing this forces a new resource
+* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Linked Service ODBC. Changing this forces a new resource
 
 * `data_factory_id` - (Optional) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
-
-* `data_factory_name` - (Optional) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
-
--> **Note:** This property has been deprecated in favour of the `data_factory_id` property and will be removed in version 3.0 of the provider.
-
--> **Note:** At least one of `data_factory_id` or `data_factory_name` must be set.
 
 * `connection_string` - (Required) The connection string in which to authenticate with ODBC.
 
 * `basic_authentication` - (Optional) A `basic_authentication` block as defined below.
 
-* `description` - (Optional) The description for the Data Factory Linked Service Odbc.
+* `description` - (Optional) The description for the Data Factory Linked Service ODBC.
 
-* `integration_runtime_name` - (Optional) The integration runtime reference to associate with the Data Factory Linked Service Odbc.
+* `integration_runtime_name` - (Optional) The integration runtime reference to associate with the Data Factory Linked Service ODBC.
 
-* `annotations` - (Optional) List of tags that can be used for describing the Data Factory Linked Service Odbc.
+* `annotations` - (Optional) List of tags that can be used for describing the Data Factory Linked Service ODBC.
 
-* `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service Odbc.
+* `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service ODBC.
 
-* `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service Odbc.
+* `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service ODBC.
 
 ---
 
 A `basic_authentication` block supports the following:
 
-* `username` - (Required) The username which can be used to authenticate to the Odbc endpoint.
+* `username` - (Required) The username which can be used to authenticate to the ODBC endpoint.
 
-* `password` - (Required) The password associated with the username, which can be used to authenticate to the Odbc endpoint.
+* `password` - (Required) The password associated with the username, which can be used to authenticate to the ODBC endpoint.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the Data Factory Odbc Linked Service.
+* `id` - The ID of the Data Factory ODBC Linked Service.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Data Factory Odbc Linked Service.
-* `update` - (Defaults to 30 minutes) Used when updating the Data Factory Odbc Linked Service.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Odbc Linked Service.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory Odbc Linked Service.
+* `create` - (Defaults to 30 minutes) Used when creating the Data Factory ODBC Linked Service.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory ODBC Linked Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory ODBC Linked Service.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory ODBC Linked Service.
 
 ## Import
 
-Data Factory Odbc Linked Service's can be imported using the `resource id`, e.g.
+Data Factory ODBC Linked Service's can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_data_factory_linked_service_odbc.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/linkedservices/example
