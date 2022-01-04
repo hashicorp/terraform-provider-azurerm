@@ -247,6 +247,10 @@ The following arguments are supported:
 * `shared_key` - (Optional) The shared IPSec key. A key could be provided if a
     Site-to-Site, VNet-to-VNet or ExpressRoute connection is created.
 
+* `connection_mode` - (Optional) Connection mode to use. Possible
+values are `Default`, `InitiatorOnly` and `ResponderOnly`. Defaults to `Default`.
+Changing this value will force a resource to be created.
+
 * `connection_protocol` - (Optional) The IKE protocol version to use. Possible
     values are `IKEv1` and `IKEv2`. Defaults to `IKEv2`.
     Changing this value will force a resource to be created.

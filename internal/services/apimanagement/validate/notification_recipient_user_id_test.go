@@ -54,37 +54,37 @@ func TestNotificationRecipientUserID(t *testing.T) {
 
 		{
 			// missing NotificationName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/apimservice1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/",
 			Valid: false,
 		},
 
 		{
 			// missing value for NotificationName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/apimservice1/notifications/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/notifications/",
 			Valid: false,
 		},
 
 		{
 			// missing RecipientUserName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/apimservice1/notifications/notificationName1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/notifications/notificationName1/",
 			Valid: false,
 		},
 
 		{
 			// missing value for RecipientUserName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/apimservice1/notifications/notificationName1/recipientUsers/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/notifications/notificationName1/recipientUsers/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/apimservice1/notifications/notificationName1/recipientUsers/userid1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/notifications/notificationName1/recipientUsers/user1",
 			Valid: true,
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.APIMANAGEMENT/SERVICE/APIMSERVICE1/NOTIFICATIONS/NOTIFICATIONNAME1/RECIPIENTUSERS/USERID1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.APIMANAGEMENT/SERVICE/SERVICE1/NOTIFICATIONS/NOTIFICATIONNAME1/RECIPIENTUSERS/USER1",
 			Valid: false,
 		},
 	}

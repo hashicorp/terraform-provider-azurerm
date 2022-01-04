@@ -3,7 +3,6 @@ package migration
 import (
 	"context"
 	"log"
-	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
@@ -25,27 +24,15 @@ func (DevTestVirtualNetworkUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderF
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.devtestlab/labs/{labName}/virtualnetworks/{virtualNetworkName}
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/virtualNetworks/{virtualNetworkName}
-
-		oldId, err := azure.ParseAzureResourceID(strings.Replace(rawState["id"].(string), "/virtualnetworks/", "/virtualNetworks/", 1))
+		oldId := rawState["id"].(string)
+		id, err := parse.DevTestVirtualNetworkIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}
 
-		labName, err := oldId.PopSegment("labs")
-		if err != nil {
-			return rawState, err
-		}
-
-		vnetName, err := oldId.PopSegment("virtualNetworks")
-		if err != nil {
-			return rawState, err
-		}
-
-		newId := parse.NewDevTestVirtualNetworkID(oldId.SubscriptionID, oldId.ResourceGroup, labName, vnetName)
-
-		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId.ID())
-
-		rawState["id"] = newId.ID()
+		newId := id.ID()
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+		rawState["id"] = newId
 
 		return rawState, nil
 	}

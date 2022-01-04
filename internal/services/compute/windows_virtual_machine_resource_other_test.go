@@ -20,9 +20,7 @@ func TestAccWindowsVirtualMachine_otherPatchModeManual(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -37,9 +35,7 @@ func TestAccWindowsVirtualMachine_otherPatchModeAutomaticByOS(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -54,9 +50,7 @@ func TestAccWindowsVirtualMachine_otherPatchModeAutomaticByPlatform(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -71,27 +65,21 @@ func TestAccWindowsVirtualMachine_otherPatchModeUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherPatchModeAutomaticByPlatform(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherPatchModeManual(data), // this update requires force replacement actually
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -125,9 +113,7 @@ func TestAccWindowsVirtualMachine_otherAllowExtensionOperationsDefault(t *testin
 				check.That(data.ResourceName).Key("allow_extension_operations").HasValue("true"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -143,9 +129,7 @@ func TestAccWindowsVirtualMachine_otherAllowExtensionOperationsDisabled(t *testi
 				check.That(data.ResourceName).Key("allow_extension_operations").HasValue("false"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -161,9 +145,7 @@ func TestAccWindowsVirtualMachine_otherAllowExtensionOperationsUpdated(t *testin
 				check.That(data.ResourceName).Key("allow_extension_operations").HasValue("true"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherAllowExtensionOperationsDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -171,9 +153,7 @@ func TestAccWindowsVirtualMachine_otherAllowExtensionOperationsUpdated(t *testin
 				check.That(data.ResourceName).Key("allow_extension_operations").HasValue("false"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -189,9 +169,7 @@ func TestAccWindowsVirtualMachine_otherAllowExtensionOperationsUpdatedWithoutVmA
 				check.That(data.ResourceName).Key("allow_extension_operations").HasValue("false"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherAllowExtensionOperationsEnabledWithoutVmAgent(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -199,9 +177,7 @@ func TestAccWindowsVirtualMachine_otherAllowExtensionOperationsUpdatedWithoutVmA
 				check.That(data.ResourceName).Key("allow_extension_operations").HasValue("true"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -217,9 +193,7 @@ func TestAccWindowsVirtualMachine_otherExtensionsTimeBudget(t *testing.T) {
 				check.That(data.ResourceName).Key("extensions_time_budget").HasValue("PT30M"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -235,9 +209,7 @@ func TestAccWindowsVirtualMachine_otherExtensionsTimeBudgetUpdate(t *testing.T) 
 				check.That(data.ResourceName).Key("extensions_time_budget").HasValue("PT30M"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherExtensionsTimeBudget(data, "PT50M"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -245,9 +217,7 @@ func TestAccWindowsVirtualMachine_otherExtensionsTimeBudgetUpdate(t *testing.T) 
 				check.That(data.ResourceName).Key("extensions_time_budget").HasValue("PT50M"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherExtensionsTimeBudget(data, "PT30M"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -255,9 +225,7 @@ func TestAccWindowsVirtualMachine_otherExtensionsTimeBudgetUpdate(t *testing.T) 
 				check.That(data.ResourceName).Key("extensions_time_budget").HasValue("PT30M"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -273,9 +241,7 @@ func TestAccWindowsVirtualMachine_otherBootDiagnostics(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// Disabled
 			Config: r.otherBootDiagnosticsDisabled(data),
@@ -283,9 +249,7 @@ func TestAccWindowsVirtualMachine_otherBootDiagnostics(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// Enabled
 			Config: r.otherBootDiagnostics(data),
@@ -293,9 +257,7 @@ func TestAccWindowsVirtualMachine_otherBootDiagnostics(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -311,9 +273,7 @@ func TestAccWindowsVirtualMachine_otherBootDiagnosticsManaged(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// Disabled
 			Config: r.otherBootDiagnosticsDisabled(data),
@@ -321,9 +281,7 @@ func TestAccWindowsVirtualMachine_otherBootDiagnosticsManaged(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// Enabled
 			Config: r.otherBootDiagnosticsManaged(data),
@@ -331,9 +289,7 @@ func TestAccWindowsVirtualMachine_otherBootDiagnosticsManaged(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -349,9 +305,7 @@ func TestAccWindowsVirtualMachine_otherComputerNameDefault(t *testing.T) {
 				check.That(data.ResourceName).Key("computer_name").Exists(),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -379,9 +333,7 @@ func TestAccWindowsVirtualMachine_otherComputerNameCustom(t *testing.T) {
 				check.That(data.ResourceName).Key("computer_name").HasValue("custom123"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -400,6 +352,28 @@ func TestAccWindowsVirtualMachine_otherCustomData(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachine_otherUserData(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherUserData(data, "Hello World"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherUserData(data, "Goodbye World"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccWindowsVirtualMachine_otherEnableAutomaticUpdatesDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
@@ -412,9 +386,7 @@ func TestAccWindowsVirtualMachine_otherEnableAutomaticUpdatesDefault(t *testing.
 				check.That(data.ResourceName).Key("enable_automatic_updates").HasValue("true"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -430,9 +402,7 @@ func TestAccWindowsVirtualMachine_otherEnableAutomaticUpdatesDisabled(t *testing
 				check.That(data.ResourceName).Key("enable_automatic_updates").HasValue("false"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -447,9 +417,7 @@ func TestAccWindowsVirtualMachine_otherSkipShutdownAndForceDelete(t *testing.T) 
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -464,9 +432,7 @@ func TestAccWindowsVirtualMachine_otherLicenseTypeNone(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -481,9 +447,7 @@ func TestAccWindowsVirtualMachine_otherLicenseTypeWindowsClient(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -498,9 +462,7 @@ func TestAccWindowsVirtualMachine_otherLicenseTypeWindowsServer(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -515,9 +477,7 @@ func TestAccWindowsVirtualMachine_otherLicenseTypeUpdated(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherLicenseTypeWindowsClient(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -525,18 +485,14 @@ func TestAccWindowsVirtualMachine_otherLicenseTypeUpdated(t *testing.T) {
 				check.That(data.ResourceName).Key("license_type").HasValue("Windows_Client"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherLicenseTypeDefault(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -551,9 +507,7 @@ func TestAccWindowsVirtualMachine_otherPrioritySpot(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -569,9 +523,7 @@ func TestAccWindowsVirtualMachine_otherPrioritySpotMaxBidPrice(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			// no limit
 			Config: r.otherPrioritySpotMaxBidPrice(data, "-1"),
@@ -579,9 +531,7 @@ func TestAccWindowsVirtualMachine_otherPrioritySpotMaxBidPrice(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -597,9 +547,7 @@ func TestAccWindowsVirtualMachine_otherProvisionVMAgentDefault(t *testing.T) {
 				check.That(data.ResourceName).Key("provision_vm_agent").HasValue("true"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -615,9 +563,7 @@ func TestAccWindowsVirtualMachine_otherProvisionVMAgentDisabled(t *testing.T) {
 				check.That(data.ResourceName).Key("provision_vm_agent").HasValue("false"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -647,18 +593,14 @@ func TestAccWindowsVirtualMachine_otherSecret(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherSecretUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherSecretRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -666,9 +608,7 @@ func TestAccWindowsVirtualMachine_otherSecret(t *testing.T) {
 				check.That(data.ResourceName).Key("secret.#").HasValue("0"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -683,18 +623,14 @@ func TestAccWindowsVirtualMachine_otherTags(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherTagsUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -709,9 +645,7 @@ func TestAccWindowsVirtualMachine_otherTimeZone(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -727,9 +661,7 @@ func TestAccWindowsVirtualMachine_otherUltraSsdDefault(t *testing.T) {
 				check.That(data.ResourceName).Key("additional_capabilities.0.ultra_ssd_enabled").HasValue("false"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -745,9 +677,7 @@ func TestAccWindowsVirtualMachine_otherUltraSsdEnabled(t *testing.T) {
 				check.That(data.ResourceName).Key("additional_capabilities.0.ultra_ssd_enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -763,9 +693,7 @@ func TestAccWindowsVirtualMachine_otherUltraSsdUpdated(t *testing.T) {
 				check.That(data.ResourceName).Key("additional_capabilities.0.ultra_ssd_enabled").HasValue("false"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherUltraSsd(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -773,9 +701,7 @@ func TestAccWindowsVirtualMachine_otherUltraSsdUpdated(t *testing.T) {
 				check.That(data.ResourceName).Key("additional_capabilities.0.ultra_ssd_enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -790,9 +716,7 @@ func TestAccWindowsVirtualMachine_otherWinRMHTTP(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -807,9 +731,7 @@ func TestAccWindowsVirtualMachine_otherWinRMHTTPS(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -824,9 +746,7 @@ func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabled(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -841,27 +761,21 @@ func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabledUpdate(t *testing.
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherEncryptionAtHostEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherEncryptionAtHostEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -876,9 +790,7 @@ func TestAccWindowsVirtualMachine_otherSecureBootEnabled(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -893,9 +805,7 @@ func TestAccWindowsVirtualMachine_otherVTpmEnabled(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -910,9 +820,7 @@ func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabledWithCMK(t *testing
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -1027,9 +935,7 @@ func TestAccWindowsVirtualMachine_otherGracefulShutdownDisabled(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -1044,9 +950,7 @@ func TestAccWindowsVirtualMachine_otherGracefulShutdownEnabled(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -1472,6 +1376,37 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 }
 `, r.template(data))
+}
+
+func (r WindowsVirtualMachineResource) otherUserData(data acceptance.TestData, userData string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  user_data           = base64encode(%q)
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, r.template(data), userData)
 }
 
 func (r WindowsVirtualMachineResource) otherEnableAutomaticUpdatesDefault(data acceptance.TestData) string {

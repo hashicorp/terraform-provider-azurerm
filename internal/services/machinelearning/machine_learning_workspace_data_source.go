@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
+
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
@@ -15,7 +17,7 @@ import (
 
 func dataSourceMachineLearningWorkspace() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceArmAMLWorkspaceRead,
+		Read: dataSourceMachineLearningWorkspaceRead,
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
@@ -59,29 +61,24 @@ func dataSourceMachineLearningWorkspace() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmAMLWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MachineLearning.WorkspacesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	id := parse.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Machine Learning Workspace %q (Resource Group %q) was not found: %+v", name, resourceGroup, err)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("reading Machine Learning Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read Machine Learning Workspace %q (Resource Group %q) ID", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-
+	d.SetId(id.ID())
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if err := d.Set("identity", flattenMachineLearningWorkspaceIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}

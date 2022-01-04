@@ -288,6 +288,12 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
+			"user_data": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsBase64,
+			},
+
 			"vtpm_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -351,7 +357,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	locks.ByName(name, virtualMachineResourceName)
 	defer locks.UnlockByName(name, virtualMachineResourceName)
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := client.Get(ctx, resourceGroup, name, compute.InstanceViewTypesUserData)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("checking for existing Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -576,6 +582,10 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		params.VirtualMachineProperties.OsProfile.WindowsConfiguration.TimeZone = utils.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("user_data"); ok {
+		params.UserData = utils.String(v.(string))
+	}
+
 	if v, ok := d.GetOk("zone"); ok {
 		params.Zones = &[]string{
 			v.(string),
@@ -617,7 +627,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Windows Virtual Machine %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
@@ -794,6 +804,8 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 
 	d.Set("virtual_machine_id", props.VMID)
 
+	d.Set("user_data", props.UserData)
+
 	zone := ""
 	if resp.Zones != nil {
 		if zones := *resp.Zones; len(zones) > 0 {
@@ -827,7 +839,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
 
 	log.Printf("[DEBUG] Retrieving Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
 	if err != nil {
 		if utils.ResponseWasNotFound(existing.Response) {
 			return nil
@@ -1075,7 +1087,6 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			update.SecurityProfile = &compute.SecurityProfile{}
 		}
 		update.SecurityProfile.EncryptionAtHost = utils.Bool(d.Get("encryption_at_host_enabled").(bool))
-
 	}
 
 	if d.HasChange("license_type") {
@@ -1089,6 +1100,11 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			license = "None"
 		}
 		update.VirtualMachineProperties.LicenseType = &license
+	}
+
+	if d.HasChange("user_data") {
+		shouldUpdate = true
+		update.UserData = utils.String(d.Get("user_data").(string))
 	}
 
 	if instanceView.Statuses != nil {

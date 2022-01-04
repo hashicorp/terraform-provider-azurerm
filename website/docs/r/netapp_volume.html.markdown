@@ -85,6 +85,12 @@ resource "azurerm_netapp_volume" "example" {
     remote_volume_resource_id = azurerm_netapp_volume.example_primary.id
     replication_frequency     = "10minutes"
   }
+
+  # Enabling Snapshot Policy for the volume
+  # Note: this cannot be used in conjunction with data_protection_replication when endpoint_type is dst
+  data_protection_snapshot_policy {
+    snapshot_policy_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1/snapshotPolicies/snapshotpolicy1"
+  }
 }
 ```
 
@@ -120,7 +126,11 @@ The following arguments are supported:
 
 * `data_protection_replication` - (Optional) A `data_protection_replication` block as defined below.
 
+* `data_protection_snapshot_policy` - (Optional) A `data_protection_snapshot_policy` block as defined below.
+
 * `export_policy_rule` - (Optional) One or more `export_policy_rule` block defined below.
+
+* `throughput_in_mibps` - (Optional) Throughput of this volume in Mibps.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -159,6 +169,16 @@ A `data_protection_replication` block is used when enabling the Cross-Region Rep
 A full example of the `data_protection_replication` attribute can be found in [the `./examples/netapp/volume_crr` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/netapp/volume_crr)
 
 ~> **NOTE:** `data_protection_replication` can be defined only once per secondary volume, adding a second instance of it is not supported.
+
+---
+
+A `data_protection_snapshot_policy` block is used when automatic snapshots for a volume based on a specific snapshot policy. It supports the following:
+
+* `snapshot_policy_id` - (Required) Resource ID of the snapshot policy to apply to the volume.
+
+A full example of the `data_protection_snapshot_policy` attribute usage can be found in [the `./examples/netapp/nfsv3_volume_with_snapshot_policy` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/netapp/nfsv3_volume_with_snapshot_policy)
+  
+~> **NOTE:** `data_protection_snapshot_policy` block can be used alone or with data_protection_replication in the primary volume only, if enabling it in the secondary, an error will be thrown.
 
 ---
 

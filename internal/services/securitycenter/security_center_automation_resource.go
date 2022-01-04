@@ -6,9 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"

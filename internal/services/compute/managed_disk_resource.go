@@ -112,9 +112,18 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			},
 
 			"image_reference_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"gallery_image_reference_id"},
+			},
+
+			"gallery_image_reference_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.SharedImageVersionID,
+				ConflictsWith: []string{"image_reference_id"},
 			},
 
 			"os_type": {
@@ -213,6 +222,16 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
+			},
+
+			"hyper_v_generation": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true, // Not supported by disk update
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.HyperVGenerationV1),
+					string(compute.HyperVGenerationV2),
+				}, false),
 			},
 
 			"on_demand_bursting_enabled": {
@@ -338,13 +357,16 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.CreationData.SourceResourceID = utils.String(sourceResourceId)
 	}
 	if createOption == compute.DiskCreateOptionFromImage {
-		imageReferenceId := d.Get("image_reference_id").(string)
-		if imageReferenceId == "" {
-			return fmt.Errorf("`image_reference_id` must be specified when `create_option` is set to `Import`")
-		}
-
-		props.CreationData.ImageReference = &compute.ImageDiskReference{
-			ID: utils.String(imageReferenceId),
+		if imageReferenceId := d.Get("image_reference_id").(string); imageReferenceId != "" {
+			props.CreationData.ImageReference = &compute.ImageDiskReference{
+				ID: utils.String(imageReferenceId),
+			}
+		} else if galleryImageReferenceId := d.Get("gallery_image_reference_id").(string); galleryImageReferenceId != "" {
+			props.CreationData.GalleryImageReference = &compute.ImageDiskReference{
+				ID: utils.String(galleryImageReferenceId),
+			}
+		} else {
+			return fmt.Errorf("`image_reference_id` or `gallery_image_reference_id` must be specified when `create_option` is set to `FromImage`")
 		}
 	}
 
@@ -422,6 +444,10 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		props.BurstingEnabled = utils.Bool(true)
+	}
+
+	if v, ok := d.GetOk("hyper_v_generation"); ok {
+		props.HyperVGeneration = compute.HyperVGeneration(v.(string))
 	}
 
 	createDisk := compute.Disk{
@@ -555,7 +581,6 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			v := d.Get("disk_mbps_read_only")
 			diskUpdate.DiskMBpsReadOnly = utils.Int64(int64(v.(int)))
 		}
-
 	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") || d.HasChange("disk_iops_read_only") || d.HasChange("disk_mbps_read_only") {
 		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only and disk_mbps_read_only are only available for UltraSSD disks")
 	}
@@ -793,11 +818,16 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				d.Set("logical_sector_size", creationData.LogicalSectorSize)
 			}
 
-			imageReferenceID := ""
-			if creationData.ImageReference != nil && creationData.ImageReference.ID != nil {
-				imageReferenceID = *creationData.ImageReference.ID
+			// imageReference is returned as well when galleryImageRefernece is used, only check imageReference when galleryImageReference is not returned
+			galleryImageReferenceId := ""
+			imageReferenceId := ""
+			if galleryImageReference := creationData.GalleryImageReference; galleryImageReference != nil && galleryImageReference.ID != nil {
+				galleryImageReferenceId = *galleryImageReference.ID
+			} else if imageReference := creationData.ImageReference; imageReference != nil && imageReference.ID != nil {
+				imageReferenceId = *imageReference.ID
 			}
-			d.Set("image_reference_id", imageReferenceID)
+			d.Set("gallery_image_reference_id", galleryImageReferenceId)
+			d.Set("image_reference_id", imageReferenceId)
 
 			d.Set("source_resource_id", creationData.SourceResourceID)
 			d.Set("source_uri", creationData.SourceURI)
@@ -812,6 +842,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("os_type", props.OsType)
 		d.Set("tier", props.Tier)
 		d.Set("max_shares", props.MaxShares)
+		d.Set("hyper_v_generation", props.HyperVGeneration)
 
 		if networkAccessPolicy := props.NetworkAccessPolicy; networkAccessPolicy != compute.NetworkAccessPolicyAllowAll {
 			d.Set("network_access_policy", props.NetworkAccessPolicy)

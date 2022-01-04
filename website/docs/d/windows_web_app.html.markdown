@@ -47,9 +47,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `client_affinity_enabled` - Is Client Affinity enabled?
 
-* `client_cert_enabled` - Are Client Certificates enabled?
+* `client_certificate_enabled` - Are Client Certificates enabled?
 
-* `client_cert_mode` - The Client Certificate mode.
+* `client_certificate_mode` - The Client Certificate mode.
 
 * `connection_string` - A `connection_string` block as defined below.
 
@@ -357,7 +357,7 @@ A `site_config` block exports the following:
 
 * `application_stack` - A `application_stack` block as defined above.
 
-* `auto_heal` - Are Auto heal rules be enabled.
+* `auto_heal_enabled` - Are Auto heal rules to be enabled.
 
 * `auto_heal_setting` - A `auto_heal_setting` block as defined above.
 
@@ -371,7 +371,7 @@ A `site_config` block exports the following:
 
 * `default_documents` - The list of Default Documents for the Windows Web App.
 
-* `detailed_error_logging` - Is Detailed Error Logging enabled.
+* `detailed_error_logging_enabled` - Is Detailed Error Logging enabled.
 
 * `ftps_state` - The State of FTP / FTPS service.
 
@@ -385,13 +385,11 @@ A `site_config` block exports the following:
 
 * `load_balancing_mode` - The site Load Balancing Mode.
 
-* `local_mysql` - Is the Local MySQL enabled.
+* `local_mysql_enabled` - Is the Local MySQL enabled.
 
 * `managed_pipeline_mode` - The Managed Pipeline Mode.
 
 * `minimum_tls_version` - The Minimum version of TLS for requests.
-
-* `number_of_workers` - The number of Workers for this Windows App Service.
 
 * `remote_debugging` - Is Remote Debugging enabled.
 
@@ -412,6 +410,8 @@ A `site_config` block exports the following:
 * `websockets_enabled` - Are Web Sockets enabled?
 
 * `windows_fx_version` - The string representation of the Windows FX Version.
+
+* `worker_count` - The number of Workers for this Windows App Service.
 
 ---
 

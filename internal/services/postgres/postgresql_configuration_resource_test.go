@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -75,6 +76,21 @@ func TestAccPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
 				data.CheckWithClientForResource(r.checkReset("deadlock_timeout"), "azurerm_postgresql_server.test"),
 			),
 		},
+	})
+}
+
+func TestAccPostgreSQLConfiguration_multiplePostgreSQLConfigurations(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_configuration", "test")
+	r := PostgreSQLConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multiplePostgreSQLConfigurations(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -197,4 +213,80 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement_enabled      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r PostgreSQLConfigurationResource) multiplePostgreSQLConfigurations(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_configuration" "test" {
+  name                = "idle_in_transaction_session_timeout"
+  resource_group_name = azurerm_postgresql_server.test.resource_group_name
+  server_name         = azurerm_postgresql_server.test.name
+  value               = "60"
+}
+
+resource "azurerm_postgresql_configuration" "test2" {
+  name                = "log_autovacuum_min_duration"
+  resource_group_name = azurerm_postgresql_server.test.resource_group_name
+  server_name         = azurerm_postgresql_server.test.name
+  value               = "10"
+}
+
+resource "azurerm_postgresql_configuration" "test3" {
+  name                = "log_lock_waits"
+  resource_group_name = azurerm_postgresql_server.test.resource_group_name
+  server_name         = azurerm_postgresql_server.test.name
+  value               = "on"
+}
+
+resource "azurerm_postgresql_configuration" "test4" {
+  name                = "log_min_duration_statement"
+  resource_group_name = azurerm_postgresql_server.test.resource_group_name
+  server_name         = azurerm_postgresql_server.test.name
+  value               = "10"
+}
+
+resource "azurerm_postgresql_configuration" "test5" {
+  name                = "log_statement"
+  resource_group_name = azurerm_postgresql_server.test.resource_group_name
+  server_name         = azurerm_postgresql_server.test.name
+  value               = "ddl"
+}
+
+resource "azurerm_postgresql_configuration" "test6" {
+  name                = "pg_stat_statements.track"
+  resource_group_name = azurerm_postgresql_server.test.resource_group_name
+  server_name         = azurerm_postgresql_server.test.name
+  value               = "top"
+}
+
+resource "azurerm_postgresql_configuration" "test7" {
+  name                = "pg_qs.query_capture_mode"
+  resource_group_name = azurerm_postgresql_server.test.resource_group_name
+  server_name         = azurerm_postgresql_server.test.name
+  value               = "top"
+}
+
+resource "azurerm_postgresql_configuration" "test8" {
+  name                = "pgms_wait_sampling.query_capture_mode"
+  resource_group_name = azurerm_postgresql_server.test.resource_group_name
+  server_name         = azurerm_postgresql_server.test.name
+  value               = "all"
+}
+
+resource "azurerm_postgresql_configuration" "test9" {
+  name                = "pg_qs.max_query_text_length"
+  resource_group_name = azurerm_postgresql_server.test.resource_group_name
+  server_name         = azurerm_postgresql_server.test.name
+  value               = 10000
+}
+
+resource "azurerm_postgresql_configuration" "test10" {
+  name                = "pg_qs.retention_period_in_days"
+  resource_group_name = azurerm_postgresql_server.test.resource_group_name
+  server_name         = azurerm_postgresql_server.test.name
+  value               = 30
+}
+`, r.empty(data))
 }

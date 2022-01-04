@@ -217,6 +217,7 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 										ValidateFunc: validation.StringInSlice([]string{
 											"Include",
 											"Exclude",
+											"StartsWith",
 										}, false),
 									},
 									"values": {

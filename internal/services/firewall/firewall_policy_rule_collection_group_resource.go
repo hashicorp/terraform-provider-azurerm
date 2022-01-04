@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -93,12 +93,12 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 									"name": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validate.FirewallPolicyRuleName(),
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"description": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.FirewallPolicyRuleName(),
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"protocols": {
 										Type:     pluginsdk.TypeSet,
@@ -229,7 +229,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 									"name": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validate.FirewallPolicyRuleName(),
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"protocols": {
 										Type:     pluginsdk.TypeSet,
@@ -343,7 +343,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 									"name": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validate.FirewallPolicyRuleName(),
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"protocols": {
 										Type:     pluginsdk.TypeSet,

@@ -6,13 +6,33 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = StorageAccountId{}
+var _ resourceids.ResourceId = StorageAccountId{}
 
-func TestStorageAccountIDFormatter(t *testing.T) {
-	actual := NewStorageAccountID("{subscriptionId}", "{resourceGroupName}", "{accountName}", "{storageAccountName}").ID()
-	expected := "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataLakeAnalytics/accounts/{accountName}/storageAccounts/{storageAccountName}"
+func TestNewStorageAccountID(t *testing.T) {
+	id := NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "storageAccountValue")
+
+	if id.SubscriptionId != "12345678-1234-9876-4563-123456789012" {
+		t.Fatalf("Expected %q but got %q for Segment 'SubscriptionId'", id.SubscriptionId, "12345678-1234-9876-4563-123456789012")
+	}
+
+	if id.ResourceGroupName != "example-resource-group" {
+		t.Fatalf("Expected %q but got %q for Segment 'ResourceGroupName'", id.ResourceGroupName, "example-resource-group")
+	}
+
+	if id.AccountName != "accountValue" {
+		t.Fatalf("Expected %q but got %q for Segment 'AccountName'", id.AccountName, "accountValue")
+	}
+
+	if id.StorageAccountName != "storageAccountValue" {
+		t.Fatalf("Expected %q but got %q for Segment 'StorageAccountName'", id.StorageAccountName, "storageAccountValue")
+	}
+}
+
+func TestFormatStorageAccountID(t *testing.T) {
+	actual := NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "storageAccountValue").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.DataLakeAnalytics/accounts/accountValue/storageAccounts/storageAccountValue"
 	if actual != expected {
-		t.Fatalf("Expected %q but got %q", expected, actual)
+		t.Fatalf("Expected the Formatted ID to be %q but got %q", expected, actual)
 	}
 }
 
@@ -22,79 +42,72 @@ func TestParseStorageAccountID(t *testing.T) {
 		Error    bool
 		Expected *StorageAccountId
 	}{
-
 		{
-			// empty
+			// Incomplete URI
 			Input: "",
 			Error: true,
 		},
-
 		{
-			// missing SubscriptionId
-			Input: "/",
+			// Incomplete URI
+			Input: "/subscriptions",
 			Error: true,
 		},
-
 		{
-			// missing value for SubscriptionId
-			Input: "/subscriptions/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012",
 			Error: true,
 		},
-
 		{
-			// missing ResourceGroup
-			Input: "/subscriptions/{subscriptionId}/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups",
 			Error: true,
 		},
-
 		{
-			// missing value for ResourceGroup
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group",
 			Error: true,
 		},
-
 		{
-			// missing AccountName
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataLakeAnalytics/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers",
 			Error: true,
 		},
-
 		{
-			// missing value for AccountName
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataLakeAnalytics/accounts/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.DataLakeAnalytics",
 			Error: true,
 		},
-
 		{
-			// missing Name
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataLakeAnalytics/accounts/{accountName}/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.DataLakeAnalytics/accounts",
 			Error: true,
 		},
-
 		{
-			// missing value for Name
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataLakeAnalytics/accounts/{accountName}/storageAccounts/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.DataLakeAnalytics/accounts/accountValue",
 			Error: true,
 		},
-
 		{
-			// valid
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataLakeAnalytics/accounts/{accountName}/storageAccounts/{storageAccountName}",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.DataLakeAnalytics/accounts/accountValue/storageAccounts",
+			Error: true,
+		},
+		{
+			// Valid URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.DataLakeAnalytics/accounts/accountValue/storageAccounts/storageAccountValue",
 			Expected: &StorageAccountId{
-				SubscriptionId: "{subscriptionId}",
-				ResourceGroup:  "{resourceGroupName}",
-				AccountName:    "{accountName}",
-				Name:           "{storageAccountName}",
+				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
+				ResourceGroupName:  "example-resource-group",
+				AccountName:        "accountValue",
+				StorageAccountName: "storageAccountValue",
 			},
 		},
-
 		{
-			// upper-cased
-			Input: "/SUBSCRIPTIONS/{SUBSCRIPTIONID}/RESOURCEGROUPS/{RESOURCEGROUPNAME}/PROVIDERS/MICROSOFT.DATALAKEANALYTICS/ACCOUNTS/{ACCOUNTNAME}/STORAGEACCOUNTS/{STORAGEACCOUNTNAME}",
+			// Invalid (Valid Uri with Extra segment)
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.DataLakeAnalytics/accounts/accountValue/storageAccounts/storageAccountValue/extra",
 			Error: true,
 		},
 	}
-
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
@@ -104,7 +117,7 @@ func TestParseStorageAccountID(t *testing.T) {
 				continue
 			}
 
-			t.Fatalf("Expect a value but got an error: %s", err)
+			t.Fatalf("Expect a value but got an error: %+v", err)
 		}
 		if v.Error {
 			t.Fatal("Expect an error but didn't get one")
@@ -113,15 +126,19 @@ func TestParseStorageAccountID(t *testing.T) {
 		if actual.SubscriptionId != v.Expected.SubscriptionId {
 			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-		if actual.ResourceGroup != v.Expected.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+
+		if actual.ResourceGroupName != v.Expected.ResourceGroupName {
+			t.Fatalf("Expected %q but got %q for ResourceGroupName", v.Expected.ResourceGroupName, actual.ResourceGroupName)
 		}
+
 		if actual.AccountName != v.Expected.AccountName {
 			t.Fatalf("Expected %q but got %q for AccountName", v.Expected.AccountName, actual.AccountName)
 		}
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+
+		if actual.StorageAccountName != v.Expected.StorageAccountName {
+			t.Fatalf("Expected %q but got %q for StorageAccountName", v.Expected.StorageAccountName, actual.StorageAccountName)
 		}
+
 	}
 }
 
@@ -131,106 +148,132 @@ func TestParseStorageAccountIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *StorageAccountId
 	}{
-
 		{
-			// empty
+			// Incomplete URI
 			Input: "",
 			Error: true,
 		},
-
 		{
-			// missing SubscriptionId
-			Input: "/",
+			// Incomplete URI
+			Input: "/subscriptions",
 			Error: true,
 		},
-
 		{
-			// missing value for SubscriptionId
-			Input: "/subscriptions/",
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs",
 			Error: true,
 		},
-
 		{
-			// missing ResourceGroup
-			Input: "/subscriptions/{subscriptionId}/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012",
 			Error: true,
 		},
-
 		{
-			// missing value for ResourceGroup
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/",
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012",
 			Error: true,
 		},
-
 		{
-			// missing AccountName
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataLakeAnalytics/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups",
 			Error: true,
 		},
-
 		{
-			// missing value for AccountName
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataLakeAnalytics/accounts/",
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS",
 			Error: true,
 		},
-
 		{
-			// missing Name
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataLakeAnalytics/accounts/{accountName}/",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group",
 			Error: true,
 		},
-
 		{
-			// missing value for Name
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataLakeAnalytics/accounts/{accountName}/storageAccounts/",
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP",
 			Error: true,
 		},
-
 		{
-			// valid
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataLakeAnalytics/accounts/{accountName}/storageAccounts/{storageAccountName}",
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs",
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.DataLakeAnalytics",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.dAtAlAkEaNaLyTiCs",
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.DataLakeAnalytics/accounts",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.dAtAlAkEaNaLyTiCs/aCcOuNtS",
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.DataLakeAnalytics/accounts/accountValue",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.dAtAlAkEaNaLyTiCs/aCcOuNtS/aCcOuNtVaLuE",
+			Error: true,
+		},
+		{
+			// Incomplete URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.DataLakeAnalytics/accounts/accountValue/storageAccounts",
+			Error: true,
+		},
+		{
+			// Incomplete URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.dAtAlAkEaNaLyTiCs/aCcOuNtS/aCcOuNtVaLuE/sToRaGeAcCoUnTs",
+			Error: true,
+		},
+		{
+			// Valid URI
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.DataLakeAnalytics/accounts/accountValue/storageAccounts/storageAccountValue",
 			Expected: &StorageAccountId{
-				SubscriptionId: "{subscriptionId}",
-				ResourceGroup:  "{resourceGroupName}",
-				AccountName:    "{accountName}",
-				Name:           "{storageAccountName}",
+				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
+				ResourceGroupName:  "example-resource-group",
+				AccountName:        "accountValue",
+				StorageAccountName: "storageAccountValue",
 			},
 		},
-
 		{
-			// lower-cased segment names
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataLakeAnalytics/accounts/{accountName}/storageaccounts/{storageAccountName}",
+			// Invalid (Valid Uri with Extra segment)
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.DataLakeAnalytics/accounts/accountValue/storageAccounts/storageAccountValue/extra",
+			Error: true,
+		},
+		{
+			// Valid URI (mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.dAtAlAkEaNaLyTiCs/aCcOuNtS/aCcOuNtVaLuE/sToRaGeAcCoUnTs/sToRaGeAcCoUnTvAlUe",
 			Expected: &StorageAccountId{
-				SubscriptionId: "{subscriptionId}",
-				ResourceGroup:  "{resourceGroupName}",
-				AccountName:    "{accountName}",
-				Name:           "{storageAccountName}",
+				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
+				ResourceGroupName:  "eXaMpLe-rEsOuRcE-GrOuP",
+				AccountName:        "aCcOuNtVaLuE",
+				StorageAccountName: "sToRaGeAcCoUnTvAlUe",
 			},
 		},
-
 		{
-			// upper-cased segment names
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataLakeAnalytics/ACCOUNTS/{accountName}/STORAGEACCOUNTS/{storageAccountName}",
-			Expected: &StorageAccountId{
-				SubscriptionId: "{subscriptionId}",
-				ResourceGroup:  "{resourceGroupName}",
-				AccountName:    "{accountName}",
-				Name:           "{storageAccountName}",
-			},
-		},
-
-		{
-			// mixed-cased segment names
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataLakeAnalytics/AcCoUnTs/{accountName}/StOrAgEaCcOuNtS/{storageAccountName}",
-			Expected: &StorageAccountId{
-				SubscriptionId: "{subscriptionId}",
-				ResourceGroup:  "{resourceGroupName}",
-				AccountName:    "{accountName}",
-				Name:           "{storageAccountName}",
-			},
+			// Invalid (Valid Uri with Extra segment - mIxEd CaSe since this is insensitive)
+			Input: "/sUbScRiPtIoNs/12345678-1234-9876-4563-123456789012/rEsOuRcEgRoUpS/eXaMpLe-rEsOuRcE-GrOuP/pRoViDeRs/mIcRoSoFt.dAtAlAkEaNaLyTiCs/aCcOuNtS/aCcOuNtVaLuE/sToRaGeAcCoUnTs/sToRaGeAcCoUnTvAlUe/extra",
+			Error: true,
 		},
 	}
-
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
@@ -240,7 +283,7 @@ func TestParseStorageAccountIDInsensitively(t *testing.T) {
 				continue
 			}
 
-			t.Fatalf("Expect a value but got an error: %s", err)
+			t.Fatalf("Expect a value but got an error: %+v", err)
 		}
 		if v.Error {
 			t.Fatal("Expect an error but didn't get one")
@@ -249,14 +292,33 @@ func TestParseStorageAccountIDInsensitively(t *testing.T) {
 		if actual.SubscriptionId != v.Expected.SubscriptionId {
 			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-		if actual.ResourceGroup != v.Expected.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+
+		if actual.ResourceGroupName != v.Expected.ResourceGroupName {
+			t.Fatalf("Expected %q but got %q for ResourceGroupName", v.Expected.ResourceGroupName, actual.ResourceGroupName)
 		}
+
 		if actual.AccountName != v.Expected.AccountName {
 			t.Fatalf("Expected %q but got %q for AccountName", v.Expected.AccountName, actual.AccountName)
 		}
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+
+		if actual.StorageAccountName != v.Expected.StorageAccountName {
+			t.Fatalf("Expected %q but got %q for StorageAccountName", v.Expected.StorageAccountName, actual.StorageAccountName)
 		}
+
+	}
+}
+
+func TestSegmentsForStorageAccountId(t *testing.T) {
+	segments := StorageAccountId{}.Segments()
+	if len(segments) == 0 {
+		t.Fatalf("StorageAccountId has no segments")
+	}
+
+	uniqueNames := make(map[string]struct{}, 0)
+	for _, segment := range segments {
+		uniqueNames[segment.Name] = struct{}{}
+	}
+	if len(uniqueNames) != len(segments) {
+		t.Fatalf("Expected the Segments to be unique but got %q unique segments and %d total segments", len(uniqueNames), len(segments))
 	}
 }

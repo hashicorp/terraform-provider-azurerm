@@ -11,7 +11,9 @@ var _ sdk.TypedServiceRegistration = Registration{}
 var _ sdk.UntypedServiceRegistration = Registration{}
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		KeyDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {

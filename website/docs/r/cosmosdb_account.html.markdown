@@ -28,7 +28,7 @@ resource "azurerm_cosmosdb_account" "db" {
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   offer_type          = "Standard"
-  kind                = "GlobalDocumentDB"
+  kind                = "MongoDB"
 
   enable_automatic_failover = true
 
@@ -50,8 +50,8 @@ resource "azurerm_cosmosdb_account" "db" {
 
   consistency_policy {
     consistency_level       = "BoundedStaleness"
-    max_interval_in_seconds = 10
-    max_staleness_prefix    = 200
+    max_interval_in_seconds = 300
+    max_staleness_prefix    = 100000
   }
 
   geo_location {
@@ -84,6 +84,10 @@ The following arguments are supported:
 
 * `capacity` - (Optional) A `capacity` block as defined below.
 
+* `create_mode` - (Optional) The creation mode for the CosmosDB Account. Possible values are `Default` and `Restore`. Changing this forces a new resource to be created.
+
+~> **NOTE:** `create_mode` only works when `backup.type` is `Continuous`.
+
 * `default_identity_type` - (Optional) The default identity for accessing Key Vault. Possible values are `FirstPartyIdentity`, `SystemAssignedIdentity` or start with `UserAssignedIdentity`. Defaults to `FirstPartyIdentity`.
 
 * `kind` - (Optional) Specifies the Kind of CosmosDB to create - possible values are `GlobalDocumentDB` and `MongoDB`. Defaults to `GlobalDocumentDB`. Changing this forces a new resource to be created.
@@ -93,6 +97,10 @@ The following arguments are supported:
 * `geo_location` - (Required) Specifies a `geo_location` resource, used to define where data should be replicated with the `failover_priority` 0 specifying the primary location. Value is a `geo_location` block as defined below.
 
 * `ip_range_filter` - (Optional) CosmosDB Firewall Support: This value specifies the set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IP's for a given database account. IP addresses/ranges must be comma separated and must not contain any spaces.
+
+~> **NOTE:** To enable the "Allow access from the Azure portal" behavior, you should add the IP addresses provided by the [documentation](https://docs.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal) to this list.
+
+~> **NOTE:** To enable the "Accept connections from within public Azure datacenters" behavior, you should add `0.0.0.0` to the list, see the [documentation](https://docs.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-global-azure-datacenters-or-other-sources-within-azure) for more details.
 
 * `enable_free_tier` - (Optional) Enable Free Tier pricing option for this Cosmos DB account. Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -131,6 +139,10 @@ The following arguments are supported:
 * `cors_rule` - (Optional) A `cors_rule` block as defined below.
 
 * `identity` - (Optional) An `identity` block as defined below.
+
+* `restore` - (Optional) A `restore` block as defined below.
+
+~> **NOTE:** `restore` should be set when `create_mode` is `Restore`.
 
 ---
 
@@ -211,6 +223,26 @@ A `cors_rule` block supports the following:
 A `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Cosmos Account. Possible value is only `SystemAssigned`.
+
+---
+
+A `restore` block supports the following:
+
+* `source_cosmosdb_account_id` - (Required) The resource ID of the restorable database account from which the restore has to be initiated. The example is `/subscriptions/{subscriptionId}/providers/Microsoft.DocumentDB/locations/{location}/restorableDatabaseAccounts/{restorableDatabaseAccountName}`. Changing this forces a new resource to be created.
+
+**NOTE:** Any database account with `Continuous` type (live account or accounts deleted in last 30 days) are the restorable database accounts and there cannot be Create/Update/Delete operations on the restorable database accounts. They can only be read and be retrieved by `azurerm_cosmosdb_restorable_database_accounts`.
+
+* `restore_timestamp_in_utc` - (Required) The creation time of the database or the collection (Datetime Format `RFC 3339`). Changing this forces a new resource to be created.
+
+* `database` - (Optional) A `database` block as defined below. Changing this forces a new resource to be created.
+
+---
+
+A `database` block supports the following:
+
+* `name` - (Required) The database name for the restore request. Changing this forces a new resource to be created.
+
+* `collection_names` - (Optional) A list of the collection names for the restore request. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

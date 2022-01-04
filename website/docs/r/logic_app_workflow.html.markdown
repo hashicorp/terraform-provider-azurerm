@@ -37,6 +37,8 @@ The following arguments are supported:
 
 * `access_control` - (Optional) A `access_control` block as defined below.
 
+* `identitiy` - (Optional) An `identitiy` block as defined below.
+
 * `integration_service_environment_id` - (Optional) The ID of the Integration Service Environment to which this Logic App Workflow belongs.  Changing this forces a new Logic App Workflow to be created.
 
 * `logic_app_integration_account_id` - (Optional) The ID of the integration account linked by this Logic App Workflow.
@@ -85,11 +87,37 @@ A `trigger` block supports the following:
 
 * `allowed_caller_ip_address_range` - (Required) A list of the allowed caller IP address ranges.
 
+* `open_authentication_policy` - (Optional) A `open_authentication_policy` block as defined below.
+
 ---
 
 A `workflow_management` block supports the following:
 
 * `allowed_caller_ip_address_range` - (Required) A list of the allowed caller IP address ranges.
+
+---
+
+A `open_authentication_policy` block supports the following:
+
+* `name` - (Required) The OAuth policy name for the Logic App Workflow.
+
+* `claim` - (Required) A `claim` block as defined below.
+
+---
+
+A `claim` block supports the following:
+
+* `name` - (Required) The name of the OAuth policy claim for the Logic App Workflow.
+
+* `value` - (Required) The value of the OAuth policy claim for the Logic App Workflow.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) The Type of Managed Identity assigned to this Logic App Workflow. Possible values are `SystemAssigned` and `UserAssigned`.
+
+* `identity_ids` - (Optional) A list of Managed Identity ID's which should be assigned to this Logic App Workflow.
 
 ## Attributes Reference
 
@@ -103,9 +131,19 @@ The following attributes are exported:
 
 * `connector_outbound_ip_addresses` - The list of outgoing ip addresses of connector.
 
+* `identity` - An `identity` block as defined below.
+
 * `workflow_endpoint_ip_addresses` - The list of access endpoint ip addresses of workflow.
 
 * `workflow_outbound_ip_addresses` - The list of outgoing ip addresses of workflow.
+
+---
+
+The `identity` block exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Logic App Workflow.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Logic App Workflow.
 
 ## Timeouts
 

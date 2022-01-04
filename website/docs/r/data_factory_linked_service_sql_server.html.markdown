@@ -29,7 +29,7 @@ resource "azurerm_data_factory" "example" {
 resource "azurerm_data_factory_linked_service_sql_server" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
+  data_factory_id     = azurerm_data_factory.example.id
   connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
 }
 ```
@@ -61,14 +61,14 @@ resource "azurerm_data_factory" "example" {
 resource "azurerm_data_factory_linked_service_key_vault" "example" {
   name                = "kvlink"
   resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
+  data_factory_id     = azurerm_data_factory.example.id
   key_vault_id        = azurerm_key_vault.example.id
 }
 
 resource "azurerm_data_factory_linked_service_sql_server" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
+  data_factory_id     = azurerm_data_factory.example.id
 
   connection_string = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;"
   key_vault_password {
@@ -87,7 +87,13 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Linked Service SQL Server. Changing this forces a new resource
 
-* `data_factory_name` - (Required) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
+* `data_factory_id` - (Optional) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
+
+* `data_factory_name` - (Optional) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
+
+-> **Note:** This property has been deprecated in favour of the `data_factory_id` property and will be removed in version 3.0 of the provider.
+
+-> **Note:** At least one of `data_factory_id` or `data_factory_name` must be set.
 
 * `connection_string` - (Optional) The connection string in which to authenticate with the SQL Server. Exactly one of either `connection_string` or `key_vault_connection_string` is required.
 

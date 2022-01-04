@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -18,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
+	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -40,14 +43,14 @@ func suppressIfTypeIsNot(t string) pluginsdk.SchemaDiffSuppressFunc {
 }
 
 // nolint unparam
-func supressWhenAll(fs ...pluginsdk.SchemaDiffSuppressFunc) pluginsdk.SchemaDiffSuppressFunc {
+func suppressWhenAny(fs ...pluginsdk.SchemaDiffSuppressFunc) pluginsdk.SchemaDiffSuppressFunc {
 	return func(k, old, new string, d *pluginsdk.ResourceData) bool {
 		for _, f := range fs {
-			if !f(k, old, new, d) {
-				return false
+			if f(k, old, new, d) {
+				return true
 			}
 		}
-		return true
+		return false
 	}
 }
 
@@ -263,10 +266,14 @@ func resourceIotHub() *pluginsdk.Resource {
 							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 						},
 
+						// encoding should be case-sensitive but kept case-insensitive for backward compatibility.
+						// todo remove suppress.CaseDifference, make encoding case-sensitive and normalize it with pandora in 3.0 or 4.0
 						"encoding": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							DiffSuppressFunc: supressWhenAll(
+							ForceNew: true,
+							Default:  string(devices.EncodingAvro),
+							DiffSuppressFunc: suppressWhenAny(
 								suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 								suppress.CaseDifference),
 							ValidateFunc: validation.StringInSlice([]string{
@@ -277,9 +284,11 @@ func resourceIotHub() *pluginsdk.Resource {
 						},
 
 						"file_name_format": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: iothubValidate.FileNameFormat,
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							Default:          "{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}",
+							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
+							ValidateFunc:     iothubValidate.FileNameFormat,
 						},
 
 						"resource_group_name": azure.SchemaResourceGroupNameOptional(),
@@ -441,6 +450,55 @@ func resourceIotHub() *pluginsdk.Resource {
 				},
 			},
 
+			"cloud_to_device": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"max_delivery_count": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      10,
+							ValidateFunc: validation.IntBetween(1, 100),
+						},
+						"default_ttl": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      "PT1H",
+							ValidateFunc: validate.ISO8601DurationBetween("PT15M", "P2D"),
+						},
+						"feedback": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"time_to_live": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      "PT1H",
+										ValidateFunc: validate.ISO8601DurationBetween("PT15M", "P2D"),
+									},
+									"max_delivery_count": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										Default:      10,
+										ValidateFunc: validation.IntBetween(1, 100),
+									},
+									"lock_duration": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      "PT60S",
+										ValidateFunc: validate.ISO8601DurationBetween("PT5S", "PT300S"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"min_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -482,6 +540,8 @@ func resourceIotHub() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentity(),
 
 			"tags": tags.Schema(),
 		},
@@ -548,6 +608,17 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("expanding `file_upload`: %+v", err)
 	}
 
+	cloudToDeviceProperties := &devices.CloudToDeviceProperties{}
+	if _, ok := d.GetOk("cloud_to_device"); ok {
+		cloudToDeviceProperties = expandIoTHubCloudToDevice(d)
+	}
+
+	identityRaw := d.Get("identity").([]interface{})
+	identity, err := expandIotHubIdentity(identityRaw)
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	props := devices.IotHubDescription{
 		Name:     utils.String(id.Name),
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
@@ -558,8 +629,10 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			StorageEndpoints:              storageEndpoints,
 			MessagingEndpoints:            messagingEndpoints,
 			EnableFileUploadNotifications: &enableFileUploadNotifications,
+			CloudToDevice:                 cloudToDeviceProperties,
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Identity: identity,
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	// nolint staticcheck
@@ -698,7 +771,20 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("public_network_access_enabled", enabled == devices.PublicNetworkAccessEnabled)
 		}
 
+		cloudToDevice := flattenIoTHubCloudToDevice(properties.CloudToDevice)
+		if err := d.Set("cloud_to_device", cloudToDevice); err != nil {
+			return fmt.Errorf("setting `cloudToDevice` in IoTHub %q: %+v", id.Name, err)
+		}
+
 		d.Set("min_tls_version", properties.MinTLSVersion)
+	}
+
+	identity, err := flattenIotHubIdentity(hub.Identity)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	d.Set("name", id.Name)
@@ -993,6 +1079,36 @@ func expandIoTHubSku(d *pluginsdk.ResourceData) *devices.IotHubSkuInfo {
 	}
 }
 
+func expandIoTHubCloudToDevice(d *pluginsdk.ResourceData) *devices.CloudToDeviceProperties {
+	ctdList := d.Get("cloud_to_device").([]interface{})
+	if len(ctdList) == 0 {
+		return nil
+	}
+	cloudToDevice := devices.CloudToDeviceProperties{}
+	ctdMap := ctdList[0].(map[string]interface{})
+	defaultTimeToLive := ctdMap["default_ttl"].(string)
+
+	cloudToDevice.DefaultTTLAsIso8601 = &defaultTimeToLive
+	cloudToDevice.MaxDeliveryCount = utils.Int32(int32(ctdMap["max_delivery_count"].(int)))
+	feedback := ctdMap["feedback"].([]interface{})
+
+	cloudToDeviceFeedback := devices.FeedbackProperties{}
+	if len(feedback) > 0 {
+		feedbackMap := feedback[0].(map[string]interface{})
+
+		lockDuration := feedbackMap["lock_duration"].(string)
+		timeToLive := feedbackMap["time_to_live"].(string)
+
+		cloudToDeviceFeedback.TTLAsIso8601 = &timeToLive
+		cloudToDeviceFeedback.LockDurationAsIso8601 = &lockDuration
+		cloudToDeviceFeedback.MaxDeliveryCount = utils.Int32(int32(feedbackMap["max_delivery_count"].(int)))
+	}
+
+	cloudToDevice.Feedback = &cloudToDeviceFeedback
+
+	return &cloudToDevice
+}
+
 func flattenIoTHubSku(input *devices.IotHubSkuInfo) []interface{} {
 	output := make(map[string]interface{})
 
@@ -1244,6 +1360,44 @@ func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} 
 	return []interface{}{output}
 }
 
+func flattenIoTHubCloudToDevice(input *devices.CloudToDeviceProperties) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make(map[string]interface{})
+
+	if maxDeliveryCount := input.MaxDeliveryCount; maxDeliveryCount != nil {
+		output["max_delivery_count"] = *maxDeliveryCount
+	}
+	if defaultTimeToLive := input.DefaultTTLAsIso8601; defaultTimeToLive != nil {
+		output["default_ttl"] = *defaultTimeToLive
+	}
+
+	output["feedback"] = flattenIoTHubCloudToDeviceFeedback(input.Feedback)
+
+	return []interface{}{output}
+}
+
+func flattenIoTHubCloudToDeviceFeedback(input *devices.FeedbackProperties) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	feedback := make(map[string]interface{})
+	if feedbackMaxDeliveryCount := input.MaxDeliveryCount; feedbackMaxDeliveryCount != nil {
+		feedback["max_delivery_count"] = *feedbackMaxDeliveryCount
+	}
+	if feedbackTimeToLive := input.TTLAsIso8601; feedbackTimeToLive != nil {
+		feedback["time_to_live"] = *feedbackTimeToLive
+	}
+	if feedbackLockDuration := input.LockDurationAsIso8601; feedbackLockDuration != nil {
+		feedback["lock_duration"] = *feedbackLockDuration
+	}
+
+	return []interface{}{feedback}
+}
+
 func expandIPFilterRules(d *pluginsdk.ResourceData) *[]devices.IPFilterRule {
 	ipFilterRuleList := d.Get("ip_filter_rule").([]interface{})
 	if len(ipFilterRuleList) == 0 {
@@ -1286,6 +1440,61 @@ func flattenIPFilterRules(in *[]devices.IPFilterRule) []interface{} {
 		rules = append(rules, rawRule)
 	}
 	return rules
+}
+
+func expandIotHubIdentity(input []interface{}) (*devices.ArmIdentity, error) {
+	config, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	identity := devices.ArmIdentity{
+		Type: devices.ResourceIdentityType(config.Type),
+	}
+
+	if len(config.IdentityIds) != 0 {
+		identityIds := make(map[string]*devices.ArmUserIdentity, len(config.IdentityIds))
+		for id := range config.IdentityIds {
+			identityIds[id] = &devices.ArmUserIdentity{}
+		}
+		identity.UserAssignedIdentities = identityIds
+	}
+
+	return &identity, nil
+}
+
+func flattenIotHubIdentity(input *devices.ArmIdentity) (*[]interface{}, error) {
+	var config *identity.SystemAndUserAssignedMap
+	if input != nil {
+		identityIds := map[string]identity.UserAssignedIdentityDetails{}
+		for id := range input.UserAssignedIdentities {
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(id)
+			if err != nil {
+				return nil, err
+			}
+			identityIds[parsedId.ID()] = identity.UserAssignedIdentityDetails{
+				// intentionally empty
+			}
+		}
+
+		principalId := ""
+		if input.PrincipalID != nil {
+			principalId = *input.PrincipalID
+		}
+
+		tenantId := ""
+		if input.TenantID != nil {
+			tenantId = *input.TenantID
+		}
+
+		config = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			PrincipalId: principalId,
+			TenantId:    tenantId,
+			IdentityIds: identityIds,
+		}
+	}
+	return identity.FlattenSystemAndUserAssignedMap(config)
 }
 
 func fileUploadConnectionStringDiffSuppress(k, old, new string, d *pluginsdk.ResourceData) bool {

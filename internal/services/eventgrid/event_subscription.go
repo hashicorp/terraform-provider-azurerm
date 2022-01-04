@@ -955,7 +955,6 @@ func expandEventGridEventSubscriptionStorageQueueEndpoint(d *pluginsdk.ResourceD
 }
 
 func expandEventGridEventSubscriptionEventhubEndpoint(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-
 	destinationProps := &eventgrid.EventHubEventSubscriptionDestinationProperties{}
 
 	if _, ok := d.GetOk("eventhub_endpoint_id"); ok {
@@ -981,7 +980,6 @@ func expandEventGridEventSubscriptionEventhubEndpoint(d *pluginsdk.ResourceData)
 }
 
 func expandEventGridEventSubscriptionHybridConnectionEndpoint(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-
 	destinationProps := &eventgrid.HybridConnectionEventSubscriptionDestinationProperties{}
 
 	if v, ok := d.GetOk("hybrid_connection_endpoint_id"); ok {
@@ -1006,7 +1004,6 @@ func expandEventGridEventSubscriptionHybridConnectionEndpoint(d *pluginsdk.Resou
 }
 
 func expandEventGridEventSubscriptionAzureFunctionEndpoint(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-
 	input := d.Get("azure_function_endpoint")
 	configs := input.([]interface{})
 
@@ -1041,7 +1038,6 @@ func expandEventGridEventSubscriptionAzureFunctionEndpoint(d *pluginsdk.Resource
 }
 
 func expandDeliveryProperties(d *pluginsdk.ResourceData) []eventgrid.BasicDeliveryAttributeMapping {
-
 	var basicDeliveryAttributeMapping []eventgrid.BasicDeliveryAttributeMapping
 
 	deliveryMappingsConfig, deliveryMappingsExists := d.GetOk("delivery_property")
@@ -1081,7 +1077,6 @@ func expandDeliveryProperties(d *pluginsdk.ResourceData) []eventgrid.BasicDelive
 }
 
 func expandEventGridEventSubscriptionWebhookEndpoint(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-
 	input := d.Get("webhook_endpoint")
 	configs := input.([]interface{})
 
@@ -1305,7 +1300,6 @@ func flattenDeliveryProperties(d *pluginsdk.ResourceData, input *[]eventgrid.Bas
 		attributeMapping := make(map[string]interface{})
 
 		if staticMapping, ok := element.AsStaticDeliveryAttributeMapping(); ok {
-
 			attributeMapping["type"] = staticMapping.Type
 			if staticMapping.Name != nil {
 				attributeMapping["header_name"] = staticMapping.Name

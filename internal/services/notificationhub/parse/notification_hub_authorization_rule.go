@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type NotificationHubAuthorizationRuleId struct {
@@ -45,7 +45,7 @@ func (id NotificationHubAuthorizationRuleId) ID() string {
 
 // NotificationHubAuthorizationRuleID parses a NotificationHubAuthorizationRule ID into an NotificationHubAuthorizationRuleId struct
 func NotificationHubAuthorizationRuleID(input string) (*NotificationHubAuthorizationRuleId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func NotificationHubAuthorizationRuleID(input string) (*NotificationHubAuthoriza
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
 func NotificationHubAuthorizationRuleIDInsensitively(input string) (*NotificationHubAuthorizationRuleId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

@@ -323,12 +323,14 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
+	appSettings := expandFunctionAppAppSettings(d, basicAppSettings)
+
 	siteConfig, err := expandFunctionAppSiteConfig(d)
 	if err != nil {
 		return fmt.Errorf("expanding `site_config` for Function App %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 
-	siteConfig.AppSettings = &basicAppSettings
+	siteConfig.AppSettings = appSettingsMapToNameValuePair(appSettings)
 
 	siteEnvelope := web.Site{
 		Kind:     &kind,

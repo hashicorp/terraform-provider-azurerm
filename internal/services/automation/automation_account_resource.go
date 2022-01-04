@@ -86,7 +86,7 @@ func resourceAutomationAccountCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	log.Printf("[INFO] preparing arguments for Automation Account create/update.")
 
-	id := parse.NewAutomationAccountID(client.SubscriptionID, d.Get("name").(string), d.Get("resource_group_name").(string))
+	id := parse.NewAutomationAccountID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)

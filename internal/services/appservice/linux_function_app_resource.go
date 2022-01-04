@@ -38,8 +38,8 @@ type LinuxFunctionAppModel struct {
 	AuthSettings              []helpers.AuthSettings               `tfschema:"auth_settings"`
 	Backup                    []helpers.Backup                     `tfschema:"backup"` // Not supported on Dynamic or Basic plans
 	BuiltinLogging            bool                                 `tfschema:"builtin_logging_enabled"`
-	ClientCertEnabled         bool                                 `tfschema:"client_cert_enabled"`
-	ClientCertMode            string                               `tfschema:"client_cert_mode"`
+	ClientCertEnabled         bool                                 `tfschema:"client_certificate_enabled"`
+	ClientCertMode            string                               `tfschema:"client_certificate_mode"`
 	ConnectionStrings         []helpers.ConnectionString           `tfschema:"connection_string"`
 	DailyMemoryTimeQuota      int                                  `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
 	Enabled                   bool                                 `tfschema:"enabled"`
@@ -151,14 +151,14 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting",
 		},
 
-		"client_cert_enabled": {
+		"client_certificate_enabled": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
 			Description: "Should the function app use Client Certificates",
 		},
 
-		"client_cert_mode": {
+		"client_certificate_mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Default:  web.ClientCertModeOptional,
@@ -617,11 +617,11 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				existing.SiteProperties.HTTPSOnly = utils.Bool(state.HttpsOnly)
 			}
 
-			if metadata.ResourceData.HasChange("client_cert_enabled") {
+			if metadata.ResourceData.HasChange("client_certificate_enabled") {
 				existing.SiteProperties.ClientCertEnabled = utils.Bool(state.ClientCertEnabled)
 			}
 
-			if metadata.ResourceData.HasChange("client_cert_mode") {
+			if metadata.ResourceData.HasChange("client_certificate_mode") {
 				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
 			}
 

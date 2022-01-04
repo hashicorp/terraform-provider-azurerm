@@ -62,7 +62,7 @@ func ValidateManagementLockID(input interface{}, key string) (warnings []string,
 
 // ID returns the formatted Management Lock ID
 func (id ManagementLockId) ID() string {
-	fmtString := "/%s/providers/Microsoft.Authorization/locks/%s"
+	fmtString := "%s/providers/Microsoft.Authorization/locks/%s"
 	return fmt.Sprintf(fmtString, id.Scope, id.Name)
 }
 

@@ -113,7 +113,7 @@ The following arguments are supported:
 
 * `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. Changing this forces a new resource to be created.
 
-* `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist. Changing this forces a new resource to be created.
+* `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the Node Pool should exist. Changing this forces a new resource to be created.
 
 -> **NOTE:** This requires that the Preview Feature `Microsoft.ContainerService/PodSubnetPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni#register-the-podsubnetpreview-preview-feature) for more information.
 
@@ -137,6 +137,10 @@ The following arguments are supported:
 
 ~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) until this is fixed in the AKS API.
 
+* `scale_down_mode` - (Optional) Specifies how the node pool should deal with scaled-down nodes. Allowed values are `Delete` and `Deallocate`. Defaults to `Delete`.
+
+-> **Note:** Cannot be set when `priority` is set to Spot.
+~> **Note:** Scale down mode is in Public Preview - more information and details on how to opt into the preview can be found in [this article](https://docs.microsoft.com/en-us/azure/aks/scale-down-mode)
 * `ultra_ssd_enabled` - (Optional) Used to specify whether the UltraSSD is enabled in the Node Pool. Defaults to `false`. See [the documentation](https://docs.microsoft.com/en-us/azure/aks/use-ultra-disks) for more information.
 
 * `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
@@ -146,6 +150,10 @@ The following arguments are supported:
 -> **NOTE:** At this time the `vnet_subnet_id` must be the same for all node pools in the cluster
 
 ~> **NOTE:** A route table must be configured on this Subnet.
+
+* `workload_runtime` - (Optional) Used to specify the workload runtime. Allowed values are `OCIContainer` and `WasmWasi`.
+
+~> **Note:** WebAssembly System Interface node pools are in Public Preview - more information and details on how to opt into the preview can be found in [this article](https://docs.microsoft.com/en-us/azure/aks/use-wasi-node-pools)
 
 ---
 

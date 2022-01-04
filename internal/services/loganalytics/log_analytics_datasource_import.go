@@ -12,15 +12,15 @@ import (
 
 func importLogAnalyticsDataSource(kind operationalinsights.DataSourceKind) pluginsdk.ImporterFunc {
 	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
-		id, err := parse.LogAnalyticsDataSourceID(d.Id())
+		id, err := parse.DataSourceID(d.Id())
 		if err != nil {
 			return nil, err
 		}
 
 		client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Workspace, id.Name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 		if err != nil {
-			return nil, fmt.Errorf("failed to retrieve Log Analytics Data Source %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
+			return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
 		if resp.Kind != kind {

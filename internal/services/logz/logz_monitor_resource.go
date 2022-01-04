@@ -360,7 +360,6 @@ func expandMonitorUserInfo(input []interface{}) *logz.UserInfo {
 		EmailAddress: utils.String(v["email"].(string)),
 		PhoneNumber:  utils.String(v["phone_number"].(string)),
 	}
-
 }
 
 func flattenMonitorOrganizationProperties(d *pluginsdk.ResourceData, input *logz.OrganizationProperties) {

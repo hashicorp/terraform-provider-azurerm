@@ -20,7 +20,6 @@ func (r WindowsVirtualMachineScaleSetResource) Exists(ctx context.Context, clien
 		return nil, err
 	}
 
-	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
 	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Windows Virtual Machine Scale Set %q", id)

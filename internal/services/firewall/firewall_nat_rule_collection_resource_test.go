@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -317,7 +317,8 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
   action              = "Dnat"
 
   rule {
-    name = "rule1"
+    name        = "rule1"
+    description = "test description"
 
     source_addresses = [
       "10.0.0.0/16",

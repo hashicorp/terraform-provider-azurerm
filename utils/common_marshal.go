@@ -1,6 +1,9 @@
 package utils
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
 func ExpandStringSlice(input []interface{}) *[]string {
 	result := make([]string, 0)
@@ -108,6 +111,18 @@ func ExpandStringSliceWithDelimiter(input []interface{}, delimiter string) *stri
 	for _, item := range input {
 		if item != nil {
 			result = append(result, item.(string))
+		} else {
+			result = append(result, "")
+		}
+	}
+	return String(strings.Join(result, delimiter))
+}
+
+func ExpandIntSliceWithDelimiter(input []interface{}, delimiter string) *string {
+	result := make([]string, 0)
+	for _, item := range input {
+		if item != nil {
+			result = append(result, strconv.Itoa(item.(int)))
 		} else {
 			result = append(result, "")
 		}
