@@ -98,5 +98,5 @@ var services = mapOf(
         "vmware" to "VMware",
         "videoanalyzer" to "Video Analyzer",
         "web" to "Web",
-        "webpubsub" to "Webpubsub"
+        "webpubsub" to "Web Publishing Subscription"
 )
