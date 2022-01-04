@@ -347,6 +347,7 @@ func (r TrafficManagerProfileResource) complete(data acceptance.TestData) string
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
   resource_group_name    = azurerm_resource_group.test.name
+  profile_status         = "Enabled"
   traffic_routing_method = "Performance"
 
   dns_config {
