@@ -97,7 +97,7 @@ func (r ApiManagementCustomDomainResource) basic(data acceptance.TestData) strin
 resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
 
-  gateway {
+  proxy {
     host_name    = "api.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
@@ -117,7 +117,7 @@ func (r ApiManagementCustomDomainResource) proxyOnly(data acceptance.TestData) s
 resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
 
-  gateway {
+  proxy {
     host_name    = "api.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
@@ -147,7 +147,7 @@ func (r ApiManagementCustomDomainResource) requiresImport(data acceptance.TestDa
 resource "azurerm_api_management_custom_domain" "import" {
   api_management_id = azurerm_api_management_custom_domain.test.api_management_id
 
-  gateway {
+  proxy {
     host_name    = "api.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
