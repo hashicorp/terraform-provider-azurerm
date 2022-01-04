@@ -172,7 +172,7 @@ func TestAccRecoveryServicesVault_turnOffEncryptionWithKeyVaultKeyShouldHaveClea
 	})
 }
 
-func TestAccRecoveryServicesVault_changeInfrastructureEncryptionStateShouldHaveClearlyErrorMessage(t *testing.T) {
+func TestAccRecoveryServicesVault_changeInfrastructureEncryptionEnabledShouldHaveClearlyErrorMessage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
 	r := RecoveryServicesVaultResource{}
 
@@ -183,7 +183,7 @@ func TestAccRecoveryServicesVault_changeInfrastructureEncryptionStateShouldHaveC
 		data.ImportStep(),
 		{
 			Config:      r.cmkEncryptionWithKeyVaultKey(data, true, 0),
-			ExpectError: regexp.MustCompile("once `infrastructure_encryption_state` has been set it's not possible to change it"),
+			ExpectError: regexp.MustCompile("once `infrastructure_encryption_enabled` has been set it's not possible to change it"),
 		},
 	})
 }
