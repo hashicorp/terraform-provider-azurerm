@@ -31,6 +31,21 @@ func TestAccServiceBusSubscription_basic(t *testing.T) {
 	})
 }
 
+func TestAccServiceBusSubscription_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
+	r := ServiceBusSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccServiceBusSubscription_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
 	r := ServiceBusSubscriptionResource{}
@@ -249,6 +264,39 @@ resource "azurerm_servicebus_subscription" "test" {
 
 func (ServiceBusSubscriptionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(testAccServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, "")
+}
+
+func (ServiceBusSubscriptionResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestservicebusnamespace-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+}
+
+resource "azurerm_servicebus_topic" "test" {
+  name                = "acctestservicebustopic-%[1]d"
+  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_servicebus_subscription" "test" {
+  name                = "_acctestservicebussubscription-%[1]d_"
+  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  topic_name          = "${azurerm_servicebus_topic.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  max_delivery_count  = 10
+  auto_delete_on_idle = "PT5M"
+	%[3]s
+}
+
+`, data.RandomInteger, data.Locations.Primary, "")
 }
 
 func (r ServiceBusSubscriptionResource) requiresImport(data acceptance.TestData) string {
