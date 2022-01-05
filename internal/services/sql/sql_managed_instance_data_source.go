@@ -131,6 +131,8 @@ func dataSourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("reading SQL Managed Instance %q: %v", id.ID(), err)
 	}
 
+	d.SetId(id.ID())
+
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
@@ -147,7 +149,7 @@ func dataSourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if props := resp.ManagedInstanceProperties; props != nil {
-		d.Set("license_type", props.LicenseType)
+		d.Set("license_type", string(props.LicenseType))
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("subnet_id", props.SubnetID)
 		d.Set("storage_size_in_gb", props.StorageSizeInGB)
