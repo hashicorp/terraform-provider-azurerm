@@ -55,21 +55,21 @@ resource "azurerm_storage_disks_pool" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Disk Pool. Changing this forces a new Disks Pool to be created.
+* `name` - (Required) The name of the Disk Pool. Changing this forces a new Disk Pool to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Disks Pool should exist. Changing this forces a new Disks Pool to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Disk Pool should exist. Changing this forces a new Disk Pool to be created.
 
-* `location` - (Required) The Azure Region where the Disks Pool should exist. Changing this forces a new Disks Pool to be created.
+* `location` - (Required) The Azure Region where the Disk Pool should exist. Changing this forces a new Disk Pool to be created.
 
-* `zones` - (Required) A list of Zones where this Disk Pool should be deployed. Changing this forces a new Disks Pool to be created.
+* `zones` - (Required) A list of Zones where this Disk Pool should be deployed. Changing this forces a new Disk Pool to be created.
 
-* `sku_name` - (Required) The Sku of the Disk Pool. Possible values are `Basic_B1`", `Standard_S1` and `Premium_P1`.
+* `sku_name` - (Required) The Sku of the Disk Pool. Possible values are `Basic_B1`, `Standard_S1` and `Premium_P1`. Changing this forces a new Disk Pool to be created.
 
-* `subnet_id` - (Required) The ID of the Subnet where the Disk Pool should be created. Changing this forces a new Disks Pool to be created.
+* `subnet_id` - (Required) The ID of the Subnet where the Disk Pool should be created. Changing this forces a new Disk Pool to be created.
 
 ---
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Disks Pool.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Disk Pool.
 
 ## Attributes Reference
 

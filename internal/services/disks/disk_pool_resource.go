@@ -50,6 +50,7 @@ func (DiskPoolResource) Arguments() map[string]*schema.Schema {
 		"sku_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: disksValidate.DiskPoolSku(),
 		},
 

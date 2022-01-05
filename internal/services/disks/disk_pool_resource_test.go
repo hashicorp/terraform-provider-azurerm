@@ -45,27 +45,6 @@ func TestAccDiskPool_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccDiskPool_upgradeSku(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_disk_pool", "test")
-	r := DiskPoolResourceTest{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.diskPool(data, "Standard_S1"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.diskPool(data, "Premium_P1"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccDiskPool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_disk_pool", "test")
 	r := DiskPoolResourceTest{}
@@ -163,26 +142,6 @@ resource "azurerm_disk_pool" "test" {
   zones               = ["1"]
 }
 `, template, data.RandomString)
-}
-
-func (r DiskPoolResourceTest) diskPool(data acceptance.TestData, skuName string) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_disk_pool" "test" {
-  name                = "acctest-diskspool-%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku_name            = "%s"
-  subnet_id           = azurerm_subnet.test.id
-  zones               = ["1"]
-}
-`, template, data.RandomString, skuName)
 }
 
 func (r DiskPoolResourceTest) template(data acceptance.TestData) string {
