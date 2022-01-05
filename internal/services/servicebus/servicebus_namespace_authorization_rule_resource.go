@@ -74,7 +74,7 @@ func resourceServiceBusNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.Resou
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_servicebus_namespace_authorization_rule", resourceId.ID())
 		}
 	}
