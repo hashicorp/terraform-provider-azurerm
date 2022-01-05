@@ -33,8 +33,10 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_app_service_environment_v3` - fix for default value of `allow_new_private_endpoint_connections` [GH-14805]
 * `azurerm_consumption_budget_subscription` - added an additional state migration to fix the bug introduced in the first one and to parse the `subscription_id` from the resource's ID [GH-14803]
 * `azurerm_network_interface_security_group_association` - checking the ID matches the expected format during import [GH-14753]
+
 
 ## 2.90.0 (December 17, 2021)
 
