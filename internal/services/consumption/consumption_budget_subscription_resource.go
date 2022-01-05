@@ -83,9 +83,10 @@ func (r SubscriptionConsumptionBudget) CustomImporter() sdk.ResourceRunFunc {
 
 func (r SubscriptionConsumptionBudget) StateUpgraders() sdk.StateUpgradeData {
 	return sdk.StateUpgradeData{
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		Upgraders: map[int]pluginsdk.StateUpgrade{
 			0: migration.SubscriptionConsumptionBudgetV0ToV1{},
+			1: migration.SubscriptionConsumptionBudgetV1ToV2{},
 		},
 	}
 }
