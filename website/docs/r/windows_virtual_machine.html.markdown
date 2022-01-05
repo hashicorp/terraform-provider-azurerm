@@ -135,6 +135,10 @@ The following arguments are supported:
 
 * `extensions_time_budget` - (Optional) Specifies the duration allocated for all extensions to start. The time duration should be between 15 minutes and 120 minutes (inclusive) and should be specified in ISO 8601 format. Defaults to 90 minutes (`PT1H30M`).
 
+* `hotpatching_enabled` - (Optional) Should the VM be patched without requiring a reboot? Possible values are `true` or `false`. Defaults to `false`.
+
+-> **NOTE:** This can only be set to `true` if the `patch_mode` is set to `AutomaticByPlatform` and the `provision_vm_agent` is set to `true`.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `license_type` - (Optional) Specifies the type of on-premise license (also known as [Azure Hybrid Use Benefit](https://docs.microsoft.com/en-us/windows-server/get-started/azure-hybrid-benefit)) which should be used for this Virtual Machine. Possible values are `None`, `Windows_Client` and `Windows_Server`.
@@ -143,7 +147,13 @@ The following arguments are supported:
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
+* `patch_assessment_mode` -  (Optional) Specifies the mode of VM Guest patch assessment for the virtual machine. Possible values are `ImageDefault` or `AutomaticByPlatform`.
+
+-> **NOTE:** If `patch_assessment_mode` is set then the `provision_vm_agent` must also be set to `true`.
+
 * `patch_mode` - (Optional) Specifies the mode of in-guest patching to this Windows Virtual Machine. Possible values are `Manual`, `AutomaticByOS` and `AutomaticByPlatform`. Defaults to `AutomaticByOS`.
+
+-> **NOTE:** If `patch_mode` is set to `AutomaticByPlatform` then `provision_vm_agent` must also be set to `true`.
 
 * `plan` - (Optional) A `plan` block as defined below. Changing this forces a new resource to be created.
 
