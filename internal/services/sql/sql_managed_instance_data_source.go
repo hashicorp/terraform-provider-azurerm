@@ -123,9 +123,7 @@ func dataSourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) erro
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading SQL Managed Instance %q - removing from state", d.Id())
-			d.SetId("")
-			return nil
+			return fmt.Errorf("%s was not found", id)
 		}
 
 		return fmt.Errorf("reading SQL Managed Instance %q: %v", id.ID(), err)
