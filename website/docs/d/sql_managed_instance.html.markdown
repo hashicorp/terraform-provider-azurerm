@@ -27,7 +27,7 @@ output "sql_instance_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the SQL Managed Instance. This needs to be globally unique within Azure.
+* `name` - (Required) The name of the SQL Managed Instance.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the SQL Server.
 
