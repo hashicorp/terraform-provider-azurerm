@@ -33,7 +33,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* `azurerm_consumption_budget_subscription` - fix the string conversion in the state migration for the `subscription_id` [GH-14687]
+* `azurerm_consumption_budget_subscription` - added an additional state migration to fix the bug introduced in the first one and to parse the `subscription_id` from the resource's ID [GH-14803]
 * `azurerm_network_interface_security_group_association` - checking the ID matches the expected format during import [GH-14753]
 
 ## 2.90.0 (December 17, 2021)
