@@ -889,8 +889,8 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 
-  patch_mode          = "%s"
-  hotpatching_enabled = %t
+  patch_mode           = "%s"
+  hot_patching_enabled = %t
 }
 `, r.template(data), patchMode, hotPatch)
 }
