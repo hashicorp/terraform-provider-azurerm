@@ -183,7 +183,7 @@ func resourceVirtualDesktopHostPoolRegistrationInfoDelete(d *pluginsdk.ResourceD
 
 		return fmt.Errorf("Making Read request on Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.HostPoolName, id.ResourceGroup, err)
 	}
-	if &regInfo.ExpirationTime == nil {
+	if regInfo.ExpirationTime == nil {
 		log.Printf("[INFO] RegistrationInfo for %s was nil, registrationInfo already deleted - removing %s from state", hostpoolId.ID(), id)
 		return nil
 	}
