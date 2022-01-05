@@ -1635,8 +1635,8 @@ resource "azurerm_windows_web_app_slot" "test" {
 
   site_config {
     application_stack {
-      docker_container_name     = "%s"
-      docker_container_tag      = "%s"
+      docker_container_name = "%s"
+      docker_container_tag  = "%s"
     }
   }
 }
