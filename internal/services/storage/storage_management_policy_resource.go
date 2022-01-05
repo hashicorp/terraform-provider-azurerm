@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -308,7 +307,7 @@ func resourceStorageManagementPolicyDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, rid.ResourceGroup, rid.StorageAccountName); err != nil {
+	if _, err := client.Delete(ctx, rid.ResourceGroup, rid.StorageAccountName); err != nil {
 		return fmt.Errorf("deleting %s: %+v", rid, err)
 	}
 	return nil
