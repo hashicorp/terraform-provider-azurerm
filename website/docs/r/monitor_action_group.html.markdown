@@ -64,7 +64,7 @@ resource "azurerm_monitor_action_group" "example" {
     use_common_alert_schema = true
   }
 
-    event_hub_receiver {
+  event_hub_receiver {
     name                    = "sendtoeventhub"
     event_hub_id            = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-eventhub/providers/Microsoft.EventHub/namespaces/eventhubnamespace/eventhubs/eventhub1"
 	  use_common_alert_schema = false
