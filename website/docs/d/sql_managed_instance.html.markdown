@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: azurerm_sql_managed_instance
 
-Use this data source to access information about an existing SQL Azure Managed Instance.
+Use this data source to access information about an existing SQL Managed Instance.
 
 ## Example Usage
 
