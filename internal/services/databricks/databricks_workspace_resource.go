@@ -204,7 +204,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							ForceNew:     true,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: storageValidate.StorageAccountName
+							ValidateFunc: storageValidate.StorageAccountName,
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
