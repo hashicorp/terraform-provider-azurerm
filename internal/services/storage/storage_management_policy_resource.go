@@ -2,10 +2,12 @@ package storage
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -272,7 +274,13 @@ func resourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta interfa
 
 	result, err := client.Get(ctx, rid.ResourceGroup, rid.StorageAccountName)
 	if err != nil {
-		return err
+		if utils.ResponseWasNotFound(result.Response) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", rid)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("retrieving %s: %+v", rid, err)
 	}
 
 	storageAccountID := parse.NewStorageAccountID(rid.SubscriptionId, rid.ResourceGroup, rid.StorageAccountName)
@@ -300,8 +308,11 @@ func resourceStorageManagementPolicyDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	if _, err = client.Delete(ctx, rid.ResourceGroup, rid.StorageAccountName); err != nil {
-		return err
+	if resp, err := client.Delete(ctx, rid.ResourceGroup, rid.StorageAccountName); err != nil {
+		if response.WasNotFound(resp.Response) {
+			return nil
+		}
+		return fmt.Errorf("waiting for deletion of %s: %+v", rid, err)
 	}
 	return nil
 }
