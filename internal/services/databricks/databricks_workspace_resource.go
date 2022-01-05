@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/sdk/2021-04-01-preview/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	loadBalancerParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
@@ -203,6 +204,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							ForceNew:     true,
 							Optional:     true,
 							Computed:     true,
+							ValidateFunc: storageValidate.StorageAccountName
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
