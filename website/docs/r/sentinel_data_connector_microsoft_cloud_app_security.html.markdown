@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `discovery_logs_enabled` - (Optional) Should the Discovery Logs be enabled? Defaults to `true`.
 
--> **NOTE**: One of either `alerts_enabled` or `discovery_logs_enabled` has to be specified.
+-> **NOTE:** One of either `alerts_enabled` or `discovery_logs_enabled` has to be specified.
 
 * `tenant_id` - (Optional) The ID of the Tenant that this Microsoft Cloud App Security Data Connector connects to. Changing this forces a new Microsoft Cloud App Security Data Connector to be created.
 
