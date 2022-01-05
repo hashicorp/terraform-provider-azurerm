@@ -31,6 +31,21 @@ func TestAccServiceBusTopic_basic(t *testing.T) {
 	})
 }
 
+func TestAccServiceBusTopic_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
+	r := ServiceBusTopicResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccServiceBusTopic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 	r := ServiceBusTopicResource{}
@@ -249,6 +264,33 @@ resource "azurerm_servicebus_topic" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (ServiceBusTopicResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestservicebusnamespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_servicebus_topic" "test" {
+  name                = "acctestservicebustopic-%[1]d"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  support_ordering    = true
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ServiceBusTopicResource) requiresImport(data acceptance.TestData) string {
