@@ -29,7 +29,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the SQL Managed Instance.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the SQL Server.
+* `resource_group_name` - (Required) The name of the Resource Group in which the SQL Managed Instance exists.
 
 
 ## Attribues Reference
