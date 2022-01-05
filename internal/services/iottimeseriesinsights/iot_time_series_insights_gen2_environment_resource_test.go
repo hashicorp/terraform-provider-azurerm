@@ -207,11 +207,11 @@ provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-tsi-%d"
-  location = "%s"
+  name     = "acctestRG-tsi-%[1]d"
+  location = "%[2]s"
 }
 resource "azurerm_storage_account" "storage" {
-  name                     = "acctestsatsi%s"
+  name                     = "acctestsatsi%[3]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -219,7 +219,7 @@ resource "azurerm_storage_account" "storage" {
 }
 
 resource "azurerm_iot_time_series_insights_gen2_environment" "test" {
-  name                = "acctest_tsie%d"
+  name                = "acctest_tsie%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "L1"
@@ -233,5 +233,5 @@ resource "azurerm_iot_time_series_insights_gen2_environment" "test" {
     ENV = "Test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

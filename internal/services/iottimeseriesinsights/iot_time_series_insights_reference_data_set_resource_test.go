@@ -158,11 +158,11 @@ provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-tsi-%d"
-  location = "%s"
+  name     = "acctestRG-tsi-%[1]d"
+  location = "%[2]s"
 }
 resource "azurerm_iot_time_series_insights_standard_environment" "test" {
-  name                = "accTEst_tsie%d"
+  name                = "accTEst_tsie%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "S1_1"
@@ -170,7 +170,7 @@ resource "azurerm_iot_time_series_insights_standard_environment" "test" {
 }
 
 resource "azurerm_iot_time_series_insights_reference_data_set" "test" {
-  name                                = "accTEsttsd%d"
+  name                                = "accTEsttsd%[1]d"
   time_series_insights_environment_id = azurerm_iot_time_series_insights_standard_environment.test.id
   location                            = azurerm_resource_group.test.location
   data_string_comparison_behavior     = "OrdinalIgnoreCase"
@@ -180,5 +180,5 @@ resource "azurerm_iot_time_series_insights_reference_data_set" "test" {
     type = "String"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
