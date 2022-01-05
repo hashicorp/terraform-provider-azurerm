@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	eventHubParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/parse"
+	eventHubValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -380,23 +382,12 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						"event_hub_namespace": {
+						"event_hub_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"event_hub_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: eventHubValidation.EventhubID,
 						},
 						"tenant_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.IsUUID,
-						},
-						"subscription_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
@@ -451,6 +442,11 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	armRoleReceiversRaw := d.Get("arm_role_receiver").([]interface{})
 	eventHubReceiversRaw := d.Get("event_hub_receiver").([]interface{})
 
+	expandedEventHubReceiver, err := expandMonitorActionGroupEventHubReceiver(tenantId, eventHubReceiversRaw)
+	if err != nil {
+		return err
+	}
+
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
 
@@ -469,7 +465,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			LogicAppReceivers:          expandMonitorActionGroupLogicAppReceiver(logicAppReceiversRaw),
 			AzureFunctionReceivers:     expandMonitorActionGroupAzureFunctionReceiver(azureFunctionReceiversRaw),
 			ArmRoleReceivers:           expandMonitorActionGroupRoleReceiver(armRoleReceiversRaw),
-			EventHubReceivers:          expandMonitorActionGroupEventHubReceiver(tenantId, subscriptionId, eventHubReceiversRaw),
+			EventHubReceivers:          expandedEventHubReceiver,
 		},
 		Tags: expandedTags,
 	}
@@ -547,7 +543,7 @@ func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{})
 		if err = d.Set("arm_role_receiver", flattenMonitorActionGroupRoleReceiver(group.ArmRoleReceivers)); err != nil {
 			return fmt.Errorf("setting `arm_role_receiver`: %+v", err)
 		}
-		if err = d.Set("event_hub_receiver", flattenMonitorActionGroupEventHubReceiver(group.EventHubReceivers)); err != nil {
+		if err = d.Set("event_hub_receiver", flattenMonitorActionGroupEventHubReceiver(id.ResourceGroup, group.EventHubReceivers)); err != nil {
 			return fmt.Errorf("setting `event_hub_receiver`: %+v", err)
 		}
 	}
@@ -733,14 +729,21 @@ func expandMonitorActionGroupRoleReceiver(v []interface{}) *[]insights.ArmRoleRe
 	return &receivers
 }
 
-func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId string, v []interface{}) *[]insights.EventHubReceiver {
+func expandMonitorActionGroupEventHubReceiver(tenantId string, v []interface{}) (*[]insights.EventHubReceiver, error) {
 	receivers := make([]insights.EventHubReceiver, 0)
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
+
+		eventHubId, err := eventHubParser.EventhubID(*utils.String(val["event_hub_id"].(string)))
+
+		if err != nil {
+			return nil, err
+		}
+
 		receiver := insights.EventHubReceiver{
 			Name:                 utils.String(val["name"].(string)),
-			EventHubNameSpace:    utils.String(val["event_hub_namespace"].(string)),
-			EventHubName:         utils.String(val["event_hub_name"].(string)),
+			EventHubNameSpace:    &eventHubId.NamespaceName,
+			EventHubName:         &eventHubId.Name,
 			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
 		}
 		if v := val["tenant_id"].(string); v != "" {
@@ -748,14 +751,10 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId st
 		} else {
 			receiver.TenantID = utils.String(tenantId)
 		}
-		if v := val["subscription_id"].(string); v != "" {
-			receiver.SubscriptionID = utils.String(v)
-		} else {
-			receiver.SubscriptionID = utils.String(subscriptionId)
-		}
+		receiver.SubscriptionID = &eventHubId.SubscriptionId
 		receivers = append(receivers, receiver)
 	}
-	return &receivers
+	return &receivers, nil
 }
 
 func flattenMonitorActionGroupEmailReceiver(receivers *[]insights.EmailReceiver) []interface{} {
@@ -1015,7 +1014,7 @@ func flattenMonitorActionGroupRoleReceiver(receivers *[]insights.ArmRoleReceiver
 	return result
 }
 
-func flattenMonitorActionGroupEventHubReceiver(receivers *[]insights.EventHubReceiver) []interface{} {
+func flattenMonitorActionGroupEventHubReceiver(resourceGroup string, receivers *[]insights.EventHubReceiver) []interface{} {
 	result := make([]interface{}, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
@@ -1023,20 +1022,18 @@ func flattenMonitorActionGroupEventHubReceiver(receivers *[]insights.EventHubRec
 			if receiver.Name != nil {
 				val["name"] = *receiver.Name
 			}
-			if receiver.EventHubNameSpace != nil {
-				val["event_hub_namespace"] = *receiver.EventHubNameSpace
-			}
-			if receiver.EventHubName != nil {
-				val["event_hub_name"] = *receiver.EventHubName
+			if receiver.EventHubNameSpace != nil && receiver.EventHubName != nil && receiver.SubscriptionID != nil {
+				event_hub_namespace := *receiver.EventHubNameSpace
+				event_hub_name := *receiver.EventHubName
+				subscription_id := *receiver.SubscriptionID
+
+				val["event_hub_id"] = eventHubParser.NewEventhubID(subscription_id, resourceGroup, event_hub_namespace, event_hub_name).ID()
 			}
 			if receiver.UseCommonAlertSchema != nil {
 				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema
 			}
 			if receiver.TenantID != nil {
 				val["tenant_id"] = *receiver.TenantID
-			}
-			if receiver.SubscriptionID != nil {
-				val["subscription_id"] = *receiver.SubscriptionID
 			}
 			result = append(result, val)
 		}

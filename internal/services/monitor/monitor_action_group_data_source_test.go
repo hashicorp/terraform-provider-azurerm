@@ -296,8 +296,7 @@ resource "azurerm_monitor_action_group" "test" {
 
   event_hub_receiver {
     name                    = "eventhub-test-action"
-    event_hub_name          = azurerm_eventhub.test.name
-    event_hub_namespace     = azurerm_eventhub.test.namespace_name
+    event_hub_id            = azurerm_eventhub.test.id
   }
 }
 

@@ -169,10 +169,8 @@ The following arguments are supported:
 
 `event_hub_receiver` supports the following:
 
-* `name` - The name of the EventHub Receiver, must be unique within action group.
-* `event_hub_name` - (Required) The name of the specific Event Hub queue.
-* `event_hub_namespace` - (Required) The Event Hub namespace.
-* `subscription_id` - (Optional) The ID for the subscription containing this Event Hub.
+* `name` - (Required) The name of the EventHub Receiver, must be unique within action group.
+* `event_hub_id` - (Required) The resource ID of the respective Event Hub.
 * `tenant_id` - (Optional) The Tenant ID for the subscription containing this Event Hub.
 * `use_common_alert_schema` - (Optional) Indicates whether to use common alert schema.
 
