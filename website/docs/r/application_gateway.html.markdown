@@ -135,6 +135,8 @@ The following arguments are supported:
 
 * `http_listener` - (Required) One or more `http_listener` blocks as defined below.
 
+* `fips_enabled` - (Optional) Is FIPS enabled on the Application Gateway?
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `private_link_configuration` - (Optional) One or more `private_link_configuration` blocks as defined below.
