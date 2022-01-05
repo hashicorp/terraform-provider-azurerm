@@ -6,6 +6,7 @@ FEATURES:
 * **New Data Source:** `azurerm_sql_managed_instance` [GH-14739]
 * **New Resource:** `azurerm_aadb2c_directory` [GH-14671]
 * **New Resource:** `azurerm_data_factory_linked_service_odbc` [GH-14787]
+* **New Resource:** `azurerm_disk_pool` [GH-14675]
 * **New Resource:** `azurerm_load_test` [GH-14724]
 * **New Resource:** `azurerm_virtual_desktop_scaling_plan` [GH-14188]
 
