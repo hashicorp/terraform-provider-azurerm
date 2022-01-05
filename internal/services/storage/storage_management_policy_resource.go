@@ -309,9 +309,6 @@ func resourceStorageManagementPolicyDelete(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if resp, err := client.Delete(ctx, rid.ResourceGroup, rid.StorageAccountName); err != nil {
-		if response.WasNotFound(resp.Response) {
-			return nil
-		}
 		return fmt.Errorf("deleting %s: %+v", rid, err)
 	}
 	return nil
