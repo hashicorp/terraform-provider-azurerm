@@ -15,6 +15,8 @@ ENHANCEMENTS:
 * dependencies: upgrading to `v2.10.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-14666]
 * `azurerm_application_gateway` - support for the `key_vault_secret_id` and `force_firewall_policy_association` property [GH-14413]
 * `azurerm_iothub` - support for `identity` [GH-14354]
+* `azurerm_iothub_endpoint_servicebus_queue_resource` - depracating `iothub_name` in favour of `iothub_id` [GH-14690]
+* `azurerm_iothub_endpoint_storage_container_resource` - depracating `iothub_name` in favour of `iothub_id` [GH-14690] 
 * `azurerm_kubernetes_cluster` - support for `public_network_access_enabled`, `scale_down_mode` and `workload_runtime` properties [GH-14386]
 * `azurerm_linux_virtual_machine` - support for the `user_data` property [GH-13888]
 * `azurerm_linux_virtual_machine_scale_set` - support for the `user_data` property [GH-13888]
@@ -27,11 +29,11 @@ ENHANCEMENTS:
 * `azurerm_web_application_firewall_policy` - `file_upload_limit_in_mb` within the `policy_settings` block can now be set to 4000 [GH-14715]
 * `azurerm_windows_virtual_machine` - support for the `user_data` property [GH-13888]
 * `azurerm_windows_virtual_machine_scale_set` - support for the `user_data` property [GH-13888]
-* `iothub_endpoint_servicebus_queue_resource`, `iothub_endpoint_servicebus_queue_resource`, `iothub_endpoint_storage_container_resource` - depracating `iothub_name` in favour of `iothub_id` [GH-14690]
 
 BUG FIXES:
 
 * `azurerm_consumption_budget_subscription` - fix the string conversion in the state migration for the `subscription_id` [GH-14687]
+* `azurerm_network_interface_security_group_association` - checking the ID matches the expected format during import [GH-14753]
 
 ## 2.90.0 (December 17, 2021)
 
