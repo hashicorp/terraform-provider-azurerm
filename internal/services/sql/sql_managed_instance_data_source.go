@@ -100,7 +100,30 @@ func dataSourceArmSqlMiServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"identity": managedInstanceIdentity{}.Schema(),
+			"identity": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"user_assigned_identity_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"principal_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 
 			"storage_account_type": {
 				Type:     pluginsdk.TypeString,
