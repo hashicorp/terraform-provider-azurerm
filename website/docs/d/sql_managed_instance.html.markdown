@@ -3,7 +3,7 @@ subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_managed_instance"
 description: |-
-  Gets information about a SQL Azure Managed Instance.
+  Gets information about a SQL Managed Instance.
 ---
 
 # Data Source: azurerm_sql_managed_instance
