@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `storage_account_type` - Storage account type used to store backups for this SQL Managed Instance.
 
-* `tags` - A mapping of tags to assign to the resource.
+* `tags` - A mapping of tags assigned to the resource.
 
 ---
 
