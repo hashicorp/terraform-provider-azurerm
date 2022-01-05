@@ -287,12 +287,14 @@ resource "azurerm_servicebus_topic" "test" {
 }
 
 resource "azurerm_servicebus_subscription" "test" {
-  name                = "_acctestservicebussubscription-%[1]d_"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  max_delivery_count  = 10
-  auto_delete_on_idle = "PT5M"
+  name                                 = "_acctestservicebussubscription-%[1]d_"
+  namespace_name                       = "${azurerm_servicebus_namespace.test.name}"
+  topic_name                           = "${azurerm_servicebus_topic.test.name}"
+  resource_group_name                  = "${azurerm_resource_group.test.name}"
+  max_delivery_count                   = 10
+  auto_delete_on_idle                  = "PT5M"
+  lock_duration                        = "PT1M"
+  dead_lettering_on_message_expiration = true
 	%[3]s
 }
 
