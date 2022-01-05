@@ -5,11 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/elastic/mgmt/2020-07-01/elastic"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/legacysdk/elastic/mgmt/2020-07-01/elastic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -123,12 +123,14 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 			"sku": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
+				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 					},
 				},
@@ -144,6 +146,7 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 						"email_address": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validate.ElasticEmailAddress,
 						},
 					},
@@ -154,11 +157,12 @@ func resourceElasticMonitor() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+				ForceNew: true,
 			},
 
 			"provisioning_state": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Computed: true,
 			},
 
 			"liftr_resource_category": {
@@ -260,6 +264,7 @@ func resourceElasticMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("monitoring_status", props.MonitoringStatus == elastic.MonitoringStatusEnabled)
 		d.Set("liftr_resource_category", props.LiftrResourceCategory)
 		d.Set("liftr_resource_preference", props.LiftrResourcePreference)
+		d.Set("provisioning_state", props.ProvisioningState)
 	}
 	if err := d.Set("sku", flattenMonitorResourceSku(resp.Sku)); err != nil {
 		return fmt.Errorf("setting `sku`: %+v", err)

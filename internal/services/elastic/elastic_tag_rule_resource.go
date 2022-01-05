@@ -5,9 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/elastic/mgmt/2020-07-01/elastic"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/legacysdk/elastic/mgmt/2020-07-01/elastic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -39,6 +39,7 @@ func resourceElasticTagRule() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validate.ElasticMonitorName,
 			},
 
@@ -47,6 +48,7 @@ func resourceElasticTagRule() *pluginsdk.Resource {
 			"rule_set_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Default:  utils.String("default"),
 			},
 

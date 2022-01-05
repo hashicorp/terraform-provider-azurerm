@@ -121,7 +121,7 @@ func (r ElasticMonitorResource) basic(data acceptance.TestData) string {
 		resource_group_name = azurerm_resource_group.test.name
 		location = azurerm_resource_group.test.location
 		user_info {
-			email_address = "utkarshjain@microsoft.com"
+			email_address = "ElasticTerraformTesting@mpliftrelastic20211117outlo.onmicrosoft.com"
 		}
 		sku {
 			name = "staging_Monthly"
@@ -141,7 +141,7 @@ func (r ElasticMonitorResource) requiresImport(data acceptance.TestData) string 
 		name = "staging_Monthly"
 	}
 	user_info {
-		email_address = "utkarshjain@microsoft.com"
+		email_address = "ElasticTerraformTesting@mpliftrelastic20211117outlo.onmicrosoft.com"
 	}
 	}
 `, r.basic(data))
@@ -158,7 +158,7 @@ func (r ElasticMonitorResource) update(data acceptance.TestData) string {
 		name = "staging_Monthly"
 	}
 	user_info {
-		email_address = "utkarshjain@microsoft.com"
+		email_address = "ElasticTerraformTesting@mpliftrelastic20211117outlo.onmicrosoft.com"
 	}
 	tags = {
 		ENV = "Test"
@@ -178,7 +178,7 @@ func (r ElasticMonitorResource) complete(data acceptance.TestData) string {
 		name = "staging_Monthly"
 	}
 	user_info {
-		email_address = "utkarshjain@microsoft.com"
+		email_address = "ElasticTerraformTesting@mpliftrelastic20211117outlo.onmicrosoft.com"
 	}
 	monitoring_status = false
 	tags = {
