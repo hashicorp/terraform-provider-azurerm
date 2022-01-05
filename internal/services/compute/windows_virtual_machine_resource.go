@@ -211,18 +211,10 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"hotpatching_enabled": {
+			"hot_patching_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-			},
-
-			"patch_assessment_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.WindowsPatchAssessmentModeAutomaticByPlatform),
-					string(compute.WindowsPatchAssessmentModeImageDefault),
-				}, false),
+				Default:  false,
 			},
 
 			"plan": planSchema(),
@@ -415,8 +407,8 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	plan := expandPlan(planRaw)
 	priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
 	provisionVMAgent := d.Get("provision_vm_agent").(bool)
-	hotPatch := d.Get("hotpatching_enabled").(bool)
-	patchAssessmentMode := d.Get("patch_assessment_mode").(string)
+	patchMode := d.Get("patch_mode").(string)
+	hotPatch := d.Get("hot_patching_enabled").(bool)
 	size := d.Get("size").(string)
 	t := d.Get("tags").(map[string]interface{})
 
@@ -482,44 +474,32 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if !provisionVMAgent && allowExtensionOperations {
-		return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "allow_extension_operations", "true", "provision_vm_agent", "false")
+		return fmt.Errorf("`allow_extension_operations` cannot be set to `true` when `provision_vm_agent` is set to `false`")
 	}
 
 	if len(additionalUnattendContentRaw) > 0 {
 		params.OsProfile.WindowsConfiguration.AdditionalUnattendContent = additionalUnattendContent
 	}
 
-	patchMode := d.Get("patch_mode").(string)
-	if patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByOS) {
-		params.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
-			PatchMode: compute.WindowsVMGuestPatchMode(patchMode),
-		}
-	}
-
-	// only set patch assessment mode if it is defined in the config
-	if patchAssessmentMode != "" {
-		if !provisionVMAgent {
-			return fmt.Errorf("%q cannot be set if the %q is set to %q", "patch_assessment_mode", "provision_vm_agent", "false")
-		}
-
-		params.OsProfile.WindowsConfiguration.PatchSettings.AssessmentMode = compute.WindowsPatchAssessmentMode(patchAssessmentMode)
-	}
-
+	// Validate VM Guest Patch Mode configuration
 	if patchMode == string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) && !provisionVMAgent {
 		return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "patch_mode", "AutomaticByPlatform", "provision_vm_agent", "false")
 	}
 
-	// hot patch is only valid if patch mode is set to AutomaticByPlatform
 	if hotPatch {
+		// hot patching can only be enabled if the patch_mode is set to "AutomaticByPlatform"
 		if patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) {
-			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hotpatching_enabled", "true", "patch_mode", patchMode)
+			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hot_patching_enabled", "true", "patch_mode", patchMode)
 		}
 
 		if !provisionVMAgent {
-			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hotpatching_enabled", "true", "provisionVMAgent", "false")
+			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hot_patching_enabled", "true", "provisionVMAgent", "false")
 		}
+	}
 
-		params.OsProfile.WindowsConfiguration.PatchSettings.EnableHotpatching = utils.Bool(hotPatch)
+	params.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
+		PatchMode:         compute.WindowsVMGuestPatchMode(patchMode),
+		EnableHotpatching: utils.Bool(hotPatch),
 	}
 
 	if v, ok := d.GetOk("availability_set_id"); ok {
@@ -773,12 +753,8 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("provision_vm_agent", config.ProvisionVMAgent)
 
 			if patchSettings := config.PatchSettings; patchSettings != nil {
-				if patchSettings.AssessmentMode != "" {
-					d.Set("patch_assessment_mode", string(patchSettings.AssessmentMode))
-				}
-
 				d.Set("patch_mode", patchSettings.PatchMode)
-				d.Set("hotpatching_enabled", patchSettings.EnableHotpatching)
+				d.Set("hot_patching_enabled", patchSettings.EnableHotpatching)
 			}
 
 			d.Set("timezone", config.TimeZone)
@@ -970,7 +946,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		update.OsProfile.WindowsConfiguration.PatchSettings.PatchMode = compute.WindowsVMGuestPatchMode(d.Get("patch_mode").(string))
 	}
 
-	if d.HasChange("patch_assessment_mode") {
+	if d.HasChange("hot_patching_enabled") {
 		shouldUpdate = true
 
 		if update.OsProfile == nil {
@@ -985,25 +961,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{}
 		}
 
-		update.OsProfile.WindowsConfiguration.PatchSettings.AssessmentMode = compute.WindowsPatchAssessmentMode(d.Get("patch_assessment_mode").(string))
-	}
-
-	if d.HasChange("hotpatching_enabled") {
-		shouldUpdate = true
-
-		if update.OsProfile == nil {
-			update.OsProfile = &compute.OSProfile{}
-		}
-
-		if update.OsProfile.WindowsConfiguration == nil {
-			update.OsProfile.WindowsConfiguration = &compute.WindowsConfiguration{}
-		}
-
-		if update.OsProfile.WindowsConfiguration.PatchSettings == nil {
-			update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{}
-		}
-
-		update.OsProfile.WindowsConfiguration.PatchSettings.EnableHotpatching = utils.Bool(d.Get("hotpatching_enabled").(bool))
+		update.OsProfile.WindowsConfiguration.PatchSettings.EnableHotpatching = utils.Bool(d.Get("hot_patching_enabled").(bool))
 	}
 
 	if d.HasChange("identity") {
