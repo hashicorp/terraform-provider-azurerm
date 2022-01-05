@@ -312,7 +312,7 @@ func resourceStorageManagementPolicyDelete(d *pluginsdk.ResourceData, meta inter
 		if response.WasNotFound(resp.Response) {
 			return nil
 		}
-		return fmt.Errorf("waiting for deletion of %s: %+v", rid, err)
+		return fmt.Errorf("deleting %s: %+v", rid, err)
 	}
 	return nil
 }
