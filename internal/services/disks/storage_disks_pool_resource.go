@@ -60,6 +60,7 @@ func (StorageDisksPoolResource) Arguments() map[string]*pluginsdk.Schema {
 		"sku_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: disksValidate.DiskPoolSku(),
 		},
 		"subnet_id": {
