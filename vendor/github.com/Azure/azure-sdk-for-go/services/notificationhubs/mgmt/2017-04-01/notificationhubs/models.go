@@ -1080,7 +1080,7 @@ type NamespaceProperties struct {
 	Critical *bool `json:"critical,omitempty"`
 	// DataCenter - Data center for the namespace
 	DataCenter *string `json:"dataCenter,omitempty"`
-	// NamespaceType - The namespace type. Possible values include: 'Messaging', 'NotificationHub'
+	// NamespaceType - The namespace type. Possible values include: 'NamespaceTypeMessaging', 'NamespaceTypeNotificationHub'
 	NamespaceType NamespaceType `json:"namespaceType,omitempty"`
 }
 
@@ -2230,7 +2230,7 @@ func (saarr *SharedAccessAuthorizationRuleResource) UnmarshalJSON(body []byte) e
 
 // Sku the Sku description for a namespace
 type Sku struct {
-	// Name - Name of the notification hub sku. Possible values include: 'Free', 'Basic', 'Standard'
+	// Name - Name of the notification hub sku. Possible values include: 'SkuNameFree', 'SkuNameBasic', 'SkuNameStandard'
 	Name SkuName `json:"name,omitempty"`
 	// Tier - The tier of particular sku
 	Tier *string `json:"tier,omitempty"`
