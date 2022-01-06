@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * dependencies: upgrading to `v2.10.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-14666]
 * `azurerm_application_gateway` - support for the `key_vault_secret_id` and `force_firewall_policy_association` property [GH-14413]
 * `azurerm_cdn_endpoint_custom_domain` - add supports for HTTPS [GH-13283]
+* `azurerm_hdinsight_hbase_cluster` - support for the `network` property [GH-14825]
 * `azurerm_iothub` - support for `identity` [GH-14354]
 * `azurerm_iothub_endpoint_servicebus_queue_resource` - depracating `iothub_name` in favour of `iothub_id` [GH-14690]
 * `azurerm_iothub_endpoint_storage_container_resource` - depracating `iothub_name` in favour of `iothub_id` [GH-14690] 
