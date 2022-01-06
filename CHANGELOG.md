@@ -23,6 +23,7 @@ ENHANCEMENTS:
 * `azurerm_iothub_endpoint_servicebus_queue_resource` - depracating `iothub_name` in favour of `iothub_id` [GH-14690]
 * `azurerm_iothub_endpoint_storage_container_resource` - depracating `iothub_name` in favour of `iothub_id` [GH-14690] 
 * `azurerm_kubernetes_cluster` - support for `public_network_access_enabled`, `scale_down_mode` and `workload_runtime` properties [GH-14386]
+* `azurerm_linux_function_app` - (Beta Resource) fix filtering of app_settings for `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` [GH-14815]
 * `azurerm_linux_virtual_machine` - support for the `user_data` property [GH-13888]
 * `azurerm_linux_virtual_machine_scale_set` - support for the `user_data` property [GH-13888]
 * `azurerm_managed_disk` - support for the `gallery_image_reference_id` property [GH-14121]
@@ -34,6 +35,7 @@ ENHANCEMENTS:
 * `azurerm_web_application_firewall_policy` - `file_upload_limit_in_mb` within the `policy_settings` block can now be set to 4000 [GH-14715]
 * `azurerm_windows_virtual_machine` - support for the `user_data` property [GH-13888]
 * `azurerm_windows_virtual_machine_scale_set` - support for the `user_data` property [GH-13888]
+
 
 
 BUG FIXES:
