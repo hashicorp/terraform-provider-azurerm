@@ -8,8 +8,9 @@ package elasticapi
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/services/elastic/mgmt/2020-07-01/elastic"
+
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/legacysdk/elastic/mgmt/2020-07-01/elastic"
 )
 
 // OperationsClientAPI contains the set of methods on the OperationsClient type.

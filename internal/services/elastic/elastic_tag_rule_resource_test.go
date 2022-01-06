@@ -85,22 +85,23 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_elastic_monitor" "test" {
-	name = "test-tf-elastic-tagrule-%d"
-	resource_group_name = azurerm_resource_group.test.name
-	location = azurerm_resource_group.test.location
-	user_info {
-		email_address = "ElasticTerraformTesting@mpliftrelastic20211117outlo.onmicrosoft.com"
-	}
-	sku {
-		name = "staging_Monthly"
-	}
+  name                = "test-tf-elastic-tagrule-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  user_info {
+    email_address = "ElasticTerraformTesting@mpliftrelastic20211117outlo.onmicrosoft.com"
+  }
+  sku {
+    name = "staging_Monthly"
+  }
 }
 `, data.RandomInteger%1000, data.Locations.Primary, data.RandomInteger%1000)
 }
 
 func (r TagRuleElasticMonitorResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
-	return fmt.Sprintf(`
+	return fmt.Sprintf(
+		`
 	%s
 	resource "azurerm_elastic_tag_rule" "test" {
 		name = azurerm_elastic_monitor.test.name
@@ -119,7 +120,8 @@ func (r TagRuleElasticMonitorResource) basic(data acceptance.TestData) string {
 
 func (r TagRuleElasticMonitorResource) update(data acceptance.TestData) string {
 	template := r.template(data)
-	return fmt.Sprintf(`
+	return fmt.Sprintf(
+		`
 	%s
 	resource "azurerm_elastic_tag_rule" "test" {
 		name = azurerm_elastic_monitor.test.name
