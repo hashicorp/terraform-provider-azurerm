@@ -452,7 +452,6 @@ func flattenWebpubsubPrivatEndpoint(input *[]webpubsub.PrivateEndpointACL, priva
 }
 
 func isNewNetworkACL(existing webpubsub.ResourceType) bool {
-
 	if existing.Properties == nil || existing.Properties.NetworkACLs == nil {
 		return true
 	}
@@ -461,12 +460,9 @@ func isNewNetworkACL(existing webpubsub.ResourceType) bool {
 		return false
 	}
 
-	if existing.Properties.NetworkACLs.PublicNetwork == nil || existing.Properties.NetworkACLs.PublicNetwork.Deny != nil {
-		return false
-	}
-
-	if existing.Properties.NetworkACLs.PublicNetwork.Allow == nil ||
-		len(*existing.Properties.NetworkACLs.PublicNetwork.Allow) != len(defaultRequestTypes) {
+	if existing.Properties.NetworkACLs.PublicNetwork == nil ||
+		existing.Properties.NetworkACLs.PublicNetwork.Deny != nil ||
+		(existing.Properties.NetworkACLs.PublicNetwork.Allow == nil || len(*existing.Properties.NetworkACLs.PublicNetwork.Allow) != len(defaultRequestTypes)) {
 		return false
 	}
 
@@ -478,24 +474,19 @@ func isNewNetworkACL(existing webpubsub.ResourceType) bool {
 	}
 
 	for _, allowType := range *existing.Properties.NetworkACLs.PublicNetwork.Allow {
-		if _, ok := defaultRequestTypeMap[allowType]; !ok {
+		if !defaultRequestTypeMap[allowType] {
 			return false
 		}
 	}
 
 	if existing.Properties.NetworkACLs.PrivateEndpoints != nil {
 		for _, peItem := range *existing.Properties.NetworkACLs.PrivateEndpoints {
-			if peItem.Allow == nil || peItem.Deny != nil {
+			if peItem.Allow == nil || len(*peItem.Allow) != len(defaultRequestTypes) || peItem.Deny != nil {
 				return false
 			}
-			if peItem.Allow != nil {
-				if len(*peItem.Allow) != len(defaultRequestTypes) {
+			for _, allowType := range *peItem.Allow {
+				if !defaultRequestTypeMap[allowType] {
 					return false
-				}
-				for _, allowType := range *peItem.Allow {
-					if _, ok := defaultRequestTypeMap[allowType]; !ok {
-						return false
-					}
 				}
 			}
 		}
