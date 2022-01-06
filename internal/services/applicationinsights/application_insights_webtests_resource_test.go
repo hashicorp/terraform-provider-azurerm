@@ -178,6 +178,11 @@ resource "azurerm_application_insights_web_test" "test" {
   frequency               = 900
   timeout                 = 120
   enabled                 = true
+  description             ="web_test"
+  retry_enabled           = true
+  tags={
+      ENV="web_test"
+  }
   geo_locations           = ["us-tx-sn1-azr", "us-il-ch1-azr"]
 
   configuration = <<XML
