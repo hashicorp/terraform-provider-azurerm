@@ -47,7 +47,7 @@ func resourceIotHubFallbackRoute() *pluginsdk.Resource {
 
 			"source": {
 				Type:     pluginsdk.TypeString,
-				Required: true,
+				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(devices.RoutingSourceDeviceConnectionStateEvents),
 					string(devices.RoutingSourceDeviceJobLifecycleEvents),
@@ -56,6 +56,7 @@ func resourceIotHubFallbackRoute() *pluginsdk.Resource {
 					string(devices.RoutingSourceInvalid),
 					string(devices.RoutingSourceTwinChangeEvents),
 				}, false),
+				Default: devices.RoutingSourceDeviceMessages,
 			},
 
 			"condition": {
