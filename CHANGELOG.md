@@ -23,6 +23,7 @@ ENHANCEMENTS:
 * `azurerm_iothub` - support for `identity` [GH-14354]
 * `azurerm_iothub_endpoint_servicebus_queue_resource` - depracating `iothub_name` in favour of `iothub_id` [GH-14690]
 * `azurerm_iothub_endpoint_storage_container_resource` - depracating `iothub_name` in favour of `iothub_id` [GH-14690] 
+* `azurerm_iot_fallback_route` - support for the `source` property [GH-14836]
 * `azurerm_kubernetes_cluster` - support for `public_network_access_enabled`, `scale_down_mode` and `workload_runtime` properties [GH-14386]
 * `azurerm_linux_function_app` - (Beta Resource) fix filtering of app_settings for `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` [GH-14815]
 * `azurerm_linux_virtual_machine` - support for the `user_data` property [GH-13888]
