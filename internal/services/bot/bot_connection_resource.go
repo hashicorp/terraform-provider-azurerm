@@ -110,7 +110,7 @@ func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("checking for presence of existing Bot Connection %q (Bot %q / Resource Group %q): %+v", resourceId.ConnectionName, resourceId.BotServiceName, resourceId.ResourceGroup, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_bot_connection", resourceId.ID())
 		}
 	}

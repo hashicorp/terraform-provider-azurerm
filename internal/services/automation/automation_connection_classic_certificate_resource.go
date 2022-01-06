@@ -96,8 +96,8 @@ func resourceAutomationConnectionClassicCertificateCreateUpdate(d *pluginsdk.Res
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_automation_connection_classic_certificate", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_automation_connection_classic_certificate", id.ID())
 		}
 	}
 

@@ -96,8 +96,8 @@ func resourceApiManagementPropertyCreateUpdate(d *pluginsdk.ResourceData, meta i
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_api_management_property", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_api_management_property", id.ID())
 		}
 	}
 
