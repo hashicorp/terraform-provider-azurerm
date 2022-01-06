@@ -833,20 +833,20 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-	name                = "acceptanceTestEventHubNamespace-%d"
-	location            = "%s"
-	resource_group_name = azurerm_resource_group.test.name
-	sku                 = "Standard"
-	capacity            = 1
-  }
-  
+  name                = "acceptanceTestEventHubNamespace-%d"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  capacity            = 1
+}
+
 resource "azurerm_eventhub" "test" {
-	name                = "acceptanceTestEventHub"
-	namespace_name      = azurerm_eventhub_namespace.test.name
-	resource_group_name = azurerm_resource_group.test.name
-	partition_count     = 1
-	message_retention   = 1
-  }
+  name                = "acceptanceTestEventHub"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 1
+  message_retention   = 1
+}
 
 resource "azurerm_monitor_action_group" "test" {
   name                = "acctestActionGroup-%d"
@@ -856,7 +856,7 @@ resource "azurerm_monitor_action_group" "test" {
   event_hub_receiver {
     name                    = "eventhub-test-action"
     event_hub_id            = azurerm_eventhub.test.id
-	use_common_alert_schema = false
+    use_common_alert_schema = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -965,7 +965,7 @@ resource "azurerm_monitor_action_group" "test" {
   event_hub_receiver {
     name                    = "eventhub-test-action"
     event_hub_id            = azurerm_eventhub.test.id
-	use_common_alert_schema = false
+    use_common_alert_schema = false
   }
 }
 
@@ -1043,20 +1043,20 @@ resource "azurerm_function_app" "test" {
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-	name                = "acceptanceTestEventHubNamespace-%d"
-	location            = "%s"
-	resource_group_name = azurerm_resource_group.test.name
-	sku                 = "Standard"
-	capacity            = 1
-  }
-  
+  name                = "acceptanceTestEventHubNamespace-%d"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  capacity            = 1
+}
+
 resource "azurerm_eventhub" "test" {
-	name                = "acceptanceTestEventHub"
-	namespace_name      = azurerm_eventhub_namespace.test.name
-	resource_group_name = azurerm_resource_group.test.name
-	partition_count     = 1
-	message_retention   = 1
-  }
+  name                = "acceptanceTestEventHub"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 1
+  message_retention   = 1
+}
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
