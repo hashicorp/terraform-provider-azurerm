@@ -91,7 +91,7 @@ resource "azurerm_automation_dsc_configuration" "test" {
   location                = azurerm_resource_group.test.location
   content_embedded        = "configuration acctest {}"
   description             = "test"
-
+  log_verbose             = "true"
   tags = {
     ENV = "prod"
   }
