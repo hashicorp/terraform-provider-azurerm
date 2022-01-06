@@ -841,7 +841,7 @@ func TestAccWindowsVirtualMachine_otherGuestPatchHotpatchingEnabled(t *testing.T
 
 // I feel this is a bug in the API since to disable this we have
 // to incrementally change that values over multiple runs
-func TestAccWindowsVirtualMachine_otherGuestPatchHotpatchingDisable(t *testing.T) {
+func TestAccWindowsVirtualMachine_otherGuestPatchHotpatchingDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
