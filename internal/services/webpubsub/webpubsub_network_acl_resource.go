@@ -19,20 +19,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var (
-	defaultRequestTypes = []webpubsub.RequestType{
-		webpubsub.RequestTypeRESTAPI,
-		webpubsub.RequestTypeClientConnection,
-		webpubsub.RequestTypeServerConnection,
-		webpubsub.RequestTypeTrace,
-	}
-	defaultRequestTypeMap = map[webpubsub.RequestType]webpubsub.RequestType{
-		webpubsub.RequestTypeClientConnection: webpubsub.RequestTypeClientConnection,
-		webpubsub.RequestTypeRESTAPI:          webpubsub.RequestTypeRESTAPI,
-		webpubsub.RequestTypeServerConnection: webpubsub.RequestTypeServerConnection,
-		webpubsub.RequestTypeTrace:            webpubsub.RequestTypeTrace,
-	}
-)
+var defaultRequestTypes = []webpubsub.RequestType{
+	webpubsub.RequestTypeRESTAPI,
+	webpubsub.RequestTypeClientConnection,
+	webpubsub.RequestTypeServerConnection,
+	webpubsub.RequestTypeTrace,
+}
 
 func resourceWebpubsubNetworkACL() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -272,9 +264,6 @@ func resourceWebpubsubNetworkACLDelete(d *pluginsdk.ResourceData, meta interface
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WebPubSubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil
-		}
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
@@ -464,12 +453,15 @@ func flattenWebpubsubPrivatEndpoint(input *[]webpubsub.PrivateEndpointACL, priva
 
 func isNewNetworkACL(existing webpubsub.ResourceType) bool {
 
-	if (existing.Properties == nil || existing.Properties.NetworkACLs == nil) ||
-		(existing.Properties.NetworkACLs.DefaultAction != webpubsub.ACLActionDeny) {
+	if existing.Properties == nil || existing.Properties.NetworkACLs == nil {
+		return true
+	}
+
+	if existing.Properties.NetworkACLs.DefaultAction != webpubsub.ACLActionDeny {
 		return false
 	}
 
-	if existing.Properties.NetworkACLs.PublicNetwork.Deny != nil {
+	if existing.Properties.NetworkACLs.PublicNetwork == nil || existing.Properties.NetworkACLs.PublicNetwork.Deny != nil {
 		return false
 	}
 
@@ -478,15 +470,22 @@ func isNewNetworkACL(existing webpubsub.ResourceType) bool {
 		return false
 	}
 
+	defaultRequestTypeMap := map[webpubsub.RequestType]bool{
+		webpubsub.RequestTypeClientConnection: true,
+		webpubsub.RequestTypeRESTAPI:          true,
+		webpubsub.RequestTypeServerConnection: true,
+		webpubsub.RequestTypeTrace:            true,
+	}
+
 	for _, allowType := range *existing.Properties.NetworkACLs.PublicNetwork.Allow {
 		if _, ok := defaultRequestTypeMap[allowType]; !ok {
 			return false
 		}
 	}
 
-	if existing.Properties.NetworkACLs.PrivateEndpoints != nil && len(*existing.Properties.NetworkACLs.PrivateEndpoints) > 0 {
+	if existing.Properties.NetworkACLs.PrivateEndpoints != nil {
 		for _, peItem := range *existing.Properties.NetworkACLs.PrivateEndpoints {
-			if peItem.Deny != nil {
+			if peItem.Allow == nil || peItem.Deny != nil {
 				return false
 			}
 			if peItem.Allow != nil {
