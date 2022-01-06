@@ -65,6 +65,8 @@ func dataSourceManagementGroupTemplateDeploymentRead(d *schema.ResourceData, met
 		return fmt.Errorf("retrieving Management Group Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
+	d.SetId(id.ID())
+
 	if props := resp.Properties; props != nil {
 		flattenedOutputs, err := flattenTemplateDeploymentBody(props.Outputs)
 		if err != nil {
