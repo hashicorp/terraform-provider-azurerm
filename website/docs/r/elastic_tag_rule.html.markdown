@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Elastic Monitor. Changing this forces a new elastic Tag Rule to be created.
 
-* `resource_group_name` - (Required) The resource group of of the Elastic Monitor assosiated with the rule. Changing this forces a new elastic Tag Rule to be created.
+* `resource_group_name` - (Required) The resource group of of the Elastic Monitor associated with the rule. Changing this forces a new elastic Tag Rule to be created.
 
 * `rule_set_name` - (Optional)Default value is `default`. The name of the rule. Changing this forces a new elastic Tag Rule to be created.
 
