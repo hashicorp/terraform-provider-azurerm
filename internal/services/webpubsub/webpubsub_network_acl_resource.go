@@ -2,12 +2,12 @@ package webpubsub
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/webpubsub/mgmt/2021-10-01/webpubsub"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
