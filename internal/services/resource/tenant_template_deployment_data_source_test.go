@@ -12,6 +12,10 @@ type TenantTemplateDeploymentDataSource struct{}
 
 func TestAccDataSourceTenantTemplateDeployment(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_tenant_template_deployment", "test")
+	if data.Client().IsServicePrincipal {
+		t.Skip("Skipping due to permissions unavailable on tenant scope")
+	}
+
 	r := TenantTemplateDeploymentDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
