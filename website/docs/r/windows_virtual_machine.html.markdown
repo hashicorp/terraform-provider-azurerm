@@ -137,7 +137,7 @@ The following arguments are supported:
 
 * `hot_patching_enabled` - (Optional) Should the VM be patched without requiring a reboot? Possible values are `true` or `false`. Defaults to `false`. For more information about hot patching please see the [product documentation](https://docs.microsoft.com/azure/automanage/automanage-hotpatch).
 
--> **NOTE:** Hot patching can only be enabled if the `patch_mode` is set to `AutomaticByPlatform` and the `provision_vm_agent` is set to `true`.
+-> **NOTE:** Hot patching can only be enabled if the `patch_mode` is set to `AutomaticByPlatform`, the `provision_vm_agent` is set to `true`, the `source_image_reference` is using the `Windows Server 2022 Datacenter: Azure Edition Core` sku and the VM's `size` is using a [Azure generation 2](https://docs.microsoft.com/azure/virtual-machines/generation-2#generation-2-vm-sizes) VM.
 
 * `identity` - (Optional) An `identity` block as defined below.
 

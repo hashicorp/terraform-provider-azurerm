@@ -830,7 +830,7 @@ func TestAccWindowsVirtualMachine_otherGuestPatchHotpatchingEnabled(t *testing.T
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherHotpatchingEnabled(data, true, "AutomaticByPlatform"),
+			Config: r.otherHotpatching(data, true, "AutomaticByPlatform"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -839,20 +839,29 @@ func TestAccWindowsVirtualMachine_otherGuestPatchHotpatchingEnabled(t *testing.T
 	})
 }
 
-func TestAccWindowsVirtualMachine_otherGuestPatchHotpatchingUpdate(t *testing.T) {
+// I feel this is a bug in the API since to disable this we have
+// to incrementally change that values over multiple runs
+func TestAccWindowsVirtualMachine_otherGuestPatchHotpatchingDisable(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherHotpatchingEnabled(data, true, "AutomaticByPlatform"),
+			Config: r.otherHotpatching(data, true, "AutomaticByPlatform"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherHotpatchingEnabled(data, false, "AutomaticByOS"),
+			Config: r.otherHotpatching(data, false, "AutomaticByPlatform"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherHotpatching(data, false, "AutomaticByOS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -861,7 +870,7 @@ func TestAccWindowsVirtualMachine_otherGuestPatchHotpatchingUpdate(t *testing.T)
 	})
 }
 
-func (r WindowsVirtualMachineResource) otherHotpatchingEnabled(data acceptance.TestData, hotPatch bool, patchMode string) string {
+func (r WindowsVirtualMachineResource) otherHotpatching(data acceptance.TestData, hotPatch bool, patchMode string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -869,7 +878,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
+  size                = "Standard_F2s_v2"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
 
@@ -885,7 +894,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
+    sku       = "2022-datacenter-azure-edition-core"
     version   = "latest"
   }
 
