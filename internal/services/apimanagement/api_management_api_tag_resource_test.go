@@ -79,7 +79,7 @@ func (r ApiManagementApiTagResource) requiresImport(data acceptance.TestData) st
 	return fmt.Sprintf(`
 %s
 resource "azurerm_api_management_api_tag" "import" {
-  api_id = azurerm_api_management_api_tag.test.id
+  api_id = azurerm_api_management_api.test.id
   name   = azurerm_api_management_api_tag.test.name
 }
 `, r.basic(data))
