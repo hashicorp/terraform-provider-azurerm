@@ -101,7 +101,7 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 
 			"index": {
 				Type:     pluginsdk.TypeSet,
-				Required: true,
+				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"keys": {
