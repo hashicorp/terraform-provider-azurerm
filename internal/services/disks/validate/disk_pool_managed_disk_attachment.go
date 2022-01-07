@@ -2,6 +2,7 @@ package validate
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/sdk/2021-08-01/diskpools"
 )
 
