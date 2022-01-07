@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,65 +26,115 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 		Read:   apiManagementCustomDomainRead,
 		Update: apiManagementCustomDomainCreateUpdate,
 		Delete: apiManagementCustomDomainDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.CustomDomainID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(45 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(45 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(45 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"api_management_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
-			},
+		Schema: func() map[string]*pluginsdk.Schema {
+			rSchema := map[string]*pluginsdk.Schema{
+				"api_management_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: azure.ValidateResourceID,
+				},
 
-			"management": {
-				Type:         pluginsdk.TypeList,
-				Optional:     true,
-				AtLeastOneOf: []string{"management", "portal", "developer_portal", "proxy", "scm"},
-				Elem: &pluginsdk.Resource{
-					Schema: apiManagementResourceHostnameSchema(),
+				"management": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					// TODO 3.0 - Remove 3.0 flag for this and all other properties in the schema
+					AtLeastOneOf: func() []string {
+						if !features.ThreePointOh() {
+							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
+						}
+						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
+					}(),
+					Elem: &pluginsdk.Resource{
+						Schema: apiManagementResourceHostnameSchema(),
+					},
 				},
-			},
-			"portal": {
-				Type:         pluginsdk.TypeList,
-				Optional:     true,
-				AtLeastOneOf: []string{"management", "portal", "developer_portal", "proxy", "scm"},
-				Elem: &pluginsdk.Resource{
-					Schema: apiManagementResourceHostnameSchema(),
+				"portal": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					AtLeastOneOf: func() []string {
+						if !features.ThreePointOh() {
+							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
+						}
+						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
+					}(),
+					Elem: &pluginsdk.Resource{
+						Schema: apiManagementResourceHostnameSchema(),
+					},
 				},
-			},
-			"developer_portal": {
-				Type:         pluginsdk.TypeList,
-				Optional:     true,
-				AtLeastOneOf: []string{"management", "portal", "developer_portal", "proxy", "scm"},
-				Elem: &pluginsdk.Resource{
-					Schema: apiManagementResourceHostnameSchema(),
+				"developer_portal": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					AtLeastOneOf: func() []string {
+						if !features.ThreePointOh() {
+							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
+						}
+						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
+					}(),
+					Elem: &pluginsdk.Resource{
+						Schema: apiManagementResourceHostnameSchema(),
+					},
 				},
-			},
-			"proxy": {
-				Type:         pluginsdk.TypeList,
-				Optional:     true,
-				AtLeastOneOf: []string{"management", "portal", "developer_portal", "proxy", "scm"},
-				Elem: &pluginsdk.Resource{
-					Schema: apiManagementResourceHostnameProxySchema(),
+				"scm": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					AtLeastOneOf: func() []string {
+						if !features.ThreePointOh() {
+							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
+						}
+						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
+					}(),
+					Elem: &pluginsdk.Resource{
+						Schema: apiManagementResourceHostnameSchema(),
+					},
 				},
-			},
-			"scm": {
-				Type:         pluginsdk.TypeList,
-				Optional:     true,
-				AtLeastOneOf: []string{"management", "portal", "developer_portal", "proxy", "scm"},
-				Elem: &pluginsdk.Resource{
-					Schema: apiManagementResourceHostnameSchema(),
-				},
-			},
-		},
+			}
+			// TODO 3.0 - Remove anonymous func for Schema and remove `proxy` block
+			if features.ThreePointOh() {
+				rSchema["gateway"] = &pluginsdk.Schema{
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					AtLeastOneOf: func() []string {
+						if !features.ThreePointOh() {
+							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
+						}
+						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
+					}(),
+					Elem: &pluginsdk.Resource{
+						Schema: apiManagementResourceHostnameProxySchema(),
+					},
+				}
+			} else {
+				rSchema["proxy"] = &pluginsdk.Schema{
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					AtLeastOneOf: func() []string {
+						if !features.ThreePointOh() {
+							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
+						}
+						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
+					}(),
+					Elem: &pluginsdk.Resource{
+						Schema: apiManagementResourceHostnameProxySchema(),
+					},
+					Deprecated: "`proxy` is deprecated and will be renamed to `gateway` in version 3.0 of the AzureRM provider",
+				}
+			}
+			return rSchema
+		}(),
 	}
 }
 
@@ -92,19 +143,16 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for API Management Custom domain creation.")
-
-	apiManagementID := d.Get("api_management_id").(string)
-	id, err := parse.ApiManagementID(apiManagementID)
+	apiMgmtId, err := parse.ApiManagementID(d.Get("api_management_id").(string))
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
 
-	existing, err := client.Get(ctx, resourceGroup, serviceName)
+	id := parse.NewCustomDomainID(apiMgmtId.SubscriptionId, apiMgmtId.ResourceGroup, apiMgmtId.ServiceName, "default")
+
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName)
 	if err != nil {
-		return fmt.Errorf("finding API Management (API Management %q / Resource Group %q): %s", serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	if d.IsNewResource() {
@@ -116,11 +164,11 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	existing.ServiceProperties.HostnameConfigurations = expandApiManagementCustomDomains(d)
 
 	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
-	log.Printf("[DEBUG] Waiting for API Management Service %q (Resource Group: %q) to become ready", serviceName, resourceGroup)
+	log.Printf("[DEBUG] Waiting for %s to become ready", id)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Updating", "Unknown"},
 		Target:                    []string{"Succeeded", "Ready"},
-		Refresh:                   apiManagementRefreshFunc(ctx, client, serviceName, resourceGroup),
+		Refresh:                   apiManagementRefreshFunc(ctx, client, id.ServiceName, id.ResourceGroup),
 		MinTimeout:                1 * time.Minute,
 		ContinuousTargetOccurence: 6,
 	}
@@ -131,29 +179,19 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for API Management Service %q (Resource Group: %q) to become ready: %+v", serviceName, resourceGroup, err)
+		return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, existing); err != nil {
-		return fmt.Errorf("creating/updating Custom Domain (API Management %q / Resource Group %q): %+v", serviceName, resourceGroup, err)
-	}
-
-	read, err := client.Get(ctx, resourceGroup, serviceName)
-	if err != nil {
-		return fmt.Errorf("retrieving Custom Domain (API Management %q / Resource Group %q): %+v", serviceName, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("cannot read ID for Custom Domain (API Management %q / Resource Group %q)", serviceName, resourceGroup)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, existing); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
-	log.Printf("[DEBUG] Waiting for API Management Service %q (Resource Group: %q) to become ready", serviceName, resourceGroup)
+	log.Printf("[DEBUG] Waiting for %s to become ready", id)
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for API Management Service %q (Resource Group: %q) to become ready: %+v", serviceName, resourceGroup, err)
+		return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
 	}
-
-	customDomainsID := fmt.Sprintf("%s/customDomains/default", *read.ID)
-	d.SetId(customDomainsID)
+	d.SetId(id.ID())
 
 	return apiManagementCustomDomainRead(d, meta)
 }
@@ -168,21 +206,21 @@ func apiManagementCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName)
+	apiMgmtId := parse.NewApiManagementID(id.SubscriptionId, id.ResourceGroup, id.ServiceName)
+
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("API Management Service %q was not found in Resource Group %q - removing from state!", serviceName, resourceGroup)
+			log.Printf("%s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on API Management Service %q (Resource Group %q): %+v", serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("api_management_id", resp.ID)
+	d.Set("api_management_id", apiMgmtId.ID())
 
 	if resp.ServiceProperties != nil && resp.ServiceProperties.HostnameConfigurations != nil {
 		apimHostNameSuffix := environment.APIManagementHostNameSuffix
@@ -209,47 +247,45 @@ func apiManagementCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("API Management Service %q was not found in Resource Group %q - removing from state!", serviceName, resourceGroup)
+			log.Printf("%s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on API Management Service %q (Resource Group %q): %+v", serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
-	log.Printf("[DEBUG] Waiting for API Management Service %q (Resource Group: %q) to become ready", serviceName, resourceGroup)
+	log.Printf("[DEBUG] Waiting for %s to become ready", *id)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Updating", "Unknown"},
 		Target:                    []string{"Succeeded", "Ready"},
-		Refresh:                   apiManagementRefreshFunc(ctx, client, serviceName, resourceGroup),
+		Refresh:                   apiManagementRefreshFunc(ctx, client, id.ServiceName, id.ResourceGroup),
 		MinTimeout:                1 * time.Minute,
 		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
 		ContinuousTargetOccurence: 6,
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for API Management Service %q (Resource Group: %q) to become ready: %+v", serviceName, resourceGroup, err)
+		return fmt.Errorf("waiting for %s to become ready: %+v", *id, err)
 	}
 
-	log.Printf("[DEBUG] Deleting API Management Custom Domain (API Management %q / Resource Group %q)", serviceName, resourceGroup)
+	log.Printf("[DEBUG] Deleting %s", *id)
 
 	resp.ServiceProperties.HostnameConfigurations = nil
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, resp); err != nil {
-		return fmt.Errorf("deleting Custom Domain (API Management %q / Resource Group %q): %+v", serviceName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, resp); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
-	log.Printf("[DEBUG] Waiting for API Management Service %q (Resource Group: %q) to become ready", serviceName, resourceGroup)
+	log.Printf("[DEBUG] Waiting for %s to become ready", *id)
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for API Management Service %q (Resource Group: %q) to become ready: %+v", serviceName, resourceGroup, err)
+		return fmt.Errorf("waiting for %s to become ready: %+v", *id, err)
 	}
 
 	return nil
@@ -282,15 +318,30 @@ func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanag
 			results = append(results, output)
 		}
 	}
-	if proxyRawVal, ok := input.GetOk("proxy"); ok {
-		vs := proxyRawVal.([]interface{})
-		for _, rawVal := range vs {
-			v := rawVal.(map[string]interface{})
-			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeProxy)
-			if value, ok := v["default_ssl_binding"]; ok {
-				output.DefaultSslBinding = utils.Bool(value.(bool))
+	// TODO 3.0 - Simplify and remove `proxy`
+	if features.ThreePointOh() {
+		if gatewayRawVal, ok := input.GetOk("gateway"); ok {
+			vs := gatewayRawVal.([]interface{})
+			for _, rawVal := range vs {
+				v := rawVal.(map[string]interface{})
+				output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeProxy)
+				if value, ok := v["default_ssl_binding"]; ok {
+					output.DefaultSslBinding = utils.Bool(value.(bool))
+				}
+				results = append(results, output)
 			}
-			results = append(results, output)
+		}
+	} else {
+		if proxyRawVal, ok := input.GetOk("proxy"); ok {
+			vs := proxyRawVal.([]interface{})
+			for _, rawVal := range vs {
+				v := rawVal.(map[string]interface{})
+				output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeProxy)
+				if value, ok := v["default_ssl_binding"]; ok {
+					output.DefaultSslBinding = utils.Bool(value.(bool))
+				}
+				results = append(results, output)
+			}
 		}
 	}
 	if scmRawVal, ok := input.GetOk("scm"); ok {
@@ -313,7 +364,7 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 	managementResults := make([]interface{}, 0)
 	portalResults := make([]interface{}, 0)
 	developerPortalResults := make([]interface{}, 0)
-	proxyResults := make([]interface{}, 0)
+	gatewayResults := make([]interface{}, 0)
 	scmResults := make([]interface{}, 0)
 
 	for _, config := range *input {
@@ -343,8 +394,13 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 			if config.DefaultSslBinding != nil {
 				output["default_ssl_binding"] = *config.DefaultSslBinding
 			}
-			proxyResults = append(proxyResults, output)
-			configType = "proxy"
+			gatewayResults = append(gatewayResults, output)
+			// TODO 3.0 - Remove `proxy`
+			if features.ThreePointOh() {
+				configType = "gateway"
+			} else {
+				configType = "proxy"
+			}
 
 		case strings.ToLower(string(apimanagement.HostnameTypeManagement)):
 			managementResults = append(managementResults, output)
@@ -369,15 +425,22 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 				schemaz.CopyCertificateAndPassword(vals, *config.HostName, output)
 			}
 		}
+
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"management":       managementResults,
-			"portal":           portalResults,
-			"developer_portal": developerPortalResults,
-			"proxy":            proxyResults,
-			"scm":              scmResults,
-		},
+	res := map[string]interface{}{
+		"management":       managementResults,
+		"portal":           portalResults,
+		"developer_portal": developerPortalResults,
+		"scm":              scmResults,
 	}
+
+	// TODO 3.0 - Simplify and remove `proxy`
+	if features.ThreePointOh() {
+		res["gateway"] = gatewayResults
+	} else {
+		res["proxy"] = gatewayResults
+	}
+
+	return []interface{}{res}
 }
